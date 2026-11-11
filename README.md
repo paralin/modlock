@@ -1491,6 +1491,40 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
 `serve(service, handler)` answers the host's calls to one the mod serves. See
 [How mods reach the game](#how-mods-reach-the-game) for the protocol.
 
+Name each service the mod calls in `mod.json`; a service is needed unless it
+is marked optional. The sandbox refuses to start a mod whose needed service
+nobody provides there, naming it, and starts one without an optional
+service, whose calls then fail. A game host does not read the list yet: it
+starts the mod either way, and a call to a service it does not provide
+fails:
+
+```json
+"services": [
+  { "name": "example.drills.v1" },
+  { "name": "example.ghosts.v1", "optional": true }
+]
+```
+
+The sandbox answers a named service from a fixture in the project:
+`services/<name>.json`, an object whose keys are the service's methods and
+whose values are their replies, sent as JSON. Before the mod starts, the
+sandbox logs which provider answers each named service: a fixture or nobody.
+
+A service may answer in a later frame, as one that asks a server across the
+network does. `callServiceLater(service, method, payload, done)` returns at
+once, and `done(reply, error, failure)` runs once in a later frame: with the
+reply, or with the service's refusal, a timeout or `unavailable` when nobody
+provides the service, which is then never asked. The host waits at most 30
+seconds, or the call's own shorter timeout, and drops the calls a mod still
+waits for when it stops or reloads. A service that answers at once, a
+fixture among them, answers a started call the same way in the next frame, so
+a mod cannot tell which provider it has. A host provides a service that
+answers later with `WasmHost::ProvideLater`.
+
+```json
+{ "read": { "key": "slide" }, "save": true }
+```
+
 ### Files
 
 A mod keeps text files, such as its configuration or areas a player drew in
@@ -1561,6 +1595,7 @@ Every project has a `mod.json` at its root:
 | `settings`    |          | [Choices](#settings) each player makes about the mod.                                              |
 | `metrics`     |          | [Totals](#metrics) the mod keeps for each player.                                                  |
 | `boards`      |          | [Rankings](#boards) the mod reports scores to.                                                     |
+| `services`    |          | [Services](#services) the mod calls, each needed or optional.                                      |
 
 ### Map
 

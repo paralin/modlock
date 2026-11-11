@@ -22,6 +22,9 @@ type Build struct {
 	Entry []byte
 	// Data holds the files the mod ships in its data/ directory.
 	Data fs.FS
+	// fixtures answer the services the manifest names that have a fixture,
+	// by service name.
+	fixtures map[string]*fixture
 }
 
 // ReadBuild reads the built mod in dist through its manifest.

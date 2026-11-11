@@ -752,6 +752,19 @@ class HostService {
     return std::unexpected("this host does not support CallService");
   }
 
+  // StartServiceCall calls method of a service the host provides and
+  // returns at once with a number; the answer arrives in a later frame as a
+  // ServiceReplied event carrying that number. Every call ends once: with
+  // the reply, the service's refusal, a timeout or no provider at all. A
+  // service nobody provides is never asked. The host waits at most 30
+  // seconds, or the call's shorter timeout, and drops the mod's waiting
+  // calls when the mod stops or reloads. A service that answers at once
+  // answers this way too, in the next frame.
+  virtual std::expected<ServiceCallStarted, std::string> StartServiceCall(
+      const StartServiceCallRequest& /*request*/) {
+    return std::unexpected("this host does not support StartServiceCall");
+  }
+
   // CreateEntity creates any entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
@@ -1690,6 +1703,14 @@ class HostService {
            }
            return detail::Answer(host.CallService(request));
          }},
+        {"StartServiceCall",
+         [](HostService& host, const std::string& bytes) {
+           StartServiceCallRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the StartServiceCall request is malformed");
+           }
+           return detail::Answer(host.StartServiceCall(request));
+         }},
         {"CreateEntity",
          [](HostService& host, const std::string& bytes) {
            entities::EntityOptions request;
@@ -2013,6 +2034,11 @@ class ModClient {
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);
+  }
+
+  // ServiceReplied ends one StartServiceCall, in a frame after the call.
+  std::expected<void, std::string> ServiceReplied(const ServiceRepliedEvent& event) {
+    return Send<void>("ServiceReplied", event);
   }
 
   // Damage offers one hit before the game applies it, while the mod asked

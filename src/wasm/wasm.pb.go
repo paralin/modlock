@@ -9,11 +9,57 @@ import (
 	io "io"
 	math "math"
 	slices "slices"
+	strconv "strconv"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	movement "github.com/paralin/modlock/src/wasm/movement"
 )
+
+// ServiceFailure says why a service call ended without an answer.
+type ServiceFailure int32
+
+const (
+	// SERVICE_FAILURE_NONE is an answered call.
+	ServiceFailure_SERVICE_FAILURE_NONE ServiceFailure = 0
+	// SERVICE_FAILURE_REFUSED is a call the service answered with an error.
+	ServiceFailure_SERVICE_FAILURE_REFUSED ServiceFailure = 1
+	// SERVICE_FAILURE_TIMEOUT is a call that waited out its timeout.
+	ServiceFailure_SERVICE_FAILURE_TIMEOUT ServiceFailure = 2
+	// SERVICE_FAILURE_UNAVAILABLE is a call to a service nobody provides
+	// here, or one more than the host keeps waiting for a mod.
+	ServiceFailure_SERVICE_FAILURE_UNAVAILABLE ServiceFailure = 3
+)
+
+// Enum value maps for ServiceFailure.
+var (
+	ServiceFailure_name = map[int32]string{
+		0: "SERVICE_FAILURE_NONE",
+		1: "SERVICE_FAILURE_REFUSED",
+		2: "SERVICE_FAILURE_TIMEOUT",
+		3: "SERVICE_FAILURE_UNAVAILABLE",
+	}
+	ServiceFailure_value = map[string]int32{
+		"SERVICE_FAILURE_NONE":        0,
+		"SERVICE_FAILURE_REFUSED":     1,
+		"SERVICE_FAILURE_TIMEOUT":     2,
+		"SERVICE_FAILURE_UNAVAILABLE": 3,
+	}
+)
+
+func (x ServiceFailure) Enum() *ServiceFailure {
+	p := new(ServiceFailure)
+	*p = x
+	return p
+}
+
+func (x ServiceFailure) String() string {
+	name, valid := ServiceFailure_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
 
 // Call is one method call across the boundary: a mod calling the game
 // through modlock.host_call, or the game delivering an event through the
@@ -418,6 +464,123 @@ func (x *ServiceReply) GetPayload() []byte {
 	return nil
 }
 
+// StartServiceCallRequest calls one method of a service the host provides,
+// to be answered in a later frame.
+type StartServiceCallRequest struct {
+	unknownFields []byte
+	// Service names the service, such as "arena.match".
+	Service string `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	// Method names the method within the service.
+	Method string `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	// Payload is the call's argument.
+	Payload []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	// TimeoutMilliseconds is how long the mod waits for the answer; zero or
+	// more than 30 seconds waits 30 seconds.
+	TimeoutMilliseconds uint32 `protobuf:"varint,4,opt,name=timeout_milliseconds,json=timeoutMilliseconds,proto3" json:"timeoutMilliseconds,omitempty"`
+}
+
+func (x *StartServiceCallRequest) Reset() {
+	*x = StartServiceCallRequest{}
+}
+
+func (*StartServiceCallRequest) ProtoMessage() {}
+
+func (x *StartServiceCallRequest) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *StartServiceCallRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *StartServiceCallRequest) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *StartServiceCallRequest) GetTimeoutMilliseconds() uint32 {
+	if x != nil {
+		return x.TimeoutMilliseconds
+	}
+	return 0
+}
+
+// ServiceCallStarted numbers a started service call.
+type ServiceCallStarted struct {
+	unknownFields []byte
+	// Call is the number the call's ServiceReplied event carries, unique for
+	// the mod's instance.
+	Call uint64 `protobuf:"varint,1,opt,name=call,proto3" json:"call,omitempty"`
+}
+
+func (x *ServiceCallStarted) Reset() {
+	*x = ServiceCallStarted{}
+}
+
+func (*ServiceCallStarted) ProtoMessage() {}
+
+func (x *ServiceCallStarted) GetCall() uint64 {
+	if x != nil {
+		return x.Call
+	}
+	return 0
+}
+
+// ServiceRepliedEvent ends one started service call.
+type ServiceRepliedEvent struct {
+	unknownFields []byte
+	// Call is the number StartServiceCall returned.
+	Call uint64 `protobuf:"varint,1,opt,name=call,proto3" json:"call,omitempty"`
+	// Payload is the answer, when failure is none.
+	Payload []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	// Failure says why the call ended without an answer.
+	Failure ServiceFailure `protobuf:"varint,3,opt,name=failure,proto3" json:"failure,omitempty"`
+	// Error describes the failure.
+	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *ServiceRepliedEvent) Reset() {
+	*x = ServiceRepliedEvent{}
+}
+
+func (*ServiceRepliedEvent) ProtoMessage() {}
+
+func (x *ServiceRepliedEvent) GetCall() uint64 {
+	if x != nil {
+		return x.Call
+	}
+	return 0
+}
+
+func (x *ServiceRepliedEvent) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *ServiceRepliedEvent) GetFailure() ServiceFailure {
+	if x != nil {
+		return x.Failure
+	}
+	return ServiceFailure_SERVICE_FAILURE_NONE
+}
+
+func (x *ServiceRepliedEvent) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 // LogRequest carries one log line.
 type LogRequest struct {
 	unknownFields []byte
@@ -693,6 +856,60 @@ func (m *ServiceReply) CloneVT() *ServiceReply {
 }
 
 func (m *ServiceReply) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *StartServiceCallRequest) CloneVT() *StartServiceCallRequest {
+	if m == nil {
+		return (*StartServiceCallRequest)(nil)
+	}
+	r := new(StartServiceCallRequest)
+	r.Service = m.Service
+	r.Method = m.Method
+	r.TimeoutMilliseconds = m.TimeoutMilliseconds
+	r.Payload = protobuf_go_lite.CloneBytes(m.Payload)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *StartServiceCallRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ServiceCallStarted) CloneVT() *ServiceCallStarted {
+	if m == nil {
+		return (*ServiceCallStarted)(nil)
+	}
+	r := new(ServiceCallStarted)
+	r.Call = m.Call
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceCallStarted) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ServiceRepliedEvent) CloneVT() *ServiceRepliedEvent {
+	if m == nil {
+		return (*ServiceRepliedEvent)(nil)
+	}
+	r := new(ServiceRepliedEvent)
+	r.Call = m.Call
+	r.Failure = m.Failure
+	r.Error = m.Error
+	r.Payload = protobuf_go_lite.CloneBytes(m.Payload)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceRepliedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1033,6 +1250,84 @@ func (this *ServiceReply) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *StartServiceCallRequest) EqualVT(that *StartServiceCallRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Service != that.Service {
+		return false
+	}
+	if this.Method != that.Method {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Payload, that.Payload) {
+		return false
+	}
+	if this.TimeoutMilliseconds != that.TimeoutMilliseconds {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *StartServiceCallRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*StartServiceCallRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ServiceCallStarted) EqualVT(that *ServiceCallStarted) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Call != that.Call {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ServiceCallStarted) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ServiceCallStarted)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ServiceRepliedEvent) EqualVT(that *ServiceRepliedEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Call != that.Call {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Payload, that.Payload) {
+		return false
+	}
+	if this.Failure != that.Failure {
+		return false
+	}
+	if this.Error != that.Error {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ServiceRepliedEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ServiceRepliedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *LogRequest) EqualVT(that *LogRequest) bool {
 	if this == that {
 		return true
@@ -1094,6 +1389,46 @@ func (this *PrecacheOptions) EqualMessageVT(thatMsg any) bool {
 		return false
 	}
 	return this.EqualVT(that)
+}
+
+// MarshalProtoJSON marshals the ServiceFailure to JSON.
+func (x ServiceFailure) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), ServiceFailure_name)
+}
+
+// MarshalText marshals the ServiceFailure to text.
+func (x ServiceFailure) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), ServiceFailure_name)), nil
+}
+
+// MarshalJSON marshals the ServiceFailure to JSON.
+func (x ServiceFailure) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ServiceFailure from JSON.
+func (x *ServiceFailure) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(ServiceFailure_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read ServiceFailure enum: %v", err)
+		return
+	}
+	*x = ServiceFailure(v)
+}
+
+// UnmarshalText unmarshals the ServiceFailure from text.
+func (x *ServiceFailure) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), ServiceFailure_value)
+	if err != nil {
+		return err
+	}
+	*x = ServiceFailure(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the ServiceFailure from JSON.
+func (x *ServiceFailure) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
 // MarshalProtoJSON marshals the Call message to JSON.
@@ -1760,6 +2095,180 @@ func (x *ServiceReply) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ServiceReply from JSON.
 func (x *ServiceReply) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the StartServiceCallRequest message to JSON.
+func (x *StartServiceCallRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Service != "" || s.HasField("service") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("service")
+		s.WriteString(x.Service)
+	}
+	if x.Method != "" || s.HasField("method") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("method")
+		s.WriteString(x.Method)
+	}
+	if len(x.Payload) > 0 || s.HasField("payload") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("payload")
+		s.WriteBytes(x.Payload)
+	}
+	if x.TimeoutMilliseconds != 0 || s.HasField("timeoutMilliseconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("timeoutMilliseconds")
+		s.WriteUint32(x.TimeoutMilliseconds)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the StartServiceCallRequest to JSON.
+func (x *StartServiceCallRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the StartServiceCallRequest message from JSON.
+func (x *StartServiceCallRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "service":
+			s.AddField("service")
+			x.Service = s.ReadString()
+		case "method":
+			s.AddField("method")
+			x.Method = s.ReadString()
+		case "payload":
+			s.AddField("payload")
+			x.Payload = s.ReadBytes()
+		case "timeout_milliseconds", "timeoutMilliseconds":
+			s.AddField("timeout_milliseconds")
+			x.TimeoutMilliseconds = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the StartServiceCallRequest from JSON.
+func (x *StartServiceCallRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ServiceCallStarted message to JSON.
+func (x *ServiceCallStarted) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Call != 0 || s.HasField("call") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("call")
+		s.WriteUint64(x.Call)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ServiceCallStarted to JSON.
+func (x *ServiceCallStarted) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ServiceCallStarted message from JSON.
+func (x *ServiceCallStarted) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "call":
+			s.AddField("call")
+			x.Call = s.ReadUint64()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ServiceCallStarted from JSON.
+func (x *ServiceCallStarted) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ServiceRepliedEvent message to JSON.
+func (x *ServiceRepliedEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Call != 0 || s.HasField("call") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("call")
+		s.WriteUint64(x.Call)
+	}
+	if len(x.Payload) > 0 || s.HasField("payload") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("payload")
+		s.WriteBytes(x.Payload)
+	}
+	if x.Failure != 0 || s.HasField("failure") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("failure")
+		x.Failure.MarshalProtoJSON(s)
+	}
+	if x.Error != "" || s.HasField("error") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("error")
+		s.WriteString(x.Error)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ServiceRepliedEvent to JSON.
+func (x *ServiceRepliedEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ServiceRepliedEvent message from JSON.
+func (x *ServiceRepliedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "call":
+			s.AddField("call")
+			x.Call = s.ReadUint64()
+		case "payload":
+			s.AddField("payload")
+			x.Payload = s.ReadBytes()
+		case "failure":
+			s.AddField("failure")
+			x.Failure.UnmarshalProtoJSON(s)
+		case "error":
+			s.AddField("error")
+			x.Error = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ServiceRepliedEvent from JSON.
+func (x *ServiceRepliedEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2438,6 +2947,147 @@ func (m *ServiceReply) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *StartServiceCallRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StartServiceCallRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *StartServiceCallRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.TimeoutMilliseconds != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.TimeoutMilliseconds))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Payload) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Payload)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Method) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Method)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Service) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Service)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ServiceCallStarted) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ServiceCallStarted) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ServiceCallStarted) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Call != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Call))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ServiceRepliedEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ServiceRepliedEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ServiceRepliedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Error) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Error)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Failure != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Failure))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Payload) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Payload)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Call != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Call))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *LogRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2709,6 +3359,45 @@ func (m *ServiceReply) SizeVT() (n int) {
 	return n
 }
 
+func (m *StartServiceCallRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Service)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Method)
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Payload)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.TimeoutMilliseconds)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ServiceCallStarted) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Call)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ServiceRepliedEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Call)
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Payload)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Failure)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Error)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *LogRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2741,6 +3430,10 @@ func (m *PrecacheOptions) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringSlice(1, m.Resources)
 	n += len(m.unknownFields)
 	return n
+}
+
+func (x ServiceFailure) MarshalProtoText() string {
+	return x.String()
 }
 
 func (x *Call) MarshalProtoText() string {
@@ -2988,6 +3681,72 @@ func (x *ServiceReply) MarshalProtoText() string {
 }
 
 func (x *ServiceReply) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *StartServiceCallRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "StartServiceCallRequest")
+	if x.Service != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "service")
+		protobuf_go_lite.TextWriteString(&sb, x.Service)
+	}
+	if x.Method != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "method")
+		protobuf_go_lite.TextWriteString(&sb, x.Method)
+	}
+	if len(x.Payload) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "payload")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Payload)
+	}
+	if x.TimeoutMilliseconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "timeout_milliseconds")
+		protobuf_go_lite.TextWriteUint(&sb, x.TimeoutMilliseconds)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *StartServiceCallRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ServiceCallStarted) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ServiceCallStarted")
+	if x.Call != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "call")
+		protobuf_go_lite.TextWriteUint(&sb, x.Call)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ServiceCallStarted) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ServiceRepliedEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ServiceRepliedEvent")
+	if x.Call != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "call")
+		protobuf_go_lite.TextWriteUint(&sb, x.Call)
+	}
+	if len(x.Payload) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "payload")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Payload)
+	}
+	if x.Failure != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "failure")
+		protobuf_go_lite.TextWriteStringer(&sb, ServiceFailure(x.Failure))
+	}
+	if x.Error != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "error")
+		protobuf_go_lite.TextWriteString(&sb, x.Error)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ServiceRepliedEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3833,6 +4592,219 @@ func (m *ServiceReply) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *StartServiceCallRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StartServiceCallRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StartServiceCallRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Service", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Service = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Method", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Method = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			m.Payload, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Payload, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutMilliseconds", wireType)
+			}
+			m.TimeoutMilliseconds = 0
+			m.TimeoutMilliseconds, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ServiceCallStarted) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ServiceCallStarted: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ServiceCallStarted: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Call", wireType)
+			}
+			m.Call = 0
+			m.Call, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ServiceRepliedEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ServiceRepliedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ServiceRepliedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Call", wireType)
+			}
+			m.Call = 0
+			m.Call, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			m.Payload, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Payload, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Failure", wireType)
+			}
+			m.Failure = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Failure = ServiceFailure(_v)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Error = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

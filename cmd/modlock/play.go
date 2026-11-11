@@ -180,8 +180,23 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 			host, err := session.FindHost(ctx, Version)
 			return filepath.Dir(host), err
 		},
-		Events: events,
+		Events:   events,
+		Fixtures: projectFixtures,
 	}), nil
+}
+
+// projectFixtures is the service fixture directory of the project whose build
+// is at path, or empty for a built mod outside a project.
+func projectFixtures(path string) string {
+	// A project's build sits in its build directory.
+	if filepath.Base(path) != project.BuildDir {
+		return ""
+	}
+	dir := filepath.Dir(path)
+	if _, err := os.Stat(filepath.Join(dir, project.ManifestFile)); err != nil {
+		return ""
+	}
+	return filepath.Join(dir, sandbox.FixtureDir)
 }
 
 // startServer starts a local server with mods on mapName, writing its console

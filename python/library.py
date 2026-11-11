@@ -208,6 +208,33 @@ _now: float | None = None
 _entries: list[_Entry] = []
 
 
+# ServiceDone ends one call_service_later: with the reply and no error, or
+# with no reply, the error and the failure that says why.
+type ServiceDone = Callable[[bytes | None, str | None, ServiceFailure], object]
+
+# _waiting maps each started service call's number to the function its end
+# runs.
+_waiting: dict[int, ServiceDone] = {}
+
+
+def call_service_later(
+    service: str, method: str, payload: bytes, done: ServiceDone, timeout: float = 0.0
+) -> None:
+    """call_service_later calls method of a service the host provides and
+    returns at once; done runs in a later frame with the answer, or with an
+    error when the service refused, the call waited past timeout seconds or
+    nobody provides the service. Zero waits the host's longest, 30 seconds.
+    done runs once while the mod runs; calls still waiting when the mod stops
+    end with it."""
+    # A call the host refuses to start ends in the next frame as well, so done
+    # never runs before this returns.
+    call = start_service_call(service, method, payload, int(timeout * 1000))
+    if call is None:
+        after(0, lambda: done(None, "the host did not start the call to " + service, "unavailable"))
+        return
+    _waiting[call] = done
+
+
 def _schedule(delay: float, run: Callable[[], float | None]) -> Timer:
     entry = _Entry(delay, run)
     _entries.append(entry)
@@ -482,6 +509,16 @@ def _npcs_restored(event: NpcsRestoredEvent) -> None:
         handler(event.error or None)
 
 
+def _service_replied(event: ServiceRepliedEvent) -> None:
+    done = _waiting.pop(event.call, None)
+    if done is None:
+        return
+    if event.failure not in (None, "none"):
+        done(None, event.error, event.failure)
+        return
+    done(event.payload, None, "none")
+
+
 def _launch(event: LaunchEvent) -> None:
     for handler in _launches:
         handler(event)
@@ -528,6 +565,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_press": _ui_press,
     "ui_input": _ui_input,
     "serve": _serve,
+    "service_replied": _service_replied,
     "damage": _damage,
     "damaged": _damaged,
     "input": _input,

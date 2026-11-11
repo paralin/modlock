@@ -9,12 +9,14 @@
 #include "modlock/wasm_host.h"
 
 #include <cctype>
+#include <chrono>
 #include <expected>
 #include <filesystem>
 #include <fstream>
 #include <set>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -47,6 +49,9 @@ class Events final : public WasmHostObserver {
 
   void Held(std::string_view, bool held) override { seen.push_back(held ? "held" : "released"); }
 
+  // Halted keeps how many events came before each halt.
+  void Halted(std::string_view) override { halted.push_back(seen.size()); }
+
   void Called(std::string_view mod, const modlock::wasm::profile::CallProfile& reported) override {
     if (mod == "extension-go") {
       calls.MergeFrom(reported);
@@ -64,6 +69,7 @@ class Events final : public WasmHostObserver {
   }
 
   std::vector<std::string> seen;
+  std::vector<size_t> halted;
   modlock::wasm::profile::CallProfile calls;
 };
 
@@ -186,6 +192,89 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
       EXPECT_GE(method.counts().refused(), 1);
     }
   }
+}
+
+TEST(WasmHost, StartedServiceCallsEndInALaterFrame) {
+  // Load the test mod with the shout service, answered at once, and the
+  // slow service, which keeps each call's reply for later.
+  WasmHost host({});
+  Events events;
+  host.Observe(&events);
+  host.Provide("shout", Shout);
+  std::vector<modlock::WasmReply> kept;
+  host.ProvideLater("slow", [&](std::string_view mod, std::string_view method,
+                                std::string_view payload, modlock::WasmReply reply) {
+    EXPECT_EQ(mod, "extension-go");
+    EXPECT_EQ(method, "wait");
+    kept.push_back(std::move(reply));
+  });
+  auto plugin = host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true});
+  ASSERT_TRUE(plugin) << plugin.error();
+  ASSERT_TRUE((*plugin)->Start());
+  const auto start = [&](std::string_view call) {
+    auto started = host.Call("extension-go", "later", "start", call);
+    ASSERT_TRUE(started) << started.error();
+  };
+  const auto ended = [&] {
+    auto answer = host.Call("extension-go", "later", "ended", "");
+    return answer ? *answer : "error: " + answer.error();
+  };
+
+  // Nothing ends during the call, not even an answer the service gave at
+  // once; the next frame ends the answered, the refused and the call to a
+  // service nobody provides, which is never asked.
+  start("shout|say|hi|0");
+  start("shout|refuse|no|0");
+  start("nobody|any|lost|0");
+  start("slow|wait|first|0");
+  start("slow|wait|second|20");
+  EXPECT_EQ(ended(), "");
+  (*plugin)->Tick();
+  EXPECT_EQ(ended(),
+            "hi SAY:HI\n"
+            "no SERVICE_FAILURE_REFUSED: extension-go may not refuse\n"
+            "lost SERVICE_FAILURE_UNAVAILABLE: this host provides no service nobody");
+  ASSERT_EQ(kept.size(), 2u);
+
+  // A late answer ends its call in the frame after it, and a call past its
+  // timeout ends with the timeout; its reply afterwards does nothing.
+  kept[0]("FIRST");
+  std::this_thread::sleep_for(std::chrono::milliseconds(40));
+  (*plugin)->Tick();
+  kept[1]("SECOND");
+  (*plugin)->Tick();
+  EXPECT_EQ(ended(),
+            "hi SAY:HI\n"
+            "no SERVICE_FAILURE_REFUSED: extension-go may not refuse\n"
+            "lost SERVICE_FAILURE_UNAVAILABLE: this host provides no service nobody\n"
+            "first FIRST\n"
+            "second SERVICE_FAILURE_TIMEOUT: the service did not answer in time");
+
+  // A late service refuses the call that expects an answer at once.
+  auto unary = host.Call("extension-go", "echo", "say", "hi");
+  ASSERT_TRUE(unary);
+  host.Provide("shout", nullptr);
+  host.ProvideLater(
+      "shout", [](std::string_view, std::string_view, std::string_view, modlock::WasmReply) {});
+  auto refused = host.Call("extension-go", "echo", "say", "hi");
+  ASSERT_FALSE(refused);
+  EXPECT_EQ(refused.error(), "the service shout answers only calls started with StartServiceCall");
+
+  // A mod that stops holds nothing: the reply to a call its last build left
+  // does not reach the next one.
+  start("slow|wait|left|0");
+  ASSERT_EQ(kept.size(), 3u);
+  // The host hears the halt before the next build starts, so it can forget
+  // the calls first.
+  ASSERT_TRUE(host.Reload(EXTENSION_GO_WASM));
+  EXPECT_EQ(events.seen, (std::vector<std::string>{"started", "reloaded"}));
+  EXPECT_EQ(events.halted, (std::vector<size_t>{1}));
+  kept[2]("LEFT");
+  (*plugin)->Tick();
+  EXPECT_EQ(ended(), "");
+  (*plugin)->Stop();
+  EXPECT_EQ(events.halted, (std::vector<size_t>{1, 2}));
+  host.Unobserve(&events);
 }
 
 TEST(PlayerScope, LimitedScopeRulesOnlyItsPlayersHits) {

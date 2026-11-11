@@ -36,14 +36,14 @@ func TestKept(t *testing.T) {
 	read := func(s *Sandbox) string {
 		request, _ := (&settingspb.PlayerSettingRequest{Key: "layout"}).MarshalVT()
 		response := &settingspb.SettingResponse{}
-		if err := response.UnmarshalVT(s.answer(build, &wasm.Call{Method: "PlayerSetting", Request: request}).GetResponse()); err != nil {
+		if err := response.UnmarshalVT(s.answer(build, &serviceCalls{}, &wasm.Call{Method: "PlayerSetting", Request: request}).GetResponse()); err != nil {
 			t.Fatal(err)
 		}
 		return response.GetValue()
 	}
 	set := func(s *Sandbox, value string) {
 		request, _ := (&settingspb.SetPlayerSettingRequest{Key: "layout", Value: value}).MarshalVT()
-		s.answer(build, &wasm.Call{Method: "SetPlayerSetting", Request: request})
+		s.answer(build, &serviceCalls{}, &wasm.Call{Method: "SetPlayerSetting", Request: request})
 	}
 
 	// Start at the default, keep the accepted value and refuse the other.
@@ -60,7 +60,7 @@ func TestKept(t *testing.T) {
 	// Read the shipped file, then the written one in the next session.
 	readFile := func(s *Sandbox, name string) (*wasm.ReadFileResponse, string) {
 		request, _ := (&wasm.ReadFileRequest{Path: name}).MarshalVT()
-		reply := s.answer(build, &wasm.Call{Method: "ReadFile", Request: request})
+		reply := s.answer(build, &serviceCalls{}, &wasm.Call{Method: "ReadFile", Request: request})
 		response := &wasm.ReadFileResponse{}
 		if err := response.UnmarshalVT(reply.GetResponse()); err != nil {
 			t.Fatal(err)
@@ -69,7 +69,7 @@ func TestKept(t *testing.T) {
 	}
 	writeFile := func(s *Sandbox, name, text string) string {
 		request, _ := (&wasm.WriteFileRequest{Path: name, Text: text}).MarshalVT()
-		return s.answer(build, &wasm.Call{Method: "WriteFile", Request: request}).GetError()
+		return s.answer(build, &serviceCalls{}, &wasm.Call{Method: "WriteFile", Request: request}).GetError()
 	}
 	if got, _ := readFile(first, "maps/areas.yaml"); got.GetText() != "shipped" {
 		t.Fatalf("read %q, want the shipped file", got.GetText())

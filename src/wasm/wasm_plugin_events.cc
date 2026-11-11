@@ -416,6 +416,16 @@ void WasmPlugin::DeliverGameEvents() {
   }
 }
 
+void WasmPlugin::DeliverServiceReplies() {
+  for (const auto& replied : service_calls_.Take(std::chrono::steady_clock::now())) {
+    // Tell the mod of each ended call while it runs.
+    if (!instance_) {
+      return;
+    }
+    static_cast<void>(mod_.ServiceReplied(replied));
+  }
+}
+
 void WasmPlugin::Unsubscribe() {
   // Drop the player and combat subscriptions.
   players_.Reset();

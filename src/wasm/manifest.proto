@@ -106,6 +106,22 @@ message Manifest {
   // Boards are the rankings the mod reports scores to through the host's
   // scores service.
   repeated modlock.wasm.scores.Board boards = 14;
+
+  // Services are the services the mod calls with CallService, by name only;
+  // the host learns no methods. A host refuses to start a mod when a service
+  // it needs has no provider, and starts it without an optional one, whose
+  // calls then fail.
+  repeated Service services = 15;
+}
+
+// Service names one service a mod calls.
+message Service {
+  // Name is the service's name as CallService names it, such as
+  // "example.drills.v1".
+  string name = 1;
+
+  // Optional marks a service the mod runs without. Unset, the mod needs it.
+  bool optional = 2;
 }
 
 // Movement selects the movement model heroes walk and jump with.

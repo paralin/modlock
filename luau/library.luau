@@ -103,6 +103,14 @@ local commands: { [string]: (player: Player, args: string) -> () } = {}
 -- services maps each service the mod serves to its handler.
 local services: { [string]: Service } = {}
 
+-- ServiceDone ends one callServiceLater: with the reply and no error, or with
+-- no reply, the error and the failure that says why.
+export type ServiceDone = (reply: string?, error: string?, failure: ServiceFailure) -> ()
+
+-- waiting maps each started service call's number to the function its end
+-- runs.
+local waiting: { [number]: ServiceDone } = {}
+
 -- starts to settingChanges hold each event's handlers, which run in
 -- registration order.
 local starts: { (args: { string }) -> () } = {}
@@ -141,6 +149,25 @@ end
 -- earlier handler.
 function modlock.serve(service: string, handler: Service)
 	services[service] = handler
+end
+
+-- callServiceLater calls method of a service the host provides and returns
+-- at once; done runs in a later frame with the answer, or with an error when
+-- the service refused, the call waited past timeout seconds or nobody
+-- provides the service. Zero or nil waits the host's longest, 30 seconds.
+-- done runs once while the mod runs; calls still waiting when the mod stops
+-- end with it.
+function modlock.callServiceLater(service: string, method: string, payload: string, done: ServiceDone, timeout: number?)
+	-- A call the host refuses to start ends in the next frame as well, so
+	-- done never runs before this returns.
+	local call = modlock.startServiceCall(service, method, payload, math.floor((timeout or 0) * 1000))
+	if call == nil then
+		modlock.after(0, function()
+			done(nil, "the host did not start the call to " .. service, "unavailable")
+		end)
+		return
+	end
+	waiting[call] = done
 end
 
 -- command calls handler when a player types /name in chat or their client
@@ -483,6 +510,19 @@ local handlers: ModHandlers = {
 		for _, handler in restoreds do
 			handler(event.player, if event.error ~= "" then event.error else nil)
 		end
+	end,
+
+	serviceReplied = function(event)
+		local done = waiting[event.call]
+		if done == nil then
+			return
+		end
+		waiting[event.call] = nil
+		if event.failure ~= nil and event.failure ~= "none" then
+			done(nil, event.error, event.failure)
+			return
+		end
+		done(event.payload, nil, "none")
 	end,
 
 	npcsRestored = function(event)

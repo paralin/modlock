@@ -313,6 +313,22 @@ const (
 	CameraParamHorizontalOffset = playerspb.CameraParam_CAMERA_PARAM_HORIZONTAL_OFFSET
 )
 
+// ServiceFailure says why a service call ended without an answer.
+type ServiceFailure = wasmpb.ServiceFailure
+
+// The values of ServiceFailure.
+const (
+	// ServiceFailureNone is an answered call.
+	ServiceFailureNone = wasmpb.ServiceFailure_SERVICE_FAILURE_NONE
+	// ServiceFailureRefused is a call the service answered with an error.
+	ServiceFailureRefused = wasmpb.ServiceFailure_SERVICE_FAILURE_REFUSED
+	// ServiceFailureTimeout is a call that waited out its timeout.
+	ServiceFailureTimeout = wasmpb.ServiceFailure_SERVICE_FAILURE_TIMEOUT
+	// ServiceFailureUnavailable is a call to a service nobody provides
+	// here, or one more than the host keeps waiting for a mod.
+	ServiceFailureUnavailable = wasmpb.ServiceFailure_SERVICE_FAILURE_UNAVAILABLE
+)
+
 // Ability is one ability a hero owns.
 type Ability = abilitiespb.Ability
 
@@ -562,6 +578,9 @@ type ServiceCall = wasmpb.ServiceCall
 
 // ServiceReply is a service's answer.
 type ServiceReply = wasmpb.ServiceReply
+
+// ServiceRepliedEvent ends one started service call.
+type ServiceRepliedEvent = wasmpb.ServiceRepliedEvent
 
 // PrecacheOptions names what the next world loads ahead of use.
 type PrecacheOptions = wasmpb.PrecacheOptions
@@ -1451,6 +1470,23 @@ func CallService(service, method string, payload []byte) ([]byte, error) {
 	return response.GetPayload(), nil
 }
 
+// StartServiceCall calls method of a service the host provides and
+// returns at once with a number; the answer arrives in a later frame as a
+// ServiceReplied event carrying that number. Every call ends once: with
+// the reply, the service's refusal, a timeout or no provider at all. A
+// service nobody provides is never asked. The host waits at most 30
+// seconds, or the call's shorter timeout, and drops the mod's waiting
+// calls when the mod stops or reloads. A service that answers at once
+// answers this way too, in the next frame.
+func StartServiceCall(service, method string, payload []byte, timeoutMilliseconds uint32) (uint64, error) {
+	request := &wasmpb.StartServiceCallRequest{Service: service, Method: method, Payload: payload, TimeoutMilliseconds: timeoutMilliseconds}
+	response := &wasmpb.ServiceCallStarted{}
+	if err := invoke("StartServiceCall", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetCall(), nil
+}
+
 // CreateEntity creates any entity the server knows by its designer name,
 // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 // written before it spawns. The world removes it when the world ends;
@@ -1782,6 +1818,8 @@ type modHandlers interface {
 	UiInput(event *UiInputEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
+	// ServiceReplied ends one StartServiceCall, in a frame after the call.
+	ServiceReplied(event *ServiceRepliedEvent) error
 	// Damage offers one hit before the game applies it, while the mod asked
 	// for damage. The mod's answer may block the hit or change its amount.
 	Damage(event *DamageEvent) (*DamageResult, error)
@@ -1875,6 +1913,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(handlers.Serve(event))
+	case "ServiceReplied":
+		event := &ServiceRepliedEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.ServiceReplied(event))
 	case "Damage":
 		event := &DamageEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
