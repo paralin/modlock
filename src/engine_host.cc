@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "callbacks.h"
+#include "modlock/gameinterop/ability_owner_guard.h"
 #include "modlock/gameinterop/client_command_hook.h"
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
@@ -91,6 +92,7 @@ struct EngineHost::Impl {
   std::optional<gameinterop::GameRulesHooks> rules;
   std::optional<gameinterop::SetPawnObservation> pawn_assignment;
   std::optional<gameinterop::ServerAddonsHook> addons;
+  std::optional<gameinterop::AbilityOwnerGuard> ability_owner_guard;
 
   ~Impl() {
 #if defined(_WIN32)
@@ -166,6 +168,15 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
       return std::unexpected(module.name + ": " + loaded.error());
     }
     impl_->modules.push_back(std::move(*loaded));
+  }
+
+  // Keep every ability from a client its owner does not reach, whatever any
+  // mod does, since such an ability crashes the client. A server without the
+  // guard still runs.
+  if (auto guard = gameinterop::AbilityOwnerGuard::Install(); guard) {
+    impl_->ability_owner_guard.emplace(std::move(*guard));
+  } else {
+    std::cerr << "[modlock] ability owner guard unavailable: " << guard.error() << '\n';
   }
   impl_->opened = true;
   return {};

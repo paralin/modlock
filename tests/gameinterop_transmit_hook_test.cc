@@ -47,6 +47,25 @@ TEST(TransmitSet, WithholdsOnlyTheHandlesEntity) {
   EXPECT_TRUE(info.Sends(301));
 }
 
+TEST(TransmitSet, SendsReadsTheBitOfTheHandlesIndex) {
+  FakeInfo info(0);
+  TransmitSet set(info.bytes.data());
+  set.Withhold(300);
+  EXPECT_FALSE(set.Sends(300));
+  EXPECT_FALSE(set.Sends((9u << 15) | 300));
+  EXPECT_TRUE(set.Sends(301));
+  EXPECT_TRUE(set.Sends((9u << 15) | 299));
+  EXPECT_FALSE(set.Sends(TransmitSet::kEntityCount));
+}
+
+TEST(TransmitSet, SendsNothingWithoutABitVector) {
+  FakeInfo info(0);
+  std::memset(info.bytes.data(), 0, sizeof(void*));
+  TransmitSet set(info.bytes.data());
+  EXPECT_FALSE(set.Sends(1));
+  set.Withhold(1);
+}
+
 TEST(TransmitSet, IgnoresAnIndexPastTheSet) {
   FakeInfo info(0);
   TransmitSet set(info.bytes.data());
@@ -91,6 +110,12 @@ TEST(TransmitHook, InstallFailsClosedWithoutMappedServerModule) {
   // No game modules are mapped in this process, so the only correct outcome
   // is a named error and no hook.
   auto hook = TransmitHook::Install([](TransmitSet&) {});
+  ASSERT_FALSE(hook.has_value());
+  EXPECT_FALSE(hook.error().empty());
+}
+
+TEST(TransmitHook, InstallFinalFailsClosedWithoutMappedServerModule) {
+  auto hook = TransmitHook::InstallFinal([](std::span<TransmitSet>) {});
   ASSERT_FALSE(hook.has_value());
   EXPECT_FALSE(hook.error().empty());
 }
