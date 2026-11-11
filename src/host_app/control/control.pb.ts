@@ -1225,3 +1225,129 @@ export const ServiceResult: MessageType<ServiceResult> =
       },
     },
   )
+
+/**
+ * Fixture is one method's reply from a mod project's service fixture, which
+ * the controller hands the host at start so the mod's first frame can call it.
+ *
+ * @generated from message modlock.host_app.control.Fixture
+ */
+export interface Fixture {
+  /**
+   * Mod is the slug of the mod the reply answers.
+   */
+  mod?: string
+  /**
+   * Service and Method select the call this reply answers.
+   */
+  service?: string
+  method?: string
+  /**
+   * Payload is the reply's bytes, opaque to Modlock.
+   */
+  payload?: Uint8Array
+  /**
+   * Source names the fixture file, for the host's log.
+   */
+  source?: string
+}
+
+export const Fixture: MessageType<Fixture> =
+  /* @__PURE__ */ createMessageType<Fixture>(
+    'modlock.host_app.control.Fixture',
+    () => [
+      [1, 'mod', 9],
+      [2, 'service', 9],
+      [3, 'method', 9],
+      [4, 'payload', 12],
+      [5, 'source', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Fixture): Fixture => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.service = r.string()
+              break
+            case 3:
+              m.method = r.string()
+              break
+            case 4:
+              m.payload = r.bytes()
+              break
+            case 5:
+              m.source = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Fixture, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(34).bytes(v)
+        }
+        {
+          const v = m.source
+          if (v) w.uint32(42).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Fixtures is the file --fixtures names: every fixture reply of the mods the
+ * host loads.
+ *
+ * @generated from message modlock.host_app.control.Fixtures
+ */
+export interface Fixtures {
+  fixtures?: Fixture[]
+}
+
+export const Fixtures: MessageType<Fixtures> =
+  /* @__PURE__ */ createMessageType<Fixtures>(
+    'modlock.host_app.control.Fixtures',
+    () => [[1, 'fixtures', 11, 1, Fixture.codec]],
+    {
+      decode: (r: BinaryReader, end: number, m: Fixtures): Fixtures => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.fixtures ??= []).push(Fixture.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Fixtures, w: Writer): void => {
+        {
+          const a = m.fixtures
+          if (a != null) for (const e of a) Fixture.writeField(w, 1, e)
+        }
+      },
+    },
+  )

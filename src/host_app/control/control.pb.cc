@@ -364,6 +364,70 @@ struct ModFailedDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ModFailedDefaultTypeInternal _ModFailed_default_instance_;
 
+inline constexpr Fixture::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        mod_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        service_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        method_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        payload_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        source_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()) {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Fixture::Fixture(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(Fixture_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct FixtureDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR FixtureDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~FixtureDefaultTypeInternal() {}
+  union {
+    Fixture _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FixtureDefaultTypeInternal _Fixture_default_instance_;
+
+inline constexpr Fixtures::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        fixtures_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Fixtures::Fixtures(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(Fixtures_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct FixturesDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR FixturesDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~FixturesDefaultTypeInternal() {}
+  union {
+    Fixtures _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FixturesDefaultTypeInternal _Fixtures_default_instance_;
+
 inline constexpr ControlRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : body_{},
@@ -643,6 +707,24 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ServiceResult, _impl_.error_),
         0,
         1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_.mod_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_.service_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_.method_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_.payload_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixture, _impl_.source_),
+        0,
+        1,
+        2,
+        3,
+        4,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixtures, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::Fixtures, _impl_.fixtures_),
+        0,
 };
 
 static const ::_pbi::MigrationSchema
@@ -663,6 +745,8 @@ static const ::_pbi::MigrationSchema
         {102, sizeof(::modlock::host_app::control::UiChanged)},
         {111, sizeof(::modlock::host_app::control::ServiceReply)},
         {126, sizeof(::modlock::host_app::control::ServiceResult)},
+        {133, sizeof(::modlock::host_app::control::Fixture)},
+        {146, sizeof(::modlock::host_app::control::Fixtures)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::host_app::control::_ControlRequest_default_instance_._instance,
@@ -681,6 +765,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::host_app::control::_UiChanged_default_instance_._instance,
     &::modlock::host_app::control::_ServiceReply_default_instance_._instance,
     &::modlock::host_app::control::_ServiceResult_default_instance_._instance,
+    &::modlock::host_app::control::_Fixture_default_instance_._instance,
+    &::modlock::host_app::control::_Fixtures_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -733,11 +819,15 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fho
     "e\"g\n\014ServiceReply\022\013\n\003mod\030\001 \001(\t\022\017\n\007servic"
     "e\030\002 \001(\t\022\016\n\006method\030\003 \001(\t\022\017\n\007payload\030\004 \001(\014"
     "\022\014\n\004path\030\005 \001(\t\022\n\n\002id\030\006 \001(\t\"*\n\rServiceRes"
-    "ult\022\n\n\002id\030\001 \001(\t\022\r\n\005error\030\002 \001(\t*\\\n\013Messag"
-    "eKind\022\025\n\021MESSAGE_KIND_CHAT\020\000\022\027\n\023MESSAGE_"
-    "KIND_CENTER\020\001\022\035\n\031MESSAGE_KIND_ANNOUNCEME"
-    "NT\020\002B9Z7github.com/paralin/modlock/src/h"
-    "ost_app/control;controlb\006proto3"
+    "ult\022\n\n\002id\030\001 \001(\t\022\r\n\005error\030\002 \001(\t\"X\n\007Fixtur"
+    "e\022\013\n\003mod\030\001 \001(\t\022\017\n\007service\030\002 \001(\t\022\016\n\006metho"
+    "d\030\003 \001(\t\022\017\n\007payload\030\004 \001(\014\022\016\n\006source\030\005 \001(\t"
+    "\"\?\n\010Fixtures\0223\n\010fixtures\030\001 \003(\0132!.modlock"
+    ".host_app.control.Fixture*\\\n\013MessageKind"
+    "\022\025\n\021MESSAGE_KIND_CHAT\020\000\022\027\n\023MESSAGE_KIND_"
+    "CENTER\020\001\022\035\n\031MESSAGE_KIND_ANNOUNCEMENT\020\002B"
+    "9Z7github.com/paralin/modlock/src/host_a"
+    "pp/control;controlb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps[3] = {
@@ -749,13 +839,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto = {
     false,
     false,
-    2151,
+    2306,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
     "github.com/paralin/modlock/src/host_app/control/control.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps,
     3,
-    16,
+    18,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto::offsets,
@@ -6743,6 +6833,730 @@ void ServiceResult::InternalSwap(ServiceResult* PROTOBUF_RESTRICT PROTOBUF_NONNU
 }
 
 ::google::protobuf::Metadata ServiceResult::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class Fixture::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<Fixture>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(Fixture, _impl_._has_bits_);
+};
+
+Fixture::Fixture(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Fixture_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.host_app.control.Fixture)
+}
+PROTOBUF_NDEBUG_INLINE Fixture::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::host_app::control::Fixture& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        mod_(arena, from.mod_),
+        service_(arena, from.service_),
+        method_(arena, from.method_),
+        payload_(arena, from.payload_),
+        source_(arena, from.source_) {}
+
+Fixture::Fixture(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const Fixture& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Fixture_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Fixture* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.host_app.control.Fixture)
+}
+PROTOBUF_NDEBUG_INLINE Fixture::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        mod_(arena),
+        service_(arena),
+        method_(arena),
+        payload_(arena),
+        source_(arena) {}
+
+inline void Fixture::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+Fixture::~Fixture() {
+  // @@protoc_insertion_point(destructor:modlock.host_app.control.Fixture)
+  SharedDtor(*this);
+}
+inline void Fixture::SharedDtor(MessageLite& self) {
+  Fixture& this_ = static_cast<Fixture&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.mod_.Destroy();
+  this_._impl_.service_.Destroy();
+  this_._impl_.method_.Destroy();
+  this_._impl_.payload_.Destroy();
+  this_._impl_.source_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL Fixture::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Fixture(arena);
+}
+constexpr auto Fixture::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Fixture),
+                                            alignof(Fixture));
+}
+constexpr auto Fixture::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Fixture_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Fixture::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Fixture>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Fixture::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Fixture>(), &Fixture::ByteSizeLong,
+              &Fixture::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Fixture, _impl_._cached_size_),
+          false,
+      },
+      &Fixture::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Fixture_class_data_ =
+        Fixture::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Fixture::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Fixture_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Fixture_class_data_.tc_table);
+  return Fixture_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 5, 0, 63, 2>
+Fixture::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Fixture, _impl_._has_bits_),
+    0, // no _extensions_
+    5, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967264,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    5,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    Fixture_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::host_app::control::Fixture>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // string mod = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Fixture, _impl_.mod_)}},
+    // string service = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 1, 0,
+      PROTOBUF_FIELD_OFFSET(Fixture, _impl_.service_)}},
+    // string method = 3;
+    {::_pbi::TcParser::FastUS1,
+     {26, 2, 0,
+      PROTOBUF_FIELD_OFFSET(Fixture, _impl_.method_)}},
+    // bytes payload = 4;
+    {::_pbi::TcParser::FastBS1,
+     {34, 3, 0,
+      PROTOBUF_FIELD_OFFSET(Fixture, _impl_.payload_)}},
+    // string source = 5;
+    {::_pbi::TcParser::FastUS1,
+     {42, 4, 0,
+      PROTOBUF_FIELD_OFFSET(Fixture, _impl_.source_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string mod = 1;
+    {PROTOBUF_FIELD_OFFSET(Fixture, _impl_.mod_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string service = 2;
+    {PROTOBUF_FIELD_OFFSET(Fixture, _impl_.service_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string method = 3;
+    {PROTOBUF_FIELD_OFFSET(Fixture, _impl_.method_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // bytes payload = 4;
+    {PROTOBUF_FIELD_OFFSET(Fixture, _impl_.payload_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBytes | ::_fl::kRepAString)},
+    // string source = 5;
+    {PROTOBUF_FIELD_OFFSET(Fixture, _impl_.source_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\40\3\7\6\0\6\0\0"
+    "modlock.host_app.control.Fixture"
+    "mod"
+    "service"
+    "method"
+    "source"
+  }},
+};
+PROTOBUF_NOINLINE void Fixture::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.host_app.control.Fixture)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.mod_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _impl_.service_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _impl_.method_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      _impl_.payload_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      _impl_.source_.ClearNonDefaultToEmpty();
+    }
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL Fixture::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const Fixture& this_ = static_cast<const Fixture&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL Fixture::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const Fixture& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.host_app.control.Fixture)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string mod = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_mod().empty()) {
+      const ::std::string& _s = this_._internal_mod();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.host_app.control.Fixture.mod");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // string service = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (!this_._internal_service().empty()) {
+      const ::std::string& _s = this_._internal_service();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.host_app.control.Fixture.service");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // string method = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (!this_._internal_method().empty()) {
+      const ::std::string& _s = this_._internal_method();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.host_app.control.Fixture.method");
+      target = stream->WriteStringMaybeAliased(3, _s, target);
+    }
+  }
+
+  // bytes payload = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (!this_._internal_payload().empty()) {
+      const ::std::string& _s = this_._internal_payload();
+      target = stream->WriteBytesMaybeAliased(4, _s, target);
+    }
+  }
+
+  // string source = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (!this_._internal_source().empty()) {
+      const ::std::string& _s = this_._internal_source();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.host_app.control.Fixture.source");
+      target = stream->WriteStringMaybeAliased(5, _s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.host_app.control.Fixture)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t Fixture::ByteSizeLong(const MessageLite& base) {
+  const Fixture& this_ = static_cast<const Fixture&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t Fixture::ByteSizeLong() const {
+  const Fixture& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.host_app.control.Fixture)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // string mod = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_mod().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_mod());
+      }
+    }
+    // string service = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (!this_._internal_service().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_service());
+      }
+    }
+    // string method = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (!this_._internal_method().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_method());
+      }
+    }
+    // bytes payload = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (!this_._internal_payload().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::BytesSize(
+                                        this_._internal_payload());
+      }
+    }
+    // string source = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (!this_._internal_source().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_source());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void Fixture::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<Fixture*>(&to_msg);
+  auto& from = static_cast<const Fixture&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.host_app.control.Fixture)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_mod().empty()) {
+        _this->_internal_set_mod(from._internal_mod());
+      } else {
+        if (_this->_impl_.mod_.IsDefault()) {
+          _this->_internal_set_mod("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (!from._internal_service().empty()) {
+        _this->_internal_set_service(from._internal_service());
+      } else {
+        if (_this->_impl_.service_.IsDefault()) {
+          _this->_internal_set_service("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (!from._internal_method().empty()) {
+        _this->_internal_set_method(from._internal_method());
+      } else {
+        if (_this->_impl_.method_.IsDefault()) {
+          _this->_internal_set_method("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (!from._internal_payload().empty()) {
+        _this->_internal_set_payload(from._internal_payload());
+      } else {
+        if (_this->_impl_.payload_.IsDefault()) {
+          _this->_internal_set_payload("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (!from._internal_source().empty()) {
+        _this->_internal_set_source(from._internal_source());
+      } else {
+        if (_this->_impl_.source_.IsDefault()) {
+          _this->_internal_set_source("");
+        }
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void Fixture::CopyFrom(const Fixture& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.host_app.control.Fixture)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Fixture::InternalSwap(Fixture* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.mod_, &other->_impl_.mod_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.service_, &other->_impl_.service_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.method_, &other->_impl_.method_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.payload_, &other->_impl_.payload_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.source_, &other->_impl_.source_, arena);
+}
+
+::google::protobuf::Metadata Fixture::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class Fixtures::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<Fixtures>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(Fixtures, _impl_._has_bits_);
+};
+
+Fixtures::Fixtures(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Fixtures_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.host_app.control.Fixtures)
+}
+PROTOBUF_NDEBUG_INLINE Fixtures::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::host_app::control::Fixtures& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        fixtures_{visibility, arena, from.fixtures_} {}
+
+Fixtures::Fixtures(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const Fixtures& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Fixtures_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Fixtures* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.host_app.control.Fixtures)
+}
+PROTOBUF_NDEBUG_INLINE Fixtures::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        fixtures_{visibility, arena} {}
+
+inline void Fixtures::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+Fixtures::~Fixtures() {
+  // @@protoc_insertion_point(destructor:modlock.host_app.control.Fixtures)
+  SharedDtor(*this);
+}
+inline void Fixtures::SharedDtor(MessageLite& self) {
+  Fixtures& this_ = static_cast<Fixtures&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL Fixtures::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Fixtures(arena);
+}
+constexpr auto Fixtures::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(Fixtures, _impl_.fixtures_) +
+          decltype(Fixtures::_impl_.fixtures_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(Fixtures), alignof(Fixtures), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&Fixtures::PlacementNew_,
+                                 sizeof(Fixtures),
+                                 alignof(Fixtures));
+  }
+}
+constexpr auto Fixtures::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Fixtures_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Fixtures::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Fixtures>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Fixtures::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Fixtures>(), &Fixtures::ByteSizeLong,
+              &Fixtures::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Fixtures, _impl_._cached_size_),
+          false,
+      },
+      &Fixtures::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Fixtures_class_data_ =
+        Fixtures::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Fixtures::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Fixtures_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Fixtures_class_data_.tc_table);
+  return Fixtures_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+Fixtures::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Fixtures, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    Fixtures_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::host_app::control::Fixtures>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated .modlock.host_app.control.Fixture fixtures = 1;
+    {::_pbi::TcParser::FastMtR1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Fixtures, _impl_.fixtures_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // repeated .modlock.host_app.control.Fixture fixtures = 1;
+    {PROTOBUF_FIELD_OFFSET(Fixtures, _impl_.fixtures_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::host_app::control::Fixture>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void Fixtures::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.host_app.control.Fixtures)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.fixtures_.Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL Fixtures::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const Fixtures& this_ = static_cast<const Fixtures&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL Fixtures::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const Fixtures& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.host_app.control.Fixtures)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // repeated .modlock.host_app.control.Fixture fixtures = 1;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_fixtures_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_fixtures().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              1, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.host_app.control.Fixtures)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t Fixtures::ByteSizeLong(const MessageLite& base) {
+  const Fixtures& this_ = static_cast<const Fixtures&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t Fixtures::ByteSizeLong() const {
+  const Fixtures& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.host_app.control.Fixtures)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated .modlock.host_app.control.Fixture fixtures = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size += 1UL * this_._internal_fixtures_size();
+      for (const auto& msg : this_._internal_fixtures()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void Fixtures::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<Fixtures*>(&to_msg);
+  auto& from = static_cast<const Fixtures&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.host_app.control.Fixtures)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _this->_internal_mutable_fixtures()->InternalMergeFromWithArena(
+        ::google::protobuf::MessageLite::internal_visibility(), arena,
+        from._internal_fixtures());
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void Fixtures::CopyFrom(const Fixtures& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.host_app.control.Fixtures)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Fixtures::InternalSwap(Fixtures* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.fixtures_.InternalSwap(&other->_impl_.fixtures_);
+}
+
+::google::protobuf::Metadata Fixtures::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

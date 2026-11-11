@@ -232,3 +232,23 @@ message ServiceResult {
   // Error is empty when the mod restarted with the new configuration.
   string error = 2;
 }
+
+// Fixture is one method's reply from a mod project's service fixture, which
+// the controller hands the host at start so the mod's first frame can call it.
+message Fixture {
+  // Mod is the slug of the mod the reply answers.
+  string mod = 1;
+  // Service and Method select the call this reply answers.
+  string service = 2;
+  string method = 3;
+  // Payload is the reply's bytes, opaque to Modlock.
+  bytes payload = 4;
+  // Source names the fixture file, for the host's log.
+  string source = 5;
+}
+
+// Fixtures is the file --fixtures names: every fixture reply of the mods the
+// host loads.
+message Fixtures {
+  repeated Fixture fixtures = 1;
+}

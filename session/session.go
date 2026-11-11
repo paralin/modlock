@@ -111,6 +111,7 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 		Args:       config.Args,
 		Settings:   config.Settings,
 		Files:      config.Files,
+		Fixtures:   config.Fixtures,
 		Steam:      steam,
 		Output:     config.HostOutput,
 	})

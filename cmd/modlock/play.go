@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -224,6 +225,12 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 			out.mark("!", yellow, "mod interfaces show only in the browser preview: "+err.Error())
 		}
 	}
+	// Hand the host the projects' service fixtures, naming who answers each
+	// service the mods call.
+	fixtures, err := writeFixtures(out, mods, filepath.Join(filepath.Dir(logPath), "fixtures.pb"))
+	if err != nil {
+		return nil, err
+	}
 	running, err := session.Start(c.Context, session.Config{
 		Version:    Version,
 		Mods:       mods,
@@ -232,6 +239,7 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 		Args:       c.StringSlice("arg"),
 		Settings:   configPath("settings.json"),
 		Files:      configPath("files"),
+		Fixtures:   fixtures,
 		Launch:     !c.Bool("no-game"),
 		HostOutput: log,
 		Interface:  ui,
@@ -250,6 +258,58 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 	out.field("join", "connect 127.0.0.1:"+strconv.Itoa(int(c.Uint("port")))+" in a running game's console")
 	out.mark("…", dim, "starting the server")
 	return running, nil
+}
+
+// writeFixtures writes the service fixtures of the projects whose builds are
+// mods to path, as the host's --fixtures file, and prints which answers each
+// service a mod names: a fixture or nobody. It returns path, or empty when no
+// mod has a fixture. The host refuses to start a mod whose needed service
+// nobody provides.
+func writeFixtures(out *printer, mods []string, path string) (string, error) {
+	// Read each named service's fixture from its mod's project.
+	fixtures := &control.Fixtures{}
+	for _, mod := range mods {
+		manifest, err := project.ReadManifest(mod)
+		if err != nil {
+			return "", err
+		}
+		slug := manifest.GetSlug()
+		for _, service := range manifest.GetServices() {
+			name := service.GetName()
+			source, replies, err := sandbox.ReadFixture(projectFixtures(mod), name)
+			switch {
+			case err != nil:
+				return "", err
+			case source != "":
+				out.mark("·", dim, slug+": service "+name+": fixture "+source)
+			case service.GetOptional():
+				out.mark("·", dim, slug+": service "+name+": nobody (optional)")
+			default:
+				out.mark("!", yellow, slug+": service "+name+": nobody; the mod needs it, so add "+
+					filepath.Join(sandbox.FixtureDir, name+".json"))
+			}
+
+			// Keep the replies in method order, so the file is the same each run.
+			for _, method := range slices.Sorted(maps.Keys(replies)) {
+				fixtures.Fixtures = append(fixtures.Fixtures, &control.Fixture{
+					Mod: slug, Service: name, Method: method, Payload: replies[method], Source: source,
+				})
+			}
+		}
+	}
+
+	// Write the file the host reads, or none.
+	if len(fixtures.GetFixtures()) == 0 {
+		return "", nil
+	}
+	data, err := fixtures.MarshalVT()
+	if err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return "", errors.Wrap(err, "write the service fixtures")
+	}
+	return path, nil
 }
 
 // readRenderer returns the built renderer the game draws the mods'

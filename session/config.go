@@ -25,6 +25,9 @@ type Config struct {
 	// Files is the directory that keeps the files mods write, or empty to
 	// refuse their writes.
 	Files string
+	// Fixtures is the file of service fixtures the host answers from, a
+	// control.Fixtures message, or empty for none.
+	Fixtures string
 	// Launch starts the Deadlock client once the server is ready.
 	Launch bool
 	// HostOutput receives the host's console output.
