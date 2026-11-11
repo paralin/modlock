@@ -557,15 +557,21 @@ func (x *Change) GetEvent() *ui.UiInputEvent {
 	return nil
 }
 
-// Press identifies a button in the interface a mod shows a player.
+// Press identifies a button in the interface a mod shows a player, or a
+// press a layout's script sent from its node.
 type Press struct {
 	unknownFields []byte
 	// Mod is the mod's name.
 	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
 	// Slot identifies the player.
 	Slot int32 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
-	// Node is the button's id in the mod's tree.
+	// Node is the button's id in the mod's tree, or the layout's.
 	Node string `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
+	// Action names a layout's press, as its script sent it with Modlock.press.
+	// It is empty for a button's press.
+	Action string `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
+	// Payload is the JSON text a layout's press carries, or empty.
+	Payload string `protobuf:"bytes,5,opt,name=payload,proto3" json:"payload,omitempty"`
 }
 
 func (x *Press) Reset() {
@@ -591,6 +597,20 @@ func (x *Press) GetSlot() int32 {
 func (x *Press) GetNode() string {
 	if x != nil {
 		return x.Node
+	}
+	return ""
+}
+
+func (x *Press) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *Press) GetPayload() string {
+	if x != nil {
+		return x.Payload
 	}
 	return ""
 }
@@ -1160,6 +1180,8 @@ func (m *Press) CloneVT() *Press {
 	r.Mod = m.Mod
 	r.Slot = m.Slot
 	r.Node = m.Node
+	r.Action = m.Action
+	r.Payload = m.Payload
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1798,6 +1820,12 @@ func (this *Press) EqualVT(that *Press) bool {
 		return false
 	}
 	if this.Node != that.Node {
+		return false
+	}
+	if this.Action != that.Action {
+		return false
+	}
+	if this.Payload != that.Payload {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2687,6 +2715,16 @@ func (x *Press) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("node")
 		s.WriteString(x.Node)
 	}
+	if x.Action != "" || s.HasField("action") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("action")
+		s.WriteString(x.Action)
+	}
+	if x.Payload != "" || s.HasField("payload") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("payload")
+		s.WriteString(x.Payload)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2713,6 +2751,12 @@ func (x *Press) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "node":
 			s.AddField("node")
 			x.Node = s.ReadString()
+		case "action":
+			s.AddField("action")
+			x.Action = s.ReadString()
+		case "payload":
+			s.AddField("payload")
+			x.Payload = s.ReadString()
 		}
 	})
 }
@@ -3749,6 +3793,16 @@ func (m *Press) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Payload) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Payload)
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Action) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Action)
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Node) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
 		i--
@@ -4384,6 +4438,8 @@ func (m *Press) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Action)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Payload)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4786,6 +4842,14 @@ func (x *Press) MarshalProtoText() string {
 	if x.Node != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
 		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	if x.Action != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "action")
+		protobuf_go_lite.TextWriteString(&sb, x.Action)
+	}
+	if x.Payload != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "payload")
+		protobuf_go_lite.TextWriteString(&sb, x.Payload)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5796,6 +5860,26 @@ func (m *Press) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Node = v
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Action = v
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Payload = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

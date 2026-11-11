@@ -4,9 +4,11 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/paralin/modlock/files"
 	"github.com/paralin/modlock/metrics"
@@ -142,18 +144,37 @@ func (s *Sandbox) Command(ctx context.Context, line string) (bool, error) {
 }
 
 // Press presses the button node in the interface mod shows the player in
-// slot, and reports whether the mod is running to receive it.
-func (s *Sandbox) Press(ctx context.Context, mod string, slot int32, node string) (bool, error) {
+// slot, or with an action sends the press node's layout script made with
+// that payload, and reports whether the mod is running to receive it. It
+// refuses an action or payload the game's host would not pass on.
+func (s *Sandbox) Press(ctx context.Context, mod string, slot int32, node, action, payload string) (bool, error) {
+	// Hold a layout's press to what the game carries.
+	if action != "" && !layoutAction.MatchString(action) {
+		return false, errors.Errorf("%s cannot name a layout's press", action)
+	}
+	if len(payload) > maxActionPayload || !utf8.ValidString(payload) || (action == "" && payload != "") {
+		return false, errors.New("a layout's press carries at most 180 bytes of text")
+	}
+
+	// Deliver the press to the mod that shows it.
 	var pressed bool
+	event := &ui.UiPressEvent{Player: slot, Node: node, Action: action, Payload: payload}
 	err := s.do(ctx, func(ctx context.Context) {
 		for _, running := range s.mods {
 			if running.name == mod {
-				pressed = s.deliver(ctx, running, "UiPress", &ui.UiPressEvent{Player: slot, Node: node}, nil)
+				pressed = s.deliver(ctx, running, "UiPress", event, nil)
 			}
 		}
 	})
 	return pressed, err
 }
+
+// layoutAction matches the name of a layout's press, as the game's host
+// takes it.
+var layoutAction = regexp.MustCompile(`^[\w.-]{1,64}$`)
+
+// maxActionPayload is the most bytes of text a layout's press carries.
+const maxActionPayload = 180
 
 // Input delivers a change to an input in the interface mod shows the
 // event's player, and reports whether the mod is running to receive it. The

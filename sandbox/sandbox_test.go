@@ -15,8 +15,8 @@ import (
 
 // TestSandbox runs a Go mod that answers /hello: the stand-in player joins,
 // the command reaches the mod and its chat comes back as a message, an
-// unknown command and a press in a missing mod go unhandled, and a reload
-// restarts the mod.
+// unknown command and a press in a missing mod go unhandled, a layout press
+// the game could not carry is refused, and a reload restarts the mod.
 func TestSandbox(t *testing.T) {
 	// Build the mod.
 	dist := t.TempDir()
@@ -62,8 +62,20 @@ func TestSandbox(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("/hello did not answer within 10 s")
 	}
-	if pressed, err := box.Press(ctx, "missing", 0, "button"); err != nil || pressed {
+	if pressed, err := box.Press(ctx, "missing", 0, "button", "", ""); err != nil || pressed {
 		t.Fatalf("press in a missing mod: pressed %v, %v", pressed, err)
+	}
+
+	// A layout's press the game could not carry is refused before any mod.
+	for _, refused := range [][2]string{
+		{"buy now", ""},
+		{"", "{}"},
+		{"buy", string(make([]byte, 181))},
+		{"buy", "\xff"},
+	} {
+		if pressed, err := box.Press(ctx, "hello", 0, "card", refused[0], refused[1]); err == nil || pressed {
+			t.Fatalf("press %q %q: pressed %v, %v", refused[0], refused[1], pressed, err)
+		}
 	}
 	if err := box.Reload(ctx, dist); err != nil {
 		t.Fatal(err)

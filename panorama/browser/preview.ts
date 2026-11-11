@@ -4,7 +4,8 @@
 
 import { type Built, Input, Preview, type Stopped } from '../../cli/cli.pb.js'
 import { Drawing, type Layouts } from '../src/draw.js'
-import { DomPanel, domPanorama } from './dom.js'
+import { DomPanel, domPanorama, onCommand } from './dom.js'
+import { layoutPress } from './layouts.js'
 
 /** View is what the page shows, derived from modlock dev's latest state. */
 type View =
@@ -96,6 +97,14 @@ const drawing = new Drawing(
     })
   },
 )
+
+// A layout's press reaches the mods as the player's, with its action and
+// payload; any other command a layout dispatches is the game's alone.
+onCommand((line) => {
+  const press = layoutPress(line)
+  if (press) send({ body: { case: 'press', value: press } })
+  else console.debug(`console command ${line}`)
+})
 
 /** building is true while the latest state reports a build. */
 let building = false

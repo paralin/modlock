@@ -759,7 +759,8 @@ export const Change: MessageType<Change> =
   )
 
 /**
- * Press identifies a button in the interface a mod shows a player.
+ * Press identifies a button in the interface a mod shows a player, or a
+ * press a layout's script sent from its node.
  *
  * @generated from message modlock.cli.Press
  */
@@ -773,9 +774,18 @@ export interface Press {
    */
   slot?: number
   /**
-   * Node is the button's id in the mod's tree.
+   * Node is the button's id in the mod's tree, or the layout's.
    */
   node?: string
+  /**
+   * Action names a layout's press, as its script sent it with Modlock.press.
+   * It is empty for a button's press.
+   */
+  action?: string
+  /**
+   * Payload is the JSON text a layout's press carries, or empty.
+   */
+  payload?: string
 }
 
 export const Press: MessageType<Press> =
@@ -785,6 +795,8 @@ export const Press: MessageType<Press> =
       [1, 'mod', 9],
       [2, 'slot', 5],
       [3, 'node', 9],
+      [4, 'action', 9],
+      [5, 'payload', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Press): Press => {
@@ -800,6 +812,12 @@ export const Press: MessageType<Press> =
               break
             case 3:
               m.node = r.string()
+              break
+            case 4:
+              m.action = r.string()
+              break
+            case 5:
+              m.payload = r.string()
               break
             default:
               r.skip(t)
@@ -819,6 +837,14 @@ export const Press: MessageType<Press> =
         {
           const v = m.node
           if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.action
+          if (v) w.uint32(34).string(v)
+        }
+        {
+          const v = m.payload
+          if (v) w.uint32(42).string(v)
         }
       },
     },

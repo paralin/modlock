@@ -336,9 +336,13 @@ func input(ctx context.Context, out *printer, box *sandbox.Sandbox, line string)
 // deliver presses the button or sends the command in to the sandbox's mods,
 // and returns a line for the creator when no mod received it, or empty.
 func deliver(ctx context.Context, box *sandbox.Sandbox, in *modcli.Input) string {
-	// Press the button.
+	// Press the button, or send the layout's press; a press the game would
+	// refuse says why.
 	if press := in.GetPress(); press != nil {
-		pressed, err := box.Press(ctx, press.GetMod(), press.GetSlot(), press.GetNode())
+		pressed, err := box.Press(ctx, press.GetMod(), press.GetSlot(), press.GetNode(), press.GetAction(), press.GetPayload())
+		if err != nil && ctx.Err() == nil {
+			return press.GetMod() + ": " + err.Error()
+		}
 		if err == nil && !pressed {
 			return press.GetMod() + " is not running to receive the press"
 		}
