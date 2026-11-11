@@ -151,6 +151,10 @@ message Definition {
     // FILE_NPC_UNITS is scripts/npc_units.vdata, the troopers, bosses and
     // other units, and the bot brain (npc_player_bot_brain) every bot shares.
     FILE_NPC_UNITS = 3;
+
+    // FILE_MODIFIERS is scripts/modifiers.vdata, the standalone modifiers, and
+    // the modifiers embedded in abilities, named as <ability>/<modifier>.
+    FILE_MODIFIERS = 4;
   }
 
   // File is the definition file that holds the entry.
@@ -164,11 +168,13 @@ message Definition {
   // AbilityCooldown. Only abilities have properties.
   map<string, float> properties = 3;
 
-  // Fields writes float schema fields, named as a path of Class.field steps
-  // from the entry's data, such as
+  // Fields writes float schema fields, including CModifierLevelFloat,
+  // CSkillFloat and CRangeFloat, named as a path of Class.field steps from the
+  // entry's data, such as
   // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
-  // step may name one value of an enum-keyed map, such as
-  // CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
+  // step may name one value of an enum-keyed map or modifier script value list,
+  // such as CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth] or
+  // CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_MODEL_SCALE].
   map<string, float> fields = 4;
 
   // CopyFields copies the field at each value's path over the field at its

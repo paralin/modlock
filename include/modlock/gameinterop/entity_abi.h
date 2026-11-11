@@ -338,6 +338,10 @@ MODLOCK_API size_t ResolveOptionalSchemaOffsets(void* schema_system, const char*
 [[nodiscard]] MODLOCK_API std::expected<size_t, std::string> SchemaClassSizeOf(
     void* schema_system, const char* module_name, const char* class_name);
 
+// SchemaEnumSizeOf returns the native storage size declared for an enum in this module.
+[[nodiscard]] MODLOCK_API std::expected<size_t, std::string> SchemaEnumSizeOf(
+    void* schema_system, const char* module_name, const char* enum_name);
+
 // SchemaEnumValueOf resolves a named enumerator from the loaded module's schema.
 // Callers retain the value only for that engine world's lifetime.
 [[nodiscard]] MODLOCK_API std::expected<int64_t, std::string> SchemaEnumValueOf(

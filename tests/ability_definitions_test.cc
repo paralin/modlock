@@ -9,10 +9,11 @@
 namespace {
 using modlock::gameinterop::AbilityDefinitions;
 std::array<unsigned char, 0x30> definition;
+int32_t expected_scope = 4;
 uint32_t requested_id;
 
 void* Lookup(int32_t scope, uint32_t id) {
-  EXPECT_EQ(scope, 4);
+  EXPECT_EQ(scope, expected_scope);
   requested_id = id;
   return id == 17 ? nullptr : definition.data();
 }
@@ -20,6 +21,7 @@ void* Lookup(int32_t scope, uint32_t id) {
 TEST(AbilityDefinitions, ResolvesUnsignedIdentityAndPreservesDisabledState) {
   // Lay out a definition with a scope and a name.
   definition.fill(0);
+  expected_scope = 4;
   const int32_t scope = 4;
   const char* name = "upgrade_phantom_strike";
   std::memcpy(definition.data() + 8, &scope, sizeof(scope));
@@ -53,6 +55,24 @@ TEST(AbilityDefinitions, ResolvesUnsignedIdentityAndPreservesDisabledState) {
   name = "upgrade_item; quit";
   std::memcpy(definition.data() + 16, &name, sizeof(name));
   EXPECT_FALSE(definitions.Find(123));
+}
+
+TEST(AbilityDefinitions, ResolvesModifierScopeIncludingEmbeddedModifiers) {
+  // Lay out an embedded modifier definition in scope 2.
+  definition.fill(0);
+  expected_scope = AbilityDefinitions::kModifiers;
+  const int32_t scope = AbilityDefinitions::kModifiers;
+  const char* name = "upgrade_colossus/modifier_colossus_active";
+  std::memcpy(definition.data() + 8, &scope, sizeof(scope));
+  std::memcpy(definition.data() + 16, &name, sizeof(name));
+
+  // Scope 2 accepts both standalone names and <ability>/<modifier> paths.
+  AbilityDefinitions modifiers(Lookup, AbilityDefinitions::kModifiers);
+  auto result = modifiers.Find(0x89abcdef);
+  ASSERT_TRUE(result) << result.error();
+  EXPECT_EQ(requested_id, 0x89abcdef);
+  EXPECT_EQ(result->name, name);
+  EXPECT_EQ(result->native_definition_pointer, definition.data());
 }
 
 class Image : public modlock::gameinterop::ModuleImage {

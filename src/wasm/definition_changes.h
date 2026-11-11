@@ -10,10 +10,10 @@
 namespace modlock::wasm {
 
 // DefinitionUndo keeps the game's own values that definition changes
-// overwrote, so a mod's changes leave with the mod: ability, unit and bot
-// difficulty definitions last for the process and would otherwise carry into
-// the next mod the server runs. It is not thread safe; it is used on the
-// thread that changes the definitions.
+// overwrote, so a mod's changes leave with the mod: ability, modifier, unit
+// and bot difficulty definitions last for the process and would otherwise
+// carry into the next mod the server runs. It is not thread safe; it is used
+// on the thread that changes the definitions.
 class DefinitionUndo {
  public:
   // Save keeps the size bytes at storage before a change writes them. Only
@@ -39,10 +39,16 @@ class DefinitionUndo {
   std::vector<Saved> saved_;
 };
 
+// ChangeDefinition applies one definition's properties, fields and copies to
+// definition, keeping each overwritten value in undo, and returns its problems.
+std::vector<std::string> ChangeDefinition(const wasm::Definition& change, unsigned char* definition,
+                                          void* schema, const char* module_name,
+                                          DefinitionUndo& undo);
+
 // ChangeDefinitions writes a manifest's definition changes into one game
 // module's parsed definitions, keeping each value it overwrites in undo.
-// Ability and bot difficulty definitions last for the process; hero
-// definitions belong to the current world, so a caller applies the changes
+// Ability, modifier, unit and bot difficulty definitions last for the process;
+// hero definitions belong to the current world, so a caller applies the changes
 // again in each world. It fails without writing while an entry is not loaded
 // yet, so a caller retries later. An entry, property or field it can never
 // resolve is skipped and reported in the returned problems.
