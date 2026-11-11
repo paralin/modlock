@@ -31,7 +31,11 @@ export function isRouteName(name: string): boolean {
   return /^[\w.-]+$/.test(name)
 }
 
-/** layoutModAttribute names the attribute holding a layout's mod's slug. */
+/**
+ * layoutModAttribute names the attribute holding the name of the running mod
+ * instance whose tree shows the layout. That name is the mod's slug unless
+ * the host loaded the mod under another name.
+ */
 export const layoutModAttribute = 'modlock_mod'
 
 /** layoutNodeAttribute names the attribute holding a layout node's id. */
