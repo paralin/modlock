@@ -29,6 +29,34 @@ namespace _fl = ::google::protobuf::internal::field_layout;
 namespace modlock {
 namespace wasm {
 
+inline constexpr Service::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        optional_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Service::Service(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(Service_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ServiceDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ServiceDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ServiceDefaultTypeInternal() {}
+  union {
+    Service _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ServiceDefaultTypeInternal _Service_default_instance_;
+
 inline constexpr Movement::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -147,6 +175,7 @@ inline constexpr Manifest::Impl_::Impl_(
         settings_{},
         metrics_{},
         boards_{},
+        services_{},
         slug_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -200,7 +229,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_._has_bits_),
-        17, // hasbit index offset
+        18, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.slug_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.name_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.version_),
@@ -215,20 +244,29 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.free_for_all_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.content_addon_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.boards_),
-        4,
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.services_),
         5,
         6,
-        11,
-        12,
         7,
+        12,
+        13,
         8,
-        10,
+        9,
+        11,
         0,
         1,
         2,
-        13,
-        9,
+        14,
+        10,
         3,
+        4,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Service, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Service, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Service, _impl_.optional_),
+        0,
+        1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Movement, _impl_._has_bits_),
         5, // hasbit index offset
@@ -275,14 +313,16 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::Manifest)},
-        {31, sizeof(::modlock::wasm::Movement)},
-        {38, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
-        {45, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
-        {52, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
-        {59, sizeof(::modlock::wasm::Definition)},
+        {33, sizeof(::modlock::wasm::Service)},
+        {40, sizeof(::modlock::wasm::Movement)},
+        {47, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
+        {54, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
+        {61, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
+        {68, sizeof(::modlock::wasm::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Manifest_default_instance_._instance,
+    &::modlock::wasm::_Service_default_instance_._instance,
     &::modlock::wasm::_Movement_default_instance_._instance,
     &::modlock::wasm::_Definition_PropertiesEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::_Definition_FieldsEntry_DoNotUse_default_instance_._instance,
@@ -297,7 +337,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "proto\0327github.com/paralin/modlock/src/wa"
     "sm/scores/scores.proto\032;github.com/paral"
     "in/modlock/src/wasm/settings/settings.pr"
-    "oto\"\305\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030\002"
+    "oto\"\356\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030\002"
     " \001(\t\022\017\n\007version\030\003 \001(\t\0221\n\010language\030\004 \001(\0162"
     "\037.modlock.wasm.Manifest.Language\022/\n\007runt"
     "ime\030\005 \001(\0162\036.modlock.wasm.Manifest.Runtim"
@@ -308,31 +348,33 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".Setting\022-\n\007metrics\030\013 \003(\0132\034.modlock.wasm"
     ".metrics.Metric\022\024\n\014free_for_all\030\014 \001(\010\022\025\n"
     "\rcontent_addon\030\r \001(\t\022*\n\006boards\030\016 \003(\0132\032.m"
-    "odlock.wasm.scores.Board\"k\n\007Runtime\022\023\n\017R"
-    "UNTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RU"
-    "NTIME_QUICKJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUN"
-    "TIME_PYTHON\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_U"
-    "NKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_TY"
-    "PESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\rL"
-    "ANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\"\222\001\n\010"
-    "Movement\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.M"
-    "ovement.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Model\022\020\n"
-    "\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001J\004\010"
-    "\003\020\004R\023unpredicted_buttons\"\352\003\n\nDefinition\022"
-    "+\n\004file\030\001 \001(\0162\035.modlock.wasm.Definition."
-    "File\022\r\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 \003(\0132"
-    "(.modlock.wasm.Definition.PropertiesEntr"
-    "y\0224\n\006fields\030\004 \003(\0132$.modlock.wasm.Definit"
-    "ion.FieldsEntry\022=\n\013copy_fields\030\005 \003(\0132(.m"
-    "odlock.wasm.Definition.CopyFieldsEntry\0321"
-    "\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
-    "\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n"
-    "\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022\013\n\003k"
-    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\004File\022\022\n\016F"
-    "ILE_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE"
-    "_BOT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003B*Z"
-    "(github.com/paralin/modlock/src/wasm;was"
-    "mb\006proto3"
+    "odlock.wasm.scores.Board\022\'\n\010services\030\017 \003"
+    "(\0132\025.modlock.wasm.Service\"k\n\007Runtime\022\023\n\017"
+    "RUNTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017R"
+    "UNTIME_QUICKJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RU"
+    "NTIME_PYTHON\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_"
+    "UNKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_T"
+    "YPESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\r"
+    "LANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\")\n\007"
+    "Service\022\014\n\004name\030\001 \001(\t\022\020\n\010optional\030\002 \001(\010\""
+    "\222\001\n\010Movement\022+\n\005model\030\001 \001(\0162\034.modlock.wa"
+    "sm.Movement.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Mode"
+    "l\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020"
+    "\001J\004\010\003\020\004R\023unpredicted_buttons\"\352\003\n\nDefinit"
+    "ion\022+\n\004file\030\001 \001(\0162\035.modlock.wasm.Definit"
+    "ion.File\022\r\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 "
+    "\003(\0132(.modlock.wasm.Definition.Properties"
+    "Entry\0224\n\006fields\030\004 \003(\0132$.modlock.wasm.Def"
+    "inition.FieldsEntry\022=\n\013copy_fields\030\005 \003(\013"
+    "2(.modlock.wasm.Definition.CopyFieldsEnt"
+    "ry\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va"
+    "lue\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001("
+    "\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022"
+    "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\004File\022"
+    "\022\n\016FILE_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023"
+    "FILE_BOT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020"
+    "\003B*Z(github.com/paralin/modlock/src/wasm"
+    ";wasmb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps[3] = {
@@ -344,13 +386,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto = {
     false,
     false,
-    1649,
+    1733,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps,
     3,
-    6,
+    7,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto::offsets,
@@ -430,6 +472,7 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
         settings_{visibility, arena, from.settings_},
         metrics_{visibility, arena, from.metrics_},
         boards_{visibility, arena, from.boards_},
+        services_{visibility, arena, from.services_},
         slug_(arena, from.slug_),
         name_(arena, from.name_),
         version_(arena, from.version_),
@@ -451,7 +494,7 @@ Manifest::Manifest(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.movement_ = (CheckHasBit(cached_has_bits, 0x00000400U))
+  _impl_.movement_ = (CheckHasBit(cached_has_bits, 0x00000800U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.movement_)
                 : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -472,6 +515,7 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
         settings_{visibility, arena},
         metrics_{visibility, arena},
         boards_{visibility, arena},
+        services_{visibility, arena},
         slug_(arena),
         name_(arena),
         version_(arena),
@@ -532,6 +576,10 @@ constexpr auto Manifest::InternalNewImpl_() {
           decltype(Manifest::_impl_.boards_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.services_) +
+          decltype(Manifest::_impl_.services_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
   });
   if (arena_bits.has_value()) {
     return ::google::protobuf::internal::MessageCreator::CopyInit(
@@ -576,17 +624,17 @@ Manifest::GetClassData() const {
   return Manifest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 14, 5, 74, 2>
+const ::_pbi::TcParseTable<4, 15, 6, 74, 2>
 Manifest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Manifest, _impl_._has_bits_),
     0, // no _extensions_
-    14, 120,  // max_field_number, fast_idx_mask
+    15, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294950912,  // skipmap
+    4294934528,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    14,  // num_field_entries
-    5,  // num_aux_entries
+    15,  // num_field_entries
+    6,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Manifest_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -598,35 +646,35 @@ Manifest::_table_ = {
     {::_pbi::TcParser::MiniParse, {}},
     // string slug = 1;
     {::_pbi::TcParser::FastUS1,
-     {10, 4, 0,
+     {10, 5, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.slug_)}},
     // string name = 2;
     {::_pbi::TcParser::FastUS1,
-     {18, 5, 0,
+     {18, 6, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.name_)}},
     // string version = 3;
     {::_pbi::TcParser::FastUS1,
-     {26, 6, 0,
+     {26, 7, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.version_)}},
     // .modlock.wasm.Manifest.Language language = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.language_), 11>(),
-     {32, 11, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.language_), 12>(),
+     {32, 12, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_)}},
     // .modlock.wasm.Manifest.Runtime runtime = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.runtime_), 12>(),
-     {40, 12, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.runtime_), 13>(),
+     {40, 13, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_)}},
     // string entry = 6;
     {::_pbi::TcParser::FastUS1,
-     {50, 7, 0,
+     {50, 8, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.entry_)}},
     // string map = 7;
     {::_pbi::TcParser::FastUS1,
-     {58, 8, 0,
+     {58, 9, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_)}},
     // .modlock.wasm.Movement movement = 8;
     {::_pbi::TcParser::FastMtS1,
-     {66, 10, 0,
+     {66, 11, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_)}},
     // repeated .modlock.wasm.Definition definitions = 9;
     {::_pbi::TcParser::FastMtR1,
@@ -641,37 +689,40 @@ Manifest::_table_ = {
      {90, 2, 3,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.metrics_)}},
     // bool free_for_all = 12;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Manifest, _impl_.free_for_all_), 13>(),
-     {96, 13, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Manifest, _impl_.free_for_all_), 14>(),
+     {96, 14, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_)}},
     // string content_addon = 13;
     {::_pbi::TcParser::FastUS1,
-     {106, 9, 0,
+     {106, 10, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.content_addon_)}},
     // repeated .modlock.wasm.scores.Board boards = 14;
     {::_pbi::TcParser::FastMtR1,
      {114, 3, 4,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.boards_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // repeated .modlock.wasm.Service services = 15;
+    {::_pbi::TcParser::FastMtR1,
+     {122, 4, 5,
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.services_)}},
   }}, {{
     65535, 65535
   }}, {{
     // string slug = 1;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.slug_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.slug_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string name = 2;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.name_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.name_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string version = 3;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.version_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.version_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.Manifest.Language language = 4;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // .modlock.wasm.Manifest.Runtime runtime = 5;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // string entry = 6;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.entry_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.entry_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string map = 7;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.Movement movement = 8;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.Definition definitions = 9;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.definitions_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.settings.Setting settings = 10;
@@ -679,11 +730,13 @@ Manifest::_table_ = {
     // repeated .modlock.wasm.metrics.Metric metrics = 11;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.metrics_), _Internal::kHasBitsOffset + 2, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // bool free_for_all = 12;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // string content_addon = 13;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.content_addon_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.content_addon_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .modlock.wasm.scores.Board boards = 14;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.boards_), _Internal::kHasBitsOffset + 3, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .modlock.wasm.Service services = 15;
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.services_), _Internal::kHasBitsOffset + 4, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::Movement>()},
@@ -691,6 +744,7 @@ Manifest::_table_ = {
       {::_pbi::TcParser::GetTable<::modlock::wasm::settings::Setting>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::metrics::Metric>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::scores::Board>()},
+      {::_pbi::TcParser::GetTable<::modlock::wasm::Service>()},
   }},
   {{
     "\25\4\4\7\0\0\5\3\0\0\0\0\0\15\0\0"
@@ -724,32 +778,35 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
       _impl_.boards_.Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
-      _impl_.slug_.ClearNonDefaultToEmpty();
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
+      _impl_.services_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
-      _impl_.name_.ClearNonDefaultToEmpty();
+      _impl_.slug_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
-      _impl_.version_.ClearNonDefaultToEmpty();
+      _impl_.name_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000080U)) {
-      _impl_.entry_.ClearNonDefaultToEmpty();
+      _impl_.version_.ClearNonDefaultToEmpty();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000700U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-      _impl_.map_.ClearNonDefaultToEmpty();
+      _impl_.entry_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
-      _impl_.content_addon_.ClearNonDefaultToEmpty();
+      _impl_.map_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      _impl_.content_addon_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       ABSL_DCHECK(_impl_.movement_ != nullptr);
       _impl_.movement_->Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00003800U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00007000U)) {
     ::memset(&_impl_.language_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.free_for_all_) -
         reinterpret_cast<char*>(&_impl_.language_)) + sizeof(_impl_.free_for_all_));
@@ -778,7 +835,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // string slug = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     if (!this_._internal_slug().empty()) {
       const ::std::string& _s = this_._internal_slug();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -788,7 +845,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // string name = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     if (!this_._internal_name().empty()) {
       const ::std::string& _s = this_._internal_name();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -798,7 +855,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // string version = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
     if (!this_._internal_version().empty()) {
       const ::std::string& _s = this_._internal_version();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -808,7 +865,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.Manifest.Language language = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
     if (this_._internal_language() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -817,7 +874,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.Manifest.Runtime runtime = 5;
-  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
     if (this_._internal_runtime() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -826,7 +883,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // string entry = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     if (!this_._internal_entry().empty()) {
       const ::std::string& _s = this_._internal_entry();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -836,7 +893,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // string map = 7;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     if (!this_._internal_map().empty()) {
       const ::std::string& _s = this_._internal_map();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -846,7 +903,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.Movement movement = 8;
-  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         8, *this_._impl_.movement_, this_._impl_.movement_->GetCachedSize(), target,
         stream);
@@ -892,7 +949,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // bool free_for_all = 12;
-  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
     if (this_._internal_free_for_all() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -901,7 +958,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // string content_addon = 13;
-  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (!this_._internal_content_addon().empty()) {
       const ::std::string& _s = this_._internal_content_addon();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -919,6 +976,19 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
       target =
           ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
               14, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
+  }
+
+  // repeated .modlock.wasm.Service services = 15;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_services_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_services().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              15, repfield, repfield.GetCachedSize(),
               target, stream);
     }
   }
@@ -977,71 +1047,78 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
+    // repeated .modlock.wasm.Service services = 15;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
+      total_size += 1UL * this_._internal_services_size();
+      for (const auto& msg : this_._internal_services()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
     // string slug = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (!this_._internal_slug().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_slug());
       }
     }
     // string name = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (!this_._internal_name().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_name());
       }
     }
     // string version = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       if (!this_._internal_version().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_version());
       }
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
     // string entry = 6;
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (!this_._internal_entry().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_entry());
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
     // string map = 7;
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (!this_._internal_map().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_map());
       }
     }
     // string content_addon = 13;
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (!this_._internal_content_addon().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_content_addon());
       }
     }
     // .modlock.wasm.Movement movement = 8;
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.movement_);
     }
     // .modlock.wasm.Manifest.Language language = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (this_._internal_language() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_language());
       }
     }
     // .modlock.wasm.Manifest.Runtime runtime = 5;
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (this_._internal_runtime() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_runtime());
       }
     }
     // bool free_for_all = 12;
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (this_._internal_free_for_all() != 0) {
         total_size += 2;
       }
@@ -1087,7 +1164,12 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_boards());
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
+      _this->_internal_mutable_services()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_services());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (!from._internal_slug().empty()) {
         _this->_internal_set_slug(from._internal_slug());
       } else {
@@ -1096,7 +1178,7 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (!from._internal_name().empty()) {
         _this->_internal_set_name(from._internal_name());
       } else {
@@ -1105,7 +1187,7 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       if (!from._internal_version().empty()) {
         _this->_internal_set_version(from._internal_version());
       } else {
@@ -1114,7 +1196,9 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (!from._internal_entry().empty()) {
         _this->_internal_set_entry(from._internal_entry());
       } else {
@@ -1123,9 +1207,7 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (!from._internal_map().empty()) {
         _this->_internal_set_map(from._internal_map());
       } else {
@@ -1134,7 +1216,7 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (!from._internal_content_addon().empty()) {
         _this->_internal_set_content_addon(from._internal_content_addon());
       } else {
@@ -1143,7 +1225,7 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       ABSL_DCHECK(from._impl_.movement_ != nullptr);
       if (_this->_impl_.movement_ == nullptr) {
         _this->_impl_.movement_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.movement_);
@@ -1151,17 +1233,17 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.movement_->MergeFrom(*from._impl_.movement_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (from._internal_language() != 0) {
         _this->_impl_.language_ = from._impl_.language_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (from._internal_runtime() != 0) {
         _this->_impl_.runtime_ = from._impl_.runtime_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (from._internal_free_for_all() != 0) {
         _this->_impl_.free_for_all_ = from._impl_.free_for_all_;
       }
@@ -1190,6 +1272,7 @@ void Manifest::InternalSwap(Manifest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   _impl_.settings_.InternalSwap(&other->_impl_.settings_);
   _impl_.metrics_.InternalSwap(&other->_impl_.metrics_);
   _impl_.boards_.InternalSwap(&other->_impl_.boards_);
+  _impl_.services_.InternalSwap(&other->_impl_.services_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slug_, &other->_impl_.slug_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.version_, &other->_impl_.version_, arena);
@@ -1205,6 +1288,314 @@ void Manifest::InternalSwap(Manifest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
 }
 
 ::google::protobuf::Metadata Manifest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class Service::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<Service>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(Service, _impl_._has_bits_);
+};
+
+Service::Service(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Service_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.Service)
+}
+PROTOBUF_NDEBUG_INLINE Service::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::Service& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        name_(arena, from.name_) {}
+
+Service::Service(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const Service& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Service_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Service* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.optional_ = from._impl_.optional_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.Service)
+}
+PROTOBUF_NDEBUG_INLINE Service::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        name_(arena) {}
+
+inline void Service::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.optional_ = {};
+}
+Service::~Service() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.Service)
+  SharedDtor(*this);
+}
+inline void Service::SharedDtor(MessageLite& self) {
+  Service& this_ = static_cast<Service&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL Service::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Service(arena);
+}
+constexpr auto Service::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Service),
+                                            alignof(Service));
+}
+constexpr auto Service::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Service_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Service::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Service>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Service::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Service>(), &Service::ByteSizeLong,
+              &Service::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Service, _impl_._cached_size_),
+          false,
+      },
+      &Service::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Service_class_data_ =
+        Service::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Service::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Service_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Service_class_data_.tc_table);
+  return Service_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 33, 2>
+Service::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Service, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    Service_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::Service>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // bool optional = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Service, _impl_.optional_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(Service, _impl_.optional_)}},
+    // string name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Service, _impl_.name_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string name = 1;
+    {PROTOBUF_FIELD_OFFSET(Service, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // bool optional = 2;
+    {PROTOBUF_FIELD_OFFSET(Service, _impl_.optional_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+  }},
+  // no aux_entries
+  {{
+    "\24\4\0\0\0\0\0\0"
+    "modlock.wasm.Service"
+    "name"
+  }},
+};
+PROTOBUF_NOINLINE void Service::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.Service)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.name_.ClearNonDefaultToEmpty();
+  }
+  _impl_.optional_ = false;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL Service::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const Service& this_ = static_cast<const Service&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL Service::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const Service& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.Service)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string name = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_name().empty()) {
+      const ::std::string& _s = this_._internal_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.Service.name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // bool optional = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_optional() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          2, this_._internal_optional(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.Service)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t Service::ByteSizeLong(const MessageLite& base) {
+  const Service& this_ = static_cast<const Service&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t Service::ByteSizeLong() const {
+  const Service& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.Service)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // string name = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_name());
+      }
+    }
+    // bool optional = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_optional() != 0) {
+        total_size += 2;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void Service::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<Service*>(&to_msg);
+  auto& from = static_cast<const Service&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.Service)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_name().empty()) {
+        _this->_internal_set_name(from._internal_name());
+      } else {
+        if (_this->_impl_.name_.IsDefault()) {
+          _this->_internal_set_name("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_optional() != 0) {
+        _this->_impl_.optional_ = from._impl_.optional_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void Service::CopyFrom(const Service& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.Service)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Service::InternalSwap(Service* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+  swap(_impl_.optional_, other->_impl_.optional_);
+}
+
+::google::protobuf::Metadata Service::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

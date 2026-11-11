@@ -30,4 +30,8 @@ type Config struct {
 	// so a later session loads the interpreters and an unchanged mod without
 	// compiling them, or empty to compile each module once per session.
 	Compiled string
+	// Fixtures returns the directory of service fixtures for the built mod at
+	// path, or empty when it has none; see FixtureDir. Nil gives no mod
+	// fixtures.
+	Fixtures func(path string) string
 }

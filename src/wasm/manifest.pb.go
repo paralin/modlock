@@ -251,6 +251,11 @@ type Manifest struct {
 	// Boards are the rankings the mod reports scores to through the host's
 	// scores service.
 	Boards []*scores.Board `protobuf:"bytes,14,rep,name=boards,proto3" json:"boards,omitempty"`
+	// Services are the services the mod calls with CallService, by name only;
+	// the host learns no methods. A host refuses to start a mod when a service
+	// it needs has no provider, and starts it without an optional one, whose
+	// calls then fail.
+	Services []*Service `protobuf:"bytes,15,rep,name=services,proto3" json:"services,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -355,6 +360,43 @@ func (x *Manifest) GetBoards() []*scores.Board {
 		return x.Boards
 	}
 	return nil
+}
+
+func (x *Manifest) GetServices() []*Service {
+	if x != nil {
+		return x.Services
+	}
+	return nil
+}
+
+// Service names one service a mod calls.
+type Service struct {
+	unknownFields []byte
+	// Name is the service's name as CallService names it, such as
+	// "example.drills.v1".
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Optional marks a service the mod runs without. Unset, the mod needs it.
+	Optional bool `protobuf:"varint,2,opt,name=optional,proto3" json:"optional,omitempty"`
+}
+
+func (x *Service) Reset() {
+	*x = Service{}
+}
+
+func (*Service) ProtoMessage() {}
+
+func (x *Service) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Service) GetOptional() bool {
+	if x != nil {
+		return x.Optional
+	}
+	return false
 }
 
 // Movement selects the movement model heroes walk and jump with.
@@ -546,6 +588,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
 	r.Metrics = protobuf_go_lite.CloneVTSlice(m.Metrics)
 	r.Boards = protobuf_go_lite.CloneVTSlice(m.Boards)
+	r.Services = protobuf_go_lite.CloneVTSlice(m.Services)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -553,6 +596,23 @@ func (m *Manifest) CloneVT() *Manifest {
 }
 
 func (m *Manifest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Service) CloneVT() *Service {
+	if m == nil {
+		return (*Service)(nil)
+	}
+	r := new(Service)
+	r.Name = m.Name
+	r.Optional = m.Optional
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Service) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -641,11 +701,37 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Boards, that.Boards, func() *scores.Board { return &scores.Board{} }) {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Services, that.Services, func() *Service { return &Service{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Manifest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Manifest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Service) EqualVT(that *Service) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Optional != that.Optional {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Service) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Service)
 	if !ok {
 		return false
 	}
@@ -889,6 +975,17 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if len(x.Services) > 0 || s.HasField("services") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("services")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Services {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("services"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1012,12 +1109,80 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Boards = append(x.Boards, v)
 			})
+		case "services":
+			s.AddField("services")
+			if s.ReadNil() {
+				x.Services = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Services = append(x.Services, nil)
+					return
+				}
+				v := &Service{}
+				v.UnmarshalProtoJSON(s.WithField("services", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Services = append(x.Services, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Manifest from JSON.
 func (x *Manifest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Service message to JSON.
+func (x *Service) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Optional || s.HasField("optional") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("optional")
+		s.WriteBool(x.Optional)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Service to JSON.
+func (x *Service) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Service message from JSON.
+func (x *Service) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "optional":
+			s.AddField("optional")
+			x.Optional = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Service from JSON.
+func (x *Service) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1449,6 +1614,18 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Services) > 0 {
+		for iNdEx := len(m.Services) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Services[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x7a
+		}
+	}
 	if len(m.Boards) > 0 {
 		for iNdEx := len(m.Boards) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Boards[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -1549,6 +1726,48 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if len(m.Slug) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Slug)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Service) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Service) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Service) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Optional {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Optional)
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1719,6 +1938,22 @@ func (m *Manifest) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	for _, e := range m.Services {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Service) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Optional)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1864,10 +2099,40 @@ func (x *Manifest) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if len(x.Services) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "services")
+		for i, v := range x.Services {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Service{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Manifest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Service) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Service")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Optional != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "optional")
+		protobuf_go_lite.TextWriteBool(&sb, x.Optional)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Service) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -2181,6 +2446,82 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 15:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Services", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Services = append(m.Services, &Service{})
+			if err := m.Services[len(m.Services)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Service) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Service: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Service: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Optional", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Optional = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

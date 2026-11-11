@@ -241,6 +241,13 @@ func (s *Sandbox) load(ctx context.Context, path string) {
 		return
 	}
 
+	// Name the provider of each service it calls; a needed one missing
+	// refuses the mod before it starts.
+	if err := s.provide(path, build); err != nil {
+		fail(err)
+		return
+	}
+
 	// Load its module and start it in the world.
 	mod, wants, err := s.start(ctx, name, build)
 	if err != nil {
@@ -459,6 +466,9 @@ func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
 		_ = request.UnmarshalVT(call.GetRequest())
 		if request.GetService() == scoresService {
 			return s.scores(manifest, request)
+		}
+		if provider := build.fixtures[request.GetService()]; provider != nil {
+			return provider.answer(request)
 		}
 		return &wasm.Reply{Error: "this host provides no service " + request.GetService()}
 	}

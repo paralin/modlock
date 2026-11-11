@@ -1484,6 +1484,27 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
 `serve(service, handler)` answers the host's calls to one the mod serves. See
 [How mods reach the game](#how-mods-reach-the-game) for the protocol.
 
+Name each service the mod calls in `mod.json`; a service is needed unless it
+is marked optional. A host refuses to start a mod whose needed service it
+cannot provide, naming it, and starts one without an optional service, whose
+calls then fail:
+
+```json
+"services": [
+  { "name": "example.drills.v1" },
+  { "name": "example.ghosts.v1", "optional": true }
+]
+```
+
+The sandbox answers a named service from a fixture in the project:
+`services/<name>.json`, an object whose keys are the service's methods and
+whose values are their replies, sent as JSON. Before the mod starts, the
+sandbox logs which provider answers each named service: a fixture or nobody.
+
+```json
+{ "read": { "key": "slide" }, "save": true }
+```
+
 ### Files
 
 A mod keeps text files, such as its configuration or areas a player drew in
@@ -1554,6 +1575,7 @@ Every project has a `mod.json` at its root:
 | `settings`    |          | [Choices](#settings) each player makes about the mod.                                              |
 | `metrics`     |          | [Totals](#metrics) the mod keeps for each player.                                                  |
 | `boards`      |          | [Rankings](#boards) the mod reports scores to.                                                     |
+| `services`    |          | [Services](#services) the mod calls, each needed or optional.                                      |
 
 ### Map
 
