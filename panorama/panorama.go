@@ -23,7 +23,7 @@ import "embed"
 // display's and the layout library's TypeScript source and the drawing's
 // browser stand-in.
 //
-//go:embed src/draw.ts src/data.ts src/hud.ts src/guard.ts src/ability-hud.ts src/abilities.ts src/layout.ts browser/dom.ts browser/sheets.ts browser/panels.css
+//go:embed src/draw.ts src/data.ts src/hud.ts src/guard.ts src/ability-hud.ts src/abilities.ts src/layout.ts browser/dom.ts browser/layouts.ts browser/sheets.ts browser/panels.css
 var Sources embed.FS
 
 // Layout is the renderer's layout, which a client content package installs
