@@ -1455,8 +1455,33 @@ Each handler runs at once with the current value and again after each change,
 with `undefined` while the mod sends none. The library reads the panel's
 `modlock_data` and `modlock_route_<name>` attributes and rereads them on the
 unhandled `PlaySoundEffect` event `modlock_data_changed`, which the renderer
-sends once per draw that changes any. The layout answers the mod with its own
-console commands.
+sends once per draw that changes any.
+
+The layout answers the mod by pressing back. `Modlock.press('buy', { item:
+'boots' })` sends the action with its payload as JSON, and the layout's
+element hears it as `onAction`, with the player the server says sent it:
+
+```tsx
+<layout
+  src="shop.xml"
+  data={stock}
+  onAction={(player, action, payload) => buy(player, action, payload)}
+/>
+```
+
+A press runs the console command `modlockaction <mod> <node> <action>
+[payload]` in the player's game, the payload's UTF-8 in unpadded base64url.
+The server checks the press against the player who sent it and that
+player's tree. It takes a press only while that player's tree shows the
+layout. The action must be one to 64 letters, digits, `_`, `-` and `.`, and
+the payload at most 180 bytes of UTF-8. Each player gets a burst of 8
+presses, refilling at 4 a second. It takes nothing once the mod stops.
+`press` returns false and logs a line for a press it will not send: a name
+the server would refuse, a payload over 180 bytes, or a layout the renderer
+did not name. A press the server refuses goes to the server's log. A
+layout may still run its own console commands. `modlock dev` and
+`modlock play` in the sandbox draw a layout's panels but run none of its
+scripts, so a press happens only in the game.
 
 The game draws interfaces with the renderer in [`panorama/`](panorama):
 

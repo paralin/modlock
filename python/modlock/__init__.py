@@ -1752,12 +1752,21 @@ class Wheel:
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class UiPressEvent:
-    """UiPressEvent reports a press on a button in a player's interface."""
+    """UiPressEvent reports a press on a button in a player's interface, or a
+    press a layout's script sent with an action and a payload.
+    """
 
     # player is the player who pressed.
     player: Player
-    # node is the id of the pressed button.
+    # node is the id of the pressed button, or of the layout whose script
+    # sent the press.
     node: str = ""
+    # action names a layout's press, as its script sent it: one to 64
+    # letters, digits, '_', '-' and '.'. It is empty for a button's press.
+    action: str = ""
+    # payload is the text a layout's press carries, which the layout library
+    # writes as JSON: valid UTF-8 of at most 180 bytes.
+    payload: str = ""
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -3819,6 +3828,8 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "node", "string"),
+            wire.Field(3, "action", "string"),
+            wire.Field(4, "payload", "string"),
         ],
     ),
     "UiInputEvent": (

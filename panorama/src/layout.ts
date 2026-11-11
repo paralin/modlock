@@ -15,11 +15,22 @@
 // change, with undefined while the mod sends none. The library reads the
 // attributes the renderer sets on the layout's panel and rereads them on the
 // renderer's change event, so no layout script names either.
+//
+// A layout sends a press back to its mod's server with a name and a small
+// JSON payload:
+//
+//   Modlock.press('buy', { item: 'boots' })
+//
+// The mod hears it as a press on the layout's node with the action and the
+// payload's JSON, from the player the server says sent it.
 
 import {
+  actionCommand,
   isRouteName,
   layoutDataAttribute,
   layoutDataChanged,
+  layoutModAttribute,
+  layoutNodeAttribute,
   routeAttribute,
 } from './data.js'
 
@@ -56,6 +67,29 @@ export function route(name: string, handler: Handler): void {
     $.Msg(`[Modlock] ${name} cannot name a route`)
   }
   watch(routeAttribute(name), handler)
+}
+
+/**
+ * press sends action to the layout's mod with payload as JSON, and reports
+ * whether it went: a name the host refuses, a payload whose JSON passes the
+ * bytes a press carries, or a layout the renderer did not name stays here.
+ * The host takes a few presses a second from each player and drops the rest.
+ */
+export function press(action: string, payload?: unknown): boolean {
+  // Build the command from the node the renderer named on this panel.
+  const json = payload === undefined ? '' : (JSON.stringify(payload) ?? '')
+  const command = actionCommand(
+    panel.GetAttributeString(layoutModAttribute, ''),
+    panel.GetAttributeString(layoutNodeAttribute, ''),
+    action,
+    json,
+  )
+  if (command === '') {
+    $.Msg(`[Modlock] ${action} cannot be pressed`)
+    return false
+  }
+  $.DispatchEvent('CitadelConCommand', command)
+  return true
 }
 
 /** watch registers handler for attribute and hands it the current value. */

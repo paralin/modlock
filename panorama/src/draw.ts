@@ -55,16 +55,24 @@ import {
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
 import {
+  base64Url,
   isRouteName,
   layoutDataAttribute,
   layoutDataChanged,
+  layoutModAttribute,
+  layoutNodeAttribute,
   routeAttribute,
+  utf8,
 } from './data.js'
 
 export {
+  actionCommand,
   isRouteName,
   layoutDataAttribute,
   layoutDataChanged,
+  layoutModAttribute,
+  layoutNodeAttribute,
+  maxActionPayload,
   routeAttribute,
 } from './data.js'
 
@@ -314,56 +322,6 @@ const maxInput = 240
  * draws them back: a second of typing at the pace edits send.
  */
 const maxUnanswered = 10
-
-/**
- * utf8 returns text's UTF-8 bytes, cut at a character to at most limit bytes.
- * A lone surrogate becomes the replacement character.
- */
-function utf8(text: string, limit: number): number[] {
-  const bytes: number[] = []
-  for (const character of text) {
-    // Encode one character in one to four bytes.
-    let point = character.codePointAt(0) ?? 0xfffd
-    if (point >= 0xd800 && point <= 0xdfff) {
-      point = 0xfffd
-    }
-    const tail = (shift: number) => 0x80 | ((point >> shift) & 63)
-    const encoded =
-      point < 0x80
-        ? [point]
-        : point < 0x800
-          ? [0xc0 | (point >> 6), tail(0)]
-          : point < 0x10000
-            ? [0xe0 | (point >> 12), tail(6), tail(0)]
-            : [0xf0 | (point >> 18), tail(12), tail(6), tail(0)]
-
-    // Stop before the character that would pass the limit.
-    if (bytes.length + encoded.length > limit) {
-      break
-    }
-    bytes.push(...encoded)
-  }
-  return bytes
-}
-
-/** base64Digits are the digits of base64url in order. */
-const base64Digits =
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-
-/** base64Url writes bytes in unpadded base64url. */
-function base64Url(bytes: readonly number[]): string {
-  let written = ''
-  for (let at = 0; at < bytes.length; at += 3) {
-    // Each three bytes make four digits; a short end makes one per byte and one.
-    const chunk =
-      (bytes[at]! << 16) | ((bytes[at + 1] ?? 0) << 8) | (bytes[at + 2] ?? 0)
-    const digits = Math.min(3, bytes.length - at) + 1
-    for (let digit = 0; digit < digits; digit++) {
-      written += base64Digits[(chunk >> (18 - 6 * digit)) & 63]
-    }
-  }
-  return written
-}
 
 /** panelTypes maps each kind of node to the stock panel that draws it. */
 const panelTypes: Record<Kind, string> = {
@@ -1217,6 +1175,8 @@ export class Drawing {
     // Load the node's layout with its data, or hand a loaded layout its new
     // data. A layout whose addon has not mounted yet loads on a later draw.
     if (layout && !loaded) {
+      panel.SetAttributeString(layoutModAttribute, mod)
+      panel.SetAttributeString(layoutNodeAttribute, id)
       panel.SetAttributeString(layoutDataAttribute, data)
       for (const [name, value] of this.routes.get(mod) ?? []) {
         panel.SetAttributeString(routeAttribute(name), value)

@@ -40,7 +40,10 @@
 // <layout src="shop.xml" data={stock} />. Its script runs in the player's
 // game, so only a host that has reviewed the mod's content loads it; elsewhere
 // it draws nothing. The script includes the Panorama library
-// scripts/modlock/layout.js and reads data with Modlock.data.
+// scripts/modlock/layout.js and reads data with Modlock.data. It presses
+// back with Modlock.press('buy', { item: 'boots' }), which runs the element's
+// onAction with the player who pressed, the action and the payload:
+// <layout src="shop.xml" onAction={(player, action, payload) => ...} />.
 //
 // route sends a player a named JSON value that every layout of the mod reads
 // with Modlock.route, wherever it sits in the tree, such as
@@ -359,6 +362,7 @@ export interface Props {
   readonly sound?: string
   readonly disabled?: boolean
   readonly onPress?: (player: Player) => void
+  readonly onAction?: LayoutPressHandler
   readonly enter?: Style
   readonly exit?: Style
   readonly cycle?: Cycle
@@ -549,15 +553,27 @@ export interface ButtonProps extends ElementProps {
 }
 
 /**
+ * LayoutPressHandler hears a press a layout's script sent: the player the
+ * server says sent it, its action and its JSON payload, undefined for none.
+ */
+export type LayoutPressHandler = (
+  player: Player,
+  action: string,
+  payload: unknown,
+) => void
+
+/**
  * LayoutProps load a layout from the mod's content addon: src is its path
  * there, such as 'shop.xml', and data is the JSON value its script reads with
- * Modlock.data.
+ * Modlock.data. onAction hears each press its script sends with
+ * Modlock.press.
  */
 export interface LayoutProps {
   class?: string
   style?: Style
   src: string
   data?: unknown
+  onAction?: LayoutPressHandler
 }
 
 /** JSX types the elements a mod's JSX may use. */
@@ -861,8 +877,32 @@ export function uiSound(
   return draw(player)
 }
 
-/** press runs the handler of the button the player pressed. */
-export function press(player: Player, node: string): void {
+/**
+ * press runs the handler of the button the player pressed, or, for a press
+ * with an action, the handler of the layout whose script sent it, with the
+ * payload's JSON, undefined for none or for text JSON cannot read.
+ */
+export function press(
+  player: Player,
+  node: string,
+  action = '',
+  payload = '',
+): void {
+  // A press with an action came from a layout's script, not a button.
+  if (action !== '') {
+    const pressed = screens.get(player.slot)?.actions.get(node)
+    if (pressed) {
+      let value: unknown = undefined
+      try {
+        value = payload === '' ? undefined : (JSON.parse(payload) as unknown)
+      } catch {
+        value = undefined
+      }
+      pressed.handler(player, action, value)
+    }
+    return
+  }
+
   // A click on the game's ability bar names its slot, which no button's id
   // does.
   const bar = abilityBarNode.exec(node)
@@ -1087,6 +1127,8 @@ interface Screen {
   readonly presses: Map<string, { readonly handler: (player: Player) => void }>
   /** changes maps each input's id to its handler, as presses does. */
   readonly changes: Map<string, { readonly handler: ChangeHandler }>
+  /** actions maps each layout's id to its press handler, as presses does. */
+  readonly actions: Map<string, { readonly handler: LayoutPressHandler }>
   /** wheels holds only the enabled sliders that opted in to wheel events. */
   readonly wheels: Map<
     string,
@@ -1157,6 +1199,7 @@ class Layout {
       ids: new Map(),
       presses: new Map(),
       changes: new Map(),
+      actions: new Map(),
       wheels: new Map(),
       next: previous?.next ?? 0,
     }
@@ -1275,6 +1318,9 @@ function place(layout: Layout, child: Child, at: string): string[] {
       node.layout = props.src ?? ''
       node.data =
         props.data === undefined ? '' : (JSON.stringify(props.data) ?? '')
+      if (props.onAction) {
+        layout.screen.actions.set(node.id!, { handler: props.onAction })
+      }
       break
     default:
       node.kind = Kind.PANEL

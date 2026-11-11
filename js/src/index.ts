@@ -528,7 +528,7 @@ const handlers: ModHandlers = {
   uiPress(event) {
     // A press arrives under the same CPU budget as a command, so its handler
     // also runs with the next frame.
-    after(0, () => press(event.player, event.node))
+    after(0, () => press(event.player, event.node, event.action, event.payload))
   },
 
   uiInput(event) {
