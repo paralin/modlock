@@ -869,6 +869,21 @@ class TraceHit:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class SoundOptions:
+    """SoundOptions shape one sound; the zero value plays it to every player as
+    the game made it.
+    """
+
+    # volume scales the sound's loudness; 1 plays it as the game made it.
+    volume: float | None = None
+    # pitch scales the sound's pitch; 1 plays it as the game made it.
+    pitch: float | None = None
+    # listeners are the player slots that hear the sound; empty means every
+    # player.
+    listeners: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class ScreenTiming:
     """ScreenTiming is a screen effect's timing in seconds."""
 
@@ -2214,11 +2229,15 @@ class Player:
         """heal restores health to the player's hero, up to its maximum."""
         return _call("Heal", "HealRequest", {"player": self, "amount": amount}) is not None
 
-    def sound(self, sound: str) -> bool:
+    def sound(self, sound: str, options: SoundOptions | None = None) -> int | None:
         """sound plays a game sound event, such as Damage.Send.Crit, on the
-        player's hero.
+        player's hero, and returns its ID. It follows the hero as it moves.
+        Volume and pitch scale the sound, and listeners limit who hears it.
         """
-        return _call("Sound", "SoundRequest", {"player": self, "sound": sound}) is not None
+        response = _call("Sound", "SoundRequest", {"player": self, "sound": sound, "options": options}, "SoundResponse")
+        if response is None:
+            return None
+        return response["id"]
 
     def restore_hero(self, target: HeroTarget) -> bool:
         """restore_hero gives the player's live hero target over the next few
@@ -2705,11 +2724,20 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "text", "string"),
         ],
     ),
+    "SoundOptions": (
+        SoundOptions,
+        [
+            wire.Field(1, "volume", "float", optional=True),
+            wire.Field(2, "pitch", "float", optional=True),
+            wire.Field(3, "listeners", "int32", repeated=True),
+        ],
+    ),
     "SoundRequest": (
         None,
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "sound", "string"),
+            wire.Field(3, "options", "message", optional=True, message="SoundOptions"),
         ],
     ),
     "EmitSoundRequest": (
@@ -2717,6 +2745,27 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "entity", "uint32"),
             wire.Field(2, "sound", "string"),
+            wire.Field(3, "options", "message", optional=True, message="SoundOptions"),
+        ],
+    ),
+    "SoundResponse": (
+        None,
+        [
+            wire.Field(1, "id", "uint32"),
+        ],
+    ),
+    "AdjustSoundRequest": (
+        None,
+        [
+            wire.Field(1, "id", "uint32"),
+            wire.Field(2, "volume", "float", optional=True),
+            wire.Field(3, "pitch", "float", optional=True),
+        ],
+    ),
+    "StopSoundRequest": (
+        None,
+        [
+            wire.Field(1, "id", "uint32"),
         ],
     ),
     "ScreenEffectRequest": (
@@ -4462,9 +4511,29 @@ def push_entity(entity: int, velocity: Vector, spin: Vector | None = None) -> bo
     return _call("PushEntity", "PushEntityRequest", {"entity": entity, "velocity": velocity, "spin": spin}) is not None
 
 
-def emit_sound(entity: int, sound: str) -> bool:
-    """emit_sound plays one game sound on any entity, such as a projectile."""
-    return _call("EmitSound", "EmitSoundRequest", {"entity": entity, "sound": sound}) is not None
+def emit_sound(entity: int, sound: str, options: SoundOptions | None = None) -> int | None:
+    """emit_sound plays one game sound on any entity, such as a projectile, and
+    returns its ID. Volume and pitch scale the sound, and listeners limit who
+    hears it.
+    """
+    response = _call("EmitSound", "EmitSoundRequest", {"entity": entity, "sound": sound, "options": options}, "SoundResponse")
+    if response is None:
+        return None
+    return response["id"]
+
+
+def adjust_sound(id: int, volume: float | None = None, pitch: float | None = None) -> bool:
+    """adjust_sound changes the volume or pitch of a sound Sound or EmitSound
+    started, while it plays.
+    """
+    return _call("AdjustSound", "AdjustSoundRequest", {"id": id, "volume": volume, "pitch": pitch}) is not None
+
+
+def stop_sound(id: int) -> bool:
+    """stop_sound stops a sound Sound or EmitSound started. A sound that already
+    ended is not an error.
+    """
+    return _call("StopSound", "StopSoundRequest", {"id": id}) is not None
 
 
 def watch_projectiles(options: ProjectileOptions) -> bool:

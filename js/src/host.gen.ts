@@ -912,6 +912,31 @@ function fromTraceHit(message: combatPb.TraceHit): TraceHit {
   }
 }
 
+/**
+ * SoundOptions shape one sound; the zero value plays it to every player as
+ * the game made it.
+ */
+export interface SoundOptions {
+  /** volume scales the sound's loudness; 1 plays it as the game made it. */
+  volume?: number
+  /** pitch scales the sound's pitch; 1 plays it as the game made it. */
+  pitch?: number
+  /**
+   * listeners are the player slots that hear the sound; empty means every
+   * player.
+   */
+  listeners?: readonly number[]
+}
+
+/** toSoundOptions encodes a SoundOptions. */
+function toSoundOptions(value: SoundOptions): effectsPb.SoundOptions {
+  return {
+    volume: value.volume,
+    pitch: value.pitch,
+    listeners: value.listeners?.map((v) => int32(v)),
+  }
+}
+
 /** ScreenTiming is a screen effect's timing in seconds. */
 export interface ScreenTiming {
   /** delay is the time before the effect starts. */
@@ -2963,10 +2988,14 @@ export class Player {
 
   /**
    * sound plays a game sound event, such as Damage.Send.Crit, on the
-   * player's hero.
+   * player's hero, and returns its ID. It follows the hero as it moves.
+   * Volume and pitch scale the sound, and listeners limit who hears it.
    */
-  sound(sound: string): boolean {
-    return call('Sound', effectsPb.SoundRequest.toBinary({ player: this.slot, sound })) !== undefined
+  sound(sound: string, options?: SoundOptions): number | undefined {
+    const reply = call('Sound', effectsPb.SoundRequest.toBinary({ player: this.slot, sound, options: options === undefined ? undefined : toSoundOptions(options) }))
+    if (reply === undefined) return undefined
+    const response = effectsPb.SoundResponse.fromBinary(reply)
+    return response.id ?? 0
   }
 
   /**
@@ -3791,9 +3820,32 @@ export function pushEntity(entity: number, velocity: Vector, spin?: Vector): boo
   return call('PushEntity', entitiesPb.PushEntityRequest.toBinary({ entity, velocity, spin })) !== undefined
 }
 
-/** emitSound plays one game sound on any entity, such as a projectile. */
-export function emitSound(entity: number, sound: string): boolean {
-  return call('EmitSound', effectsPb.EmitSoundRequest.toBinary({ entity, sound })) !== undefined
+/**
+ * emitSound plays one game sound on any entity, such as a projectile, and
+ * returns its ID. Volume and pitch scale the sound, and listeners limit who
+ * hears it.
+ */
+export function emitSound(entity: number, sound: string, options?: SoundOptions): number | undefined {
+  const reply = call('EmitSound', effectsPb.EmitSoundRequest.toBinary({ entity, sound, options: options === undefined ? undefined : toSoundOptions(options) }))
+  if (reply === undefined) return undefined
+  const response = effectsPb.SoundResponse.fromBinary(reply)
+  return response.id ?? 0
+}
+
+/**
+ * adjustSound changes the volume or pitch of a sound Sound or EmitSound
+ * started, while it plays.
+ */
+export function adjustSound(id: number, volume?: number, pitch?: number): boolean {
+  return call('AdjustSound', effectsPb.AdjustSoundRequest.toBinary({ id, volume, pitch })) !== undefined
+}
+
+/**
+ * stopSound stops a sound Sound or EmitSound started. A sound that already
+ * ended is not an error.
+ */
+export function stopSound(id: number): boolean {
+  return call('StopSound', effectsPb.StopSoundRequest.toBinary({ id })) !== undefined
 }
 
 /**

@@ -362,13 +362,6 @@ std::expected<gameinterop::RequiredSouls, std::string> GameServices::RequiredSou
   return required_souls_;
 }
 
-std::expected<const gameinterop::NativeSound*, std::string> GameServices::Sound() {
-  if (auto cached = Cache(sound_, &gameinterop::NativeSound::TryCreate); !cached) {
-    return std::unexpected(cached.error());
-  }
-  return &*sound_;
-}
-
 std::expected<const gameinterop::GamePause*, std::string> GameServices::Pause() {
   if (auto cached = Cache(pause_, &gameinterop::GamePause::Resolve); !cached) {
     return std::unexpected(cached.error());

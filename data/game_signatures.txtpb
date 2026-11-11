@@ -295,13 +295,6 @@ signatures {
 }
 
 signatures {
-  id: "entity.emit-sound"
-  modules: GAME_MODULE_SERVER
-  pattern: "48 89 5C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 55 48 8B EC 48 81 EC ?? ?? ?? ?? 33 C0"
-  shape: "CBaseEntity::EmitSoundParams"
-}
-
-signatures {
   id: "entity.remove"
   modules: GAME_MODULE_SERVER
   pattern: "48 85 C9 74 ? 48 8B D1 48 8B 0D"

@@ -461,8 +461,10 @@ class HostService {
   }
 
   // Sound plays a game sound event, such as Damage.Send.Crit, on the
-  // player's hero.
-  virtual std::expected<void, std::string> Sound(const effects::SoundRequest& /*request*/) {
+  // player's hero, and returns its ID. It follows the hero as it moves.
+  // Volume and pitch scale the sound, and listeners limit who hears it.
+  virtual std::expected<effects::SoundResponse, std::string> Sound(
+      const effects::SoundRequest& /*request*/) {
     return std::unexpected("this host does not support Sound");
   }
 
@@ -981,9 +983,25 @@ class HostService {
     return std::unexpected("this host does not support PushEntity");
   }
 
-  // EmitSound plays one game sound on any entity, such as a projectile.
-  virtual std::expected<void, std::string> EmitSound(const effects::EmitSoundRequest& /*request*/) {
+  // EmitSound plays one game sound on any entity, such as a projectile, and
+  // returns its ID. Volume and pitch scale the sound, and listeners limit who
+  // hears it.
+  virtual std::expected<effects::SoundResponse, std::string> EmitSound(
+      const effects::EmitSoundRequest& /*request*/) {
     return std::unexpected("this host does not support EmitSound");
+  }
+
+  // AdjustSound changes the volume or pitch of a sound Sound or EmitSound
+  // started, while it plays.
+  virtual std::expected<void, std::string> AdjustSound(
+      const effects::AdjustSoundRequest& /*request*/) {
+    return std::unexpected("this host does not support AdjustSound");
+  }
+
+  // StopSound stops a sound Sound or EmitSound started. A sound that already
+  // ended is not an error.
+  virtual std::expected<void, std::string> StopSound(const effects::StopSoundRequest& /*request*/) {
+    return std::unexpected("this host does not support StopSound");
   }
 
   // Kill kills a player's hero, crediting no one.
@@ -1951,6 +1969,22 @@ class HostService {
              return detail::Fail("the EmitSound request is malformed");
            }
            return detail::Answer(host.EmitSound(request));
+         }},
+        {"AdjustSound",
+         [](HostService& host, const std::string& bytes) {
+           effects::AdjustSoundRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the AdjustSound request is malformed");
+           }
+           return detail::Answer(host.AdjustSound(request));
+         }},
+        {"StopSound",
+         [](HostService& host, const std::string& bytes) {
+           effects::StopSoundRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the StopSound request is malformed");
+           }
+           return detail::Answer(host.StopSound(request));
          }},
         {"Kill",
          [](HostService& host, const std::string& bytes) {

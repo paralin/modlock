@@ -358,6 +358,10 @@ type TraceOptions = combatpb.TraceOptions
 // TraceHit is where a traced line first hit something.
 type TraceHit = combatpb.TraceHit
 
+// SoundOptions shape one sound; the zero value plays it to every player as
+// the game made it.
+type SoundOptions = effectspb.SoundOptions
+
 // ScreenTiming is a screen effect's timing in seconds.
 type ScreenTiming = effectspb.ScreenTiming
 
@@ -1107,9 +1111,15 @@ func (p Player) Heal(amount int32) error {
 }
 
 // Sound plays a game sound event, such as Damage.Send.Crit, on the
-// player's hero.
-func (p Player) Sound(sound string) error {
-	return invoke("Sound", &effectspb.SoundRequest{Player: p.Slot, Sound: sound}, nil)
+// player's hero, and returns its ID. It follows the hero as it moves.
+// Volume and pitch scale the sound, and listeners limit who hears it.
+func (p Player) Sound(sound string, options *SoundOptions) (uint32, error) {
+	request := &effectspb.SoundRequest{Player: p.Slot, Sound: sound, Options: options}
+	response := &effectspb.SoundResponse{}
+	if err := invoke("Sound", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetId(), nil
 }
 
 // RestoreHero gives the player's live hero target over the next few
@@ -1744,9 +1754,28 @@ func PushEntity(entity uint32, velocity, spin *Vector) error {
 	return invoke("PushEntity", &entitiespb.PushEntityRequest{Entity: entity, Velocity: velocity, Spin: spin}, nil)
 }
 
-// EmitSound plays one game sound on any entity, such as a projectile.
-func EmitSound(entity uint32, sound string) error {
-	return invoke("EmitSound", &effectspb.EmitSoundRequest{Entity: entity, Sound: sound}, nil)
+// EmitSound plays one game sound on any entity, such as a projectile, and
+// returns its ID. Volume and pitch scale the sound, and listeners limit who
+// hears it.
+func EmitSound(entity uint32, sound string, options *SoundOptions) (uint32, error) {
+	request := &effectspb.EmitSoundRequest{Entity: entity, Sound: sound, Options: options}
+	response := &effectspb.SoundResponse{}
+	if err := invoke("EmitSound", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetId(), nil
+}
+
+// AdjustSound changes the volume or pitch of a sound Sound or EmitSound
+// started, while it plays.
+func AdjustSound(id uint32, volume, pitch *float32) error {
+	return invoke("AdjustSound", &effectspb.AdjustSoundRequest{Id: id, Volume: volume, Pitch: pitch}, nil)
+}
+
+// StopSound stops a sound Sound or EmitSound started. A sound that already
+// ended is not an error.
+func StopSound(id uint32) error {
+	return invoke("StopSound", &effectspb.StopSoundRequest{Id: id}, nil)
 }
 
 // Kill kills a player's hero, crediting no one.

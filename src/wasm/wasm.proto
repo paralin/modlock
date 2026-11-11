@@ -355,8 +355,9 @@ service Host {
   rpc Heal(modlock.wasm.players.HealRequest) returns (Empty);
 
   // Sound plays a game sound event, such as Damage.Send.Crit, on the
-  // player's hero.
-  rpc Sound(modlock.wasm.effects.SoundRequest) returns (Empty);
+  // player's hero, and returns its ID. It follows the hero as it moves.
+  // Volume and pitch scale the sound, and listeners limit who hears it.
+  rpc Sound(modlock.wasm.effects.SoundRequest) returns (modlock.wasm.effects.SoundResponse);
 
   // RestoreHero gives the player's live hero target over the next few
   // seconds: the build first, then health, stamina and pose once it settles,
@@ -696,8 +697,18 @@ service Host {
   // impulse that the simulation carries on.
   rpc PushEntity(modlock.wasm.entities.PushEntityRequest) returns (Empty);
 
-  // EmitSound plays one game sound on any entity, such as a projectile.
-  rpc EmitSound(modlock.wasm.effects.EmitSoundRequest) returns (Empty);
+  // EmitSound plays one game sound on any entity, such as a projectile, and
+  // returns its ID. Volume and pitch scale the sound, and listeners limit who
+  // hears it.
+  rpc EmitSound(modlock.wasm.effects.EmitSoundRequest) returns (modlock.wasm.effects.SoundResponse);
+
+  // AdjustSound changes the volume or pitch of a sound Sound or EmitSound
+  // started, while it plays.
+  rpc AdjustSound(modlock.wasm.effects.AdjustSoundRequest) returns (Empty);
+
+  // StopSound stops a sound Sound or EmitSound started. A sound that already
+  // ended is not an error.
+  rpc StopSound(modlock.wasm.effects.StopSoundRequest) returns (Empty);
 
   // Kill kills a player's hero, crediting no one.
   rpc Kill(modlock.wasm.players.PlayerRequest) returns (Empty);

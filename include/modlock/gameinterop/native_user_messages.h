@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -56,6 +57,28 @@ class MODLOCK_API NativeUserMessages {
   std::expected<void, std::string> ClearScreenEffect(int32_t slot, int32_t owner,
                                                      engine::ScreenEffectState state) const;
 
+  // SoundFields are a sound event's public fields. An absent field keeps the
+  // sound's own value; 1 plays the sound as the game made it.
+  struct SoundFields {
+    std::optional<float> volume;
+    std::optional<float> pitch;
+  };
+
+  // StartSound plays the named sound event to the listeners, a mask of player
+  // slot bits, on the source entity index, or at each listener with -1. It
+  // returns the sound's id, which names it to SetSoundFields and StopSound;
+  // ids are unique within the process and never 0.
+  std::expected<uint32_t, std::string> StartSound(uint64_t listeners, std::string_view name,
+                                                  int32_t source, const SoundFields& fields) const;
+
+  // SetSoundFields changes the given fields of a playing sound.
+  std::expected<void, std::string> SetSoundFields(uint64_t listeners, uint32_t id,
+                                                  const SoundFields& fields) const;
+
+  // StopSound stops a playing sound; the client ignores an id it is not
+  // playing.
+  std::expected<void, std::string> StopSound(uint64_t listeners, uint32_t id) const;
+
   // CameraController adds an operation to the addressed player's camera, or
   // clears operations, as the message's action says.
   std::expected<void, std::string> CameraController(int32_t slot,
@@ -64,7 +87,12 @@ class MODLOCK_API NativeUserMessages {
  private:
   NativeUserMessages(void* messages, void* events) : messages_(messages), events_(events) {}
 
+  // Send posts a message to one player slot.
   std::expected<void, std::string> Send(int32_t slot, int32_t id,
+                                        const google::protobuf::MessageLite& message) const;
+
+  // Post posts a message to each player slot whose bit is set in recipients.
+  std::expected<void, std::string> Post(uint64_t recipients, int32_t id,
                                         const google::protobuf::MessageLite& message) const;
 
   // Engine interfaces outlive the host's frame callbacks.

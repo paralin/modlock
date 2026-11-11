@@ -34,7 +34,6 @@
 #include "modlock/gameinterop/match_clock.h"
 #include "modlock/gameinterop/movement_hook.h"
 #include "modlock/gameinterop/native_damage.h"
-#include "modlock/gameinterop/native_sound.h"
 #include "modlock/gameinterop/native_user_messages.h"
 #include "modlock/gameinterop/pawn_observer.h"
 #include "modlock/gameinterop/projectile_impact_hook.h"
@@ -138,7 +137,6 @@ class GameServices {
   std::expected<const gameinterop::NativeDamage*, std::string> Damage();
   std::expected<gameinterop::ModifyCurrency, std::string> Currency();
   std::expected<gameinterop::RequiredSouls, std::string> RequiredSouls();
-  std::expected<const gameinterop::NativeSound*, std::string> Sound();
   std::expected<const gameinterop::GamePause*, std::string> Pause();
   std::expected<gameinterop::MatchClock*, std::string> Clock();
   std::expected<gameinterop::KothRules*, std::string> Rift();
@@ -255,7 +253,6 @@ class GameServices {
   std::optional<gameinterop::NativeDamage> damage_;
   gameinterop::ModifyCurrency currency_ = nullptr;
   gameinterop::RequiredSouls required_souls_ = nullptr;
-  std::optional<gameinterop::NativeSound> sound_;
   std::optional<gameinterop::GamePause> pause_;
   std::optional<gameinterop::MatchClock> clock_;
   std::optional<gameinterop::KothRules> rift_;
@@ -506,7 +503,8 @@ class Game : public HostService {
       const players::StartingSoulsRequest& request) override;
   std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) override;
   std::expected<void, std::string> Heal(const players::HealRequest& request) override;
-  std::expected<void, std::string> Sound(const effects::SoundRequest& request) override;
+  std::expected<effects::SoundResponse, std::string> Sound(
+      const effects::SoundRequest& request) override;
   std::expected<void, std::string> RestoreHero(const players::RestoreHeroRequest& request) override;
   std::expected<void, std::string> ScreenEffect(
       const effects::ScreenEffectRequest& request) override;
@@ -610,7 +608,10 @@ class Game : public HostService {
   std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override;
   std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override;
   std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override;
-  std::expected<void, std::string> EmitSound(const effects::EmitSoundRequest& request) override;
+  std::expected<effects::SoundResponse, std::string> EmitSound(
+      const effects::EmitSoundRequest& request) override;
+  std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request) override;
+  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override;
   std::expected<void, std::string> Kill(const players::PlayerRequest& request) override;
   std::expected<void, std::string> SetVelocity(
       const movement::SetVelocityRequest& request) override;
@@ -659,6 +660,15 @@ class Game : public HostService {
 
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
   std::expected<int32_t, std::string> ScreenOwner(int32_t slot);
+
+  // HumanSlots returns the slot bits of the connected human players, whose
+  // clients can hear a sound.
+  static uint64_t HumanSlots();
+
+  // PlaySound starts a sound on the source entity index, shaped and
+  // addressed by options.
+  std::expected<effects::SoundResponse, std::string> PlaySound(
+      const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
   // SetPaused pauses or resumes the game.
   std::expected<void, std::string> SetPaused(bool paused);

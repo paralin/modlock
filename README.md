@@ -861,6 +861,7 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                                                        | Keep one member per human and get them the hero they want.            |
 | `player.pawn()`                                                                                                                   | Read the hero: health, team, position, aim and stamina.               |
 | `player.chat`, `centerText`, `announce`                                                                                           | Show text to one player.                                              |
+| `player.sound(sound, { volume, pitch, listeners })`, `adjustSound(id, volume, pitch)`, `stopSound(id)`                            | Play a sound on the hero, change it while it plays, or stop it.       |
 | `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`                                                       | Move the hero through the match.                                      |
 | `player.zipline(lane)`                                                                                                            | Put the hero on the yellow, green, blue or purple lane's zipline.     |
 | `player.spectate()`                                                                                                               | Move the player to the spectators, without a hero.                    |

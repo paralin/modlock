@@ -316,7 +316,7 @@ func (m *Mode) track(racer *Racer, tick bool) {
 // writes its time in their chat.
 func (m *Mode) split(racer *Racer) {
 	// Chime and count the checkpoint.
-	_ = racer.Player.Sound("Damage.Send.Crit")
+	_, _ = racer.Player.Sound("Damage.Send.Crit", nil)
 	_ = racer.Player.AddMetric("race.checkpoints", 1, nil)
 
 	// Write the split, numbered as the checkpoint's label.

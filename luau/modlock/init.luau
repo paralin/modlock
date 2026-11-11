@@ -673,6 +673,18 @@ export type TraceHit = {
 	entity: number,
 }
 
+-- SoundOptions shape one sound; the zero value plays it to every player as
+-- the game made it.
+export type SoundOptions = {
+	-- volume scales the sound's loudness; 1 plays it as the game made it.
+	volume: number?,
+	-- pitch scales the sound's pitch; 1 plays it as the game made it.
+	pitch: number?,
+	-- listeners are the player slots that hear the sound; empty means every
+	-- player.
+	listeners: { number }?,
+}
+
 -- ScreenTiming is a screen effect's timing in seconds.
 export type ScreenTiming = {
 	-- delay is the time before the effect starts.
@@ -1737,8 +1749,9 @@ export type Player = {
 	-- heal restores health to the player's hero, up to its maximum.
 	heal: (self: Player, amount: number) -> boolean,
 	-- sound plays a game sound event, such as Damage.Send.Crit, on the
-	-- player's hero.
-	sound: (self: Player, sound: string) -> boolean,
+	-- player's hero, and returns its ID. It follows the hero as it moves.
+	-- Volume and pitch scale the sound, and listeners limit who hears it.
+	sound: (self: Player, sound: string, options: SoundOptions?) -> number?,
 	-- restoreHero gives the player's live hero target over the next few
 	-- seconds: the build first, then health, stamina and pose once it settles,
 	-- then charges and cooldowns. A Restored event reports when the result has
@@ -2109,9 +2122,14 @@ function Player.heal(self: Player, amount: number): boolean
 end
 
 -- sound plays a game sound event, such as Damage.Send.Crit, on the
--- player's hero.
-function Player.sound(self: Player, sound: string): boolean
-	return call("Sound", "SoundRequest", { player = self, sound = sound }) ~= nil
+-- player's hero, and returns its ID. It follows the hero as it moves.
+-- Volume and pitch scale the sound, and listeners limit who hears it.
+function Player.sound(self: Player, sound: string, options: SoundOptions?): number?
+	local response = call("Sound", "SoundRequest", { player = self, sound = sound, options = options }, "SoundResponse")
+	if response == nil then
+		return nil
+	end
+	return response.id
 end
 
 -- restoreHero gives the player's live hero target over the next few
@@ -2577,13 +2595,31 @@ schema.AnnounceRequest = {
 	{ number = 2, name = "title", kind = "string" },
 	{ number = 3, name = "text", kind = "string" },
 }
+schema.SoundOptions = {
+	{ number = 1, name = "volume", kind = "float", optional = true },
+	{ number = 2, name = "pitch", kind = "float", optional = true },
+	{ number = 3, name = "listeners", kind = "int32", repeated = true },
+}
 schema.SoundRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "sound", kind = "string" },
+	{ number = 3, name = "options", kind = "message", optional = true, message = "SoundOptions" },
 }
 schema.EmitSoundRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
 	{ number = 2, name = "sound", kind = "string" },
+	{ number = 3, name = "options", kind = "message", optional = true, message = "SoundOptions" },
+}
+schema.SoundResponse = {
+	{ number = 1, name = "id", kind = "uint32" },
+}
+schema.AdjustSoundRequest = {
+	{ number = 1, name = "id", kind = "uint32" },
+	{ number = 2, name = "volume", kind = "float", optional = true },
+	{ number = 3, name = "pitch", kind = "float", optional = true },
+}
+schema.StopSoundRequest = {
+	{ number = 1, name = "id", kind = "uint32" },
 }
 schema.ScreenEffectRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -3862,9 +3898,27 @@ function modlock.pushEntity(entity: number, velocity: Vector, spin: Vector?): bo
 	return call("PushEntity", "PushEntityRequest", { entity = entity, velocity = velocity, spin = spin }) ~= nil
 end
 
--- emitSound plays one game sound on any entity, such as a projectile.
-function modlock.emitSound(entity: number, sound: string): boolean
-	return call("EmitSound", "EmitSoundRequest", { entity = entity, sound = sound }) ~= nil
+-- emitSound plays one game sound on any entity, such as a projectile, and
+-- returns its ID. Volume and pitch scale the sound, and listeners limit who
+-- hears it.
+function modlock.emitSound(entity: number, sound: string, options: SoundOptions?): number?
+	local response = call("EmitSound", "EmitSoundRequest", { entity = entity, sound = sound, options = options }, "SoundResponse")
+	if response == nil then
+		return nil
+	end
+	return response.id
+end
+
+-- adjustSound changes the volume or pitch of a sound Sound or EmitSound
+-- started, while it plays.
+function modlock.adjustSound(id: number, volume: number?, pitch: number?): boolean
+	return call("AdjustSound", "AdjustSoundRequest", { id = id, volume = volume, pitch = pitch }) ~= nil
+end
+
+-- stopSound stops a sound Sound or EmitSound started. A sound that already
+-- ended is not an error.
+function modlock.stopSound(id: number): boolean
+	return call("StopSound", "StopSoundRequest", { id = id }) ~= nil
 end
 
 -- watchProjectiles reports the projectiles with these designer names, such

@@ -227,6 +227,79 @@ export const AnnounceRequest: MessageType<AnnounceRequest> =
   )
 
 /**
+ * SoundOptions shape one sound; the zero value plays it to every player as
+ * the game made it.
+ *
+ * @generated from message modlock.wasm.effects.SoundOptions
+ */
+export interface SoundOptions {
+  /**
+   * Volume scales the sound's loudness; 1 plays it as the game made it.
+   */
+  volume?: number
+  /**
+   * Pitch scales the sound's pitch; 1 plays it as the game made it.
+   */
+  pitch?: number
+  /**
+   * Listeners are the player slots that hear the sound; empty means every
+   * player.
+   */
+  listeners?: number[]
+}
+
+export const SoundOptions: MessageType<SoundOptions> =
+  /* @__PURE__ */ createMessageType<SoundOptions>(
+    'modlock.wasm.effects.SoundOptions',
+    () => [
+      [1, 'volume', 2, 4],
+      [2, 'pitch', 2, 4],
+      [3, 'listeners', 5, 3],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: SoundOptions): SoundOptions => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.volume = r.float()
+              break
+            case 2:
+              m.pitch = r.float()
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.listeners ??= []); r.pos < e;)
+                a.push(r.int32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SoundOptions, w: Writer): void => {
+        {
+          const v = m.volume
+          if (v != null) w.uint32(13).float(v)
+        }
+        {
+          const v = m.pitch
+          if (v != null) w.uint32(21).float(v)
+        }
+        {
+          const a = m.listeners
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
  * SoundRequest plays one sound on a player's hero.
  *
  * @generated from message modlock.wasm.effects.SoundRequest
@@ -237,6 +310,11 @@ export interface SoundRequest {
    * Sound is the game sound event's name, such as Player.ClaimOrb.
    */
   sound?: string
+  /**
+   * Options set the sound's volume and pitch and who hears it; without
+   * them every player hears the sound as the game made it.
+   */
+  options?: SoundOptions
 }
 
 export const SoundRequest: MessageType<SoundRequest> =
@@ -245,6 +323,7 @@ export const SoundRequest: MessageType<SoundRequest> =
     () => [
       [1, 'player', 5],
       [2, 'sound', 9],
+      [3, 'options', 11, 0, SoundOptions.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: SoundRequest): SoundRequest => {
@@ -257,6 +336,9 @@ export const SoundRequest: MessageType<SoundRequest> =
               break
             case 2:
               m.sound = r.string()
+              break
+            case 3:
+              m.options = SoundOptions.decode(r, r.delimited(), m.options ?? {})
               break
             default:
               r.skip(t)
@@ -272,6 +354,10 @@ export const SoundRequest: MessageType<SoundRequest> =
         {
           const v = m.sound
           if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.options
+          if (v != null) SoundOptions.writeField(w, 3, v)
         }
       },
     },
@@ -291,6 +377,11 @@ export interface EmitSoundRequest {
    * Sound is the game sound event's name.
    */
   sound?: string
+  /**
+   * Options set the sound's volume and pitch and who hears it; without
+   * them every player hears the sound as the game made it.
+   */
+  options?: SoundOptions
 }
 
 export const EmitSoundRequest: MessageType<EmitSoundRequest> =
@@ -299,6 +390,7 @@ export const EmitSoundRequest: MessageType<EmitSoundRequest> =
     () => [
       [1, 'entity', 13],
       [2, 'sound', 9],
+      [3, 'options', 11, 0, SoundOptions.codec],
     ],
     {
       decode: (
@@ -316,6 +408,9 @@ export const EmitSoundRequest: MessageType<EmitSoundRequest> =
             case 2:
               m.sound = r.string()
               break
+            case 3:
+              m.options = SoundOptions.decode(r, r.delimited(), m.options ?? {})
+              break
             default:
               r.skip(t)
           }
@@ -330,6 +425,168 @@ export const EmitSoundRequest: MessageType<EmitSoundRequest> =
         {
           const v = m.sound
           if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.options
+          if (v != null) SoundOptions.writeField(w, 3, v)
+        }
+      },
+    },
+  )
+
+/**
+ * SoundResponse names a sound that Sound or EmitSound started.
+ *
+ * @generated from message modlock.wasm.effects.SoundResponse
+ */
+export interface SoundResponse {
+  /**
+   * Id names the playing sound to AdjustSound and StopSound; it is never 0.
+   */
+  id?: number
+}
+
+export const SoundResponse: MessageType<SoundResponse> =
+  /* @__PURE__ */ createMessageType<SoundResponse>(
+    'modlock.wasm.effects.SoundResponse',
+    () => [[1, 'id', 13]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SoundResponse,
+      ): SoundResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SoundResponse, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(8).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * AdjustSoundRequest changes a playing sound.
+ *
+ * @generated from message modlock.wasm.effects.AdjustSoundRequest
+ */
+export interface AdjustSoundRequest {
+  /**
+   * Id is the sound's ID, as Sound or EmitSound returned it.
+   */
+  id?: number
+  /**
+   * Volume replaces the sound's loudness scale when present.
+   */
+  volume?: number
+  /**
+   * Pitch replaces the sound's pitch scale when present.
+   */
+  pitch?: number
+}
+
+export const AdjustSoundRequest: MessageType<AdjustSoundRequest> =
+  /* @__PURE__ */ createMessageType<AdjustSoundRequest>(
+    'modlock.wasm.effects.AdjustSoundRequest',
+    () => [
+      [1, 'id', 13],
+      [2, 'volume', 2, 4],
+      [3, 'pitch', 2, 4],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: AdjustSoundRequest,
+      ): AdjustSoundRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.uint32()
+              break
+            case 2:
+              m.volume = r.float()
+              break
+            case 3:
+              m.pitch = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: AdjustSoundRequest, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.volume
+          if (v != null) w.uint32(21).float(v)
+        }
+        {
+          const v = m.pitch
+          if (v != null) w.uint32(29).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * StopSoundRequest names a playing sound to stop.
+ *
+ * @generated from message modlock.wasm.effects.StopSoundRequest
+ */
+export interface StopSoundRequest {
+  /**
+   * Id is the sound's ID, as Sound or EmitSound returned it.
+   */
+  id?: number
+}
+
+export const StopSoundRequest: MessageType<StopSoundRequest> =
+  /* @__PURE__ */ createMessageType<StopSoundRequest>(
+    'modlock.wasm.effects.StopSoundRequest',
+    () => [[1, 'id', 13]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: StopSoundRequest,
+      ): StopSoundRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: StopSoundRequest, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(8).uint32(v)
         }
       },
     },
