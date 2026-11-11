@@ -1485,9 +1485,11 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
 [How mods reach the game](#how-mods-reach-the-game) for the protocol.
 
 Name each service the mod calls in `mod.json`; a service is needed unless it
-is marked optional. A host refuses to start a mod whose needed service it
-cannot provide, naming it, and starts one without an optional service, whose
-calls then fail:
+is marked optional. The sandbox refuses to start a mod whose needed service
+nobody provides there, naming it, and starts one without an optional
+service, whose calls then fail. A game host does not read the list yet: it
+starts the mod either way, and a call to a service it does not provide
+fails:
 
 ```json
 "services": [
