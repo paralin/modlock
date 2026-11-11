@@ -237,6 +237,7 @@ enum Definition_File : int {
   Definition_File_FILE_HEROES = 1,
   Definition_File_FILE_BOT_DIFFICULTY = 2,
   Definition_File_FILE_NPC_UNITS = 3,
+  Definition_File_FILE_MODIFIERS = 4,
   Definition_File_Definition_File_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   Definition_File_Definition_File_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -247,11 +248,11 @@ extern const uint32_t Definition_File_internal_data_[];
 inline constexpr Definition_File Definition_File_File_MIN =
     static_cast<Definition_File>(0);
 inline constexpr Definition_File Definition_File_File_MAX =
-    static_cast<Definition_File>(3);
+    static_cast<Definition_File>(4);
 inline bool Definition_File_IsValid(int value) {
-  return 0 <= value && value <= 3;
+  return 0 <= value && value <= 4;
 }
-inline constexpr int Definition_File_File_ARRAYSIZE = 3 + 1;
+inline constexpr int Definition_File_File_ARRAYSIZE = 4 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descriptor();
 template <typename T>
 const ::std::string& Definition_File_Name(T value) {
@@ -262,7 +263,7 @@ const ::std::string& Definition_File_Name(T value) {
 }
 template <>
 inline const ::std::string& Definition_File_Name(Definition_File value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<Definition_File_descriptor, 0, 3>(
+  return ::google::protobuf::internal::NameOfDenseEnum<Definition_File_descriptor, 0, 4>(
       static_cast<int>(value));
 }
 inline bool Definition_File_Parse(
@@ -759,6 +760,7 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
   static constexpr File FILE_HEROES = Definition_File_FILE_HEROES;
   static constexpr File FILE_BOT_DIFFICULTY = Definition_File_FILE_BOT_DIFFICULTY;
   static constexpr File FILE_NPC_UNITS = Definition_File_FILE_NPC_UNITS;
+  static constexpr File FILE_MODIFIERS = Definition_File_FILE_MODIFIERS;
   static inline bool File_IsValid(int value) {
     return Definition_File_IsValid(value);
   }

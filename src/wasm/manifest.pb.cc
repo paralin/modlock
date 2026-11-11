@@ -318,7 +318,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "Movement\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.M"
     "ovement.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Model\022\020\n"
     "\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001J\004\010"
-    "\003\020\004R\023unpredicted_buttons\"\352\003\n\nDefinition\022"
+    "\003\020\004R\023unpredicted_buttons\"\376\003\n\nDefinition\022"
     "+\n\004file\030\001 \001(\0162\035.modlock.wasm.Definition."
     "File\022\r\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 \003(\0132"
     "(.modlock.wasm.Definition.PropertiesEntr"
@@ -328,11 +328,11 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
     "\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n"
     "\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022\013\n\003k"
-    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\004File\022\022\n\016F"
+    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"l\n\004File\022\022\n\016F"
     "ILE_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE"
-    "_BOT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003B*Z"
-    "(github.com/paralin/modlock/src/wasm;was"
-    "mb\006proto3"
+    "_BOT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003\022\022\n"
+    "\016FILE_MODIFIERS\020\004B*Z(github.com/paralin/"
+    "modlock/src/wasm;wasmb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps[3] = {
@@ -344,7 +344,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto = {
     false,
     false,
-    1649,
+    1669,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_once,
@@ -382,7 +382,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descr
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto[3];
 }
 PROTOBUF_CONSTINIT const uint32_t Definition_File_internal_data_[] = {
-    262144u, 0u, };
+    327680u, 0u, };
 // ===================================================================
 
 class Manifest::_Internal {

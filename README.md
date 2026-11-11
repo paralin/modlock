@@ -1634,6 +1634,14 @@ with the player and anyone they landed on.
     "fields": { "CCitadelPlayerBotNPCBrainVData.m_flDisengageFromEnemyToLaneDist": 100000 }
   },
   {
+    "file": "FILE_MODIFIERS",
+    "entry": "ability_doorman_hotel/pre_teleport",
+    "fields": {
+      "CModifierVData.m_flDuration": 12,
+      "CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_FALL_SPEED_MAX]": 42
+    }
+  },
+  {
     "entry": "gunslinger_rocket_launcher",
     "properties": { "AbilityCooldown": 0.8, "Damage": 120 },
     "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
@@ -1648,17 +1656,19 @@ Each entry changes one stock definition on the server; players' games keep
 their own definitions, so tooltips and parts of the HUD show the stock values
 while play uses the changed ones.
 
-| Field        | Value                                                                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, `FILE_BOT_DIFFICULTY` for bot difficulties, or `FILE_NPC_UNITS` for units and the bot brain. |
-| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher` or `k_ECitadelBotDifficulty_Hard`.                                                                    |
-| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                                                                           |
-| `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                                                               |
-| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                          |
+| Field        | Value                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, `FILE_BOT_DIFFICULTY` for bot difficulties, `FILE_NPC_UNITS` for units and the bot brain, or `FILE_MODIFIERS` for modifiers.     |
+| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher`, `upgrade_colossus/modifier_colossus_active` or `k_ECitadelBotDifficulty_Hard`.                                                           |
+| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                                                                                                               |
+| `fields`     | Float, range-float and modifier-level-float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                                                             |
+| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                              |
 
 A path's last step can end in `[Enum.Value]` to select one value of a map keyed
-by an enum, such as a hero's starting stats. The server writes the changes when
-it loads the definitions and again in each new map.
+by an enum, such as a hero's starting stats, or one entry of a modifier's
+`m_vecScriptValues` list by `EModifierValue`. One value fills every level of a
+level float or script value and both bounds of a range. The server writes the
+changes when it loads the definitions and again in each new map.
 
 A bot difficulty is named by its `ECitadelBotDifficulty` value. Every bot of
 that difficulty reads the changed record, including bots already playing, and a

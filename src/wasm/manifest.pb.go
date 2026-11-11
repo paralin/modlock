@@ -172,6 +172,9 @@ const (
 	// FILE_NPC_UNITS is scripts/npc_units.vdata, the troopers, bosses and
 	// other units, and the bot brain (npc_player_bot_brain) every bot shares.
 	Definition_FILE_NPC_UNITS Definition_File = 3
+	// FILE_MODIFIERS is scripts/modifiers.vdata, the standalone modifiers, and
+	// the modifiers embedded in abilities, named as <ability>/<modifier>.
+	Definition_FILE_MODIFIERS Definition_File = 4
 )
 
 // Enum value maps for Definition_File.
@@ -181,12 +184,14 @@ var (
 		1: "FILE_HEROES",
 		2: "FILE_BOT_DIFFICULTY",
 		3: "FILE_NPC_UNITS",
+		4: "FILE_MODIFIERS",
 	}
 	Definition_File_value = map[string]int32{
 		"FILE_ABILITIES":      0,
 		"FILE_HEROES":         1,
 		"FILE_BOT_DIFFICULTY": 2,
 		"FILE_NPC_UNITS":      3,
+		"FILE_MODIFIERS":      4,
 	}
 )
 
@@ -397,11 +402,15 @@ type Definition struct {
 	// Properties replaces the values of an ability's named properties, such as
 	// AbilityCooldown. Only abilities have properties.
 	Properties map[string]float32 `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
-	// Fields writes float schema fields, named as a path of Class.field steps
-	// from the entry's data, such as
+	// Fields writes float schema fields, including CModifierLevelFloat,
+	// CSkillFloat and CRangeFloat, named as a path of Class.field steps from the
+	// entry's data, such as
 	// CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
-	// step may name one value of an enum-keyed map, such as
-	// CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
+	// step may name one value of an enum-keyed map or modifier script value list,
+	// such as CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth] or
+	// CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_MODEL_SCALE].
+	// One value fills every level of a level float or script value and both
+	// bounds of a range.
 	Fields map[string]float32 `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
 	// CopyFields copies the field at each value's path over the field at its
 	// key's path; both must be the same size.

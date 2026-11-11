@@ -10,15 +10,16 @@
 namespace modlock::gameinterop {
 
 // Resolves subclass IDs through the engine's current subclass registry, in
-// one scope: abilities and items by default, or NPC units such as the bot
-// brain. The mapped server module owns the function and returned definition
-// storage; callers discard borrowed definitions on world shutdown.
+// one scope: abilities and items by default, modifiers, or NPC units such as
+// the bot brain. The mapped server module owns the function and returned
+// definition storage; callers discard borrowed definitions on world shutdown.
 class MODLOCK_API AbilityDefinitions {
  public:
   using Lookup = void* (*)(int32_t scope, uint32_t subclass_id);
 
   // Scope is EntitySubclassScope_t: the vdata file a subclass comes from.
   enum Scope : int32_t {
+    kModifiers = 2,  // scripts/modifiers.vdata
     kNpcUnits = 3,   // scripts/npc_units.vdata
     kAbilities = 4,  // scripts/abilities.vdata
   };

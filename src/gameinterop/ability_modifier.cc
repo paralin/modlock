@@ -37,7 +37,8 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Modul
 
   // Find the modifier's definition.
   const auto find = reinterpret_cast<AbilityDefinitions::Lookup>(*lookup);
-  auto* definition = static_cast<unsigned char*>(find(2, MakeMemberName(key).hash));
+  auto* definition =
+      static_cast<unsigned char*>(find(AbilityDefinitions::kModifiers, MakeMemberName(key).hash));
   if (!definition) {
     return std::unexpected("modifier definition " + std::string(key) + " unavailable");
   }
