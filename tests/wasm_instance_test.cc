@@ -23,6 +23,8 @@ using modlock::wasm::Limits;
 using modlock::wasm::LogRequest;
 using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
+using modlock::wasm::ServiceCallStarted;
+using modlock::wasm::ServiceRepliedEvent;
 using modlock::wasm::StartEvent;
 using modlock::wasm::StartResult;
 using modlock::wasm::effects::ChatRequest;
@@ -349,6 +351,128 @@ TEST(WasmInstance, PythonModAnswersEvents) {
   EXPECT_EQ(chat.text(), "Hello from Python!");
   EXPECT_EQ(recorder.calls[1].method(), "Log");
   EXPECT_EQ(Parse<LogRequest>(recorder.calls[1].request()).message(), "first frame at tick 7");
+}
+
+// LaterCalls answers each StartServiceCall with the next number from 7, and
+// keeps every call and the lines the mod logs.
+struct LaterCalls {
+  std::vector<Call> calls;
+  std::vector<std::string> logged;
+  uint64_t next = 7;
+
+  Instance::HostCall Answer() {
+    return [this](const Call& call) {
+      calls.push_back(call);
+      Reply reply;
+      if (call.method() == "StartServiceCall") {
+        ServiceCallStarted started;
+        started.set_call(next++);
+        reply.set_response(started.SerializeAsString());
+      } else if (call.method() == "Log") {
+        logged.push_back(Parse<LogRequest>(call.request()).message());
+      }
+      return reply;
+    };
+  }
+};
+
+// Replied returns the ServiceReplied event ending call with payload, or with
+// failure and error.
+Call Replied(uint64_t call, std::string payload,
+             modlock::wasm::ServiceFailure failure = modlock::wasm::SERVICE_FAILURE_NONE,
+             std::string error = {}) {
+  ServiceRepliedEvent event;
+  event.set_call(call);
+  event.set_payload(std::move(payload));
+  event.set_failure(failure);
+  event.set_error(std::move(error));
+  return Event("ServiceReplied", event);
+}
+
+// ExpectLaterCalls checks a mod that starts two calls to example.drills.v1
+// and logs how each ends: the first answered, the second refused, and a
+// reply for a call it never made ignored.
+void ExpectLaterCalls(Instance& instance, LaterCalls& host) {
+  // Both calls reached the host with their method, payload and timeout.
+  ASSERT_EQ(host.calls.size(), 2);
+  for (const auto& call : host.calls) {
+    EXPECT_EQ(call.method(), "StartServiceCall");
+  }
+  const auto first = Parse<modlock::wasm::StartServiceCallRequest>(host.calls[0].request());
+  EXPECT_EQ(first.service(), "example.drills.v1");
+  EXPECT_EQ(first.method(), "List");
+  EXPECT_EQ(first.payload(), "map");
+  EXPECT_EQ(first.timeout_milliseconds(), 2500);
+  host.calls.clear();
+
+  // The answer reaches the first call's function, the refusal the second's.
+  ASSERT_TRUE(instance.Deliver(Replied(8, "", modlock::wasm::SERVICE_FAILURE_REFUSED, "no")));
+  ASSERT_TRUE(instance.Deliver(Replied(7, "two")));
+  ASSERT_TRUE(instance.Deliver(Replied(7, "again")));
+  ASSERT_TRUE(instance.Deliver(Replied(99, "stray")));
+  EXPECT_EQ(host.logged, (std::vector<std::string>{"8 refused no", "7 reply two"}));
+}
+
+TEST(WasmInstance, LuauCallServiceLaterEndsEachCallOnce) {
+  // Load the Luau runtime with a mod that starts two calls.
+  Runtime runtime;
+  LaterCalls host;
+  auto instance = Instance::Load(runtime, ReadFile(LUAU_WASM), Limits{}, host.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+  const std::string library = LUAU_LIBRARY;
+  StartEvent start;
+  start.set_source(Zip({
+      {"main.luau", R"(
+local modlock = require("@modlock")
+
+modlock.callServiceLater("example.drills.v1", "List", "map", function(reply, error, failure)
+	modlock.log("7 " .. (reply and ("reply " .. reply) or (failure .. " " .. (error or ""))))
+end, 2.5)
+modlock.callServiceLater("example.drills.v1", "Get", "", function(reply, error, failure)
+	modlock.log("8 " .. (reply and ("reply " .. reply) or (failure .. " " .. (error or ""))))
+end)
+)"},
+      {"@modlock/init.luau", Text(library + "/init.luau")},
+      {"@modlock/wire.luau", Text(library + "/wire.luau")},
+  }));
+  auto started = (*instance)->Deliver(Event("Start", start));
+  ASSERT_TRUE(started) << started.error();
+  ASSERT_EQ(started->error(), "");
+  ExpectLaterCalls(**instance, host);
+}
+
+TEST(WasmInstance, PythonCallServiceLaterEndsEachCallOnce) {
+  // Load the Python runtime with a mod that starts two calls.
+  Runtime runtime;
+  LaterCalls host;
+  auto instance = Instance::Load(runtime, ReadFile(PYTHON_WASM), Limits{}, host.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+  const std::string library = PYTHON_LIBRARY;
+  StartEvent start;
+  start.set_source(Zip({
+      {"main.py", R"(
+import modlock
+
+
+def ended(number):
+    def done(reply, error, failure):
+        if reply is not None:
+            modlock.log(f"{number} reply {reply.decode()}")
+        else:
+            modlock.log(f"{number} {failure} {error}")
+    return done
+
+
+modlock.call_service_later("example.drills.v1", "List", b"map", ended(7), 2.5)
+modlock.call_service_later("example.drills.v1", "Get", b"", ended(8))
+)"},
+      {"modlock/__init__.py", Text(library + "/__init__.py")},
+      {"modlock/wire.py", Text(library + "/wire.py")},
+  }));
+  auto started = (*instance)->Deliver(Event("Start", start));
+  ASSERT_TRUE(started) << started.error();
+  ASSERT_EQ(started->error(), "");
+  ExpectLaterCalls(**instance, host);
 }
 
 TEST(WasmInstance, TrapStopsTheMod) {
