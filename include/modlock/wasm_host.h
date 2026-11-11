@@ -59,6 +59,12 @@ class MODLOCK_API WasmHostObserver {
   // that stops, and a player who leaves, end with a reset change.
   virtual void Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) = 0;
 
+  // Halted reports that mod's running build stopped: for a reload, a
+  // restart, a failure or the mod's end. Its started service calls are
+  // dropped before its next build starts, so a host forgets what it keeps
+  // for them here, and their replies do nothing.
+  virtual void Halted(std::string_view /*mod*/) {}
+
   // Slowed reports an event of mod that ran past its slow time and finished,
   // with where the time went. The players may restart a mod that stays stuck.
   virtual void Slowed(std::string_view /*mod*/, std::string_view /*report*/) {}

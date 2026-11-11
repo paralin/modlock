@@ -305,6 +305,7 @@ void WasmPlugin::Halt() {
   // Drop the movement, the subscriptions, the started service calls and
   // the game state.
   service_calls_.Drop();
+  host_.Notify([&](WasmHostObserver& observer) { observer.Halted(name_); });
   movement_.reset();
   hero_slots_.clear();
   Unsubscribe();

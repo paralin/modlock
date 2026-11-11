@@ -49,6 +49,9 @@ class Events final : public WasmHostObserver {
 
   void Held(std::string_view, bool held) override { seen.push_back(held ? "held" : "released"); }
 
+  // Halted keeps how many events came before each halt.
+  void Halted(std::string_view) override { halted.push_back(seen.size()); }
+
   void Called(std::string_view mod, const modlock::wasm::profile::CallProfile& reported) override {
     if (mod == "extension-go") {
       calls.MergeFrom(reported);
@@ -66,6 +69,7 @@ class Events final : public WasmHostObserver {
   }
 
   std::vector<std::string> seen;
+  std::vector<size_t> halted;
   modlock::wasm::profile::CallProfile calls;
 };
 
@@ -194,6 +198,8 @@ TEST(WasmHost, StartedServiceCallsEndInALaterFrame) {
   // Load the test mod with the shout service, answered at once, and the
   // slow service, which keeps each call's reply for later.
   WasmHost host({});
+  Events events;
+  host.Observe(&events);
   host.Provide("shout", Shout);
   std::vector<modlock::WasmReply> kept;
   host.ProvideLater("slow", [&](std::string_view mod, std::string_view method,
@@ -258,11 +264,17 @@ TEST(WasmHost, StartedServiceCallsEndInALaterFrame) {
   // does not reach the next one.
   start("slow|wait|left|0");
   ASSERT_EQ(kept.size(), 3u);
+  // The host hears the halt before the next build starts, so it can forget
+  // the calls first.
   ASSERT_TRUE(host.Reload(EXTENSION_GO_WASM));
+  EXPECT_EQ(events.seen, (std::vector<std::string>{"started", "reloaded"}));
+  EXPECT_EQ(events.halted, (std::vector<size_t>{1}));
   kept[2]("LEFT");
   (*plugin)->Tick();
   EXPECT_EQ(ended(), "");
   (*plugin)->Stop();
+  EXPECT_EQ(events.halted, (std::vector<size_t>{1, 2}));
+  host.Unobserve(&events);
 }
 
 TEST(PlayerScope, LimitedScopeRulesOnlyItsPlayersHits) {
