@@ -31,6 +31,7 @@ export interface GuardPanel {
   SetAttributeString(name: string, value: string): void
   SetImage(path: string): void
   SetPanelEvent(event: string, handler: () => void): void
+  ClearPanelEvent(event: string): void
   DeleteAsync(seconds: number): void
 }
 

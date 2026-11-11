@@ -82,7 +82,7 @@ const stock = new StockGuard(
     },
     press: (mod, node) =>
       $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
-    create: (type, parent, id, properties) =>
+    create: (type, parent, id, properties = {}) =>
       $.CreatePanel(type, parent as Panel, id, properties),
     localize: (token, panel) => $.Localize(token, panel),
     dispatch: (event, ...values) => {
