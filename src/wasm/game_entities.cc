@@ -722,7 +722,8 @@ std::expected<entities::CountResponse, std::string> Game::RemoveEntities(
 }
 
 std::expected<void, std::string> Game::ClearMap() {
-  // Remove everything the mod authored in the world.
+  // Kill the map's own units and remove its round objectives; what the mod
+  // made stays.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
