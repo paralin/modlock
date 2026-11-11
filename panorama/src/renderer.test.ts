@@ -98,6 +98,9 @@ class FakePanel {
   SetPanelEvent(event: string, handler: () => void) {
     this.events.set(event, handler)
   }
+  ClearPanelEvent(event: string) {
+    this.events.delete(event)
+  }
   SetAttributeString(name: string, value: string) {
     this.attributes.set(name, value)
   }
@@ -182,11 +185,14 @@ beforeEach(() => {
         return { x: 200, y: 0 }
       },
       CreatePanel(
-        type: string,
-        parent: FakePanel,
-        id: string,
-        properties?: Record<string, string>,
+        ...args: [string, FakePanel, string, Record<string, string>?]
       ) {
+        // The game's $.CreatePanel throws on a properties argument that is
+        // not an object.
+        const [type, parent, id, properties] = args
+        if (args.length > 3 && !properties)
+          throw new Error('CreatePanel() properties argument is not an object')
+
         // Attach the panel to its parent.
         const panel = new FakePanel(type, id, properties)
         panel.parent = parent
@@ -1132,12 +1138,13 @@ function clock() {
       id: string,
       properties?: Record<string, string>,
     ) =>
-      $.CreatePanel(
-        type,
-        parent as unknown as Panel,
-        id,
-        properties,
-      ) as unknown as GuardPanel,
+      (properties
+        ? $.CreatePanel(type, parent as unknown as Panel, id, properties)
+        : $.CreatePanel(
+            type,
+            parent as unknown as Panel,
+            id,
+          )) as unknown as GuardPanel,
     // A dialog variable reads the panel's; a hero's name reads heroNames.
     // The game's $.Localize throws on a second argument that is not a panel.
     localize: (...args: [string, GuardPanel?]) => {
@@ -2015,6 +2022,42 @@ test("dresses Tab's rows as the display names them, and gives them back", () => 
   runScheduled()
   runScheduled()
   expect(scheduled.size).toBe(0)
+})
+
+test("dresses a Tab icon whose picture the game builds late, and silences the icon's hover", () => {
+  // Ada's first icon has no picture of its own yet when the display first
+  // draws it.
+  const hud = gameHud()
+  const tab = tabRows(hud)
+  const ada = tab.ada[0]!
+  const images = ada.own.parent!
+  images.children = images.children.filter((child) => child !== ada.own)
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  const rows = displayed({
+    player: 2,
+    name: 'Ada',
+    abilities: [{ ability: 11, image: 'file://{images}/a.png' }],
+  })
+  stock.screen(parts(), [], rows)
+  expect(ada.icon.FindChildTraverse(DISPLAY_IMAGE)).toBeNull()
+
+  // Once the game builds it, the next draw lays the named picture beside it,
+  // well within the time a look is kept.
+  images.children.push(ada.own)
+  host.time += 0.01
+  stock.screen(parts(), [], rows)
+  const picture = ada.icon.FindChildTraverse(DISPLAY_IMAGE)!
+  expect(picture.image).toBe('file://{images}/a.png')
+  expect(picture.GetParent()).toBe(images)
+  expect(ada.own.style.opacity).toBe('0')
+
+  // While dressed, the icon's own hover opens nothing, leaving the cover's
+  // window alone; a leave gives the icon's hover back to the game.
+  ada.icon.events.get('onmouseover')!()
+  expect(host.events).toEqual([])
+  stock.leave()
+  expect(ada.icon.events.has('onmouseover')).toBe(false)
 })
 
 test('a guard that starts again undresses what an earlier one drew', () => {

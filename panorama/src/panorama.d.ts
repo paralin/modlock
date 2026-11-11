@@ -23,6 +23,7 @@ interface Panel {
   SetImage(path: string): void
   SetURL(url: string): void
   SetPanelEvent(event: string, handler: () => void): void
+  ClearPanelEvent(event: string): void
   SetAttributeString(name: string, value: string): void
   GetAttributeString(name: string, fallback: string): string
   BLoadLayout(

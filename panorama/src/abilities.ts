@@ -66,7 +66,11 @@ const FRAMES = 's2r://panorama/images/hud/core/'
 
 /** DisplayHost is what the display reaches beyond the panels. */
 export interface DisplayHost {
-  /** create makes a panel of type under parent, as $.CreatePanel does. */
+  /**
+   * create makes a panel of type under parent, as $.CreatePanel does. The
+   * game's $.CreatePanel throws on an undefined properties argument, so a
+   * host forwarding all four arguments passes an object in its place.
+   */
   create(
     type: string,
     parent: GuardPanel,
@@ -207,11 +211,11 @@ export class AbilityDisplay {
     id: number,
     ability: NonNullable<AbilityRow['abilities']>[number],
   ): void {
-    // Mark what the icon wears, drawing only a change, then lay the picture
-    // beside the game's, hiding the game's while one is named.
+    // Mark what the icon wears, then lay the picture beside the game's,
+    // hiding the game's while one is named.
     const image = ability.image ?? ''
     const upgrades = ability.upgrades ?? 0
-    if (!mark(icon.icon, `${id} ${player} ${upgrades} ${image}`)) return
+    mark(icon.icon, `${id} ${player} ${upgrades} ${image}`)
     const parent = icon.own?.GetParent()
     let picture = icon.icon.FindChildTraverse(DISPLAY_IMAGE)
     if (!picture && parent) {
@@ -249,6 +253,9 @@ export class AbilityDisplay {
       cover.SetPanelEvent('onmouseout', () => {
         this.host.dispatch('CitadelHideAbilityDetailsTooltip', icon.icon)
       })
+      // Silence the icon's own hover, which would open the game's window for
+      // the hero's own ability over the cover's.
+      icon.icon.SetPanelEvent('onmouseover', () => {})
     }
     cover.SetAttributeString(ABILITY, String(id))
     cover.SetAttributeString(PLAYER, String(player))
@@ -268,7 +275,11 @@ export class AbilityDisplay {
     if (
       last &&
       now - last.at < this.keep &&
-      last.rows.every((tab) => tab.row.IsValid())
+      last.rows.every(
+        (tab) =>
+          tab.row.IsValid() &&
+          tab.icons.every((icon) => !icon || icon.own?.IsValid()),
+      )
     )
       return last.rows
 
@@ -356,13 +367,14 @@ export class AbilityDisplay {
 
 /** undress gives a Tab icon back to the game. */
 function undress(icon: TabIcon): void {
-  // Undress only a dressed icon: delete the display's own panels, then clear
-  // the styles it marked.
+  // Undress only a dressed icon: delete the display's own panels, give the
+  // icon its hover back, then clear the styles it marked.
   if (!unmark(icon.icon)) return
   for (const id of [DISPLAY_IMAGE, DISPLAY_COVER]) {
     const panel = icon.icon.FindChildTraverse(id)
     if (panel) panel.DeleteAsync(0)
   }
+  icon.icon.ClearPanelEvent('onmouseover')
   if (icon.own) icon.own.style.opacity = null
   if (icon.ring && unmark(icon.ring)) icon.ring.style.visibility = null
   clearReadOnlyPips(icon.pips)
