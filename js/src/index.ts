@@ -103,6 +103,11 @@ export * from './host.gen.js'
 export { Cast, type CastOptions, type Want } from './cast.js'
 export { frameClock } from './frameclock.js'
 export { ground, type GroundOptions } from './ground.js'
+export {
+  RaceGate,
+  type RaceGateOptions,
+  raceGateResources,
+} from './racegate.js'
 export { players } from './players.js'
 export {
   afterMatch,

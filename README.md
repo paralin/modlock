@@ -966,6 +966,29 @@ returns nothing when no floor is in reach, when the point is inside a wall, or
 before the world's collision is ready, so `ground(spawn) ?? spawn` keeps the
 point when there is no floor. `above`, `below` and `layers` change the reach.
 
+### Stand a race gate
+
+`RaceGate.stand` stands a checkpoint or finish gate across a lane. The gate is
+a window of thin glowing lines inside a racing checker band that runs round
+its sides and top. It is Tron cyan by default, and a runner reads it at once
+as "go through here". `foot` is the road point under the middle of the
+opening, and `yaw` is the direction a runner passes through, in degrees.
+Precache `raceGateResources` in `onStart`:
+
+```ts
+import { ground, onStart, precache, RaceGate, raceGateResources } from 'modlock'
+
+onStart(() => precache({ resources: raceGateResources }))
+
+const gate = RaceGate.stand({ foot: ground(spot) ?? spot, yaw: 90 })
+gate.remove()
+```
+
+`width` and `height` size the opening, 112 by 144 units by default, rounded to
+whole 8-unit cells. `color` and `faded` color the band's inner and outer
+rings, and `viewer` shows the gate to one player slot only. World text and
+beams ignore alpha, so the outer ring uses a darker shade to look see-through.
+
 ### Time your frames
 
 `frameClock` shows how much of a slow server's frame is your mod's, and which
