@@ -18,8 +18,10 @@ namespace {
 // handlers from these slots. The engine thread owns them.
 void* g_check_transmit_original = nullptr;
 std::vector<std::pair<uint64_t, TransmitHook::Handler>> g_handlers;
+std::vector<std::pair<uint64_t, TransmitHook::FinalHandler>> g_finals;
 uint64_t g_next_id = 1;
-// g_owner holds the patched slot while any handler is installed.
+// g_owner holds the patched slot while any handler or final handler is
+// installed.
 std::optional<ThunkOwner> g_owner;
 
 // ClearThunkState drops the original target after the slot is restored.
@@ -31,24 +33,31 @@ using CheckTransmitFn = void (*)(void* self, void** infos, int info_count, void*
                                  void* always_bits, const void** networkables,
                                  const uint16_t* indices, int index_count);
 
-// CheckTransmitThunk runs the engine's pass, then the handler for each
-// player's filled set.
+// CheckTransmitThunk runs the engine's pass, then the handlers for each
+// player's filled set, then the final handlers over all of them.
 void CheckTransmitThunk(void* self, void** infos, int info_count, void* union_bits,
                         void* always_bits, const void** networkables, const uint16_t* indices,
                         int index_count) {
   reinterpret_cast<CheckTransmitFn>(g_check_transmit_original)(
       self, infos, info_count, union_bits, always_bits, networkables, indices, index_count);
-  if (g_handlers.empty()) {
+  if (g_handlers.empty() && g_finals.empty()) {
     return;
   }
+  // The list keeps its storage between passes, so a pass does not allocate.
+  thread_local std::vector<TransmitSet> sets;
+  sets.clear();
   for (int i = 0; i < info_count; ++i) {
-    if (infos[i] == nullptr) {
-      continue;
+    if (infos[i] != nullptr) {
+      sets.emplace_back(infos[i]);
     }
-    TransmitSet set(infos[i]);
+  }
+  for (auto& set : sets) {
     for (const auto& [id, handler] : g_handlers) {
       handler(set);
     }
+  }
+  for (const auto& [id, handler] : g_finals) {
+    handler(sets);
   }
 }
 
@@ -58,6 +67,15 @@ int32_t TransmitSet::Slot() const {
   int32_t slot = 0;
   std::memcpy(&slot, static_cast<const uint8_t*>(info_) + kSlotOffset, sizeof(slot));
   return slot;
+}
+
+bool TransmitSet::Sends(uint32_t handle) const {
+  const uint32_t index = EntityIndexOf(handle);
+  if (index >= kEntityCount) {
+    return false;
+  }
+  const auto* bits = *static_cast<uint32_t* const*>(info_);
+  return bits != nullptr && ((bits[index / 32] >> (index % 32)) & 1) != 0;
 }
 
 void TransmitSet::Withhold(uint32_t handle) {
@@ -102,34 +120,55 @@ void TransmitHook::Reset() {
   if (id_ == 0) {
     return;
   }
-  std::erase_if(g_handlers, [this](const auto& entry) { return entry.first == id_; });
+  const auto same = [this](const auto& entry) {
+    return entry.first == id_;
+  };
+  std::erase_if(g_handlers, same);
+  std::erase_if(g_finals, same);
   id_ = 0;
-  if (g_handlers.empty()) {
+  if (g_handlers.empty() && g_finals.empty()) {
     g_owner.reset();
   }
 }
 
+std::expected<void, std::string> TransmitHook::Hook() {
+  if (g_owner) {
+    return {};
+  }
+  // The first owner hooks the entity system's transmit check.
+  const auto entities = ResolveEngineInterface(L"server.dll", kInterfaceVersion);
+  if (!entities) {
+    return std::unexpected(entities.error());
+  }
+  const auto slot = ResolveVirtualSlot("game-entities.check-transmit");
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
+  auto hook =
+      VtableSlotHook::Install(*entities, *slot, reinterpret_cast<void*>(&CheckTransmitThunk));
+  if (!hook) {
+    return std::unexpected(hook.error());
+  }
+  g_check_transmit_original = hook->Original();
+  g_owner.emplace(std::move(*hook), &ClearThunkState);
+  return {};
+}
+
 std::expected<TransmitHook, std::string> TransmitHook::Install(Handler handler) {
-  if (!g_owner) {
-    // The first owner hooks the entity system's transmit check.
-    const auto entities = ResolveEngineInterface(L"server.dll", kInterfaceVersion);
-    if (!entities) {
-      return std::unexpected(entities.error());
-    }
-    const auto slot = ResolveVirtualSlot("game-entities.check-transmit");
-    if (!slot) {
-      return std::unexpected(slot.error());
-    }
-    auto hook =
-        VtableSlotHook::Install(*entities, *slot, reinterpret_cast<void*>(&CheckTransmitThunk));
-    if (!hook) {
-      return std::unexpected(hook.error());
-    }
-    g_check_transmit_original = hook->Original();
-    g_owner.emplace(std::move(*hook), &ClearThunkState);
+  if (auto hooked = Hook(); !hooked) {
+    return std::unexpected(hooked.error());
   }
   const uint64_t id = g_next_id++;
   g_handlers.emplace_back(id, std::move(handler));
+  return TransmitHook(id);
+}
+
+std::expected<TransmitHook, std::string> TransmitHook::InstallFinal(FinalHandler handler) {
+  if (auto hooked = Hook(); !hooked) {
+    return std::unexpected(hooked.error());
+  }
+  const uint64_t id = g_next_id++;
+  g_finals.emplace_back(id, std::move(handler));
   return TransmitHook(id);
 }
 

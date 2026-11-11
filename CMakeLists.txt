@@ -134,6 +134,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/connection_tracker.cc
   src/gameinterop/console_variables.cc
   src/gameinterop/engine_server.cc
+  src/gameinterop/ability_owner_guard.cc
   src/gameinterop/entity_abi.cc
   src/gameinterop/entity_dynamics.cc
   src/gameinterop/frame_hook.cc
@@ -567,6 +568,10 @@ if(BUILD_TESTING)
   add_executable(gameinterop_transmit_hook_test tests/gameinterop_transmit_hook_test.cc)
   target_link_libraries(gameinterop_transmit_hook_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME gameinterop_transmit_hook_test COMMAND gameinterop_transmit_hook_test)
+
+  add_executable(gameinterop_ability_owner_guard_test tests/gameinterop_ability_owner_guard_test.cc)
+  target_link_libraries(gameinterop_ability_owner_guard_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME gameinterop_ability_owner_guard_test COMMAND gameinterop_ability_owner_guard_test)
   add_executable(gameinterop_frame_timing_test tests/gameinterop_frame_timing_test.cc)
   target_link_libraries(gameinterop_frame_timing_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME gameinterop_frame_timing_test COMMAND gameinterop_frame_timing_test)
