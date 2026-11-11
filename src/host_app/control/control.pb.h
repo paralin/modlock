@@ -67,6 +67,14 @@ class ControlRequest;
 struct ControlRequestDefaultTypeInternal;
 extern ControlRequestDefaultTypeInternal _ControlRequest_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ControlRequest_class_data_;
+class Fixture;
+struct FixtureDefaultTypeInternal;
+extern FixtureDefaultTypeInternal _Fixture_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull Fixture_class_data_;
+class Fixtures;
+struct FixturesDefaultTypeInternal;
+extern FixturesDefaultTypeInternal _Fixtures_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull Fixtures_class_data_;
 class HostEvent;
 struct HostEventDefaultTypeInternal;
 extern HostEventDefaultTypeInternal _HostEvent_default_instance_;
@@ -2581,6 +2589,466 @@ class ModFailed final : public ::google::protobuf::Message
 };
 
 extern const ::google::protobuf::internal::ClassDataFull ModFailed_class_data_;
+// -------------------------------------------------------------------
+
+class Fixture final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.Fixture) */ {
+ public:
+  inline Fixture() : Fixture(nullptr) {}
+  ~Fixture() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Fixture* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Fixture));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Fixture(::google::protobuf::internal::ConstantInitialized);
+
+  inline Fixture(const Fixture& from) : Fixture(nullptr, from) {}
+  inline Fixture(Fixture&& from) noexcept
+      : Fixture(nullptr, ::std::move(from)) {}
+  inline Fixture& operator=(const Fixture& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Fixture& operator=(Fixture&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Fixture& default_instance() {
+    return *reinterpret_cast<const Fixture*>(
+        &_Fixture_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 16;
+  friend void swap(Fixture& a, Fixture& b) { a.Swap(&b); }
+  inline void Swap(Fixture* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Fixture* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Fixture* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Fixture>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Fixture& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Fixture& from) { Fixture::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Fixture* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.Fixture"; }
+
+  explicit Fixture(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Fixture(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Fixture& from);
+  Fixture(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Fixture&& from) noexcept
+      : Fixture(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModFieldNumber = 1,
+    kServiceFieldNumber = 2,
+    kMethodFieldNumber = 3,
+    kPayloadFieldNumber = 4,
+    kSourceFieldNumber = 5,
+  };
+  // string mod = 1;
+  void clear_mod() ;
+  const ::std::string& mod() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_mod(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_mod();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_mod();
+  void set_allocated_mod(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_mod() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_mod(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_mod();
+
+  public:
+  // string service = 2;
+  void clear_service() ;
+  const ::std::string& service() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_service(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_service();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_service();
+  void set_allocated_service(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_service() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_service(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_service();
+
+  public:
+  // string method = 3;
+  void clear_method() ;
+  const ::std::string& method() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_method(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_method();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_method();
+  void set_allocated_method(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_method() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_method(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_method();
+
+  public:
+  // bytes payload = 4;
+  void clear_payload() ;
+  const ::std::string& payload() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_payload(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_payload();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_payload();
+  void set_allocated_payload(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_payload() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_payload(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_payload();
+
+  public:
+  // string source = 5;
+  void clear_source() ;
+  const ::std::string& source() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_source(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_source();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_source();
+  void set_allocated_source(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_source() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_source(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_source();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.Fixture)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 63,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const Fixture& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr mod_;
+    ::google::protobuf::internal::ArenaStringPtr service_;
+    ::google::protobuf::internal::ArenaStringPtr method_;
+    ::google::protobuf::internal::ArenaStringPtr payload_;
+    ::google::protobuf::internal::ArenaStringPtr source_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull Fixture_class_data_;
+// -------------------------------------------------------------------
+
+class Fixtures final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.Fixtures) */ {
+ public:
+  inline Fixtures() : Fixtures(nullptr) {}
+  ~Fixtures() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Fixtures* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Fixtures));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Fixtures(::google::protobuf::internal::ConstantInitialized);
+
+  inline Fixtures(const Fixtures& from) : Fixtures(nullptr, from) {}
+  inline Fixtures(Fixtures&& from) noexcept
+      : Fixtures(nullptr, ::std::move(from)) {}
+  inline Fixtures& operator=(const Fixtures& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Fixtures& operator=(Fixtures&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Fixtures& default_instance() {
+    return *reinterpret_cast<const Fixtures*>(
+        &_Fixtures_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 17;
+  friend void swap(Fixtures& a, Fixtures& b) { a.Swap(&b); }
+  inline void Swap(Fixtures* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Fixtures* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Fixtures* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Fixtures>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Fixtures& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Fixtures& from) { Fixtures::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Fixtures* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.Fixtures"; }
+
+  explicit Fixtures(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Fixtures(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Fixtures& from);
+  Fixtures(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Fixtures&& from) noexcept
+      : Fixtures(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kFixturesFieldNumber = 1,
+  };
+  // repeated .modlock.host_app.control.Fixture fixtures = 1;
+  int fixtures_size() const;
+  private:
+  int _internal_fixtures_size() const;
+
+  public:
+  void clear_fixtures() ;
+  ::modlock::host_app::control::Fixture* PROTOBUF_NONNULL mutable_fixtures(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>* PROTOBUF_NONNULL mutable_fixtures();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>& _internal_fixtures() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>* PROTOBUF_NONNULL _internal_mutable_fixtures();
+  public:
+  const ::modlock::host_app::control::Fixture& fixtures(int index) const;
+  ::modlock::host_app::control::Fixture* PROTOBUF_NONNULL add_fixtures();
+  const ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>& fixtures() const;
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.Fixtures)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const Fixtures& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::host_app::control::Fixture > fixtures_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull Fixtures_class_data_;
 // -------------------------------------------------------------------
 
 class ControlRequest final : public ::google::protobuf::Message
@@ -7303,6 +7771,395 @@ inline void ServiceResult::set_allocated_error(::std::string* PROTOBUF_NULLABLE 
     _impl_.error_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceResult.error)
+}
+
+// -------------------------------------------------------------------
+
+// Fixture
+
+// string mod = 1;
+inline void Fixture::clear_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& Fixture::mod() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixture.mod)
+  return _internal_mod();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Fixture::set_mod(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.mod_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.Fixture.mod)
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::mutable_mod()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_mod();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixture.mod)
+  return _s;
+}
+inline const ::std::string& Fixture::_internal_mod() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.mod_.Get();
+}
+inline void Fixture::_internal_set_mod(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::_internal_mutable_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.mod_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Fixture::release_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.Fixture.mod)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.mod_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Fixture::set_allocated_mod(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.mod_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.mod_.IsDefault()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.Fixture.mod)
+}
+
+// string service = 2;
+inline void Fixture::clear_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& Fixture::service() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixture.service)
+  return _internal_service();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Fixture::set_service(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.service_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.Fixture.service)
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::mutable_service()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_service();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixture.service)
+  return _s;
+}
+inline const ::std::string& Fixture::_internal_service() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.service_.Get();
+}
+inline void Fixture::_internal_set_service(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::_internal_mutable_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.service_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Fixture::release_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.Fixture.service)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.service_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.service_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Fixture::set_allocated_service(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.service_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.service_.IsDefault()) {
+    _impl_.service_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.Fixture.service)
+}
+
+// string method = 3;
+inline void Fixture::clear_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& Fixture::method() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixture.method)
+  return _internal_method();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Fixture::set_method(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.method_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.Fixture.method)
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::mutable_method()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_method();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixture.method)
+  return _s;
+}
+inline const ::std::string& Fixture::_internal_method() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.method_.Get();
+}
+inline void Fixture::_internal_set_method(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::_internal_mutable_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.method_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Fixture::release_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.Fixture.method)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.method_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.method_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Fixture::set_allocated_method(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.method_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.method_.IsDefault()) {
+    _impl_.method_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.Fixture.method)
+}
+
+// bytes payload = 4;
+inline void Fixture::clear_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline const ::std::string& Fixture::payload() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixture.payload)
+  return _internal_payload();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Fixture::set_payload(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  _impl_.payload_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.Fixture.payload)
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::mutable_payload()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ::std::string* _s = _internal_mutable_payload();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixture.payload)
+  return _s;
+}
+inline const ::std::string& Fixture::_internal_payload() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.payload_.Get();
+}
+inline void Fixture::_internal_set_payload(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::_internal_mutable_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.payload_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Fixture::release_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.Fixture.payload)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  auto* released = _impl_.payload_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Fixture::set_allocated_payload(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  }
+  _impl_.payload_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.payload_.IsDefault()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.Fixture.payload)
+}
+
+// string source = 5;
+inline void Fixture::clear_source() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.source_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline const ::std::string& Fixture::source() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixture.source)
+  return _internal_source();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Fixture::set_source(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  _impl_.source_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.Fixture.source)
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::mutable_source()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ::std::string* _s = _internal_mutable_source();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixture.source)
+  return _s;
+}
+inline const ::std::string& Fixture::_internal_source() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.source_.Get();
+}
+inline void Fixture::_internal_set_source(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.source_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Fixture::_internal_mutable_source() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.source_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Fixture::release_source() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.Fixture.source)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000010U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  auto* released = _impl_.source_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.source_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Fixture::set_allocated_source(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  }
+  _impl_.source_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.source_.IsDefault()) {
+    _impl_.source_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.Fixture.source)
+}
+
+// -------------------------------------------------------------------
+
+// Fixtures
+
+// repeated .modlock.host_app.control.Fixture fixtures = 1;
+inline int Fixtures::_internal_fixtures_size() const {
+  return _internal_fixtures().size();
+}
+inline int Fixtures::fixtures_size() const {
+  return _internal_fixtures_size();
+}
+inline void Fixtures::clear_fixtures() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.fixtures_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::host_app::control::Fixture* PROTOBUF_NONNULL Fixtures::mutable_fixtures(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.Fixtures.fixtures)
+  return _internal_mutable_fixtures()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>* PROTOBUF_NONNULL Fixtures::mutable_fixtures()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.host_app.control.Fixtures.fixtures)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_fixtures();
+}
+inline const ::modlock::host_app::control::Fixture& Fixtures::fixtures(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.Fixtures.fixtures)
+  return _internal_fixtures().Get(index);
+}
+inline ::modlock::host_app::control::Fixture* PROTOBUF_NONNULL Fixtures::add_fixtures()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::host_app::control::Fixture* _add =
+      _internal_mutable_fixtures()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.host_app.control.Fixtures.fixtures)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>& Fixtures::fixtures() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.host_app.control.Fixtures.fixtures)
+  return _internal_fixtures();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>&
+Fixtures::_internal_fixtures() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.fixtures_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::host_app::control::Fixture>* PROTOBUF_NONNULL
+Fixtures::_internal_mutable_fixtures() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.fixtures_;
 }
 
 #ifdef __GNUC__

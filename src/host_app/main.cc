@@ -1,4 +1,6 @@
 #include <charconv>
+#include <fstream>
+#include <iterator>
 #include <cstdlib>
 #include <expected>
 #include <filesystem>
@@ -11,6 +13,7 @@
 #include <vector>
 
 #include "host_app/control_link.h"
+#include "host_app/fixtures.h"
 #include "host_app/game_dump.h"
 #include "modlock/build.h"
 #include "modlock/engine_host.h"
@@ -36,6 +39,8 @@ void Help() {
                "  --settings PATH     Keep players' mod settings in the JSON file PATH\n"
                "  --files DIRECTORY   Keep the files mods write in DIRECTORY, one\n"
                "                      directory per mod\n"
+               "  --fixtures PATH     Answer the services the Fixtures message in PATH names\n"
+               "                      with its replies\n"
                "  --game-data PATH    Read signatures and virtual slots from PATH instead\n"
                "                      of the game_signatures.txtpb beside the host\n"
                "  --control ADDRESS   Report to and take reloads from the controller at\n"
@@ -111,6 +116,7 @@ struct Options {
   std::string_view control;
   std::filesystem::path settings_file;
   std::filesystem::path files_directory;
+  std::filesystem::path fixtures_file;
   std::filesystem::path dump_directory;
   std::filesystem::path game_data;
   modlock::net::LaunchConfig launch;
@@ -145,6 +151,8 @@ std::expected<void, ExitCode> SetOption(Options& options, std::string_view argum
     options.settings_file = value;
   } else if (argument == "--files") {
     options.files_directory = value;
+  } else if (argument == "--fixtures") {
+    options.fixtures_file = value;
   } else if (argument == "--dump") {
     options.dump_directory = value;
   } else if (argument == "--game-data") {
@@ -215,7 +223,7 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
         argument != "--map" && argument != "--engine-args" &&
         argument != "--control" && argument != "--settings" && argument != "--files" &&
-        argument != "--dump" && argument != "--game-data") {
+        argument != "--fixtures" && argument != "--dump" && argument != "--game-data") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return std::unexpected(2);
     }
@@ -278,6 +286,22 @@ int main(int argc, char** argv) {
     mods.KeepSettings(&settings.emplace(options.settings_file));
   }
   mods.KeepFiles(options.files_directory);
+  if (!options.fixtures_file.empty()) {
+    // The fixtures answer before any mod starts, so a mod that needs one
+    // starts.
+    std::ifstream file(options.fixtures_file, std::ios::binary);
+    if (!file) {
+      std::cerr << "fixtures: cannot read " << options.fixtures_file.string() << '\n';
+      return 1;
+    }
+    const std::string data{std::istreambuf_iterator<char>(file), {}};
+    auto provided = modlock::host_app::ProvideFixtures(mods, data);
+    if (!provided) {
+      std::cerr << "fixtures: " << provided.error() << '\n';
+      return 1;
+    }
+    std::cout << *provided;
+  }
   FailureRecorder failures;
   mods.Observe(&failures);
   std::unique_ptr<modlock::host_app::ControlLink> link;

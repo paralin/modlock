@@ -1517,11 +1517,9 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
 [How mods reach the game](#how-mods-reach-the-game) for the protocol.
 
 Name each service the mod calls in `mod.json`; a service is needed unless it
-is marked optional. The sandbox refuses to start a mod whose needed service
-nobody provides there, naming it, and starts one without an optional
-service, whose calls then fail. A game host does not read the list yet: it
-starts the mod either way, and a call to a service it does not provide
-fails:
+is marked optional. The sandbox and the game host refuse to start a mod whose
+needed service nobody provides there, naming it, and start one without an
+optional service, whose calls then fail:
 
 ```json
 "services": [
@@ -1530,10 +1528,12 @@ fails:
 ]
 ```
 
-The sandbox answers a named service from a fixture in the project:
-`services/<name>.json`, an object whose keys are the service's methods and
-whose values are their replies, sent as JSON. Before the mod starts, the
-sandbox logs which provider answers each named service: a fixture or nobody.
+`modlock play` answers a named service from a fixture in the project, in the
+sandbox and in the game: `services/<name>.json`, an object whose keys are the
+service's methods and whose values are their replies, sent as JSON. Before the
+mod starts, it logs which provider answers each named service: a fixture or
+nobody. In the game, `modlock play` hands the host the fixtures in a file it
+names with `--fixtures`, and each fixture answers only its own mod.
 
 A service may answer in a later frame, as one that asks a server across the
 network does. `callServiceLater(service, method, payload, done)` returns at

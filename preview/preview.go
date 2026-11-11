@@ -22,6 +22,7 @@ import (
 	"github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/session"
 	"github.com/paralin/modlock/source2/panorama"
+	"github.com/paralin/modlock/source2/resource"
 )
 
 // logLines is how many of a mod's last log lines a stop carries.
@@ -139,6 +140,8 @@ func (p *Page) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 		p.layout(w, strings.TrimPrefix(request.URL.Path, "/layout/"))
 	case request.Method == http.MethodGet && strings.HasPrefix(request.URL.Path, "/styles/"):
 		p.sheet(w, strings.TrimPrefix(request.URL.Path, "/styles/"))
+	case request.Method == http.MethodGet && strings.HasPrefix(request.URL.Path, "/scripts/"):
+		p.script(w, strings.TrimPrefix(request.URL.Path, "/scripts/"))
 	case request.Method == http.MethodGet:
 		p.files.ServeHTTP(w, request)
 	default:
@@ -205,6 +208,32 @@ func (p *Page) sheet(w http.ResponseWriter, name string) {
 	}
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	_, _ = w.Write([]byte(source))
+}
+
+// script answers with the source of the built script that name,
+// <addon>/<path>, names, as a loaded layout's include names it, so the page
+// runs a layout's scripts as the game does.
+func (p *Page) script(w http.ResponseWriter, name string) {
+	// Find the script in the build's content.
+	compiled, ok := panorama.Compiled(name)
+	if !ok || path.Ext(name) != ".js" || !fs.ValidPath(compiled) || !strings.Contains(compiled, "/") {
+		http.NotFound(w, nil)
+		return
+	}
+	data, err := fs.ReadFile(p.built, path.Join(check.ContentDir, "scripts", compiled))
+	if err != nil {
+		http.Error(w, "the mod's build has no script "+name, http.StatusNotFound)
+		return
+	}
+
+	// A compiled script's data block is its source.
+	source, err := resource.ReadBlock(data, "DATA")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	_, _ = w.Write(source)
 }
 
 // current returns the page's state with the player's screen, and channels

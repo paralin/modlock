@@ -409,8 +409,8 @@ func Build(ctx context.Context, source, out string) error {
 		}
 	}
 
-	// Bundle the library, the entity classes, the console, the renderer and
-	// the pages.
+	// Bundle the library, the entity classes, the console, the renderer, the
+	// layout library and the pages, which run the layout library as well.
 	bundles := []struct {
 		name    string
 		options api.BuildOptions
@@ -420,6 +420,7 @@ func Build(ctx context.Context, source, out string) error {
 		{"console.js", api.BuildOptions{EntryPoints: []string{"js/src/console.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{Renderer, api.BuildOptions{EntryPoints: []string{"panorama/src/main.ts"}, Format: api.FormatIIFE, Target: api.ES2020, MinifyWhitespace: true, MinifyIdentifiers: true, MinifySyntax: true}},
 		{LayoutLibrary, api.BuildOptions{EntryPoints: []string{"panorama/src/layout.ts"}, Format: api.FormatIIFE, GlobalName: "Modlock", Target: api.ES2020, MinifySyntax: true}},
+		{Preview + "/" + LayoutLibrary, api.BuildOptions{EntryPoints: []string{"panorama/src/layout.ts"}, Format: api.FormatIIFE, GlobalName: "Modlock", Target: api.ES2020, MinifySyntax: true}},
 		{Preview + "/preview.js", api.BuildOptions{EntryPoints: []string{"panorama/browser/preview.ts"}, Format: api.FormatIIFE, Target: api.ES2022, MinifySyntax: true}},
 		{Studio + "/studio.js", api.BuildOptions{
 			EntryPoints: []string{"studio/web/main.tsx"}, Format: api.FormatIIFE, Target: api.ES2022,

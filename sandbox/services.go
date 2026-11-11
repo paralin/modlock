@@ -41,7 +41,7 @@ func (s *Sandbox) provide(path string, build *Build) error {
 	var missing error
 	for _, service := range build.Manifest.GetServices() {
 		name := service.GetName()
-		provider, err := s.provider(dir, name)
+		provider, err := readFixture(dir, name)
 		switch {
 		case err != nil:
 			return err
@@ -65,9 +65,31 @@ func (s *Sandbox) provide(path string, build *Build) error {
 	return missing
 }
 
-// provider reads the fixture of service name in dir, or is nil when dir holds
-// none.
-func (s *Sandbox) provider(dir, name string) (*fixture, error) {
+// ReadFixture reads the fixture of service name in dir: its file and each
+// method's reply as compact JSON. The path is empty when dir holds none, so a
+// game host can answer from the same files the sandbox does.
+func ReadFixture(dir, name string) (string, map[string][]byte, error) {
+	// Read the file, if there is one.
+	found, err := readFixture(dir, name)
+	if err != nil || found == nil {
+		return "", nil, err
+	}
+
+	// Compact each reply as the sandbox sends it.
+	replies := make(map[string][]byte, len(found.replies))
+	for method, reply := range found.replies {
+		var compact bytes.Buffer
+		if err := json.Compact(&compact, reply); err != nil {
+			return "", nil, errors.Wrapf(err, "compact %s's reply to %s", found.path, method)
+		}
+		replies[method] = compact.Bytes()
+	}
+	return found.path, replies, nil
+}
+
+// readFixture reads the fixture of service name in dir, or is nil when dir
+// holds none.
+func readFixture(dir, name string) (*fixture, error) {
 	// A service without a fixture file has no fixture; a name that is not one
 	// file name never reads outside dir.
 	if dir == "" || name == "" || name == "." || name == ".." || filepath.Base(name) != name {

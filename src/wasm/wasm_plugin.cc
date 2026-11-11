@@ -265,6 +265,17 @@ std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCal
 }
 
 std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
+  // A mod whose needed service nobody here provides does not start, and the
+  // error names the service.
+  for (const auto& service : manifest_.services()) {
+    if (!service.optional() && !host_.extensions.contains(service.name()) &&
+        !host_.late_extensions.contains(service.name())) {
+      auto error = "the mod needs service " + service.name() + ", which nobody provides here";
+      Failed(error);
+      return std::unexpected(std::move(error));
+    }
+  }
+
   // Start the mod and learn which events it consumes.
   wasm::StartEvent event;
   for (const auto& arg : args_) {

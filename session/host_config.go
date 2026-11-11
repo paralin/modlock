@@ -24,6 +24,9 @@ type HostConfig struct {
 	// Files is the directory that keeps the files mods write, or empty to
 	// refuse their writes.
 	Files string
+	// Fixtures is the file of service fixtures the host answers from, a
+	// control.Fixtures message, or empty for none.
+	Fixtures string
 	// Steam is the Steam installation; on Linux its Proton runs the host.
 	Steam *Steam
 	// Output receives the host's console output.

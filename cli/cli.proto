@@ -162,7 +162,8 @@ message Change {
   modlock.wasm.ui.UiInputEvent event = 2;
 }
 
-// Press identifies a button in the interface a mod shows a player.
+// Press identifies a button in the interface a mod shows a player, or a
+// press a layout's script sent from its node.
 message Press {
   // Mod is the mod's name.
   string mod = 1;
@@ -170,8 +171,15 @@ message Press {
   // Slot identifies the player.
   int32 slot = 2;
 
-  // Node is the button's id in the mod's tree.
+  // Node is the button's id in the mod's tree, or the layout's.
   string node = 3;
+
+  // Action names a layout's press, as its script sent it with Modlock.press.
+  // It is empty for a button's press.
+  string action = 4;
+
+  // Payload is the JSON text a layout's press carries, or empty.
+  string payload = 5;
 }
 
 // Published reports a release.
