@@ -680,13 +680,17 @@ if(BUILD_TESTING)
   target_link_libraries(wasm_host_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME wasm_host_test COMMAND wasm_host_test)
   # host_fixtures_test runs the same mod against needed services and the
-  # host's fixtures.
+  # host's fixtures, and its forwarded calls over the control link.
   add_executable(host_fixtures_test tests/host_fixtures_test.cc src/host_app/fixtures.cc
+    src/host_app/control_link.cc
     src/host_app/control/control.pb.cc)
   add_dependencies(host_fixtures_test extension_go_wasm)
   target_include_directories(host_fixtures_test PRIVATE src)
   target_compile_definitions(host_fixtures_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
   target_link_libraries(host_fixtures_test PRIVATE modlock::sdk gtest_main)
+  if(WIN32)
+    target_link_libraries(host_fixtures_test PRIVATE ws2_32)
+  endif()
   add_test(NAME host_fixtures_test COMMAND host_fixtures_test)
   add_executable(wasm_ui_test tests/wasm_ui_test.cc src/wasm/ui.cc)
   target_include_directories(wasm_ui_test PRIVATE src)

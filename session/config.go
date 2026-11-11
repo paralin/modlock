@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"io"
 
 	"github.com/paralin/modlock/src/host_app/control"
@@ -28,6 +29,10 @@ type Config struct {
 	// Fixtures is the file of service fixtures the host answers from, a
 	// control.Fixtures message, or empty for none.
 	Fixtures string
+	// Answer answers each started call of a service the fixtures forward,
+	// returning the reply or the error that fails the call. A session whose
+	// fixtures forward nothing needs none.
+	Answer func(ctx context.Context, call *control.ServiceCall) ([]byte, error)
 	// Launch starts the Deadlock client once the server is ready.
 	Launch bool
 	// HostOutput receives the host's console output.

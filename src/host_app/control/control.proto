@@ -26,6 +26,9 @@ message ControlRequest {
 
     // Service installs a cached service answer and reloads its mod to adopt it.
     ServiceReply service = 3;
+
+    // Answer ends one ServiceCall the host forwarded.
+    ServiceAnswer answer = 4;
   }
 }
 
@@ -80,6 +83,10 @@ message HostEvent {
     ModSlowFrame slow_frame = 11;
     // ServiceApplied confirms whether a controller configuration started.
     ServiceResult service_applied = 12;
+
+    // ServiceCall asks the controller to answer a mod's started call to a
+    // service the fixtures forward; an Answer with its id ends it.
+    ServiceCall service_call = 13;
   }
 }
 
@@ -247,8 +254,44 @@ message Fixture {
   string source = 5;
 }
 
+// Forward hands one mod's started calls of a service to the controller over
+// the control link, in place of a fixture.
+message Forward {
+  // Mod is the slug of the mod whose calls go to the controller.
+  string mod = 1;
+  // Service names the service forwarded.
+  string service = 2;
+  // Target names where the controller sends the calls, for the host's log.
+  string target = 3;
+}
+
 // Fixtures is the file --fixtures names: every fixture reply of the mods the
-// host loads.
+// host loads, and the services the controller answers instead.
 message Fixtures {
   repeated Fixture fixtures = 1;
+  repeated Forward forwards = 2;
+}
+
+// ServiceCall is one started call of a forwarded service, for the controller
+// to answer.
+message ServiceCall {
+  // Id names the call in the Answer that ends it.
+  uint64 id = 1;
+  // Mod is the slug of the calling mod.
+  string mod = 2;
+  // Service and Method select the call.
+  string service = 3;
+  string method = 4;
+  // Payload is the call's bytes, opaque to Modlock.
+  bytes payload = 5;
+}
+
+// ServiceAnswer ends one forwarded ServiceCall with its reply or an error.
+message ServiceAnswer {
+  // Id matches the ServiceCall it ends.
+  uint64 id = 1;
+  // Payload is the reply's bytes when Error is empty.
+  bytes payload = 2;
+  // Error, when set, fails the call with this text.
+  string error = 3;
 }

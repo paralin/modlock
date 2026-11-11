@@ -60,6 +60,7 @@ export interface ControlRequest {
     | { value: ReloadRequest; case: 'reload' }
     | { value: RolesTable; case: 'roles' }
     | { value: ServiceReply; case: 'service' }
+    | { value: ServiceAnswer; case: 'answer' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
@@ -69,6 +70,7 @@ export const ControlRequest: MessageType<ControlRequest> =
       [1, 'reload', 11, 0, ReloadRequest.codec, 'body'],
       [2, 'roles', 11, 0, RolesTable.codec, 'body'],
       [3, 'service', 11, 0, ServiceReply.codec, 'body'],
+      [4, 'answer', 11, 0, ServiceAnswer.codec, 'body'],
     ],
     {
       decode: (
@@ -110,6 +112,16 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 4:
+              m.body = {
+                case: 'answer',
+                value: ServiceAnswer.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'answer' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -131,6 +143,11 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'service' && o.value != null)
             ServiceReply.writeField(w, 3, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'answer' && o.value != null)
+            ServiceAnswer.writeField(w, 4, o.value)
         }
       },
     },
@@ -207,6 +224,7 @@ export interface HostEvent {
     | { value: ModCalls; case: 'calls' }
     | { value: ModSlowFrame; case: 'slowFrame' }
     | { value: ServiceResult; case: 'serviceApplied' }
+    | { value: ServiceCall; case: 'serviceCall' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -225,6 +243,7 @@ export const HostEvent: MessageType<HostEvent> =
       [10, 'calls', 11, 0, ModCalls.codec, 'body'],
       [11, 'slow_frame', 11, 0, ModSlowFrame.codec, 'body'],
       [12, 'service_applied', 11, 0, ServiceResult.codec, 'body'],
+      [13, 'service_call', 11, 0, ServiceCall.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -352,6 +371,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 13:
+              m.body = {
+                case: 'serviceCall',
+                value: ServiceCall.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'serviceCall' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -418,6 +447,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'serviceApplied' && o.value != null)
             ServiceResult.writeField(w, 12, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'serviceCall' && o.value != null)
+            ServiceCall.writeField(w, 13, o.value)
         }
       },
     },
@@ -1315,19 +1349,90 @@ export const Fixture: MessageType<Fixture> =
   )
 
 /**
+ * Forward hands one mod's started calls of a service to the controller over
+ * the control link, in place of a fixture.
+ *
+ * @generated from message modlock.host_app.control.Forward
+ */
+export interface Forward {
+  /**
+   * Mod is the slug of the mod whose calls go to the controller.
+   */
+  mod?: string
+  /**
+   * Service names the service forwarded.
+   */
+  service?: string
+  /**
+   * Target names where the controller sends the calls, for the host's log.
+   */
+  target?: string
+}
+
+export const Forward: MessageType<Forward> =
+  /* @__PURE__ */ createMessageType<Forward>(
+    'modlock.host_app.control.Forward',
+    () => [
+      [1, 'mod', 9],
+      [2, 'service', 9],
+      [3, 'target', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Forward): Forward => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.service = r.string()
+              break
+            case 3:
+              m.target = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Forward, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.target
+          if (v) w.uint32(26).string(v)
+        }
+      },
+    },
+  )
+
+/**
  * Fixtures is the file --fixtures names: every fixture reply of the mods the
- * host loads.
+ * host loads, and the services the controller answers instead.
  *
  * @generated from message modlock.host_app.control.Fixtures
  */
 export interface Fixtures {
   fixtures?: Fixture[]
+  forwards?: Forward[]
 }
 
 export const Fixtures: MessageType<Fixtures> =
   /* @__PURE__ */ createMessageType<Fixtures>(
     'modlock.host_app.control.Fixtures',
-    () => [[1, 'fixtures', 11, 1, Fixture.codec]],
+    () => [
+      [1, 'fixtures', 11, 1, Fixture.codec],
+      [2, 'forwards', 11, 1, Forward.codec],
+    ],
     {
       decode: (r: BinaryReader, end: number, m: Fixtures): Fixtures => {
         while (r.pos < end) {
@@ -1336,6 +1441,9 @@ export const Fixtures: MessageType<Fixtures> =
           switch (t >>> 3) {
             case 1:
               ;(m.fixtures ??= []).push(Fixture.decode(r, r.delimited(), {}))
+              break
+            case 2:
+              ;(m.forwards ??= []).push(Forward.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -1347,6 +1455,168 @@ export const Fixtures: MessageType<Fixtures> =
         {
           const a = m.fixtures
           if (a != null) for (const e of a) Fixture.writeField(w, 1, e)
+        }
+        {
+          const a = m.forwards
+          if (a != null) for (const e of a) Forward.writeField(w, 2, e)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceCall is one started call of a forwarded service, for the controller
+ * to answer.
+ *
+ * @generated from message modlock.host_app.control.ServiceCall
+ */
+export interface ServiceCall {
+  /**
+   * Id names the call in the Answer that ends it.
+   */
+  id?: bigint
+  /**
+   * Mod is the slug of the calling mod.
+   */
+  mod?: string
+  /**
+   * Service and Method select the call.
+   */
+  service?: string
+  method?: string
+  /**
+   * Payload is the call's bytes, opaque to Modlock.
+   */
+  payload?: Uint8Array
+}
+
+export const ServiceCall: MessageType<ServiceCall> =
+  /* @__PURE__ */ createMessageType<ServiceCall>(
+    'modlock.host_app.control.ServiceCall',
+    () => [
+      [1, 'id', 4],
+      [2, 'mod', 9],
+      [3, 'service', 9],
+      [4, 'method', 9],
+      [5, 'payload', 12],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ServiceCall): ServiceCall => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.uint64()
+              break
+            case 2:
+              m.mod = r.string()
+              break
+            case 3:
+              m.service = r.string()
+              break
+            case 4:
+              m.method = r.string()
+              break
+            case 5:
+              m.payload = r.bytes()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceCall, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.mod
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(34).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(42).bytes(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceAnswer ends one forwarded ServiceCall with its reply or an error.
+ *
+ * @generated from message modlock.host_app.control.ServiceAnswer
+ */
+export interface ServiceAnswer {
+  /**
+   * Id matches the ServiceCall it ends.
+   */
+  id?: bigint
+  /**
+   * Payload is the reply's bytes when Error is empty.
+   */
+  payload?: Uint8Array
+  /**
+   * Error, when set, fails the call with this text.
+   */
+  error?: string
+}
+
+export const ServiceAnswer: MessageType<ServiceAnswer> =
+  /* @__PURE__ */ createMessageType<ServiceAnswer>(
+    'modlock.host_app.control.ServiceAnswer',
+    () => [
+      [1, 'id', 4],
+      [2, 'payload', 12],
+      [3, 'error', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ServiceAnswer,
+      ): ServiceAnswer => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.uint64()
+              break
+            case 2:
+              m.payload = r.bytes()
+              break
+            case 3:
+              m.error = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceAnswer, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(18).bytes(v)
+        }
+        {
+          const v = m.error
+          if (v) w.uint32(26).string(v)
         }
       },
     },

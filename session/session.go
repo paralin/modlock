@@ -1,6 +1,7 @@
 package session
 
 import (
+	"cmp"
 	"context"
 	"runtime"
 	"strconv"
@@ -128,7 +129,13 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	// Pass events on, each followed by the frame it changes, launching the
 	// client at the first ready server.
 	frame := NewFrame(config.Version, config.Mods)
+	answers := make(chan struct{}, maxAnswers)
 	handle := func(event *control.HostEvent) {
+		// Answer a forwarded call away from the events, which go on.
+		if call := event.GetServiceCall(); call != nil {
+			go answer(ctx, link, config.Answer, answers, call)
+			return
+		}
 		framed := frame.Follow(event)
 		screens.Handle(event)
 		if event.GetReady() != nil && config.Launch && !session.launched.Swap(true) {
@@ -150,6 +157,31 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 		_ = link.Run(ctx, handle)
 	}()
 	return session, nil
+}
+
+// maxAnswers bounds the forwarded calls answered at once; later ones wait.
+const maxAnswers = 8
+
+// answer ends one forwarded call with what fn answers, or with why it could
+// not, waiting for a turn among the answers in progress.
+func answer(ctx context.Context, link *Control, fn func(context.Context, *control.ServiceCall) ([]byte, error), turns chan struct{}, call *control.ServiceCall) {
+	// Take a turn, then ask.
+	ended := &control.ServiceAnswer{Id: call.GetId()}
+	select {
+	case turns <- struct{}{}:
+		defer func() { <-turns }()
+		if fn == nil {
+			ended.Error = "this session forwards no services"
+		} else if payload, err := fn(ctx, call); err != nil {
+			ended.Error = cmp.Or(err.Error(), "the service failed")
+		} else {
+			ended.Payload = payload
+		}
+	case <-ctx.Done():
+		ended.Error = "the session ended"
+	}
+	// Send the answer; a session that ended sends nothing.
+	_ = link.Answer(ctx, ended)
 }
 
 // Reload asks the host to replace the running mod built at path, first

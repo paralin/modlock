@@ -1535,6 +1535,16 @@ mod starts, it logs which provider answers each named service: a fixture or
 nobody. In the game, `modlock play` hands the host the fixtures in a file it
 names with `--fixtures`, and each fixture answers only its own mod.
 
+`modlock play --forward-services <origin>` answers the mod's named services
+from the service at that origin in place of fixtures, in the game only. Each
+call a mod starts goes from the host over `--control` to `modlock play`, which
+posts it to `<origin>/api/mods/services/call` with the session `modlock login`
+saved, read at each call, and hands back the answer. It never signs in: without
+a saved session for that origin the call fails, naming `modlock login`. The
+origin must be https, or http on 127.0.0.1. A forwarded service answers only
+calls started with `callServiceLater`, and at most 8 calls wait on the origin
+at once; the host fails the calls still waiting when `modlock play` goes.
+
 A service may answer in a later frame, as one that asks a server across the
 network does. `callServiceLater(service, method, payload, done)` returns at
 once, and `done(reply, error, failure)` runs once in a later frame: with the

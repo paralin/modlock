@@ -544,6 +544,74 @@ func (x *DevLobbyHost) GetSecret() uint64 {
 	return 0
 }
 
+// ServiceCall is one call a mod in a local session makes to a service its
+// mod.json names, which the signed-in developer forwards to the service.
+type ServiceCall struct {
+	unknownFields []byte
+	// Mod is the calling mod's slug.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Service names the service, as the mod's mod.json does.
+	Service string `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	// Method names the service's method.
+	Method string `protobuf:"bytes,3,opt,name=method,proto3" json:"method,omitempty"`
+	// Payload is the call's bytes, opaque to Modlock.
+	Payload []byte `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+}
+
+func (x *ServiceCall) Reset() {
+	*x = ServiceCall{}
+}
+
+func (*ServiceCall) ProtoMessage() {}
+
+func (x *ServiceCall) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *ServiceCall) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *ServiceCall) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ServiceCall) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+// ServiceAnswer is the service's reply to one ServiceCall.
+type ServiceAnswer struct {
+	unknownFields []byte
+	// Payload is the reply's bytes.
+	Payload []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+}
+
+func (x *ServiceAnswer) Reset() {
+	*x = ServiceAnswer{}
+}
+
+func (*ServiceAnswer) ProtoMessage() {}
+
+func (x *ServiceAnswer) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
 func (m *SignInExchange) CloneVT() *SignInExchange {
 	if m == nil {
 		return (*SignInExchange)(nil)
@@ -783,6 +851,41 @@ func (m *DevLobbyHost) CloneVT() *DevLobbyHost {
 }
 
 func (m *DevLobbyHost) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ServiceCall) CloneVT() *ServiceCall {
+	if m == nil {
+		return (*ServiceCall)(nil)
+	}
+	r := new(ServiceCall)
+	r.Mod = m.Mod
+	r.Service = m.Service
+	r.Method = m.Method
+	r.Payload = protobuf_go_lite.CloneBytes(m.Payload)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceCall) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ServiceAnswer) CloneVT() *ServiceAnswer {
+	if m == nil {
+		return (*ServiceAnswer)(nil)
+	}
+	r := new(ServiceAnswer)
+	r.Payload = protobuf_go_lite.CloneBytes(m.Payload)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceAnswer) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1129,6 +1232,55 @@ func (this *DevLobbyHost) EqualVT(that *DevLobbyHost) bool {
 
 func (this *DevLobbyHost) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*DevLobbyHost)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ServiceCall) EqualVT(that *ServiceCall) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.Service != that.Service {
+		return false
+	}
+	if this.Method != that.Method {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Payload, that.Payload) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ServiceCall) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ServiceCall)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ServiceAnswer) EqualVT(that *ServiceAnswer) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Payload, that.Payload) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ServiceAnswer) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ServiceAnswer)
 	if !ok {
 		return false
 	}
@@ -1910,6 +2062,114 @@ func (x *DevLobbyHost) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ServiceCall message to JSON.
+func (x *ServiceCall) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Service != "" || s.HasField("service") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("service")
+		s.WriteString(x.Service)
+	}
+	if x.Method != "" || s.HasField("method") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("method")
+		s.WriteString(x.Method)
+	}
+	if len(x.Payload) > 0 || s.HasField("payload") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("payload")
+		s.WriteBytes(x.Payload)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ServiceCall to JSON.
+func (x *ServiceCall) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ServiceCall message from JSON.
+func (x *ServiceCall) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "service":
+			s.AddField("service")
+			x.Service = s.ReadString()
+		case "method":
+			s.AddField("method")
+			x.Method = s.ReadString()
+		case "payload":
+			s.AddField("payload")
+			x.Payload = s.ReadBytes()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ServiceCall from JSON.
+func (x *ServiceCall) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ServiceAnswer message to JSON.
+func (x *ServiceAnswer) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Payload) > 0 || s.HasField("payload") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("payload")
+		s.WriteBytes(x.Payload)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ServiceAnswer to JSON.
+func (x *ServiceAnswer) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ServiceAnswer message from JSON.
+func (x *ServiceAnswer) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "payload":
+			s.AddField("payload")
+			x.Payload = s.ReadBytes()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ServiceAnswer from JSON.
+func (x *ServiceAnswer) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *SignInExchange) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2531,6 +2791,95 @@ func (m *DevLobbyHost) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ServiceCall) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ServiceCall) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ServiceCall) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Payload) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Payload)
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Method) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Method)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Service) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Service)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ServiceAnswer) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ServiceAnswer) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ServiceAnswer) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Payload) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Payload)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *SignInExchange) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2720,6 +3069,31 @@ func (m *DevLobbyHost) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.PeerId)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Secret)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ServiceCall) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Service)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Method)
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Payload)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ServiceAnswer) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Payload)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3001,6 +3375,46 @@ func (x *DevLobbyHost) MarshalProtoText() string {
 }
 
 func (x *DevLobbyHost) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ServiceCall) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ServiceCall")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Service != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "service")
+		protobuf_go_lite.TextWriteString(&sb, x.Service)
+	}
+	if x.Method != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "method")
+		protobuf_go_lite.TextWriteString(&sb, x.Method)
+	}
+	if len(x.Payload) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "payload")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Payload)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ServiceCall) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ServiceAnswer) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ServiceAnswer")
+	if len(x.Payload) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "payload")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Payload)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ServiceAnswer) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3865,6 +4279,138 @@ func (m *DevLobbyHost) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Secret = 0
 			m.Secret, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ServiceCall) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ServiceCall: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ServiceCall: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Service", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Service = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Method", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Method = v
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			m.Payload, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Payload, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ServiceAnswer) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ServiceAnswer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ServiceAnswer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			m.Payload, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Payload, dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

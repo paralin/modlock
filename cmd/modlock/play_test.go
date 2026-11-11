@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -38,7 +39,7 @@ func TestWriteFixtures(t *testing.T) {
 	// Write the host's file, keeping what the session prints.
 	path := filepath.Join(t.TempDir(), "fixtures.pb")
 	printed, written := capture(t, func() (string, error) {
-		return writeFixtures(&printer{}, []string{build}, path)
+		return writeFixtures(&printer{}, []string{build}, path, "")
 	})
 	if written != path {
 		t.Fatalf("wrote %q, want %q", written, path)
@@ -80,9 +81,48 @@ func TestWriteFixtures(t *testing.T) {
 	}
 
 	// A built mod outside a project, with no fixture, writes no file.
-	none, err := writeFixtures(&printer{brief: true}, []string{dir}, filepath.Join(t.TempDir(), "none.pb"))
+	none, err := writeFixtures(&printer{brief: true}, []string{dir}, filepath.Join(t.TempDir(), "none.pb"), "")
 	if err != nil || none != "" {
 		t.Fatalf("a mod without fixtures wrote %q, %v", none, err)
+	}
+
+	// A forward origin forwards every service the mod names, fixture or not.
+	forwarded := filepath.Join(t.TempDir(), "forwarded.pb")
+	printed, _ = capture(t, func() (string, error) {
+		return writeFixtures(&printer{}, []string{build}, forwarded, "http://127.0.0.1:9")
+	})
+	data, err = os.ReadFile(forwarded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixtures = &control.Fixtures{}
+	if err := fixtures.UnmarshalVT(data); err != nil {
+		t.Fatal(err)
+	}
+	got = nil
+	for _, each := range fixtures.GetForwards() {
+		got = append(got, each.GetMod()+" "+each.GetService()+" "+each.GetTarget())
+		if !strings.Contains(printed, "drills: service "+each.GetService()+": forwarded to http://127.0.0.1:9") {
+			t.Errorf("output lacks the forward of %s:\n%s", each.GetService(), printed)
+		}
+	}
+	if len(fixtures.GetFixtures()) != 0 || !slices.Equal(got, []string{
+		"drills example.drills.v1 http://127.0.0.1:9",
+		"drills example.ghosts.v1 http://127.0.0.1:9",
+		"drills example.scores.v1 http://127.0.0.1:9",
+	}) {
+		t.Errorf("forwarded %q with %d fixtures", got, len(fixtures.GetFixtures()))
+	}
+}
+
+// TestForwarderNeedsASafeOrigin forwards nothing without the flag and refuses
+// an origin that would send the session in the clear.
+func TestForwarderNeedsASafeOrigin(t *testing.T) {
+	if answer, err := forwarder(""); answer != nil || err != nil {
+		t.Errorf("no origin: %v, %v", answer != nil, err)
+	}
+	if _, err := forwarder("http://example.com"); err == nil {
+		t.Error("a plain http origin was taken")
 	}
 }
 
