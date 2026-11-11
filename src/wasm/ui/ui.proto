@@ -367,8 +367,8 @@ enum Kind {
   KIND_BUTTON = 3;
 
   // KIND_LAYOUT loads the node's layout from the mod's content addon, whose
-  // script runs in the player's game and talks to the mod through its own
-  // console commands. Only a host that has reviewed the mod's content loads
+  // script runs in the player's game and sends presses back to the mod, as
+  // UiPressEvent's action and payload, or its own console commands. Only a host that has reviewed the mod's content loads
   // it; Modlock's renderer draws an empty panel.
   KIND_LAYOUT = 4;
 
@@ -895,13 +895,23 @@ message Screen {
   repeated Tree trees = 1;
 }
 
-// UiPressEvent reports a press on a button in a player's interface.
+// UiPressEvent reports a press on a button in a player's interface, or a
+// press a layout's script sent with an action and a payload.
 message UiPressEvent {
   // Player is the player who pressed.
   int32 player = 1;
 
-  // Node is the id of the pressed button.
+  // Node is the id of the pressed button, or of the layout whose script
+  // sent the press.
   string node = 2;
+
+  // Action names a layout's press, as its script sent it: one to 64
+  // letters, digits, '_', '-' and '.'. It is empty for a button's press.
+  string action = 3;
+
+  // Payload is the text a layout's press carries, which the layout library
+  // writes as JSON: valid UTF-8 of at most 180 bytes.
+  string payload = 4;
 }
 
 // UiInputEvent reports a change the player made to an input in their

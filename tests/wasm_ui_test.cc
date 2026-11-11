@@ -1,8 +1,10 @@
 // Contract tests for a mod's interface trees: changes apply in order, a change
 // that breaks a limit leaves the tree as it was, layouts and style sheets stay
 // inside the mod's addon, only a shown button takes presses, and only a value a
-// shown input can hold reaches the mod. A departed player's slot takes only a
-// reset.
+// shown input can hold reaches the mod, and a layout's press reaches it only
+// from the player whose tree shows the layout, small and at a player's pace. A
+// departed player's slot takes only a reset.
+#include <chrono>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -264,6 +266,99 @@ TEST(UiTrees, ForgetsPlayers) {
   EXPECT_TRUE(trees.Drop(1));
   EXPECT_EQ(trees.Clear(), std::vector<int32_t>{2});
   EXPECT_TRUE(trees.Clear().empty());
+}
+
+// ShowLayout returns a change that shows the layout node id.
+Change ShowLayout(std::string id) {
+  auto change = Set(std::move(id), modlock::wasm::ui::KIND_LAYOUT);
+  change.mutable_set(0)->set_layout("board.xml");
+  return change;
+}
+
+// kStart is when a test's presses begin.
+const auto kStart = std::chrono::steady_clock::time_point(std::chrono::hours(1));
+
+TEST(UiTrees, TakesALayoutsPressFromThePlayerWhoseTreeShowsIt) {
+  // Slot 3's tree shows the layout; slot 4's does not.
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));
+  ASSERT_TRUE(trees.Apply(3, Set("ready", modlock::wasm::ui::KIND_BUTTON)));
+  ASSERT_TRUE(trees.Apply(4, Set("card", modlock::wasm::ui::KIND_BUTTON)));
+
+  // The press carries the slot the engine named, whatever its line says, and
+  // its payload's text: "eyJ2b3RlIjoxfQ" is {"vote":1}.
+  auto press = trees.Action(3, "card vote eyJ2b3RlIjoxfQ", kStart);
+  ASSERT_TRUE(press) << press.error();
+  EXPECT_EQ(press->player(), 3);
+  EXPECT_EQ(press->node(), "card");
+  EXPECT_EQ(press->action(), "vote");
+  EXPECT_EQ(press->payload(), R"({"vote":1})");
+  auto bare = trees.Action(3, "card close", kStart);
+  ASSERT_TRUE(bare) << bare.error();
+  EXPECT_EQ(bare->player(), 3);
+  EXPECT_EQ(bare->payload(), "");
+
+  // Another player, a button, a missing layout or a bad name is refused.
+  EXPECT_FALSE(trees.Action(4, "card vote eyJ2b3RlIjoxfQ", kStart));
+  EXPECT_FALSE(trees.Action(3, "ready vote", kStart));
+  EXPECT_FALSE(trees.Action(3, "shop vote", kStart));
+  for (const char* line : {"card", "card ", "card a;quit", "card a/b", "card vote !!"}) {
+    EXPECT_FALSE(trees.Action(3, line, kStart)) << line;
+  }
+}
+
+TEST(UiTrees, RefusesALayoutsOversizedPayload) {
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));
+
+  // 180 bytes of payload pass; 181 do not, nor does text that is not UTF-8.
+  const auto encode = [](size_t bytes) {
+    // "QUFB" is "AAA"; a tail of one or two bytes is "QQ" or "QUE".
+    std::string encoded;
+    for (size_t at = 0; at + 3 <= bytes; at += 3) {
+      encoded += "QUFB";
+    }
+    encoded += bytes % 3 == 1 ? "QQ" : bytes % 3 == 2 ? "QUE" : "";
+    return encoded;
+  };
+  auto most = trees.Action(3, "card keep " + encode(UiTrees::kActionPayload), kStart);
+  ASSERT_TRUE(most) << most.error();
+  EXPECT_EQ(most->payload(), std::string(UiTrees::kActionPayload, 'A'));
+  EXPECT_FALSE(trees.Action(3, "card keep " + encode(UiTrees::kActionPayload + 1), kStart));
+  EXPECT_FALSE(trees.Action(3, "card keep " + encode(3000), kStart));
+  EXPECT_FALSE(trees.Action(3, "card keep _w", kStart));
+}
+
+TEST(UiTrees, KeepsEachPlayersLayoutPressesToAPace) {
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));
+  ASSERT_TRUE(trees.Apply(4, ShowLayout("card")));
+
+  // A burst passes and the next press at once is refused, for that player only.
+  for (int i = 0; i < static_cast<int>(UiTrees::kActionBurst); ++i) {
+    EXPECT_TRUE(trees.Action(3, "card watch", kStart)) << i;
+  }
+  EXPECT_FALSE(trees.Action(3, "card watch", kStart));
+  EXPECT_TRUE(trees.Action(4, "card watch", kStart));
+
+  // A quarter second later one more press passes.
+  const auto later = kStart + std::chrono::milliseconds(250);
+  EXPECT_TRUE(trees.Action(3, "card watch", later));
+  EXPECT_FALSE(trees.Action(3, "card watch", later));
+}
+
+TEST(UiTrees, TakesNoLayoutPressOnceTheModStops) {
+  // A stopping mod clears every tree, so its layouts' presses go nowhere.
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));
+  ASSERT_TRUE(trees.Action(3, "card close", kStart));
+  EXPECT_EQ(trees.Clear(), std::vector<int32_t>{3});
+  EXPECT_FALSE(trees.Action(3, "card close", kStart));
+
+  // A player who leaves takes their layout's presses with them.
+  ASSERT_TRUE(trees.Apply(5, ShowLayout("card")));
+  EXPECT_TRUE(trees.Drop(5));
+  EXPECT_FALSE(trees.Action(5, "card close", kStart));
 }
 
 }  // namespace

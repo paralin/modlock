@@ -508,7 +508,8 @@ type SettingChangedEvent = settingspb.SettingChangedEvent
 // Wheel reports one wheel step over a slider, anchored to its pointer position.
 type Wheel = uipb.Wheel
 
-// UiPressEvent reports a press on a button in a player's interface.
+// UiPressEvent reports a press on a button in a player's interface, or a
+// press a layout's script sent with an action and a payload.
 type UiPressEvent = uipb.UiPressEvent
 
 // UiInputEvent reports a change the player made to an input in their

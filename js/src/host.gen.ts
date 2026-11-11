@@ -2307,12 +2307,28 @@ function fromWheel(message: uiPb.Wheel): Wheel {
   }
 }
 
-/** UiPressEvent reports a press on a button in a player's interface. */
+/**
+ * UiPressEvent reports a press on a button in a player's interface, or a
+ * press a layout's script sent with an action and a payload.
+ */
 export interface UiPressEvent {
   /** player is the player who pressed. */
   readonly player: Player
-  /** node is the id of the pressed button. */
+  /**
+   * node is the id of the pressed button, or of the layout whose script
+   * sent the press.
+   */
   readonly node: string
+  /**
+   * action names a layout's press, as its script sent it: one to 64
+   * letters, digits, '_', '-' and '.'. It is empty for a button's press.
+   */
+  readonly action: string
+  /**
+   * payload is the text a layout's press carries, which the layout library
+   * writes as JSON: valid UTF-8 of at most 180 bytes.
+   */
+  readonly payload: string
 }
 
 /** fromUiPressEvent decodes an UiPressEvent. */
@@ -2320,6 +2336,8 @@ function fromUiPressEvent(message: uiPb.UiPressEvent): UiPressEvent {
   return {
     player: Player.of(message.player ?? 0),
     node: message.node ?? '',
+    action: message.action ?? '',
+    payload: message.payload ?? '',
   }
 }
 

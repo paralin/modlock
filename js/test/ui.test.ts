@@ -178,6 +178,40 @@ test('clicks on the ability bar reach the handler while the root asks', () => {
   expect(slots).toEqual([0, 3])
 })
 
+test("a layout's press reaches its onAction with the player and payload", () => {
+  // The layout's node goes out as a layout; its press comes back with the
+  // player the host named, the action and the payload's JSON.
+  const player = new Player(5)
+  const heard: [number, string, unknown][] = []
+  show(
+    player,
+    jsx('layout', {
+      src: 'card.xml',
+      onAction: (by: Player, action: string, payload: unknown) =>
+        heard.push([by.slot, action, payload]),
+    }),
+  )
+  const node = sent.at(-1)!.change!.set!.find((each) => each.layout)!
+  press(player, node.id!, 'vote', '{"vote":1}')
+  press(player, node.id!, 'close', '')
+  press(player, node.id!, 'keep', 'not json')
+  expect(heard).toEqual([
+    [5, 'vote', { vote: 1 }],
+    [5, 'close', undefined],
+    [5, 'keep', undefined],
+  ])
+
+  // A plain press on the layout, or an action on another node, runs nothing.
+  press(player, node.id!)
+  press(player, 'elsewhere', 'vote', '{}')
+  expect(heard.length).toBe(3)
+
+  // A screen without the layout takes its presses no longer.
+  show(player, jsx('panel', {}))
+  press(player, node.id!, 'vote', '{}')
+  expect(heard.length).toBe(3)
+})
+
 test("the ability display names each row's player as Tab shows them", () => {
   // Each row carries its player's slot, name and hero, with its abilities'
   // ids, pictures and upgrades; the viewer's row is its own.

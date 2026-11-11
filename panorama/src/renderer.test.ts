@@ -4,11 +4,13 @@ import { beforeEach, expect, test } from 'bun:test'
 import { HudPart, Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
 import {
+  actionCommand,
   AddonLayouts,
   Drawing,
   type InputValue,
   inputCommand,
   layoutDataChanged,
+  maxActionPayload,
   pressCommand,
 } from './draw.js'
 import {
@@ -891,6 +893,30 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   )
 })
 
+test("a layout's press names its mod, node and action and carries a short payload", () => {
+  // The payload travels as base64url of its UTF-8; an empty one is left off.
+  expect(actionCommand('arena', 'card', 'vote', '{"vote":1}')).toBe(
+    'modlockaction arena card vote eyJ2b3RlIjoxfQ',
+  )
+  expect(actionCommand('arena', 'card', 'close', '')).toBe(
+    'modlockaction arena card close',
+  )
+  expect(actionCommand('arena', 'card', 'keep', 'é'.repeat(90))).toBe(
+    `modlockaction arena card keep ${Buffer.from('é'.repeat(90)).toString('base64url')}`,
+  )
+
+  // A payload past the limit, or a name the host refuses, sends nothing.
+  expect(actionCommand('arena', 'card', 'keep', 'é'.repeat(91))).toBe('')
+  expect(
+    actionCommand('arena', 'card', 'keep', 'x'.repeat(maxActionPayload + 1)),
+  ).toBe('')
+  for (const action of ['', 'a b', 'a;quit', 'a\nquit', 'x'.repeat(65)]) {
+    expect(actionCommand('arena', 'card', action, '')).toBe('')
+  }
+  expect(actionCommand('Arena', 'card', 'vote', '')).toBe('')
+  expect(actionCommand('arena', 'a;quit', 'vote', '')).toBe('')
+})
+
 test('sliders map native fractions to ranges and send scoped wheel anchors', () => {
   // Set up a renderer that reports the values it sends.
   const root = new FakePanel('Panel', 'ModlockUi')
@@ -1589,6 +1615,8 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   const panel = root.children[0]!.children[0]!
   expect(panel.layout).toBe('file://arena/shop.xml')
   expect(panel.attributes.get('modlock_data')).toBe('{"gold":1}')
+  expect(panel.attributes.get('modlock_mod')).toBe('arena')
+  expect(panel.attributes.get('modlock_node')).toBe('a')
   expect(panel.children).toEqual([])
   expect(dispatched).toEqual([])
 

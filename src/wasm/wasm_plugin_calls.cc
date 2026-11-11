@@ -25,6 +25,11 @@ constexpr std::string_view kPressCommand = "modlockpress ";
 // with the value as UiTrees::Input reads it.
 constexpr std::string_view kInputCommand = "modlockinput ";
 
+// kActionCommand starts the console command a mod's layout script sends to
+// press back to its mod: "modlockaction <mod> <node> <action> [payload]",
+// with the rest as UiTrees::Action reads it.
+constexpr std::string_view kActionCommand = "modlockaction ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -155,6 +160,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
       return false;
     }
     if (auto refused = Input(slot, changed.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
+  if (line.starts_with(kActionCommand)) {
+    // A layout's press names this mod, then its layout, action and payload.
+    const auto sent = line.substr(kActionCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = Action(slot, sent.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

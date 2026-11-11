@@ -241,6 +241,21 @@ std::expected<void, std::string> WasmPlugin::Input(int32_t slot, std::string_vie
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Action(int32_t slot, std::string_view line) {
+  // Refuse a press the running mod's layout did not send.
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
+  auto event = ui_.Action(slot, line, std::chrono::steady_clock::now());
+  if (!event) {
+    return std::unexpected(name_ + " " + event.error());
+  }
+
+  // Deliver the press to the mod.
+  static_cast<void>(mod_.UiPress(*event));
+  return {};
+}
+
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
   if (!reply) {
