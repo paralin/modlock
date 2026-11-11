@@ -855,3 +855,126 @@ export const DevLobbyHost: MessageType<DevLobbyHost> =
       },
     },
   )
+
+/**
+ * ServiceCall is one call a mod in a local session makes to a service its
+ * mod.json names, which the signed-in developer forwards to the service.
+ *
+ * @generated from message modlock.publish.ServiceCall
+ */
+export interface ServiceCall {
+  /**
+   * Mod is the calling mod's slug.
+   */
+  mod?: string
+  /**
+   * Service names the service, as the mod's mod.json does.
+   */
+  service?: string
+  /**
+   * Method names the service's method.
+   */
+  method?: string
+  /**
+   * Payload is the call's bytes, opaque to Modlock.
+   */
+  payload?: Uint8Array
+}
+
+export const ServiceCall: MessageType<ServiceCall> =
+  /* @__PURE__ */ createMessageType<ServiceCall>(
+    'modlock.publish.ServiceCall',
+    () => [
+      [1, 'mod', 9],
+      [2, 'service', 9],
+      [3, 'method', 9],
+      [4, 'payload', 12],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ServiceCall): ServiceCall => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.service = r.string()
+              break
+            case 3:
+              m.method = r.string()
+              break
+            case 4:
+              m.payload = r.bytes()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceCall, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(34).bytes(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceAnswer is the service's reply to one ServiceCall.
+ *
+ * @generated from message modlock.publish.ServiceAnswer
+ */
+export interface ServiceAnswer {
+  /**
+   * Payload is the reply's bytes.
+   */
+  payload?: Uint8Array
+}
+
+export const ServiceAnswer: MessageType<ServiceAnswer> =
+  /* @__PURE__ */ createMessageType<ServiceAnswer>(
+    'modlock.publish.ServiceAnswer',
+    () => [[1, 'payload', 12]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ServiceAnswer,
+      ): ServiceAnswer => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.payload = r.bytes()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceAnswer, w: Writer): void => {
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(10).bytes(v)
+        }
+      },
+    },
+  )

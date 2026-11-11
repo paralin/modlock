@@ -56,6 +56,11 @@ func (c *Control) SetService(ctx context.Context, reply *control.ServiceReply) e
 	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Service{Service: reply}})
 }
 
+// Answer ends one service call the host forwarded.
+func (c *Control) Answer(ctx context.Context, answer *control.ServiceAnswer) error {
+	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Answer{Answer: answer}})
+}
+
 // SetRoles replaces the players' roles, which the mods read on each
 // connection. Requests made before the host connects wait for it.
 func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error {

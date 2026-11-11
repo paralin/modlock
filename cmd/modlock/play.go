@@ -14,6 +14,7 @@ import (
 	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/project"
+	modpublish "github.com/paralin/modlock/publish"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/session"
 	"github.com/paralin/modlock/src/host_app/control"
@@ -59,6 +60,10 @@ func playCommand(out *printer) *cli.Command {
 			&cli.BoolFlag{Name: "host", Usage: "let friends join this PC's server with a join code"},
 			&cli.BoolFlag{Name: "lobby", Usage: "let friends join this PC's server through a Hyperline lobby"},
 			&cli.UintFlag{Name: "preview-port", Value: previewPort, Usage: "the watched project's browser preview port; 0 turns it off"},
+			&cli.StringFlag{
+				Name:  "forward-services",
+				Usage: "answer the services the mods name from the service at this origin, as your saved modlock login, in place of fixtures",
+			},
 		),
 		Action: func(c *cli.Context) error {
 			// Take each mod as a built mod or a project's build, building a
@@ -166,6 +171,9 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 	// Run the mods in the sandbox, with the interpreters from the host's
 	// package and the modules compiled in earlier sessions.
 	out.sandbox(reason)
+	if c.String("forward-services") != "" {
+		out.mark("!", yellow, "the sandbox answers services from fixtures; --forward-services works only in the game")
+	}
 	compiled := ""
 	if cache, err := os.UserCacheDir(); err == nil {
 		compiled = filepath.Join(cache, "modlock", "compiled")
@@ -225,9 +233,14 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 			out.mark("!", yellow, "mod interfaces show only in the browser preview: "+err.Error())
 		}
 	}
-	// Hand the host the projects' service fixtures, naming who answers each
-	// service the mods call.
-	fixtures, err := writeFixtures(out, mods, filepath.Join(filepath.Dir(logPath), "fixtures.pb"))
+	// Hand the host the projects' service fixtures, or the services to
+	// forward, naming who answers each service the mods call.
+	forward := strings.TrimSuffix(c.String("forward-services"), "/")
+	fixtures, err := writeFixtures(out, mods, filepath.Join(filepath.Dir(logPath), "fixtures.pb"), forward)
+	if err != nil {
+		return nil, err
+	}
+	answer, err := forwarder(forward)
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +253,7 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 		Settings:   configPath("settings.json"),
 		Files:      configPath("files"),
 		Fixtures:   fixtures,
+		Answer:     answer,
 		Launch:     !c.Bool("no-game"),
 		HostOutput: log,
 		Interface:  ui,
@@ -265,8 +279,9 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 // service a mod names: a fixture or nobody. It returns path, or empty when no
 // mod has a fixture. The host refuses to start a mod whose needed service
 // nobody provides.
-func writeFixtures(out *printer, mods []string, path string) (string, error) {
-	// Read each named service's fixture from its mod's project.
+func writeFixtures(out *printer, mods []string, path, forward string) (string, error) {
+	// Read each named service's fixture from its mod's project, or forward
+	// every service to the origin forward names.
 	fixtures := &control.Fixtures{}
 	for _, mod := range mods {
 		manifest, err := project.ReadManifest(mod)
@@ -276,6 +291,11 @@ func writeFixtures(out *printer, mods []string, path string) (string, error) {
 		slug := manifest.GetSlug()
 		for _, service := range manifest.GetServices() {
 			name := service.GetName()
+			if forward != "" {
+				out.mark("·", dim, slug+": service "+name+": forwarded to "+forward)
+				fixtures.Forwards = append(fixtures.Forwards, &control.Forward{Mod: slug, Service: name, Target: forward})
+				continue
+			}
 			source, replies, err := sandbox.ReadFixture(projectFixtures(mod), name)
 			switch {
 			case err != nil:
@@ -299,7 +319,7 @@ func writeFixtures(out *printer, mods []string, path string) (string, error) {
 	}
 
 	// Write the file the host reads, or none.
-	if len(fixtures.GetFixtures()) == 0 {
+	if len(fixtures.GetFixtures()) == 0 && len(fixtures.GetForwards()) == 0 {
 		return "", nil
 	}
 	data, err := fixtures.MarshalVT()
@@ -310,6 +330,28 @@ func writeFixtures(out *printer, mods []string, path string) (string, error) {
 		return "", errors.Wrap(err, "write the service fixtures")
 	}
 	return path, nil
+}
+
+// forwarder returns what answers the forwarded calls: the service at origin,
+// called with the saved modlock login, read at each call; nil without origin.
+func forwarder(origin string) (func(context.Context, *control.ServiceCall) ([]byte, error), error) {
+	// Forward only when asked, to a service that keeps the session private.
+	if origin == "" {
+		return nil, nil
+	}
+	if err := modpublish.CheckOrigin(origin); err != nil {
+		return nil, errors.Wrap(err, "--forward-services")
+	}
+	sessionFile, err := hyperlineSessionFile()
+	if err != nil {
+		return nil, err
+	}
+	service := &modpublish.Hyperline{Origin: origin, SessionFile: sessionFile}
+	return func(ctx context.Context, call *control.ServiceCall) ([]byte, error) {
+		return service.CallService(ctx, &modpublish.ServiceCall{
+			Mod: call.GetMod(), Service: call.GetService(), Method: call.GetMethod(), Payload: call.GetPayload(),
+		})
+	}, nil
 }
 
 // readRenderer returns the built renderer the game draws the mods'

@@ -204,10 +204,12 @@ void ControlLink::RunRequests(WasmHost& mods) {
     return;
   }
   std::vector<control::ControlRequest> requests;
+  bool closed = false;
   {
     std::lock_guard lock(mu_);
     requests.swap(requests_);
     pending_.store(false, std::memory_order_release);
+    closed = closed_;
   }
 
   for (const auto& request : requests) {
@@ -265,10 +267,59 @@ void ControlLink::RunRequests(WasmHost& mods) {
       case control::ControlRequest::kRoles:
         mods.SetRoles(request.roles());
         break;
+      case control::ControlRequest::kAnswer: {
+        // End the forwarded call the answer names; an unknown id has ended.
+        const auto& answer = request.answer();
+        const auto found = calls_.find(answer.id());
+        if (found == calls_.end()) {
+          break;
+        }
+        auto reply = std::move(found->second);
+        calls_.erase(found);
+        if (!answer.error().empty()) {
+          reply(std::unexpected(answer.error()));
+        } else {
+          reply(answer.payload());
+        }
+        break;
+      }
       default:
         break;
     }
   }
+
+  // Once the controller is gone, no answer comes for the calls it holds.
+  if (closed) {
+    auto calls = std::move(calls_);
+    calls_.clear();
+    for (auto& [id, reply] : calls) {
+      reply(std::unexpected(std::string("the program that answers this service has gone")));
+    }
+  }
+}
+
+void ControlLink::Forward(std::string_view mod, std::string_view service,
+                          std::string_view method, std::string_view payload, WasmReply reply) {
+  // A call with nobody to answer it ends at once.
+  {
+    std::lock_guard lock(mu_);
+    if (closed_) {
+      reply(std::unexpected(std::string("the program that answers this service has gone")));
+      return;
+    }
+  }
+
+  // Keep the reply, then ask the controller.
+  const auto id = ++next_call_;
+  calls_.insert_or_assign(id, std::move(reply));
+  control::HostEvent event;
+  auto* call = event.mutable_service_call();
+  call->set_id(id);
+  call->set_mod(std::string(mod));
+  call->set_service(std::string(service));
+  call->set_method(std::string(method));
+  call->set_payload(std::string(payload));
+  Push(std::move(event));
 }
 
 void ControlLink::Started(std::string_view mod, bool reloaded) {
@@ -404,8 +455,10 @@ void ControlLink::Read() {
     pending_.store(true, std::memory_order_release);
   }
   {
+    // Wake the engine thread too, so it ends the calls left unanswered.
     std::lock_guard lock(mu_);
     closed_ = true;
+    pending_.store(true, std::memory_order_release);
   }
   wake_.notify_one();
 }

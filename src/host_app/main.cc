@@ -40,7 +40,8 @@ void Help() {
                "  --files DIRECTORY   Keep the files mods write in DIRECTORY, one\n"
                "                      directory per mod\n"
                "  --fixtures PATH     Answer the services the Fixtures message in PATH names\n"
-               "                      with its replies\n"
+               "                      with its replies, or over --control where it\n"
+               "                      forwards them\n"
                "  --game-data PATH    Read signatures and virtual slots from PATH instead\n"
                "                      of the game_signatures.txtpb beside the host\n"
                "  --control ADDRESS   Report to and take reloads from the controller at\n"
@@ -286,22 +287,6 @@ int main(int argc, char** argv) {
     mods.KeepSettings(&settings.emplace(options.settings_file));
   }
   mods.KeepFiles(options.files_directory);
-  if (!options.fixtures_file.empty()) {
-    // The fixtures answer before any mod starts, so a mod that needs one
-    // starts.
-    std::ifstream file(options.fixtures_file, std::ios::binary);
-    if (!file) {
-      std::cerr << "fixtures: cannot read " << options.fixtures_file.string() << '\n';
-      return 1;
-    }
-    const std::string data{std::istreambuf_iterator<char>(file), {}};
-    auto provided = modlock::host_app::ProvideFixtures(mods, data);
-    if (!provided) {
-      std::cerr << "fixtures: " << provided.error() << '\n';
-      return 1;
-    }
-    std::cout << *provided;
-  }
   FailureRecorder failures;
   mods.Observe(&failures);
   std::unique_ptr<modlock::host_app::ControlLink> link;
@@ -317,6 +302,30 @@ int main(int argc, char** argv) {
     if (auto watched = link->Watch(engine); !watched && !options.check_only) {
       std::cerr << "control: " << watched.error() << '\n';
     }
+  }
+
+  if (!options.fixtures_file.empty()) {
+    // The fixtures answer before any mod starts, so a mod that needs one
+    // starts; a forwarded service goes over the control link.
+    std::ifstream file(options.fixtures_file, std::ios::binary);
+    if (!file) {
+      std::cerr << "fixtures: cannot read " << options.fixtures_file.string() << '\n';
+      return 1;
+    }
+    const std::string data{std::istreambuf_iterator<char>(file), {}};
+    modlock::host_app::Forward forward;
+    if (link) {
+      forward = [&link](std::string_view mod, std::string_view service, std::string_view method,
+                        std::string_view payload, modlock::WasmReply reply) {
+        link->Forward(mod, service, method, payload, std::move(reply));
+      };
+    }
+    auto provided = modlock::host_app::ProvideFixtures(mods, data, std::move(forward));
+    if (!provided) {
+      std::cerr << "fixtures: " << provided.error() << '\n';
+      return 1;
+    }
+    std::cout << *provided;
   }
 
   // The host destroys plugin instances and libraries before the mods, the
