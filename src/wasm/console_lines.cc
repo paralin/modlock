@@ -6,11 +6,13 @@
 #include <array>
 #include <cctype>
 
+#include "wasm/entity_rules.h"
+
 namespace modlock::wasm {
 namespace {
 
 // Family names what a refused command controls, as the refusal reads.
-enum class Family { kFiles, kLogging, kNetwork, kProcess, kDeferred };
+enum class Family { kFiles, kLogging, kNetwork, kProcess, kDeferred, kEntities, kScripts };
 
 // Rule refuses the commands and variables named pattern, or starting with it
 // when prefix is set. Prefixes cover a family the game adds to between builds.
@@ -116,13 +118,27 @@ constexpr auto kRules = std::to_array<Rule>({
     {"script_debug", false, Family::kProcess},
     {"unloadtool", false, Family::kProcess},
     {"open_current_map_", true, Family::kProcess},
+    // The test script's commands, which loop and run the commands they name.
+    {"test_", true, Family::kProcess},
     // Commands that store a line to run later, past this check.
     {"alias", false, Family::kDeferred},
     {"cmd", false, Family::kDeferred},
     {"execute_command_every_frame", false, Family::kDeferred},
     {"bind", true, Family::kDeferred},
     {"unbind", true, Family::kDeferred},
+    // Commands that create entities or send them inputs past a mod's checks,
+    // which reach a point_servercommand's console line; a mod creates and
+    // drives entities through its own calls.
+    {"ent_create", false, Family::kEntities},
+    {"ent_fire", true, Family::kEntities},
+    {"ent_call", false, Family::kEntities},
+    {"firetarget", false, Family::kEntities},
+    // The script VM: script files and the debugger.
+    {"script_", true, Family::kScripts},
 });
+
+// kSetters change the console variable their first argument names.
+constexpr auto kSetters = std::to_array<std::string_view>({"toggle", "incrementvar", "multvar"});
 
 // What reads each family in a refusal.
 std::string_view Describe(Family family) {
@@ -137,6 +153,10 @@ std::string_view Describe(Family family) {
       return "an engine process control";
     case Family::kDeferred:
       return "a command that stores other commands";
+    case Family::kEntities:
+      return "an entity command outside a mod's checks";
+    case Family::kScripts:
+      return "a script VM control";
   }
   return "an engine control";
 }
@@ -186,6 +206,24 @@ bool BareName(std::string_view name) {
   });
 }
 
+// FirstName returns the first name of arguments, in lower case, or an empty
+// string when there is none.
+std::string FirstName(std::string_view arguments) {
+  arguments = Trim(arguments);
+  return arguments.empty() ? std::string() : Lower(Command(arguments).name);
+}
+
+// RefuseName returns why a mod may not run or set the command or variable
+// name, given in lower case, or an empty string when it may.
+std::string RefuseName(const std::string& name) {
+  for (const auto& rule : kRules) {
+    if (rule.prefix ? name.starts_with(rule.pattern) : name == rule.pattern) {
+      return name + " is " + std::string(Describe(rule.family)) + ", which a mod may not run";
+    }
+  }
+  return {};
+}
+
 }  // namespace
 
 std::vector<ConsoleCommand> SplitConsoleLine(std::string_view line) {
@@ -206,9 +244,20 @@ std::string RefuseConsoleLine(std::string_view line) {
     if (name == "tv_record" && !BareName(command.arguments)) {
       return "tv_record takes a bare file name of letters, digits, - and _";
     }
-    for (const auto& rule : kRules) {
-      if (rule.prefix ? name.starts_with(rule.pattern) : name == rule.pattern) {
-        return name + " is " + std::string(Describe(rule.family)) + ", which a mod may not run";
+    if (auto refused = RefuseName(name); !refused.empty()) {
+      return refused;
+    }
+
+    // A setter changes the variable it names, which is refused as setting it
+    // directly is; give creates the entity it names.
+    if (std::ranges::contains(kSetters, name)) {
+      if (auto refused = RefuseName(FirstName(command.arguments)); !refused.empty()) {
+        return name + " sets " + refused;
+      }
+    }
+    if (name == "give") {
+      if (auto refused = RefuseEntityClass(FirstName(command.arguments)); !refused.empty()) {
+        return refused;
       }
     }
   }

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "modlock/gameinterop/native_memory.h"
+#include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -444,7 +445,11 @@ std::expected<unsigned char*, std::string> Game::ModelPart(void* entity, const v
 std::expected<void, std::string> Game::StoreField(void* entity, const std::string& class_name,
                                                   const std::string& field, fields::FieldType type,
                                                   const fields::FieldValue& value) {
-  // Find the field the value goes to.
+  // Refuse a field that names a console line or a script, then find the
+  // field the value goes to.
+  if (auto refused = RefuseField(field); !refused.empty()) {
+    return std::unexpected(std::move(refused));
+  }
   auto address = FieldAddress(entity, class_name, field, type, false);
   if (!address) {
     return std::unexpected(address.error());

@@ -23,8 +23,9 @@ std::vector<ConsoleCommand> SplitConsoleLine(std::string_view line);
 // RefuseConsoleLine returns why a mod may not run line at the server console,
 // or an empty string when it may. A mod changes the game: its rules, its map,
 // its players and its recording. It may not reach the engine's controls for
-// files, logging, network addresses, config execution or the process, nor
-// define a command that runs later.
+// files, logging, network addresses, config execution or the process, define
+// a command that runs later, set a refused variable through toggle and its
+// kin, or create and drive entities past a mod's own checked calls.
 std::string RefuseConsoleLine(std::string_view line);
 
 }  // namespace modlock::wasm

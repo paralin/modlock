@@ -1182,7 +1182,7 @@ class, its base and its fields in `schemas.json`.
 
 ### Entities and inputs
 
-`createEntity` creates any entity the server knows by its designer name, with
+`createEntity` creates an entity the server knows by its designer name, with
 the spawn key values a map would give it and fields written before it spawns.
 `fireInput` sends an entity an input, as a map's output would, and
 `removeEntity` removes one the mod created. The world's end, or the mod's,
@@ -1216,6 +1216,18 @@ pointing at `giveItem` and `replaceAbility`, because one created alone takes the
 server down once it thinks or is removed. `spawnNpc` and `createPickup` build on
 the same call, so `spawnNpc` takes any unit class the server has and refuses a
 `lane` for a class that walks none.
+
+Entities keep to the same [console limits](#console) as `serverCommand`. The
+host refuses to create, spawn or send inputs to `point_servercommand`,
+`point_clientcommand`, `point_broadcastclientcommand`, `point_commentary_node`,
+`logic_script` and `point_prefab`, which run console lines on the server or on
+players' clients, or load scripts and entities no check sees; an entity of one
+of those classes that a map placed takes no input from a mod either. It
+refuses the key values `vscripts`, `precommands`, `postcommands` and any ending
+in `_script_func`, the fields they fill, `m_iszPrivateVScripts`,
+`m_iszPreCommands` and `m_iszPostCommands`, whether written before spawn or
+with `writeField`, and the inputs `AddOutput`, `RunScriptCode`,
+`RunScriptFile` and the `Call*ScriptFunction` inputs on every entity.
 
 `create` in `modlock/entities` types the same call by designer name: it takes
 only that entity's spawn keys, each as the type the entity reads, and returns
@@ -1291,10 +1303,17 @@ They may not reach the engine's controls for:
   settings;
 - the process: crash and minidump commands, debuggers, tools and shutdown;
 - commands that store a line to run later: `alias`, `cmd`, `bind*`, `unbind*`
-  and `execute_command_every_frame`.
+  and `execute_command_every_frame`, and the test script's `test_*`
+  commands, which run the commands they name;
+- entities, past the checks of a mod's own calls: `ent_create`, `ent_fire*`,
+  `ent_call` and `firetarget`, and `give` for a class
+  [`createEntity` refuses](#entities-and-inputs);
+- the script VM: `script_*`.
 
-The server checks every command in a line, after each `;` or newline, and
-returns an error that names the first one refused.
+`toggle`, `incrementvar` and `multvar` set the variable they name, so each is
+refused for a variable that may not be set directly. The server checks every
+command in a line, after each `;` or newline, and returns an error that names
+the first one refused.
 
 `apply(settings)` sets several variables in order and returns the names the
 server refused. `arena` empties the map for a custom mode: the server keeps

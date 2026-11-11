@@ -3460,7 +3460,9 @@ end
 -- entity's panel only when it creates the entity, so a write to
 -- m_DialogXMLName sends every client a full update on the next frame, which
 -- creates every entity again; the players' game stalls briefly, so write a
--- layout when it changes, not every frame.
+-- layout when it changes, not every frame. It refuses the fields that
+-- name a console line or a script, such as m_iszPrivateVScripts, here and
+-- among the fields CreateEntity writes before spawn.
 function modlock.writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean
 	return call("WriteField", "WriteFieldRequest", { entity = entity, className = className, field = field, type = type, value = value }) ~= nil
 end
@@ -3639,11 +3641,14 @@ function modlock.callService(service: string, method: string, payload: string): 
 	return response.payload
 end
 
--- createEntity creates any entity the server knows by its designer name,
+-- createEntity creates an entity the server knows by its designer name,
 -- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 -- written before it spawns. The world removes it when the world ends;
 -- stopping the mod removes it too. It refuses an ability, item or weapon,
--- which only a hero holds: GiveItem and ReplaceAbility give one.
+-- which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+-- a class that runs console lines or loads scripts or entities past a mod's
+-- checks, such as point_servercommand, and key values that name a console
+-- line or a script, such as vscripts.
 function modlock.createEntity(options: EntityOptions): number?
 	local response = call("CreateEntity", "EntityOptions", options, "EntityResponse")
 	if response == nil then
@@ -3654,7 +3659,9 @@ end
 
 -- fireInput sends an input to a live entity, as a map's output would, such
 -- as Skin with the integer 1. The value must have the type the input reads.
--- It reports false once the entity is gone.
+-- It reports false once the entity is gone. It refuses AddOutput and the
+-- script inputs on every entity, and any input to an entity of a class
+-- CreateEntity refuses.
 function modlock.fireInput(entity: number, input: string, value: EntityValue?, activator: number?): boolean
 	local response = call("FireInput", "FireInputRequest", { entity = entity, input = input, value = value, activator = activator }, "AliveResponse")
 	if response == nil then
