@@ -174,6 +174,9 @@ type Release struct {
 	ReviewState ReviewState `protobuf:"varint,10,opt,name=review_state,json=reviewState,proto3" json:"reviewState,omitempty"`
 	// ReviewNote explains the decision.
 	ReviewNote string `protobuf:"bytes,13,opt,name=review_note,json=reviewNote,proto3" json:"reviewNote,omitempty"`
+	// Prerelease is set when the service published it for the mod's testers
+	// only. A service that predates prereleases never sets it.
+	Prerelease bool `protobuf:"varint,38,opt,name=prerelease,proto3" json:"prerelease,omitempty"`
 }
 
 func (x *Release) Reset() {
@@ -215,6 +218,13 @@ func (x *Release) GetReviewNote() string {
 		return x.ReviewNote
 	}
 	return ""
+}
+
+func (x *Release) GetPrerelease() bool {
+	if x != nil {
+		return x.Prerelease
+	}
+	return false
 }
 
 // Error is a refused request's explanation.
@@ -596,6 +606,7 @@ func (m *Release) CloneVT() *Release {
 	r.Name = m.Name
 	r.ReviewState = m.ReviewState
 	r.ReviewNote = m.ReviewNote
+	r.Prerelease = m.Prerelease
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -866,6 +877,9 @@ func (this *Release) EqualVT(that *Release) bool {
 		return false
 	}
 	if this.ReviewNote != that.ReviewNote {
+		return false
+	}
+	if this.Prerelease != that.Prerelease {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1356,6 +1370,11 @@ func (x *Release) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("reviewNote")
 		s.WriteString(x.ReviewNote)
 	}
+	if x.Prerelease || s.HasField("prerelease") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("prerelease")
+		s.WriteBool(x.Prerelease)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1388,6 +1407,9 @@ func (x *Release) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "review_note", "reviewNote":
 			s.AddField("review_note")
 			x.ReviewNote = s.ReadString()
+		case "prerelease":
+			s.AddField("prerelease")
+			x.Prerelease = s.ReadBool()
 		}
 	})
 }
@@ -2053,6 +2075,13 @@ func (m *Release) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Prerelease {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Prerelease)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xb0
+	}
 	if len(m.ReviewNote) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.ReviewNote)
 		i--
@@ -2553,6 +2582,7 @@ func (m *Release) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.ReviewState)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ReviewNote)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.Prerelease)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2778,6 +2808,10 @@ func (x *Release) MarshalProtoText() string {
 	if x.ReviewNote != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "review_note")
 		protobuf_go_lite.TextWriteString(&sb, x.ReviewNote)
+	}
+	if x.Prerelease != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "prerelease")
+		protobuf_go_lite.TextWriteBool(&sb, x.Prerelease)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3243,6 +3277,16 @@ func (m *Release) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.ReviewNote = v
+		case 38:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Prerelease", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Prerelease = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

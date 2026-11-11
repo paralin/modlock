@@ -57,6 +57,10 @@ message Release {
 
   // ReviewNote explains the decision.
   string review_note = 13;
+
+  // Prerelease is set when the service published it for the mod's testers
+  // only. A service that predates prereleases never sets it.
+  bool prerelease = 38;
 }
 
 // ReviewState is a release's review decision.

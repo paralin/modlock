@@ -629,6 +629,13 @@ Hyperline publishes each version once, so raise `version` in `mod.json` before
 publishing again. `--notes` says what changed: hyperline.gg shows it on the
 game's page, and the `github` destination uses it for a new release.
 
+`--prerelease` publishes to hyperline.gg for the mod's testers only, with a
+version such as `0.2.0-pre.1`. Every game keeps its release. Each of the mod's
+games gains a Draft copy, such as "Freestyle Prerelease", that plays the
+prerelease, and anyone a tester invites may join it. A later prerelease
+replaces it. Choosing it current on hyperline.gg (`hyperline-mod current SLUG
+VERSION`) makes that same build the release, without publishing again.
+
 After the upload, `modlock publish` says where the release plays. A mod with
 code plays on hyperline.gg's game servers at once, and on players' own PCs once
 a reviewer approves it, unless the creator is trusted, whose releases play

@@ -19,6 +19,9 @@ type Mod struct {
 	Manifest *wasm.Manifest
 	// Notes say what the release changed, for providers that show them.
 	Notes string
+	// Prerelease publishes to Hyperline for the mod's testers only, in its
+	// Prerelease games, and leaves its games on their release.
+	Prerelease bool
 }
 
 // Files lists the files a release holds: the manifest, the entry, and the map

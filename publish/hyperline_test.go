@@ -39,7 +39,7 @@ func TestPublish(t *testing.T) {
 
 	// Serve the release endpoint, recording what each upload carried.
 	var uploaded []string
-	var notes string
+	var notes, prerelease string
 	refuse := false
 	service := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Refuse any other path or session.
@@ -51,13 +51,14 @@ func TestPublish(t *testing.T) {
 		// Record the upload, then answer with a refusal or the release.
 		uploaded = tarNames(t, r.Body)
 		notes = r.URL.Query().Get("notes")
+		prerelease = r.URL.Query().Get("prerelease")
 		if refuse {
 			data, _ := (&Error{Code: "invalid", Message: "the version 1.0.0 is already published"}).MarshalVT()
 			w.WriteHeader(http.StatusConflict)
 			_, _ = w.Write(data)
 			return
 		}
-		data, _ := (&Release{Slug: "hello", Version: "1.0.0", ReviewState: ReviewState_REVIEW_STATE_APPROVED}).MarshalVT()
+		data, _ := (&Release{Slug: "hello", Version: "1.0.0", ReviewState: ReviewState_REVIEW_STATE_APPROVED, Prerelease: prerelease == "1"}).MarshalVT()
 		_, _ = w.Write(data)
 	}))
 	defer service.Close()
@@ -84,6 +85,16 @@ func TestPublish(t *testing.T) {
 	if notes != mod.Notes {
 		t.Errorf("notes %q, want %q", notes, mod.Notes)
 	}
+	if prerelease != "" {
+		t.Errorf("a release asked for prerelease %q", prerelease)
+	}
+
+	// A prerelease asks for one.
+	mod.Prerelease = true
+	if release, err := hyperline.Publish(context.Background(), mod); err != nil || prerelease != "1" || !release.GetPrerelease() {
+		t.Errorf("a prerelease asked for prerelease %q and got %v: %v", prerelease, release, err)
+	}
+	mod.Prerelease = false
 
 	// A refusal returns the service's message.
 	refuse = true

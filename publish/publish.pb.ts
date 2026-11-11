@@ -260,6 +260,11 @@ export interface Release {
    * ReviewNote explains the decision.
    */
   reviewNote?: string
+  /**
+   * Prerelease is set when the service published it for the mod's testers
+   * only. A service that predates prereleases never sets it.
+   */
+  prerelease?: boolean
 }
 
 export const Release: MessageType<Release> =
@@ -271,6 +276,7 @@ export const Release: MessageType<Release> =
       [3, 'name', 9],
       [10, 'review_state', 14, 0, ReviewState_Enum],
       [13, 'review_note', 9],
+      [38, 'prerelease', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Release): Release => {
@@ -292,6 +298,9 @@ export const Release: MessageType<Release> =
               break
             case 13:
               m.reviewNote = r.string()
+              break
+            case 38:
+              m.prerelease = r.bool()
               break
             default:
               r.skip(t)
@@ -319,6 +328,10 @@ export const Release: MessageType<Release> =
         {
           const v = m.reviewNote
           if (v) w.uint32(106).string(v)
+        }
+        {
+          const v = m.prerelease
+          if (v) w.uint32(304).bool(v)
         }
       },
     },

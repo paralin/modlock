@@ -52,7 +52,7 @@ type Hyperline struct {
 	Output io.Writer
 }
 
-// Publish uploads mod with its notes and returns the release the service
+// Publish uploads mod with its notes, as a prerelease when it is one, and returns the release the service
 // recorded. It signs in through the browser when no saved session is valid.
 func (h *Hyperline) Publish(ctx context.Context, mod *Mod) (*Release, error) {
 	// Pack the build for the service.
@@ -66,7 +66,11 @@ func (h *Hyperline) Publish(ctx context.Context, mod *Mod) (*Release, error) {
 
 	// Upload it.
 	release := &Release{}
-	path := releasesPath + "?" + url.Values{"notes": {mod.Notes}}.Encode()
+	query := url.Values{"notes": {mod.Notes}}
+	if mod.Prerelease {
+		query.Set("prerelease", "1")
+	}
+	path := releasesPath + "?" + query.Encode()
 	return release, h.signedSend(ctx, path, body, release)
 }
 
