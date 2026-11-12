@@ -2500,6 +2500,16 @@ schema.BuildItem = {
 	{ number = 1, name = "item", kind = "string" },
 	{ number = 2, name = "annotation", kind = "string" },
 }
+schema.HoldEntityModifierRequest = {
+	{ number = 1, name = "entity", kind = "uint32" },
+	{ number = 2, name = "modifier", kind = "string" },
+	{ number = 3, name = "active", kind = "bool", optional = true },
+}
+schema.GiveEntityModifierRequest = {
+	{ number = 1, name = "entity", kind = "uint32" },
+	{ number = 2, name = "modifier", kind = "string" },
+	{ number = 3, name = "seconds", kind = "float" },
+}
 schema.Vec3 = {
 	{ number = 1, name = "x", kind = "double" },
 	{ number = 2, name = "y", kind = "double" },
@@ -3926,6 +3936,22 @@ end
 -- call replaces the list; an empty list stops watching.
 function modlock.watchProjectiles(options: ProjectileOptions): boolean
 	return call("WatchProjectiles", "ProjectileOptions", options) ~= nil
+end
+
+-- holdEntityModifier keeps a modifier, named as GiveModifier names it, on a
+-- live entity with no expiry, giving it back whenever the game removes it
+-- while the entity lives. The hold ends with the entity or when active is
+-- false.
+function modlock.holdEntityModifier(entity: number, modifier: string, active: boolean?): boolean
+	return call("HoldEntityModifier", "HoldEntityModifierRequest", { entity = entity, modifier = modifier, active = active }) ~= nil
+end
+
+-- giveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+-- a modifier for seconds. An ability's modifier, named
+-- "<ability>/<modifier>", resolves its parent ability subclass even when the
+-- entity owns no abilities.
+function modlock.giveEntityModifier(entity: number, modifier: string, seconds: number): boolean
+	return call("GiveEntityModifier", "GiveEntityModifierRequest", { entity = entity, modifier = modifier, seconds = seconds }) ~= nil
 end
 
 -- ModHandlers handles the events the game delivers to the mod.

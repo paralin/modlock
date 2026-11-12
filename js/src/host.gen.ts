@@ -3857,6 +3857,26 @@ export function watchProjectiles(options: ProjectileOptions): boolean {
   return call('WatchProjectiles', combatPb.ProjectileOptions.toBinary(toProjectileOptions(options))) !== undefined
 }
 
+/**
+ * holdEntityModifier keeps a modifier, named as GiveModifier names it, on a
+ * live entity with no expiry, giving it back whenever the game removes it
+ * while the entity lives. The hold ends with the entity or when active is
+ * false.
+ */
+export function holdEntityModifier(entity: number, modifier: string, active?: boolean): boolean {
+  return call('HoldEntityModifier', abilitiesPb.HoldEntityModifierRequest.toBinary({ entity, modifier, active })) !== undefined
+}
+
+/**
+ * giveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+ * a modifier for seconds. An ability's modifier, named
+ * "<ability>/<modifier>", resolves its parent ability subclass even when the
+ * entity owns no abilities.
+ */
+export function giveEntityModifier(entity: number, modifier: string, seconds: number): boolean {
+  return call('GiveEntityModifier', abilitiesPb.GiveEntityModifierRequest.toBinary({ entity, modifier, seconds })) !== undefined
+}
+
 /** ModHandlers handles the events the game delivers to the mod. */
 export interface ModHandlers {
   /** start begins the mod's active lifetime, once, before any other event. */

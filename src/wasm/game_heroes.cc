@@ -773,17 +773,16 @@ std::expected<void, std::string> Game::BuyItem(const abilities::BuyItemRequest& 
   if (request.has_imbue()) {
     target = static_cast<uint16_t>(request.imbue());
   }
-  auto bought = observer_.BuyItem(request.player(), gameinterop::MakeMemberName(request.item()).hash,
-                                  target, static_cast<uint8_t>(request.source()), **definitions,
-                                  **shop, imbue);
+  auto bought =
+      observer_.BuyItem(request.player(), gameinterop::MakeMemberName(request.item()).hash, target,
+                        static_cast<uint8_t>(request.source()), **definitions, **shop, imbue);
   if (!bought) {
     return std::unexpected(bought.error());
   }
   return {};
 }
 
-std::expected<void, std::string> Game::TrainAbility(
-    const abilities::TrainAbilityRequest& request) {
+std::expected<void, std::string> Game::TrainAbility(const abilities::TrainAbilityRequest& request) {
   // Resolve the game's training and the player's live pawn.
   if (request.slot() > gameinterop::kLastSignatureSlot) {
     return std::unexpected("slot names an ability slot from 0 to 3");
@@ -797,8 +796,8 @@ std::expected<void, std::string> Game::TrainAbility(
   }
 
   // The game trains or upgrades the held ability, or refuses.
-  auto trained = observer_.TrainAbility(request.player(), static_cast<uint16_t>(request.slot()),
-                                        **training);
+  auto trained =
+      observer_.TrainAbility(request.player(), static_cast<uint16_t>(request.slot()), **training);
   if (!trained) {
     return std::unexpected(trained.error());
   }
@@ -870,6 +869,42 @@ std::expected<void, std::string> Game::ReplaceAbility(
   return observer_.ApplyAbilityTimers(player, std::span(&*fresh, 1));
 }
 
+std::expected<void, std::string> Game::EnsureHeldModifier(const std::string& key) {
+  if (modifiers_.contains(key)) {
+    return {};
+  }
+  auto image = services_.Image();
+  if (!image) {
+    return std::unexpected(image.error());
+  }
+  auto schema = services_.Schema();
+  if (!schema) {
+    return std::unexpected(schema.error());
+  }
+  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, key, -1);
+  if (!modifier) {
+    return std::unexpected(modifier.error());
+  }
+  modifiers_.emplace(key, *modifier);
+  return {};
+}
+
+uint32_t Game::EntityAbilityHandle(uint32_t handle, std::string_view key) {
+  const auto slash = key.find('/');
+  const auto slot = SlotOfPawn(handle);
+  if (slash == std::string_view::npos || !slot) {
+    return gameinterop::kInvalidEHandleIndex;
+  }
+  const auto owned = observer_.CurrentAbilitiesForSlot(*slot);
+  if (!owned) {
+    return gameinterop::kInvalidEHandleIndex;
+  }
+  const auto named = gameinterop::MakeMemberName(key.substr(0, slash)).hash;
+  const auto found =
+      std::ranges::find(*owned, named, &gameinterop::PawnObserver::Ability::subclass_id);
+  return found == owned->end() ? gameinterop::kInvalidEHandleIndex : found->handle;
+}
+
 std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifierRequest& request) {
   // Releasing a hold drops the slot's claim on the modifier.
   const auto& key = request.modifier();
@@ -878,22 +913,9 @@ std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifie
     return {};
   }
 
-  // Resolve the modifier once for every slot that holds it.
-  if (!modifiers_.contains(key)) {
-    // Resolve the modifier once for its key.
-    auto image = services_.Image();
-    if (!image) {
-      return std::unexpected(image.error());
-    }
-    auto schema = services_.Schema();
-    if (!schema) {
-      return std::unexpected(schema.error());
-    }
-    auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, key, -1);
-    if (!modifier) {
-      return std::unexpected(modifier.error());
-    }
-    modifiers_.emplace(key, *modifier);
+  // Resolve the modifier once for every slot or entity that holds it.
+  if (auto resolved = EnsureHeldModifier(key); !resolved) {
+    return resolved;
   }
   held_modifiers_.emplace(request.player(), key);
 
@@ -931,6 +953,61 @@ std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifie
     return std::unexpected(modifier.error());
   }
   auto attached = modifier->Attach(observer_, request.player(), *source);
+  modifier->Restore();
+  return attached;
+}
+
+std::expected<void, std::string> Game::HoldEntityModifier(
+    const abilities::HoldEntityModifierRequest& request) {
+  // Releasing a hold drops the entity's claim on the modifier.
+  const auto& key = request.modifier();
+  if (request.has_active() && !request.active()) {
+    ReleaseEntityModifier(request.entity(), key);
+    return {};
+  }
+
+  // Check the entity before resolving or mutating the shared definition.
+  if (auto entity = Entity(request.entity()); !entity) {
+    return std::unexpected(entity.error());
+  }
+  if (auto resolved = EnsureHeldModifier(key); !resolved) {
+    return resolved;
+  }
+  held_entity_modifiers_.emplace(request.entity(), key);
+
+  // A hold that cannot start now ends, so the mod learns why.
+  auto renewed = RenewEntityModifier(request.entity(), key, true);
+  if (!renewed) {
+    ReleaseEntityModifier(request.entity(), key);
+  }
+  return renewed;
+}
+
+std::expected<void, std::string> Game::GiveEntityModifier(
+    const abilities::GiveEntityModifierRequest& request) {
+  // Resolve the server module, the schema and the target entity.
+  auto image = services_.Image();
+  if (!image) {
+    return std::unexpected(image.error());
+  }
+  auto schema = services_.Schema();
+  if (!schema) {
+    return std::unexpected(schema.error());
+  }
+  auto entity = Entity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+
+  // The modifier takes its duration when attached, so the shared definition
+  // gets its own duration back right away.
+  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, request.modifier(),
+                                                        request.seconds());
+  if (!modifier) {
+    return std::unexpected(modifier.error());
+  }
+  auto attached =
+      modifier->AttachEntity(*entity, EntityAbilityHandle(request.entity(), request.modifier()));
   modifier->Restore();
   return attached;
 }

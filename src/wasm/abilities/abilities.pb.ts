@@ -1256,3 +1256,145 @@ export const BuildItem: MessageType<BuildItem> =
       },
     },
   )
+
+/**
+ * HoldEntityModifierRequest holds or releases a modifier on an entity.
+ *
+ * @generated from message modlock.wasm.abilities.HoldEntityModifierRequest
+ */
+export interface HoldEntityModifierRequest {
+  /**
+   * Entity is the entity handle, such as Npc.entity or Pawn.entity.
+   */
+  entity?: number
+  /**
+   * Modifier names the modifier as GiveModifierRequest.modifier does, such
+   * as upgrade_colossus/modifier_colossus_active.
+   */
+  modifier?: string
+  /**
+   * Active holds the modifier when true or omitted; false releases the hold.
+   */
+  active?: boolean
+}
+
+export const HoldEntityModifierRequest: MessageType<HoldEntityModifierRequest> =
+  /* @__PURE__ */ createMessageType<HoldEntityModifierRequest>(
+    'modlock.wasm.abilities.HoldEntityModifierRequest',
+    () => [
+      [1, 'entity', 13],
+      [2, 'modifier', 9],
+      [3, 'active', 8, 4],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: HoldEntityModifierRequest,
+      ): HoldEntityModifierRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.entity = r.uint32()
+              break
+            case 2:
+              m.modifier = r.string()
+              break
+            case 3:
+              m.active = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HoldEntityModifierRequest, w: Writer): void => {
+        {
+          const v = m.entity
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.modifier
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.active
+          if (v != null) w.uint32(24).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * GiveEntityModifierRequest gives a live entity a modifier.
+ *
+ * @generated from message modlock.wasm.abilities.GiveEntityModifierRequest
+ */
+export interface GiveEntityModifierRequest {
+  /**
+   * Entity is the entity handle, such as Npc.entity or Pawn.entity.
+   */
+  entity?: number
+  /**
+   * Modifier names an ability's modifier as "<ability>/<modifier>", or a
+   * standalone modifier by its name, such as modifier_citadel_idol_glow.
+   */
+  modifier?: string
+  /**
+   * Seconds is how long the modifier lasts.
+   */
+  seconds?: number
+}
+
+export const GiveEntityModifierRequest: MessageType<GiveEntityModifierRequest> =
+  /* @__PURE__ */ createMessageType<GiveEntityModifierRequest>(
+    'modlock.wasm.abilities.GiveEntityModifierRequest',
+    () => [
+      [1, 'entity', 13],
+      [2, 'modifier', 9],
+      [3, 'seconds', 2],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: GiveEntityModifierRequest,
+      ): GiveEntityModifierRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.entity = r.uint32()
+              break
+            case 2:
+              m.modifier = r.string()
+              break
+            case 3:
+              m.seconds = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: GiveEntityModifierRequest, w: Writer): void => {
+        {
+          const v = m.entity
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.modifier
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.seconds
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+      },
+    },
+  )
