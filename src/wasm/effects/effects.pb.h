@@ -60,6 +60,10 @@ namespace wasm {
 namespace effects {
 enum ScreenEffect : int;
 extern const uint32_t ScreenEffect_internal_data_[];
+class AdjustSoundRequest;
+struct AdjustSoundRequestDefaultTypeInternal;
+MODLOCK_API extern AdjustSoundRequestDefaultTypeInternal _AdjustSoundRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustSoundRequest_class_data_;
 class AnnounceRequest;
 struct AnnounceRequestDefaultTypeInternal;
 MODLOCK_API extern AnnounceRequestDefaultTypeInternal _AnnounceRequest_default_instance_;
@@ -88,10 +92,30 @@ class ScreenTiming;
 struct ScreenTimingDefaultTypeInternal;
 MODLOCK_API extern ScreenTimingDefaultTypeInternal _ScreenTiming_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ScreenTiming_class_data_;
+class SilencePlayerVoiceRequest;
+struct SilencePlayerVoiceRequestDefaultTypeInternal;
+MODLOCK_API extern SilencePlayerVoiceRequestDefaultTypeInternal _SilencePlayerVoiceRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SilencePlayerVoiceRequest_class_data_;
+class SilenceVoiceRequest;
+struct SilenceVoiceRequestDefaultTypeInternal;
+MODLOCK_API extern SilenceVoiceRequestDefaultTypeInternal _SilenceVoiceRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SilenceVoiceRequest_class_data_;
+class SoundOptions;
+struct SoundOptionsDefaultTypeInternal;
+MODLOCK_API extern SoundOptionsDefaultTypeInternal _SoundOptions_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundOptions_class_data_;
 class SoundRequest;
 struct SoundRequestDefaultTypeInternal;
 MODLOCK_API extern SoundRequestDefaultTypeInternal _SoundRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundRequest_class_data_;
+class SoundResponse;
+struct SoundResponseDefaultTypeInternal;
+MODLOCK_API extern SoundResponseDefaultTypeInternal _SoundResponse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundResponse_class_data_;
+class StopSoundRequest;
+struct StopSoundRequestDefaultTypeInternal;
+MODLOCK_API extern StopSoundRequestDefaultTypeInternal _StopSoundRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StopSoundRequest_class_data_;
 }  // namespace effects
 }  // namespace wasm
 }  // namespace modlock
@@ -151,30 +175,30 @@ inline bool ScreenEffect_Parse(
 
 // -------------------------------------------------------------------
 
-class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SoundRequest) */ {
+class MODLOCK_API StopSoundRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.StopSoundRequest) */ {
  public:
-  inline SoundRequest() : SoundRequest(nullptr) {}
-  ~SoundRequest() PROTOBUF_FINAL;
+  inline StopSoundRequest() : StopSoundRequest(nullptr) {}
+  ~StopSoundRequest() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(SoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(StopSoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(SoundRequest));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(StopSoundRequest));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR SoundRequest(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR StopSoundRequest(::google::protobuf::internal::ConstantInitialized);
 
-  inline SoundRequest(const SoundRequest& from) : SoundRequest(nullptr, from) {}
-  inline SoundRequest(SoundRequest&& from) noexcept
-      : SoundRequest(nullptr, ::std::move(from)) {}
-  inline SoundRequest& operator=(const SoundRequest& from) {
+  inline StopSoundRequest(const StopSoundRequest& from) : StopSoundRequest(nullptr, from) {}
+  inline StopSoundRequest(StopSoundRequest&& from) noexcept
+      : StopSoundRequest(nullptr, ::std::move(from)) {}
+  inline StopSoundRequest& operator=(const StopSoundRequest& from) {
     CopyFrom(from);
     return *this;
   }
-  inline SoundRequest& operator=(SoundRequest&& from) noexcept {
+  inline StopSoundRequest& operator=(StopSoundRequest&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -202,13 +226,13 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const SoundRequest& default_instance() {
-    return *reinterpret_cast<const SoundRequest*>(
-        &_SoundRequest_default_instance_);
+  static const StopSoundRequest& default_instance() {
+    return *reinterpret_cast<const StopSoundRequest*>(
+        &_StopSoundRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
-  friend void swap(SoundRequest& a, SoundRequest& b) { a.Swap(&b); }
-  inline void Swap(SoundRequest* PROTOBUF_NONNULL other) {
+  static constexpr int kIndexInFileMessages = 8;
+  friend void swap(StopSoundRequest& a, StopSoundRequest& b) { a.Swap(&b); }
+  inline void Swap(StopSoundRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -216,7 +240,7 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(SoundRequest* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(StopSoundRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -224,13 +248,13 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  SoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<SoundRequest>(arena);
+  StopSoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<StopSoundRequest>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const SoundRequest& from);
+  void CopyFrom(const StopSoundRequest& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const SoundRequest& from) { SoundRequest::MergeImpl(*this, from); }
+  void MergeFrom(const StopSoundRequest& from) { StopSoundRequest::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -266,17 +290,17 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(SoundRequest* PROTOBUF_NONNULL other);
+  void InternalSwap(StopSoundRequest* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SoundRequest"; }
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.StopSoundRequest"; }
 
-  explicit SoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  SoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SoundRequest& from);
-  SoundRequest(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SoundRequest&& from) noexcept
-      : SoundRequest(arena) {
+  explicit StopSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  StopSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const StopSoundRequest& from);
+  StopSoundRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, StopSoundRequest&& from) noexcept
+      : StopSoundRequest(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -293,40 +317,24 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kSoundFieldNumber = 2,
-    kPlayerFieldNumber = 1,
+    kIdFieldNumber = 1,
   };
-  // string sound = 2;
-  void clear_sound() ;
-  const ::std::string& sound() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_sound(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_sound();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sound();
-  void set_allocated_sound(::std::string* PROTOBUF_NULLABLE value);
+  // uint32 id = 1;
+  void clear_id() ;
+  ::uint32_t id() const;
+  void set_id(::uint32_t value);
 
   private:
-  const ::std::string& _internal_sound() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_sound(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_sound();
+  ::uint32_t _internal_id() const;
+  void _internal_set_id(::uint32_t value);
 
   public:
-  // int32 player = 1;
-  void clear_player() ;
-  ::int32_t player() const;
-  void set_player(::int32_t value);
-
-  private:
-  ::int32_t _internal_player() const;
-  void _internal_set_player(::int32_t value);
-
-  public:
-  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SoundRequest)
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.StopSoundRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 47,
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
                                    2>
       _table_;
 
@@ -344,10 +352,840 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const SoundRequest& from_msg);
+        const StopSoundRequest& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr sound_;
+    ::uint32_t id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StopSoundRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API SoundResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SoundResponse) */ {
+ public:
+  inline SoundResponse() : SoundResponse(nullptr) {}
+  ~SoundResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SoundResponse* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SoundResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SoundResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline SoundResponse(const SoundResponse& from) : SoundResponse(nullptr, from) {}
+  inline SoundResponse(SoundResponse&& from) noexcept
+      : SoundResponse(nullptr, ::std::move(from)) {}
+  inline SoundResponse& operator=(const SoundResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SoundResponse& operator=(SoundResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SoundResponse& default_instance() {
+    return *reinterpret_cast<const SoundResponse*>(
+        &_SoundResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(SoundResponse& a, SoundResponse& b) { a.Swap(&b); }
+  inline void Swap(SoundResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SoundResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SoundResponse* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SoundResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SoundResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SoundResponse& from) { SoundResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SoundResponse* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SoundResponse"; }
+
+  explicit SoundResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SoundResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SoundResponse& from);
+  SoundResponse(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SoundResponse&& from) noexcept
+      : SoundResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kIdFieldNumber = 1,
+  };
+  // uint32 id = 1;
+  void clear_id() ;
+  ::uint32_t id() const;
+  void set_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_id() const;
+  void _internal_set_id(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SoundResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SoundResponse& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundResponse_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API SoundOptions final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SoundOptions) */ {
+ public:
+  inline SoundOptions() : SoundOptions(nullptr) {}
+  ~SoundOptions() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SoundOptions* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SoundOptions));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SoundOptions(::google::protobuf::internal::ConstantInitialized);
+
+  inline SoundOptions(const SoundOptions& from) : SoundOptions(nullptr, from) {}
+  inline SoundOptions(SoundOptions&& from) noexcept
+      : SoundOptions(nullptr, ::std::move(from)) {}
+  inline SoundOptions& operator=(const SoundOptions& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SoundOptions& operator=(SoundOptions&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SoundOptions& default_instance() {
+    return *reinterpret_cast<const SoundOptions*>(
+        &_SoundOptions_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 3;
+  friend void swap(SoundOptions& a, SoundOptions& b) { a.Swap(&b); }
+  inline void Swap(SoundOptions* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SoundOptions* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SoundOptions* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SoundOptions>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SoundOptions& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SoundOptions& from) { SoundOptions::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SoundOptions* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SoundOptions"; }
+
+  explicit SoundOptions(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SoundOptions(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SoundOptions& from);
+  SoundOptions(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SoundOptions&& from) noexcept
+      : SoundOptions(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kListenersFieldNumber = 3,
+    kVolumeFieldNumber = 1,
+    kPitchFieldNumber = 2,
+  };
+  // repeated int32 listeners = 3;
+  int listeners_size() const;
+  private:
+  int _internal_listeners_size() const;
+
+  public:
+  void clear_listeners() ;
+  ::int32_t listeners(int index) const;
+  void set_listeners(int index, ::int32_t value);
+  void add_listeners(::int32_t value);
+  const ::google::protobuf::RepeatedField<::int32_t>& listeners() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL mutable_listeners();
+
+  private:
+  const ::google::protobuf::RepeatedField<::int32_t>& _internal_listeners() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_listeners();
+
+  public:
+  // optional float volume = 1;
+  bool has_volume() const;
+  void clear_volume() ;
+  float volume() const;
+  void set_volume(float value);
+
+  private:
+  float _internal_volume() const;
+  void _internal_set_volume(float value);
+
+  public:
+  // optional float pitch = 2;
+  bool has_pitch() const;
+  void clear_pitch() ;
+  float pitch() const;
+  void set_pitch(float value);
+
+  private:
+  float _internal_pitch() const;
+  void _internal_set_pitch(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SoundOptions)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SoundOptions& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::int32_t> listeners_;
+    ::google::protobuf::internal::CachedSize _listeners_cached_byte_size_;
+    float volume_;
+    float pitch_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundOptions_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API SilenceVoiceRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SilenceVoiceRequest) */ {
+ public:
+  inline SilenceVoiceRequest() : SilenceVoiceRequest(nullptr) {}
+  ~SilenceVoiceRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SilenceVoiceRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SilenceVoiceRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SilenceVoiceRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline SilenceVoiceRequest(const SilenceVoiceRequest& from) : SilenceVoiceRequest(nullptr, from) {}
+  inline SilenceVoiceRequest(SilenceVoiceRequest&& from) noexcept
+      : SilenceVoiceRequest(nullptr, ::std::move(from)) {}
+  inline SilenceVoiceRequest& operator=(const SilenceVoiceRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SilenceVoiceRequest& operator=(SilenceVoiceRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SilenceVoiceRequest& default_instance() {
+    return *reinterpret_cast<const SilenceVoiceRequest*>(
+        &_SilenceVoiceRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 12;
+  friend void swap(SilenceVoiceRequest& a, SilenceVoiceRequest& b) { a.Swap(&b); }
+  inline void Swap(SilenceVoiceRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SilenceVoiceRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SilenceVoiceRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SilenceVoiceRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SilenceVoiceRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SilenceVoiceRequest& from) { SilenceVoiceRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SilenceVoiceRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SilenceVoiceRequest"; }
+
+  explicit SilenceVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SilenceVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SilenceVoiceRequest& from);
+  SilenceVoiceRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SilenceVoiceRequest&& from) noexcept
+      : SilenceVoiceRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kConceptsFieldNumber = 1,
+  };
+  // repeated string concepts = 1;
+  int concepts_size() const;
+  private:
+  int _internal_concepts_size() const;
+
+  public:
+  void clear_concepts() ;
+  const ::std::string& concepts(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_concepts(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_concepts(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_concepts();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_concepts(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& concepts() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_concepts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_concepts() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_concepts();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SilenceVoiceRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 57,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SilenceVoiceRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField<::std::string> concepts_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SilenceVoiceRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API SilencePlayerVoiceRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SilencePlayerVoiceRequest) */ {
+ public:
+  inline SilencePlayerVoiceRequest() : SilencePlayerVoiceRequest(nullptr) {}
+  ~SilencePlayerVoiceRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SilencePlayerVoiceRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SilencePlayerVoiceRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SilencePlayerVoiceRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline SilencePlayerVoiceRequest(const SilencePlayerVoiceRequest& from) : SilencePlayerVoiceRequest(nullptr, from) {}
+  inline SilencePlayerVoiceRequest(SilencePlayerVoiceRequest&& from) noexcept
+      : SilencePlayerVoiceRequest(nullptr, ::std::move(from)) {}
+  inline SilencePlayerVoiceRequest& operator=(const SilencePlayerVoiceRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SilencePlayerVoiceRequest& operator=(SilencePlayerVoiceRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SilencePlayerVoiceRequest& default_instance() {
+    return *reinterpret_cast<const SilencePlayerVoiceRequest*>(
+        &_SilencePlayerVoiceRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 13;
+  friend void swap(SilencePlayerVoiceRequest& a, SilencePlayerVoiceRequest& b) { a.Swap(&b); }
+  inline void Swap(SilencePlayerVoiceRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SilencePlayerVoiceRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SilencePlayerVoiceRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SilencePlayerVoiceRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SilencePlayerVoiceRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SilencePlayerVoiceRequest& from) { SilencePlayerVoiceRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SilencePlayerVoiceRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SilencePlayerVoiceRequest"; }
+
+  explicit SilencePlayerVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SilencePlayerVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SilencePlayerVoiceRequest& from);
+  SilencePlayerVoiceRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SilencePlayerVoiceRequest&& from) noexcept
+      : SilencePlayerVoiceRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kConceptsFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+  };
+  // repeated string concepts = 2;
+  int concepts_size() const;
+  private:
+  int _internal_concepts_size() const;
+
+  public:
+  void clear_concepts() ;
+  const ::std::string& concepts(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_concepts(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_concepts(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_concepts();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_concepts(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& concepts() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_concepts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_concepts() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_concepts();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SilencePlayerVoiceRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 63,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SilencePlayerVoiceRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField<::std::string> concepts_;
     ::int32_t player_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -355,7 +1193,7 @@ class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
   friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
 };
 
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundRequest_class_data_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SilencePlayerVoiceRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API ScreenTiming final : public ::google::protobuf::Message
@@ -413,7 +1251,7 @@ class MODLOCK_API ScreenTiming final : public ::google::protobuf::Message
     return *reinterpret_cast<const ScreenTiming*>(
         &_ScreenTiming_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ScreenTiming& a, ScreenTiming& b) { a.Swap(&b); }
   inline void Swap(ScreenTiming* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -588,213 +1426,6 @@ class MODLOCK_API ScreenTiming final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ScreenTiming_class_data_;
 // -------------------------------------------------------------------
 
-class MODLOCK_API EmitSoundRequest final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.EmitSoundRequest) */ {
- public:
-  inline EmitSoundRequest() : EmitSoundRequest(nullptr) {}
-  ~EmitSoundRequest() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(EmitSoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(EmitSoundRequest));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR EmitSoundRequest(::google::protobuf::internal::ConstantInitialized);
-
-  inline EmitSoundRequest(const EmitSoundRequest& from) : EmitSoundRequest(nullptr, from) {}
-  inline EmitSoundRequest(EmitSoundRequest&& from) noexcept
-      : EmitSoundRequest(nullptr, ::std::move(from)) {}
-  inline EmitSoundRequest& operator=(const EmitSoundRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline EmitSoundRequest& operator=(EmitSoundRequest&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const EmitSoundRequest& default_instance() {
-    return *reinterpret_cast<const EmitSoundRequest*>(
-        &_EmitSoundRequest_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 4;
-  friend void swap(EmitSoundRequest& a, EmitSoundRequest& b) { a.Swap(&b); }
-  inline void Swap(EmitSoundRequest* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(EmitSoundRequest* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  EmitSoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<EmitSoundRequest>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const EmitSoundRequest& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const EmitSoundRequest& from) { EmitSoundRequest::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                        const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(EmitSoundRequest* PROTOBUF_NONNULL other);
- private:
-  template <typename T>
-  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.EmitSoundRequest"; }
-
-  explicit EmitSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  EmitSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EmitSoundRequest& from);
-  EmitSoundRequest(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EmitSoundRequest&& from) noexcept
-      : EmitSoundRequest(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-  static void* PROTOBUF_NONNULL PlacementNew_(
-      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static constexpr auto InternalNewImpl_();
-
- public:
-  static constexpr auto InternalGenerateClassData_();
-
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kSoundFieldNumber = 2,
-    kEntityFieldNumber = 1,
-  };
-  // string sound = 2;
-  void clear_sound() ;
-  const ::std::string& sound() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_sound(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_sound();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sound();
-  void set_allocated_sound(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_sound() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_sound(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_sound();
-
-  public:
-  // uint32 entity = 1;
-  void clear_entity() ;
-  ::uint32_t entity() const;
-  void set_entity(::uint32_t value);
-
-  private:
-  ::uint32_t _internal_entity() const;
-  void _internal_set_entity(::uint32_t value);
-
-  public:
-  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.EmitSoundRequest)
- private:
-  class _Internal;
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 51,
-                                   2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const EmitSoundRequest& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr sound_;
-    ::uint32_t entity_;
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
-};
-
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EmitSoundRequest_class_data_;
-// -------------------------------------------------------------------
-
 class MODLOCK_API ClearScreenEffectRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.effects.ClearScreenEffectRequest) */ {
  public:
@@ -850,7 +1481,7 @@ class MODLOCK_API ClearScreenEffectRequest final : public ::google::protobuf::Me
     return *reinterpret_cast<const ClearScreenEffectRequest*>(
         &_ClearScreenEffectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ClearScreenEffectRequest& a, ClearScreenEffectRequest& b) { a.Swap(&b); }
   inline void Swap(ClearScreenEffectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1635,6 +2266,446 @@ class MODLOCK_API AnnounceRequest final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AnnounceRequest_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API AdjustSoundRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.AdjustSoundRequest) */ {
+ public:
+  inline AdjustSoundRequest() : AdjustSoundRequest(nullptr) {}
+  ~AdjustSoundRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(AdjustSoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(AdjustSoundRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR AdjustSoundRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline AdjustSoundRequest(const AdjustSoundRequest& from) : AdjustSoundRequest(nullptr, from) {}
+  inline AdjustSoundRequest(AdjustSoundRequest&& from) noexcept
+      : AdjustSoundRequest(nullptr, ::std::move(from)) {}
+  inline AdjustSoundRequest& operator=(const AdjustSoundRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AdjustSoundRequest& operator=(AdjustSoundRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const AdjustSoundRequest& default_instance() {
+    return *reinterpret_cast<const AdjustSoundRequest*>(
+        &_AdjustSoundRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 7;
+  friend void swap(AdjustSoundRequest& a, AdjustSoundRequest& b) { a.Swap(&b); }
+  inline void Swap(AdjustSoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(AdjustSoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  AdjustSoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<AdjustSoundRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const AdjustSoundRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const AdjustSoundRequest& from) { AdjustSoundRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(AdjustSoundRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.AdjustSoundRequest"; }
+
+  explicit AdjustSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  AdjustSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const AdjustSoundRequest& from);
+  AdjustSoundRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, AdjustSoundRequest&& from) noexcept
+      : AdjustSoundRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kIdFieldNumber = 1,
+    kVolumeFieldNumber = 2,
+    kPitchFieldNumber = 3,
+  };
+  // uint32 id = 1;
+  void clear_id() ;
+  ::uint32_t id() const;
+  void set_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_id() const;
+  void _internal_set_id(::uint32_t value);
+
+  public:
+  // optional float volume = 2;
+  bool has_volume() const;
+  void clear_volume() ;
+  float volume() const;
+  void set_volume(float value);
+
+  private:
+  float _internal_volume() const;
+  void _internal_set_volume(float value);
+
+  public:
+  // optional float pitch = 3;
+  bool has_pitch() const;
+  void clear_pitch() ;
+  float pitch() const;
+  void set_pitch(float value);
+
+  private:
+  float _internal_pitch() const;
+  void _internal_set_pitch(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.AdjustSoundRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const AdjustSoundRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t id_;
+    float volume_;
+    float pitch_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustSoundRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API SoundRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.SoundRequest) */ {
+ public:
+  inline SoundRequest() : SoundRequest(nullptr) {}
+  ~SoundRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SoundRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SoundRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline SoundRequest(const SoundRequest& from) : SoundRequest(nullptr, from) {}
+  inline SoundRequest(SoundRequest&& from) noexcept
+      : SoundRequest(nullptr, ::std::move(from)) {}
+  inline SoundRequest& operator=(const SoundRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SoundRequest& operator=(SoundRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SoundRequest& default_instance() {
+    return *reinterpret_cast<const SoundRequest*>(
+        &_SoundRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 4;
+  friend void swap(SoundRequest& a, SoundRequest& b) { a.Swap(&b); }
+  inline void Swap(SoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SoundRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SoundRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SoundRequest& from) { SoundRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SoundRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.SoundRequest"; }
+
+  explicit SoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SoundRequest& from);
+  SoundRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SoundRequest&& from) noexcept
+      : SoundRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kSoundFieldNumber = 2,
+    kOptionsFieldNumber = 3,
+    kPlayerFieldNumber = 1,
+  };
+  // string sound = 2;
+  void clear_sound() ;
+  const ::std::string& sound() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_sound(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_sound();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sound();
+  void set_allocated_sound(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_sound() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_sound(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_sound();
+
+  public:
+  // optional .modlock.wasm.effects.SoundOptions options = 3;
+  bool has_options() const;
+  void clear_options() ;
+  const ::modlock::wasm::effects::SoundOptions& options() const;
+  [[nodiscard]] ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE release_options();
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL mutable_options();
+  void set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE unsafe_arena_release_options();
+
+  private:
+  const ::modlock::wasm::effects::SoundOptions& _internal_options() const;
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL _internal_mutable_options();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.SoundRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   1, 47,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SoundRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr sound_;
+    ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE options_;
+    ::int32_t player_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SoundRequest_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API ScreenEffectRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.effects.ScreenEffectRequest) */ {
  public:
@@ -1690,7 +2761,7 @@ class MODLOCK_API ScreenEffectRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ScreenEffectRequest*>(
         &_ScreenEffectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(ScreenEffectRequest& a, ScreenEffectRequest& b) { a.Swap(&b); }
   inline void Swap(ScreenEffectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1852,6 +2923,230 @@ class MODLOCK_API ScreenEffectRequest final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ScreenEffectRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API EmitSoundRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.EmitSoundRequest) */ {
+ public:
+  inline EmitSoundRequest() : EmitSoundRequest(nullptr) {}
+  ~EmitSoundRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(EmitSoundRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(EmitSoundRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR EmitSoundRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline EmitSoundRequest(const EmitSoundRequest& from) : EmitSoundRequest(nullptr, from) {}
+  inline EmitSoundRequest(EmitSoundRequest&& from) noexcept
+      : EmitSoundRequest(nullptr, ::std::move(from)) {}
+  inline EmitSoundRequest& operator=(const EmitSoundRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline EmitSoundRequest& operator=(EmitSoundRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const EmitSoundRequest& default_instance() {
+    return *reinterpret_cast<const EmitSoundRequest*>(
+        &_EmitSoundRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 5;
+  friend void swap(EmitSoundRequest& a, EmitSoundRequest& b) { a.Swap(&b); }
+  inline void Swap(EmitSoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(EmitSoundRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  EmitSoundRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<EmitSoundRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const EmitSoundRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const EmitSoundRequest& from) { EmitSoundRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(EmitSoundRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.EmitSoundRequest"; }
+
+  explicit EmitSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  EmitSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EmitSoundRequest& from);
+  EmitSoundRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EmitSoundRequest&& from) noexcept
+      : EmitSoundRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kSoundFieldNumber = 2,
+    kOptionsFieldNumber = 3,
+    kEntityFieldNumber = 1,
+  };
+  // string sound = 2;
+  void clear_sound() ;
+  const ::std::string& sound() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_sound(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_sound();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sound();
+  void set_allocated_sound(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_sound() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_sound(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_sound();
+
+  public:
+  // optional .modlock.wasm.effects.SoundOptions options = 3;
+  bool has_options() const;
+  void clear_options() ;
+  const ::modlock::wasm::effects::SoundOptions& options() const;
+  [[nodiscard]] ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE release_options();
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL mutable_options();
+  void set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE unsafe_arena_release_options();
+
+  private:
+  const ::modlock::wasm::effects::SoundOptions& _internal_options() const;
+  ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL _internal_mutable_options();
+
+  public:
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.EmitSoundRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   1, 51,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const EmitSoundRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr sound_;
+    ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE options_;
+    ::uint32_t entity_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EmitSoundRequest_class_data_;
 
 // ===================================================================
 
@@ -2214,6 +3509,118 @@ inline void AnnounceRequest::set_allocated_text(::std::string* PROTOBUF_NULLABLE
 
 // -------------------------------------------------------------------
 
+// SoundOptions
+
+// optional float volume = 1;
+inline bool SoundOptions::has_volume() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  return value;
+}
+inline void SoundOptions::clear_volume() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.volume_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline float SoundOptions::volume() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundOptions.volume)
+  return _internal_volume();
+}
+inline void SoundOptions::set_volume(float value) {
+  _internal_set_volume(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SoundOptions.volume)
+}
+inline float SoundOptions::_internal_volume() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.volume_;
+}
+inline void SoundOptions::_internal_set_volume(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.volume_ = value;
+}
+
+// optional float pitch = 2;
+inline bool SoundOptions::has_pitch() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void SoundOptions::clear_pitch() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pitch_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline float SoundOptions::pitch() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundOptions.pitch)
+  return _internal_pitch();
+}
+inline void SoundOptions::set_pitch(float value) {
+  _internal_set_pitch(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SoundOptions.pitch)
+}
+inline float SoundOptions::_internal_pitch() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.pitch_;
+}
+inline void SoundOptions::_internal_set_pitch(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pitch_ = value;
+}
+
+// repeated int32 listeners = 3;
+inline int SoundOptions::_internal_listeners_size() const {
+  return _internal_listeners().size();
+}
+inline int SoundOptions::listeners_size() const {
+  return _internal_listeners_size();
+}
+inline void SoundOptions::clear_listeners() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.listeners_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t SoundOptions::listeners(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundOptions.listeners)
+  return _internal_listeners().Get(index);
+}
+inline void SoundOptions::set_listeners(int index, ::int32_t value) {
+  _internal_mutable_listeners()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SoundOptions.listeners)
+}
+inline void SoundOptions::add_listeners(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_listeners()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.effects.SoundOptions.listeners)
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>& SoundOptions::listeners() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.effects.SoundOptions.listeners)
+  return _internal_listeners();
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL SoundOptions::mutable_listeners()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.effects.SoundOptions.listeners)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_listeners();
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>&
+SoundOptions::_internal_listeners() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.listeners_;
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
+SoundOptions::_internal_mutable_listeners() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.listeners_;
+}
+
+// -------------------------------------------------------------------
+
 // SoundRequest
 
 // int32 player = 1;
@@ -2221,7 +3628,7 @@ inline void SoundRequest::clear_player() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::int32_t SoundRequest::player() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundRequest.player)
@@ -2229,7 +3636,7 @@ inline ::int32_t SoundRequest::player() const {
 }
 inline void SoundRequest::set_player(::int32_t value) {
   _internal_set_player(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.effects.SoundRequest.player)
 }
 inline ::int32_t SoundRequest::_internal_player() const {
@@ -2306,6 +3713,105 @@ inline void SoundRequest::set_allocated_sound(::std::string* PROTOBUF_NULLABLE v
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.effects.SoundRequest.sound)
 }
 
+// optional .modlock.wasm.effects.SoundOptions options = 3;
+inline bool SoundRequest::has_options() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  PROTOBUF_ASSUME(!value || _impl_.options_ != nullptr);
+  return value;
+}
+inline void SoundRequest::clear_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.options_ != nullptr) _impl_.options_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::modlock::wasm::effects::SoundOptions& SoundRequest::_internal_options() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::effects::SoundOptions* p = _impl_.options_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::effects::SoundOptions&>(::modlock::wasm::effects::_SoundOptions_default_instance_);
+}
+inline const ::modlock::wasm::effects::SoundOptions& SoundRequest::options() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundRequest.options)
+  return _internal_options();
+}
+inline void SoundRequest::unsafe_arena_set_allocated_options(
+    ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.options_);
+  }
+  _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.effects.SoundRequest.options)
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE SoundRequest::release_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* released = _impl_.options_;
+  _impl_.options_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE SoundRequest::unsafe_arena_release_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.effects.SoundRequest.options)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* temp = _impl_.options_;
+  _impl_.options_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL SoundRequest::_internal_mutable_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.options_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::effects::SoundOptions>(GetArena());
+    _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(p);
+  }
+  return _impl_.options_;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL SoundRequest::mutable_options()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* _msg = _internal_mutable_options();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.SoundRequest.options)
+  return _msg;
+}
+inline void SoundRequest::set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.options_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+
+  _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.effects.SoundRequest.options)
+}
+
 // -------------------------------------------------------------------
 
 // EmitSoundRequest
@@ -2315,7 +3821,7 @@ inline void EmitSoundRequest::clear_entity() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entity_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::uint32_t EmitSoundRequest::entity() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.effects.EmitSoundRequest.entity)
@@ -2323,7 +3829,7 @@ inline ::uint32_t EmitSoundRequest::entity() const {
 }
 inline void EmitSoundRequest::set_entity(::uint32_t value) {
   _internal_set_entity(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.effects.EmitSoundRequest.entity)
 }
 inline ::uint32_t EmitSoundRequest::_internal_entity() const {
@@ -2398,6 +3904,250 @@ inline void EmitSoundRequest::set_allocated_sound(::std::string* PROTOBUF_NULLAB
     _impl_.sound_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.effects.EmitSoundRequest.sound)
+}
+
+// optional .modlock.wasm.effects.SoundOptions options = 3;
+inline bool EmitSoundRequest::has_options() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  PROTOBUF_ASSUME(!value || _impl_.options_ != nullptr);
+  return value;
+}
+inline void EmitSoundRequest::clear_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.options_ != nullptr) _impl_.options_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::modlock::wasm::effects::SoundOptions& EmitSoundRequest::_internal_options() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::effects::SoundOptions* p = _impl_.options_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::effects::SoundOptions&>(::modlock::wasm::effects::_SoundOptions_default_instance_);
+}
+inline const ::modlock::wasm::effects::SoundOptions& EmitSoundRequest::options() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.EmitSoundRequest.options)
+  return _internal_options();
+}
+inline void EmitSoundRequest::unsafe_arena_set_allocated_options(
+    ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.options_);
+  }
+  _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.effects.EmitSoundRequest.options)
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE EmitSoundRequest::release_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* released = _impl_.options_;
+  _impl_.options_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE EmitSoundRequest::unsafe_arena_release_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.effects.EmitSoundRequest.options)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* temp = _impl_.options_;
+  _impl_.options_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL EmitSoundRequest::_internal_mutable_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.options_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::effects::SoundOptions>(GetArena());
+    _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(p);
+  }
+  return _impl_.options_;
+}
+inline ::modlock::wasm::effects::SoundOptions* PROTOBUF_NONNULL EmitSoundRequest::mutable_options()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::effects::SoundOptions* _msg = _internal_mutable_options();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.EmitSoundRequest.options)
+  return _msg;
+}
+inline void EmitSoundRequest::set_allocated_options(::modlock::wasm::effects::SoundOptions* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.options_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+
+  _impl_.options_ = reinterpret_cast<::modlock::wasm::effects::SoundOptions*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.effects.EmitSoundRequest.options)
+}
+
+// -------------------------------------------------------------------
+
+// SoundResponse
+
+// uint32 id = 1;
+inline void SoundResponse::clear_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t SoundResponse::id() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SoundResponse.id)
+  return _internal_id();
+}
+inline void SoundResponse::set_id(::uint32_t value) {
+  _internal_set_id(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SoundResponse.id)
+}
+inline ::uint32_t SoundResponse::_internal_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.id_;
+}
+inline void SoundResponse::_internal_set_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// AdjustSoundRequest
+
+// uint32 id = 1;
+inline void AdjustSoundRequest::clear_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t AdjustSoundRequest::id() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.AdjustSoundRequest.id)
+  return _internal_id();
+}
+inline void AdjustSoundRequest::set_id(::uint32_t value) {
+  _internal_set_id(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.AdjustSoundRequest.id)
+}
+inline ::uint32_t AdjustSoundRequest::_internal_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.id_;
+}
+inline void AdjustSoundRequest::_internal_set_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = value;
+}
+
+// optional float volume = 2;
+inline bool AdjustSoundRequest::has_volume() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  return value;
+}
+inline void AdjustSoundRequest::clear_volume() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.volume_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline float AdjustSoundRequest::volume() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.AdjustSoundRequest.volume)
+  return _internal_volume();
+}
+inline void AdjustSoundRequest::set_volume(float value) {
+  _internal_set_volume(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.AdjustSoundRequest.volume)
+}
+inline float AdjustSoundRequest::_internal_volume() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.volume_;
+}
+inline void AdjustSoundRequest::_internal_set_volume(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.volume_ = value;
+}
+
+// optional float pitch = 3;
+inline bool AdjustSoundRequest::has_pitch() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void AdjustSoundRequest::clear_pitch() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pitch_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline float AdjustSoundRequest::pitch() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.AdjustSoundRequest.pitch)
+  return _internal_pitch();
+}
+inline void AdjustSoundRequest::set_pitch(float value) {
+  _internal_set_pitch(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.AdjustSoundRequest.pitch)
+}
+inline float AdjustSoundRequest::_internal_pitch() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.pitch_;
+}
+inline void AdjustSoundRequest::_internal_set_pitch(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pitch_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// StopSoundRequest
+
+// uint32 id = 1;
+inline void StopSoundRequest::clear_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t StopSoundRequest::id() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.StopSoundRequest.id)
+  return _internal_id();
+}
+inline void StopSoundRequest::set_id(::uint32_t value) {
+  _internal_set_id(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.StopSoundRequest.id)
+}
+inline ::uint32_t StopSoundRequest::_internal_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.id_;
+}
+inline void StopSoundRequest::_internal_set_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2725,6 +4475,183 @@ inline ::modlock::wasm::effects::ScreenEffect ClearScreenEffectRequest::_interna
 inline void ClearScreenEffectRequest::_internal_set_effect(::modlock::wasm::effects::ScreenEffect value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.effect_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// SilenceVoiceRequest
+
+// repeated string concepts = 1;
+inline int SilenceVoiceRequest::_internal_concepts_size() const {
+  return _internal_concepts().size();
+}
+inline int SilenceVoiceRequest::concepts_size() const {
+  return _internal_concepts_size();
+}
+inline void SilenceVoiceRequest::clear_concepts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.concepts_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::std::string* PROTOBUF_NONNULL SilenceVoiceRequest::add_concepts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_concepts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+  return _s;
+}
+inline const ::std::string& SilenceVoiceRequest::concepts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+  return _internal_concepts().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL SilenceVoiceRequest::mutable_concepts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+  return _internal_mutable_concepts()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void SilenceVoiceRequest::set_concepts(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_concepts()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+}
+template <typename Arg_, typename... Args_>
+inline void SilenceVoiceRequest::add_concepts(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_concepts(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& SilenceVoiceRequest::concepts()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+  return _internal_concepts();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+SilenceVoiceRequest::mutable_concepts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.effects.SilenceVoiceRequest.concepts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_concepts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+SilenceVoiceRequest::_internal_concepts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.concepts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+SilenceVoiceRequest::_internal_mutable_concepts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.concepts_;
+}
+
+// -------------------------------------------------------------------
+
+// SilencePlayerVoiceRequest
+
+// int32 player = 1;
+inline void SilencePlayerVoiceRequest::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t SilencePlayerVoiceRequest::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SilencePlayerVoiceRequest.player)
+  return _internal_player();
+}
+inline void SilencePlayerVoiceRequest::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SilencePlayerVoiceRequest.player)
+}
+inline ::int32_t SilencePlayerVoiceRequest::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void SilencePlayerVoiceRequest::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// repeated string concepts = 2;
+inline int SilencePlayerVoiceRequest::_internal_concepts_size() const {
+  return _internal_concepts().size();
+}
+inline int SilencePlayerVoiceRequest::concepts_size() const {
+  return _internal_concepts_size();
+}
+inline void SilencePlayerVoiceRequest::clear_concepts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.concepts_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::std::string* PROTOBUF_NONNULL SilencePlayerVoiceRequest::add_concepts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_concepts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+  return _s;
+}
+inline const ::std::string& SilencePlayerVoiceRequest::concepts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+  return _internal_concepts().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL SilencePlayerVoiceRequest::mutable_concepts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+  return _internal_mutable_concepts()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void SilencePlayerVoiceRequest::set_concepts(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_concepts()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+}
+template <typename Arg_, typename... Args_>
+inline void SilencePlayerVoiceRequest::add_concepts(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_concepts(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& SilencePlayerVoiceRequest::concepts()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+  return _internal_concepts();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+SilencePlayerVoiceRequest::mutable_concepts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.effects.SilencePlayerVoiceRequest.concepts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_concepts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+SilencePlayerVoiceRequest::_internal_concepts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.concepts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+SilencePlayerVoiceRequest::_internal_mutable_concepts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.concepts_;
 }
 
 #ifdef __GNUC__

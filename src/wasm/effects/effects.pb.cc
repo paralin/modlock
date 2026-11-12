@@ -30,33 +30,134 @@ namespace modlock {
 namespace wasm {
 namespace effects {
 
-inline constexpr SoundRequest::Impl_::Impl_(
+inline constexpr StopSoundRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        sound_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        player_{0} {}
+        id_{0u} {}
 
 template <typename>
-PROTOBUF_CONSTEXPR SoundRequest::SoundRequest(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR StopSoundRequest::StopSoundRequest(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(SoundRequest_class_data_.base()),
+    : ::google::protobuf::Message(StopSoundRequest_class_data_.base()),
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(),
 #endif  // PROTOBUF_CUSTOM_VTABLE
       _impl_(::_pbi::ConstantInitialized()) {
 }
-struct SoundRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR SoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~SoundRequestDefaultTypeInternal() {}
+struct StopSoundRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StopSoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StopSoundRequestDefaultTypeInternal() {}
   union {
-    SoundRequest _instance;
+    StopSoundRequest _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SoundRequestDefaultTypeInternal _SoundRequest_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StopSoundRequestDefaultTypeInternal _StopSoundRequest_default_instance_;
+
+inline constexpr SoundResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        id_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SoundResponse::SoundResponse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SoundResponse_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SoundResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SoundResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SoundResponseDefaultTypeInternal() {}
+  union {
+    SoundResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SoundResponseDefaultTypeInternal _SoundResponse_default_instance_;
+
+inline constexpr SoundOptions::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        listeners_{},
+        _listeners_cached_byte_size_{0},
+        volume_{0},
+        pitch_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SoundOptions::SoundOptions(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SoundOptions_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SoundOptionsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SoundOptionsDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SoundOptionsDefaultTypeInternal() {}
+  union {
+    SoundOptions _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SoundOptionsDefaultTypeInternal _SoundOptions_default_instance_;
+
+inline constexpr SilenceVoiceRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        concepts_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SilenceVoiceRequest::SilenceVoiceRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SilenceVoiceRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SilenceVoiceRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SilenceVoiceRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SilenceVoiceRequestDefaultTypeInternal() {}
+  union {
+    SilenceVoiceRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SilenceVoiceRequestDefaultTypeInternal _SilenceVoiceRequest_default_instance_;
+
+inline constexpr SilencePlayerVoiceRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        concepts_{},
+        player_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SilencePlayerVoiceRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SilencePlayerVoiceRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SilencePlayerVoiceRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SilencePlayerVoiceRequestDefaultTypeInternal() {}
+  union {
+    SilencePlayerVoiceRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SilencePlayerVoiceRequestDefaultTypeInternal _SilencePlayerVoiceRequest_default_instance_;
 
 inline constexpr ScreenTiming::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -85,34 +186,6 @@ struct ScreenTimingDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ScreenTimingDefaultTypeInternal _ScreenTiming_default_instance_;
-
-inline constexpr EmitSoundRequest::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        sound_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        entity_{0u} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR EmitSoundRequest::EmitSoundRequest(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(EmitSoundRequest_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct EmitSoundRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR EmitSoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~EmitSoundRequestDefaultTypeInternal() {}
-  union {
-    EmitSoundRequest _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EmitSoundRequestDefaultTypeInternal _EmitSoundRequest_default_instance_;
 
 inline constexpr ClearScreenEffectRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -227,6 +300,62 @@ struct AnnounceRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AnnounceRequestDefaultTypeInternal _AnnounceRequest_default_instance_;
 
+inline constexpr AdjustSoundRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        id_{0u},
+        volume_{0},
+        pitch_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR AdjustSoundRequest::AdjustSoundRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(AdjustSoundRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct AdjustSoundRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR AdjustSoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~AdjustSoundRequestDefaultTypeInternal() {}
+  union {
+    AdjustSoundRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AdjustSoundRequestDefaultTypeInternal _AdjustSoundRequest_default_instance_;
+
+inline constexpr SoundRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        sound_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        options_{nullptr},
+        player_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SoundRequest::SoundRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SoundRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SoundRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SoundRequestDefaultTypeInternal() {}
+  union {
+    SoundRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SoundRequestDefaultTypeInternal _SoundRequest_default_instance_;
+
 inline constexpr ScreenEffectRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -253,6 +382,35 @@ struct ScreenEffectRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ScreenEffectRequestDefaultTypeInternal _ScreenEffectRequest_default_instance_;
+
+inline constexpr EmitSoundRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        sound_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        options_{nullptr},
+        entity_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR EmitSoundRequest::EmitSoundRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(EmitSoundRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct EmitSoundRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR EmitSoundRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~EmitSoundRequestDefaultTypeInternal() {}
+  union {
+    EmitSoundRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EmitSoundRequestDefaultTypeInternal _EmitSoundRequest_default_instance_;
 }  // namespace effects
 }  // namespace wasm
 }  // namespace modlock
@@ -287,18 +445,50 @@ const ::uint32_t
         0,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_._has_bits_),
-        5, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_.player_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_.sound_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundOptions, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundOptions, _impl_.volume_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundOptions, _impl_.pitch_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundOptions, _impl_.listeners_),
         1,
+        2,
         0,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_.sound_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundRequest, _impl_.options_),
+        2,
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::EmitSoundRequest, _impl_._has_bits_),
-        5, // hasbit index offset
+        6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::EmitSoundRequest, _impl_.entity_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::EmitSoundRequest, _impl_.sound_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::EmitSoundRequest, _impl_.options_),
+        2,
+        0,
         1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundResponse, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SoundResponse, _impl_.id_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::AdjustSoundRequest, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::AdjustSoundRequest, _impl_.id_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::AdjustSoundRequest, _impl_.volume_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::AdjustSoundRequest, _impl_.pitch_),
+        0,
+        1,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::StopSoundRequest, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::StopSoundRequest, _impl_.id_),
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::ScreenEffectRequest, _impl_._has_bits_),
@@ -327,6 +517,18 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::ClearScreenEffectRequest, _impl_.effect_),
         0,
         1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilenceVoiceRequest, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilenceVoiceRequest, _impl_.concepts_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_.concepts_),
+        1,
+        0,
 };
 
 static const ::_pbi::MigrationSchema
@@ -334,21 +536,33 @@ static const ::_pbi::MigrationSchema
         {0, sizeof(::modlock::wasm::effects::ChatRequest)},
         {7, sizeof(::modlock::wasm::effects::CenterTextRequest)},
         {14, sizeof(::modlock::wasm::effects::AnnounceRequest)},
-        {23, sizeof(::modlock::wasm::effects::SoundRequest)},
-        {30, sizeof(::modlock::wasm::effects::EmitSoundRequest)},
-        {37, sizeof(::modlock::wasm::effects::ScreenEffectRequest)},
-        {46, sizeof(::modlock::wasm::effects::ScreenTiming)},
-        {57, sizeof(::modlock::wasm::effects::ClearScreenEffectRequest)},
+        {23, sizeof(::modlock::wasm::effects::SoundOptions)},
+        {32, sizeof(::modlock::wasm::effects::SoundRequest)},
+        {41, sizeof(::modlock::wasm::effects::EmitSoundRequest)},
+        {50, sizeof(::modlock::wasm::effects::SoundResponse)},
+        {55, sizeof(::modlock::wasm::effects::AdjustSoundRequest)},
+        {64, sizeof(::modlock::wasm::effects::StopSoundRequest)},
+        {69, sizeof(::modlock::wasm::effects::ScreenEffectRequest)},
+        {78, sizeof(::modlock::wasm::effects::ScreenTiming)},
+        {89, sizeof(::modlock::wasm::effects::ClearScreenEffectRequest)},
+        {96, sizeof(::modlock::wasm::effects::SilenceVoiceRequest)},
+        {101, sizeof(::modlock::wasm::effects::SilencePlayerVoiceRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::effects::_ChatRequest_default_instance_._instance,
     &::modlock::wasm::effects::_CenterTextRequest_default_instance_._instance,
     &::modlock::wasm::effects::_AnnounceRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SoundOptions_default_instance_._instance,
     &::modlock::wasm::effects::_SoundRequest_default_instance_._instance,
     &::modlock::wasm::effects::_EmitSoundRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SoundResponse_default_instance_._instance,
+    &::modlock::wasm::effects::_AdjustSoundRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_StopSoundRequest_default_instance_._instance,
     &::modlock::wasm::effects::_ScreenEffectRequest_default_instance_._instance,
     &::modlock::wasm::effects::_ScreenTiming_default_instance_._instance,
     &::modlock::wasm::effects::_ClearScreenEffectRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SilenceVoiceRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SilencePlayerVoiceRequest_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -358,36 +572,49 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\030\002 \001(\t\"1\n\021CenterTextRequest\022\016\n\006player\030\001 "
     "\001(\005\022\014\n\004text\030\002 \001(\t\">\n\017AnnounceRequest\022\016\n\006"
     "player\030\001 \001(\005\022\r\n\005title\030\002 \001(\t\022\014\n\004text\030\003 \001("
-    "\t\"-\n\014SoundRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005sou"
-    "nd\030\002 \001(\t\"1\n\020EmitSoundRequest\022\016\n\006entity\030\001"
-    " \001(\r\022\r\n\005sound\030\002 \001(\t\"\235\001\n\023ScreenEffectRequ"
-    "est\022\016\n\006player\030\001 \001(\005\0222\n\006effect\030\002 \001(\0162\".mo"
-    "dlock.wasm.effects.ScreenEffect\0227\n\006timin"
-    "g\030\003 \001(\0132\".modlock.wasm.effects.ScreenTim"
-    "ingH\000\210\001\001B\t\n\007_timing\"\216\001\n\014ScreenTiming\022\022\n\005"
-    "delay\030\001 \001(\002H\000\210\001\001\022\024\n\007fade_in\030\002 \001(\002H\001\210\001\001\022\021"
-    "\n\004hold\030\003 \001(\002H\002\210\001\001\022\025\n\010fade_out\030\004 \001(\002H\003\210\001\001"
-    "B\010\n\006_delayB\n\n\010_fade_inB\007\n\005_holdB\013\n\t_fade"
-    "_out\"^\n\030ClearScreenEffectRequest\022\016\n\006play"
-    "er\030\001 \001(\005\0222\n\006effect\030\002 \001(\0162\".modlock.wasm."
-    "effects.ScreenEffect*\227\001\n\014ScreenEffect\022\030\n"
-    "\024SCREEN_EFFECT_KILLED\020\000\022\027\n\023SCREEN_EFFECT"
-    "_BLACK\020\001\022\031\n\025SCREEN_EFFECT_BLINDED\020\002\022\032\n\026S"
-    "CREEN_EFFECT_DARKNESS\020\003\022\035\n\031SCREEN_EFFECT"
-    "_MATCH_INTRO\020\004B5Z3github.com/paralin/mod"
-    "lock/src/wasm/effects;effectsb\006proto3"
+    "\t\"_\n\014SoundOptions\022\023\n\006volume\030\001 \001(\002H\000\210\001\001\022\022"
+    "\n\005pitch\030\002 \001(\002H\001\210\001\001\022\021\n\tlisteners\030\003 \003(\005B\t\n"
+    "\007_volumeB\010\n\006_pitch\"s\n\014SoundRequest\022\016\n\006pl"
+    "ayer\030\001 \001(\005\022\r\n\005sound\030\002 \001(\t\0228\n\007options\030\003 \001"
+    "(\0132\".modlock.wasm.effects.SoundOptionsH\000"
+    "\210\001\001B\n\n\010_options\"w\n\020EmitSoundRequest\022\016\n\006e"
+    "ntity\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\0228\n\007options\030\003 "
+    "\001(\0132\".modlock.wasm.effects.SoundOptionsH"
+    "\000\210\001\001B\n\n\010_options\"\033\n\rSoundResponse\022\n\n\002id\030"
+    "\001 \001(\r\"^\n\022AdjustSoundRequest\022\n\n\002id\030\001 \001(\r\022"
+    "\023\n\006volume\030\002 \001(\002H\000\210\001\001\022\022\n\005pitch\030\003 \001(\002H\001\210\001\001"
+    "B\t\n\007_volumeB\010\n\006_pitch\"\036\n\020StopSoundReques"
+    "t\022\n\n\002id\030\001 \001(\r\"\235\001\n\023ScreenEffectRequest\022\016\n"
+    "\006player\030\001 \001(\005\0222\n\006effect\030\002 \001(\0162\".modlock."
+    "wasm.effects.ScreenEffect\0227\n\006timing\030\003 \001("
+    "\0132\".modlock.wasm.effects.ScreenTimingH\000\210"
+    "\001\001B\t\n\007_timing\"\216\001\n\014ScreenTiming\022\022\n\005delay\030"
+    "\001 \001(\002H\000\210\001\001\022\024\n\007fade_in\030\002 \001(\002H\001\210\001\001\022\021\n\004hold"
+    "\030\003 \001(\002H\002\210\001\001\022\025\n\010fade_out\030\004 \001(\002H\003\210\001\001B\010\n\006_d"
+    "elayB\n\n\010_fade_inB\007\n\005_holdB\013\n\t_fade_out\"^"
+    "\n\030ClearScreenEffectRequest\022\016\n\006player\030\001 \001"
+    "(\005\0222\n\006effect\030\002 \001(\0162\".modlock.wasm.effect"
+    "s.ScreenEffect\"\'\n\023SilenceVoiceRequest\022\020\n"
+    "\010concepts\030\001 \003(\t\"=\n\031SilencePlayerVoiceReq"
+    "uest\022\016\n\006player\030\001 \001(\005\022\020\n\010concepts\030\002 \003(\t*\227"
+    "\001\n\014ScreenEffect\022\030\n\024SCREEN_EFFECT_KILLED\020"
+    "\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022\031\n\025SCREEN_EFF"
+    "ECT_BLINDED\020\002\022\032\n\026SCREEN_EFFECT_DARKNESS\020"
+    "\003\022\035\n\031SCREEN_EFFECT_MATCH_INTRO\020\004B5Z3gith"
+    "ub.com/paralin/modlock/src/wasm/effects;"
+    "effectsb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto = {
     false,
     false,
-    957,
+    1455,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
     "github.com/paralin/modlock/src/wasm/effects/effects.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto_once,
     nullptr,
     0,
-    8,
+    14,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto::offsets,
@@ -1375,6 +1602,345 @@ void AnnounceRequest::InternalSwap(AnnounceRequest* PROTOBUF_RESTRICT PROTOBUF_N
 }
 // ===================================================================
 
+class SoundOptions::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SoundOptions>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_._has_bits_);
+};
+
+SoundOptions::SoundOptions(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SoundOptions_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SoundOptions)
+}
+PROTOBUF_NDEBUG_INLINE SoundOptions::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::effects::SoundOptions& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        listeners_{visibility, arena, from.listeners_},
+        _listeners_cached_byte_size_{0} {}
+
+SoundOptions::SoundOptions(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SoundOptions& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SoundOptions_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SoundOptions* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, volume_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, volume_),
+           offsetof(Impl_, pitch_) -
+               offsetof(Impl_, volume_) +
+               sizeof(Impl_::pitch_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SoundOptions)
+}
+PROTOBUF_NDEBUG_INLINE SoundOptions::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        listeners_{visibility, arena},
+        _listeners_cached_byte_size_{0} {}
+
+inline void SoundOptions::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, volume_),
+           0,
+           offsetof(Impl_, pitch_) -
+               offsetof(Impl_, volume_) +
+               sizeof(Impl_::pitch_));
+}
+SoundOptions::~SoundOptions() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SoundOptions)
+  SharedDtor(*this);
+}
+inline void SoundOptions::SharedDtor(MessageLite& self) {
+  SoundOptions& this_ = static_cast<SoundOptions&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SoundOptions::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SoundOptions(arena);
+}
+constexpr auto SoundOptions::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.listeners_) +
+          decltype(SoundOptions::_impl_.listeners_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(SoundOptions), alignof(SoundOptions), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SoundOptions::PlacementNew_,
+                                 sizeof(SoundOptions),
+                                 alignof(SoundOptions));
+  }
+}
+constexpr auto SoundOptions::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SoundOptions_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SoundOptions::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SoundOptions>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SoundOptions::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SoundOptions>(), &SoundOptions::ByteSizeLong,
+              &SoundOptions::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_._cached_size_),
+          false,
+      },
+      &SoundOptions::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SoundOptions_class_data_ =
+        SoundOptions::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SoundOptions::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SoundOptions_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SoundOptions_class_data_.tc_table);
+  return SoundOptions_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+SoundOptions::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SoundOptions_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SoundOptions>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // optional float volume = 1;
+    {::_pbi::TcParser::FastF32S1,
+     {13, 1, 0,
+      PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.volume_)}},
+    // optional float pitch = 2;
+    {::_pbi::TcParser::FastF32S1,
+     {21, 2, 0,
+      PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.pitch_)}},
+    // repeated int32 listeners = 3;
+    {::_pbi::TcParser::FastV32P1,
+     {26, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.listeners_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // optional float volume = 1;
+    {PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.volume_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // optional float pitch = 2;
+    {PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.pitch_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // repeated int32 listeners = 3;
+    {PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.listeners_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void SoundOptions::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SoundOptions)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.listeners_.Clear();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+    ::memset(&_impl_.volume_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.pitch_) -
+        reinterpret_cast<char*>(&_impl_.volume_)) + sizeof(_impl_.pitch_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SoundOptions::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SoundOptions& this_ = static_cast<const SoundOptions&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SoundOptions::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SoundOptions& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SoundOptions)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // optional float volume = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        1, this_._internal_volume(), target);
+  }
+
+  // optional float pitch = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        2, this_._internal_pitch(), target);
+  }
+
+  // repeated int32 listeners = 3;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    {
+      int byte_size = this_._impl_._listeners_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteInt32Packed(
+            3, this_._internal_listeners(), byte_size, target);
+      }
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SoundOptions)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SoundOptions::ByteSizeLong(const MessageLite& base) {
+  const SoundOptions& this_ = static_cast<const SoundOptions&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SoundOptions::ByteSizeLong() const {
+  const SoundOptions& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SoundOptions)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += ::absl::popcount(0x00000006U & cached_has_bits) * 5;
+   {
+    // repeated int32 listeners = 3;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          ::_pbi::WireFormatLite::Int32SizeWithPackedTagSize(
+              this_._internal_listeners(), 1,
+              this_._impl_._listeners_cached_byte_size_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SoundOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SoundOptions*>(&to_msg);
+  auto& from = static_cast<const SoundOptions&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SoundOptions)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_listeners()->MergeFrom(from._internal_listeners());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _this->_impl_.volume_ = from._impl_.volume_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.pitch_ = from._impl_.pitch_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SoundOptions::CopyFrom(const SoundOptions& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SoundOptions)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SoundOptions::InternalSwap(SoundOptions* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.listeners_.InternalSwap(&other->_impl_.listeners_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.pitch_)
+      + sizeof(SoundOptions::_impl_.pitch_)
+      - PROTOBUF_FIELD_OFFSET(SoundOptions, _impl_.volume_)>(
+          reinterpret_cast<char*>(&_impl_.volume_),
+          reinterpret_cast<char*>(&other->_impl_.volume_));
+}
+
+::google::protobuf::Metadata SoundOptions::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
 class SoundRequest::_Internal {
  public:
   using HasBits =
@@ -1413,6 +1979,10 @@ SoundRequest::SoundRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.options_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.options_)
+                : nullptr;
   _impl_.player_ = from._impl_.player_;
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SoundRequest)
@@ -1425,7 +1995,12 @@ PROTOBUF_NDEBUG_INLINE SoundRequest::Impl_::Impl_(
 
 inline void SoundRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.player_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, options_),
+           0,
+           offsetof(Impl_, player_) -
+               offsetof(Impl_, options_) +
+               sizeof(Impl_::player_));
 }
 SoundRequest::~SoundRequest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.effects.SoundRequest)
@@ -1439,6 +2014,7 @@ inline void SoundRequest::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.sound_.Destroy();
+  delete this_._impl_.options_;
   this_._impl_.~Impl_();
 }
 
@@ -1485,18 +2061,18 @@ SoundRequest::GetClassData() const {
   return SoundRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 47, 2>
+const ::_pbi::TcParseTable<2, 3, 1, 47, 2>
 SoundRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
     SoundRequest_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
@@ -1504,23 +2080,32 @@ SoundRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SoundRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SoundRequest, _impl_.player_), 2>(),
+     {8, 2, 0,
+      PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.player_)}},
     // string sound = 2;
     {::_pbi::TcParser::FastUS1,
      {18, 0, 0,
       PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.sound_)}},
-    // int32 player = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SoundRequest, _impl_.player_), 1>(),
-     {8, 1, 0,
-      PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.player_)}},
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
+    {::_pbi::TcParser::FastMtS1,
+     {26, 1, 0,
+      PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.options_)}},
   }}, {{
     65535, 65535
   }}, {{
     // int32 player = 1;
-    {PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // string sound = 2;
     {PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.sound_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
+    {PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.options_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
-  // no aux_entries
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::effects::SoundOptions>()},
+  }},
   {{
     "\41\0\5\0\0\0\0\0"
     "modlock.wasm.effects.SoundRequest"
@@ -1535,8 +2120,14 @@ PROTOBUF_NOINLINE void SoundRequest::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    _impl_.sound_.ClearNonDefaultToEmpty();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.sound_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.options_ != nullptr);
+      _impl_.options_->Clear();
+    }
   }
   _impl_.player_ = 0;
   _impl_._has_bits_.Clear();
@@ -1563,7 +2154,7 @@ PROTOBUF_NOINLINE void SoundRequest::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 player = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     if (this_._internal_player() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -1579,6 +2170,13 @@ PROTOBUF_NOINLINE void SoundRequest::Clear() {
           _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.SoundRequest.sound");
       target = stream->WriteStringMaybeAliased(2, _s, target);
     }
+  }
+
+  // optional .modlock.wasm.effects.SoundOptions options = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        3, *this_._impl_.options_, this_._impl_.options_->GetCachedSize(), target,
+        stream);
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -1606,7 +2204,7 @@ PROTOBUF_NOINLINE void SoundRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     // string sound = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_sound().empty()) {
@@ -1614,8 +2212,13 @@ PROTOBUF_NOINLINE void SoundRequest::Clear() {
                                         this_._internal_sound());
       }
     }
-    // int32 player = 1;
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.options_);
+    }
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (this_._internal_player() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_player());
@@ -1634,13 +2237,14 @@ void SoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
+  ::google::protobuf::Arena* arena = _this->GetArena();
   // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SoundRequest)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_sound().empty()) {
         _this->_internal_set_sound(from._internal_sound());
@@ -1651,6 +2255,14 @@ void SoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.options_ != nullptr);
+      if (_this->_impl_.options_ == nullptr) {
+        _this->_impl_.options_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.options_);
+      } else {
+        _this->_impl_.options_->MergeFrom(*from._impl_.options_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (from._internal_player() != 0) {
         _this->_impl_.player_ = from._impl_.player_;
       }
@@ -1676,7 +2288,12 @@ void SoundRequest::InternalSwap(SoundRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.sound_, &other->_impl_.sound_, arena);
-  swap(_impl_.player_, other->_impl_.player_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.player_)
+      + sizeof(SoundRequest::_impl_.player_)
+      - PROTOBUF_FIELD_OFFSET(SoundRequest, _impl_.options_)>(
+          reinterpret_cast<char*>(&_impl_.options_),
+          reinterpret_cast<char*>(&other->_impl_.options_));
 }
 
 ::google::protobuf::Metadata SoundRequest::GetMetadata() const {
@@ -1722,6 +2339,10 @@ EmitSoundRequest::EmitSoundRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.options_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.options_)
+                : nullptr;
   _impl_.entity_ = from._impl_.entity_;
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.EmitSoundRequest)
@@ -1734,7 +2355,12 @@ PROTOBUF_NDEBUG_INLINE EmitSoundRequest::Impl_::Impl_(
 
 inline void EmitSoundRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.entity_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, options_),
+           0,
+           offsetof(Impl_, entity_) -
+               offsetof(Impl_, options_) +
+               sizeof(Impl_::entity_));
 }
 EmitSoundRequest::~EmitSoundRequest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.effects.EmitSoundRequest)
@@ -1748,6 +2374,7 @@ inline void EmitSoundRequest::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.sound_.Destroy();
+  delete this_._impl_.options_;
   this_._impl_.~Impl_();
 }
 
@@ -1794,18 +2421,18 @@ EmitSoundRequest::GetClassData() const {
   return EmitSoundRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 51, 2>
+const ::_pbi::TcParseTable<2, 3, 1, 51, 2>
 EmitSoundRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
     EmitSoundRequest_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
@@ -1813,23 +2440,32 @@ EmitSoundRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::effects::EmitSoundRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 entity = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EmitSoundRequest, _impl_.entity_), 2>(),
+     {8, 2, 0,
+      PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.entity_)}},
     // string sound = 2;
     {::_pbi::TcParser::FastUS1,
      {18, 0, 0,
       PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.sound_)}},
-    // uint32 entity = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EmitSoundRequest, _impl_.entity_), 1>(),
-     {8, 1, 0,
-      PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.entity_)}},
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
+    {::_pbi::TcParser::FastMtS1,
+     {26, 1, 0,
+      PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.options_)}},
   }}, {{
     65535, 65535
   }}, {{
     // uint32 entity = 1;
-    {PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.entity_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.entity_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // string sound = 2;
     {PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.sound_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
+    {PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.options_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
-  // no aux_entries
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::effects::SoundOptions>()},
+  }},
   {{
     "\45\0\5\0\0\0\0\0"
     "modlock.wasm.effects.EmitSoundRequest"
@@ -1844,8 +2480,14 @@ PROTOBUF_NOINLINE void EmitSoundRequest::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    _impl_.sound_.ClearNonDefaultToEmpty();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.sound_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.options_ != nullptr);
+      _impl_.options_->Clear();
+    }
   }
   _impl_.entity_ = 0u;
   _impl_._has_bits_.Clear();
@@ -1872,7 +2514,7 @@ PROTOBUF_NOINLINE void EmitSoundRequest::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // uint32 entity = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     if (this_._internal_entity() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -1888,6 +2530,13 @@ PROTOBUF_NOINLINE void EmitSoundRequest::Clear() {
           _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.EmitSoundRequest.sound");
       target = stream->WriteStringMaybeAliased(2, _s, target);
     }
+  }
+
+  // optional .modlock.wasm.effects.SoundOptions options = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        3, *this_._impl_.options_, this_._impl_.options_->GetCachedSize(), target,
+        stream);
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -1915,7 +2564,7 @@ PROTOBUF_NOINLINE void EmitSoundRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     // string sound = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_sound().empty()) {
@@ -1923,8 +2572,13 @@ PROTOBUF_NOINLINE void EmitSoundRequest::Clear() {
                                         this_._internal_sound());
       }
     }
-    // uint32 entity = 1;
+    // optional .modlock.wasm.effects.SoundOptions options = 3;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.options_);
+    }
+    // uint32 entity = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (this_._internal_entity() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_entity());
@@ -1943,13 +2597,14 @@ void EmitSoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
+  ::google::protobuf::Arena* arena = _this->GetArena();
   // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.EmitSoundRequest)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_sound().empty()) {
         _this->_internal_set_sound(from._internal_sound());
@@ -1960,6 +2615,14 @@ void EmitSoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.options_ != nullptr);
+      if (_this->_impl_.options_ == nullptr) {
+        _this->_impl_.options_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.options_);
+      } else {
+        _this->_impl_.options_->MergeFrom(*from._impl_.options_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (from._internal_entity() != 0) {
         _this->_impl_.entity_ = from._impl_.entity_;
       }
@@ -1985,10 +2648,811 @@ void EmitSoundRequest::InternalSwap(EmitSoundRequest* PROTOBUF_RESTRICT PROTOBUF
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.sound_, &other->_impl_.sound_, arena);
-  swap(_impl_.entity_, other->_impl_.entity_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.entity_)
+      + sizeof(EmitSoundRequest::_impl_.entity_)
+      - PROTOBUF_FIELD_OFFSET(EmitSoundRequest, _impl_.options_)>(
+          reinterpret_cast<char*>(&_impl_.options_),
+          reinterpret_cast<char*>(&other->_impl_.options_));
 }
 
 ::google::protobuf::Metadata EmitSoundRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SoundResponse::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SoundResponse>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SoundResponse, _impl_._has_bits_);
+};
+
+SoundResponse::SoundResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SoundResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SoundResponse)
+}
+SoundResponse::SoundResponse(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SoundResponse& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SoundResponse_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE SoundResponse::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void SoundResponse::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.id_ = {};
+}
+SoundResponse::~SoundResponse() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SoundResponse)
+  SharedDtor(*this);
+}
+inline void SoundResponse::SharedDtor(MessageLite& self) {
+  SoundResponse& this_ = static_cast<SoundResponse&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SoundResponse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SoundResponse(arena);
+}
+constexpr auto SoundResponse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(SoundResponse),
+                                            alignof(SoundResponse));
+}
+constexpr auto SoundResponse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SoundResponse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SoundResponse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SoundResponse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SoundResponse::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SoundResponse>(), &SoundResponse::ByteSizeLong,
+              &SoundResponse::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SoundResponse, _impl_._cached_size_),
+          false,
+      },
+      &SoundResponse::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SoundResponse_class_data_ =
+        SoundResponse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SoundResponse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SoundResponse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SoundResponse_class_data_.tc_table);
+  return SoundResponse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2>
+SoundResponse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SoundResponse, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SoundResponse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SoundResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // uint32 id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SoundResponse, _impl_.id_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SoundResponse, _impl_.id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 id = 1;
+    {PROTOBUF_FIELD_OFFSET(SoundResponse, _impl_.id_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void SoundResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SoundResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.id_ = 0u;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SoundResponse::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SoundResponse& this_ = static_cast<const SoundResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SoundResponse::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SoundResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SoundResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 id = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_id(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SoundResponse)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SoundResponse::ByteSizeLong(const MessageLite& base) {
+  const SoundResponse& this_ = static_cast<const SoundResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SoundResponse::ByteSizeLong() const {
+  const SoundResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SoundResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // uint32 id = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SoundResponse::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SoundResponse*>(&to_msg);
+  auto& from = static_cast<const SoundResponse&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SoundResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (from._internal_id() != 0) {
+      _this->_impl_.id_ = from._impl_.id_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SoundResponse::CopyFrom(const SoundResponse& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SoundResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SoundResponse::InternalSwap(SoundResponse* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.id_, other->_impl_.id_);
+}
+
+::google::protobuf::Metadata SoundResponse::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class AdjustSoundRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<AdjustSoundRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_._has_bits_);
+};
+
+AdjustSoundRequest::AdjustSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, AdjustSoundRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.AdjustSoundRequest)
+}
+AdjustSoundRequest::AdjustSoundRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const AdjustSoundRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, AdjustSoundRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE AdjustSoundRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void AdjustSoundRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, id_),
+           0,
+           offsetof(Impl_, pitch_) -
+               offsetof(Impl_, id_) +
+               sizeof(Impl_::pitch_));
+}
+AdjustSoundRequest::~AdjustSoundRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.AdjustSoundRequest)
+  SharedDtor(*this);
+}
+inline void AdjustSoundRequest::SharedDtor(MessageLite& self) {
+  AdjustSoundRequest& this_ = static_cast<AdjustSoundRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL AdjustSoundRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) AdjustSoundRequest(arena);
+}
+constexpr auto AdjustSoundRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(AdjustSoundRequest),
+                                            alignof(AdjustSoundRequest));
+}
+constexpr auto AdjustSoundRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_AdjustSoundRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &AdjustSoundRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<AdjustSoundRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &AdjustSoundRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<AdjustSoundRequest>(), &AdjustSoundRequest::ByteSizeLong,
+              &AdjustSoundRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_._cached_size_),
+          false,
+      },
+      &AdjustSoundRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull AdjustSoundRequest_class_data_ =
+        AdjustSoundRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+AdjustSoundRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&AdjustSoundRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(AdjustSoundRequest_class_data_.tc_table);
+  return AdjustSoundRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+AdjustSoundRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    AdjustSoundRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::AdjustSoundRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AdjustSoundRequest, _impl_.id_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.id_)}},
+    // optional float volume = 2;
+    {::_pbi::TcParser::FastF32S1,
+     {21, 1, 0,
+      PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.volume_)}},
+    // optional float pitch = 3;
+    {::_pbi::TcParser::FastF32S1,
+     {29, 2, 0,
+      PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.pitch_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 id = 1;
+    {PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.id_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // optional float volume = 2;
+    {PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.volume_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // optional float pitch = 3;
+    {PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.pitch_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void AdjustSoundRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.AdjustSoundRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    ::memset(&_impl_.id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.pitch_) -
+        reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.pitch_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL AdjustSoundRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const AdjustSoundRequest& this_ = static_cast<const AdjustSoundRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL AdjustSoundRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const AdjustSoundRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.AdjustSoundRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 id = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_id(), target);
+    }
+  }
+
+  // optional float volume = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        2, this_._internal_volume(), target);
+  }
+
+  // optional float pitch = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        3, this_._internal_pitch(), target);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.AdjustSoundRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t AdjustSoundRequest::ByteSizeLong(const MessageLite& base) {
+  const AdjustSoundRequest& this_ = static_cast<const AdjustSoundRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t AdjustSoundRequest::ByteSizeLong() const {
+  const AdjustSoundRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.AdjustSoundRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += ::absl::popcount(0x00000006U & cached_has_bits) * 5;
+   {
+    // uint32 id = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void AdjustSoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<AdjustSoundRequest*>(&to_msg);
+  auto& from = static_cast<const AdjustSoundRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.AdjustSoundRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_id() != 0) {
+        _this->_impl_.id_ = from._impl_.id_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _this->_impl_.volume_ = from._impl_.volume_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.pitch_ = from._impl_.pitch_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void AdjustSoundRequest::CopyFrom(const AdjustSoundRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.AdjustSoundRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void AdjustSoundRequest::InternalSwap(AdjustSoundRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.pitch_)
+      + sizeof(AdjustSoundRequest::_impl_.pitch_)
+      - PROTOBUF_FIELD_OFFSET(AdjustSoundRequest, _impl_.id_)>(
+          reinterpret_cast<char*>(&_impl_.id_),
+          reinterpret_cast<char*>(&other->_impl_.id_));
+}
+
+::google::protobuf::Metadata AdjustSoundRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class StopSoundRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<StopSoundRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(StopSoundRequest, _impl_._has_bits_);
+};
+
+StopSoundRequest::StopSoundRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, StopSoundRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.StopSoundRequest)
+}
+StopSoundRequest::StopSoundRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const StopSoundRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, StopSoundRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE StopSoundRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void StopSoundRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.id_ = {};
+}
+StopSoundRequest::~StopSoundRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.StopSoundRequest)
+  SharedDtor(*this);
+}
+inline void StopSoundRequest::SharedDtor(MessageLite& self) {
+  StopSoundRequest& this_ = static_cast<StopSoundRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL StopSoundRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) StopSoundRequest(arena);
+}
+constexpr auto StopSoundRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(StopSoundRequest),
+                                            alignof(StopSoundRequest));
+}
+constexpr auto StopSoundRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_StopSoundRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &StopSoundRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<StopSoundRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &StopSoundRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<StopSoundRequest>(), &StopSoundRequest::ByteSizeLong,
+              &StopSoundRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(StopSoundRequest, _impl_._cached_size_),
+          false,
+      },
+      &StopSoundRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull StopSoundRequest_class_data_ =
+        StopSoundRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+StopSoundRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&StopSoundRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(StopSoundRequest_class_data_.tc_table);
+  return StopSoundRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2>
+StopSoundRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(StopSoundRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    StopSoundRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::StopSoundRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // uint32 id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(StopSoundRequest, _impl_.id_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(StopSoundRequest, _impl_.id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 id = 1;
+    {PROTOBUF_FIELD_OFFSET(StopSoundRequest, _impl_.id_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void StopSoundRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.StopSoundRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.id_ = 0u;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL StopSoundRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const StopSoundRequest& this_ = static_cast<const StopSoundRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL StopSoundRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const StopSoundRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.StopSoundRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 id = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_id(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.StopSoundRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t StopSoundRequest::ByteSizeLong(const MessageLite& base) {
+  const StopSoundRequest& this_ = static_cast<const StopSoundRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t StopSoundRequest::ByteSizeLong() const {
+  const StopSoundRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.StopSoundRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // uint32 id = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void StopSoundRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<StopSoundRequest*>(&to_msg);
+  auto& from = static_cast<const StopSoundRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.StopSoundRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (from._internal_id() != 0) {
+      _this->_impl_.id_ = from._impl_.id_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void StopSoundRequest::CopyFrom(const StopSoundRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.StopSoundRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void StopSoundRequest::InternalSwap(StopSoundRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.id_, other->_impl_.id_);
+}
+
+::google::protobuf::Metadata StopSoundRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
@@ -2935,6 +4399,607 @@ void ClearScreenEffectRequest::InternalSwap(ClearScreenEffectRequest* PROTOBUF_R
 }
 
 ::google::protobuf::Metadata ClearScreenEffectRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SilenceVoiceRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SilenceVoiceRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._has_bits_);
+};
+
+SilenceVoiceRequest::SilenceVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilenceVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SilenceVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilenceVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::effects::SilenceVoiceRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        concepts_{visibility, arena, from.concepts_} {}
+
+SilenceVoiceRequest::SilenceVoiceRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SilenceVoiceRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilenceVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SilenceVoiceRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SilenceVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilenceVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        concepts_{visibility, arena} {}
+
+inline void SilenceVoiceRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+SilenceVoiceRequest::~SilenceVoiceRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SilenceVoiceRequest)
+  SharedDtor(*this);
+}
+inline void SilenceVoiceRequest::SharedDtor(MessageLite& self) {
+  SilenceVoiceRequest& this_ = static_cast<SilenceVoiceRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SilenceVoiceRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SilenceVoiceRequest(arena);
+}
+constexpr auto SilenceVoiceRequest::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_) +
+          decltype(SilenceVoiceRequest::_impl_.concepts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(SilenceVoiceRequest), alignof(SilenceVoiceRequest), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SilenceVoiceRequest::PlacementNew_,
+                                 sizeof(SilenceVoiceRequest),
+                                 alignof(SilenceVoiceRequest));
+  }
+}
+constexpr auto SilenceVoiceRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SilenceVoiceRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SilenceVoiceRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SilenceVoiceRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SilenceVoiceRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SilenceVoiceRequest>(), &SilenceVoiceRequest::ByteSizeLong,
+              &SilenceVoiceRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._cached_size_),
+          false,
+      },
+      &SilenceVoiceRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SilenceVoiceRequest_class_data_ =
+        SilenceVoiceRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SilenceVoiceRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SilenceVoiceRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SilenceVoiceRequest_class_data_.tc_table);
+  return SilenceVoiceRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 57, 2>
+SilenceVoiceRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SilenceVoiceRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SilenceVoiceRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated string concepts = 1;
+    {::_pbi::TcParser::FastUR1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // repeated string concepts = 1;
+    {PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
+  }},
+  // no aux_entries
+  {{
+    "\50\10\0\0\0\0\0\0"
+    "modlock.wasm.effects.SilenceVoiceRequest"
+    "concepts"
+  }},
+};
+PROTOBUF_NOINLINE void SilenceVoiceRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.concepts_.Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SilenceVoiceRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SilenceVoiceRequest& this_ = static_cast<const SilenceVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SilenceVoiceRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SilenceVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // repeated string concepts = 1;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (int i = 0, n = this_._internal_concepts_size(); i < n; ++i) {
+      const auto& s = this_._internal_concepts().Get(i);
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.SilenceVoiceRequest.concepts");
+      target = stream->WriteString(1, s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SilenceVoiceRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SilenceVoiceRequest::ByteSizeLong(const MessageLite& base) {
+  const SilenceVoiceRequest& this_ = static_cast<const SilenceVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SilenceVoiceRequest::ByteSizeLong() const {
+  const SilenceVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated string concepts = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_concepts().size());
+      for (int i = 0, n = this_._internal_concepts().size(); i < n; ++i) {
+        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+            this_._internal_concepts().Get(i));
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SilenceVoiceRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SilenceVoiceRequest*>(&to_msg);
+  auto& from = static_cast<const SilenceVoiceRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _this->_internal_mutable_concepts()->InternalMergeFromWithArena(
+        ::google::protobuf::MessageLite::internal_visibility(), arena,
+        from._internal_concepts());
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SilenceVoiceRequest::CopyFrom(const SilenceVoiceRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SilenceVoiceRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SilenceVoiceRequest::InternalSwap(SilenceVoiceRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.concepts_.InternalSwap(&other->_impl_.concepts_);
+}
+
+::google::protobuf::Metadata SilenceVoiceRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SilencePlayerVoiceRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SilencePlayerVoiceRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._has_bits_);
+};
+
+SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilencePlayerVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilencePlayerVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::effects::SilencePlayerVoiceRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        concepts_{visibility, arena, from.concepts_} {}
+
+SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SilencePlayerVoiceRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilencePlayerVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SilencePlayerVoiceRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.player_ = from._impl_.player_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilencePlayerVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        concepts_{visibility, arena} {}
+
+inline void SilencePlayerVoiceRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_ = {};
+}
+SilencePlayerVoiceRequest::~SilencePlayerVoiceRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  SharedDtor(*this);
+}
+inline void SilencePlayerVoiceRequest::SharedDtor(MessageLite& self) {
+  SilencePlayerVoiceRequest& this_ = static_cast<SilencePlayerVoiceRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SilencePlayerVoiceRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SilencePlayerVoiceRequest(arena);
+}
+constexpr auto SilencePlayerVoiceRequest::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_) +
+          decltype(SilencePlayerVoiceRequest::_impl_.concepts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(SilencePlayerVoiceRequest), alignof(SilencePlayerVoiceRequest), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SilencePlayerVoiceRequest::PlacementNew_,
+                                 sizeof(SilencePlayerVoiceRequest),
+                                 alignof(SilencePlayerVoiceRequest));
+  }
+}
+constexpr auto SilencePlayerVoiceRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SilencePlayerVoiceRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SilencePlayerVoiceRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SilencePlayerVoiceRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SilencePlayerVoiceRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SilencePlayerVoiceRequest>(), &SilencePlayerVoiceRequest::ByteSizeLong,
+              &SilencePlayerVoiceRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._cached_size_),
+          false,
+      },
+      &SilencePlayerVoiceRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SilencePlayerVoiceRequest_class_data_ =
+        SilencePlayerVoiceRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SilencePlayerVoiceRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SilencePlayerVoiceRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SilencePlayerVoiceRequest_class_data_.tc_table);
+  return SilencePlayerVoiceRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 63, 2>
+SilencePlayerVoiceRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SilencePlayerVoiceRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SilencePlayerVoiceRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated string concepts = 2;
+    {::_pbi::TcParser::FastUR1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SilencePlayerVoiceRequest, _impl_.player_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // repeated string concepts = 2;
+    {PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
+  }},
+  // no aux_entries
+  {{
+    "\56\0\10\0\0\0\0\0"
+    "modlock.wasm.effects.SilencePlayerVoiceRequest"
+    "concepts"
+  }},
+};
+PROTOBUF_NOINLINE void SilencePlayerVoiceRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.concepts_.Clear();
+  }
+  _impl_.player_ = 0;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SilencePlayerVoiceRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SilencePlayerVoiceRequest& this_ = static_cast<const SilencePlayerVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SilencePlayerVoiceRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SilencePlayerVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // repeated string concepts = 2;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (int i = 0, n = this_._internal_concepts_size(); i < n; ++i) {
+      const auto& s = this_._internal_concepts().Get(i);
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.SilencePlayerVoiceRequest.concepts");
+      target = stream->WriteString(2, s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SilencePlayerVoiceRequest::ByteSizeLong(const MessageLite& base) {
+  const SilencePlayerVoiceRequest& this_ = static_cast<const SilencePlayerVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SilencePlayerVoiceRequest::ByteSizeLong() const {
+  const SilencePlayerVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // repeated string concepts = 2;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_concepts().size());
+      for (int i = 0, n = this_._internal_concepts().size(); i < n; ++i) {
+        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+            this_._internal_concepts().Get(i));
+      }
+    }
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SilencePlayerVoiceRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SilencePlayerVoiceRequest*>(&to_msg);
+  auto& from = static_cast<const SilencePlayerVoiceRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_concepts()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_concepts());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SilencePlayerVoiceRequest::CopyFrom(const SilencePlayerVoiceRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SilencePlayerVoiceRequest::InternalSwap(SilencePlayerVoiceRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.concepts_.InternalSwap(&other->_impl_.concepts_);
+  swap(_impl_.player_, other->_impl_.player_);
+}
+
+::google::protobuf::Metadata SilencePlayerVoiceRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

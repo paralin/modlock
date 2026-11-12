@@ -15,9 +15,9 @@ namespace {
 // kServerWide names the host requests that change the game for every player,
 // which a limited mod may make only while it holds the world. A bot it added
 // would join the whole server, outside its players.
-constexpr std::array<std::string_view, 10> kServerWide = {
-    "ServerCommand", "SetFreeForAll", "BlockInput",     "Pause",       "HoldMatchClock",
-    "StartRift",     "ClearMap",      "RemoveEntities", "RestoreNpcs", "AddBot",
+constexpr std::array<std::string_view, 11> kServerWide = {
+    "ServerCommand", "SetFreeForAll",  "BlockInput",  "Pause",  "HoldMatchClock", "StartRift",
+    "ClearMap",      "RemoveEntities", "RestoreNpcs", "AddBot", "SilenceVoice",
 };
 
 // RequestType returns the request message type of method in the named

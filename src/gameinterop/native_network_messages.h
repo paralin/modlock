@@ -15,6 +15,12 @@ namespace modlock::gameinterop {
 inline constexpr size_t kSerializerAllocateOffset = 0x8;
 inline constexpr size_t kSerializerMessageIdOffset = 0x18;
 
+// The game events that start, change and stop a sound event:
+// GE_SosStartSoundEvent, GE_SosStopSoundEvent and GE_SosSetSoundEventParams.
+inline constexpr int16_t kSoundStartMessageId = 208;
+inline constexpr int16_t kSoundStopMessageId = 209;
+inline constexpr int16_t kSoundParamsMessageId = 210;
+
 // The user message ids the framework sends or reads: CUserMessageSayText2,
 // CUserMessageTextMsg, Deadlock's chat message, CameraController,
 // PostProcessingAnim and HudGameAnnouncement.

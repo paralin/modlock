@@ -43,6 +43,36 @@ TEST(ConsoleLines, ModsChangeTheGameButNotWhatSurroundsIt) {
   EXPECT_EQ(RefuseConsoleLine("log:on"),
             "log is an engine logging control, which a mod may not run");
 
+  // Entity commands reach a point_servercommand's line past the check, so
+  // they are refused, as are the test script's commands, which run the
+  // commands they name, and the script VM.
+  EXPECT_EQ(RefuseConsoleLine("ent_create point_servercommand"),
+            "ent_create is an entity command outside a mod's checks, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("ENT_FIRE_delay x Command"),
+            "ent_fire_delay is an entity command outside a mod's checks, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("firetarget x"),
+            "firetarget is an entity command outside a mod's checks, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("Test_RandomChance 100 quit"),
+            "test_randomchance is an engine process control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("script_reload_code x"),
+            "script_reload_code is a script VM control, which a mod may not run");
+
+  // A setter is refused when the variable it names is, and give when the
+  // entity it names is; with an allowed name each runs.
+  EXPECT_EQ(RefuseConsoleLine("toggle servercfgfile a.cfg b.cfg"),
+            "toggle sets servercfgfile is an engine file control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("incrementvar \"HOSTPORT\" 1 2 1"),
+            "incrementvar sets hostport is an engine network control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("multvar con_logfile 1 2 1"),
+            "multvar sets con_logfile is an engine logging control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("give point_clientcommand"),
+            "point_clientcommand runs console lines or loads entities past a mod's checks, which "
+            "a mod may not use");
+  for (const auto* line :
+       {"toggle sv_cheats", "incrementvar host_timescale 0.1 2 0.1", "toggle", "give item_x"}) {
+    EXPECT_EQ(RefuseConsoleLine(line), "") << line;
+  }
+
   // A recording keeps to the recording directory.
   for (const auto* line : {"tv_record ../escape", "tv_record a/b", "tv_record", "tv_record a b"}) {
     EXPECT_EQ(RefuseConsoleLine(line),

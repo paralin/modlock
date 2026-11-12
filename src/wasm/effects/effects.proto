@@ -31,12 +31,30 @@ message AnnounceRequest {
   string text = 3;
 }
 
+// SoundOptions shape one sound; the zero value plays it to every player as
+// the game made it.
+message SoundOptions {
+  // Volume scales the sound's loudness; 1 plays it as the game made it.
+  optional float volume = 1;
+
+  // Pitch scales the sound's pitch; 1 plays it as the game made it.
+  optional float pitch = 2;
+
+  // Listeners are the player slots that hear the sound; empty means every
+  // player.
+  repeated int32 listeners = 3;
+}
+
 // SoundRequest plays one sound on a player's hero.
 message SoundRequest {
   int32 player = 1;
 
   // Sound is the game sound event's name, such as Player.ClaimOrb.
   string sound = 2;
+
+  // Options set the sound's volume and pitch and who hears it; without
+  // them every player hears the sound as the game made it.
+  optional SoundOptions options = 3;
 }
 
 // EmitSoundRequest plays one sound on an entity.
@@ -46,6 +64,34 @@ message EmitSoundRequest {
 
   // Sound is the game sound event's name.
   string sound = 2;
+
+  // Options set the sound's volume and pitch and who hears it; without
+  // them every player hears the sound as the game made it.
+  optional SoundOptions options = 3;
+}
+
+// SoundResponse names a sound that Sound or EmitSound started.
+message SoundResponse {
+  // Id names the playing sound to AdjustSound and StopSound; it is never 0.
+  uint32 id = 1;
+}
+
+// AdjustSoundRequest changes a playing sound.
+message AdjustSoundRequest {
+  // Id is the sound's ID, as Sound or EmitSound returned it.
+  uint32 id = 1;
+
+  // Volume replaces the sound's loudness scale when present.
+  optional float volume = 2;
+
+  // Pitch replaces the sound's pitch scale when present.
+  optional float pitch = 3;
+}
+
+// StopSoundRequest names a playing sound to stop.
+message StopSoundRequest {
+  // Id is the sound's ID, as Sound or EmitSound returned it.
+  uint32 id = 1;
 }
 
 // ScreenEffect is a stock full-screen view effect.
@@ -98,4 +144,21 @@ message ClearScreenEffectRequest {
 
   // Effect is the effect to end.
   ScreenEffect effect = 2;
+}
+
+// SilenceVoiceRequest names the voice concepts every hero keeps silent.
+message SilenceVoiceRequest {
+  // Concepts name CitadelConcept_t values, such as TLK_CITADEL_GOLD_GAINED,
+  // under which a hero calls out its souls and reminds itself to spend them.
+  // None lets every hero speak again.
+  repeated string concepts = 1;
+}
+
+// SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
+// silent.
+message SilencePlayerVoiceRequest {
+  int32 player = 1;
+
+  // Concepts name CitadelConcept_t values; none lets the hero speak again.
+  repeated string concepts = 2;
 }

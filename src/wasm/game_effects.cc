@@ -4,6 +4,8 @@
 #include <array>
 #include <utility>
 
+#include "modlock/gameinterop/connection_tracker.h"
+#include "modlock/gameinterop/entity_abi.h"
 #include "src/gameinterop/engine/hud.pb.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
@@ -223,20 +225,85 @@ std::expected<int32_t, std::string> Game::ScreenOwner(int32_t slot) {
   return static_cast<int32_t>(gameinterop::EntityIndexOf(sample->pawn_handle));
 }
 
-std::expected<void, std::string> Game::Sound(const effects::SoundRequest& request) {
-  // Play the sound on the live player's hero.
-  auto sound = services_.Sound();
-  if (!sound) {
-    return std::unexpected(sound.error());
+uint64_t Game::HumanSlots() {
+  uint64_t slots = 0;
+  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+    if (state.occupied && !state.is_bot) {
+      slots |= uint64_t{1} << slot;
+    }
   }
-  auto pawn = LivePawn(request.player());
-  if (!pawn) {
-    return std::unexpected(pawn.error());
+  return slots;
+}
+
+std::expected<effects::SoundResponse, std::string> Game::PlaySound(
+    const std::string& sound, int32_t source, const effects::SoundOptions& options) {
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
   }
-  if (!(*sound)->Emit(*pawn, request.sound().c_str())) {
-    return std::unexpected("the game did not play " + request.sound());
+
+  // Send to the listed players, or to every player, skipping any slot that
+  // holds no player to hear it.
+  const uint64_t humans = HumanSlots();
+  uint64_t recipients = options.listeners().empty() ? humans : 0;
+  for (const auto slot : options.listeners()) {
+    if (gameinterop::IsPlayerSlot(slot)) {
+      recipients |= humans & uint64_t{1} << slot;
+    }
   }
-  return {};
+
+  auto id = (*messages)->StartSound(
+      recipients, sound, source,
+      {options.has_volume() ? std::optional(options.volume()) : std::nullopt,
+       options.has_pitch() ? std::optional(options.pitch()) : std::nullopt});
+  if (!id) {
+    return std::unexpected(id.error());
+  }
+  effects::SoundResponse response;
+  response.set_id(*id);
+  return response;
+}
+
+std::expected<effects::SoundResponse, std::string> Game::Sound(
+    const effects::SoundRequest& request) {
+  // Play the sound on the live player's hero, which it follows.
+  auto hero = ScreenOwner(request.player());
+  if (!hero) {
+    return std::unexpected(hero.error());
+  }
+  return PlaySound(request.sound(), *hero, request.options());
+}
+
+std::expected<effects::SoundResponse, std::string> Game::EmitSound(
+    const effects::EmitSoundRequest& request) {
+  // Play the sound on the live entity, which it follows.
+  if (auto entity = Entity(request.entity()); !entity) {
+    return std::unexpected(entity.error());
+  }
+  const auto index = static_cast<int32_t>(gameinterop::EntityIndexOf(request.entity()));
+  return PlaySound(request.sound(), index, request.options());
+}
+
+std::expected<void, std::string> Game::AdjustSound(const effects::AdjustSoundRequest& request) {
+  // Every player gets the change; one not playing the sound ignores it.
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
+  return (*messages)->SetSoundFields(
+      HumanSlots(), request.id(),
+      {request.has_volume() ? std::optional(request.volume()) : std::nullopt,
+       request.has_pitch() ? std::optional(request.pitch()) : std::nullopt});
+}
+
+std::expected<void, std::string> Game::StopSound(const effects::StopSoundRequest& request) {
+  // Every player gets the stop; one not playing the sound ignores it.
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
+  return (*messages)->StopSound(HumanSlots(), request.id());
 }
 
 }  // namespace modlock::wasm

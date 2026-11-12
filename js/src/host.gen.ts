@@ -927,6 +927,31 @@ function fromTraceHit(message: combatPb.TraceHit): TraceHit {
   }
 }
 
+/**
+ * SoundOptions shape one sound; the zero value plays it to every player as
+ * the game made it.
+ */
+export interface SoundOptions {
+  /** volume scales the sound's loudness; 1 plays it as the game made it. */
+  volume?: number
+  /** pitch scales the sound's pitch; 1 plays it as the game made it. */
+  pitch?: number
+  /**
+   * listeners are the player slots that hear the sound; empty means every
+   * player.
+   */
+  listeners?: readonly number[]
+}
+
+/** toSoundOptions encodes a SoundOptions. */
+function toSoundOptions(value: SoundOptions): effectsPb.SoundOptions {
+  return {
+    volume: value.volume,
+    pitch: value.pitch,
+    listeners: value.listeners?.map((v) => int32(v)),
+  }
+}
+
 /** ScreenTiming is a screen effect's timing in seconds. */
 export interface ScreenTiming {
   /** delay is the time before the effect starts. */
@@ -3018,10 +3043,14 @@ export class Player {
 
   /**
    * sound plays a game sound event, such as Damage.Send.Crit, on the
-   * player's hero.
+   * player's hero, and returns its ID. It follows the hero as it moves.
+   * Volume and pitch scale the sound, and listeners limit who hears it.
    */
-  sound(sound: string): boolean {
-    return call('Sound', effectsPb.SoundRequest.toBinary({ player: this.slot, sound })) !== undefined
+  sound(sound: string, options?: SoundOptions): number | undefined {
+    const reply = call('Sound', effectsPb.SoundRequest.toBinary({ player: this.slot, sound, options: options === undefined ? undefined : toSoundOptions(options) }))
+    if (reply === undefined) return undefined
+    const response = effectsPb.SoundResponse.fromBinary(reply)
+    return response.id ?? 0
   }
 
   /**
@@ -3050,6 +3079,14 @@ export class Player {
    */
   clearScreenEffect(effect: ScreenEffect): boolean {
     return call('ClearScreenEffect', effectsPb.ClearScreenEffectRequest.toBinary({ player: this.slot, effect: screenEffectValues[effect] })) !== undefined
+  }
+
+  /**
+   * silenceVoice keeps the player's hero from speaking the named voice
+   * concepts until called again, on top of those silenced for everyone.
+   */
+  silenceVoice(concepts?: readonly string[]): boolean {
+    return call('SilencePlayerVoice', effectsPb.SilencePlayerVoiceRequest.toBinary({ player: this.slot, concepts: concepts?.slice() })) !== undefined
   }
 
   /** removeBot removes a bot the mod added. */
@@ -3355,6 +3392,16 @@ export function heroBuild(hero: string): BuildCategory[] {
 }
 
 /**
+ * silenceVoice keeps every hero from speaking the named voice concepts,
+ * until called again. A hero still hears the game's other sounds. Stopping
+ * the mod lets them speak; a name the game does not know fails the call
+ * and the known ones still apply.
+ */
+export function silenceVoice(concepts?: readonly string[]): boolean {
+  return call('SilenceVoice', effectsPb.SilenceVoiceRequest.toBinary({ concepts: concepts?.slice() })) !== undefined
+}
+
+/**
  * readField reads one schema field of a live entity, such as the int32
  * m_iHealth of CBaseEntity. The host finds the field by name, so it
  * survives game updates that move it, and refuses an entity that is not of
@@ -3399,7 +3446,9 @@ export function readModifierField(entity: number, modifier: string, className: s
  * entity's panel only when it creates the entity, so a write to
  * m_DialogXMLName sends every client a full update on the next frame, which
  * creates every entity again; the players' game stalls briefly, so write a
- * layout when it changes, not every frame.
+ * layout when it changes, not every frame. It refuses the fields that
+ * name a console line or a script, such as m_iszPrivateVScripts, here and
+ * among the fields CreateEntity writes before spawn.
  */
 export function writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean {
   return call('WriteField', fieldsPb.WriteFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type], value: toFieldValue(value) })) !== undefined
@@ -3620,11 +3669,14 @@ export function startServiceCall(service: string, method: string, payload: Uint8
 }
 
 /**
- * createEntity creates any entity the server knows by its designer name,
+ * createEntity creates an entity the server knows by its designer name,
  * such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
  * written before it spawns. The world removes it when the world ends;
  * stopping the mod removes it too. It refuses an ability, item or weapon,
- * which only a hero holds: GiveItem and ReplaceAbility give one.
+ * which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+ * a class that runs console lines or loads scripts or entities past a mod's
+ * checks, such as point_servercommand, and key values that name a console
+ * line or a script, such as vscripts.
  */
 export function createEntity(options: EntityOptions): number | undefined {
   const reply = call('CreateEntity', entitiesPb.EntityOptions.toBinary(toEntityOptions(options)))
@@ -3636,7 +3688,9 @@ export function createEntity(options: EntityOptions): number | undefined {
 /**
  * fireInput sends an input to a live entity, as a map's output would, such
  * as Skin with the integer 1. The value must have the type the input reads.
- * It reports false once the entity is gone.
+ * It reports false once the entity is gone. It refuses AddOutput and the
+ * script inputs on every entity, and any input to an entity of a class
+ * CreateEntity refuses.
  */
 export function fireInput(entity: number, input: string, value?: EntityValue, activator?: number): boolean {
   const reply = call('FireInput', entitiesPb.FireInputRequest.toBinary({ entity, input, value: value === undefined ? undefined : toEntityValue(value), activator }))
@@ -3838,9 +3892,32 @@ export function pushEntity(entity: number, velocity: Vector, spin?: Vector): boo
   return call('PushEntity', entitiesPb.PushEntityRequest.toBinary({ entity, velocity, spin })) !== undefined
 }
 
-/** emitSound plays one game sound on any entity, such as a projectile. */
-export function emitSound(entity: number, sound: string): boolean {
-  return call('EmitSound', effectsPb.EmitSoundRequest.toBinary({ entity, sound })) !== undefined
+/**
+ * emitSound plays one game sound on any entity, such as a projectile, and
+ * returns its ID. Volume and pitch scale the sound, and listeners limit who
+ * hears it.
+ */
+export function emitSound(entity: number, sound: string, options?: SoundOptions): number | undefined {
+  const reply = call('EmitSound', effectsPb.EmitSoundRequest.toBinary({ entity, sound, options: options === undefined ? undefined : toSoundOptions(options) }))
+  if (reply === undefined) return undefined
+  const response = effectsPb.SoundResponse.fromBinary(reply)
+  return response.id ?? 0
+}
+
+/**
+ * adjustSound changes the volume or pitch of a sound Sound or EmitSound
+ * started, while it plays.
+ */
+export function adjustSound(id: number, volume?: number, pitch?: number): boolean {
+  return call('AdjustSound', effectsPb.AdjustSoundRequest.toBinary({ id, volume, pitch })) !== undefined
+}
+
+/**
+ * stopSound stops a sound Sound or EmitSound started. A sound that already
+ * ended is not an error.
+ */
+export function stopSound(id: number): boolean {
+  return call('StopSound', effectsPb.StopSoundRequest.toBinary({ id })) !== undefined
 }
 
 /**

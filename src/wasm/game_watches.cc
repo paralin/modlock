@@ -56,22 +56,6 @@ std::expected<void, std::string> Game::PushEntity(const entities::PushEntityRequ
   return {};
 }
 
-std::expected<void, std::string> Game::EmitSound(const effects::EmitSoundRequest& request) {
-  // Play the sound on the entity.
-  auto sound = services_.Sound();
-  if (!sound) {
-    return std::unexpected(sound.error());
-  }
-  auto entity = Entity(request.entity());
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  if (!(*sound)->Emit(*entity, request.sound().c_str())) {
-    return std::unexpected("the game did not play " + request.sound());
-  }
-  return {};
-}
-
 std::expected<void, std::string> Game::Kill(const players::PlayerRequest& request) {
   // Kill the live player's hero unless it is already dead.
   auto damage = services_.Damage();

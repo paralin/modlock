@@ -1,5 +1,7 @@
 #include "modlock/gameinterop/native_user_messages.h"
 
+#include <atomic>
+#include <bit>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -14,6 +16,7 @@
 #include "src/gameinterop/engine/camera.pb.h"
 #include "src/gameinterop/engine/chat.pb.h"
 #include "src/gameinterop/engine/hud.pb.h"
+#include "src/gameinterop/engine/sound.pb.h"
 
 namespace modlock::gameinterop {
 namespace {
@@ -21,6 +24,83 @@ namespace {
 // kHudPrintCenter is HUD_PRINTCENTER, the text message destination that
 // centers the text on screen.
 constexpr int32_t kHudPrintCenter = 4;
+
+// MurmurHash2 is the hash the sound system names sound events and their
+// fields by, over the lowercased bytes of the name.
+uint32_t MurmurHash2(std::string_view text, uint32_t seed) {
+  constexpr uint32_t m = 0x5bd1e995;
+  const auto byte = [&](size_t i) {
+    const auto c = static_cast<uint8_t>(text[i]);
+    return static_cast<uint32_t>(c >= 'A' && c <= 'Z' ? c + 32 : c);
+  };
+  uint32_t h = seed ^ static_cast<uint32_t>(text.size());
+  size_t i = 0;
+  for (; text.size() - i >= 4; i += 4) {
+    uint32_t k = byte(i) | byte(i + 1) << 8 | byte(i + 2) << 16 | byte(i + 3) << 24;
+    k *= m;
+    k ^= k >> 24;
+    k *= m;
+    h = h * m ^ k;
+  }
+  switch (text.size() - i) {
+    case 3:
+      h ^= byte(i + 2) << 16;
+      [[fallthrough]];
+    case 2:
+      h ^= byte(i + 1) << 8;
+      [[fallthrough]];
+    case 1:
+      h ^= byte(i);
+      h *= m;
+  }
+  h ^= h >> 13;
+  h *= m;
+  return h ^ h >> 15;
+}
+
+// kSoundNameSeed and kSoundFieldSeed seed the hashes of sound event names
+// and of their field names.
+constexpr uint32_t kSoundNameSeed = 0x53524332;
+constexpr uint32_t kSoundFieldSeed = 0x31415926;
+
+// next_sound_id allocates sound ids. The game numbers its own sounds upward
+// from 1 and wraps below 2^31, so starting at 2^30 keeps ours apart from
+// every sound a session plays; the game's count would need a billion sounds
+// to reach ours.
+std::atomic<uint32_t> next_sound_id{uint32_t{1} << 30};
+
+// kSoundFloatField is the packed field type of a float.
+constexpr uint8_t kSoundFloatField = 8;
+
+// PackSoundFields packs the present fields as the sound system reads them:
+// per field, its name hash, its type, its payload size, a zero byte and the
+// payload, all little-endian.
+std::string PackSoundFields(const NativeUserMessages::SoundFields& fields) {
+  std::string packed;
+  const auto add = [&](std::string_view name, std::optional<float> value) {
+    if (!value) {
+      return;
+    }
+    const uint32_t hash = MurmurHash2(name, kSoundFieldSeed);
+    const auto bits = std::bit_cast<uint32_t>(*value);
+    for (int shift = 0; shift < 32; shift += 8) {
+      packed.push_back(static_cast<char>(hash >> shift));
+    }
+    packed.push_back(static_cast<char>(kSoundFloatField));
+    packed.push_back(static_cast<char>(sizeof(bits)));
+    packed.push_back(0);
+    for (int shift = 0; shift < 32; shift += 8) {
+      packed.push_back(static_cast<char>(bits >> shift));
+    }
+  };
+  // The stock stacks multiply both factors into the event's own level and
+  // pitch, and no event sets them, so 1 leaves the sound as authored.
+  // public.volume and public.pitch would replace the authored values, and
+  // public.volume is in decibels.
+  add("public.volume_mult", fields.volume);
+  add("public.pitch_adjust", fields.pitch);
+  return packed;
+}
 
 #if defined(_WIN32)
 
@@ -117,11 +197,52 @@ std::expected<void, std::string> NativeUserMessages::CameraController(
   return Send(slot, kCameraControllerMessageId, message);
 }
 
+std::expected<uint32_t, std::string> NativeUserMessages::StartSound(
+    uint64_t listeners, std::string_view name, int32_t source, const SoundFields& fields) const {
+  // The id also seeds the sound's random choices, as the game's own do.
+  const uint32_t id = next_sound_id.fetch_add(1, std::memory_order_relaxed);
+  engine::SoundStart message;
+  message.set_soundevent_guid(static_cast<int32_t>(id));
+  message.set_soundevent_hash(MurmurHash2(name, kSoundNameSeed));
+  message.set_source_entity_index(source);
+  message.set_seed(static_cast<int32_t>(id));
+  if (auto packed = PackSoundFields(fields); !packed.empty()) {
+    message.set_packed_params(std::move(packed));
+  }
+  if (auto posted = Post(listeners, kSoundStartMessageId, message); !posted) {
+    return std::unexpected(posted.error());
+  }
+  return id;
+}
+
+std::expected<void, std::string> NativeUserMessages::SetSoundFields(
+    uint64_t listeners, uint32_t id, const SoundFields& fields) const {
+  engine::SoundParams message;
+  message.set_soundevent_guid(static_cast<int32_t>(id));
+  message.set_packed_params(PackSoundFields(fields));
+  return Post(listeners, kSoundParamsMessageId, message);
+}
+
+std::expected<void, std::string> NativeUserMessages::StopSound(uint64_t listeners,
+                                                               uint32_t id) const {
+  engine::SoundStop message;
+  message.set_soundevent_guid(static_cast<int32_t>(id));
+  return Post(listeners, kSoundStopMessageId, message);
+}
+
 std::expected<void, std::string> NativeUserMessages::Send(
     int32_t slot, int32_t id, const google::protobuf::MessageLite& message) const {
-  // Refuse a bad slot or size.
   if (!IsPlayerSlot(slot)) {
     return std::unexpected("native user recipient slot is invalid");
+  }
+  return Post(uint64_t{1} << slot, id, message);
+}
+
+std::expected<void, std::string> NativeUserMessages::Post(
+    uint64_t recipients, int32_t id, const google::protobuf::MessageLite& message) const {
+  // A message to nobody is already delivered; refuse a bad size.
+  if (recipients == 0) {
+    return {};
   }
   const auto size = message.ByteSizeLong();
   if (size == 0 || size > kMaxUserMessageSize) {
@@ -195,16 +316,16 @@ std::expected<void, std::string> NativeUserMessages::Send(
     return std::unexpected("native user message decoding failed");
   }
 
-  // Post it to the one recipient.
-  const uint64_t recipients = uint64_t{1} << slot;
+  // Post it to the recipients.
   const auto event_methods = *static_cast<void***>(events_);
-  using Post = void (*)(void*, int32_t, bool, int32_t, const uint64_t*, void*, const void*,
-                        unsigned long, int32_t);
+  using PostEvent = void (*)(void*, int32_t, bool, int32_t, const uint64_t*, void*, const void*,
+                             unsigned long, int32_t);
 
   // BUF_RELIABLE=1. PostEventAbstract copies the message before returning.
   // The client count is the mask's bit extent, including unselected lower slots.
-  reinterpret_cast<Post>(event_methods[*post_slot])(events_, -1, false, slot + 1, &recipients,
-                                                    serializer, native_message, 0, 1);
+  const auto clients = static_cast<int32_t>(std::bit_width(recipients));
+  reinterpret_cast<PostEvent>(event_methods[*post_slot])(events_, -1, false, clients, &recipients,
+                                                         serializer, native_message, 0, 1);
   return {};
 #else
   (void)id;

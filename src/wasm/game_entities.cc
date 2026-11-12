@@ -9,7 +9,9 @@
 #include <utility>
 #include <vector>
 
+#include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/keyvalues.h"
+#include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -63,11 +65,15 @@ constexpr std::string_view addonToken = "{addon}";
 std::expected<std::vector<gameinterop::EntityKeyValue>, std::string> KeyValues(
     const google::protobuf::RepeatedPtrField<entities::KeyValue>& pairs, const Game& game,
     std::deque<std::string>& filled) {
-  // Convert each pair, failing on a pair with no value.
+  // Convert each pair, failing on a refused key or a pair with no value.
   std::vector<gameinterop::EntityKeyValue> result;
   result.reserve(pairs.size());
   for (const auto& pair : pairs) {
-    // Convert the pair's value.
+    // Refuse a key that names a console line or a script, then convert the
+    // pair's value.
+    if (auto refused = RefuseKeyValue(pair.key()); !refused.empty()) {
+      return std::unexpected(std::move(refused));
+    }
     auto value = Value(pair.value());
     if (!value) {
       return std::unexpected("key value " + pair.key() + " has no value");
@@ -383,7 +389,11 @@ gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
 
 std::expected<entities::EntityResponse, std::string> Game::CreateEntity(
     const entities::EntityOptions& request) {
-  // Resolve the world and the requested key values.
+  // Refuse a class that runs console lines, then resolve the world and the
+  // requested key values.
+  if (auto refused = RefuseEntityClass(request.designer_name()); !refused.empty()) {
+    return std::unexpected(std::move(refused));
+  }
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -432,6 +442,18 @@ std::expected<entities::EntityResponse, std::string> Game::CreateEntity(
 
 std::expected<entities::AliveResponse, std::string> Game::FireInput(
     const entities::FireInputRequest& request) {
+  // Refuse an input that rewires an entity or runs a script, and any input to
+  // a live entity whose class runs console lines, such as one a map placed.
+  // An entity that is gone is left to the world, which reports it so.
+  if (auto refused = RefuseInput(request.input()); !refused.empty()) {
+    return std::unexpected(std::move(refused));
+  }
+  if (auto target = Entity(request.entity())) {
+    if (auto refused = RefuseEntityClass(gameinterop::DesignerName(*target)); !refused.empty()) {
+      return std::unexpected(std::move(refused));
+    }
+  }
+
   // Fire the input on the entity, from its activator when given.
   auto world = World();
   if (!world) {
@@ -527,7 +549,10 @@ std::optional<uint32_t> Game::ObjectHandle(uint32_t id) const {
 }
 
 std::expected<npcs::NpcResponse, std::string> Game::SpawnNpc(const npcs::NpcOptions& request) {
-  // Resolve the world.
+  // Refuse a class that runs console lines, then resolve the world.
+  if (auto refused = RefuseEntityClass(request.class_name()); !refused.empty()) {
+    return std::unexpected(std::move(refused));
+  }
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());

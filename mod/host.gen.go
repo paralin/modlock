@@ -374,6 +374,10 @@ type TraceOptions = combatpb.TraceOptions
 // TraceHit is where a traced line first hit something.
 type TraceHit = combatpb.TraceHit
 
+// SoundOptions shape one sound; the zero value plays it to every player as
+// the game made it.
+type SoundOptions = effectspb.SoundOptions
+
 // ScreenTiming is a screen effect's timing in seconds.
 type ScreenTiming = effectspb.ScreenTiming
 
@@ -1127,9 +1131,15 @@ func (p Player) Heal(amount int32) error {
 }
 
 // Sound plays a game sound event, such as Damage.Send.Crit, on the
-// player's hero.
-func (p Player) Sound(sound string) error {
-	return invoke("Sound", &effectspb.SoundRequest{Player: p.Slot, Sound: sound}, nil)
+// player's hero, and returns its ID. It follows the hero as it moves.
+// Volume and pitch scale the sound, and listeners limit who hears it.
+func (p Player) Sound(sound string, options *SoundOptions) (uint32, error) {
+	request := &effectspb.SoundRequest{Player: p.Slot, Sound: sound, Options: options}
+	response := &effectspb.SoundResponse{}
+	if err := invoke("Sound", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetId(), nil
 }
 
 // RestoreHero gives the player's live hero target over the next few
@@ -1152,6 +1162,20 @@ func (p Player) ScreenEffect(effect ScreenEffect, timing *ScreenTiming) error {
 // view.
 func (p Player) ClearScreenEffect(effect ScreenEffect) error {
 	return invoke("ClearScreenEffect", &effectspb.ClearScreenEffectRequest{Player: p.Slot, Effect: effect}, nil)
+}
+
+// SilenceVoice keeps every hero from speaking the named voice concepts,
+// until called again. A hero still hears the game's other sounds. Stopping
+// the mod lets them speak; a name the game does not know fails the call
+// and the known ones still apply.
+func SilenceVoice(concepts []string) error {
+	return invoke("SilenceVoice", &effectspb.SilenceVoiceRequest{Concepts: concepts}, nil)
+}
+
+// SilenceVoice keeps the player's hero from speaking the named voice
+// concepts until called again, on top of those silenced for everyone.
+func (p Player) SilenceVoice(concepts []string) error {
+	return invoke("SilencePlayerVoice", &effectspb.SilencePlayerVoiceRequest{Player: p.Slot, Concepts: concepts}, nil)
 }
 
 // ReadField reads one schema field of a live entity, such as the int32
@@ -1198,7 +1222,9 @@ func ReadModifierField(entity uint32, modifier, className, field string, kind Fi
 // entity's panel only when it creates the entity, so a write to
 // m_DialogXMLName sends every client a full update on the next frame, which
 // creates every entity again; the players' game stalls briefly, so write a
-// layout when it changes, not every frame.
+// layout when it changes, not every frame. It refuses the fields that
+// name a console line or a script, such as m_iszPrivateVScripts, here and
+// among the fields CreateEntity writes before spawn.
 func WriteField(entity uint32, className, field string, kind FieldType, value any) error {
 	request := &fieldspb.WriteFieldRequest{Entity: entity, ClassName: className, Field: field, Type: kind}
 	encoded, err := toFieldValue(value)
@@ -1488,11 +1514,14 @@ func StartServiceCall(service, method string, payload []byte, timeoutMillisecond
 	return response.GetCall(), nil
 }
 
-// CreateEntity creates any entity the server knows by its designer name,
+// CreateEntity creates an entity the server knows by its designer name,
 // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 // written before it spawns. The world removes it when the world ends;
 // stopping the mod removes it too. It refuses an ability, item or weapon,
-// which only a hero holds: GiveItem and ReplaceAbility give one.
+// which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+// a class that runs console lines or loads scripts or entities past a mod's
+// checks, such as point_servercommand, and key values that name a console
+// line or a script, such as vscripts.
 func CreateEntity(options *EntityOptions) (uint32, error) {
 	response := &entitiespb.EntityResponse{}
 	if err := invoke("CreateEntity", options, response); err != nil {
@@ -1503,7 +1532,9 @@ func CreateEntity(options *EntityOptions) (uint32, error) {
 
 // FireInput sends an input to a live entity, as a map's output would, such
 // as Skin with the integer 1. The value must have the type the input reads.
-// It reports false once the entity is gone.
+// It reports false once the entity is gone. It refuses AddOutput and the
+// script inputs on every entity, and any input to an entity of a class
+// CreateEntity refuses.
 func FireInput(entity uint32, input string, value any, activator *uint32) (bool, error) {
 	request := &entitiespb.FireInputRequest{Entity: entity, Input: input, Activator: activator}
 	if value != nil {
@@ -1760,9 +1791,28 @@ func PushEntity(entity uint32, velocity, spin *Vector) error {
 	return invoke("PushEntity", &entitiespb.PushEntityRequest{Entity: entity, Velocity: velocity, Spin: spin}, nil)
 }
 
-// EmitSound plays one game sound on any entity, such as a projectile.
-func EmitSound(entity uint32, sound string) error {
-	return invoke("EmitSound", &effectspb.EmitSoundRequest{Entity: entity, Sound: sound}, nil)
+// EmitSound plays one game sound on any entity, such as a projectile, and
+// returns its ID. Volume and pitch scale the sound, and listeners limit who
+// hears it.
+func EmitSound(entity uint32, sound string, options *SoundOptions) (uint32, error) {
+	request := &effectspb.EmitSoundRequest{Entity: entity, Sound: sound, Options: options}
+	response := &effectspb.SoundResponse{}
+	if err := invoke("EmitSound", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetId(), nil
+}
+
+// AdjustSound changes the volume or pitch of a sound Sound or EmitSound
+// started, while it plays.
+func AdjustSound(id uint32, volume, pitch *float32) error {
+	return invoke("AdjustSound", &effectspb.AdjustSoundRequest{Id: id, Volume: volume, Pitch: pitch}, nil)
+}
+
+// StopSound stops a sound Sound or EmitSound started. A sound that already
+// ended is not an error.
+func StopSound(id uint32) error {
+	return invoke("StopSound", &effectspb.StopSoundRequest{Id: id}, nil)
 }
 
 // Kill kills a player's hero, crediting no one.

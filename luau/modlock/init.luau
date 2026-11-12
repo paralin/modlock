@@ -686,6 +686,18 @@ export type TraceHit = {
 	entity: number,
 }
 
+-- SoundOptions shape one sound; the zero value plays it to every player as
+-- the game made it.
+export type SoundOptions = {
+	-- volume scales the sound's loudness; 1 plays it as the game made it.
+	volume: number?,
+	-- pitch scales the sound's pitch; 1 plays it as the game made it.
+	pitch: number?,
+	-- listeners are the player slots that hear the sound; empty means every
+	-- player.
+	listeners: { number }?,
+}
+
 -- ScreenTiming is a screen effect's timing in seconds.
 export type ScreenTiming = {
 	-- delay is the time before the effect starts.
@@ -1770,8 +1782,9 @@ export type Player = {
 	-- heal restores health to the player's hero, up to its maximum.
 	heal: (self: Player, amount: number) -> boolean,
 	-- sound plays a game sound event, such as Damage.Send.Crit, on the
-	-- player's hero.
-	sound: (self: Player, sound: string) -> boolean,
+	-- player's hero, and returns its ID. It follows the hero as it moves.
+	-- Volume and pitch scale the sound, and listeners limit who hears it.
+	sound: (self: Player, sound: string, options: SoundOptions?) -> number?,
 	-- restoreHero gives the player's live hero target over the next few
 	-- seconds: the build first, then health, stamina and pose once it settles,
 	-- then charges and cooldowns. A Restored event reports when the result has
@@ -1785,6 +1798,9 @@ export type Player = {
 	-- clearScreenEffect ends every running instance of effect on the player's
 	-- view.
 	clearScreenEffect: (self: Player, effect: ScreenEffect) -> boolean,
+	-- silenceVoice keeps the player's hero from speaking the named voice
+	-- concepts until called again, on top of those silenced for everyone.
+	silenceVoice: (self: Player, concepts: { string }?) -> boolean,
 	-- removeBot removes a bot the mod added.
 	removeBot: (self: Player) -> boolean,
 	-- blockInput withholds buttons from the player's hero until called
@@ -2139,9 +2155,14 @@ function Player.heal(self: Player, amount: number): boolean
 end
 
 -- sound plays a game sound event, such as Damage.Send.Crit, on the
--- player's hero.
-function Player.sound(self: Player, sound: string): boolean
-	return call("Sound", "SoundRequest", { player = self, sound = sound }) ~= nil
+-- player's hero, and returns its ID. It follows the hero as it moves.
+-- Volume and pitch scale the sound, and listeners limit who hears it.
+function Player.sound(self: Player, sound: string, options: SoundOptions?): number?
+	local response = call("Sound", "SoundRequest", { player = self, sound = sound, options = options }, "SoundResponse")
+	if response == nil then
+		return nil
+	end
+	return response.id
 end
 
 -- restoreHero gives the player's live hero target over the next few
@@ -2164,6 +2185,12 @@ end
 -- view.
 function Player.clearScreenEffect(self: Player, effect: ScreenEffect): boolean
 	return call("ClearScreenEffect", "ClearScreenEffectRequest", { player = self, effect = effect }) ~= nil
+end
+
+-- silenceVoice keeps the player's hero from speaking the named voice
+-- concepts until called again, on top of those silenced for everyone.
+function Player.silenceVoice(self: Player, concepts: { string }?): boolean
+	return call("SilencePlayerVoice", "SilencePlayerVoiceRequest", { player = self, concepts = concepts }) ~= nil
 end
 
 -- removeBot removes a bot the mod added.
@@ -2601,13 +2628,31 @@ schema.AnnounceRequest = {
 	{ number = 2, name = "title", kind = "string" },
 	{ number = 3, name = "text", kind = "string" },
 }
+schema.SoundOptions = {
+	{ number = 1, name = "volume", kind = "float", optional = true },
+	{ number = 2, name = "pitch", kind = "float", optional = true },
+	{ number = 3, name = "listeners", kind = "int32", repeated = true },
+}
 schema.SoundRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "sound", kind = "string" },
+	{ number = 3, name = "options", kind = "message", optional = true, message = "SoundOptions" },
 }
 schema.EmitSoundRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
 	{ number = 2, name = "sound", kind = "string" },
+	{ number = 3, name = "options", kind = "message", optional = true, message = "SoundOptions" },
+}
+schema.SoundResponse = {
+	{ number = 1, name = "id", kind = "uint32" },
+}
+schema.AdjustSoundRequest = {
+	{ number = 1, name = "id", kind = "uint32" },
+	{ number = 2, name = "volume", kind = "float", optional = true },
+	{ number = 3, name = "pitch", kind = "float", optional = true },
+}
+schema.StopSoundRequest = {
+	{ number = 1, name = "id", kind = "uint32" },
 }
 schema.ScreenEffectRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -2623,6 +2668,13 @@ schema.ScreenTiming = {
 schema.ClearScreenEffectRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "effect", kind = "enum", enum = ScreenEffect },
+}
+schema.SilenceVoiceRequest = {
+	{ number = 1, name = "concepts", kind = "string", repeated = true },
+}
+schema.SilencePlayerVoiceRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "concepts", kind = "string", repeated = true },
 }
 schema.ReadFieldRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
@@ -3468,6 +3520,14 @@ function modlock.heroBuild(hero: string): { BuildCategory }
 	return response.categories
 end
 
+-- silenceVoice keeps every hero from speaking the named voice concepts,
+-- until called again. A hero still hears the game's other sounds. Stopping
+-- the mod lets them speak; a name the game does not know fails the call
+-- and the known ones still apply.
+function modlock.silenceVoice(concepts: { string }?): boolean
+	return call("SilenceVoice", "SilenceVoiceRequest", { concepts = concepts }) ~= nil
+end
+
 -- readField reads one schema field of a live entity, such as the int32
 -- m_iHealth of CBaseEntity. The host finds the field by name, so it
 -- survives game updates that move it, and refuses an entity that is not of
@@ -3510,7 +3570,9 @@ end
 -- entity's panel only when it creates the entity, so a write to
 -- m_DialogXMLName sends every client a full update on the next frame, which
 -- creates every entity again; the players' game stalls briefly, so write a
--- layout when it changes, not every frame.
+-- layout when it changes, not every frame. It refuses the fields that
+-- name a console line or a script, such as m_iszPrivateVScripts, here and
+-- among the fields CreateEntity writes before spawn.
 function modlock.writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean
 	return call("WriteField", "WriteFieldRequest", { entity = entity, className = className, field = field, type = type, value = value }) ~= nil
 end
@@ -3705,11 +3767,14 @@ function modlock.startServiceCall(service: string, method: string, payload: stri
 	return response.call
 end
 
--- createEntity creates any entity the server knows by its designer name,
+-- createEntity creates an entity the server knows by its designer name,
 -- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 -- written before it spawns. The world removes it when the world ends;
 -- stopping the mod removes it too. It refuses an ability, item or weapon,
--- which only a hero holds: GiveItem and ReplaceAbility give one.
+-- which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+-- a class that runs console lines or loads scripts or entities past a mod's
+-- checks, such as point_servercommand, and key values that name a console
+-- line or a script, such as vscripts.
 function modlock.createEntity(options: EntityOptions): number?
 	local response = call("CreateEntity", "EntityOptions", options, "EntityResponse")
 	if response == nil then
@@ -3720,7 +3785,9 @@ end
 
 -- fireInput sends an input to a live entity, as a map's output would, such
 -- as Skin with the integer 1. The value must have the type the input reads.
--- It reports false once the entity is gone.
+-- It reports false once the entity is gone. It refuses AddOutput and the
+-- script inputs on every entity, and any input to an entity of a class
+-- CreateEntity refuses.
 function modlock.fireInput(entity: number, input: string, value: EntityValue?, activator: number?): boolean
 	local response = call("FireInput", "FireInputRequest", { entity = entity, input = input, value = value, activator = activator }, "AliveResponse")
 	if response == nil then
@@ -3897,9 +3964,27 @@ function modlock.pushEntity(entity: number, velocity: Vector, spin: Vector?): bo
 	return call("PushEntity", "PushEntityRequest", { entity = entity, velocity = velocity, spin = spin }) ~= nil
 end
 
--- emitSound plays one game sound on any entity, such as a projectile.
-function modlock.emitSound(entity: number, sound: string): boolean
-	return call("EmitSound", "EmitSoundRequest", { entity = entity, sound = sound }) ~= nil
+-- emitSound plays one game sound on any entity, such as a projectile, and
+-- returns its ID. Volume and pitch scale the sound, and listeners limit who
+-- hears it.
+function modlock.emitSound(entity: number, sound: string, options: SoundOptions?): number?
+	local response = call("EmitSound", "EmitSoundRequest", { entity = entity, sound = sound, options = options }, "SoundResponse")
+	if response == nil then
+		return nil
+	end
+	return response.id
+end
+
+-- adjustSound changes the volume or pitch of a sound Sound or EmitSound
+-- started, while it plays.
+function modlock.adjustSound(id: number, volume: number?, pitch: number?): boolean
+	return call("AdjustSound", "AdjustSoundRequest", { id = id, volume = volume, pitch = pitch }) ~= nil
+end
+
+-- stopSound stops a sound Sound or EmitSound started. A sound that already
+-- ended is not an error.
+function modlock.stopSound(id: number): boolean
+	return call("StopSound", "StopSoundRequest", { id = id }) ~= nil
 end
 
 -- watchProjectiles reports the projectiles with these designer names, such

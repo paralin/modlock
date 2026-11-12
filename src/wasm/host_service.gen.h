@@ -461,8 +461,10 @@ class HostService {
   }
 
   // Sound plays a game sound event, such as Damage.Send.Crit, on the
-  // player's hero.
-  virtual std::expected<void, std::string> Sound(const effects::SoundRequest& /*request*/) {
+  // player's hero, and returns its ID. It follows the hero as it moves.
+  // Volume and pitch scale the sound, and listeners limit who hears it.
+  virtual std::expected<effects::SoundResponse, std::string> Sound(
+      const effects::SoundRequest& /*request*/) {
     return std::unexpected("this host does not support Sound");
   }
 
@@ -489,6 +491,22 @@ class HostService {
   virtual std::expected<void, std::string> ClearScreenEffect(
       const effects::ClearScreenEffectRequest& /*request*/) {
     return std::unexpected("this host does not support ClearScreenEffect");
+  }
+
+  // SilenceVoice keeps every hero from speaking the named voice concepts,
+  // until called again. A hero still hears the game's other sounds. Stopping
+  // the mod lets them speak; a name the game does not know fails the call
+  // and the known ones still apply.
+  virtual std::expected<void, std::string> SilenceVoice(
+      const effects::SilenceVoiceRequest& /*request*/) {
+    return std::unexpected("this host does not support SilenceVoice");
+  }
+
+  // SilencePlayerVoice keeps the player's hero from speaking the named voice
+  // concepts until called again, on top of those silenced for everyone.
+  virtual std::expected<void, std::string> SilencePlayerVoice(
+      const effects::SilencePlayerVoiceRequest& /*request*/) {
+    return std::unexpected("this host does not support SilencePlayerVoice");
   }
 
   // ReadField reads one schema field of a live entity, such as the int32
@@ -527,7 +545,9 @@ class HostService {
   // entity's panel only when it creates the entity, so a write to
   // m_DialogXMLName sends every client a full update on the next frame, which
   // creates every entity again; the players' game stalls briefly, so write a
-  // layout when it changes, not every frame.
+  // layout when it changes, not every frame. It refuses the fields that
+  // name a console line or a script, such as m_iszPrivateVScripts, here and
+  // among the fields CreateEntity writes before spawn.
   virtual std::expected<void, std::string> WriteField(
       const fields::WriteFieldRequest& /*request*/) {
     return std::unexpected("this host does not support WriteField");
@@ -765,11 +785,14 @@ class HostService {
     return std::unexpected("this host does not support StartServiceCall");
   }
 
-  // CreateEntity creates any entity the server knows by its designer name,
+  // CreateEntity creates an entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
   // stopping the mod removes it too. It refuses an ability, item or weapon,
-  // which only a hero holds: GiveItem and ReplaceAbility give one.
+  // which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+  // a class that runs console lines or loads scripts or entities past a mod's
+  // checks, such as point_servercommand, and key values that name a console
+  // line or a script, such as vscripts.
   virtual std::expected<entities::EntityResponse, std::string> CreateEntity(
       const entities::EntityOptions& /*request*/) {
     return std::unexpected("this host does not support CreateEntity");
@@ -777,7 +800,9 @@ class HostService {
 
   // FireInput sends an input to a live entity, as a map's output would, such
   // as Skin with the integer 1. The value must have the type the input reads.
-  // It reports false once the entity is gone.
+  // It reports false once the entity is gone. It refuses AddOutput and the
+  // script inputs on every entity, and any input to an entity of a class
+  // CreateEntity refuses.
   virtual std::expected<entities::AliveResponse, std::string> FireInput(
       const entities::FireInputRequest& /*request*/) {
     return std::unexpected("this host does not support FireInput");
@@ -971,9 +996,25 @@ class HostService {
     return std::unexpected("this host does not support PushEntity");
   }
 
-  // EmitSound plays one game sound on any entity, such as a projectile.
-  virtual std::expected<void, std::string> EmitSound(const effects::EmitSoundRequest& /*request*/) {
+  // EmitSound plays one game sound on any entity, such as a projectile, and
+  // returns its ID. Volume and pitch scale the sound, and listeners limit who
+  // hears it.
+  virtual std::expected<effects::SoundResponse, std::string> EmitSound(
+      const effects::EmitSoundRequest& /*request*/) {
     return std::unexpected("this host does not support EmitSound");
+  }
+
+  // AdjustSound changes the volume or pitch of a sound Sound or EmitSound
+  // started, while it plays.
+  virtual std::expected<void, std::string> AdjustSound(
+      const effects::AdjustSoundRequest& /*request*/) {
+    return std::unexpected("this host does not support AdjustSound");
+  }
+
+  // StopSound stops a sound Sound or EmitSound started. A sound that already
+  // ended is not an error.
+  virtual std::expected<void, std::string> StopSound(const effects::StopSoundRequest& /*request*/) {
+    return std::unexpected("this host does not support StopSound");
   }
 
   // Kill kills a player's hero, crediting no one.
@@ -1446,6 +1487,22 @@ class HostService {
              return detail::Fail("the ClearScreenEffect request is malformed");
            }
            return detail::Answer(host.ClearScreenEffect(request));
+         }},
+        {"SilenceVoice",
+         [](HostService& host, const std::string& bytes) {
+           effects::SilenceVoiceRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SilenceVoice request is malformed");
+           }
+           return detail::Answer(host.SilenceVoice(request));
+         }},
+        {"SilencePlayerVoice",
+         [](HostService& host, const std::string& bytes) {
+           effects::SilencePlayerVoiceRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SilencePlayerVoice request is malformed");
+           }
+           return detail::Answer(host.SilencePlayerVoice(request));
          }},
         {"ReadField",
          [](HostService& host, const std::string& bytes) {
@@ -1933,6 +1990,22 @@ class HostService {
              return detail::Fail("the EmitSound request is malformed");
            }
            return detail::Answer(host.EmitSound(request));
+         }},
+        {"AdjustSound",
+         [](HostService& host, const std::string& bytes) {
+           effects::AdjustSoundRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the AdjustSound request is malformed");
+           }
+           return detail::Answer(host.AdjustSound(request));
+         }},
+        {"StopSound",
+         [](HostService& host, const std::string& bytes) {
+           effects::StopSoundRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the StopSound request is malformed");
+           }
+           return detail::Answer(host.StopSound(request));
          }},
         {"Kill",
          [](HostService& host, const std::string& bytes) {

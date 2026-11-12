@@ -156,12 +156,55 @@ func (x *AnnounceRequest) GetText() string {
 	return ""
 }
 
+// SoundOptions shape one sound; the zero value plays it to every player as
+// the game made it.
+type SoundOptions struct {
+	unknownFields []byte
+	// Volume scales the sound's loudness; 1 plays it as the game made it.
+	Volume *float32 `protobuf:"fixed32,1,opt,name=volume,proto3,oneof" json:"volume,omitempty"`
+	// Pitch scales the sound's pitch; 1 plays it as the game made it.
+	Pitch *float32 `protobuf:"fixed32,2,opt,name=pitch,proto3,oneof" json:"pitch,omitempty"`
+	// Listeners are the player slots that hear the sound; empty means every
+	// player.
+	Listeners []int32 `protobuf:"varint,3,rep,packed,name=listeners,proto3" json:"listeners,omitempty"`
+}
+
+func (x *SoundOptions) Reset() {
+	*x = SoundOptions{}
+}
+
+func (*SoundOptions) ProtoMessage() {}
+
+func (x *SoundOptions) GetVolume() float32 {
+	if x != nil && x.Volume != nil {
+		return *x.Volume
+	}
+	return 0
+}
+
+func (x *SoundOptions) GetPitch() float32 {
+	if x != nil && x.Pitch != nil {
+		return *x.Pitch
+	}
+	return 0
+}
+
+func (x *SoundOptions) GetListeners() []int32 {
+	if x != nil {
+		return x.Listeners
+	}
+	return nil
+}
+
 // SoundRequest plays one sound on a player's hero.
 type SoundRequest struct {
 	unknownFields []byte
 	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
 	// Sound is the game sound event's name, such as Player.ClaimOrb.
 	Sound string `protobuf:"bytes,2,opt,name=sound,proto3" json:"sound,omitempty"`
+	// Options set the sound's volume and pitch and who hears it; without
+	// them every player hears the sound as the game made it.
+	Options *SoundOptions `protobuf:"bytes,3,opt,name=options,proto3,oneof" json:"options,omitempty"`
 }
 
 func (x *SoundRequest) Reset() {
@@ -184,6 +227,13 @@ func (x *SoundRequest) GetSound() string {
 	return ""
 }
 
+func (x *SoundRequest) GetOptions() *SoundOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
 // EmitSoundRequest plays one sound on an entity.
 type EmitSoundRequest struct {
 	unknownFields []byte
@@ -191,6 +241,9 @@ type EmitSoundRequest struct {
 	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
 	// Sound is the game sound event's name.
 	Sound string `protobuf:"bytes,2,opt,name=sound,proto3" json:"sound,omitempty"`
+	// Options set the sound's volume and pitch and who hears it; without
+	// them every player hears the sound as the game made it.
+	Options *SoundOptions `protobuf:"bytes,3,opt,name=options,proto3,oneof" json:"options,omitempty"`
 }
 
 func (x *EmitSoundRequest) Reset() {
@@ -211,6 +264,91 @@ func (x *EmitSoundRequest) GetSound() string {
 		return x.Sound
 	}
 	return ""
+}
+
+func (x *EmitSoundRequest) GetOptions() *SoundOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+// SoundResponse names a sound that Sound or EmitSound started.
+type SoundResponse struct {
+	unknownFields []byte
+	// Id names the playing sound to AdjustSound and StopSound; it is never 0.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *SoundResponse) Reset() {
+	*x = SoundResponse{}
+}
+
+func (*SoundResponse) ProtoMessage() {}
+
+func (x *SoundResponse) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// AdjustSoundRequest changes a playing sound.
+type AdjustSoundRequest struct {
+	unknownFields []byte
+	// Id is the sound's ID, as Sound or EmitSound returned it.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Volume replaces the sound's loudness scale when present.
+	Volume *float32 `protobuf:"fixed32,2,opt,name=volume,proto3,oneof" json:"volume,omitempty"`
+	// Pitch replaces the sound's pitch scale when present.
+	Pitch *float32 `protobuf:"fixed32,3,opt,name=pitch,proto3,oneof" json:"pitch,omitempty"`
+}
+
+func (x *AdjustSoundRequest) Reset() {
+	*x = AdjustSoundRequest{}
+}
+
+func (*AdjustSoundRequest) ProtoMessage() {}
+
+func (x *AdjustSoundRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AdjustSoundRequest) GetVolume() float32 {
+	if x != nil && x.Volume != nil {
+		return *x.Volume
+	}
+	return 0
+}
+
+func (x *AdjustSoundRequest) GetPitch() float32 {
+	if x != nil && x.Pitch != nil {
+		return *x.Pitch
+	}
+	return 0
+}
+
+// StopSoundRequest names a playing sound to stop.
+type StopSoundRequest struct {
+	unknownFields []byte
+	// Id is the sound's ID, as Sound or EmitSound returned it.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *StopSoundRequest) Reset() {
+	*x = StopSoundRequest{}
+}
+
+func (*StopSoundRequest) ProtoMessage() {}
+
+func (x *StopSoundRequest) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
 }
 
 // ScreenEffectRequest plays a screen effect on one player's view.
@@ -325,6 +463,57 @@ func (x *ClearScreenEffectRequest) GetEffect() ScreenEffect {
 	return ScreenEffect_SCREEN_EFFECT_KILLED
 }
 
+// SilenceVoiceRequest names the voice concepts every hero keeps silent.
+type SilenceVoiceRequest struct {
+	unknownFields []byte
+	// Concepts name CitadelConcept_t values, such as TLK_CITADEL_GOLD_GAINED,
+	// under which a hero calls out its souls and reminds itself to spend them.
+	// None lets every hero speak again.
+	Concepts []string `protobuf:"bytes,1,rep,name=concepts,proto3" json:"concepts,omitempty"`
+}
+
+func (x *SilenceVoiceRequest) Reset() {
+	*x = SilenceVoiceRequest{}
+}
+
+func (*SilenceVoiceRequest) ProtoMessage() {}
+
+func (x *SilenceVoiceRequest) GetConcepts() []string {
+	if x != nil {
+		return x.Concepts
+	}
+	return nil
+}
+
+// SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
+// silent.
+type SilencePlayerVoiceRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Concepts name CitadelConcept_t values; none lets the hero speak again.
+	Concepts []string `protobuf:"bytes,2,rep,name=concepts,proto3" json:"concepts,omitempty"`
+}
+
+func (x *SilencePlayerVoiceRequest) Reset() {
+	*x = SilencePlayerVoiceRequest{}
+}
+
+func (*SilencePlayerVoiceRequest) ProtoMessage() {}
+
+func (x *SilencePlayerVoiceRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SilencePlayerVoiceRequest) GetConcepts() []string {
+	if x != nil {
+		return x.Concepts
+	}
+	return nil
+}
+
 func (m *ChatRequest) CloneVT() *ChatRequest {
 	if m == nil {
 		return (*ChatRequest)(nil)
@@ -377,6 +566,24 @@ func (m *AnnounceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *SoundOptions) CloneVT() *SoundOptions {
+	if m == nil {
+		return (*SoundOptions)(nil)
+	}
+	r := new(SoundOptions)
+	r.Volume = protobuf_go_lite.ClonePtr(m.Volume)
+	r.Pitch = protobuf_go_lite.ClonePtr(m.Pitch)
+	r.Listeners = protobuf_go_lite.CloneSlice(m.Listeners)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SoundOptions) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *SoundRequest) CloneVT() *SoundRequest {
 	if m == nil {
 		return (*SoundRequest)(nil)
@@ -384,6 +591,7 @@ func (m *SoundRequest) CloneVT() *SoundRequest {
 	r := new(SoundRequest)
 	r.Player = m.Player
 	r.Sound = m.Sound
+	r.Options = protobuf_go_lite.CloneVTValue(m.Options)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -401,6 +609,7 @@ func (m *EmitSoundRequest) CloneVT() *EmitSoundRequest {
 	r := new(EmitSoundRequest)
 	r.Entity = m.Entity
 	r.Sound = m.Sound
+	r.Options = protobuf_go_lite.CloneVTValue(m.Options)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -408,6 +617,56 @@ func (m *EmitSoundRequest) CloneVT() *EmitSoundRequest {
 }
 
 func (m *EmitSoundRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SoundResponse) CloneVT() *SoundResponse {
+	if m == nil {
+		return (*SoundResponse)(nil)
+	}
+	r := new(SoundResponse)
+	r.Id = m.Id
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SoundResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *AdjustSoundRequest) CloneVT() *AdjustSoundRequest {
+	if m == nil {
+		return (*AdjustSoundRequest)(nil)
+	}
+	r := new(AdjustSoundRequest)
+	r.Id = m.Id
+	r.Volume = protobuf_go_lite.ClonePtr(m.Volume)
+	r.Pitch = protobuf_go_lite.ClonePtr(m.Pitch)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *AdjustSoundRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *StopSoundRequest) CloneVT() *StopSoundRequest {
+	if m == nil {
+		return (*StopSoundRequest)(nil)
+	}
+	r := new(StopSoundRequest)
+	r.Id = m.Id
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *StopSoundRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -462,6 +721,39 @@ func (m *ClearScreenEffectRequest) CloneVT() *ClearScreenEffectRequest {
 }
 
 func (m *ClearScreenEffectRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SilenceVoiceRequest) CloneVT() *SilenceVoiceRequest {
+	if m == nil {
+		return (*SilenceVoiceRequest)(nil)
+	}
+	r := new(SilenceVoiceRequest)
+	r.Concepts = protobuf_go_lite.CloneSlice(m.Concepts)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SilenceVoiceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SilencePlayerVoiceRequest) CloneVT() *SilencePlayerVoiceRequest {
+	if m == nil {
+		return (*SilencePlayerVoiceRequest)(nil)
+	}
+	r := new(SilencePlayerVoiceRequest)
+	r.Player = m.Player
+	r.Concepts = protobuf_go_lite.CloneSlice(m.Concepts)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SilencePlayerVoiceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -537,6 +829,32 @@ func (this *AnnounceRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *SoundOptions) EqualVT(that *SoundOptions) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Volume, that.Volume) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Pitch, that.Pitch) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Listeners, that.Listeners) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SoundOptions) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SoundOptions)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *SoundRequest) EqualVT(that *SoundRequest) bool {
 	if this == that {
 		return true
@@ -547,6 +865,9 @@ func (this *SoundRequest) EqualVT(that *SoundRequest) bool {
 		return false
 	}
 	if this.Sound != that.Sound {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Options, that.Options) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -572,11 +893,80 @@ func (this *EmitSoundRequest) EqualVT(that *EmitSoundRequest) bool {
 	if this.Sound != that.Sound {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Options, that.Options) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *EmitSoundRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*EmitSoundRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SoundResponse) EqualVT(that *SoundResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SoundResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SoundResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *AdjustSoundRequest) EqualVT(that *AdjustSoundRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Volume, that.Volume) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Pitch, that.Pitch) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AdjustSoundRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*AdjustSoundRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *StopSoundRequest) EqualVT(that *StopSoundRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *StopSoundRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*StopSoundRequest)
 	if !ok {
 		return false
 	}
@@ -655,6 +1045,49 @@ func (this *ClearScreenEffectRequest) EqualVT(that *ClearScreenEffectRequest) bo
 
 func (this *ClearScreenEffectRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ClearScreenEffectRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SilenceVoiceRequest) EqualVT(that *SilenceVoiceRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Concepts, that.Concepts) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SilenceVoiceRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SilenceVoiceRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SilencePlayerVoiceRequest) EqualVT(that *SilencePlayerVoiceRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Concepts, that.Concepts) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SilencePlayerVoiceRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SilencePlayerVoiceRequest)
 	if !ok {
 		return false
 	}
@@ -859,6 +1292,78 @@ func (x *AnnounceRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the SoundOptions message to JSON.
+func (x *SoundOptions) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Volume != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("volume")
+		s.WriteFloat32(*x.Volume)
+	}
+	if x.Pitch != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("pitch")
+		s.WriteFloat32(*x.Pitch)
+	}
+	if len(x.Listeners) > 0 || s.HasField("listeners") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("listeners")
+		s.WriteInt32Array(x.Listeners)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SoundOptions to JSON.
+func (x *SoundOptions) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SoundOptions message from JSON.
+func (x *SoundOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "volume":
+			s.AddField("volume")
+			if s.ReadNil() {
+				x.Volume = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Volume = &t
+		case "pitch":
+			s.AddField("pitch")
+			if s.ReadNil() {
+				x.Pitch = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Pitch = &t
+		case "listeners":
+			s.AddField("listeners")
+			if s.ReadNil() {
+				x.Listeners = nil
+				return
+			}
+			x.Listeners = s.ReadInt32Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SoundOptions from JSON.
+func (x *SoundOptions) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the SoundRequest message to JSON.
 func (x *SoundRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -876,6 +1381,11 @@ func (x *SoundRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("sound")
 		s.WriteString(x.Sound)
+	}
+	if x.Options != nil || s.HasField("options") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("options")
+		x.Options.MarshalProtoJSON(s.WithField("options"))
 	}
 	s.WriteObjectEnd()
 }
@@ -900,6 +1410,13 @@ func (x *SoundRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "sound":
 			s.AddField("sound")
 			x.Sound = s.ReadString()
+		case "options":
+			if s.ReadNil() {
+				x.Options = nil
+				return
+			}
+			x.Options = &SoundOptions{}
+			x.Options.UnmarshalProtoJSON(s.WithField("options", true))
 		}
 	})
 }
@@ -927,6 +1444,11 @@ func (x *EmitSoundRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("sound")
 		s.WriteString(x.Sound)
 	}
+	if x.Options != nil || s.HasField("options") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("options")
+		x.Options.MarshalProtoJSON(s.WithField("options"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -950,12 +1472,171 @@ func (x *EmitSoundRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "sound":
 			s.AddField("sound")
 			x.Sound = s.ReadString()
+		case "options":
+			if s.ReadNil() {
+				x.Options = nil
+				return
+			}
+			x.Options = &SoundOptions{}
+			x.Options.UnmarshalProtoJSON(s.WithField("options", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the EmitSoundRequest from JSON.
 func (x *EmitSoundRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SoundResponse message to JSON.
+func (x *SoundResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Id != 0 || s.HasField("id") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("id")
+		s.WriteUint32(x.Id)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SoundResponse to JSON.
+func (x *SoundResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SoundResponse message from JSON.
+func (x *SoundResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "id":
+			s.AddField("id")
+			x.Id = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SoundResponse from JSON.
+func (x *SoundResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the AdjustSoundRequest message to JSON.
+func (x *AdjustSoundRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Id != 0 || s.HasField("id") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("id")
+		s.WriteUint32(x.Id)
+	}
+	if x.Volume != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("volume")
+		s.WriteFloat32(*x.Volume)
+	}
+	if x.Pitch != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("pitch")
+		s.WriteFloat32(*x.Pitch)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the AdjustSoundRequest to JSON.
+func (x *AdjustSoundRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the AdjustSoundRequest message from JSON.
+func (x *AdjustSoundRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "id":
+			s.AddField("id")
+			x.Id = s.ReadUint32()
+		case "volume":
+			s.AddField("volume")
+			if s.ReadNil() {
+				x.Volume = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Volume = &t
+		case "pitch":
+			s.AddField("pitch")
+			if s.ReadNil() {
+				x.Pitch = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Pitch = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the AdjustSoundRequest from JSON.
+func (x *AdjustSoundRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the StopSoundRequest message to JSON.
+func (x *StopSoundRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Id != 0 || s.HasField("id") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("id")
+		s.WriteUint32(x.Id)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the StopSoundRequest to JSON.
+func (x *StopSoundRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the StopSoundRequest message from JSON.
+func (x *StopSoundRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "id":
+			s.AddField("id")
+			x.Id = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the StopSoundRequest from JSON.
+func (x *StopSoundRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1157,6 +1838,106 @@ func (x *ClearScreenEffectRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the SilenceVoiceRequest message to JSON.
+func (x *SilenceVoiceRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Concepts) > 0 || s.HasField("concepts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("concepts")
+		s.WriteStringArray(x.Concepts)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SilenceVoiceRequest to JSON.
+func (x *SilenceVoiceRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SilenceVoiceRequest message from JSON.
+func (x *SilenceVoiceRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "concepts":
+			s.AddField("concepts")
+			if s.ReadNil() {
+				x.Concepts = nil
+				return
+			}
+			x.Concepts = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SilenceVoiceRequest from JSON.
+func (x *SilenceVoiceRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SilencePlayerVoiceRequest message to JSON.
+func (x *SilencePlayerVoiceRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if len(x.Concepts) > 0 || s.HasField("concepts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("concepts")
+		s.WriteStringArray(x.Concepts)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SilencePlayerVoiceRequest to JSON.
+func (x *SilencePlayerVoiceRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SilencePlayerVoiceRequest message from JSON.
+func (x *SilencePlayerVoiceRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "concepts":
+			s.AddField("concepts")
+			if s.ReadNil() {
+				x.Concepts = nil
+				return
+			}
+			x.Concepts = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SilencePlayerVoiceRequest from JSON.
+func (x *SilencePlayerVoiceRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *ChatRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1288,6 +2069,53 @@ func (m *AnnounceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SoundOptions) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SoundOptions) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SoundOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Listeners) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Listeners)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Pitch != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Pitch))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Volume != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Volume))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *SoundRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1316,6 +2144,16 @@ func (m *SoundRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Options != nil {
+		size, err := m.Options.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
 	}
 	if len(m.Sound) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sound)
@@ -1359,6 +2197,16 @@ func (m *EmitSoundRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Options != nil {
+		size, err := m.Options.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Sound) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sound)
 		i--
@@ -1366,6 +2214,127 @@ func (m *EmitSoundRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Entity != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SoundResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SoundResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SoundResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Id != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AdjustSoundRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AdjustSoundRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *AdjustSoundRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Pitch != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Pitch))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Volume != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Volume))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Id != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *StopSoundRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StopSoundRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *StopSoundRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Id != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Id))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -1518,6 +2487,89 @@ func (m *ClearScreenEffectRequest) MarshalToSizedBufferVT(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *SilenceVoiceRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SilenceVoiceRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SilenceVoiceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Concepts) > 0 {
+		for iNdEx := len(m.Concepts) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Concepts[iNdEx])
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Concepts) > 0 {
+		for iNdEx := len(m.Concepts) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Concepts[iNdEx])
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ChatRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1555,6 +2607,19 @@ func (m *AnnounceRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *SoundOptions) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Volume)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Pitch)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Listeners)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *SoundRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1563,6 +2628,10 @@ func (m *SoundRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
+	if m.Options != nil {
+		l = m.Options.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -1575,6 +2644,45 @@ func (m *EmitSoundRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
+	if m.Options != nil {
+		l = m.Options.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SoundResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Id)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *AdjustSoundRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Id)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Volume)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Pitch)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *StopSoundRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Id)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1617,6 +2725,29 @@ func (m *ClearScreenEffectRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Effect)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SilenceVoiceRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringSlice(1, m.Concepts)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SilencePlayerVoiceRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Concepts)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1683,6 +2814,32 @@ func (x *AnnounceRequest) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *SoundOptions) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SoundOptions")
+	if x.Volume != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "volume")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Volume)
+	}
+	if x.Pitch != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "pitch")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Pitch)
+	}
+	if len(x.Listeners) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "listeners")
+		for i, v := range x.Listeners {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SoundOptions) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *SoundRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SoundRequest")
@@ -1693,6 +2850,10 @@ func (x *SoundRequest) MarshalProtoText() string {
 	if x.Sound != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
 		protobuf_go_lite.TextWriteString(&sb, x.Sound)
+	}
+	if x.Options != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "options")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Options)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -1712,10 +2873,64 @@ func (x *EmitSoundRequest) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
 		protobuf_go_lite.TextWriteString(&sb, x.Sound)
 	}
+	if x.Options != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "options")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Options)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *EmitSoundRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SoundResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SoundResponse")
+	if x.Id != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "id")
+		protobuf_go_lite.TextWriteUint(&sb, x.Id)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SoundResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *AdjustSoundRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AdjustSoundRequest")
+	if x.Id != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "id")
+		protobuf_go_lite.TextWriteUint(&sb, x.Id)
+	}
+	if x.Volume != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "volume")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Volume)
+	}
+	if x.Pitch != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "pitch")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Pitch)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *AdjustSoundRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *StopSoundRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "StopSoundRequest")
+	if x.Id != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "id")
+		protobuf_go_lite.TextWriteUint(&sb, x.Id)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *StopSoundRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1782,6 +2997,46 @@ func (x *ClearScreenEffectRequest) MarshalProtoText() string {
 }
 
 func (x *ClearScreenEffectRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SilenceVoiceRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SilenceVoiceRequest")
+	if len(x.Concepts) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "concepts")
+		for i, v := range x.Concepts {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SilenceVoiceRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SilencePlayerVoiceRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SilencePlayerVoiceRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if len(x.Concepts) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "concepts")
+		for i, v := range x.Concepts {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SilencePlayerVoiceRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1981,6 +3236,105 @@ func (m *AnnounceRequest) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
+func (m *SoundOptions) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SoundOptions: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SoundOptions: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Volume", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Volume = &v2
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pitch", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Pitch = &v2
+		case 3:
+			if wireType == 0 {
+				var v int32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Listeners = append(m.Listeners, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Listeners) == 0 {
+					m.Listeners = make([]int32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v int32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Listeners = append(m.Listeners, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Listeners", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
 func (m *SoundRequest) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2020,6 +3374,21 @@ func (m *SoundRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Sound = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Options == nil {
+				m.Options = &SoundOptions{}
+			}
+			if err := m.Options.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -2082,6 +3451,203 @@ func (m *EmitSoundRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Sound = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Options == nil {
+				m.Options = &SoundOptions{}
+			}
+			if err := m.Options.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SoundResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SoundResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SoundResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			m.Id, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *AdjustSoundRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AdjustSoundRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AdjustSoundRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			m.Id, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Volume", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Volume = &v2
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pitch", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Pitch = &v2
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *StopSoundRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StopSoundRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StopSoundRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			m.Id, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -2318,6 +3884,121 @@ func (m *ClearScreenEffectRequest) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SilenceVoiceRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SilenceVoiceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SilenceVoiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Concepts", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Concepts = append(m.Concepts, v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SilencePlayerVoiceRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SilencePlayerVoiceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SilencePlayerVoiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Concepts", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Concepts = append(m.Concepts, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

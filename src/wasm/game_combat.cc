@@ -8,6 +8,7 @@
 
 #include "modlock/gameinterop/console_variables.h"
 #include "modlock/gameinterop/native_memory.h"
+#include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -435,9 +436,12 @@ void Game::TickRestores() {
 }
 
 std::expected<void, std::string> Game::RestoreNpcs(const npcs::RestoreNpcsRequest& request) {
-  // Describe each NPC to restore.
+  // Describe each NPC to restore, refusing a class that runs console lines.
   std::vector<NpcRestore::Target> targets;
   for (const auto& npc : request.npcs()) {
+    if (auto refused = RefuseEntityClass(npc.class_name()); !refused.empty()) {
+      return std::unexpected(std::move(refused));
+    }
     targets.push_back({
         .designer_name = npc.class_name(),
         .subclass_id = npc.id(),
