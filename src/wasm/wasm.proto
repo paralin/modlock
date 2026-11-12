@@ -374,6 +374,16 @@ service Host {
   // view.
   rpc ClearScreenEffect(modlock.wasm.effects.ClearScreenEffectRequest) returns (Empty);
 
+  // SilenceVoice keeps every hero from speaking the named voice concepts,
+  // until called again. A hero still hears the game's other sounds. Stopping
+  // the mod lets them speak; a name the game does not know fails the call
+  // and the known ones still apply.
+  rpc SilenceVoice(modlock.wasm.effects.SilenceVoiceRequest) returns (Empty);
+
+  // SilencePlayerVoice keeps the player's hero from speaking the named voice
+  // concepts until called again, on top of those silenced for everyone.
+  rpc SilencePlayerVoice(modlock.wasm.effects.SilencePlayerVoiceRequest) returns (Empty);
+
   // ReadField reads one schema field of a live entity, such as the int32
   // m_iHealth of CBaseEntity. The host finds the field by name, so it
   // survives game updates that move it, and refuses an entity that is not of

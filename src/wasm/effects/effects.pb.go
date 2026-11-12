@@ -325,6 +325,57 @@ func (x *ClearScreenEffectRequest) GetEffect() ScreenEffect {
 	return ScreenEffect_SCREEN_EFFECT_KILLED
 }
 
+// SilenceVoiceRequest names the voice concepts every hero keeps silent.
+type SilenceVoiceRequest struct {
+	unknownFields []byte
+	// Concepts name CitadelConcept_t values, such as TLK_CITADEL_GOLD_GAINED,
+	// under which a hero calls out its souls and reminds itself to spend them.
+	// None lets every hero speak again.
+	Concepts []string `protobuf:"bytes,1,rep,name=concepts,proto3" json:"concepts,omitempty"`
+}
+
+func (x *SilenceVoiceRequest) Reset() {
+	*x = SilenceVoiceRequest{}
+}
+
+func (*SilenceVoiceRequest) ProtoMessage() {}
+
+func (x *SilenceVoiceRequest) GetConcepts() []string {
+	if x != nil {
+		return x.Concepts
+	}
+	return nil
+}
+
+// SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
+// silent.
+type SilencePlayerVoiceRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Concepts name CitadelConcept_t values; none lets the hero speak again.
+	Concepts []string `protobuf:"bytes,2,rep,name=concepts,proto3" json:"concepts,omitempty"`
+}
+
+func (x *SilencePlayerVoiceRequest) Reset() {
+	*x = SilencePlayerVoiceRequest{}
+}
+
+func (*SilencePlayerVoiceRequest) ProtoMessage() {}
+
+func (x *SilencePlayerVoiceRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SilencePlayerVoiceRequest) GetConcepts() []string {
+	if x != nil {
+		return x.Concepts
+	}
+	return nil
+}
+
 func (m *ChatRequest) CloneVT() *ChatRequest {
 	if m == nil {
 		return (*ChatRequest)(nil)
@@ -462,6 +513,39 @@ func (m *ClearScreenEffectRequest) CloneVT() *ClearScreenEffectRequest {
 }
 
 func (m *ClearScreenEffectRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SilenceVoiceRequest) CloneVT() *SilenceVoiceRequest {
+	if m == nil {
+		return (*SilenceVoiceRequest)(nil)
+	}
+	r := new(SilenceVoiceRequest)
+	r.Concepts = protobuf_go_lite.CloneSlice(m.Concepts)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SilenceVoiceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SilencePlayerVoiceRequest) CloneVT() *SilencePlayerVoiceRequest {
+	if m == nil {
+		return (*SilencePlayerVoiceRequest)(nil)
+	}
+	r := new(SilencePlayerVoiceRequest)
+	r.Player = m.Player
+	r.Concepts = protobuf_go_lite.CloneSlice(m.Concepts)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SilencePlayerVoiceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -655,6 +739,49 @@ func (this *ClearScreenEffectRequest) EqualVT(that *ClearScreenEffectRequest) bo
 
 func (this *ClearScreenEffectRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ClearScreenEffectRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SilenceVoiceRequest) EqualVT(that *SilenceVoiceRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Concepts, that.Concepts) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SilenceVoiceRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SilenceVoiceRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SilencePlayerVoiceRequest) EqualVT(that *SilencePlayerVoiceRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Concepts, that.Concepts) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SilencePlayerVoiceRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SilencePlayerVoiceRequest)
 	if !ok {
 		return false
 	}
@@ -1157,6 +1284,106 @@ func (x *ClearScreenEffectRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the SilenceVoiceRequest message to JSON.
+func (x *SilenceVoiceRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Concepts) > 0 || s.HasField("concepts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("concepts")
+		s.WriteStringArray(x.Concepts)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SilenceVoiceRequest to JSON.
+func (x *SilenceVoiceRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SilenceVoiceRequest message from JSON.
+func (x *SilenceVoiceRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "concepts":
+			s.AddField("concepts")
+			if s.ReadNil() {
+				x.Concepts = nil
+				return
+			}
+			x.Concepts = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SilenceVoiceRequest from JSON.
+func (x *SilenceVoiceRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SilencePlayerVoiceRequest message to JSON.
+func (x *SilencePlayerVoiceRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if len(x.Concepts) > 0 || s.HasField("concepts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("concepts")
+		s.WriteStringArray(x.Concepts)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SilencePlayerVoiceRequest to JSON.
+func (x *SilencePlayerVoiceRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SilencePlayerVoiceRequest message from JSON.
+func (x *SilencePlayerVoiceRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "concepts":
+			s.AddField("concepts")
+			if s.ReadNil() {
+				x.Concepts = nil
+				return
+			}
+			x.Concepts = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SilencePlayerVoiceRequest from JSON.
+func (x *SilencePlayerVoiceRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *ChatRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1518,6 +1745,89 @@ func (m *ClearScreenEffectRequest) MarshalToSizedBufferVT(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *SilenceVoiceRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SilenceVoiceRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SilenceVoiceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Concepts) > 0 {
+		for iNdEx := len(m.Concepts) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Concepts[iNdEx])
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SilencePlayerVoiceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Concepts) > 0 {
+		for iNdEx := len(m.Concepts) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Concepts[iNdEx])
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ChatRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1617,6 +1927,29 @@ func (m *ClearScreenEffectRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Effect)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SilenceVoiceRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringSlice(1, m.Concepts)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SilencePlayerVoiceRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Concepts)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1782,6 +2115,46 @@ func (x *ClearScreenEffectRequest) MarshalProtoText() string {
 }
 
 func (x *ClearScreenEffectRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SilenceVoiceRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SilenceVoiceRequest")
+	if len(x.Concepts) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "concepts")
+		for i, v := range x.Concepts {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SilenceVoiceRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SilencePlayerVoiceRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SilencePlayerVoiceRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if len(x.Concepts) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "concepts")
+		for i, v := range x.Concepts {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SilencePlayerVoiceRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -2318,6 +2691,121 @@ func (m *ClearScreenEffectRequest) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SilenceVoiceRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SilenceVoiceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SilenceVoiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Concepts", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Concepts = append(m.Concepts, v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SilencePlayerVoiceRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SilencePlayerVoiceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SilencePlayerVoiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Concepts", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Concepts = append(m.Concepts, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

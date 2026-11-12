@@ -1134,6 +1134,20 @@ func (p Player) ClearScreenEffect(effect ScreenEffect) error {
 	return invoke("ClearScreenEffect", &effectspb.ClearScreenEffectRequest{Player: p.Slot, Effect: effect}, nil)
 }
 
+// SilenceVoice keeps every hero from speaking the named voice concepts,
+// until called again. A hero still hears the game's other sounds. Stopping
+// the mod lets them speak; a name the game does not know fails the call
+// and the known ones still apply.
+func SilenceVoice(concepts []string) error {
+	return invoke("SilenceVoice", &effectspb.SilenceVoiceRequest{Concepts: concepts}, nil)
+}
+
+// SilenceVoice keeps the player's hero from speaking the named voice
+// concepts until called again, on top of those silenced for everyone.
+func (p Player) SilenceVoice(concepts []string) error {
+	return invoke("SilencePlayerVoice", &effectspb.SilencePlayerVoiceRequest{Player: p.Slot, Concepts: concepts}, nil)
+}
+
 // ReadField reads one schema field of a live entity, such as the int32
 // m_iHealth of CBaseEntity. The host finds the field by name, so it
 // survives game updates that move it, and refuses an entity that is not of

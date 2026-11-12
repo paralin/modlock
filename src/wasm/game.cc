@@ -170,11 +170,12 @@ void Game::Leave(int32_t slot) {
   steers_.erase(slot);
   drives_.erase(slot);
 
-  // Forget its restores, blocks, presses and what it was shown.
+  // Forget its restores, blocks, presses, silences and what it was shown.
   restores_.erase(slot);
   picks_.Forget(slot);
   input_.Leave(slot);
   visibility_.Leave(slot);
+  silenced_players_.erase(slot);
 
   // Release the modifiers the slot held.
   std::vector<std::string> keys;
@@ -238,8 +239,11 @@ void Game::Clear() {
   ReleaseFreeForAll();
   ReleaseModifiers();
 
-  // Release the input the mod blocked, remapped or watched.
+  // Release the input the mod blocked, remapped or watched, and the voices
+  // it silenced.
   input_.Clear();
+  silenced_.clear();
+  silenced_players_.clear();
 
   // Drop pending restores and their reports.
   restores_.clear();

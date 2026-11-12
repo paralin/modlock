@@ -58,6 +58,57 @@ struct SoundRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SoundRequestDefaultTypeInternal _SoundRequest_default_instance_;
 
+inline constexpr SilenceVoiceRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        concepts_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SilenceVoiceRequest::SilenceVoiceRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SilenceVoiceRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SilenceVoiceRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SilenceVoiceRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SilenceVoiceRequestDefaultTypeInternal() {}
+  union {
+    SilenceVoiceRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SilenceVoiceRequestDefaultTypeInternal _SilenceVoiceRequest_default_instance_;
+
+inline constexpr SilencePlayerVoiceRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        concepts_{},
+        player_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SilencePlayerVoiceRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SilencePlayerVoiceRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SilencePlayerVoiceRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SilencePlayerVoiceRequestDefaultTypeInternal() {}
+  union {
+    SilencePlayerVoiceRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SilencePlayerVoiceRequestDefaultTypeInternal _SilencePlayerVoiceRequest_default_instance_;
+
 inline constexpr ScreenTiming::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -327,6 +378,18 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::ClearScreenEffectRequest, _impl_.effect_),
         0,
         1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilenceVoiceRequest, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilenceVoiceRequest, _impl_.concepts_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::effects::SilencePlayerVoiceRequest, _impl_.concepts_),
+        1,
+        0,
 };
 
 static const ::_pbi::MigrationSchema
@@ -339,6 +402,8 @@ static const ::_pbi::MigrationSchema
         {37, sizeof(::modlock::wasm::effects::ScreenEffectRequest)},
         {46, sizeof(::modlock::wasm::effects::ScreenTiming)},
         {57, sizeof(::modlock::wasm::effects::ClearScreenEffectRequest)},
+        {64, sizeof(::modlock::wasm::effects::SilenceVoiceRequest)},
+        {69, sizeof(::modlock::wasm::effects::SilencePlayerVoiceRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::effects::_ChatRequest_default_instance_._instance,
@@ -349,6 +414,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::effects::_ScreenEffectRequest_default_instance_._instance,
     &::modlock::wasm::effects::_ScreenTiming_default_instance_._instance,
     &::modlock::wasm::effects::_ClearScreenEffectRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SilenceVoiceRequest_default_instance_._instance,
+    &::modlock::wasm::effects::_SilencePlayerVoiceRequest_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -370,24 +437,27 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "B\010\n\006_delayB\n\n\010_fade_inB\007\n\005_holdB\013\n\t_fade"
     "_out\"^\n\030ClearScreenEffectRequest\022\016\n\006play"
     "er\030\001 \001(\005\0222\n\006effect\030\002 \001(\0162\".modlock.wasm."
-    "effects.ScreenEffect*\227\001\n\014ScreenEffect\022\030\n"
-    "\024SCREEN_EFFECT_KILLED\020\000\022\027\n\023SCREEN_EFFECT"
-    "_BLACK\020\001\022\031\n\025SCREEN_EFFECT_BLINDED\020\002\022\032\n\026S"
-    "CREEN_EFFECT_DARKNESS\020\003\022\035\n\031SCREEN_EFFECT"
-    "_MATCH_INTRO\020\004B5Z3github.com/paralin/mod"
-    "lock/src/wasm/effects;effectsb\006proto3"
+    "effects.ScreenEffect\"\'\n\023SilenceVoiceRequ"
+    "est\022\020\n\010concepts\030\001 \003(\t\"=\n\031SilencePlayerVo"
+    "iceRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010concepts\030\002"
+    " \003(\t*\227\001\n\014ScreenEffect\022\030\n\024SCREEN_EFFECT_K"
+    "ILLED\020\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022\031\n\025SCRE"
+    "EN_EFFECT_BLINDED\020\002\022\032\n\026SCREEN_EFFECT_DAR"
+    "KNESS\020\003\022\035\n\031SCREEN_EFFECT_MATCH_INTRO\020\004B5"
+    "Z3github.com/paralin/modlock/src/wasm/ef"
+    "fects;effectsb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto = {
     false,
     false,
-    957,
+    1061,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
     "github.com/paralin/modlock/src/wasm/effects/effects.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto_once,
     nullptr,
     0,
-    8,
+    10,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto::offsets,
@@ -2935,6 +3005,607 @@ void ClearScreenEffectRequest::InternalSwap(ClearScreenEffectRequest* PROTOBUF_R
 }
 
 ::google::protobuf::Metadata ClearScreenEffectRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SilenceVoiceRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SilenceVoiceRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._has_bits_);
+};
+
+SilenceVoiceRequest::SilenceVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilenceVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SilenceVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilenceVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::effects::SilenceVoiceRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        concepts_{visibility, arena, from.concepts_} {}
+
+SilenceVoiceRequest::SilenceVoiceRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SilenceVoiceRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilenceVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SilenceVoiceRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SilenceVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilenceVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        concepts_{visibility, arena} {}
+
+inline void SilenceVoiceRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+SilenceVoiceRequest::~SilenceVoiceRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SilenceVoiceRequest)
+  SharedDtor(*this);
+}
+inline void SilenceVoiceRequest::SharedDtor(MessageLite& self) {
+  SilenceVoiceRequest& this_ = static_cast<SilenceVoiceRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SilenceVoiceRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SilenceVoiceRequest(arena);
+}
+constexpr auto SilenceVoiceRequest::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_) +
+          decltype(SilenceVoiceRequest::_impl_.concepts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(SilenceVoiceRequest), alignof(SilenceVoiceRequest), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SilenceVoiceRequest::PlacementNew_,
+                                 sizeof(SilenceVoiceRequest),
+                                 alignof(SilenceVoiceRequest));
+  }
+}
+constexpr auto SilenceVoiceRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SilenceVoiceRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SilenceVoiceRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SilenceVoiceRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SilenceVoiceRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SilenceVoiceRequest>(), &SilenceVoiceRequest::ByteSizeLong,
+              &SilenceVoiceRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._cached_size_),
+          false,
+      },
+      &SilenceVoiceRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SilenceVoiceRequest_class_data_ =
+        SilenceVoiceRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SilenceVoiceRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SilenceVoiceRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SilenceVoiceRequest_class_data_.tc_table);
+  return SilenceVoiceRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 57, 2>
+SilenceVoiceRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SilenceVoiceRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SilenceVoiceRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated string concepts = 1;
+    {::_pbi::TcParser::FastUR1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // repeated string concepts = 1;
+    {PROTOBUF_FIELD_OFFSET(SilenceVoiceRequest, _impl_.concepts_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
+  }},
+  // no aux_entries
+  {{
+    "\50\10\0\0\0\0\0\0"
+    "modlock.wasm.effects.SilenceVoiceRequest"
+    "concepts"
+  }},
+};
+PROTOBUF_NOINLINE void SilenceVoiceRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.concepts_.Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SilenceVoiceRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SilenceVoiceRequest& this_ = static_cast<const SilenceVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SilenceVoiceRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SilenceVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // repeated string concepts = 1;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (int i = 0, n = this_._internal_concepts_size(); i < n; ++i) {
+      const auto& s = this_._internal_concepts().Get(i);
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.SilenceVoiceRequest.concepts");
+      target = stream->WriteString(1, s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SilenceVoiceRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SilenceVoiceRequest::ByteSizeLong(const MessageLite& base) {
+  const SilenceVoiceRequest& this_ = static_cast<const SilenceVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SilenceVoiceRequest::ByteSizeLong() const {
+  const SilenceVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated string concepts = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_concepts().size());
+      for (int i = 0, n = this_._internal_concepts().size(); i < n; ++i) {
+        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+            this_._internal_concepts().Get(i));
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SilenceVoiceRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SilenceVoiceRequest*>(&to_msg);
+  auto& from = static_cast<const SilenceVoiceRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SilenceVoiceRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _this->_internal_mutable_concepts()->InternalMergeFromWithArena(
+        ::google::protobuf::MessageLite::internal_visibility(), arena,
+        from._internal_concepts());
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SilenceVoiceRequest::CopyFrom(const SilenceVoiceRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SilenceVoiceRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SilenceVoiceRequest::InternalSwap(SilenceVoiceRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.concepts_.InternalSwap(&other->_impl_.concepts_);
+}
+
+::google::protobuf::Metadata SilenceVoiceRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SilencePlayerVoiceRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SilencePlayerVoiceRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._has_bits_);
+};
+
+SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilencePlayerVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilencePlayerVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::effects::SilencePlayerVoiceRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        concepts_{visibility, arena, from.concepts_} {}
+
+SilencePlayerVoiceRequest::SilencePlayerVoiceRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SilencePlayerVoiceRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SilencePlayerVoiceRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SilencePlayerVoiceRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.player_ = from._impl_.player_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+}
+PROTOBUF_NDEBUG_INLINE SilencePlayerVoiceRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        concepts_{visibility, arena} {}
+
+inline void SilencePlayerVoiceRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_ = {};
+}
+SilencePlayerVoiceRequest::~SilencePlayerVoiceRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  SharedDtor(*this);
+}
+inline void SilencePlayerVoiceRequest::SharedDtor(MessageLite& self) {
+  SilencePlayerVoiceRequest& this_ = static_cast<SilencePlayerVoiceRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SilencePlayerVoiceRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SilencePlayerVoiceRequest(arena);
+}
+constexpr auto SilencePlayerVoiceRequest::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_) +
+          decltype(SilencePlayerVoiceRequest::_impl_.concepts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(SilencePlayerVoiceRequest), alignof(SilencePlayerVoiceRequest), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SilencePlayerVoiceRequest::PlacementNew_,
+                                 sizeof(SilencePlayerVoiceRequest),
+                                 alignof(SilencePlayerVoiceRequest));
+  }
+}
+constexpr auto SilencePlayerVoiceRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SilencePlayerVoiceRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SilencePlayerVoiceRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SilencePlayerVoiceRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SilencePlayerVoiceRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SilencePlayerVoiceRequest>(), &SilencePlayerVoiceRequest::ByteSizeLong,
+              &SilencePlayerVoiceRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._cached_size_),
+          false,
+      },
+      &SilencePlayerVoiceRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SilencePlayerVoiceRequest_class_data_ =
+        SilencePlayerVoiceRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SilencePlayerVoiceRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SilencePlayerVoiceRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SilencePlayerVoiceRequest_class_data_.tc_table);
+  return SilencePlayerVoiceRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 63, 2>
+SilencePlayerVoiceRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    SilencePlayerVoiceRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::effects::SilencePlayerVoiceRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated string concepts = 2;
+    {::_pbi::TcParser::FastUR1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SilencePlayerVoiceRequest, _impl_.player_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // repeated string concepts = 2;
+    {PROTOBUF_FIELD_OFFSET(SilencePlayerVoiceRequest, _impl_.concepts_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
+  }},
+  // no aux_entries
+  {{
+    "\56\0\10\0\0\0\0\0"
+    "modlock.wasm.effects.SilencePlayerVoiceRequest"
+    "concepts"
+  }},
+};
+PROTOBUF_NOINLINE void SilencePlayerVoiceRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.concepts_.Clear();
+  }
+  _impl_.player_ = 0;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SilencePlayerVoiceRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SilencePlayerVoiceRequest& this_ = static_cast<const SilencePlayerVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SilencePlayerVoiceRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SilencePlayerVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // repeated string concepts = 2;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (int i = 0, n = this_._internal_concepts_size(); i < n; ++i) {
+      const auto& s = this_._internal_concepts().Get(i);
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.effects.SilencePlayerVoiceRequest.concepts");
+      target = stream->WriteString(2, s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SilencePlayerVoiceRequest::ByteSizeLong(const MessageLite& base) {
+  const SilencePlayerVoiceRequest& this_ = static_cast<const SilencePlayerVoiceRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SilencePlayerVoiceRequest::ByteSizeLong() const {
+  const SilencePlayerVoiceRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // repeated string concepts = 2;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_concepts().size());
+      for (int i = 0, n = this_._internal_concepts().size(); i < n; ++i) {
+        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+            this_._internal_concepts().Get(i));
+      }
+    }
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SilencePlayerVoiceRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SilencePlayerVoiceRequest*>(&to_msg);
+  auto& from = static_cast<const SilencePlayerVoiceRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_concepts()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_concepts());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SilencePlayerVoiceRequest::CopyFrom(const SilencePlayerVoiceRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.effects.SilencePlayerVoiceRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SilencePlayerVoiceRequest::InternalSwap(SilencePlayerVoiceRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.concepts_.InternalSwap(&other->_impl_.concepts_);
+  swap(_impl_.player_, other->_impl_.player_);
+}
+
+::google::protobuf::Metadata SilencePlayerVoiceRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

@@ -2997,6 +2997,14 @@ export class Player {
     return call('ClearScreenEffect', effectsPb.ClearScreenEffectRequest.toBinary({ player: this.slot, effect: screenEffectValues[effect] })) !== undefined
   }
 
+  /**
+   * silenceVoice keeps the player's hero from speaking the named voice
+   * concepts until called again, on top of those silenced for everyone.
+   */
+  silenceVoice(concepts?: readonly string[]): boolean {
+    return call('SilencePlayerVoice', effectsPb.SilencePlayerVoiceRequest.toBinary({ player: this.slot, concepts: concepts?.slice() })) !== undefined
+  }
+
   /** removeBot removes a bot the mod added. */
   removeBot(): boolean {
     return call('RemoveBot', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
@@ -3297,6 +3305,16 @@ export function heroBuild(hero: string): BuildCategory[] {
   if (reply === undefined) return []
   const response = abilitiesPb.HeroBuildResponse.fromBinary(reply)
   return (response.categories ?? []).map((v) => fromBuildCategory(v))
+}
+
+/**
+ * silenceVoice keeps every hero from speaking the named voice concepts,
+ * until called again. A hero still hears the game's other sounds. Stopping
+ * the mod lets them speak; a name the game does not know fails the call
+ * and the known ones still apply.
+ */
+export function silenceVoice(concepts?: readonly string[]): boolean {
+  return call('SilenceVoice', effectsPb.SilenceVoiceRequest.toBinary({ concepts: concepts?.slice() })) !== undefined
 }
 
 /**

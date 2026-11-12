@@ -39,6 +39,7 @@
 #include "modlock/gameinterop/pawn_observer.h"
 #include "modlock/gameinterop/projectile_impact_hook.h"
 #include "modlock/gameinterop/transmit_hook.h"
+#include "modlock/gameinterop/voice_hook.h"
 #include "modlock/gameinterop/world_entities.h"
 #include "modlock/render/world_effect_game_factory.h"
 #include "modlock/render/world_text_game_factory.h"
@@ -159,6 +160,17 @@ class GameServices {
   // Filter applies every mod's presses, remaps and blocks to one player's input.
   uint64_t Filter(gameinterop::AbilityInputHook::Input& input);
 
+  // Silenced resolves the named voice concepts, caching each value. It
+  // returns those it knows and, in error, the names it does not.
+  std::pair<std::set<int32_t>, std::string> Silenced(
+      const google::protobuf::RepeatedPtrField<std::string>& names);
+
+  // Voice installs the shared voice hook on first use.
+  std::expected<void, std::string> Voice();
+
+  // Speaks reports whether no mod silences concept_value for speaker.
+  bool Speaks(void* speaker, int32_t concept_value);
+
   // Projectiles installs the shared projectile impact hook once a world has
   // loaded, or marks it wanted until then.
   void Projectiles();
@@ -259,6 +271,10 @@ class GameServices {
   // held_ is each player's held buttons before blocking, for blocked edges.
   std::array<uint64_t, gameinterop::kMaxPlayerSlots> held_{};
   std::optional<gameinterop::ProjectileImpactHook> impacts_;
+  // voice_ drops the voice lines mods silence, installed the first time one
+  // does; voice_concepts_ caches each concept name's value.
+  std::optional<gameinterop::VoiceHook> voice_;
+  std::map<std::string, int32_t, std::less<>> voice_concepts_;
   bool impacts_wanted_ = false;
   // transmit_ filters what each player's client receives once a mod hides
   // an object from someone.
@@ -496,6 +512,10 @@ class Game : public HostService {
       const effects::ScreenEffectRequest& request) override;
   std::expected<void, std::string> ClearScreenEffect(
       const effects::ClearScreenEffectRequest& request) override;
+  std::expected<void, std::string> SilenceVoice(
+      const effects::SilenceVoiceRequest& request) override;
+  std::expected<void, std::string> SilencePlayerVoice(
+      const effects::SilencePlayerVoiceRequest& request) override;
   std::expected<fields::FieldResponse, std::string> ReadField(
       const fields::ReadFieldRequest& request) override;
   std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& request) override;
@@ -732,6 +752,10 @@ class Game : public HostService {
   // and restores the stock team relations.
   void ReleaseFreeForAll();
 
+  // Silence installs the voice hook while the mod silences any concept, then
+  // reports the concept names the game did not know, from unknown.
+  std::expected<void, std::string> Silence(const std::string& unknown);
+
   // RenewModifier gives slot's living hero the held modifier when it lacks
   // it. A dead or absent hero waits for its return.
   std::expected<void, std::string> RenewModifier(int32_t slot, const std::string& key);
@@ -880,6 +904,10 @@ class Game : public HostService {
   std::unique_ptr<gameinterop::AbilityChargeLimit> charge_limit_;
   // input_ is the mod's blocks, presses, remap and watched buttons.
   InputChanges input_;
+  // silenced_ is the voice concepts the mod keeps every hero from speaking,
+  // and silenced_players_ those it keeps from one player's hero, by slot.
+  std::set<int32_t> silenced_;
+  std::map<int32_t, std::set<int32_t>> silenced_players_;
   // projectiles_ is the mod's projectile watch. projectiles_seen_ holds the
   // watched projectiles of the last frame, and launches_ queues the new ones
   // for the mod.

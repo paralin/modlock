@@ -2242,6 +2242,12 @@ class Player:
         """
         return _call("ClearScreenEffect", "ClearScreenEffectRequest", {"player": self, "effect": effect}) is not None
 
+    def silence_voice(self, concepts: list[str] | None = None) -> bool:
+        """silence_voice keeps the player's hero from speaking the named voice
+        concepts until called again, on top of those silenced for everyone.
+        """
+        return _call("SilencePlayerVoice", "SilencePlayerVoiceRequest", {"player": self, "concepts": concepts}) is not None
+
     def remove_bot(self) -> bool:
         """remove_bot removes a bot the mod added."""
         return _call("RemoveBot", "PlayerRequest", {"player": self}) is not None
@@ -2735,6 +2741,19 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "effect", "enum", enum=_ScreenEffect),
+        ],
+    ),
+    "SilenceVoiceRequest": (
+        None,
+        [
+            wire.Field(1, "concepts", "string", repeated=True),
+        ],
+    ),
+    "SilencePlayerVoiceRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "concepts", "string", repeated=True),
         ],
     ),
     "ReadFieldRequest": (
@@ -3997,6 +4016,15 @@ def hero_build(hero: str) -> list[BuildCategory]:
     if response is None:
         return []
     return response["categories"]
+
+
+def silence_voice(concepts: list[str] | None = None) -> bool:
+    """silence_voice keeps every hero from speaking the named voice concepts,
+    until called again. A hero still hears the game's other sounds. Stopping
+    the mod lets them speak; a name the game does not know fails the call
+    and the known ones still apply.
+    """
+    return _call("SilenceVoice", "SilenceVoiceRequest", {"concepts": concepts}) is not None
 
 
 def read_field(entity: int, class_name: str, field: str, type: FieldType) -> FieldValue | None:

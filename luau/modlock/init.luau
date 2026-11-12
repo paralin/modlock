@@ -1752,6 +1752,9 @@ export type Player = {
 	-- clearScreenEffect ends every running instance of effect on the player's
 	-- view.
 	clearScreenEffect: (self: Player, effect: ScreenEffect) -> boolean,
+	-- silenceVoice keeps the player's hero from speaking the named voice
+	-- concepts until called again, on top of those silenced for everyone.
+	silenceVoice: (self: Player, concepts: { string }?) -> boolean,
 	-- removeBot removes a bot the mod added.
 	removeBot: (self: Player) -> boolean,
 	-- blockInput withholds buttons from the player's hero until called
@@ -2131,6 +2134,12 @@ end
 -- view.
 function Player.clearScreenEffect(self: Player, effect: ScreenEffect): boolean
 	return call("ClearScreenEffect", "ClearScreenEffectRequest", { player = self, effect = effect }) ~= nil
+end
+
+-- silenceVoice keeps the player's hero from speaking the named voice
+-- concepts until called again, on top of those silenced for everyone.
+function Player.silenceVoice(self: Player, concepts: { string }?): boolean
+	return call("SilencePlayerVoice", "SilencePlayerVoiceRequest", { player = self, concepts = concepts }) ~= nil
 end
 
 -- removeBot removes a bot the mod added.
@@ -2590,6 +2599,13 @@ schema.ScreenTiming = {
 schema.ClearScreenEffectRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "effect", kind = "enum", enum = ScreenEffect },
+}
+schema.SilenceVoiceRequest = {
+	{ number = 1, name = "concepts", kind = "string", repeated = true },
+}
+schema.SilencePlayerVoiceRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "concepts", kind = "string", repeated = true },
 }
 schema.ReadFieldRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
@@ -3416,6 +3432,14 @@ function modlock.heroBuild(hero: string): { BuildCategory }
 		return {}
 	end
 	return response.categories
+end
+
+-- silenceVoice keeps every hero from speaking the named voice concepts,
+-- until called again. A hero still hears the game's other sounds. Stopping
+-- the mod lets them speak; a name the game does not know fails the call
+-- and the known ones still apply.
+function modlock.silenceVoice(concepts: { string }?): boolean
+	return call("SilenceVoice", "SilenceVoiceRequest", { concepts = concepts }) ~= nil
 end
 
 -- readField reads one schema field of a live entity, such as the int32

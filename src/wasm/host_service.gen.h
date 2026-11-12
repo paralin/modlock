@@ -491,6 +491,22 @@ class HostService {
     return std::unexpected("this host does not support ClearScreenEffect");
   }
 
+  // SilenceVoice keeps every hero from speaking the named voice concepts,
+  // until called again. A hero still hears the game's other sounds. Stopping
+  // the mod lets them speak; a name the game does not know fails the call
+  // and the known ones still apply.
+  virtual std::expected<void, std::string> SilenceVoice(
+      const effects::SilenceVoiceRequest& /*request*/) {
+    return std::unexpected("this host does not support SilenceVoice");
+  }
+
+  // SilencePlayerVoice keeps the player's hero from speaking the named voice
+  // concepts until called again, on top of those silenced for everyone.
+  virtual std::expected<void, std::string> SilencePlayerVoice(
+      const effects::SilencePlayerVoiceRequest& /*request*/) {
+    return std::unexpected("this host does not support SilencePlayerVoice");
+  }
+
   // ReadField reads one schema field of a live entity, such as the int32
   // m_iHealth of CBaseEntity. The host finds the field by name, so it
   // survives game updates that move it, and refuses an entity that is not of
@@ -1440,6 +1456,22 @@ class HostService {
              return detail::Fail("the ClearScreenEffect request is malformed");
            }
            return detail::Answer(host.ClearScreenEffect(request));
+         }},
+        {"SilenceVoice",
+         [](HostService& host, const std::string& bytes) {
+           effects::SilenceVoiceRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SilenceVoice request is malformed");
+           }
+           return detail::Answer(host.SilenceVoice(request));
+         }},
+        {"SilencePlayerVoice",
+         [](HostService& host, const std::string& bytes) {
+           effects::SilencePlayerVoiceRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SilencePlayerVoice request is malformed");
+           }
+           return detail::Answer(host.SilencePlayerVoice(request));
          }},
         {"ReadField",
          [](HostService& host, const std::string& bytes) {

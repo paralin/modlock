@@ -534,3 +534,105 @@ export const ClearScreenEffectRequest: MessageType<ClearScreenEffectRequest> =
       },
     },
   )
+
+/**
+ * SilenceVoiceRequest names the voice concepts every hero keeps silent.
+ *
+ * @generated from message modlock.wasm.effects.SilenceVoiceRequest
+ */
+export interface SilenceVoiceRequest {
+  /**
+   * Concepts name CitadelConcept_t values, such as TLK_CITADEL_GOLD_GAINED,
+   * under which a hero calls out its souls and reminds itself to spend them.
+   * None lets every hero speak again.
+   */
+  concepts?: string[]
+}
+
+export const SilenceVoiceRequest: MessageType<SilenceVoiceRequest> =
+  /* @__PURE__ */ createMessageType<SilenceVoiceRequest>(
+    'modlock.wasm.effects.SilenceVoiceRequest',
+    () => [[1, 'concepts', 9, 1]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SilenceVoiceRequest,
+      ): SilenceVoiceRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.concepts ??= []).push(r.string())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SilenceVoiceRequest, w: Writer): void => {
+        {
+          const a = m.concepts
+          if (a != null) for (const e of a) w.uint32(10).string(e)
+        }
+      },
+    },
+  )
+
+/**
+ * SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
+ * silent.
+ *
+ * @generated from message modlock.wasm.effects.SilencePlayerVoiceRequest
+ */
+export interface SilencePlayerVoiceRequest {
+  player?: number
+  /**
+   * Concepts name CitadelConcept_t values; none lets the hero speak again.
+   */
+  concepts?: string[]
+}
+
+export const SilencePlayerVoiceRequest: MessageType<SilencePlayerVoiceRequest> =
+  /* @__PURE__ */ createMessageType<SilencePlayerVoiceRequest>(
+    'modlock.wasm.effects.SilencePlayerVoiceRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'concepts', 9, 1],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SilencePlayerVoiceRequest,
+      ): SilencePlayerVoiceRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              ;(m.concepts ??= []).push(r.string())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SilencePlayerVoiceRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const a = m.concepts
+          if (a != null) for (const e of a) w.uint32(18).string(e)
+        }
+      },
+    },
+  )

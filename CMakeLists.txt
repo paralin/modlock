@@ -123,6 +123,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/ability_modifier.cc
   src/gameinterop/ability_slots.cc
   src/gameinterop/projectile_impact_hook.cc
+  src/gameinterop/voice_hook.cc
   src/gameinterop/movement_hook.cc
   src/gameinterop/bot_creation.cc
   src/gameinterop/bot_difficulty_definitions.cc
@@ -194,6 +195,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game.cc
   src/wasm/game_combat.cc
   src/wasm/game_effects.cc
+  src/wasm/game_voice.cc
   src/wasm/game_entities.cc
   src/wasm/game_fields.cc
   src/wasm/game_seating.cc

@@ -99,3 +99,20 @@ message ClearScreenEffectRequest {
   // Effect is the effect to end.
   ScreenEffect effect = 2;
 }
+
+// SilenceVoiceRequest names the voice concepts every hero keeps silent.
+message SilenceVoiceRequest {
+  // Concepts name CitadelConcept_t values, such as TLK_CITADEL_GOLD_GAINED,
+  // under which a hero calls out its souls and reminds itself to spend them.
+  // None lets every hero speak again.
+  repeated string concepts = 1;
+}
+
+// SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
+// silent.
+message SilencePlayerVoiceRequest {
+  int32 player = 1;
+
+  // Concepts name CitadelConcept_t values; none lets the hero speak again.
+  repeated string concepts = 2;
+}
