@@ -1648,6 +1648,9 @@ with the player and anyone they landed on.
     "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
     "copyFields": {
       "CAbilityRocketLauncherVData.m_ExplosionParticle": "CitadelAbilityVData.m_skillshotMissParticle"
+    },
+    "textFields": {
+      "CitadelAbilityVData.m_strCastSound": "Hero.Warden.Flask.Throw"
     }
   }
 ]
@@ -1657,13 +1660,14 @@ Each entry changes one stock definition on the server; players' games keep
 their own definitions, so tooltips and parts of the HUD show the stock values
 while play uses the changed ones.
 
-| Field        | Value                                                                                                                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, `FILE_BOT_DIFFICULTY` for bot difficulties, `FILE_NPC_UNITS` for units and the bot brain, or `FILE_MODIFIERS` for modifiers.     |
-| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher`, `upgrade_colossus/modifier_colossus_active` or `k_ECitadelBotDifficulty_Hard`.                                                           |
-| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                                                                                                               |
-| `fields`     | Float, range-float and modifier-level-float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                                                             |
-| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                              |
+| Field        | Value                                                                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, `FILE_BOT_DIFFICULTY` for bot difficulties, `FILE_NPC_UNITS` for units and the bot brain, or `FILE_MODIFIERS` for modifiers. |
+| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher`, `upgrade_colossus/modifier_colossus_active` or `k_ECitadelBotDifficulty_Hard`.                                                       |
+| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                                                                                                           |
+| `fields`     | Float, range-float and modifier-level-float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                                                         |
+| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                          |
+| `textFields` | Text, symbol, sound event and Panorama image schema fields by `Class.m_field/Class.m_field` path, with `{addon}` replaced by the mod's content addon.                                                          |
 
 A path's last step can end in `[Enum.Value]` to select one value of a map keyed
 by an enum, such as a hero's starting stats, or one entry of a modifier's

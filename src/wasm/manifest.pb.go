@@ -415,6 +415,10 @@ type Definition struct {
 	// CopyFields copies the field at each value's path over the field at its
 	// key's path; both must be the same size.
 	CopyFields map[string]string `protobuf:"bytes,5,rep,name=copy_fields,json=copyFields,proto3" json:"copyFields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// TextFields writes text, symbol, sound event and Panorama image schema
+	// fields, named as a path of Class.field steps from the entry's data. Each
+	// {addon} in a value becomes the mod's content addon.
+	TextFields map[string]string `protobuf:"bytes,6,rep,name=text_fields,json=textFields,proto3" json:"textFields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *Definition) Reset() {
@@ -454,6 +458,13 @@ func (x *Definition) GetFields() map[string]float32 {
 func (x *Definition) GetCopyFields() map[string]string {
 	if x != nil {
 		return x.CopyFields
+	}
+	return nil
+}
+
+func (x *Definition) GetTextFields() map[string]string {
+	if x != nil {
+		return x.TextFields
 	}
 	return nil
 }
@@ -536,6 +547,32 @@ func (x *Definition_CopyFieldsEntry) GetValue() string {
 	return ""
 }
 
+type Definition_TextFieldsEntry struct {
+	unknownFields []byte
+	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Definition_TextFieldsEntry) Reset() {
+	*x = Definition_TextFieldsEntry{}
+}
+
+func (*Definition_TextFieldsEntry) ProtoMessage() {}
+
+func (x *Definition_TextFieldsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Definition_TextFieldsEntry) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 func (m *Manifest) CloneVT() *Manifest {
 	if m == nil {
 		return (*Manifest)(nil)
@@ -592,6 +629,7 @@ func (m *Definition) CloneVT() *Definition {
 	r.Properties = protobuf_go_lite.CloneMap(m.Properties)
 	r.Fields = protobuf_go_lite.CloneMap(m.Fields)
 	r.CopyFields = protobuf_go_lite.CloneMap(m.CopyFields)
+	r.TextFields = protobuf_go_lite.CloneMap(m.TextFields)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -703,6 +741,9 @@ func (this *Definition) EqualVT(that *Definition) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualMap(this.CopyFields, that.CopyFields) {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.TextFields, that.TextFields) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1310,6 +1351,56 @@ func (x *Definition_CopyFieldsEntry) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Definition_TextFieldsEntry message to JSON.
+func (x *Definition_TextFieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Definition_TextFieldsEntry to JSON.
+func (x *Definition_TextFieldsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Definition_TextFieldsEntry message from JSON.
+func (x *Definition_TextFieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Definition_TextFieldsEntry from JSON.
+func (x *Definition_TextFieldsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Definition message to JSON.
 func (x *Definition) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1361,6 +1452,19 @@ func (x *Definition) MarshalProtoJSON(s *json.MarshalState) {
 		var wroteElement bool
 		for _, k := range slices.Sorted(maps.Keys(x.CopyFields)) {
 			v := x.CopyFields[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if x.TextFields != nil || s.HasField("textFields") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("textFields")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.TextFields)) {
+			v := x.TextFields[k]
 			s.WriteMoreIf(&wroteElement)
 			s.WriteObjectStringField(k)
 			s.WriteString(v)
@@ -1419,6 +1523,16 @@ func (x *Definition) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			x.CopyFields = make(map[string]string)
 			s.ReadStringMap(func(key string) {
 				x.CopyFields[key] = s.ReadString()
+			})
+		case "text_fields", "textFields":
+			s.AddField("text_fields")
+			if s.ReadNil() {
+				x.TextFields = nil
+				return
+			}
+			x.TextFields = make(map[string]string)
+			s.ReadStringMap(func(key string) {
+				x.TextFields[key] = s.ReadString()
 			})
 		}
 	})
@@ -1635,6 +1749,21 @@ func (m *Definition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.TextFields) > 0 {
+		for k := range m.TextFields {
+			v := m.TextFields[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeString(dAtA, i, v)
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x32
+		}
+	}
 	if len(m.CopyFields) > 0 {
 		for k := range m.CopyFields {
 			v := m.CopyFields[k]
@@ -1765,6 +1894,12 @@ func (m *Definition) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
 	}
 	for k, v := range m.CopyFields {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	for k, v := range m.TextFields {
 		_ = k
 		_ = v
 		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
@@ -1960,6 +2095,24 @@ func (x *Definition_CopyFieldsEntry) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *Definition_TextFieldsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "TextFieldsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Definition_TextFieldsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *Definition) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Definition")
@@ -1997,6 +2150,17 @@ func (x *Definition) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "copy_fields")
 		for _, k := range slices.Sorted(maps.Keys(x.CopyFields)) {
 			v := x.CopyFields[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	if len(x.TextFields) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "text_fields")
+		for _, k := range slices.Sorted(maps.Keys(x.TextFields)) {
+			v := x.TextFields[k]
 			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
 			protobuf_go_lite.TextWriteString(&sb, k)
 			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
@@ -2453,6 +2617,48 @@ func (m *Definition) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.CopyFields[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TextFields", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.TextFields == nil {
+				m.TextFields = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.TextFields[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

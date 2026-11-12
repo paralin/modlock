@@ -6,7 +6,6 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -14,6 +13,7 @@
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
+#include "wasm/text_values.h"
 
 namespace modlock::wasm {
 
@@ -154,15 +154,6 @@ std::expected<fields::FieldValue, std::string> Decode(fields::FieldType type,
       return std::unexpected("the field type is unknown");
   }
   return value;
-}
-
-// Interned returns a copy of text that lives for the life of the process, one
-// copy per distinct text. A symbol field points to it: the entity keeps the
-// pointer past the mod that wrote it and never frees it, as it never frees the
-// game's own interned symbols.
-const char* Interned(std::string text) {
-  static auto* texts = new std::unordered_set<std::string>();
-  return texts->insert(std::move(text)).first->c_str();
 }
 
 // Encode converts a value to the bytes of one field of type. The value must

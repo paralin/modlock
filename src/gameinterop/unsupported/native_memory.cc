@@ -14,4 +14,8 @@ void* AllocateNative(size_t) {
   return nullptr;
 }
 
+const char* InternGlobalSymbol(const char*) {
+  return nullptr;
+}
+
 }  // namespace modlock::gameinterop

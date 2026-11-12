@@ -46,4 +46,17 @@ void* AllocateNative(size_t size) {
   return alloc == nullptr ? nullptr : alloc(size);
 }
 
+const char* InternGlobalSymbol(const char* text) {
+  if (text == nullptr) {
+    return nullptr;
+  }
+  HMODULE tier0 = GetModuleHandleW(L"tier0.dll");
+  if (tier0 == nullptr) {
+    return nullptr;
+  }
+  auto make =
+      reinterpret_cast<const char* (*)(const char*)>(GetProcAddress(tier0, "_MakeGlobalSymbol"));
+  return make == nullptr ? nullptr : make(text);
+}
+
 }  // namespace modlock::gameinterop

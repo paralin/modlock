@@ -437,6 +437,12 @@ export interface Definition {
    * key's path; both must be the same size.
    */
   copyFields?: { [key: string]: string }
+  /**
+   * TextFields writes text, symbol, sound event and Panorama image schema
+   * fields, named as a path of Class.field steps from the entry's data. Each
+   * {addon} in a value becomes the mod's content addon.
+   */
+  textFields?: { [key: string]: string }
 }
 
 export const Definition: MessageType<Definition> =
@@ -448,6 +454,7 @@ export const Definition: MessageType<Definition> =
       [3, 'properties', 2, 584],
       [4, 'fields', 2, 584],
       [5, 'copy_fields', 9, 584],
+      [6, 'text_fields', 9, 584],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Definition): Definition => {
@@ -494,6 +501,17 @@ export const Definition: MessageType<Definition> =
               m.copyFields[k] = v
               break
             }
+            case 6: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.string(),
+                '',
+                '',
+              )
+              m.textFields ??= newMap()
+              m.textFields[k] = v
+              break
+            }
             default:
               r.skip(t)
           }
@@ -534,6 +552,16 @@ export const Definition: MessageType<Definition> =
           if (o != null)
             for (const [k, v] of Object.entries(o)) {
               const s = w.uint32(42).fork()
+              w.uint32(10).string(k)
+              w.uint32(18).string(v)
+              w.join(s)
+            }
+        }
+        {
+          const o = m.textFields
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(50).fork()
               w.uint32(10).string(k)
               w.uint32(18).string(v)
               w.join(s)

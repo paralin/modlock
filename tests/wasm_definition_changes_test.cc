@@ -6,79 +6,26 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include <string_view>
 #include <vector>
 
+#include "fake_schema_system.h"
 #include "gameinterop/schema_layout.h"
 #include "gameinterop/utl_vector.h"
 #include "gtest/gtest.h"
-#include "modlock/gameinterop/virtual_slots.h"
 #include "wasm/definition_changes.h"
 
 namespace {
 
 namespace schema = modlock::gameinterop::schema;
-using modlock::gameinterop::FindVirtualSlot;
 using modlock::gameinterop::UtlVector;
+using modlock::test::MakeSchemaField;
 using modlock::wasm::ChangeDefinition;
 using modlock::wasm::Definition;
 using modlock::wasm::DefinitionUndo;
 
-// Field builds one schema::Field pointing at declared.
-schema::Field MakeField(const char* name, const schema::DeclaredType& declared, int32_t offset) {
-  return schema::Field{
-      .name = name, .type = reinterpret_cast<const schema::Type*>(&declared), .offset = offset};
-}
-
-// FakeSchema serves declared classes and enums through ISchemaSystem's vtable
-// ABI so ChangeDefinition exercises real SchemaFieldOf / SchemaEnumValueOf
-// resolution on every platform.
-struct FakeSchema {
-  struct Scope {
-    void** vtable;
-    FakeSchema* owner;
-  };
-
-  struct System {
-    void** vtable;
-    Scope* scope;
-  };
-
-  static void* FindScope(void* self, const char* module, const char**) {
-    return std::string_view(module) == "server.dll" ? static_cast<System*>(self)->scope : nullptr;
-  }
-
-  static void FindClass(void* self, void* out, const char* name) {
-    auto* owner = static_cast<Scope*>(self)->owner;
-    for (const auto& info : owner->classes) {
-      if (std::string_view(info.name) == name) {
-        *static_cast<const void**>(out) = &info;
-        return;
-      }
-    }
-    *static_cast<void**>(out) = nullptr;
-  }
-
-  static void FindEnum(void* self, void* out, const char* name) {
-    auto* owner = static_cast<Scope*>(self)->owner;
-    for (const auto& info : owner->enums) {
-      if (std::string_view(info.name) == name) {
-        *static_cast<const void**>(out) = &info;
-        return;
-      }
-    }
-    *static_cast<void**>(out) = nullptr;
-  }
-
+// FakeSchema declares the classes and enums the tests below change.
+struct FakeSchema : modlock::test::FakeSchemaSystem {
   FakeSchema() {
-    // Wire the schema system and type scope vtables.
-    system_methods[FindVirtualSlot("schema-system.find-type-scope")->index] =
-        reinterpret_cast<void*>(&FindScope);
-    scope_methods[FindVirtualSlot("schema-type-scope.find-declared-class")->index] =
-        reinterpret_cast<void*>(&FindClass);
-    scope_methods[FindVirtualSlot("schema-type-scope.find-declared-enum")->index] =
-        reinterpret_cast<void*>(&FindEnum);
-
     // Declare the field types used across modifier and hero definitions.
     float_type.name = "float32";
     level_float_type.name = "CModifierLevelFloat";
@@ -92,8 +39,8 @@ struct FakeSchema {
     // Declare ModifierScriptValue_t: a 2-byte EModifierValue key at +0, a
     // 4-level float at +8 and a 32-byte stride.
     script_fields = {
-        MakeField("m_eModifierValue", modifier_value_type, 0),
-        MakeField("m_value", level_float_type, 8),
+        MakeSchemaField("m_eModifierValue", modifier_value_type, 0),
+        MakeSchemaField("m_value", level_float_type, 8),
     };
     classes.push_back(schema::ClassInfo{
         .name = "ModifierScriptValue_t",
@@ -105,12 +52,12 @@ struct FakeSchema {
     // Declare CModifierVData_SetModelScale with scalar, level, range, script
     // list and particle fields.
     modifier_fields = {
-        MakeField("m_flDuration", level_float_type, 0),
-        MakeField("m_flScale", range_float_type, 16),
-        MakeField("m_flLingeringAssistWindow", float_type, 24),
-        MakeField("m_vecScriptValues", script_list_type, 32),
-        MakeField("m_strParticleEffect", particle_type, 56),
-        MakeField("m_strParticleStatusEffect", particle_type, 72),
+        MakeSchemaField("m_flDuration", level_float_type, 0),
+        MakeSchemaField("m_flScale", range_float_type, 16),
+        MakeSchemaField("m_flLingeringAssistWindow", float_type, 24),
+        MakeSchemaField("m_vecScriptValues", script_list_type, 32),
+        MakeSchemaField("m_strParticleEffect", particle_type, 56),
+        MakeSchemaField("m_strParticleStatusEffect", particle_type, 72),
     };
     classes.push_back(schema::ClassInfo{
         .name = "CModifierVData_SetModelScale",
@@ -121,7 +68,7 @@ struct FakeSchema {
 
     // Declare CitadelHeroData_t with an enum-keyed starting stats map.
     hero_fields = {
-        MakeField("m_mapStartingStats", map_type, 0),
+        MakeSchemaField("m_mapStartingStats", map_type, 0),
     };
     classes.push_back(schema::ClassInfo{
         .name = "CitadelHeroData_t",
@@ -129,9 +76,6 @@ struct FakeSchema {
         .field_count = static_cast<uint16_t>(hero_fields.size()),
         .fields = hero_fields.data(),
     });
-    for (auto& info : classes) {
-      info.self = &info;
-    }
 
     // Declare EModifierValue and EStatsType.
     modifier_values = {
@@ -153,13 +97,9 @@ struct FakeSchema {
         .enumerator_count = static_cast<uint16_t>(stat_values.size()),
         .enumerators = stat_values.data(),
     });
-    for (auto& info : enums) {
-      info.self = &info;
-    }
+    Seal();
   }
 
-  std::array<void*, 16> system_methods{};
-  std::array<void*, 8> scope_methods{};
   schema::DeclaredType float_type{};
   schema::DeclaredType level_float_type{};
   schema::DeclaredType range_float_type{};
@@ -170,12 +110,8 @@ struct FakeSchema {
   std::array<schema::Field, 2> script_fields{};
   std::array<schema::Field, 6> modifier_fields{};
   std::array<schema::Field, 1> hero_fields{};
-  std::vector<schema::ClassInfo> classes;
   std::array<schema::Enumerator, 2> modifier_values{};
   std::array<schema::Enumerator, 1> stat_values{};
-  std::vector<schema::EnumInfo> enums;
-  Scope scope{scope_methods.data(), this};
-  System system{system_methods.data(), &scope};
 };
 
 TEST(DefinitionChanges, WritesModifierFloatsScriptValuesCopiesAndRestoresUndo) {

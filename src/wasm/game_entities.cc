@@ -14,6 +14,7 @@
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
+#include "wasm/text_values.h"
 
 namespace modlock::wasm {
 
@@ -56,9 +57,6 @@ std::optional<gameinterop::EntityValue> Value(const entities::EntityValue& value
   return std::nullopt;
 }
 
-// addonToken stands for the mod's content addon in a text value or path.
-constexpr std::string_view addonToken = "{addon}";
-
 // KeyValues converts spawn key values to the world's form, writing the mod's
 // content addon in place of each {addon} in a text value. The result borrows
 // the text of pairs, and of filled, which holds each text value it rewrote.
@@ -81,7 +79,7 @@ std::expected<std::vector<gameinterop::EntityKeyValue>, std::string> KeyValues(
 
     // Name the mod's content addon in a text value.
     const auto* text = std::get_if<std::string_view>(&*value);
-    if (text && text->find(addonToken) != std::string_view::npos) {
+    if (text && text->find(kAddonToken) != std::string_view::npos) {
       *value = std::string_view(filled.emplace_back(game.WithAddon(std::string(*text))));
     }
     result.push_back({.key = pair.key(), .value = *value});
@@ -102,14 +100,7 @@ std::expected<entities::AliveResponse, std::string> Alive(std::expected<bool, st
 }  // namespace
 
 std::string Game::WithAddon(std::string text) const {
-  if (addon_.empty()) {
-    return text;
-  }
-  for (auto at = text.find(addonToken); at != std::string::npos;
-       at = text.find(addonToken, at + addon_.size())) {
-    text.replace(at, addonToken.size(), addon_);
-  }
-  return text;
+  return wasm::WithAddon(std::move(text), addon_);
 }
 
 std::expected<objects::ObjectResponse, std::string> Game::CreateModel(
