@@ -93,8 +93,12 @@ std::string PackSoundFields(const NativeUserMessages::SoundFields& fields) {
       packed.push_back(static_cast<char>(bits >> shift));
     }
   };
-  add("public.volume", fields.volume);
-  add("public.pitch", fields.pitch);
+  // The stock stacks multiply both factors into the event's own level and
+  // pitch, and no event sets them, so 1 leaves the sound as authored.
+  // public.volume and public.pitch would replace the authored values, and
+  // public.volume is in decibels.
+  add("public.volume_mult", fields.volume);
+  add("public.pitch_adjust", fields.pitch);
   return packed;
 }
 
