@@ -491,6 +491,10 @@ class Game : public HostService {
       const abilities::HoldModifierRequest& request) override;
   std::expected<void, std::string> GiveModifier(
       const abilities::GiveModifierRequest& request) override;
+  std::expected<void, std::string> HoldEntityModifier(
+      const abilities::HoldEntityModifierRequest& request) override;
+  std::expected<void, std::string> GiveEntityModifier(
+      const abilities::GiveEntityModifierRequest& request) override;
   std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override;
   std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override;
   std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
@@ -766,13 +770,36 @@ class Game : public HostService {
   // reports the concept names the game did not know, from unknown.
   std::expected<void, std::string> Silence(const std::string& unknown);
 
+  // EnsureHeldModifier resolves key with no expiry once for all active holds.
+  std::expected<void, std::string> EnsureHeldModifier(const std::string& key);
+
+  // EntityAbilityHandle returns the owned ability handle when handle is a
+  // player's hero that owns key's parent ability, or kInvalidEHandleIndex.
+  uint32_t EntityAbilityHandle(uint32_t handle, std::string_view key);
+
+  // ModifiableEntity resolves handle to a live CBaseEntity.
+  std::expected<void*, std::string> ModifiableEntity(uint32_t handle);
+
   // RenewModifier gives slot's living hero the held modifier when it lacks
   // it. A dead or absent hero waits for its return.
   std::expected<void, std::string> RenewModifier(int32_t slot, const std::string& key);
 
+  // RenewEntityModifier gives handle's live entity the held modifier when it
+  // lacks it. When initial is true, a dead entity fails the hold.
+  std::expected<void, std::string> RenewEntityModifier(uint32_t handle, const std::string& key,
+                                                       bool initial);
+
   // ReleaseModifier ends slot's hold on key and restores the modifier's
-  // duration once no player holds it.
+  // duration once nothing holds it.
   void ReleaseModifier(int32_t slot, const std::string& key);
+
+  // ReleaseEntityModifier ends handle's hold on key and restores the modifier's
+  // duration once nothing holds it.
+  void ReleaseEntityModifier(uint32_t handle, const std::string& key);
+
+  // RestoreUnusedModifier restores and forgets key once no slot or entity holds
+  // it.
+  void RestoreUnusedModifier(const std::string& key);
 
   // ReleaseModifiers ends every modifier hold.
   void ReleaseModifiers();
@@ -903,9 +930,11 @@ class Game : public HostService {
   std::string addon_;
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
-  // held_modifiers_ is the modifiers the mod holds, by player slot and
-  // modifier key; modifiers_ resolves each held key.
+  // held_modifiers_ and held_entity_modifiers_ are the modifiers the mod holds,
+  // by player slot or entity handle and modifier key; modifiers_ resolves each
+  // held key.
   std::set<std::pair<int32_t, std::string>> held_modifiers_;
+  std::set<std::pair<uint32_t, std::string>> held_entity_modifiers_;
   std::map<std::string, gameinterop::AbilityModifier, std::less<>> modifiers_;
 
   // charge_limit_ holds the most charges the mod gave abilities, created the

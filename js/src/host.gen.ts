@@ -777,7 +777,9 @@ function fromImpactEvent(message: combatPb.ImpactEvent): ImpactEvent {
 
 /** ProjectileOptions selects the projectiles a mod watches. */
 export interface ProjectileOptions {
-  /** names lists designer names, such as rocket_launcher_rocket_projectile. */
+  /**
+   * names lists designer names, such as rocket_launcher_rocket_projectile.
+   */
   names?: readonly string[]
   /**
    * keepMomentum gives each live hero back the motion it had before a
@@ -1216,14 +1218,18 @@ export interface MovementSample {
   readonly wallNormal: Vector
   /** wallJumpNormal is the normal the latest wall jump used. */
   readonly wallJumpNormal: Vector
-  /** wallJumpFacing is the game's EWallJumpFacing, zero when not on a wall. */
+  /**
+   * wallJumpFacing is the game's EWallJumpFacing, zero when not on a wall.
+   */
   readonly wallJumpFacing: number
   /**
    * ziplineTime is the game time the hero last rode a zipline; it advances on
    * every tick of a ride.
    */
   readonly ziplineTime?: number
-  /** actions are the movement facts the game announced since the last tick. */
+  /**
+   * actions are the movement facts the game announced since the last tick.
+   */
   readonly actions: MovementAction[]
   /**
    * casts are the abilities the hero cast since the last tick, one per
@@ -1373,7 +1379,9 @@ function fromLandedEvent(message: movementPb.LandedEvent): LandedEvent {
   }
 }
 
-/** Steering is one recorded movement command and the pose its step ends on. */
+/**
+ * Steering is one recorded movement command and the pose its step ends on.
+ */
 export interface Steering {
   command: MovementCommand
   /**
@@ -1389,7 +1397,9 @@ export interface Steering {
   facing: Angles
 }
 
-/** DriveCommand is a player's controls for one tick and the ticks after it. */
+/**
+ * DriveCommand is a player's controls for one tick and the ticks after it.
+ */
 export interface DriveCommand {
   /**
    * facing is where the hero looks and aims; its yaw turns the body, as the
@@ -1666,7 +1676,9 @@ function toParticleOptions(value: ParticleOptions): objectsPb.ParticleOptions {
   }
 }
 
-/** ParticleAnchor ties one control point of a particle effect to an entity. */
+/**
+ * ParticleAnchor ties one control point of a particle effect to an entity.
+ */
 export interface ParticleAnchor {
   /** index is the control point's number. */
   index: number
@@ -3855,6 +3867,26 @@ export function stopSound(id: number): boolean {
  */
 export function watchProjectiles(options: ProjectileOptions): boolean {
   return call('WatchProjectiles', combatPb.ProjectileOptions.toBinary(toProjectileOptions(options))) !== undefined
+}
+
+/**
+ * holdEntityModifier keeps a modifier, named as GiveModifier names it, on a
+ * live entity with no expiry, giving it back whenever the game removes it
+ * while the entity lives. The hold ends with the entity or when active is
+ * false.
+ */
+export function holdEntityModifier(entity: number, modifier: string, active?: boolean): boolean {
+  return call('HoldEntityModifier', abilitiesPb.HoldEntityModifierRequest.toBinary({ entity, modifier, active })) !== undefined
+}
+
+/**
+ * giveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+ * a modifier for seconds. An ability's modifier, named
+ * "<ability>/<modifier>", resolves its parent ability subclass even when the
+ * entity owns no abilities.
+ */
+export function giveEntityModifier(entity: number, modifier: string, seconds: number): boolean {
+  return call('GiveEntityModifier', abilitiesPb.GiveEntityModifierRequest.toBinary({ entity, modifier, seconds })) !== undefined
 }
 
 /** ModHandlers handles the events the game delivers to the mod. */

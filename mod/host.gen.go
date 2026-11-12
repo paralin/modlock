@@ -1812,6 +1812,22 @@ func WatchProjectiles(options *ProjectileOptions) error {
 	return invoke("WatchProjectiles", options, nil)
 }
 
+// HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+// live entity with no expiry, giving it back whenever the game removes it
+// while the entity lives. The hold ends with the entity or when active is
+// false.
+func HoldEntityModifier(entity uint32, modifier string, active *bool) error {
+	return invoke("HoldEntityModifier", &abilitiespb.HoldEntityModifierRequest{Entity: entity, Modifier: modifier, Active: active}, nil)
+}
+
+// GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+// a modifier for seconds. An ability's modifier, named
+// "<ability>/<modifier>", resolves its parent ability subclass even when the
+// entity owns no abilities.
+func GiveEntityModifier(entity uint32, modifier string, seconds float32) error {
+	return invoke("GiveEntityModifier", &abilitiespb.GiveEntityModifierRequest{Entity: entity, Modifier: modifier, Seconds: seconds}, nil)
+}
+
 // modHandlers handles the events the game delivers to the mod.
 type modHandlers interface {
 	// Start begins the mod's active lifetime, once, before any other event.

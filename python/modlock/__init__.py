@@ -2581,6 +2581,22 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "annotation", "string"),
         ],
     ),
+    "HoldEntityModifierRequest": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
+            wire.Field(2, "modifier", "string"),
+            wire.Field(3, "active", "bool", optional=True),
+        ],
+    ),
+    "GiveEntityModifierRequest": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
+            wire.Field(2, "modifier", "string"),
+            wire.Field(3, "seconds", "float"),
+        ],
+    ),
     "Vec3": (
         Vector,
         [
@@ -4542,6 +4558,24 @@ def watch_projectiles(options: ProjectileOptions) -> bool:
     call replaces the list; an empty list stops watching.
     """
     return _call("WatchProjectiles", "ProjectileOptions", options) is not None
+
+
+def hold_entity_modifier(entity: int, modifier: str, active: bool | None = None) -> bool:
+    """hold_entity_modifier keeps a modifier, named as GiveModifier names it, on a
+    live entity with no expiry, giving it back whenever the game removes it
+    while the entity lives. The hold ends with the entity or when active is
+    false.
+    """
+    return _call("HoldEntityModifier", "HoldEntityModifierRequest", {"entity": entity, "modifier": modifier, "active": active}) is not None
+
+
+def give_entity_modifier(entity: int, modifier: str, seconds: float) -> bool:
+    """give_entity_modifier gives a live entity, such as Npc.entity or Pawn.entity,
+    a modifier for seconds. An ability's modifier, named
+    "<ability>/<modifier>", resolves its parent ability subclass even when the
+    entity owns no abilities.
+    """
+    return _call("GiveEntityModifier", "GiveEntityModifierRequest", {"entity": entity, "modifier": modifier, "seconds": seconds}) is not None
 
 
 # _EVENTS holds each Mod method's request, response and handler.

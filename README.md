@@ -1108,6 +1108,7 @@ after(30, () => tour?.cancel())
 | `moveEntity`, `pushEntity`, `emitSound`                  | Move an entity, set or add to its velocity, or play a sound on it.  |
 | `modifierState(entity, state)`, `holdModifierState(...)` | Test a modifier state on an entity, or hold one on it.              |
 | `silenceVoice(concepts)`, `player.silenceVoice(...)`     | Keep every hero, or one, from speaking the named voice concepts.    |
+| `giveEntityModifier`, `holdEntityModifier`               | Give a modifier to a live entity, such as an NPC, or hold it on it. |
 | `readField`, `writeField`, `entityClass`                 | Read or write any schema field of a live entity, or name its class. |
 | `loadSpot(spot)`, `encodeSpot`, `decodeSpot`             | Place a [spot](#spots) on the running map, or save it.              |
 | `new Dropper(catalog, spot)`                             | Let players build a spot while they play.                           |

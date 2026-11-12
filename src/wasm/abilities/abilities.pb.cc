@@ -224,6 +224,34 @@ struct HoldModifierRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HoldModifierRequestDefaultTypeInternal _HoldModifierRequest_default_instance_;
+inline constexpr HoldEntityModifierRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        modifier_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        entity_{0u},
+        active_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR HoldEntityModifierRequest::HoldEntityModifierRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(HoldEntityModifierRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct HoldEntityModifierRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR HoldEntityModifierRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~HoldEntityModifierRequestDefaultTypeInternal() {}
+  union {
+    HoldEntityModifierRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HoldEntityModifierRequestDefaultTypeInternal _HoldEntityModifierRequest_default_instance_;
 
 inline constexpr HeroBuildRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -309,6 +337,34 @@ struct GiveItemRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GiveItemRequestDefaultTypeInternal _GiveItemRequest_default_instance_;
+inline constexpr GiveEntityModifierRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        modifier_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        entity_{0u},
+        seconds_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR GiveEntityModifierRequest::GiveEntityModifierRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(GiveEntityModifierRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct GiveEntityModifierRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR GiveEntityModifierRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~GiveEntityModifierRequestDefaultTypeInternal() {}
+  union {
+    GiveEntityModifierRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GiveEntityModifierRequestDefaultTypeInternal _GiveEntityModifierRequest_default_instance_;
 
 inline constexpr BuyItemRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -720,6 +776,24 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuildItem, _impl_.annotation_),
         0,
         1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::HoldEntityModifierRequest, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::HoldEntityModifierRequest, _impl_.entity_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::HoldEntityModifierRequest, _impl_.modifier_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::HoldEntityModifierRequest, _impl_.active_),
+        1,
+        0,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveEntityModifierRequest, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveEntityModifierRequest, _impl_.entity_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveEntityModifierRequest, _impl_.modifier_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveEntityModifierRequest, _impl_.seconds_),
+        1,
+        0,
+        2,
 };
 
 static const ::_pbi::MigrationSchema
@@ -742,6 +816,8 @@ static const ::_pbi::MigrationSchema
         {143, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
         {148, sizeof(::modlock::wasm::abilities::BuildCategory)},
         {157, sizeof(::modlock::wasm::abilities::BuildItem)},
+        {164, sizeof(::modlock::wasm::abilities::HoldEntityModifierRequest)},
+        {173, sizeof(::modlock::wasm::abilities::GiveEntityModifierRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HoldReloadRequest_default_instance_._instance,
@@ -762,6 +838,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HeroBuildResponse_default_instance_._instance,
     &::modlock::wasm::abilities::_BuildCategory_default_instance_._instance,
     &::modlock::wasm::abilities::_BuildItem_default_instance_._instance,
+    &::modlock::wasm::abilities::_HoldEntityModifierRequest_default_instance_._instance,
+    &::modlock::wasm::abilities::_GiveEntityModifierRequest_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -807,20 +885,25 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "(\t\022\023\n\013description\030\002 \001(\t\0220\n\005items\030\003 \003(\0132!"
     ".modlock.wasm.abilities.BuildItem\"-\n\tBui"
     "ldItem\022\014\n\004item\030\001 \001(\t\022\022\n\nannotation\030\002 \001(\t"
-    "B9Z7github.com/paralin/modlock/src/wasm/"
-    "abilities;abilitiesb\006proto3"
+    "\"]\n\031HoldEntityModifierRequest\022\016\n\006entity\030"
+    "\001 \001(\r\022\020\n\010modifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H"
+    "\000\210\001\001B\t\n\007_active\"N\n\031GiveEntityModifierReq"
+    "uest\022\016\n\006entity\030\001 \001(\r\022\020\n\010modifier\030\002 \001(\t\022\017"
+    "\n\007seconds\030\003 \001(\002B9Z7github.com/paralin/mo"
+    "dlock/src/wasm/abilities;abilitiesb\006prot"
+    "o3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto = {
     false,
     false,
-    1747,
+    1922,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
     "github.com/paralin/modlock/src/wasm/abilities/abilities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once,
     nullptr,
     0,
-    18,
+    20,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto::offsets,
@@ -6973,6 +7056,709 @@ void BuildItem::InternalSwap(BuildItem* PROTOBUF_RESTRICT PROTOBUF_NONNULL other
 }
 
 ::google::protobuf::Metadata BuildItem::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class HoldEntityModifierRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<HoldEntityModifierRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_._has_bits_);
+};
+
+HoldEntityModifierRequest::HoldEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, HoldEntityModifierRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.abilities.HoldEntityModifierRequest)
+}
+PROTOBUF_NDEBUG_INLINE HoldEntityModifierRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::abilities::HoldEntityModifierRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        modifier_(arena, from.modifier_) {}
+
+HoldEntityModifierRequest::HoldEntityModifierRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const HoldEntityModifierRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, HoldEntityModifierRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  HoldEntityModifierRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, entity_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, entity_),
+           offsetof(Impl_, active_) -
+               offsetof(Impl_, entity_) +
+               sizeof(Impl_::active_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.HoldEntityModifierRequest)
+}
+PROTOBUF_NDEBUG_INLINE HoldEntityModifierRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        modifier_(arena) {}
+
+inline void HoldEntityModifierRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, entity_),
+           0,
+           offsetof(Impl_, active_) -
+               offsetof(Impl_, entity_) +
+               sizeof(Impl_::active_));
+}
+HoldEntityModifierRequest::~HoldEntityModifierRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.abilities.HoldEntityModifierRequest)
+  SharedDtor(*this);
+}
+inline void HoldEntityModifierRequest::SharedDtor(MessageLite& self) {
+  HoldEntityModifierRequest& this_ = static_cast<HoldEntityModifierRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.modifier_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL HoldEntityModifierRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) HoldEntityModifierRequest(arena);
+}
+constexpr auto HoldEntityModifierRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(HoldEntityModifierRequest),
+                                            alignof(HoldEntityModifierRequest));
+}
+constexpr auto HoldEntityModifierRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_HoldEntityModifierRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &HoldEntityModifierRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<HoldEntityModifierRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &HoldEntityModifierRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<HoldEntityModifierRequest>(), &HoldEntityModifierRequest::ByteSizeLong,
+              &HoldEntityModifierRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_._cached_size_),
+          false,
+      },
+      &HoldEntityModifierRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull HoldEntityModifierRequest_class_data_ =
+        HoldEntityModifierRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+HoldEntityModifierRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&HoldEntityModifierRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(HoldEntityModifierRequest_class_data_.tc_table);
+  return HoldEntityModifierRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 65, 2>
+HoldEntityModifierRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    HoldEntityModifierRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::HoldEntityModifierRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 entity = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HoldEntityModifierRequest, _impl_.entity_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.entity_)}},
+    // string modifier = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.modifier_)}},
+    // optional bool active = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(HoldEntityModifierRequest, _impl_.active_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.active_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 entity = 1;
+    {PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.entity_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string modifier = 2;
+    {PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.modifier_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // optional bool active = 3;
+    {PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.active_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+  }},
+  // no aux_entries
+  {{
+    "\60\0\10\0\0\0\0\0"
+    "modlock.wasm.abilities.HoldEntityModifierRequest"
+    "modifier"
+  }},
+};
+PROTOBUF_NOINLINE void HoldEntityModifierRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.abilities.HoldEntityModifierRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.modifier_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+    ::memset(&_impl_.entity_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.active_) -
+        reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.active_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL HoldEntityModifierRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const HoldEntityModifierRequest& this_ = static_cast<const HoldEntityModifierRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL HoldEntityModifierRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const HoldEntityModifierRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.abilities.HoldEntityModifierRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 entity = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_entity() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_entity(), target);
+    }
+  }
+
+  // string modifier = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_modifier().empty()) {
+      const ::std::string& _s = this_._internal_modifier();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.abilities.HoldEntityModifierRequest.modifier");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // optional bool active = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        3, this_._internal_active(), target);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.abilities.HoldEntityModifierRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t HoldEntityModifierRequest::ByteSizeLong(const MessageLite& base) {
+  const HoldEntityModifierRequest& this_ = static_cast<const HoldEntityModifierRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t HoldEntityModifierRequest::ByteSizeLong() const {
+  const HoldEntityModifierRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.abilities.HoldEntityModifierRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += static_cast<bool>(0x00000004U & cached_has_bits) * 2;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // string modifier = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_modifier().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_modifier());
+      }
+    }
+    // uint32 entity = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_entity() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_entity());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void HoldEntityModifierRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<HoldEntityModifierRequest*>(&to_msg);
+  auto& from = static_cast<const HoldEntityModifierRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.abilities.HoldEntityModifierRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_modifier().empty()) {
+        _this->_internal_set_modifier(from._internal_modifier());
+      } else {
+        if (_this->_impl_.modifier_.IsDefault()) {
+          _this->_internal_set_modifier("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_entity() != 0) {
+        _this->_impl_.entity_ = from._impl_.entity_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.active_ = from._impl_.active_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void HoldEntityModifierRequest::CopyFrom(const HoldEntityModifierRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.abilities.HoldEntityModifierRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void HoldEntityModifierRequest::InternalSwap(HoldEntityModifierRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.modifier_, &other->_impl_.modifier_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.active_)
+      + sizeof(HoldEntityModifierRequest::_impl_.active_)
+      - PROTOBUF_FIELD_OFFSET(HoldEntityModifierRequest, _impl_.entity_)>(
+          reinterpret_cast<char*>(&_impl_.entity_),
+          reinterpret_cast<char*>(&other->_impl_.entity_));
+}
+
+::google::protobuf::Metadata HoldEntityModifierRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class GiveEntityModifierRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<GiveEntityModifierRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_._has_bits_);
+};
+
+GiveEntityModifierRequest::GiveEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, GiveEntityModifierRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.abilities.GiveEntityModifierRequest)
+}
+PROTOBUF_NDEBUG_INLINE GiveEntityModifierRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::abilities::GiveEntityModifierRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        modifier_(arena, from.modifier_) {}
+
+GiveEntityModifierRequest::GiveEntityModifierRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const GiveEntityModifierRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, GiveEntityModifierRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  GiveEntityModifierRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, entity_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, entity_),
+           offsetof(Impl_, seconds_) -
+               offsetof(Impl_, entity_) +
+               sizeof(Impl_::seconds_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.GiveEntityModifierRequest)
+}
+PROTOBUF_NDEBUG_INLINE GiveEntityModifierRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        modifier_(arena) {}
+
+inline void GiveEntityModifierRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, entity_),
+           0,
+           offsetof(Impl_, seconds_) -
+               offsetof(Impl_, entity_) +
+               sizeof(Impl_::seconds_));
+}
+GiveEntityModifierRequest::~GiveEntityModifierRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.abilities.GiveEntityModifierRequest)
+  SharedDtor(*this);
+}
+inline void GiveEntityModifierRequest::SharedDtor(MessageLite& self) {
+  GiveEntityModifierRequest& this_ = static_cast<GiveEntityModifierRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.modifier_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL GiveEntityModifierRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) GiveEntityModifierRequest(arena);
+}
+constexpr auto GiveEntityModifierRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(GiveEntityModifierRequest),
+                                            alignof(GiveEntityModifierRequest));
+}
+constexpr auto GiveEntityModifierRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_GiveEntityModifierRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &GiveEntityModifierRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<GiveEntityModifierRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &GiveEntityModifierRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<GiveEntityModifierRequest>(), &GiveEntityModifierRequest::ByteSizeLong,
+              &GiveEntityModifierRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_._cached_size_),
+          false,
+      },
+      &GiveEntityModifierRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull GiveEntityModifierRequest_class_data_ =
+        GiveEntityModifierRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+GiveEntityModifierRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&GiveEntityModifierRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(GiveEntityModifierRequest_class_data_.tc_table);
+  return GiveEntityModifierRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 65, 2>
+GiveEntityModifierRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    GiveEntityModifierRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::GiveEntityModifierRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 entity = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(GiveEntityModifierRequest, _impl_.entity_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.entity_)}},
+    // string modifier = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.modifier_)}},
+    // float seconds = 3;
+    {::_pbi::TcParser::FastF32S1,
+     {29, 2, 0,
+      PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.seconds_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 entity = 1;
+    {PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.entity_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string modifier = 2;
+    {PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.modifier_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // float seconds = 3;
+    {PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.seconds_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+  }},
+  // no aux_entries
+  {{
+    "\60\0\10\0\0\0\0\0"
+    "modlock.wasm.abilities.GiveEntityModifierRequest"
+    "modifier"
+  }},
+};
+PROTOBUF_NOINLINE void GiveEntityModifierRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.abilities.GiveEntityModifierRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.modifier_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+    ::memset(&_impl_.entity_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.seconds_) -
+        reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.seconds_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL GiveEntityModifierRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const GiveEntityModifierRequest& this_ = static_cast<const GiveEntityModifierRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL GiveEntityModifierRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const GiveEntityModifierRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.abilities.GiveEntityModifierRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 entity = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_entity() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_entity(), target);
+    }
+  }
+
+  // string modifier = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_modifier().empty()) {
+      const ::std::string& _s = this_._internal_modifier();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.abilities.GiveEntityModifierRequest.modifier");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // float seconds = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_seconds()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          3, this_._internal_seconds(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.abilities.GiveEntityModifierRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t GiveEntityModifierRequest::ByteSizeLong(const MessageLite& base) {
+  const GiveEntityModifierRequest& this_ = static_cast<const GiveEntityModifierRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t GiveEntityModifierRequest::ByteSizeLong() const {
+  const GiveEntityModifierRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.abilities.GiveEntityModifierRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // string modifier = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_modifier().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_modifier());
+      }
+    }
+    // uint32 entity = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_entity() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_entity());
+      }
+    }
+    // float seconds = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_seconds()) != 0) {
+        total_size += 5;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void GiveEntityModifierRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<GiveEntityModifierRequest*>(&to_msg);
+  auto& from = static_cast<const GiveEntityModifierRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.abilities.GiveEntityModifierRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_modifier().empty()) {
+        _this->_internal_set_modifier(from._internal_modifier());
+      } else {
+        if (_this->_impl_.modifier_.IsDefault()) {
+          _this->_internal_set_modifier("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_entity() != 0) {
+        _this->_impl_.entity_ = from._impl_.entity_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_seconds()) != 0) {
+        _this->_impl_.seconds_ = from._impl_.seconds_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void GiveEntityModifierRequest::CopyFrom(const GiveEntityModifierRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.abilities.GiveEntityModifierRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void GiveEntityModifierRequest::InternalSwap(GiveEntityModifierRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.modifier_, &other->_impl_.modifier_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.seconds_)
+      + sizeof(GiveEntityModifierRequest::_impl_.seconds_)
+      - PROTOBUF_FIELD_OFFSET(GiveEntityModifierRequest, _impl_.entity_)>(
+          reinterpret_cast<char*>(&_impl_.entity_),
+          reinterpret_cast<char*>(&other->_impl_.entity_));
+}
+
+::google::protobuf::Metadata GiveEntityModifierRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

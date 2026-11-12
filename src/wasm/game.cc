@@ -55,6 +55,17 @@ void Game::ApplyHolds() {
   for (const auto& [slot, key] : held_modifiers_) {
     static_cast<void>(RenewModifier(slot, key));
   }
+  std::vector<std::pair<uint32_t, std::string>> gone;
+  for (const auto& [entity, key] : held_entity_modifiers_) {
+    if (!Entity(entity)) {
+      gone.emplace_back(entity, key);
+      continue;
+    }
+    static_cast<void>(RenewEntityModifier(entity, key, false));
+  }
+  for (const auto& [entity, key] : gone) {
+    ReleaseEntityModifier(entity, key);
+  }
 }
 
 std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::string& key) {
@@ -85,14 +96,51 @@ std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::st
   return modifier->second.Attach(observer_, slot, *source);
 }
 
-void Game::ReleaseModifier(int32_t slot, const std::string& key) {
-  // Drop the slot's hold.
-  if (held_modifiers_.erase({slot, key}) == 0) {
-    return;
+std::expected<void, std::string> Game::RenewEntityModifier(uint32_t handle, const std::string& key,
+                                                           bool initial) {
+  // Find the held modifier and the live entity.
+  const auto modifier = modifiers_.find(key);
+  if (modifier == modifiers_.end()) {
+    return std::unexpected("the modifier is not held");
+  }
+  auto entity = ModifiableEntity(handle);
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  if (!modifier->second.EntityAlive(*entity)) {
+    if (initial) {
+      return std::unexpected("the entity is not alive");
+    }
+    return {};
   }
 
-  // Restore the modifier once no slot holds it.
-  if (std::ranges::any_of(held_modifiers_, [&](const auto& hold) { return hold.second == key; })) {
+  // Attach the modifier again if the game removed it.
+  auto attached = modifier->second.AttachedToEntity(*entity);
+  if (!attached) {
+    return std::unexpected(attached.error());
+  }
+  if (*attached) {
+    return {};
+  }
+  return modifier->second.AttachEntity(*entity, EntityAbilityHandle(handle, key));
+}
+
+void Game::ReleaseModifier(int32_t slot, const std::string& key) {
+  if (held_modifiers_.erase({slot, key}) != 0) {
+    RestoreUnusedModifier(key);
+  }
+}
+
+void Game::ReleaseEntityModifier(uint32_t handle, const std::string& key) {
+  if (held_entity_modifiers_.erase({handle, key}) != 0) {
+    RestoreUnusedModifier(key);
+  }
+}
+
+void Game::RestoreUnusedModifier(const std::string& key) {
+  if (std::ranges::any_of(held_modifiers_, [&](const auto& hold) { return hold.second == key; }) ||
+      std::ranges::any_of(held_entity_modifiers_,
+                          [&](const auto& hold) { return hold.second == key; })) {
     return;
   }
   if (auto modifier = modifiers_.find(key); modifier != modifiers_.end()) {
@@ -107,6 +155,7 @@ void Game::ReleaseModifiers() {
   }
   modifiers_.clear();
   held_modifiers_.clear();
+  held_entity_modifiers_.clear();
 }
 
 std::vector<Game::ButtonChange> Game::TakeButtonChanges() {

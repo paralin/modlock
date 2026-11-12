@@ -72,8 +72,7 @@ class HostService {
 
   // CenterText shows text in the middle of the player's screen until it is
   // replaced. Empty text clears it.
-  virtual std::expected<void, std::string> CenterText(
-      const effects::CenterTextRequest& /*request*/) {
+  virtual std::expected<void, std::string> CenterText(const effects::CenterTextRequest& /*request*/) {
     return std::unexpected("this host does not support CenterText");
   }
 
@@ -100,24 +99,21 @@ class HostService {
   // placeholder with hero 0 that a player joining on a team holds until a hero
   // is selected. It returns nothing for a spectator and before the game has
   // made a pawn. The pawn's entity changes whenever the game replaces it.
-  virtual std::expected<players::PawnResponse, std::string> Pawn(
-      const players::PlayerRequest& /*request*/) {
+  virtual std::expected<players::PawnResponse, std::string> Pawn(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Pawn");
   }
 
   // PlayerSetting returns the player's value of a setting the manifest
   // declares: the value they chose, or the setting's default. A bot has the
   // defaults.
-  virtual std::expected<settings::SettingResponse, std::string> PlayerSetting(
-      const settings::PlayerSettingRequest& /*request*/) {
+  virtual std::expected<settings::SettingResponse, std::string> PlayerSetting(const settings::PlayerSettingRequest& /*request*/) {
     return std::unexpected("this host does not support PlayerSetting");
   }
 
   // SetPlayerSetting changes the player's value of a setting the manifest
   // declares. The value follows the player to later games and other mods'
   // servers of the same mod; a bot keeps the defaults.
-  virtual std::expected<void, std::string> SetPlayerSetting(
-      const settings::SetPlayerSettingRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetPlayerSetting(const settings::SetPlayerSettingRequest& /*request*/) {
     return std::unexpected("this host does not support SetPlayerSetting");
   }
 
@@ -132,8 +128,7 @@ class HostService {
   // wrote or the server's operator placed, else the one the mod ships under
   // data/. A file in neither reads as unset. Names that leave the mod's
   // directories are refused.
-  virtual std::expected<ReadFileResponse, std::string> ReadFile(
-      const ReadFileRequest& /*request*/) {
+  virtual std::expected<ReadFileResponse, std::string> ReadFile(const ReadFileRequest& /*request*/) {
     return std::unexpected("this host does not support ReadFile");
   }
 
@@ -151,8 +146,7 @@ class HostService {
   // lose. A reload that arrives meanwhile waits, and the newest one applies
   // on the first frame after the mod releases the hold. A new build starts
   // without a hold.
-  virtual std::expected<void, std::string> HoldReload(
-      const abilities::HoldReloadRequest& /*request*/) {
+  virtual std::expected<void, std::string> HoldReload(const abilities::HoldReloadRequest& /*request*/) {
     return std::unexpected("this host does not support HoldReload");
   }
 
@@ -180,8 +174,7 @@ class HostService {
   }
 
   // PlayerHandedOff returns the player's handoff state, or empty.
-  virtual std::expected<HandedOffResponse, std::string> PlayerHandedOff(
-      const players::PlayerRequest& /*request*/) {
+  virtual std::expected<HandedOffResponse, std::string> PlayerHandedOff(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support PlayerHandedOff");
   }
 
@@ -190,8 +183,7 @@ class HostService {
   // frame. A hero the player picked through the game's Change Hero wins: the
   // game removes the old hero before it spawns the pick, and a call in that
   // gap, up to 5 seconds, fails and leaves the pick to land.
-  virtual std::expected<players::HeroResponse, std::string> SelectHero(
-      const players::SelectHeroRequest& /*request*/) {
+  virtual std::expected<players::HeroResponse, std::string> SelectHero(const players::SelectHeroRequest& /*request*/) {
     return std::unexpected("this host does not support SelectHero");
   }
 
@@ -214,8 +206,7 @@ class HostService {
   // movement keys and the mouse, as the game's roaming spectator camera does.
   // A player with a hero leaves it where it stands, as Watch does, until
   // Unwatch returns them to it; Watch follows a hero again.
-  virtual std::expected<void, std::string> FreeCamera(
-      const players::FreeCameraRequest& /*request*/) {
+  virtual std::expected<void, std::string> FreeCamera(const players::FreeCameraRequest& /*request*/) {
     return std::unexpected("this host does not support FreeCamera");
   }
 
@@ -228,8 +219,7 @@ class HostService {
 
   // ClearCamera removes a context's camera operations from the player's
   // camera, or every operation, and the camera returns to its usual place.
-  virtual std::expected<void, std::string> ClearCamera(
-      const players::ClearCameraRequest& /*request*/) {
+  virtual std::expected<void, std::string> ClearCamera(const players::ClearCameraRequest& /*request*/) {
     return std::unexpected("this host does not support ClearCamera");
   }
 
@@ -252,8 +242,7 @@ class HostService {
   // living hero moved inside the other team's base dies to the base's
   // defense. A player without a hero joins a team through SelectHero
   // instead.
-  virtual std::expected<void, std::string> ChangeTeam(
-      const players::ChangeTeamRequest& /*request*/) {
+  virtual std::expected<void, std::string> ChangeTeam(const players::ChangeTeamRequest& /*request*/) {
     return std::unexpected("this host does not support ChangeTeam");
   }
 
@@ -269,36 +258,31 @@ class HostService {
   }
 
   // RestoreStamina refills the player's stamina.
-  virtual std::expected<void, std::string> RestoreStamina(
-      const players::PlayerRequest& /*request*/) {
+  virtual std::expected<void, std::string> RestoreStamina(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support RestoreStamina");
   }
 
   // SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
   // regenerates it as usual afterwards.
-  virtual std::expected<void, std::string> SetStamina(
-      const players::SetStaminaRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetStamina(const players::SetStaminaRequest& /*request*/) {
     return std::unexpected("this host does not support SetStamina");
   }
 
   // RefreshAbility ends the cooldown of the hero's ability named ability,
   // such as citadel_ability_melee_parry.
-  virtual std::expected<void, std::string> RefreshAbility(
-      const abilities::RefreshAbilityRequest& /*request*/) {
+  virtual std::expected<void, std::string> RefreshAbility(const abilities::RefreshAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support RefreshAbility");
   }
 
   // Abilities lists the abilities of the player's hero in the hero's order,
   // or none without a live hero.
-  virtual std::expected<abilities::AbilitiesResponse, std::string> Abilities(
-      const players::PlayerRequest& /*request*/) {
+  virtual std::expected<abilities::AbilitiesResponse, std::string> Abilities(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Abilities");
   }
 
   // SetAbility changes the upgrades, charges or timers of one of the hero's
   // abilities. An omitted option stays as it is.
-  virtual std::expected<void, std::string> SetAbility(
-      const abilities::AbilityOptions& /*request*/) {
+  virtual std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& /*request*/) {
     return std::unexpected("this host does not support SetAbility");
   }
 
@@ -328,8 +312,7 @@ class HostService {
   // on an ability ReplaceAbility put there, which the game's own commands for
   // a slot do not reach. When the game refuses, as without an unlock or the
   // points, the call fails and nothing is spent.
-  virtual std::expected<void, std::string> TrainAbility(
-      const abilities::TrainAbilityRequest& /*request*/) {
+  virtual std::expected<void, std::string> TrainAbility(const abilities::TrainAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support TrainAbility");
   }
 
@@ -338,8 +321,7 @@ class HostService {
   // are left out, so every item returned is one GiveItem accepts. A hero
   // without a build answers with no categories. The call needs a loaded
   // world.
-  virtual std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
-      const abilities::HeroBuildRequest& /*request*/) {
+  virtual std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(const abilities::HeroBuildRequest& /*request*/) {
     return std::unexpected("this host does not support HeroBuild");
   }
 
@@ -354,8 +336,7 @@ class HostService {
   // only if Precache named that hero and those resources before the world
   // loaded; otherwise its first effect stalls the game on a blocking load and
   // the game reports an assertion.
-  virtual std::expected<void, std::string> ReplaceAbility(
-      const abilities::ReplaceAbilityRequest& /*request*/) {
+  virtual std::expected<void, std::string> ReplaceAbility(const abilities::ReplaceAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support ReplaceAbility");
   }
 
@@ -364,8 +345,7 @@ class HostService {
   // hero returns. Every hero that gains the modifier from the same ability
   // keeps it until the hold ends. Releasing leaves the hero's current
   // modifier until it dies.
-  virtual std::expected<void, std::string> HoldModifier(
-      const abilities::HoldModifierRequest& /*request*/) {
+  virtual std::expected<void, std::string> HoldModifier(const abilities::HoldModifierRequest& /*request*/) {
     return std::unexpected("this host does not support HoldModifier");
   }
 
@@ -376,8 +356,7 @@ class HostService {
   // modifier_street_brawl_round_start_zipline_boost, applies it with the
   // hero's first ability. The game may end it sooner, as invisibility ends on
   // a shot.
-  virtual std::expected<void, std::string> GiveModifier(
-      const abilities::GiveModifierRequest& /*request*/) {
+  virtual std::expected<void, std::string> GiveModifier(const abilities::GiveModifierRequest& /*request*/) {
     return std::unexpected("this host does not support GiveModifier");
   }
 
@@ -400,8 +379,7 @@ class HostService {
   // MovePlayer carries the player's hero to a position as continuous motion,
   // as a recording plays back. Unlike Teleport it keeps the hero's animated
   // model drawn when repeated every tick, and leaves the camera alone.
-  virtual std::expected<void, std::string> MovePlayer(
-      const movement::MovePlayerRequest& /*request*/) {
+  virtual std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& /*request*/) {
     return std::unexpected("this host does not support MovePlayer");
   }
 
@@ -429,8 +407,7 @@ class HostService {
   // AdjustSouls gives the player delta souls, or takes them when delta is
   // negative. A spend larger than the player's souls fails and spends
   // nothing. Silent skips the pickup's sound and number.
-  virtual std::expected<void, std::string> AdjustSouls(
-      const players::AdjustSoulsRequest& /*request*/) {
+  virtual std::expected<void, std::string> AdjustSouls(const players::AdjustSoulsRequest& /*request*/) {
     return std::unexpected("this host does not support AdjustSouls");
   }
 
@@ -438,14 +415,12 @@ class HostService {
   // or takes them when negative, as Pawn.ability_points and
   // Pawn.ability_unlocks read them. A spend larger than the player holds
   // fails and spends nothing.
-  virtual std::expected<void, std::string> AdjustAbilityPoints(
-      const players::AdjustAbilityPointsRequest& /*request*/) {
+  virtual std::expected<void, std::string> AdjustAbilityPoints(const players::AdjustAbilityPointsRequest& /*request*/) {
     return std::unexpected("this host does not support AdjustAbilityPoints");
   }
 
   // StartingSouls sets the souls the player's hero spawns with.
-  virtual std::expected<void, std::string> StartingSouls(
-      const players::StartingSoulsRequest& /*request*/) {
+  virtual std::expected<void, std::string> StartingSouls(const players::StartingSoulsRequest& /*request*/) {
     return std::unexpected("this host does not support StartingSouls");
   }
 
@@ -463,8 +438,7 @@ class HostService {
   // Sound plays a game sound event, such as Damage.Send.Crit, on the
   // player's hero, and returns its ID. It follows the hero as it moves.
   // Volume and pitch scale the sound, and listeners limit who hears it.
-  virtual std::expected<effects::SoundResponse, std::string> Sound(
-      const effects::SoundRequest& /*request*/) {
+  virtual std::expected<effects::SoundResponse, std::string> Sound(const effects::SoundRequest& /*request*/) {
     return std::unexpected("this host does not support Sound");
   }
 
@@ -474,22 +448,19 @@ class HostService {
   // held for a second, or why it could not. A new call replaces the running
   // one. A pawn with hero 0 has no hero to restore; the call fails until
   // SelectHero gives it one.
-  virtual std::expected<void, std::string> RestoreHero(
-      const players::RestoreHeroRequest& /*request*/) {
+  virtual std::expected<void, std::string> RestoreHero(const players::RestoreHeroRequest& /*request*/) {
     return std::unexpected("this host does not support RestoreHero");
   }
 
   // ScreenEffect plays a full-screen effect on the player's view. Effects of
   // one kind stack. The player's hero must be alive.
-  virtual std::expected<void, std::string> ScreenEffect(
-      const effects::ScreenEffectRequest& /*request*/) {
+  virtual std::expected<void, std::string> ScreenEffect(const effects::ScreenEffectRequest& /*request*/) {
     return std::unexpected("this host does not support ScreenEffect");
   }
 
   // ClearScreenEffect ends every running instance of effect on the player's
   // view.
-  virtual std::expected<void, std::string> ClearScreenEffect(
-      const effects::ClearScreenEffectRequest& /*request*/) {
+  virtual std::expected<void, std::string> ClearScreenEffect(const effects::ClearScreenEffectRequest& /*request*/) {
     return std::unexpected("this host does not support ClearScreenEffect");
   }
 
@@ -497,15 +468,13 @@ class HostService {
   // until called again. A hero still hears the game's other sounds. Stopping
   // the mod lets them speak; a name the game does not know fails the call
   // and the known ones still apply.
-  virtual std::expected<void, std::string> SilenceVoice(
-      const effects::SilenceVoiceRequest& /*request*/) {
+  virtual std::expected<void, std::string> SilenceVoice(const effects::SilenceVoiceRequest& /*request*/) {
     return std::unexpected("this host does not support SilenceVoice");
   }
 
   // SilencePlayerVoice keeps the player's hero from speaking the named voice
   // concepts until called again, on top of those silenced for everyone.
-  virtual std::expected<void, std::string> SilencePlayerVoice(
-      const effects::SilencePlayerVoiceRequest& /*request*/) {
+  virtual std::expected<void, std::string> SilencePlayerVoice(const effects::SilencePlayerVoiceRequest& /*request*/) {
     return std::unexpected("this host does not support SilencePlayerVoice");
   }
 
@@ -518,8 +487,7 @@ class HostService {
   // body component holds read through the entity too: CGameSceneNode, and for
   // a model entity CSkeletonInstance and CModelState, such as the uint64
   // m_MeshGroupMask of CModelState that chooses which mesh groups draw.
-  virtual std::expected<fields::FieldResponse, std::string> ReadField(
-      const fields::ReadFieldRequest& /*request*/) {
+  virtual std::expected<fields::FieldResponse, std::string> ReadField(const fields::ReadFieldRequest& /*request*/) {
     return std::unexpected("this host does not support ReadField");
   }
 
@@ -529,8 +497,7 @@ class HostService {
   // while the entity lacks the modifier. The host cannot check the modifier's
   // class, so a wrong class reads the wrong bytes, though never past readable
   // memory.
-  virtual std::expected<fields::FieldResponse, std::string> ReadModifierField(
-      const fields::ReadModifierFieldRequest& /*request*/) {
+  virtual std::expected<fields::FieldResponse, std::string> ReadModifierField(const fields::ReadModifierFieldRequest& /*request*/) {
     return std::unexpected("this host does not support ReadModifierField");
   }
 
@@ -548,61 +515,53 @@ class HostService {
   // layout when it changes, not every frame. It refuses the fields that
   // name a console line or a script, such as m_iszPrivateVScripts, here and
   // among the fields CreateEntity writes before spawn.
-  virtual std::expected<void, std::string> WriteField(
-      const fields::WriteFieldRequest& /*request*/) {
+  virtual std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& /*request*/) {
     return std::unexpected("this host does not support WriteField");
   }
 
   // ReadFieldList reads a field that holds a list, such as the m_vecBannedHeroes
   // of CCitadelGameRules. The type is the type of one element: a number, a
   // handle, a boolean or a vector. A list of structures cannot be read.
-  virtual std::expected<fields::FieldListResponse, std::string> ReadFieldList(
-      const fields::ReadFieldRequest& /*request*/) {
+  virtual std::expected<fields::FieldListResponse, std::string> ReadFieldList(const fields::ReadFieldRequest& /*request*/) {
     return std::unexpected("this host does not support ReadFieldList");
   }
 
   // WriteFieldList replaces the elements of a list field and sends the change
   // to the players, growing the list when it holds fewer elements than the
   // new ones.
-  virtual std::expected<void, std::string> WriteFieldList(
-      const fields::WriteFieldListRequest& /*request*/) {
+  virtual std::expected<void, std::string> WriteFieldList(const fields::WriteFieldListRequest& /*request*/) {
     return std::unexpected("this host does not support WriteFieldList");
   }
 
   // EntityClass returns a live entity's schema class, such as
   // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
-  virtual std::expected<entities::EntityClassResponse, std::string> EntityClass(
-      const entities::EntityRequest& /*request*/) {
+  virtual std::expected<entities::EntityClassResponse, std::string> EntityClass(const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support EntityClass");
   }
 
   // EntityName returns a live entity's name, the targetname a map or a spawn
   // key value gave it, or an empty name for an unnamed entity.
-  virtual std::expected<entities::EntityNameResponse, std::string> EntityName(
-      const entities::EntityRequest& /*request*/) {
+  virtual std::expected<entities::EntityNameResponse, std::string> EntityName(const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support EntityName");
   }
 
   // EntityPosition returns where a live entity stands, its absolute origin
   // and angles, as MoveEntity places it, and its velocity. Any entity with a
   // place in the world has one, such as one of the map's boxes.
-  virtual std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
-      const entities::EntityRequest& /*request*/) {
+  virtual std::expected<entities::EntityPositionResponse, std::string> EntityPosition(const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support EntityPosition");
   }
 
   // ModifierState reports whether an entity has a modifier state, such as
   // MODIFIER_STATE_PARRY_ACTIVE.
-  virtual std::expected<abilities::ActiveResponse, std::string> ModifierState(
-      const abilities::ModifierStateRequest& /*request*/) {
+  virtual std::expected<abilities::ActiveResponse, std::string> ModifierState(const abilities::ModifierStateRequest& /*request*/) {
     return std::unexpected("this host does not support ModifierState");
   }
 
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.
-  virtual std::expected<void, std::string> HoldModifierState(
-      const abilities::HoldModifierStateRequest& /*request*/) {
+  virtual std::expected<void, std::string> HoldModifierState(const abilities::HoldModifierStateRequest& /*request*/) {
     return std::unexpected("this host does not support HoldModifierState");
   }
 
@@ -626,37 +585,32 @@ class HostService {
   // the mod gives each seated player whose pawn has hero 0 a hero with
   // SelectHero. Free-for-all seats players this
   // way whatever this says. Turning it off leaves players on their teams.
-  virtual std::expected<void, std::string> SetTeamSeating(
-      const SetTeamSeatingRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetTeamSeating(const SetTeamSeatingRequest& /*request*/) {
     return std::unexpected("this host does not support SetTeamSeating");
   }
 
   // CreateModel places a model in the world, solid when the options ask.
   // The world removes it when the world ends; stopping the mod removes it
   // too.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateModel(
-      const objects::ModelOptions& /*request*/) {
+  virtual std::expected<objects::ObjectResponse, std::string> CreateModel(const objects::ModelOptions& /*request*/) {
     return std::unexpected("this host does not support CreateModel");
   }
 
   // CreateText places text that floats in the world.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateText(
-      const objects::TextOptions& /*request*/) {
+  virtual std::expected<objects::ObjectResponse, std::string> CreateText(const objects::TextOptions& /*request*/) {
     return std::unexpected("this host does not support CreateText");
   }
 
   // CreateParticle starts a particle effect. Removing the object stops it
   // and lets its end cap play out, unless the mod already stopped it, such as
   // with the DestroyImmediately input; moving it moves the effect.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateParticle(
-      const objects::ParticleOptions& /*request*/) {
+  virtual std::expected<objects::ObjectResponse, std::string> CreateParticle(const objects::ParticleOptions& /*request*/) {
     return std::unexpected("this host does not support CreateParticle");
   }
 
   // CreateFog fills a box with tinted fog whose density fades across the
   // box's boundary. Removing the object clears it; moving it moves the box.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateFog(
-      const objects::FogOptions& /*request*/) {
+  virtual std::expected<objects::ObjectResponse, std::string> CreateFog(const objects::FogOptions& /*request*/) {
     return std::unexpected("this host does not support CreateFog");
   }
 
@@ -664,8 +618,7 @@ class HostService {
   // physics step pulls a solid model to its new place over one tick, so a
   // model moved each frame strikes physics props such as the Hideout ball
   // with its speed instead of passing through them.
-  virtual std::expected<void, std::string> MoveObject(
-      const objects::MoveObjectRequest& /*request*/) {
+  virtual std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& /*request*/) {
     return std::unexpected("this host does not support MoveObject");
   }
 
@@ -677,8 +630,7 @@ class HostService {
   // SetObjectHidden hides the object from one player or shows it again.
   // Other players still see it. A player who leaves sees every object when
   // they return.
-  virtual std::expected<void, std::string> SetObjectHidden(
-      const objects::SetObjectHiddenRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetObjectHidden(const objects::SetObjectHiddenRequest& /*request*/) {
     return std::unexpected("this host does not support SetObjectHidden");
   }
 
@@ -689,15 +641,13 @@ class HostService {
   // when its entity changes. A player who leaves is taken off every list, so
   // whoever joins in their slot does not receive the object. A removed object
   // reaches no client while the engine retires its entity.
-  virtual std::expected<void, std::string> ShowObjectOnlyTo(
-      const objects::ShowObjectOnlyToRequest& /*request*/) {
+  virtual std::expected<void, std::string> ShowObjectOnlyTo(const objects::ShowObjectOnlyToRequest& /*request*/) {
     return std::unexpected("this host does not support ShowObjectOnlyTo");
   }
 
   // ShowObjectToAll sends the object to every player again, undoing
   // ShowObjectOnlyTo.
-  virtual std::expected<void, std::string> ShowObjectToAll(
-      const objects::ObjectRequest& /*request*/) {
+  virtual std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& /*request*/) {
     return std::unexpected("this host does not support ShowObjectToAll");
   }
 
@@ -708,15 +658,13 @@ class HostService {
 
   // ObjectEntity returns the entity handle of a model or particle, as traces
   // report it and particle anchors take it.
-  virtual std::expected<entities::EntityResponse, std::string> ObjectEntity(
-      const objects::ObjectRequest& /*request*/) {
+  virtual std::expected<entities::EntityResponse, std::string> ObjectEntity(const objects::ObjectRequest& /*request*/) {
     return std::unexpected("this host does not support ObjectEntity");
   }
 
   // AddBot adds a bot player and returns it. The bot leaves when the world
   // ends or the mod stops.
-  virtual std::expected<players::BotResponse, std::string> AddBot(
-      const players::BotOptions& /*request*/) {
+  virtual std::expected<players::BotResponse, std::string> AddBot(const players::BotOptions& /*request*/) {
     return std::unexpected("this host does not support AddBot");
   }
 
@@ -780,8 +728,7 @@ class HostService {
   // a class that runs console lines or loads scripts or entities past a mod's
   // checks, such as point_servercommand, and key values that name a console
   // line or a script, such as vscripts.
-  virtual std::expected<entities::EntityResponse, std::string> CreateEntity(
-      const entities::EntityOptions& /*request*/) {
+  virtual std::expected<entities::EntityResponse, std::string> CreateEntity(const entities::EntityOptions& /*request*/) {
     return std::unexpected("this host does not support CreateEntity");
   }
 
@@ -790,15 +737,13 @@ class HostService {
   // It reports false once the entity is gone. It refuses AddOutput and the
   // script inputs on every entity, and any input to an entity of a class
   // CreateEntity refuses.
-  virtual std::expected<entities::AliveResponse, std::string> FireInput(
-      const entities::FireInputRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> FireInput(const entities::FireInputRequest& /*request*/) {
     return std::unexpected("this host does not support FireInput");
   }
 
   // RemoveEntity takes an entity the mod created out of the world without
   // rewards. It reports false when the entity was already gone.
-  virtual std::expected<entities::AliveResponse, std::string> RemoveEntity(
-      const entities::EntityRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> RemoveEntity(const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveEntity");
   }
 
@@ -811,15 +756,13 @@ class HostService {
   // TransmitAlways too, but not for entities parented to it, which need their
   // own call. Removing the entity, the world ending or the mod stopping drops
   // the rule.
-  virtual std::expected<void, std::string> ShowEntityOnlyTo(
-      const entities::ShowEntityOnlyToRequest& /*request*/) {
+  virtual std::expected<void, std::string> ShowEntityOnlyTo(const entities::ShowEntityOnlyToRequest& /*request*/) {
     return std::unexpected("this host does not support ShowEntityOnlyTo");
   }
 
   // ShowEntityToAll sends an entity the mod created to every player the game
   // would send it to again, undoing ShowEntityOnlyTo.
-  virtual std::expected<void, std::string> ShowEntityToAll(
-      const entities::EntityRequest& /*request*/) {
+  virtual std::expected<void, std::string> ShowEntityToAll(const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support ShowEntityToAll");
   }
 
@@ -827,14 +770,12 @@ class HostService {
   // CreateEntity does, then sets its health and lane. It thinks from the next
   // frame. The world removes it when the world ends; stopping
   // the mod removes it too.
-  virtual std::expected<npcs::NpcResponse, std::string> SpawnNpc(
-      const npcs::NpcOptions& /*request*/) {
+  virtual std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& /*request*/) {
     return std::unexpected("this host does not support SpawnNpc");
   }
 
   // ReadNpc returns the unit's state, or nothing once it is gone.
-  virtual std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
-      const npcs::NpcRequest& /*request*/) {
+  virtual std::expected<npcs::NpcStateResponse, std::string> ReadNpc(const npcs::NpcRequest& /*request*/) {
     return std::unexpected("this host does not support ReadNpc");
   }
 
@@ -842,64 +783,55 @@ class HostService {
   // animation. It sets the pose without a teleport, which would reset the
   // unit's animation, so a mode can steer its units every frame. It reports
   // false once the unit is gone.
-  virtual std::expected<entities::AliveResponse, std::string> MoveNpc(
-      const npcs::MoveNpcRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> MoveNpc(const npcs::MoveNpcRequest& /*request*/) {
     return std::unexpected("this host does not support MoveNpc");
   }
 
   // SetNpcHealth sets the unit's health, and its maximum when given. It
   // reports false once the unit is gone.
-  virtual std::expected<entities::AliveResponse, std::string> SetNpcHealth(
-      const npcs::SetNpcHealthRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> SetNpcHealth(const npcs::SetNpcHealthRequest& /*request*/) {
     return std::unexpected("this host does not support SetNpcHealth");
   }
 
   // RemoveNpc takes a unit the mod spawned out of the world without rewards.
   // It reports false when the unit was already gone.
-  virtual std::expected<entities::AliveResponse, std::string> RemoveNpc(
-      const npcs::NpcRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> RemoveNpc(const npcs::NpcRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveNpc");
   }
 
   // CreatePickup places an urn, which a hero carries once collected, or a
   // movement buff. Stopping the mod removes it.
-  virtual std::expected<entities::PickupResponse, std::string> CreatePickup(
-      const entities::CreatePickupRequest& /*request*/) {
+  virtual std::expected<entities::PickupResponse, std::string> CreatePickup(const entities::CreatePickupRequest& /*request*/) {
     return std::unexpected("this host does not support CreatePickup");
   }
 
   // PickupPresent reports whether the pickup still lies in the world,
   // uncollected.
-  virtual std::expected<entities::AliveResponse, std::string> PickupPresent(
-      const entities::PickupRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> PickupPresent(const entities::PickupRequest& /*request*/) {
     return std::unexpected("this host does not support PickupPresent");
   }
 
   // RemovePickup takes the pickup out of the world. It reports false when a
   // player had collected it.
-  virtual std::expected<entities::AliveResponse, std::string> RemovePickup(
-      const entities::PickupRequest& /*request*/) {
+  virtual std::expected<entities::AliveResponse, std::string> RemovePickup(const entities::PickupRequest& /*request*/) {
     return std::unexpected("this host does not support RemovePickup");
   }
 
   // FindEntities returns the handle of every live entity of a class, such as
   // zip_line_node.
-  virtual std::expected<entities::EntitiesResponse, std::string> FindEntities(
-      const entities::FindEntitiesRequest& /*request*/) {
+  virtual std::expected<entities::EntitiesResponse, std::string> FindEntities(const entities::FindEntitiesRequest& /*request*/) {
     return std::unexpected("this host does not support FindEntities");
   }
 
   // FindEntitiesByName returns the handle of every live entity with a name,
   // the targetname a map or the targetname key value of CreateEntity gave it.
-  virtual std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
-      const entities::FindEntitiesByNameRequest& /*request*/) {
+  virtual std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(const entities::FindEntitiesByNameRequest& /*request*/) {
     return std::unexpected("this host does not support FindEntitiesByName");
   }
 
   // RemoveEntities removes every entity of a class, such as npc_trooper,
   // without rewards, and returns how many it removed.
-  virtual std::expected<entities::CountResponse, std::string> RemoveEntities(
-      const entities::RemoveEntitiesRequest& /*request*/) {
+  virtual std::expected<entities::CountResponse, std::string> RemoveEntities(const entities::RemoveEntitiesRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveEntities");
   }
 
@@ -923,8 +855,7 @@ class HostService {
 
   // Trace returns where a line first hits something, or nothing when it hits
   // nothing or the world's collision is not ready.
-  virtual std::expected<combat::TraceResponse, std::string> Trace(
-      const combat::TraceOptions& /*request*/) {
+  virtual std::expected<combat::TraceResponse, std::string> Trace(const combat::TraceOptions& /*request*/) {
     return std::unexpected("this host does not support Trace");
   }
 
@@ -933,8 +864,7 @@ class HostService {
   // removed, structures that match are kept, and moving units are spawned
   // again in place. An NpcsRestored event reports when every target stands
   // as its own unit, or why not. A new call replaces the running one.
-  virtual std::expected<void, std::string> RestoreNpcs(
-      const npcs::RestoreNpcsRequest& /*request*/) {
+  virtual std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& /*request*/) {
     return std::unexpected("this host does not support RestoreNpcs");
   }
 
@@ -951,8 +881,7 @@ class HostService {
 
   // HoldMatchClock keeps the match time at seconds every frame until called
   // again; omitted seconds let it run.
-  virtual std::expected<void, std::string> HoldMatchClock(
-      const HoldMatchClockRequest& /*request*/) {
+  virtual std::expected<void, std::string> HoldMatchClock(const HoldMatchClockRequest& /*request*/) {
     return std::unexpected("this host does not support HoldMatchClock");
   }
 
@@ -970,31 +899,27 @@ class HostService {
   // facing and motion when given. Without a position it leaves the entity
   // where it is, so a velocity alone steers a body the physics simulates, such
   // as a prop_physics, which carries the motion on against the world.
-  virtual std::expected<void, std::string> MoveEntity(
-      const entities::MoveEntityRequest& /*request*/) {
+  virtual std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& /*request*/) {
     return std::unexpected("this host does not support MoveEntity");
   }
 
   // PushEntity adds a velocity and an angular velocity to any entity. On a
   // body the physics simulates, such as a prop_physics, it acts like an
   // impulse that the simulation carries on.
-  virtual std::expected<void, std::string> PushEntity(
-      const entities::PushEntityRequest& /*request*/) {
+  virtual std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& /*request*/) {
     return std::unexpected("this host does not support PushEntity");
   }
 
   // EmitSound plays one game sound on any entity, such as a projectile, and
   // returns its ID. Volume and pitch scale the sound, and listeners limit who
   // hears it.
-  virtual std::expected<effects::SoundResponse, std::string> EmitSound(
-      const effects::EmitSoundRequest& /*request*/) {
+  virtual std::expected<effects::SoundResponse, std::string> EmitSound(const effects::EmitSoundRequest& /*request*/) {
     return std::unexpected("this host does not support EmitSound");
   }
 
   // AdjustSound changes the volume or pitch of a sound Sound or EmitSound
   // started, while it plays.
-  virtual std::expected<void, std::string> AdjustSound(
-      const effects::AdjustSoundRequest& /*request*/) {
+  virtual std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& /*request*/) {
     return std::unexpected("this host does not support AdjustSound");
   }
 
@@ -1010,31 +935,43 @@ class HostService {
   }
 
   // SetVelocity replaces the motion of a player's hero without moving it.
-  virtual std::expected<void, std::string> SetVelocity(
-      const movement::SetVelocityRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetVelocity(const movement::SetVelocityRequest& /*request*/) {
     return std::unexpected("this host does not support SetVelocity");
   }
 
   // Buttons returns the buttons a player holds, as Buttons bits, while the
   // player is alive or dead.
-  virtual std::expected<ButtonsResponse, std::string> Buttons(
-      const players::PlayerRequest& /*request*/) {
+  virtual std::expected<ButtonsResponse, std::string> Buttons(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Buttons");
   }
 
   // WatchMovement adds a player's hero to the movement samples of each Frame
   // event on a new tick, or removes it.
-  virtual std::expected<void, std::string> WatchMovement(
-      const movement::WatchMovementRequest& /*request*/) {
+  virtual std::expected<void, std::string> WatchMovement(const movement::WatchMovementRequest& /*request*/) {
     return std::unexpected("this host does not support WatchMovement");
   }
 
   // WatchProjectiles reports the projectiles with these designer names, such
   // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
   // call replaces the list; an empty list stops watching.
-  virtual std::expected<void, std::string> WatchProjectiles(
-      const combat::ProjectileOptions& /*request*/) {
+  virtual std::expected<void, std::string> WatchProjectiles(const combat::ProjectileOptions& /*request*/) {
     return std::unexpected("this host does not support WatchProjectiles");
+  }
+
+  // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+  // live entity with no expiry, giving it back whenever the game removes it
+  // while the entity lives. The hold ends with the entity or when active is
+  // false.
+  virtual std::expected<void, std::string> HoldEntityModifier(const abilities::HoldEntityModifierRequest& /*request*/) {
+    return std::unexpected("this host does not support HoldEntityModifier");
+  }
+
+  // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+  // a modifier for seconds. An ability's modifier, named
+  // "<ability>/<modifier>", resolves its parent ability subclass even when the
+  // entity owns no abilities.
+  virtual std::expected<void, std::string> GiveEntityModifier(const abilities::GiveEntityModifierRequest& /*request*/) {
+    return std::unexpected("this host does not support GiveEntityModifier");
   }
 
   // Dispatch runs call on the method it names and returns the reply.
@@ -2025,6 +1962,22 @@ class HostService {
              return detail::Fail("the WatchProjectiles request is malformed");
            }
            return detail::Answer(host.WatchProjectiles(request));
+         }},
+        {"HoldEntityModifier",
+         [](HostService& host, const std::string& bytes) {
+           abilities::HoldEntityModifierRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the HoldEntityModifier request is malformed");
+           }
+           return detail::Answer(host.HoldEntityModifier(request));
+         }},
+        {"GiveEntityModifier",
+         [](HostService& host, const std::string& bytes) {
+           abilities::GiveEntityModifierRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the GiveEntityModifier request is malformed");
+           }
+           return detail::Answer(host.GiveEntityModifier(request));
          }},
     };
     const auto handler = handlers.find(call.method());

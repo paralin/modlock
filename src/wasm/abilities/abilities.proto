@@ -234,3 +234,29 @@ message BuildItem {
   // Annotation is the author's note on the item.
   string annotation = 2;
 }
+
+// HoldEntityModifierRequest holds or releases a modifier on an entity.
+message HoldEntityModifierRequest {
+  // Entity is the entity handle, such as Npc.entity or Pawn.entity.
+  uint32 entity = 1;
+
+  // Modifier names the modifier as GiveModifierRequest.modifier does, such
+  // as upgrade_colossus/modifier_colossus_active.
+  string modifier = 2;
+
+  // Active holds the modifier when true or omitted; false releases the hold.
+  optional bool active = 3;
+}
+
+// GiveEntityModifierRequest gives a live entity a modifier.
+message GiveEntityModifierRequest {
+  // Entity is the entity handle, such as Npc.entity or Pawn.entity.
+  uint32 entity = 1;
+
+  // Modifier names an ability's modifier as "<ability>/<modifier>", or a
+  // standalone modifier by its name, such as modifier_citadel_idol_glow.
+  string modifier = 2;
+
+  // Seconds is how long the modifier lasts.
+  float seconds = 3;
+}
