@@ -29,4 +29,9 @@ MODLOCK_API bool WriteNative(void* target, const void* source, size_t size);
 // grows. It always returns null off Windows.
 MODLOCK_API void* AllocateNative(size_t size);
 
+// InternGlobalSymbol interns text in the game's global symbol table and
+// returns its permanent characters, or null when the table is unavailable.
+// It always returns null off Windows.
+MODLOCK_API const char* InternGlobalSymbol(const char* text);
+
 }  // namespace modlock::gameinterop

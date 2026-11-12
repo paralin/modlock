@@ -81,8 +81,11 @@ bool Tune(const wasm::Manifest& manifest, wasm::DefinitionUndo& undo,
 
   // Change the definitions, log each problem, and report the result once, so
   // a log shows whether the changes reached the game.
+  const std::string addon = manifest.content_addon().empty()
+                                ? manifest.slug() + "-" + manifest.version()
+                                : manifest.content_addon();
   auto problems =
-      wasm::ChangeDefinitions(*image, *schema, "server.dll", manifest.definitions(), undo);
+      wasm::ChangeDefinitions(*image, *schema, "server.dll", manifest.definitions(), undo, addon);
   if (!problems) {
     return false;
   }

@@ -180,4 +180,9 @@ message Definition {
   // CopyFields copies the field at each value's path over the field at its
   // key's path; both must be the same size.
   map<string, string> copy_fields = 5;
+
+  // TextFields writes text, symbol, sound event and Panorama image schema
+  // fields, named as a path of Class.field steps from the entry's data. Each
+  // {addon} in a value becomes the mod's content addon.
+  map<string, string> text_fields = 6;
 }

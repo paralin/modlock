@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "modlock/gameinterop/game_symbols.h"
@@ -39,21 +40,25 @@ class DefinitionUndo {
   std::vector<Saved> saved_;
 };
 
-// ChangeDefinition applies one definition's properties, fields and copies to
-// definition, keeping each overwritten value in undo, and returns its problems.
+// ChangeDefinition applies one definition's properties, fields, copies and
+// text fields to definition, keeping each overwritten value in undo, and
+// returns its problems. Each {addon} in a text field becomes addon when addon
+// is not empty.
 std::vector<std::string> ChangeDefinition(const wasm::Definition& change, unsigned char* definition,
                                           void* schema, const char* module_name,
-                                          DefinitionUndo& undo);
+                                          DefinitionUndo& undo, std::string_view addon = {});
 
 // ChangeDefinitions writes a manifest's definition changes into one game
 // module's parsed definitions, keeping each value it overwrites in undo.
 // Ability, modifier, unit and bot difficulty definitions last for the process;
 // hero definitions belong to the current world, so a caller applies the changes
-// again in each world. It fails without writing while an entry is not loaded
-// yet, so a caller retries later. An entry, property or field it can never
-// resolve is skipped and reported in the returned problems.
+// again in each world. Each {addon} in a text field becomes addon when addon
+// is not empty. It fails without writing while an entry is not loaded yet, so
+// a caller retries later. An entry, property or field it can never resolve is
+// skipped and reported in the returned problems.
 std::expected<std::vector<std::string>, std::string> ChangeDefinitions(
     const gameinterop::ModuleImage& module, void* schema, const char* module_name,
-    const google::protobuf::RepeatedPtrField<wasm::Definition>& definitions, DefinitionUndo& undo);
+    const google::protobuf::RepeatedPtrField<wasm::Definition>& definitions, DefinitionUndo& undo,
+    std::string_view addon = {});
 
 }  // namespace modlock::wasm
