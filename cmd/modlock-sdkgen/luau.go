@@ -122,7 +122,7 @@ func (w *luauWriter) writeTypes() error {
 		var names, entries []string
 		for _, v := range e.named() {
 			names = append(names, fmt.Sprintf("%q", e.valueName(v)))
-			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), e.valueName(v), v.number))
+			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), luauKey(e.valueName(v)), v.number))
 		}
 		fmt.Fprintf(&w.out, "export type %s = %s\n", e.name, strings.Join(names, " | "))
 		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
@@ -294,7 +294,8 @@ func (w *luauWriter) writeCall(c *call) {
 }
 
 // writeSchema writes the descriptor of every message the library encodes or
-// decodes.
+// decodes, which includes the interface tree the Ui call sends, and the wire
+// names of the enums only that tree reaches.
 func (w *luauWriter) writeSchema() error {
 	var r reach
 	for _, m := range w.s.messageOrder {
@@ -306,9 +307,26 @@ func (w *luauWriter) writeSchema() error {
 		r.add(c.method.request)
 		r.add(c.method.response)
 	}
+	for _, m := range w.s.host.methods {
+		if m.name == "Ui" {
+			r.add(m.request)
+			r.add(m.response)
+		}
+	}
 	for _, m := range w.s.mod.methods {
 		r.add(m.request)
 		r.add(m.response)
+	}
+	for _, e := range r.enums {
+		if w.enumsIn[e] || w.enumsOut[e] {
+			continue
+		}
+		var entries []string
+		for _, v := range e.named() {
+			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), luauKey(e.valueName(v)), v.number))
+		}
+		fmt.Fprintf(&w.out, "-- %s holds the wire names of the interface enum %s.\n", e.name, e.name)
+		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
 	}
 	for _, m := range w.s.messageOrder {
 		if !r.seen[m] {
@@ -340,6 +358,7 @@ var luauKinds = map[descriptorpb.FieldDescriptorProto_Type]string{
 	descriptorpb.FieldDescriptorProto_TYPE_UINT64:  "uint64",
 	descriptorpb.FieldDescriptorProto_TYPE_INT32:   "int32",
 	descriptorpb.FieldDescriptorProto_TYPE_FIXED32: "fixed32",
+	descriptorpb.FieldDescriptorProto_TYPE_FIXED64: "fixed64",
 	descriptorpb.FieldDescriptorProto_TYPE_BOOL:    "bool",
 	descriptorpb.FieldDescriptorProto_TYPE_STRING:  "string",
 	descriptorpb.FieldDescriptorProto_TYPE_MESSAGE: "message",

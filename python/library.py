@@ -108,6 +108,12 @@ _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
 _setting_changes: list[Callable[[Player, str, str], object]] = []
 
+_spawns: list[Callable[[Player, Pawn], object]] = []
+
+# _spawned maps each slot whose hero is in play to that hero's entity, as the
+# spawn handlers last heard of it.
+_spawned: dict[int, int] = {}
+
 # _roster is the player list the host last reported, or None before one.
 _roster: list[Connection] | None = None
 
@@ -716,6 +722,45 @@ def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
+    """on_spawn calls handler each time a player's hero enters play: their
+    first hero after joining, each respawn, and each new hero after a change.
+    The player has a hero to move, equip and read from then on, which
+    on_player_join does not promise. The library reads each player's pawn
+    once a frame while a handler is registered.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_spawn
+        def spawn(player: modlock.Player, pawn: modlock.Pawn) -> None: ...
+    """
+    _spawns.append(handler)
+    return handler
+
+
+def _watch_spawns() -> None:
+    """_watch_spawns tells the spawn handlers of each hero that entered play
+    since the last frame."""
+    # A hero is in play while it lives; a placeholder pawn has hero 0.
+    present: dict[int, int] = {}
+    for connection in players():
+        player = connection.player
+        pawn = player.pawn()
+        if pawn is None or pawn.hero == 0 or pawn.health <= 0:
+            continue
+        present[player.slot] = pawn.entity
+
+        # A respawn follows a death, and a new hero has a new entity.
+        if _spawned.get(player.slot) != pawn.entity:
+            for handler in _spawns:
+                handler(player, pawn)
+
+    # Forget the fallen and the gone, so their next hero is a spawn.
+    _spawned.clear()
+    _spawned.update(present)
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands.
 
@@ -799,8 +844,40 @@ def _start(event: StartEvent) -> StartResult:
     )
 
 
+# UiValue is an input's new value as the host checked it.
+type UiValue = str | float | bool | int | Wheel | None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class _UiHandlers:
+    """_UiHandlers are modlock.ui's handlers of the events its interfaces
+    raise, which it registers when a mod imports it."""
+
+    # press runs the handler of the button a player pressed.
+    press: Callable[[Player, str], object]
+    # change runs the handler of the input a player changed.
+    change: Callable[[Player, str, UiValue], object]
+    # tick advances the interface clock to each frame.
+    tick: Callable[[float], object]
+
+
+# _ui holds modlock.ui's handlers, or None while the mod shows no interface.
+_ui: _UiHandlers | None = None
+
+
+def _serve_ui(handlers: _UiHandlers) -> None:
+    """_serve_ui passes presses, input changes and the frame clock to
+    modlock.ui, which imports this module and so registers itself."""
+    global _ui
+    _ui = handlers
+
+
 def _frame(event: FrameEvent) -> None:
+    if _ui is not None:
+        _ui.tick(event.time_seconds)
     _advance_timers(event.time_seconds)
+    if _spawns:
+        _watch_spawns()
     for handler in _frames:
         handler(event)
 
@@ -836,11 +913,20 @@ def _world(event: WorldEvent) -> None:
 
 
 def _ui_press(event: UiPressEvent) -> None:
-    """_ui_press ignores presses: Python mods build no interface yet."""
+    # A press arrives under the same CPU budget as a command, so its handler
+    # also runs with the next frame.
+    ui = _ui
+    if ui is not None:
+        player, node = event.player, event.node
+        after(0, lambda: ui.press(player, node))
 
 
 def _ui_input(event: UiInputEvent) -> None:
-    """_ui_input ignores changes to inputs: Python mods build no interface yet."""
+    # A change runs with the next frame, as a press does.
+    ui = _ui
+    if ui is not None:
+        player, node, value = event.player, event.node, event.value
+        after(0, lambda: ui.change(player, node, value))
 
 
 def _serve(event: ServiceCall) -> ServiceReply:

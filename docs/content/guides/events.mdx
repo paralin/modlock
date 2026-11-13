@@ -109,7 +109,8 @@ functions, such as `mod.OnPlayerJoin`.
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.      |
 | `onWorld(handler)`                                  | As each world loads, with its map; at start if one has.       |
 | `onFrame(handler)`                                  | Once per server frame.                                        |
-| `onPlayerJoin(handler)`                             | As each player the mod serves is ready; at start for each.    |
+| `onPlayerJoin(handler)`                             | As each player finishes joining; at start for each.           |
+| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.         |
 | `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.    |
 | `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands. |
 | `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.        |
@@ -157,6 +158,44 @@ mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
 	if left.GetDisconnected() {
 		mod.Log(left.GetConnection().GetName(), "left:", left.GetReason())
 	}
+})
+```
+
+</Samples>
+
+## Spawns
+
+A player who has just joined may have no hero yet: they are still picking a
+team or a hero, or the game has not put the hero in the world. A spawn fires
+once the hero is in play, so the mod can move it, equip it and read it. It
+fires for a player's first hero, for each respawn and for each new hero after a
+change:
+
+<Samples>
+
+```ts
+import { log, onSpawn } from 'modlock'
+
+onSpawn((player, pawn) => {
+  log(`slot ${player.slot} spawned with ${pawn.health} health`)
+})
+```
+
+```luau
+modlock.onSpawn(function(player, pawn)
+	modlock.log(`slot {player.slot} spawned with {pawn.health} health`)
+end)
+```
+
+```python
+@modlock.on_spawn
+def spawned(player: modlock.Player, pawn: modlock.Pawn) -> None:
+    modlock.log(f"slot {player.slot} spawned with {pawn.health} health")
+```
+
+```go
+mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
+	mod.Log("slot", player.Slot, "spawned with", pawn.GetHealth(), "health")
 })
 ```
 

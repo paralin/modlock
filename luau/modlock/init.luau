@@ -2409,6 +2409,208 @@ end
 
 modlock.Pickup = Pickup
 
+-- Kind holds the wire names of the interface enum Kind.
+local Kind: { [any]: any } = {
+	[0] = "panel",
+	panel = 0,
+	[1] = "label",
+	label = 1,
+	[2] = "image",
+	image = 2,
+	[3] = "button",
+	button = 3,
+	[4] = "layout",
+	layout = 4,
+	[5] = "route",
+	route = 5,
+	[6] = "heroImage",
+	heroImage = 6,
+	[7] = "input",
+	input = 7,
+	[8] = "avatar",
+	avatar = 8,
+}
+
+-- Flow holds the wire names of the interface enum Flow.
+local Flow: { [any]: any } = {
+	[0] = "none",
+	none = 0,
+	[1] = "down",
+	down = 1,
+	[2] = "right",
+	right = 2,
+	[3] = "downWrap",
+	downWrap = 3,
+	[4] = "rightWrap",
+	rightWrap = 4,
+}
+
+-- Align holds the wire names of the interface enum Align.
+local Align: { [any]: any } = {
+	[0] = "start",
+	start = 0,
+	[1] = "center",
+	center = 1,
+	[2] = "end",
+	["end"] = 2,
+}
+
+-- Face holds the wire names of the interface enum Face.
+local Face: { [any]: any } = {
+	[0] = "default",
+	default = 0,
+	[1] = "body",
+	body = 1,
+	[2] = "block",
+	block = 2,
+	[3] = "serif",
+	serif = 3,
+}
+
+-- Overflow holds the wire names of the interface enum Overflow.
+local Overflow: { [any]: any } = {
+	[0] = "default",
+	default = 0,
+	[1] = "squish",
+	squish = 1,
+	[2] = "clip",
+	clip = 2,
+	[3] = "scroll",
+	scroll = 3,
+	[4] = "show",
+	show = 4,
+}
+
+-- GradientShape holds the wire names of the interface enum GradientShape.
+local GradientShape: { [any]: any } = {
+	[0] = "down",
+	down = 0,
+	[1] = "right",
+	right = 1,
+	[2] = "up",
+	up = 2,
+	[3] = "left",
+	left = 3,
+	[4] = "radial",
+	radial = 4,
+}
+
+-- Weight holds the wire names of the interface enum Weight.
+local Weight: { [any]: any } = {
+	[0] = "default",
+	default = 0,
+	[1] = "thin",
+	thin = 1,
+	[2] = "light",
+	light = 2,
+	[3] = "normal",
+	normal = 3,
+	[4] = "medium",
+	medium = 4,
+	[5] = "semiBold",
+	semiBold = 5,
+	[6] = "bold",
+	bold = 6,
+	[7] = "black",
+	black = 7,
+}
+
+-- TextOverflow holds the wire names of the interface enum TextOverflow.
+local TextOverflow: { [any]: any } = {
+	[0] = "default",
+	default = 0,
+	[1] = "ellipsis",
+	ellipsis = 1,
+	[2] = "shrink",
+	shrink = 2,
+	[3] = "clip",
+	clip = 3,
+}
+
+-- Decoration holds the wire names of the interface enum Decoration.
+local Decoration: { [any]: any } = {
+	[0] = "none",
+	none = 0,
+	[1] = "underline",
+	underline = 1,
+	[2] = "strike",
+	strike = 2,
+}
+
+-- Easing holds the wire names of the interface enum Easing.
+local Easing: { [any]: any } = {
+	[0] = "easeOut",
+	easeOut = 0,
+	[1] = "easeIn",
+	easeIn = 1,
+	[2] = "easeInOut",
+	easeInOut = 2,
+	[3] = "linear",
+	linear = 3,
+}
+
+-- HudPart holds the wire names of the interface enum HudPart.
+local HudPart: { [any]: any } = {
+	[1] = "levelUp",
+	levelUp = 1,
+	[2] = "ownHealth",
+	ownHealth = 2,
+	[3] = "topBar",
+	topBar = 3,
+	[4] = "ammo",
+	ammo = 4,
+	[5] = "souls",
+	souls = 5,
+	[6] = "minimap",
+	minimap = 6,
+	[7] = "abilities",
+	abilities = 7,
+	[8] = "status",
+	status = 8,
+	[9] = "stats",
+	stats = 9,
+	[10] = "heroPicker",
+	heroPicker = 10,
+	[11] = "brokerCountdown",
+	brokerCountdown = 11,
+	[12] = "all",
+	all = 12,
+}
+
+-- Scaling holds the wire names of the interface enum Scaling.
+local Scaling: { [any]: any } = {
+	[0] = "default",
+	default = 0,
+	[1] = "fit",
+	fit = 1,
+	[2] = "cover",
+	cover = 2,
+	[3] = "stretch",
+	stretch = 3,
+	[4] = "fitWidth",
+	fitWidth = 4,
+	[5] = "fitHeight",
+	fitHeight = 5,
+	[6] = "none",
+	none = 6,
+}
+
+-- HeroLook holds the wire names of the interface enum HeroLook.
+local HeroLook: { [any]: any } = {
+	[0] = "small",
+	small = 0,
+	[1] = "card",
+	card = 1,
+	[2] = "icon",
+	icon = 2,
+	[3] = "vertical",
+	vertical = 3,
+	[4] = "topBar",
+	topBar = 4,
+	[5] = "minimap",
+	minimap = 5,
+}
+
 schema.HoldReloadRequest = {
 	{ number = 1, name = "held", kind = "bool" },
 }
@@ -3317,9 +3519,189 @@ schema.SetPlayerSettingRequest = {
 	{ number = 2, name = "key", kind = "string" },
 	{ number = 3, name = "value", kind = "string" },
 }
+schema.Node = {
+	{ number = 1, name = "id", kind = "string" },
+	{ number = 2, name = "kind", kind = "enum", enum = Kind },
+	{ number = 3, name = "children", kind = "string", repeated = true },
+	{ number = 4, name = "text", kind = "string" },
+	{ number = 5, name = "image", kind = "string" },
+	{ number = 6, name = "style", kind = "message", message = "Style" },
+	{ number = 7, name = "layout", kind = "string" },
+	{ number = 8, name = "data", kind = "string" },
+	{ number = 9, name = "hideHud", kind = "enum", repeated = true, enum = HudPart },
+	{ number = 10, name = "route", kind = "string" },
+	{ number = 11, name = "hover", kind = "message", message = "Style" },
+	{ number = 12, name = "tooltip", kind = "string" },
+	{ number = 32, name = "item", kind = "uint32" },
+	{ number = 34, name = "ability", kind = "uint32" },
+	{ number = 35, name = "abilityPlayer", kind = "uint32" },
+	{ number = 13, name = "sound", kind = "string" },
+	{ number = 14, name = "hoverSound", kind = "string" },
+	{ number = 15, name = "disabled", kind = "bool" },
+	{ number = 16, name = "scaling", kind = "enum", enum = Scaling },
+	{ number = 17, name = "hero", kind = "int32" },
+	{ number = 18, name = "heroLook", kind = "enum", enum = HeroLook },
+	{ number = 19, name = "textEntry", kind = "message", oneof = "input", message = "TextEntry" },
+	{ number = 20, name = "slider", kind = "message", oneof = "input", message = "Slider" },
+	{ number = 21, name = "toggle", kind = "message", oneof = "input", message = "Toggle" },
+	{ number = 22, name = "dropdown", kind = "message", oneof = "input", message = "Dropdown" },
+	{ number = 23, name = "token", kind = "string" },
+	{ number = 24, name = "variables", kind = "message", repeated = true, message = "Node_VariablesEntry" },
+	{ number = 25, name = "steamId", kind = "fixed64", id = true },
+	{ number = 26, name = "enter", kind = "message", message = "Style" },
+	{ number = 27, name = "exit", kind = "message", message = "Style" },
+	{ number = 28, name = "cycle", kind = "message", message = "Cycle" },
+	{ number = 29, name = "classes", kind = "string", repeated = true },
+	{ number = 30, name = "sheets", kind = "string", repeated = true },
+	{ number = 31, name = "freeCursor", kind = "bool" },
+	{ number = 33, name = "freeCursorAsks", kind = "uint32" },
+	{ number = 36, name = "cues", kind = "message", repeated = true, message = "Cue" },
+	{ number = 37, name = "abilityBarPresses", kind = "bool" },
+	{ number = 38, name = "abilityDisplay", kind = "message", repeated = true, message = "AbilityRow" },
+}
+schema.Node_VariablesEntry = {
+	{ number = 1, name = "key", kind = "string" },
+	{ number = 2, name = "value", kind = "string" },
+}
+schema.AbilityRow = {
+	{ number = 1, name = "player", kind = "uint32", class = Player, key = "slot" },
+	{ number = 2, name = "name", kind = "string" },
+	{ number = 3, name = "hero", kind = "string" },
+	{ number = 4, name = "own", kind = "bool" },
+	{ number = 5, name = "abilities", kind = "message", repeated = true, message = "ShownAbility" },
+}
+schema.ShownAbility = {
+	{ number = 1, name = "ability", kind = "uint32" },
+	{ number = 2, name = "image", kind = "string" },
+	{ number = 3, name = "upgrades", kind = "uint32" },
+}
+schema.Cue = {
+	{ number = 1, name = "number", kind = "uint32" },
+	{ number = 2, name = "sound", kind = "string" },
+	{ number = 3, name = "seconds", kind = "float" },
+}
+schema.TextEntry = {
+	{ number = 1, name = "text", kind = "string" },
+	{ number = 2, name = "placeholder", kind = "string" },
+	{ number = 3, name = "maxLength", kind = "uint32" },
+}
+schema.Slider = {
+	{ number = 1, name = "value", kind = "float" },
+	{ number = 2, name = "min", kind = "float" },
+	{ number = 3, name = "max", kind = "float" },
+	{ number = 4, name = "step", kind = "float" },
+	{ number = 5, name = "wheel", kind = "bool" },
+}
 schema.Wheel = {
 	{ number = 1, name = "delta", kind = "float" },
 	{ number = 2, name = "fraction", kind = "float" },
+}
+schema.Toggle = {
+	{ number = 1, name = "on", kind = "bool" },
+}
+schema.Dropdown = {
+	{ number = 1, name = "options", kind = "string", repeated = true },
+	{ number = 2, name = "selected", kind = "uint32" },
+}
+schema.Cycle = {
+	{ number = 1, name = "style", kind = "message", message = "Style" },
+	{ number = 2, name = "seconds", kind = "float" },
+	{ number = 3, name = "count", kind = "uint32" },
+}
+schema.Style = {
+	{ number = 1, name = "width", kind = "message", message = "Length" },
+	{ number = 2, name = "height", kind = "message", message = "Length" },
+	{ number = 3, name = "flow", kind = "enum", enum = Flow },
+	{ number = 4, name = "horizontalAlign", kind = "enum", enum = Align },
+	{ number = 5, name = "verticalAlign", kind = "enum", enum = Align },
+	{ number = 6, name = "margin", kind = "message", message = "Edges" },
+	{ number = 7, name = "padding", kind = "message", message = "Edges" },
+	{ number = 8, name = "background", kind = "fixed32" },
+	{ number = 9, name = "color", kind = "fixed32" },
+	{ number = 10, name = "fontSize", kind = "float" },
+	{ number = 11, name = "bold", kind = "bool" },
+	{ number = 12, name = "textAlign", kind = "enum", enum = Align },
+	{ number = 13, name = "borderRadius", kind = "float" },
+	{ number = 14, name = "opacity", kind = "float", optional = true },
+	{ number = 15, name = "face", kind = "enum", enum = Face },
+	{ number = 16, name = "uppercase", kind = "bool" },
+	{ number = 17, name = "letterSpacing", kind = "float" },
+	{ number = 18, name = "shadow", kind = "bool" },
+	{ number = 19, name = "borderWidth", kind = "float" },
+	{ number = 20, name = "borderColor", kind = "fixed32" },
+	{ number = 21, name = "x", kind = "message", message = "Length" },
+	{ number = 22, name = "y", kind = "message", message = "Length" },
+	{ number = 23, name = "minWidth", kind = "message", message = "Length" },
+	{ number = 24, name = "maxWidth", kind = "message", message = "Length" },
+	{ number = 25, name = "minHeight", kind = "message", message = "Length" },
+	{ number = 26, name = "maxHeight", kind = "message", message = "Length" },
+	{ number = 27, name = "zIndex", kind = "int32" },
+	{ number = 28, name = "overflowX", kind = "enum", enum = Overflow },
+	{ number = 29, name = "overflowY", kind = "enum", enum = Overflow },
+	{ number = 30, name = "gradient", kind = "message", message = "Gradient" },
+	{ number = 31, name = "boxShadow", kind = "message", message = "Shadow" },
+	{ number = 32, name = "textShadow", kind = "message", message = "Shadow" },
+	{ number = 33, name = "tint", kind = "fixed32" },
+	{ number = 34, name = "saturation", kind = "float", optional = true },
+	{ number = 35, name = "brightness", kind = "float", optional = true },
+	{ number = 36, name = "contrast", kind = "float", optional = true },
+	{ number = 37, name = "blur", kind = "float" },
+	{ number = 38, name = "italic", kind = "bool" },
+	{ number = 39, name = "weight", kind = "enum", enum = Weight },
+	{ number = 40, name = "lineHeight", kind = "float" },
+	{ number = 41, name = "noWrap", kind = "bool" },
+	{ number = 42, name = "textOverflow", kind = "enum", enum = TextOverflow },
+	{ number = 43, name = "decoration", kind = "enum", enum = Decoration },
+	{ number = 44, name = "transform", kind = "message", message = "Transform" },
+	{ number = 45, name = "transition", kind = "message", message = "Transition" },
+}
+schema.Gradient = {
+	{ number = 1, name = "shape", kind = "enum", enum = GradientShape },
+	{ number = 2, name = "stops", kind = "message", repeated = true, message = "GradientStop" },
+}
+schema.GradientStop = {
+	{ number = 1, name = "at", kind = "float" },
+	{ number = 2, name = "color", kind = "fixed32" },
+}
+schema.Shadow = {
+	{ number = 1, name = "x", kind = "float" },
+	{ number = 2, name = "y", kind = "float" },
+	{ number = 3, name = "blur", kind = "float" },
+	{ number = 4, name = "spread", kind = "float" },
+	{ number = 5, name = "color", kind = "fixed32" },
+	{ number = 6, name = "inset", kind = "bool" },
+}
+schema.Transform = {
+	{ number = 1, name = "translateX", kind = "float" },
+	{ number = 2, name = "translateY", kind = "float" },
+	{ number = 3, name = "scaleX", kind = "float", optional = true },
+	{ number = 4, name = "scaleY", kind = "float", optional = true },
+	{ number = 5, name = "rotate", kind = "float" },
+	{ number = 6, name = "originX", kind = "float", optional = true },
+	{ number = 7, name = "originY", kind = "float", optional = true },
+}
+schema.Transition = {
+	{ number = 1, name = "seconds", kind = "float" },
+	{ number = 2, name = "delay", kind = "float" },
+	{ number = 3, name = "easing", kind = "enum", enum = Easing },
+}
+schema.Length = {
+	{ number = 1, name = "pixels", kind = "float", optional = true },
+	{ number = 2, name = "percent", kind = "float", optional = true },
+	{ number = 3, name = "fitChildren", kind = "bool", optional = true },
+	{ number = 4, name = "fill", kind = "float", optional = true },
+}
+schema.Edges = {
+	{ number = 1, name = "top", kind = "float" },
+	{ number = 2, name = "right", kind = "float" },
+	{ number = 3, name = "bottom", kind = "float" },
+	{ number = 4, name = "left", kind = "float" },
+}
+schema.Change = {
+	{ number = 1, name = "reset", kind = "bool" },
+	{ number = 2, name = "set", kind = "message", repeated = true, message = "Node" },
+	{ number = 3, name = "removed", kind = "string", repeated = true },
+	{ number = 4, name = "generation", kind = "uint64" },
 }
 schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -3333,6 +3715,10 @@ schema.UiInputEvent = {
 	{ number = 5, name = "on", kind = "bool", oneof = "value" },
 	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
 	{ number = 7, name = "wheel", kind = "message", oneof = "value", message = "Wheel" },
+}
+schema.UiRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "change", kind = "message", message = "Change" },
 }
 schema.Call = {
 	{ number = 1, name = "method", kind = "string" },
@@ -4190,6 +4576,48 @@ local roster: { Connection }? = nil
 -- rosterWatchers hear each player list the host reports.
 local rosterWatchers: { (players: { Connection }) -> () } = {}
 
+-- Interface takes the events of the players' interfaces: the module that
+-- draws them, @modlock/ui, serves them with serveInterface, so the library
+-- loads without it.
+export type Interface = {
+	-- press takes a press on the button with id node, or on the ability bar.
+	press: (player: Player, node: string) -> (),
+	-- change takes a change to the input with id node, or a wheel step.
+	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	-- tick takes the game clock at each frame, before the timers run.
+	tick: (seconds: number) -> (),
+	-- players takes each player list the host reports.
+	players: (players: { Connection }) -> (),
+}
+
+-- InterfaceWire is what serveInterface gives the interface module.
+export type InterfaceWire = {
+	-- send sends player's interface a change through the host and reports
+	-- whether the host took it.
+	send: (player: Player, change: any) -> boolean,
+	-- encode returns a node's wire encoding, to compare two nodes by.
+	encode: (node: any) -> string,
+}
+
+-- interface takes the interface events, once a module serves it.
+local interface: Interface? = nil
+
+-- serveInterface sends the players' interface events to served from now on
+-- and returns the calls the interface module sends its changes through. Mods
+-- draw interfaces through @modlock/ui, which calls it once as it loads.
+function modlock.serveInterface(served: Interface): InterfaceWire
+	interface = served
+	table.insert(rosterWatchers, served.players)
+	return {
+		send = function(player: Player, change: any): boolean
+			return call("Ui", "UiRequest", { player = player, change = change }) ~= nil
+		end,
+		encode = function(node: any): string
+			return wire.encode(schema, "Node", node)
+		end,
+	}
+end
+
 -- players lists the occupied player slots in slot order. It answers from the
 -- roster the host last reported, and asks the host until a report arrives.
 function modlock.players(): { Connection }
@@ -4870,6 +5298,46 @@ function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
 
+-- spawns holds the spawn handlers, which run in registration order.
+local spawns: { (player: Player, pawn: Pawn) -> () } = {}
+
+-- spawned maps each slot whose hero is in play to that hero's entity, as the
+-- spawn handlers last heard of it.
+local spawned: { [number]: number } = {}
+
+-- onSpawn calls handler each time a player's hero enters play: their first
+-- hero after joining, each respawn, and each new hero after a change. The
+-- player has a hero to move, equip and read from then on, which onPlayerJoin
+-- does not promise. The library reads each player's pawn once a frame while a
+-- handler is registered.
+function modlock.onSpawn(handler: (player: Player, pawn: Pawn) -> ())
+	table.insert(spawns, handler)
+end
+
+-- watchSpawns tells the spawn handlers of each hero that entered play since
+-- the last frame.
+local function watchSpawns()
+	-- A hero is in play while it lives; a placeholder pawn has hero 0.
+	local present: { [number]: number } = {}
+	for _, connection in modlock.players() do
+		local player = connection.player
+		local pawn = player:pawn()
+		if pawn and pawn.hero ~= 0 and pawn.health > 0 then
+			present[player.slot] = pawn.entity
+
+			-- A respawn follows a death, and a new hero has a new entity.
+			if spawned[player.slot] ~= pawn.entity then
+				for _, handler in spawns do
+					handler(player, pawn)
+				end
+			end
+		end
+	end
+
+	-- Forget the fallen and the gone, so their next hero is a spawn.
+	spawned = present
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -4917,7 +5385,13 @@ local handlers: ModHandlers = {
 	end,
 
 	frame = function(event)
+		if interface then
+			interface.tick(event.timeSeconds)
+		end
 		advanceTimers(event.timeSeconds)
+		if #spawns ~= 0 then
+			watchSpawns()
+		end
 		for _, handler in frames do
 			handler(event)
 		end
@@ -4957,10 +5431,24 @@ local handlers: ModHandlers = {
 		end
 	end,
 
-	-- Luau mods build no interface yet, so no button reports a press and no
-	-- input a change.
-	uiPress = function(_event) end,
-	uiInput = function(_event) end,
+	-- A press or a change arrives under the same CPU budget as a command, so
+	-- the interface's handlers run with the next frame.
+	uiPress = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.press(event.player, event.node)
+			end)
+		end
+	end,
+	uiInput = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.change(event.player, event.node, event.value)
+			end)
+		end
+	end,
 
 	serve = function(event)
 		local handler = services[event.service]

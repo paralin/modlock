@@ -59,6 +59,8 @@ func (p *Project) buildPython(ctx context.Context, output io.Writer) error {
 	check.Stdout = &report
 	check.Stderr = output
 	err = check.Run()
+
+	// Print each problem where an editor's terminal links it.
 	diagnostics := pyrightDiagnostics(report.Bytes())
 	unannotated := false
 	for _, d := range diagnostics {

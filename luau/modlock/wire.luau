@@ -47,6 +47,7 @@ local wireTypes: { [string]: number } = {
 	double = 1,
 	float = 5,
 	fixed32 = 5,
+	fixed64 = 1,
 	string = 2,
 	bytes = 2,
 	message = 2,
@@ -238,6 +239,9 @@ local function read(schema: Schema, field: Field, s: string, i: number, kind: nu
 			value = field.class.new(value)
 		end
 		return value, after
+	elseif kind == 1 and field.kind == "fixed64" then
+		local lo: any, hi: any, after: any = string.unpack("<I4I4", s, i)
+		return if field.id then decimal(lo, hi) else join(lo, hi, false), after
 	elseif kind == 1 then
 		return string.unpack("<d", s, i)
 	end
@@ -355,6 +359,14 @@ local function bytes(schema: Schema, field: Field, value: any): string
 		return string.pack("<I4", value)
 	elseif field.kind == "double" then
 		return string.pack("<d", value)
+	elseif field.kind == "fixed64" then
+		local lo, hi
+		if field.id then
+			lo, hi = parse(tostring(value))
+		else
+			lo, hi = split(value)
+		end
+		return string.pack("<I4I4", lo, hi)
 	elseif field.kind == "bool" then
 		return if value then "\1" else "\0"
 	elseif field.id then
@@ -378,17 +390,20 @@ local function tag(field: Field, kind: number): string
 end
 
 -- encode returns the message name holding value. It leaves out fields that
--- are nil, and the zero values the receiver assumes. A oneof's value takes
--- the first case of its Luau type.
+-- are nil, and the zero values the receiver assumes. A oneof's value is
+-- either under a case's own name, which picks that case, or under the
+-- oneof's name, which takes the first case of its Luau type.
 function encode(schema: Schema, name: string, value: any): string
 	local parts = {}
 	local cases: { [string]: boolean } = {}
 	for _, field in schema[name] do
-		-- Encode the first case of a oneof whose type matches its value.
+		-- Encode the case named by its own field, else the first case of a
+		-- oneof whose type matches its value.
 		local kind = wireTypes[field.kind] or 0
 		if field.oneof then
-			local case = value[field.oneof]
-			if case ~= nil and not cases[field.oneof] and typeof(case) == luauType(field) then
+			local named = field.name ~= field.oneof and value[field.name] ~= nil
+			local case = if named then value[field.name] else value[field.oneof]
+			if case ~= nil and not cases[field.oneof] and (named or typeof(case) == luauType(field)) then
 				cases[field.oneof] = true
 				table.insert(parts, tag(field, kind) .. bytes(schema, field, case))
 			end

@@ -79,6 +79,9 @@ type pythonWriter struct {
 	// absent holds the result field of each call that answers None when the
 	// host leaves it out.
 	absent map[*field]bool
+	// library reaches the messages and enums of the Host methods the
+	// handwritten library calls itself, such as Ui, which it encodes as dicts.
+	library reach
 }
 
 // writePython returns python/modlock/__init__.py, which ends with the
@@ -96,6 +99,12 @@ func writePython(s *schema) ([]byte, error) {
 	for _, c := range calls {
 		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
 			w.absent[f] = true
+		}
+	}
+	for _, m := range s.host.methods {
+		if skipped[m.name] {
+			w.library.add(m.request)
+			w.library.add(m.response)
 		}
 	}
 	w.out.WriteString(pythonPreamble)
@@ -124,10 +133,14 @@ func (w *pythonWriter) hasClass(m *message) bool {
 }
 
 // writeTypes writes the enums, with their tables, and the message types in
-// schema order.
+// schema order. An enum only the handwritten library encodes gets its table
+// alone, since a mod never names its values.
 func (w *pythonWriter) writeTypes() {
 	for _, e := range w.s.enumOrder {
 		if !w.enumsIn[e] && !w.enumsOut[e] {
+			if w.library.seen[e] {
+				w.writeEnumTable(e)
+			}
 			continue
 		}
 		writeComment(&w.out, "", "#", e.doc)
@@ -177,6 +190,18 @@ func (w *pythonWriter) writeTypes() {
 		}
 		w.out.WriteString("\n\n")
 	}
+}
+
+// writeEnumTable writes the table that maps each of e's numbers to its name
+// and back, for an enum the module declares no type for.
+func (w *pythonWriter) writeEnumTable(e *enum) {
+	fmt.Fprintf(&w.out, "# _%s maps each %s to its number and back.\n", e.name, e.name)
+	fmt.Fprintf(&w.out, "_%s: dict[Any, Any] = {\n", e.name)
+	for _, v := range e.named() {
+		name := pythonValue(e, v)
+		fmt.Fprintf(&w.out, "    %d: %q,\n    %q: %d,\n", v.number, name, name, v.number)
+	}
+	w.out.WriteString("}\n\n\n")
 }
 
 // member returns the annotation and default of field f of message m. A mod
@@ -319,6 +344,9 @@ func (w *pythonWriter) writeSchema() error {
 		r.add(m.request)
 		r.add(m.response)
 	}
+	for _, m := range w.library.messages {
+		r.add(m)
+	}
 	w.out.WriteString("# _SCHEMA describes every message the library encodes or decodes.\n")
 	w.out.WriteString("_SCHEMA: wire.Schema = {\n")
 	for _, m := range w.s.messageOrder {
@@ -353,6 +381,9 @@ func (w *pythonWriter) writeSchema() error {
 // descriptor returns the arguments of f's descriptor.
 func (w *pythonWriter) descriptor(f *field) (string, error) {
 	kind, ok := luauKinds[f.kind]
+	if f.kind == descriptorpb.FieldDescriptorProto_TYPE_FIXED64 {
+		kind, ok = "fixed64", true
+	}
 	if !ok {
 		return "", fmt.Errorf("the Python codec has no %s for %s", f.kind, f.name)
 	}

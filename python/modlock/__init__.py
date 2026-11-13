@@ -613,6 +613,221 @@ _CameraParam: dict[Any, Any] = {
 }
 
 
+# _Scaling maps each Scaling to its number and back.
+_Scaling: dict[Any, Any] = {
+    0: "default",
+    "default": 0,
+    1: "fit",
+    "fit": 1,
+    2: "cover",
+    "cover": 2,
+    3: "stretch",
+    "stretch": 3,
+    4: "fit_width",
+    "fit_width": 4,
+    5: "fit_height",
+    "fit_height": 5,
+    6: "none",
+    "none": 6,
+}
+
+
+# _HeroLook maps each HeroLook to its number and back.
+_HeroLook: dict[Any, Any] = {
+    0: "small",
+    "small": 0,
+    1: "card",
+    "card": 1,
+    2: "icon",
+    "icon": 2,
+    3: "vertical",
+    "vertical": 3,
+    4: "top_bar",
+    "top_bar": 4,
+    5: "minimap",
+    "minimap": 5,
+}
+
+
+# _HudPart maps each HudPart to its number and back.
+_HudPart: dict[Any, Any] = {
+    1: "level_up",
+    "level_up": 1,
+    2: "own_health",
+    "own_health": 2,
+    3: "top_bar",
+    "top_bar": 3,
+    4: "ammo",
+    "ammo": 4,
+    5: "souls",
+    "souls": 5,
+    6: "minimap",
+    "minimap": 6,
+    7: "abilities",
+    "abilities": 7,
+    8: "status",
+    "status": 8,
+    9: "stats",
+    "stats": 9,
+    10: "hero_picker",
+    "hero_picker": 10,
+    11: "broker_countdown",
+    "broker_countdown": 11,
+    12: "all",
+    "all": 12,
+}
+
+
+# _Kind maps each Kind to its number and back.
+_Kind: dict[Any, Any] = {
+    0: "panel",
+    "panel": 0,
+    1: "label",
+    "label": 1,
+    2: "image",
+    "image": 2,
+    3: "button",
+    "button": 3,
+    4: "layout",
+    "layout": 4,
+    5: "route",
+    "route": 5,
+    6: "hero_image",
+    "hero_image": 6,
+    7: "input",
+    "input": 7,
+    8: "avatar",
+    "avatar": 8,
+}
+
+
+# _Overflow maps each Overflow to its number and back.
+_Overflow: dict[Any, Any] = {
+    0: "default",
+    "default": 0,
+    1: "squish",
+    "squish": 1,
+    2: "clip",
+    "clip": 2,
+    3: "scroll",
+    "scroll": 3,
+    4: "show",
+    "show": 4,
+}
+
+
+# _GradientShape maps each GradientShape to its number and back.
+_GradientShape: dict[Any, Any] = {
+    0: "down",
+    "down": 0,
+    1: "right",
+    "right": 1,
+    2: "up",
+    "up": 2,
+    3: "left",
+    "left": 3,
+    4: "radial",
+    "radial": 4,
+}
+
+
+# _Weight maps each Weight to its number and back.
+_Weight: dict[Any, Any] = {
+    0: "default",
+    "default": 0,
+    1: "thin",
+    "thin": 1,
+    2: "light",
+    "light": 2,
+    3: "normal",
+    "normal": 3,
+    4: "medium",
+    "medium": 4,
+    5: "semi_bold",
+    "semi_bold": 5,
+    6: "bold",
+    "bold": 6,
+    7: "black",
+    "black": 7,
+}
+
+
+# _TextOverflow maps each TextOverflow to its number and back.
+_TextOverflow: dict[Any, Any] = {
+    0: "default",
+    "default": 0,
+    1: "ellipsis",
+    "ellipsis": 1,
+    2: "shrink",
+    "shrink": 2,
+    3: "clip",
+    "clip": 3,
+}
+
+
+# _Decoration maps each Decoration to its number and back.
+_Decoration: dict[Any, Any] = {
+    0: "none",
+    "none": 0,
+    1: "underline",
+    "underline": 1,
+    2: "strike",
+    "strike": 2,
+}
+
+
+# _Easing maps each Easing to its number and back.
+_Easing: dict[Any, Any] = {
+    0: "ease_out",
+    "ease_out": 0,
+    1: "ease_in",
+    "ease_in": 1,
+    2: "ease_in_out",
+    "ease_in_out": 2,
+    3: "linear",
+    "linear": 3,
+}
+
+
+# _Face maps each Face to its number and back.
+_Face: dict[Any, Any] = {
+    0: "default",
+    "default": 0,
+    1: "body",
+    "body": 1,
+    2: "block",
+    "block": 2,
+    3: "serif",
+    "serif": 3,
+}
+
+
+# _Flow maps each Flow to its number and back.
+_Flow: dict[Any, Any] = {
+    0: "none",
+    "none": 0,
+    1: "down",
+    "down": 1,
+    2: "right",
+    "right": 2,
+    3: "down_wrap",
+    "down_wrap": 3,
+    4: "right_wrap",
+    "right_wrap": 4,
+}
+
+
+# _Align maps each Align to its number and back.
+_Align: dict[Any, Any] = {
+    0: "start",
+    "start": 0,
+    1: "center",
+    "center": 1,
+    2: "end",
+    "end": 2,
+}
+
+
 @dataclasses.dataclass(slots=True, kw_only=True)
 class Ability:
     """Ability is one ability a hero owns."""
@@ -3547,6 +3762,12 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
         ],
     ),
+    "PlayersResponse": (
+        None,
+        [
+            wire.Field(1, "players", "message", repeated=True, message="Connection"),
+        ],
+    ),
     "Connection": (
         Connection,
         [
@@ -3863,11 +4084,248 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "value", "string"),
         ],
     ),
+    "Node": (
+        None,
+        [
+            wire.Field(1, "id", "string"),
+            wire.Field(2, "kind", "enum", enum=_Kind),
+            wire.Field(3, "children", "string", repeated=True),
+            wire.Field(4, "text", "string"),
+            wire.Field(5, "image", "string"),
+            wire.Field(6, "style", "message", message="Style"),
+            wire.Field(7, "layout", "string"),
+            wire.Field(8, "data", "string"),
+            wire.Field(9, "hide_hud", "enum", repeated=True, enum=_HudPart),
+            wire.Field(10, "route", "string"),
+            wire.Field(11, "hover", "message", message="Style"),
+            wire.Field(12, "tooltip", "string"),
+            wire.Field(32, "item", "uint32"),
+            wire.Field(34, "ability", "uint32"),
+            wire.Field(35, "ability_player", "uint32"),
+            wire.Field(13, "sound", "string"),
+            wire.Field(14, "hover_sound", "string"),
+            wire.Field(15, "disabled", "bool"),
+            wire.Field(16, "scaling", "enum", enum=_Scaling),
+            wire.Field(17, "hero", "int32"),
+            wire.Field(18, "hero_look", "enum", enum=_HeroLook),
+            wire.Field(19, "text_entry", "message", oneof="input", message="TextEntry"),
+            wire.Field(20, "slider", "message", oneof="input", message="Slider"),
+            wire.Field(21, "toggle", "message", oneof="input", message="Toggle"),
+            wire.Field(22, "dropdown", "message", oneof="input", message="Dropdown"),
+            wire.Field(23, "token", "string"),
+            wire.Field(24, "variables", "message", repeated=True, message="Node_VariablesEntry"),
+            wire.Field(25, "steam_id", "fixed64"),
+            wire.Field(26, "enter", "message", message="Style"),
+            wire.Field(27, "exit", "message", message="Style"),
+            wire.Field(28, "cycle", "message", message="Cycle"),
+            wire.Field(29, "classes", "string", repeated=True),
+            wire.Field(30, "sheets", "string", repeated=True),
+            wire.Field(31, "free_cursor", "bool"),
+            wire.Field(33, "free_cursor_asks", "uint32"),
+            wire.Field(36, "cues", "message", repeated=True, message="Cue"),
+            wire.Field(37, "ability_bar_presses", "bool"),
+            wire.Field(38, "ability_display", "message", repeated=True, message="AbilityRow"),
+        ],
+    ),
+    "Node_VariablesEntry": (
+        None,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "value", "string"),
+        ],
+    ),
+    "AbilityRow": (
+        None,
+        [
+            wire.Field(1, "player", "uint32", cls=Player, key="slot"),
+            wire.Field(2, "name", "string"),
+            wire.Field(3, "hero", "string"),
+            wire.Field(4, "own", "bool"),
+            wire.Field(5, "abilities", "message", repeated=True, message="ShownAbility"),
+        ],
+    ),
+    "ShownAbility": (
+        None,
+        [
+            wire.Field(1, "ability", "uint32"),
+            wire.Field(2, "image", "string"),
+            wire.Field(3, "upgrades", "uint32"),
+        ],
+    ),
+    "Cue": (
+        None,
+        [
+            wire.Field(1, "number", "uint32"),
+            wire.Field(2, "sound", "string"),
+            wire.Field(3, "seconds", "float"),
+        ],
+    ),
+    "TextEntry": (
+        None,
+        [
+            wire.Field(1, "text", "string"),
+            wire.Field(2, "placeholder", "string"),
+            wire.Field(3, "max_length", "uint32"),
+        ],
+    ),
+    "Slider": (
+        None,
+        [
+            wire.Field(1, "value", "float"),
+            wire.Field(2, "min", "float"),
+            wire.Field(3, "max", "float"),
+            wire.Field(4, "step", "float"),
+            wire.Field(5, "wheel", "bool"),
+        ],
+    ),
     "Wheel": (
         Wheel,
         [
             wire.Field(1, "delta", "float"),
             wire.Field(2, "fraction", "float"),
+        ],
+    ),
+    "Toggle": (
+        None,
+        [
+            wire.Field(1, "on", "bool"),
+        ],
+    ),
+    "Dropdown": (
+        None,
+        [
+            wire.Field(1, "options", "string", repeated=True),
+            wire.Field(2, "selected", "uint32"),
+        ],
+    ),
+    "Cycle": (
+        None,
+        [
+            wire.Field(1, "style", "message", message="Style"),
+            wire.Field(2, "seconds", "float"),
+            wire.Field(3, "count", "uint32"),
+        ],
+    ),
+    "Style": (
+        None,
+        [
+            wire.Field(1, "width", "message", message="Length"),
+            wire.Field(2, "height", "message", message="Length"),
+            wire.Field(3, "flow", "enum", enum=_Flow),
+            wire.Field(4, "horizontal_align", "enum", enum=_Align),
+            wire.Field(5, "vertical_align", "enum", enum=_Align),
+            wire.Field(6, "margin", "message", message="Edges"),
+            wire.Field(7, "padding", "message", message="Edges"),
+            wire.Field(8, "background", "fixed32"),
+            wire.Field(9, "color", "fixed32"),
+            wire.Field(10, "font_size", "float"),
+            wire.Field(11, "bold", "bool"),
+            wire.Field(12, "text_align", "enum", enum=_Align),
+            wire.Field(13, "border_radius", "float"),
+            wire.Field(14, "opacity", "float", optional=True),
+            wire.Field(15, "face", "enum", enum=_Face),
+            wire.Field(16, "uppercase", "bool"),
+            wire.Field(17, "letter_spacing", "float"),
+            wire.Field(18, "shadow", "bool"),
+            wire.Field(19, "border_width", "float"),
+            wire.Field(20, "border_color", "fixed32"),
+            wire.Field(21, "x", "message", message="Length"),
+            wire.Field(22, "y", "message", message="Length"),
+            wire.Field(23, "min_width", "message", message="Length"),
+            wire.Field(24, "max_width", "message", message="Length"),
+            wire.Field(25, "min_height", "message", message="Length"),
+            wire.Field(26, "max_height", "message", message="Length"),
+            wire.Field(27, "z_index", "int32"),
+            wire.Field(28, "overflow_x", "enum", enum=_Overflow),
+            wire.Field(29, "overflow_y", "enum", enum=_Overflow),
+            wire.Field(30, "gradient", "message", message="Gradient"),
+            wire.Field(31, "box_shadow", "message", message="Shadow"),
+            wire.Field(32, "text_shadow", "message", message="Shadow"),
+            wire.Field(33, "tint", "fixed32"),
+            wire.Field(34, "saturation", "float", optional=True),
+            wire.Field(35, "brightness", "float", optional=True),
+            wire.Field(36, "contrast", "float", optional=True),
+            wire.Field(37, "blur", "float"),
+            wire.Field(38, "italic", "bool"),
+            wire.Field(39, "weight", "enum", enum=_Weight),
+            wire.Field(40, "line_height", "float"),
+            wire.Field(41, "no_wrap", "bool"),
+            wire.Field(42, "text_overflow", "enum", enum=_TextOverflow),
+            wire.Field(43, "decoration", "enum", enum=_Decoration),
+            wire.Field(44, "transform", "message", message="Transform"),
+            wire.Field(45, "transition", "message", message="Transition"),
+        ],
+    ),
+    "Gradient": (
+        None,
+        [
+            wire.Field(1, "shape", "enum", enum=_GradientShape),
+            wire.Field(2, "stops", "message", repeated=True, message="GradientStop"),
+        ],
+    ),
+    "GradientStop": (
+        None,
+        [
+            wire.Field(1, "at", "float"),
+            wire.Field(2, "color", "fixed32"),
+        ],
+    ),
+    "Shadow": (
+        None,
+        [
+            wire.Field(1, "x", "float"),
+            wire.Field(2, "y", "float"),
+            wire.Field(3, "blur", "float"),
+            wire.Field(4, "spread", "float"),
+            wire.Field(5, "color", "fixed32"),
+            wire.Field(6, "inset", "bool"),
+        ],
+    ),
+    "Transform": (
+        None,
+        [
+            wire.Field(1, "translate_x", "float"),
+            wire.Field(2, "translate_y", "float"),
+            wire.Field(3, "scale_x", "float", optional=True),
+            wire.Field(4, "scale_y", "float", optional=True),
+            wire.Field(5, "rotate", "float"),
+            wire.Field(6, "origin_x", "float", optional=True),
+            wire.Field(7, "origin_y", "float", optional=True),
+        ],
+    ),
+    "Transition": (
+        None,
+        [
+            wire.Field(1, "seconds", "float"),
+            wire.Field(2, "delay", "float"),
+            wire.Field(3, "easing", "enum", enum=_Easing),
+        ],
+    ),
+    "Length": (
+        None,
+        [
+            wire.Field(1, "pixels", "float", optional=True),
+            wire.Field(2, "percent", "float", optional=True),
+            wire.Field(3, "fit_children", "bool", optional=True),
+            wire.Field(4, "fill", "float", optional=True),
+        ],
+    ),
+    "Edges": (
+        None,
+        [
+            wire.Field(1, "top", "float"),
+            wire.Field(2, "right", "float"),
+            wire.Field(3, "bottom", "float"),
+            wire.Field(4, "left", "float"),
+        ],
+    ),
+    "Change": (
+        None,
+        [
+            wire.Field(1, "reset", "bool"),
+            wire.Field(2, "set", "message", repeated=True, message="Node"),
+            wire.Field(3, "removed", "string", repeated=True),
+            wire.Field(4, "generation", "uint64"),
         ],
     ),
     "UiPressEvent": (
@@ -3887,6 +4345,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "on", "bool", oneof="value"),
             wire.Field(6, "choice", "uint32", oneof="value"),
             wire.Field(7, "wheel", "message", oneof="value", message="Wheel"),
+        ],
+    ),
+    "UiRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "change", "message", message="Change"),
         ],
     ),
     "Call": (
@@ -4729,6 +5194,12 @@ _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
 _setting_changes: list[Callable[[Player, str, str], object]] = []
 
+_spawns: list[Callable[[Player, Pawn], object]] = []
+
+# _spawned maps each slot whose hero is in play to that hero's entity, as the
+# spawn handlers last heard of it.
+_spawned: dict[int, int] = {}
+
 # _roster is the player list the host last reported, or None before one.
 _roster: list[Connection] | None = None
 
@@ -5337,6 +5808,45 @@ def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
+    """on_spawn calls handler each time a player's hero enters play: their
+    first hero after joining, each respawn, and each new hero after a change.
+    The player has a hero to move, equip and read from then on, which
+    on_player_join does not promise. The library reads each player's pawn
+    once a frame while a handler is registered.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_spawn
+        def spawn(player: modlock.Player, pawn: modlock.Pawn) -> None: ...
+    """
+    _spawns.append(handler)
+    return handler
+
+
+def _watch_spawns() -> None:
+    """_watch_spawns tells the spawn handlers of each hero that entered play
+    since the last frame."""
+    # A hero is in play while it lives; a placeholder pawn has hero 0.
+    present: dict[int, int] = {}
+    for connection in players():
+        player = connection.player
+        pawn = player.pawn()
+        if pawn is None or pawn.hero == 0 or pawn.health <= 0:
+            continue
+        present[player.slot] = pawn.entity
+
+        # A respawn follows a death, and a new hero has a new entity.
+        if _spawned.get(player.slot) != pawn.entity:
+            for handler in _spawns:
+                handler(player, pawn)
+
+    # Forget the fallen and the gone, so their next hero is a spawn.
+    _spawned.clear()
+    _spawned.update(present)
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands.
 
@@ -5420,8 +5930,40 @@ def _start(event: StartEvent) -> StartResult:
     )
 
 
+# UiValue is an input's new value as the host checked it.
+type UiValue = str | float | bool | int | Wheel | None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class _UiHandlers:
+    """_UiHandlers are modlock.ui's handlers of the events its interfaces
+    raise, which it registers when a mod imports it."""
+
+    # press runs the handler of the button a player pressed.
+    press: Callable[[Player, str], object]
+    # change runs the handler of the input a player changed.
+    change: Callable[[Player, str, UiValue], object]
+    # tick advances the interface clock to each frame.
+    tick: Callable[[float], object]
+
+
+# _ui holds modlock.ui's handlers, or None while the mod shows no interface.
+_ui: _UiHandlers | None = None
+
+
+def _serve_ui(handlers: _UiHandlers) -> None:
+    """_serve_ui passes presses, input changes and the frame clock to
+    modlock.ui, which imports this module and so registers itself."""
+    global _ui
+    _ui = handlers
+
+
 def _frame(event: FrameEvent) -> None:
+    if _ui is not None:
+        _ui.tick(event.time_seconds)
     _advance_timers(event.time_seconds)
+    if _spawns:
+        _watch_spawns()
     for handler in _frames:
         handler(event)
 
@@ -5457,11 +5999,20 @@ def _world(event: WorldEvent) -> None:
 
 
 def _ui_press(event: UiPressEvent) -> None:
-    """_ui_press ignores presses: Python mods build no interface yet."""
+    # A press arrives under the same CPU budget as a command, so its handler
+    # also runs with the next frame.
+    ui = _ui
+    if ui is not None:
+        player, node = event.player, event.node
+        after(0, lambda: ui.press(player, node))
 
 
 def _ui_input(event: UiInputEvent) -> None:
-    """_ui_input ignores changes to inputs: Python mods build no interface yet."""
+    # A change runs with the next frame, as a press does.
+    ui = _ui
+    if ui is not None:
+        player, node, value = event.player, event.node, event.value
+        after(0, lambda: ui.change(player, node, value))
 
 
 def _serve(event: ServiceCall) -> ServiceReply:

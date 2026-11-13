@@ -27,13 +27,14 @@ import {
   type LaunchEvent,
   log as logLine,
   type ModHandlers,
+  type Pawn,
   Player,
   type PlayerJoinedEvent,
   type PlayerLeftEvent,
   serveMod,
 } from './host.gen.js'
 import { serveEvents } from './host.js'
-import { keepPlayers } from './players.js'
+import { keepPlayers, players } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { advance, after } from './timer.js'
@@ -277,6 +278,46 @@ export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
   leaves.push(handler)
 }
 
+/**
+ * onSpawn calls handler each time a player's hero enters play: their first
+ * hero after joining, each respawn, and each new hero after a change. The
+ * player has a hero to move, equip and read from then on, which onPlayerJoin
+ * does not promise. The library reads each player's pawn once a frame while a
+ * handler is registered.
+ */
+export function onSpawn(handler: (player: Player, pawn: Pawn) => void): void {
+  spawns.push(handler)
+}
+
+/**
+ * spawned maps each slot whose hero is in play to that hero's entity, as the
+ * spawn handlers last heard of it.
+ */
+let spawned = new Map<number, number>()
+
+/** watchSpawns tells the spawn handlers of each hero that entered play since the last frame. */
+function watchSpawns(): void {
+  // A hero is in play while it lives; a placeholder pawn has hero 0.
+  const present = new Map<number, number>()
+  for (const { player } of players()) {
+    const pawn = player.pawn()
+    if (pawn === undefined || pawn.hero === 0 || pawn.health <= 0) {
+      continue
+    }
+    present.set(player.slot, pawn.entity)
+
+    // A respawn follows a death, and a new hero has a new entity.
+    if (spawned.get(player.slot) !== pawn.entity) {
+      for (const handler of spawns) {
+        handler(player, pawn)
+      }
+    }
+  }
+
+  // Forget the fallen and the gone, so their next hero is a spawn.
+  spawned = present
+}
+
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
@@ -408,6 +449,7 @@ const frames: ((frame: FrameEvent) => void)[] = []
 const chats: ((line: ChatEvent) => void)[] = []
 const joins: ((joined: PlayerJoinedEvent) => void)[] = []
 const leaves: ((left: PlayerLeftEvent) => void)[] = []
+const spawns: ((player: Player, pawn: Pawn) => void)[] = []
 const worlds: ((map: string) => void)[] = []
 const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
   []
@@ -438,9 +480,15 @@ const handlers: ModHandlers = {
   },
 
   frame(event) {
+    // Advance the library's own clocks before the mod's handlers run.
     tick(event.timeSeconds)
     advance(event.timeSeconds)
     advancePuppets(event.timeSeconds)
+
+    // Tell the spawn handlers first, so a frame handler sees the hero ready.
+    if (spawns.length !== 0) {
+      watchSpawns()
+    }
     for (const handler of frames) {
       handler(event)
     }

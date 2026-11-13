@@ -127,6 +127,48 @@ local roster: { Connection }? = nil
 -- rosterWatchers hear each player list the host reports.
 local rosterWatchers: { (players: { Connection }) -> () } = {}
 
+-- Interface takes the events of the players' interfaces: the module that
+-- draws them, @modlock/ui, serves them with serveInterface, so the library
+-- loads without it.
+export type Interface = {
+	-- press takes a press on the button with id node, or on the ability bar.
+	press: (player: Player, node: string) -> (),
+	-- change takes a change to the input with id node, or a wheel step.
+	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	-- tick takes the game clock at each frame, before the timers run.
+	tick: (seconds: number) -> (),
+	-- players takes each player list the host reports.
+	players: (players: { Connection }) -> (),
+}
+
+-- InterfaceWire is what serveInterface gives the interface module.
+export type InterfaceWire = {
+	-- send sends player's interface a change through the host and reports
+	-- whether the host took it.
+	send: (player: Player, change: any) -> boolean,
+	-- encode returns a node's wire encoding, to compare two nodes by.
+	encode: (node: any) -> string,
+}
+
+-- interface takes the interface events, once a module serves it.
+local interface: Interface? = nil
+
+-- serveInterface sends the players' interface events to served from now on
+-- and returns the calls the interface module sends its changes through. Mods
+-- draw interfaces through @modlock/ui, which calls it once as it loads.
+function modlock.serveInterface(served: Interface): InterfaceWire
+	interface = served
+	table.insert(rosterWatchers, served.players)
+	return {
+		send = function(player: Player, change: any): boolean
+			return call("Ui", "UiRequest", { player = player, change = change }) ~= nil
+		end,
+		encode = function(node: any): string
+			return wire.encode(schema, "Node", node)
+		end,
+	}
+end
+
 -- players lists the occupied player slots in slot order. It answers from the
 -- roster the host last reported, and asks the host until a report arrives.
 function modlock.players(): { Connection }
@@ -807,6 +849,46 @@ function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
 
+-- spawns holds the spawn handlers, which run in registration order.
+local spawns: { (player: Player, pawn: Pawn) -> () } = {}
+
+-- spawned maps each slot whose hero is in play to that hero's entity, as the
+-- spawn handlers last heard of it.
+local spawned: { [number]: number } = {}
+
+-- onSpawn calls handler each time a player's hero enters play: their first
+-- hero after joining, each respawn, and each new hero after a change. The
+-- player has a hero to move, equip and read from then on, which onPlayerJoin
+-- does not promise. The library reads each player's pawn once a frame while a
+-- handler is registered.
+function modlock.onSpawn(handler: (player: Player, pawn: Pawn) -> ())
+	table.insert(spawns, handler)
+end
+
+-- watchSpawns tells the spawn handlers of each hero that entered play since
+-- the last frame.
+local function watchSpawns()
+	-- A hero is in play while it lives; a placeholder pawn has hero 0.
+	local present: { [number]: number } = {}
+	for _, connection in modlock.players() do
+		local player = connection.player
+		local pawn = player:pawn()
+		if pawn and pawn.hero ~= 0 and pawn.health > 0 then
+			present[player.slot] = pawn.entity
+
+			-- A respawn follows a death, and a new hero has a new entity.
+			if spawned[player.slot] ~= pawn.entity then
+				for _, handler in spawns do
+					handler(player, pawn)
+				end
+			end
+		end
+	end
+
+	-- Forget the fallen and the gone, so their next hero is a spawn.
+	spawned = present
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -854,7 +936,13 @@ local handlers: ModHandlers = {
 	end,
 
 	frame = function(event)
+		if interface then
+			interface.tick(event.timeSeconds)
+		end
 		advanceTimers(event.timeSeconds)
+		if #spawns ~= 0 then
+			watchSpawns()
+		end
 		for _, handler in frames do
 			handler(event)
 		end
@@ -894,10 +982,24 @@ local handlers: ModHandlers = {
 		end
 	end,
 
-	-- Luau mods build no interface yet, so no button reports a press and no
-	-- input a change.
-	uiPress = function(_event) end,
-	uiInput = function(_event) end,
+	-- A press or a change arrives under the same CPU budget as a command, so
+	-- the interface's handlers run with the next frame.
+	uiPress = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.press(event.player, event.node)
+			end)
+		end
+	end,
+	uiInput = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.change(event.player, event.node, event.value)
+			end)
+		end
+	end,
 
 	serve = function(event)
 		local handler = services[event.service]
