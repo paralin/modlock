@@ -22,5 +22,6 @@ func init() {
 	})
 }
 
-// main is required by Go and never runs; the server calls the handlers.
+// Go requires main, but it never runs, because the server calls the handlers
+// that init registered.
 func main() {}

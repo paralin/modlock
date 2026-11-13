@@ -2,7 +2,7 @@
 
 <h1>⚙️ Modlock</h1>
 
-<p><b>Custom game modes for Deadlock, in the language you like.</b></p>
+<p><b>Custom game modes for Deadlock, in a language you already know.</b></p>
 
 <a href="https://discord.gg/DCErWrCFvh"><img alt="Join the Discord" src="https://img.shields.io/badge/Join_the_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white"></a>
 <a href="#getting-started"><img alt="Install" src="https://img.shields.io/badge/Install-2b2b2b?style=for-the-badge&logo=github&logoColor=white"></a>
@@ -19,11 +19,12 @@
 
 </div>
 
-**Modlock** is the best tool for hand-writing the logic of [Deadlock] custom
-game modes. You write a mod in TypeScript, Luau or Python; Modlock builds it
-for WebAssembly, and the game server runs it in a secure sandbox. Every mod
-speaks to the game through one common protobuf schema, so each language sees
-the same events and calls. Mods deploy to [hyperline.gg], the default backend and platform for custom games.
+**Modlock** lets you write the logic of a [Deadlock] custom game mode by hand,
+in TypeScript, JavaScript, Luau, Python or Go, and the game server runs your
+mod in a WebAssembly sandbox. Every language's library makes its calls to the
+game as messages from one protobuf schema, so each language gets the same
+events and calls. `modlock publish` uploads mods to [hyperline.gg], the default
+platform for custom games.
 
 [Deadlock]: https://store.steampowered.com/app/1422450/Deadlock/
 [hyperline.gg]: https://hyperline.gg
@@ -44,16 +45,18 @@ command('hello', (player) => {
 
 ## Why WebAssembly
 
-- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server. It
-  has no files, network or environment, only the calls the schema offers. A
-  crash, an endless loop or a runaway allocation stops that mod with a log
-  line and leaves the match running. A slow event finishes, and the players
-  hear of it in chat. Any player can restart a stopped or slow mod with
-  `/restartmod`.
-- **Any language.** Anything that compiles to WebAssembly can be a mod, with a
-  small library per language.
-- **Built once.** A mod is one portable `.wasm` file that runs on any build of
-  the server.
+- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server,
+  where it can reach only the calls the schema offers.
+  Those calls let it read and write its own files, but it has no network
+  access and no environment variables. When a mod
+  crashes, loops forever or allocates past its limit, the server stops that
+  mod, logs why and keeps the match running. A slow event still finishes, and
+  the players see a warning in chat. Any player can restart a stopped or slow
+  mod with `/restartmod`.
+- **Any language.** You can write a mod in any language that compiles to
+  WebAssembly, using a small library for that language.
+- **Built once.** A mod keeps working across game updates, because the server
+  looks up the fields and inputs it uses by name when it runs.
 - **Fast.** Wasmtime compiles mods to machine code with Cranelift, and the
   server calls them in the game frame, so a mod can decide whether to claim a
   command or change a frame as it happens.
@@ -62,8 +65,8 @@ command('hello', (player) => {
 
 ## Getting started
 
-You need one program, the `modlock` command. Install it with the line for your
-computer.
+The only program you need is the `modlock` command. Install it by running the
+line for your computer.
 
 Windows, in PowerShell:
 
@@ -77,17 +80,17 @@ macOS or Linux, in a terminal:
 curl -fsSL https://raw.githubusercontent.com/paralin/modlock/master/install.sh | sh
 ```
 
-Or with npm on any of them, into a project or globally, as its own command:
+Or install it with npm on any of them, into a project or globally:
 
 ```sh
 npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-Script mods need nothing else installed; a Go mod needs
-[Go](https://go.dev/dl/). The
-[install page](https://paralin.github.io/modlock/start/install) covers
-downloading it by hand and what to do when `modlock` is not found.
+You need nothing else for a TypeScript, JavaScript, Luau or Python mod, and a
+Go mod also needs [Go](https://go.dev/dl/). The
+[install page](https://paralin.github.io/modlock/start/install) explains how to
+download `modlock` by hand and what to do when your terminal cannot find it.
 
 Then make a mod and run it:
 
@@ -98,10 +101,11 @@ modlock dev
 ```
 
 `modlock new` asks for the mod's name and its language. `modlock dev` builds the
-mod, starts a local server and launches Deadlock through Steam to join. Each
-time you save, it rebuilds the mod and swaps it in. The starter answers
-`/hello` in chat; [Your first mod](https://paralin.github.io/modlock/start/first-mod)
-walks through the rest.
+mod, starts a local server and launches Deadlock through Steam to join it, and
+each time you save, it rebuilds the mod and replaces the running one. The
+starter mod replies to `/hello` in chat, and
+[Your first mod](https://paralin.github.io/modlock/start/first-mod) walks
+through the rest.
 
 Complete game modes to start from include [`arena`](examples/arena) in
 TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
@@ -110,8 +114,8 @@ Go, all in the [`examples`](examples) directory.
 ## Documentation
 
 The documentation is at **[paralin.github.io/modlock](https://paralin.github.io/modlock/)**.
-Every sample there comes in TypeScript, Luau, Python and Go: choose your
-language once and the whole site follows.
+Every sample there comes in TypeScript, Luau, Python and Go, and once you
+choose your language, every page shows its samples in it.
 
 | Section                                                             | Holds                                                                     |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -122,8 +126,8 @@ language once and the whole site follows.
 | [Reference](https://paralin.github.io/modlock/reference/cli)        | The command line, the manifest and publishing.                            |
 | [Internals](https://paralin.github.io/modlock/internals/protocol)   | The protocol, the framework, building from source and native plugins.     |
 
-The site's source is in [`docs`](docs): `bun install` and `bun run dev` there
-serve it locally. Complete mods to read and run are in [`examples`](examples).
+The site's source is in [`docs`](docs), and running `bun install` and
+`bun run dev` there serves it locally. Complete mods to read and run are in [`examples`](examples).
 
 ## Acknowledgments
 

@@ -41,7 +41,8 @@ func (m *Mode) Started([]string) {
 	}
 }
 
-// World starts over on a new world, which took the course's labels with it.
+// World forgets the course, the race and the best times when a new map loads,
+// because loading it removed the course's labels from the game.
 func (m *Mode) World(string) {
 	m.course.Forget()
 	m.race = nil
@@ -102,8 +103,8 @@ func (m *Mode) ClearCourse(p mod.Player, _ string) {
 }
 
 // StartRace lines every player with a living hero up at the start line and
-// starts the countdown. args may name the laps; the starter's laps setting
-// decides otherwise.
+// starts the countdown. args may give the number of laps, and without it the
+// starter's laps setting decides.
 func (m *Mode) StartRace(p mod.Player, args string) {
 	// Refuse a second race and a course too short to lap.
 	if m.race != nil {
@@ -182,8 +183,8 @@ func (m *Mode) Best(p mod.Player, _ string) {
 	_ = p.Chat("Your best on this course is " + clockText(time, 1) + ".")
 }
 
-// Serve answers the race service: standings returns the last race's
-// standings, one racer per line.
+// Serve answers calls to the race service. Its one method, standings,
+// returns the last race's standings, one racer per line.
 func (m *Mode) Serve(method string, _ []byte) ([]byte, error) {
 	if method != "standings" {
 		return nil, errors.New("the race service has no method " + method)
@@ -201,10 +202,10 @@ func broadcast(text string) {
 	}
 }
 
-// Frame runs the race on each server frame: the countdown, then each racer's
-// progress, then the finish.
+// Frame advances the race on each server frame: the countdown, then each
+// racer's progress, then the finish.
 func (m *Mode) Frame(f *mod.FrameEvent) {
-	// Advance the game clock; nothing more runs between races.
+	// Record the game clock, and stop there between races.
 	previous := m.now
 	m.now = f.GetTimeSeconds()
 	if m.race == nil {
@@ -248,7 +249,7 @@ func (m *Mode) release() {
 // dropLeavers drops the racers whose players left, so the race does not wait
 // for them. A new player in a racer's slot has another generation.
 func (m *Mode) dropLeavers() {
-	// Read who is on the server; without an answer, keep everyone.
+	// Read who is on the server, and keep every racer when the read fails.
 	connections, err := mod.Players()
 	if err != nil {
 		return
@@ -270,8 +271,8 @@ func (m *Mode) dropLeavers() {
 	}
 }
 
-// track moves one racer along the course and shows them what changed. tick
-// redraws their clock once a second.
+// track moves one racer along the course and shows them what changed. Frame
+// sets tick once a second, and track then redraws the racer's clock.
 func (m *Mode) track(racer *Racer, tick bool) {
 	// Skip a finisher and a racer whose hero is between lives.
 	if racer.Place != 0 {
@@ -330,7 +331,7 @@ func (m *Mode) split(racer *Racer) {
 // show writes the racer's lap, next checkpoint and clock in the middle of
 // their screen.
 func (m *Mode) show(racer *Racer) {
-	// Name where the racer heads: a checkpoint, the start line or the finish.
+	// Say where the racer heads: a checkpoint, the start line or the finish.
 	next := "checkpoint " + strconv.Itoa(racer.Next)
 	if racer.Next == 0 {
 		next = "the start line"
@@ -344,8 +345,8 @@ func (m *Mode) show(racer *Racer) {
 	_ = racer.Player.CenterText(lap + " · Next: " + next + " · " + clockText(m.race.Clock(m.now), 0))
 }
 
-// finished congratulates a racer who crossed the finish and keeps their
-// score.
+// finished congratulates a racer who crossed the finish, adds the finish to
+// their metrics and stores a new best time.
 func (m *Mode) finished(racer *Racer) {
 	// Clear the racer's clock and announce the place to everyone.
 	time := clockText(racer.Time, 1)
@@ -468,7 +469,7 @@ func (m *Mode) SettingChanged(p mod.Player, key, value string) {
 	}
 }
 
-// everyRacer runs do for each racer in the race.
+// everyRacer calls do for each racer in the race.
 func (m *Mode) everyRacer(do func(racer *Racer)) {
 	for _, racer := range m.race.Racers() {
 		do(racer)

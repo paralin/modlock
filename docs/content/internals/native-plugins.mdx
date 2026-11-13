@@ -86,7 +86,7 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | `--engine-args ARGS` | Append engine command-line arguments.                                                                                                            |
 | `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 
-`modlock-host` runs only a dedicated server; players join it with the game's
+`modlock-host` runs only a dedicated server, and players join it with the game's
 own, unchanged client. See `modlock-host --help` for every option.
 
 ## Plugin contract
@@ -117,8 +117,7 @@ began starting stops in reverse order, including the one that failed. Remove
 live entities in `OnWorldEnding`, before the engine tears down the world, and
 drop views of the previous world in `OnWorld`. `Stop` runs after the engine
 returns. Each plugin is destroyed inside its own library before that library
-unloads. Plugins cannot be reloaded while the host runs; restart the host to
-load a new build.
+unloads. To load a new build of a plugin, restart the host, because plugins cannot be reloaded while it runs.
 
 [Engine access](/internals/engine-access) covers module lookup, signature
 resolution, platform boundaries, and hook lifetime.

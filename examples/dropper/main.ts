@@ -1,8 +1,9 @@
-// dropper builds a spot in play: /build opens the catalog, and every player
-// drops into the same spot. /probe checks solid objects in front of the
-// player and times placing many of them. Started with the argument probe, the
-// mod seats a bot, runs the same checks, drops the bot onto a crate, and quits
-// with PASS or FAIL.
+// dropper lets players build a spot while they play. A player types /build to
+// open the catalog of objects, and every player's objects go into the same
+// spot. /probe places solid objects in front of the player, checks that they
+// collide where they should, and times placing many of them. When the server
+// starts the mod with the argument probe, the mod adds a bot, runs the same
+// checks in front of it, drops it onto a crate, and quits with PASS or FAIL.
 import {
   addBot,
   type CatalogEntry,
@@ -93,7 +94,7 @@ onStart((args) => {
   precache({ resources: [...new Set(catalog.map((entry) => entry.model))] })
   watchInput(dropperButtons)
   if (args.includes('probe')) {
-    // An empty server hibernates and runs no frames until a player joins.
+    // An empty server hibernates, so it skips frames until a player joins.
     serverCommand('sv_hibernate_when_empty 0')
     headless = new Headless()
   }
@@ -134,7 +135,10 @@ function crate(
   }
 }
 
-/** lost places each catalog model once at position and returns those the game deleted. */
+/**
+ * lost places each catalog model once at position and returns those the game
+ * deleted.
+ */
 function lost(position: Vector): string[] {
   return [...new Set(catalog.map((entry) => entry.model))].filter((model) => {
     const spot = loadSpot({
@@ -147,7 +151,10 @@ function lost(position: Vector): string[] {
   })
 }
 
-/** ahead is the point distance in front of player's hero at its feet, offset to the side. */
+/**
+ * ahead is the point distance in front of player's hero at the height of its
+ * feet, moved side units to its left or right.
+ */
 function ahead(player: Player, distance: number, side = 0): Vector | undefined {
   const pawn = player.pawn()
   if (!pawn) {
@@ -191,8 +198,8 @@ function grounded(position: Vector): boolean {
 }
 
 /**
- * probe places solid crates ahead of player, logs what holds, and returns the
- * checks that failed.
+ * probe places solid crates ahead of player, logs what it measures, and
+ * returns the checks that failed.
  */
 function probe(player: Player, count: number): string[] {
   // Find two crate positions beside each other ahead of the hero.
@@ -287,7 +294,7 @@ function probe(player: Player, count: number): string[] {
   return failures
 }
 
-/** timeout bounds the headless probe in seconds. */
+/** timeout is how many seconds the headless probe may take. */
 const timeout = 60
 
 /** Step is where the headless probe is. */
@@ -337,7 +344,8 @@ class Headless {
         if (time - this.since < 3 || time - this.tried < 1) {
           return
         }
-        // Traces work once the game has traced the world itself.
+        // A trace finds nothing until the game has traced the world itself, so
+        // try once a second until one finds the floor under the hero.
         this.tried = time
         if (!grounded(pawn.position)) {
           return

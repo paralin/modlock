@@ -1,8 +1,8 @@
-// Charge limit checks setAbility's maxCharges. Started with the argument
-// probe, the mod seats two bots on a hero with a charged ability, raises the
-// most charges of one and leaves the other as it is, empties both and keeps
-// each recharge short. The raised bot should come back to its new maximum and
-// the other to the game's own. The mod quits the server with PASS or FAIL.
+// Charge limit checks setAbility's maxCharges. When the server starts the mod
+// with the argument probe, the mod adds two bots on a hero with a charged
+// ability, raises one bot's maximum charges, empties the ability on both, and
+// keeps each recharge short. The raised bot should refill to its new maximum
+// and the other to the game's own. The mod quits the server with PASS or FAIL.
 import {
   addBot,
   log,
@@ -15,17 +15,20 @@ import {
 /** hero is the bots' hero, whose Card Toss holds two charges. */
 const hero = 'hero_wraith'
 
-/** target is the ability the check empties, and baseCharges its charges in the game's scripts. */
+/**
+ * target is the ability the check empties, and the game's scripts give it
+ * baseCharges charges.
+ */
 const target = 'citadel_ability_card_toss'
 const baseCharges = 2
 
-/** extra is how many charges the raised bot's maximum adds. */
+/** extra is how many charges the check adds to the raised bot's maximum. */
 const extra = 2
 
-/** timeout bounds the whole check in seconds. */
+/** timeout is how many seconds the whole check may take before it fails. */
 const timeout = 40
 
-/** shortest is how soon a charge returns once the check empties an ability. */
+/** shortest is how many seconds the check lets each recharge take. */
 const shortest = 0.5
 
 /** Bot is one seated bot and the ability the check watches. */
@@ -101,8 +104,9 @@ onFrame((frame) => {
     return
   }
 
-  // Unlock the ability keys, which hold no charges while locked, then pick the
-  // first that holds several charges and empty it.
+  // Unlock each bot's first three abilities, because a locked ability has zero
+  // charges. Two seconds later, empty the target ability on both bots and raise
+  // the maximum of one.
   if (native === 0) {
     if (!unlocked) {
       unlocked = true
@@ -148,7 +152,7 @@ onFrame((frame) => {
       return
     }
     held.push(ability.charges)
-    // A recharge starts only after a use, so start one the check arms itself.
+    // The game starts a recharge only after a use, so the check starts one.
     if (
       ability.rechargeEnd === 0 ||
       ability.rechargeEnd > frame.timeSeconds + shortest

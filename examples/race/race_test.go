@@ -24,7 +24,8 @@ func TestRaceLaps(t *testing.T) {
 		t.Fatalf("countdown: got %v, want PassNone", pass)
 	}
 
-	// Skipping ahead passes nothing; each checkpoint in order passes.
+	// Skipping a checkpoint passes nothing, and reaching each one in order
+	// passes it.
 	if pass := race.Track(racer, square[2], 11); pass != PassNone {
 		t.Fatalf("skip: got %v, want PassNone", pass)
 	}
@@ -58,7 +59,8 @@ func TestRaceGrace(t *testing.T) {
 	race.Join(slow)
 	race.Join(fast)
 
-	// The fast racer laps; the slow one passes one checkpoint.
+	// The fast racer finishes its lap while the slow one passes only the
+	// checkpoint.
 	race.Track(fast, square[1], 1)
 	race.Track(fast, square[0], 2)
 	race.Track(slow, square[1], 3)
@@ -82,8 +84,8 @@ func TestRaceResetAndDrop(t *testing.T) {
 	race.Join(stays)
 	race.Join(leaves)
 
-	// A new racer resets to the start line; one past the last checkpoint
-	// resets there, facing the start line.
+	// A new racer resets to the start line, and one past the last checkpoint
+	// resets to that checkpoint, facing the start line.
 	if race.Last(stays) != square[0] || race.Ahead(stays) != square[1] {
 		t.Fatal("a new racer should reset to the start line")
 	}

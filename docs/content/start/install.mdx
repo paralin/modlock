@@ -3,7 +3,7 @@ title: Install
 description: Install the modlock command.
 ---
 
-Install `modlock` with the line for your computer.
+Install the `modlock` command by running the line for your computer.
 
 Windows, in PowerShell:
 
@@ -24,17 +24,20 @@ npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-With npm, run every command through `npx`, as in `npx modlock dev`.
+When you install with npm, run every command through `npx`, as in
+`npx modlock dev`.
 
-That is all a TypeScript, JavaScript, Luau or Python mod needs. A Go mod also
-needs [Go](https://go.dev/dl/). On its first run, `modlock` downloads the game
-server, and `modlock update` installs a newer release.
+You need nothing else to write a mod in TypeScript, JavaScript, Luau or Python;
+a Go mod also needs [Go](https://go.dev/dl/). The first time you run `modlock`,
+it downloads the game server. To move to a newer release later, run
+`modlock update`.
 
 <Callout title="modlock is not found">
-  On Windows, a program already running keeps the old `PATH`. Close the terminal
-  and open it again. For a terminal inside VS Code, close the whole editor. On
-  macOS or Linux, the installer prints a line to add to your shell's startup
-  file when its directory is not on your `PATH`.
+  On Windows, a terminal that was already open keeps the `PATH` it started with,
+  so close it and open a new one, and for a terminal inside VS Code, close the
+  whole editor. On macOS or Linux, when the install directory is not on your
+  `PATH`, the installer prints a line for you to add to your shell's startup
+  file.
 </Callout>
 
 Next: [make your first mod](/start/first-mod).
@@ -54,10 +57,10 @@ to `modlock` (`modlock.exe` on Windows), and put it in a directory on your
 | Linux, x86-64               | `modlock-linux-amd64`       |
 | Linux, ARM64                | `modlock-linux-arm64`       |
 
-A file downloaded in a browser can trigger a Windows SmartScreen or macOS
-warning; the installers avoid this. On a Mac, clear it with
-`xattr -c modlock`. `modlock` is a terminal program, so run it from
-a terminal. Double-clicking it only prints how to install it.
+Windows SmartScreen and macOS warn about a program downloaded in a browser,
+which the install lines above avoid. On a Mac, clear the warning with
+`xattr -c modlock`. Run `modlock` from a terminal, because double-clicking it
+only prints how to install it.
 
 To run Modlock from a clone, see
 [Building Modlock](/internals/building#run-the-command-from-a-clone).

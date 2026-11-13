@@ -1,10 +1,11 @@
-// Street Brawl checks the calls a Street Brawl style mode builds on. Started
-// with the argument probe, the mod seats a bot and puts its hero on each
-// lane's zipline in turn, from wherever the last ride left it, and checks that
-// the nearest zipline node is on the asked lane, and that green, which the
-// three-lane map lacks, is refused. It then times the ride with
-// and without Street Brawl's zipline boost, and imbues an ability with an
-// item. The mod quits the server with PASS or FAIL.
+// Street Brawl checks the calls a mode like Street Brawl uses. When the server
+// starts the mod with the argument probe, the mod adds a bot and puts its hero
+// on each lane's zipline in turn, from wherever the last ride left it. After
+// each ride it checks that the nearest zipline node is on the lane it asked
+// for, and it checks that the game refuses a ride on green, which the
+// three-lane map lacks. It then times the ride with and without Street
+// Brawl's zipline boost, and imbues an ability with an item. The mod quits
+// the server with PASS or FAIL.
 import {
   addBot,
   entityPosition,
@@ -22,7 +23,7 @@ import {
 /** lanes lists the map's lanes to ride, each far from the one before. */
 const lanes: readonly Lane[] = ['yellow', 'purple', 'blue']
 
-/** missing is a lane the map has no zipline on. */
+/** missing is the lane the map lacks a zipline for. */
 const missing: Lane = 'green'
 
 /** laneNumbers is the number the game gives each lane's zipline nodes. */
@@ -37,11 +38,11 @@ const laneNumbers: Record<Lane, number> = {
 /** boost is Street Brawl's fast zipline modifier. */
 const boost = 'modifier_street_brawl_round_start_zipline_boost'
 
-/** imbuing is an item that imbues an ability, and plain one that does not. */
+/** imbuing is an item that imbues an ability, and plain is one that cannot. */
 const imbuing = 'upgrade_arcane_extension'
 const plain = 'upgrade_fleetfoot_boots'
 
-/** timeout bounds the whole check in seconds. */
+/** timeout is how many seconds the whole check may take before it fails. */
 const timeout = 90
 
 let probing = false
@@ -70,7 +71,7 @@ onFrame((frame) => {
     return
   }
 
-  // Seat the bot, then wait until its hero lives.
+  // Add the bot, then wait until its hero is alive.
   bot ??= addBot({ name: 'Street Brawl', team: 2, hero: 'hero_wraith' })
   if (bot === undefined) {
     finish('the bot could not join')
@@ -154,7 +155,8 @@ onFrame((frame) => {
     return
   }
 
-  // Imbue the first ability that accepts the item, and refuse a plain one.
+  // Check that the plain item is refused, then imbue the first ability that
+  // accepts the imbuing item.
   if (bot.giveItem(plain, 0)) {
     problems.push(`${plain} imbued an ability`)
   }
@@ -186,7 +188,7 @@ function logLanes(): void {
   log([...counts].map(([key, count]) => `${key}: ${count}`).join(', '))
 }
 
-/** laneOf reads a zipline node's lane number, or -1 when it cannot. */
+/** laneOf returns a zipline node's lane number, or -1 when it cannot read it. */
 function laneOf(node: number): number {
   const lane = readField(node, 'CCitadelZipLineNode', 'm_iPrimaryLane', 'int16')
   return typeof lane === 'number' ? lane : -1

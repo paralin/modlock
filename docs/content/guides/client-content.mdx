@@ -3,9 +3,10 @@ title: Client content
 description: Ship layouts, style sheets, models and sounds to every player.
 ---
 
-Files under `content/` ship to every player's game in the mod's own addon,
-named `SLUG-DIGEST` after the slug and a digest of the content. Write
-`{addon}` where the addon's name goes, and the build or the host fills it in:
+The build packs the files under your project's `content/` into the mod's own
+addon, which every player's game mounts. The addon is named `SLUG-DIGEST`, from
+the mod's slug and a digest of the content, so write `{addon}` wherever the
+addon's name goes, and the build or the host fills it in:
 
 ```xml
 <include src="file://{resources}/scripts/{addon}/scoreboard.js" />
@@ -24,10 +25,10 @@ named `SLUG-DIGEST` after the slug and a digest of the content. Write
 - A release that changes only code keeps the addon and every path in it, so a
   game that mounted the previous release still finds the new one's resources.
 - The build refuses a source the game cannot load, such as a `.vmdl` or a
-  Hammer map's `.vmap`; keep sources outside `content/`. The publishing check
+  Hammer map's `.vmap`, so keep sources outside `content/`. The publishing check
   refuses client files outside the addon's directories.
-- A path inside a compiled resource is not rewritten. Point it at the game's
-  own resources, or at the addon's name for the version you build.
+- The build does not rewrite a path inside a compiled resource, so point it at
+  the game's own resources, or at the addon's name for the version you build.
 
 ## Draw a layout in the world
 
@@ -91,11 +92,11 @@ _, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: positi
 
 </Samples>
 
-A panel the map placed has its layout path fixed before the addon's name is
-known. Point it at the mod's layout with `writeField`, which fills `{addon}`
-the same way, as each world loads, since mods start before the map's entities
-exist. Connected players then get a full update that stalls their game for a
-moment, so write a layout only when it changes:
+A panel that the map placed got its layout path before the addon's name
+existed. Point it at your mod's layout with `writeField`, which also fills in
+`{addon}`. Do it as each world loads, because mods start before the map's
+entities exist. Each write sends connected players a full update that stalls
+their game for a moment, so write a layout only when it changes:
 
 <Samples>
 
@@ -194,7 +195,7 @@ _, _ = mod.CreateModel(&mod.ModelOptions{Resource: "models/{addon}/pawn.vmdl", P
 
 ## Mounting
 
-| Command                       | Mounts                                                                                                                                                                                                                                    |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modlock dev`, `modlock play` | Each mod's content, before the server starts; the server and the player's game both load it. Each rebuild adds changed content under the addon's new name, and the server and game load it the next time the mod asks, without a restart. |
-| `modlock join`                | The host's content, before the guest's game starts. A guest keeps the content it joined with.                                                                                                                                             |
+| Command                       | Mounts                                                                                                                                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock dev`, `modlock play` | Each mod's content, before the server starts, so the server and the player's game both load it. Each rebuild adds changed content under the addon's new name, and the server and game load it the next time the mod asks, without a restart. |
+| `modlock join`                | The host's content, before the guest's game starts. A guest keeps the content it joined with.                                                                                                                                                |

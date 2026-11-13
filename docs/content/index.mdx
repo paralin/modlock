@@ -1,12 +1,12 @@
 ---
 title: Modlock
-description: Custom game modes for Deadlock, in the language you like.
+description: Write custom game modes for Deadlock in TypeScript, JavaScript, Luau, Python or Go.
 ---
 
 <Hero />
 
-Every language sees the same events and makes the same calls. This mod answers
-`/hello` in chat:
+Each language's library has the same events and calls, so you can pick the
+language you know. This mod replies when a player types `/hello` in chat:
 
 <Samples>
 
@@ -52,8 +52,8 @@ func main() {}
 </Samples>
 
 <Callout title="Early development">
-  The library may change between releases. TypeScript, JavaScript, Luau, Python
-  and Go mods, the `modlock` command and `modlock publish` all work today.
+  You can write, run and publish mods in TypeScript, JavaScript, Luau, Python
+  and Go today, but the library may still change between releases.
 </Callout>
 
 ## Where to go
@@ -83,17 +83,20 @@ func main() {}
 
 <Cards>
   <Card icon={<ShieldCheck />} title="Safe to share">
-    Mods run in a [Wasmtime] sandbox that blocks file and network access. A mod
-    that crashes or hangs stops alone, and the match plays on.
+    Each mod runs in a [Wasmtime] sandbox, where it can reach only its own files
+    and never the network. When a mod crashes or hangs, the server stops that
+    mod and the match goes on.
   </Card>
   <Card icon={<Languages />} title="Any language">
-    Anything that compiles to WebAssembly can be a mod.
+    You can write a mod in any language that compiles to WebAssembly.
   </Card>
   <Card icon={<Package />} title="Built once">
-    A mod is one portable `.wasm` file that runs on any build of the server.
+    You build a mod once and it keeps working across game updates, because the
+    server looks up its fields and inputs by name when it runs.
   </Card>
   <Card icon={<Zap />} title="Fast">
-    Mods compile to machine code and run inside the game frame.
+    The server calls each mod inside the game's own frame, and Wasmtime runs its
+    WebAssembly as machine code.
   </Card>
 </Cards>
 

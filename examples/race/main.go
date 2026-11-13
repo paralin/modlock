@@ -1,9 +1,10 @@
 // Command race is a checkpoint race in Go. Players mark a course by standing
-// on each checkpoint and typing /mark; the first mark is the start line. /race
-// lines every player up at the start, counts down and times each lap through
-// the checkpoints in order and back to the start line. Racers take no damage,
-// a fallen racer or one who presses their reset key returns to the last
-// checkpoint passed, and the first finish gives the others thirty seconds.
+// on each checkpoint and typing /mark, and the first mark is the start line.
+// /race lines every player up at the start, counts down and times each lap
+// through the checkpoints in order and back to the start line. The mod blocks
+// every hit on a racer, a fallen racer or one who presses their reset key
+// returns to the last checkpoint passed, and the first finish gives the others
+// thirty seconds.
 // Each player's best time on the course is kept until the course changes.
 //
 // Commands: /mark, /unmark, /clear, /race [laps], /stop and /best. Another
@@ -19,7 +20,8 @@ func init() {
 	mod.OnStart(m.Started)
 	mod.OnWorld(m.World)
 
-	// Run the race on the game clock and the racers' input and hits.
+	// Advance the race each frame, and handle the racers' reset keys, the hits
+	// on them and their setting changes.
 	mod.OnFrame(m.Frame)
 	mod.OnInput(m.Input)
 	mod.OnDamage(m.Damage)
@@ -37,5 +39,6 @@ func init() {
 	mod.Serve("race", m.Serve)
 }
 
-// main is required by Go and never runs; the server calls the handlers.
+// Go requires main, but it never runs, because the server calls the handlers
+// that init registered.
 func main() {}

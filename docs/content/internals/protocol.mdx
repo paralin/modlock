@@ -14,9 +14,7 @@ one:
 
 The calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto). A
 `Call` selects one method of the `Host` service, when a mod calls the game, or
-of the `Mod` service, when the host delivers an event, and carries its encoded
-request. The `Reply` carries the encoded response or an error. A new capability
-is a new method; the functions never change. Each event runs within a time
+of the `Mod` service, when the host delivers an event, and holds its encoded request. The `Reply` holds the encoded response or an error. A new capability is added as a new method, so the three functions never change. Each event runs within a time
 budget, which stops a runaway loop, and each mod has a memory limit.
 
 A program that embeds the host can offer mods more than the game, such as a game
@@ -35,7 +33,7 @@ beside `modlock-host` and hands it the mod's source in the start event.
 ## Protocols
 
 Each concern's messages live in a `.proto` beside the code that implements it,
-in its own package named for its directory: `src/wasm/players/players.proto`
+in its own package with its directory's name: `src/wasm/players/players.proto`
 declares `modlock.wasm.players`, the C++ namespace `modlock::wasm::players`
 and the Go package `github.com/paralin/modlock/src/wasm/players`. The mod
 boundary's calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto) and the

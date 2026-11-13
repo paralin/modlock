@@ -17,7 +17,7 @@ const reach = 200
 /** markers is the number of markers in the ring. */
 const markers = 16
 
-/** winScore is the score that wins a round; a team scores once a second. */
+/** winScore is the score that wins a round, at one point a second. */
 export const winScore = 60
 
 /** breakSeconds is the pause between a won round and the next. */
@@ -36,8 +36,9 @@ export interface Team {
 export type Hold = 'nobody' | 'contested' | Team
 
 /**
- * Hill runs rounds on a hill a player raises with /hill: each second, a team
- * alone on it scores a point, and the first to winScore wins the round.
+ * Hill keeps score on the hill a player raises with /hill. Each second, a team
+ * scores a point when only its heroes stand on the hill, and the first team to
+ * winScore wins the round.
  */
 export class Hill {
   /** teams are Deadlock's two sides, by team number. */
@@ -53,7 +54,7 @@ export class Hill {
   private sign?: WorldObject
   /** nextSecond is the game clock of the next scoring second. */
   private nextSecond = 0
-  /** nextRound starts the next round after a win. */
+  /** nextRound is the game clock when the next round starts after a win. */
   private nextRound = 0
 
   /** raise moves the hill to position and starts a fresh round. */
@@ -91,7 +92,11 @@ export class Hill {
     return this.ring.length > 0
   }
 
-  /** forget drops the hill; a new world has already removed its markers. */
+  /**
+   * forget clears the mod's record of the hill. It does not remove the
+   * markers from the game, because the game already removed them when it
+   * loaded the new map.
+   */
   forget(): void {
     this.ring = []
     this.sign = undefined

@@ -3,7 +3,8 @@ title: Events
 description: The moments a mod hears about, and how to register a handler for each.
 ---
 
-A mod registers handlers as it loads, and the server calls each at its moment:
+Your mod registers its handlers as it loads, and the server calls each one when
+its moment comes:
 a chat command, a frame, a player joining, a hit about to land.
 
 <Samples>
@@ -101,20 +102,20 @@ Python spells each as a `snake_case` decorator, such as
 `@modlock.on_player_join`, and Go as an exported function, such as
 `mod.OnPlayerJoin`.
 
-| Call                                                | Runs the handler                                               |
-| --------------------------------------------------- | -------------------------------------------------------------- |
-| `command(name, handler)`                            | On the frame after a player types `/name` in chat.             |
-| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.    |
-| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.       |
-| `onWorld(handler)`                                  | As each world loads, with its map; at start if one has loaded. |
-| `onFrame(handler)`                                  | Once per server frame.                                         |
-| `onPlayerJoin(handler)`                             | As each player finishes joining; at start for each.            |
-| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.          |
-| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.     |
-| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.  |
-| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.         |
-| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.               |
-| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.      |
+| Call                                                | Runs the handler                                                              |
+| --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `command(name, handler)`                            | On the frame after a player types `/name` in chat.                            |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                   |
+| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                      |
+| `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.        |
+| `onFrame(handler)`                                  | Once per server frame.                                                        |
+| `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined. |
+| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.                         |
+| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero can still be read.        |
+| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                 |
+| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                        |
+| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                              |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.                     |
 
 ## A player's stages
 
@@ -128,16 +129,16 @@ the hero.
 | In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn and each new hero.                        |
 | Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
 
-Between joined and in play, the player picks a team or hero, or the game has
-not placed the hero yet; [`seatPlayers`](/guides/toolkit#seat-the-players)
-skips those screens. A call that needs a hero, such as a teleport, fails
+Between joined and in play, the player is picking a team or a hero, or the game
+has not placed the hero yet. [`seatPlayers`](/guides/toolkit#seat-the-players)
+skips the team and hero screens. A call that needs a hero, such as a teleport, fails
 before the spawn, so make it in `onSpawn`, which fires for the first hero,
 each respawn and each new hero. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
 Each joined player leaves exactly once, before the server removes them, so
-the hero still reads:
+your handler can still read their hero:
 
 <Samples>
 
@@ -184,7 +185,7 @@ mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
 
 ## Spawns
 
-`onSpawn` hands over the player and the hero now in play:
+`onSpawn` passes your handler the player and the hero now in play:
 
 <Samples>
 

@@ -20,7 +20,7 @@ switch in the sidebar.
 
 ## Types and modules
 
-Pyright and Pylance check the types.
+Pyright, and Pylance in VS Code, check your mod's types.
 
 | Report  | Cause                                                                                               | Effect                             |
 | ------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
@@ -28,19 +28,20 @@ Pyright and Pylance check the types.
 | Warning | A value that may be `None`, such as what `find_hero` returns, or a parameter without an annotation. | The build prints it and continues. |
 
 For stricter or looser checking, edit `typeCheckingMode` and the report rules
-in the project's `pyrightconfig.json`. The checkers read that file only from
-the folder the editor has open. The file also points them at the library in
-`.modlock`. Open the mod's own folder. Otherwise, the editor reports that
-`modlock` could not be resolved.
+in the project's `pyrightconfig.json`. That file also tells the checkers where
+the library is, in `.modlock`, and they read it only from the folder the editor
+has open. Open the mod's own folder, because from any other folder the editor
+reports that `modlock` could not be resolved.
 
-A module imports another by name, such as `import round`. Mods run on Python
-3.14 with standard modules such as `dataclasses`, `enum`, `json`, `math`,
-`random` and `re`.
+One module imports another by its name, such as `import round`. Mods run on
+Python 3.14 and can import standard modules such as `dataclasses`, `enum`,
+`json`, `math`, `random` and `re`.
 
 ## The library
 
-The library exposes the TypeScript calls in snake_case. Messages are
-dataclasses, enums are string literals, and 64-bit ids are Python integers.
+The library has the TypeScript library's calls, spelled in snake_case. Each
+message is a dataclass, each enum is a set of string literals, and a 64-bit id
+is a Python integer.
 Build interfaces with `modlock.ui`, `modlock.hud` and `modlock.theme`.
 
 ```python
@@ -70,9 +71,10 @@ def fire(
 
 ## Typed entities and the console
 
-`modlock.entities` types each entity class, with its fields as attributes, and
-creates entities by designer name. `modlock.console` sets console variables by
-name and runs commands. Import each beside `modlock`:
+`modlock.entities` has a class for each entity class, with its fields as
+attributes, and creates an entity from its designer name. `modlock.console`
+sets console variables and runs console commands. Import each beside
+`modlock`:
 
 ```python
 from modlock import console, entities
@@ -88,13 +90,14 @@ console.set_number("citadel_trooper_gold_reward", 40)
 console.run("changelevel", "street_test")
 ```
 
-If the server cannot read or write a field, the field reads as `None` and the
-server ignores writes to it. The server log says why.
+When the server cannot read or write a field, the field reads as `None`, the
+server ignores writes to it, and the server log gives the reason.
 
 ## Run a line in the running mod
 
-In `modlock dev` and `modlock play`, a terminal line that starts with `>`
-runs in the mod, in `main.py`'s module, as at Python's own prompt:
+While `modlock dev` or `modlock play` runs, type a line that starts with `>`
+in its terminal, and the mod runs it in `main.py`'s module, as Python's own
+prompt would:
 
 ```text
 > modlock.players()
@@ -111,5 +114,6 @@ runs in the mod, in `main.py`'s module, as at Python's own prompt:
 | a `print`      | the printed text                                      |
 | an error       | its traceback, and the mod keeps running              |
 
-The line runs between frames, in the sandbox and in the game. Mods in other
-languages answer that they have no console.
+The mod runs the line between frames, both in the sandbox and in the game.
+Only Python mods have this prompt, and a mod in another language replies that
+it has no console.

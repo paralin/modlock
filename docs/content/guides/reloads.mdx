@@ -3,34 +3,34 @@ title: Reloads and failures
 description: What a reload resets, how to carry state across one, and what a failed call does.
 ---
 
-`modlock dev` swaps in a new build each time you save while the game runs. A reload starts the mod fresh: its variables reset, and everything it placed is removed.
+While the game runs, `modlock dev` reloads your mod with the new build each time you save. A reload starts the mod fresh: its variables reset, and the host removes everything it placed.
 
 ## Failed calls
 
-A failed call logs the reason and returns `false` or `undefined`. The mod keeps running. Everything a mod places leaves with the world. Stopping or reloading the mod removes it and releases frozen heroes, modifier states and input.
+A call that fails logs the reason and returns `false` or `undefined`, and your mod keeps running. Everything your mod places is removed when the world changes. Stopping or reloading the mod removes it too, and releases the heroes it froze, the modifier states it held and the input it blocked.
 
 <Only lang="go">
-  In Go each call returns an error instead. A mod may ignore the error to keep
-  playing.
+  In Go, each call returns an error instead, and your mod can ignore the error
+  and keep playing.
 </Only>
 
 ## Slow and stopped mods
 
-Processor time counts the game calls an event makes, but not a stall where the
-server waits, such as paging on a machine short of memory.
+An event's processor time includes the game calls its handler makes, but not a
+stall where the server waits, such as paging on a machine short of memory.
 
 | An event that                      | Does                                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | runs past 500 ms of processor time | Still finishes. The host logs where its time went, warns the players in chat, and for five minutes lets any player restart the mod with `/restartmod`. |
 | runs past five seconds             | Stops the mod, as a crash does.                                                                                                                        |
 
-A stopped mod clears what it placed and shows and stays stopped. The host warns
-in chat each minute until a player types `/restartmod` or a reload replaces it.
+When a mod stops, the host removes what it placed and the interfaces it showed,
+and the mod stays stopped. The host warns in chat each minute until a player types `/restartmod` or a reload replaces it.
 A restart starts the same build in a new instance, as a reload does.
 
 ## Hold a reload
 
-When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives meanwhile waits. The newest build replaces the running one on the next frame after the release. A mod that stops also releases its hold.
+When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits, and the newest build replaces the running one on the next frame after you release the hold. A mod that stops also releases its hold.
 
 <Samples>
 
@@ -75,7 +75,7 @@ func endRun() { _ = mod.HoldReload(false) }
 
 ## Hand state to the next build
 
-Handoff state carries what a reload should not reset, such as which round it plays or the panels each player has open, to the next build:
+To keep what a reload should not reset, such as the round the game is on or the panels each player has open, hand it to the next build as handoff state:
 
 <Samples>
 
@@ -139,5 +139,5 @@ func nextRound() {
 | `handoff(text)`, `handedOff()`               | Write the game's state, and read it on load.   | The mod stops or the server restarts. |
 | `player.handoff(text)`, `player.handedOff()` | Write one player's state, and read it on load. | That player leaves. A bot has none.   |
 
-Handoff state lasts only through a reload in the same game. The host holds it
-in memory only, up to 64 KiB per call, and an empty text forgets it.
+Handoff state lasts only through a reload in the same game. The host keeps it
+only in memory, up to 64 KiB per call, and handing off an empty text clears it.

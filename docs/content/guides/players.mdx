@@ -3,13 +3,13 @@ title: Players and heroes
 description: List the players, read their heroes and move them through the match.
 ---
 
-A player is a seat on the server, known by its slot. The pawn is the
-player's hero as it is this frame. Bots are players too.
+A player is a seat on the server, known by its slot, and a bot is a player too.
+A pawn is the player's hero as it is on this frame.
 
 ## List the players
 
 The player list holds every connection. Each connection has a player, a
-name, a Steam ID, whether it is a bot, and a `generation`. The generation
+name, a Steam ID, whether it is a bot, and a `generation`, which
 changes when someone new takes the slot.
 
 <Samples>
@@ -95,9 +95,9 @@ mod.Command("me", func(p mod.Player, args string) {
 
 ### Roles
 
-A connection's `roles` say who builds and tests the mod. A role decides only
-what the mod shows, such as a menu still in testing; whatever guards saved data
-checks the player where the data lives.
+A connection's `roles` say whether the player builds or tests the mod. Use a
+role only to decide what your mod shows, such as a menu still in testing. A
+check that guards saved data runs where the data is stored, not on a role.
 
 | Role        | Who                                  |
 | ----------- | ------------------------------------ |
@@ -146,11 +146,12 @@ if err == nil && pawn != nil && pawn.GetHealth() > 0 {
 
 ## Move the hero through the match
 
-Pick a hero and team, by any [hero name](#heroes). Teams are 2 and 3. A
-selected hero appears on a later frame, and one call may not seat a player.
+Pick a hero and a team for a player, with any [hero name](#heroes). The teams
+are 2 and 3. The game places the selected hero on a later frame, and one call
+does not always seat the player, so
 [`seatPlayers`](/guides/toolkit#seat-the-players) and
 [`Cast`](/guides/toolkit#keep-the-players-with-cast) ask again until the hero
-shows.
+appears.
 
 <Samples>
 
@@ -229,7 +230,7 @@ if err == nil {
 
 ## Every call
 
-Python spells each call in `snake_case` and Go with exported names.
+Python spells each call in `snake_case`, and Go capitalizes it.
 
 | Call                                                                                                                              | Effect                                                                           |
 | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -305,7 +306,7 @@ mod.Command("hero", func(p mod.Player, args string) {
 | Call                      | Returns                                                                                                                                                 | Languages  |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `heroes`                  | The released heroes by title, each with its game name, title and fixed id. Python spells it `HEROES`.                                                   | All        |
-| `heroNamed(name)`         | The hero a name names exactly, as the calls above read it, or nothing. A misspelled name finds no hero rather than another one.                         | All        |
+| `heroNamed(name)`         | The hero whose name matches exactly, as the calls above read names, or nothing. A misspelled name finds no hero rather than another one.                | All        |
 | `findHero(typed)`         | The hero a player typed: an exact name or title first, then the first title that starts with or contains it, such as `geist`.                           | All        |
 | `findTitled(list, typed)` | The same match over your own list of entries with `name` and `title`.                                                                                   | TypeScript |
 | `Hook`                    | Watches one Bebop's hook. `update(player, now)` each frame reports the hero it holds and each new throw, keeps it fully upgraded and sets its cooldown. | TypeScript |

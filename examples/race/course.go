@@ -6,7 +6,8 @@ import (
 	"github.com/paralin/modlock/mod"
 )
 
-// startColor and checkpointColor tint the course's labels, as 0xRRGGBBAA.
+// startColor and checkpointColor are the colors of the course's labels, as
+// 0xRRGGBBAA.
 const (
 	startColor      = 0x5ae65aff
 	checkpointColor = 0xffc83cff
@@ -21,7 +22,7 @@ type Course struct {
 	// checkpoints are the positions in course order.
 	checkpoints []*mod.Vector
 	// labels are the checkpoints' floating labels, in the same order. A label
-	// the game refused is the zero object, which removes as nothing.
+	// the game refused is the zero object, and removing it does nothing.
 	labels []mod.WorldObject
 }
 
@@ -36,7 +37,8 @@ func (c *Course) Checkpoints() []*mod.Vector {
 }
 
 // Add appends a checkpoint at position and labels it: Start for the first,
-// then its number. A label the game refuses leaves the checkpoint in place.
+// then its number. When the game refuses the label, Add keeps the checkpoint
+// without one.
 func (c *Course) Add(position *mod.Vector) {
 	// Pick the label's words and color.
 	text, color := strconv.Itoa(len(c.checkpoints)), uint32(checkpointColor)
@@ -87,8 +89,9 @@ func (c *Course) Clear() {
 	c.Forget()
 }
 
-// Forget drops the checkpoints without removing labels, for a world that
-// ended and took its objects with it.
+// Forget clears the checkpoints and the course's record of its labels without
+// removing the labels from the game, because the game already removed them
+// when it loaded the new map.
 func (c *Course) Forget() {
 	c.checkpoints = nil
 	c.labels = nil

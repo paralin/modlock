@@ -1,5 +1,5 @@
-// The menu is a panel each player opens with /menu. It shows the player's
-// hero and offers buttons that call back into the mod.
+// The menu is a panel a player opens with /menu. It shows their hero's health
+// and souls, and its buttons call back into the mod.
 import { hide, type Player, players, show, toast } from 'modlock'
 
 import { greet, nameOf, placeSign } from './hello'
@@ -7,7 +7,7 @@ import { greet, nameOf, placeSign } from './hello'
 /** open holds the slot of each player whose menu is open. */
 const open = new Set<number>()
 
-/** openMenu shows player the menu until they close it or leave. */
+/** openMenu shows player the menu, which stays until they close it or leave. */
 export function openMenu(player: Player): void {
   open.add(player.slot)
   draw(player)
@@ -20,8 +20,10 @@ export function closeMenu(player: Player): void {
 }
 
 /**
- * drawMenus redraws every open menu with its player's current hero. show
- * sends only what changed, so redrawing each frame costs little.
+ * drawMenus redraws every open menu with its player's current hero and drops
+ * the menus of players who left. show sends the player only the parts of the
+ * panel that changed since the last draw, so redrawing on every frame costs
+ * little.
  */
 export function drawMenus(): void {
   const present = new Set(players().map((c) => c.player.slot))
@@ -37,7 +39,7 @@ export function drawMenus(): void {
   }
 }
 
-/** draw shows player their menu as it stands now. */
+/** draw shows player their menu with their hero's current health and souls. */
 function draw(player: Player): void {
   const pawn = player.pawn()
   show(
@@ -81,7 +83,7 @@ function draw(player: Player): void {
   )
 }
 
-/** MenuButton is one row of the menu. */
+/** MenuButton is a button on its own row of the menu. */
 function MenuButton(props: {
   label: string
   onPress: (player: Player) => void
@@ -102,7 +104,7 @@ function MenuButton(props: {
   )
 }
 
-/** wave tells every player that player waved. */
+/** wave announces to every player that player waves to everyone. */
 function wave(player: Player): void {
   const name = nameOf(player)
   for (const connection of players()) {

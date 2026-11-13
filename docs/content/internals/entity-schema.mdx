@@ -7,9 +7,7 @@ Everything a player sees in a Deadlock match is an entity: heroes, troopers,
 Guardians, pickups, zip lines, lights, sounds, the shop. A mod creates any
 entity the server can create, reads and writes any field the game's schema
 declares, and sends any input a map's output could send, from TypeScript, Go or
-Luau, with types generated from the game itself. This page covers how those
-types are made; [Entity calls](/internals/entity-calls) covers what the host
-does and checks when a mod uses them.
+Luau, with types generated from the game itself. This page explains how those types are generated, and [Entity calls](/internals/entity-calls) explains what the host does and checks when a mod uses them.
 
 ## Four names for one entity
 
@@ -26,8 +24,7 @@ An entity has four names, and each part of the system uses one:
 the data an entity reads while it spawns: a lane Guardian and a base Guardian
 share a class and differ in their subclass, which gives their health, model
 and weapons. The entity name is the one a map's author chose, often shared by
-a group of entities, and an entity without one has an empty name. A mod names
-the entities it creates with the `targetname` key value, and finds a map's
+a group of entities, and an entity without one has an empty name. A mod gives the entities it creates an entity name with the `targetname` key value, and finds a map's
 markers with `findEntitiesByName` instead of hardcoding their positions:
 
 ```ts
@@ -56,8 +53,7 @@ The first three come from the game's own registries: the schema system, the
 entity factories with their data descriptions, and the console. Nothing in them
 is written by hand, so a game update is a new dump.
 
-- **Schema classes.** `schemas.json` lists each class by module; the `server`
-  module holds the entity classes. A field has its name, its type as the game
+- **Schema classes.** `schemas.json` lists each class under its module, and the `server` module holds the entity classes. A field has its name, its type as the game
   spells it, and its offset. Modlock keeps the name and type and finds the
   offset at run time, so a game update that moves a field needs no new build
   of a mod.
@@ -68,15 +64,14 @@ is written by hand, so a game update is a new dump.
   the Pulse type of its one parameter, if it takes one.
 - **Component keys.** An entity also takes the key values of the components its
   class holds: the body component's scene node takes `origin`, `angles`,
-  `scale` and `ModelScale` on every entity, so `CBaseEntity`'s table carries
-  them. Keys the scene node parses itself, such as `scale`, have a type but no
+  `scale` and `ModelScale` on every entity, so `CBaseEntity`'s table lists them. Keys the scene node parses itself, such as `scale`, have a type but no
   field to read back.
 
 ### The survey
 
 `survey.json` records what happens when a mod creates each designer name on a
 dedicated server with nothing else around it. A survey mod created each name,
-waited a frame and recorded the result; a runner split the names over twelve
+waited a frame and recorded the result, and a runner split the names over twelve
 servers and resumed from the next name after each crash or hang. Each name is
 tried twice: first with the subclass the game's own data suggests, when there
 is one, then, for each name that lived, without it, to learn whether it needs
@@ -114,8 +109,7 @@ player pawn has `CBaseEntity`'s health.
 **A constructor per designer name that lived.** It takes only that entity's
 spawn keys, each as the type the entity reads, and returns the entity as its
 class. It gives the subclass the survey found by default, so
-`create('npc_trooper_boss', ...)` makes a lane Guardian without naming
-`npc_boss_tier1`. A designer name that never lived has no constructor: the
+`create('npc_trooper_boss', ...)` makes a lane Guardian without passing `npc_boss_tier1`. A designer name that never lived has no constructor: the
 type checker rejects `create('path_node', ...)` before the mod runs.
 
 **Typed console values.** Each variable takes the type the game declares;

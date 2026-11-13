@@ -3,9 +3,9 @@ title: The world
 description: Place text, models and effects, and load what they need.
 ---
 
-A mod places text, models, effects and fog in the world. Each placed thing is
-an object you can move, change or remove later. A new map, stopping the mod, or
-reloading the mod removes every placed object.
+Your mod can place text, models, effects and fog in the world. Each call returns
+an object you can move, change or remove later. Loading a new map, stopping the
+mod or reloading it removes every object the mod placed.
 
 ## Place text
 
@@ -73,8 +73,9 @@ if err == nil {
 
 ## Load heroes and resources
 
-Precache the heroes, models and effects your mode uses when the mod starts.
-Otherwise the first use shows nothing. The game loads each one with the world.
+When your mod starts, precache the heroes, models and effects your mode uses.
+The game loads them with the next world, and one it has not loaded shows
+nothing the first time your mod uses it.
 
 <Samples>
 
@@ -108,12 +109,13 @@ mod.OnStart(func([]string) {
 
 ## Forget objects when the world changes
 
-A new world removes everything the mod placed. In the world event, drop your
-references and place the objects again.
+When a new world loads, the game has already removed everything your mod
+placed, so in your world event handler drop your references to the old objects
+and place them again.
 
 ## Every call
 
-Python spells each call in `snake_case` and Go with exported names. `Dropper`
+Python spells each call in `snake_case`, and Go capitalizes it. `Dropper`
 is TypeScript only.
 
 | Call                                                   | Effect                                                                                                |
@@ -140,5 +142,5 @@ A spot is a base map plus the solid objects players placed on it.
 spot on Midtown. `/build` opens the catalog, and every player drops into the
 same spot. The document at
 [`mod/spot/spot.proto`](https://github.com/paralin/modlock/blob/master/mod/spot/spot.proto)
-stores each model path and builder once. A few hundred objects fit in a few
-kilobytes.
+stores a spot with each model path and builder written once, so a few hundred
+objects fit in a few kilobytes.

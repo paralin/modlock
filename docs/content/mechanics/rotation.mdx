@@ -4,9 +4,9 @@ description: Run a lobby through one fight at a time, with a fair line and balan
 ---
 
 A rotation mode runs a lobby through one fight at a time, such as a duel ring
-or a two against two pit. Everyone waits in one line, each match seats those
-who have fought least, a session rating splits the sides evenly, and the rest
-watch from the stands:
+or a two against two pit. Everyone waits in one line, each match seats the
+players who have fought least, a rating kept for the session balances the sides,
+and the rest watch from the stands. Each piece has its calls:
 
 | Piece                                | Call                                        |
 | ------------------------------------ | ------------------------------------------- |
@@ -19,8 +19,9 @@ watch from the stands:
 | Waiting in the stands                | `holdBystander`, `playCamera`, `curve.hold` |
 | Heroes left behind by a swap         | `Strays`                                    |
 
-The rotation calls are TypeScript only. Each is pure: the mod keeps the line
-and the standings, and the call reads what it is given. `js/test/rotation.test.ts` runs a whole session without the game.
+The rotation calls are TypeScript only, and each is pure: your mod keeps the line
+and the standings, and each call reads only what you pass it. That is how
+`js/test/rotation.test.ts` runs a whole session without the game.
 
 ## The line and the standings
 
@@ -62,7 +63,8 @@ const cast = new Cast({
 fewest, earlier in line first among equals, and deals them by rating in a
 snake (first, second, second, first) so the sides' ratings stay close: with
 two per side, the best pairs with the worst against the middle two. While too
-few wait it returns nothing, which the HUD shows as waiting for players.
+few players wait, it returns nothing, and your HUD can show that as waiting for
+players.
 
 ```ts
 const sides = nextMatch(line, size, (each) => each.standing)
@@ -129,8 +131,8 @@ show(
 
 ## The stands
 
-A waiting player can keep a hero seated in the stands, on a hero the fight
-does not use. `holdBystander(entity)` keeps it out of play, and
+A waiting player can sit in the stands with a hero that the fight does not
+use. `holdBystander(entity)` keeps it out of play, and
 `holdBystander(entity, false)` gives it back before the player fights. A held
 hero:
 
@@ -187,20 +189,21 @@ function unseat(player: Player, pawn: number): void {
 
 `playCamera` returns nothing while the player has no hero, so mark the seat
 taken only once `seat` returns true, and try again each frame. A bystander
-still dies to falls and world damage; respawn and seat it again.
+can still die from a fall or world damage, so respawn it and seat it again.
 
 ## Heroes left behind
 
 Swapping a player's hero, or moving them to the spectators and back, can
-leave the old hero driverless, and the game revives it on its own timer. Keep
+leave the old hero with no player controlling it, and the game revives it on its
+own timer. Keep
 one `Strays` and call `sweep(now)` each frame:
 
 - A hero belongs to a player while its controller points to it, so a player
   joining or spectating keeps theirs.
 - One that has belonged to nobody for `strayGraceSeconds` is killed once,
   with its respawn held off for good.
-- The sweep looks once a second, at one entity listing and two field reads per
-  hero.
+- The sweep checks once a second, with one entity listing and two field reads
+  per hero.
 
 ```ts
 import { onFrame, Strays } from 'modlock'
@@ -209,5 +212,5 @@ const strays = new Strays()
 onFrame(({ timeSeconds }) => strays.sweep(timeSeconds))
 ```
 
-The sweep leaves a stray's abilities in place. Killing the ability entities
-of a live hero pawn has ended the server process.
+The sweep leaves a stray's abilities in place, because killing a live hero's
+ability entities has crashed the server.

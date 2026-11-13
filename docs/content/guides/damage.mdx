@@ -3,17 +3,16 @@ title: Damage
 description: Change or block a hit before it lands, and react to it after.
 ---
 
-Two events cover every hit.
-
-The damage event runs before the hit lands. It may change the hit's amount or block it.
-
-The damaged event runs after the hit lands. It gives the health the victim had and the health it lost.
-
-Both events identify each hero by its entity. The entity is the same number as a pawn's `entity`.
+Your mod can handle two events for each hit. `onDamage` fires before the game
+applies the damage, and your handler can change the amount or block the hit.
+`onDamaged` fires after, and tells your handler the health the victim had and
+the health the hit took. Both events give the attacker and the victim as
+entity numbers, the same number a pawn carries in its `entity` field.
 
 ## Change a hit
 
-To change the hit, return a new amount. Return nothing to leave the hit alone.
+To change a hit, return its new amount from your `onDamage` handler. When your
+handler returns nothing, the hit lands as the game dealt it.
 
 <Samples>
 
@@ -58,7 +57,8 @@ mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
 
 ## Block a hit
 
-Block a hit to:
+When your `onDamage` handler returns `block`, the hit deals no damage. Modes
+block hits to:
 
 - Protect a hero that just spawned.
 - Hold fire before a round starts.
@@ -69,14 +69,16 @@ Block a hit to:
 ```ts
 import { onDamage } from 'modlock'
 
-// Entities that take no damage, such as heroes that just spawned.
+// The entities your mod protects from every hit, such as heroes that just
+// spawned.
 const shielded = new Set<number>()
 
 onDamage((hit) => (shielded.has(hit.victim) ? { block: true } : undefined))
 ```
 
 ```luau
--- Entities that take no damage, such as heroes that just spawned.
+-- The entities your mod protects from every hit, such as heroes that just
+-- spawned.
 local shielded: { [number]: boolean } = {}
 
 modlock.onDamage(function(hit)
@@ -88,7 +90,8 @@ end)
 ```
 
 ```python
-# Entities that take no damage, such as heroes that just spawned.
+# The entities your mod protects from every hit, such as heroes that just
+# spawned.
 shielded: set[int] = set()
 
 
@@ -98,7 +101,8 @@ def shield(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
 ```
 
 ```go
-// Entities that take no damage, such as heroes that just spawned.
+// The entities your mod protects from every hit, such as heroes that just
+// spawned.
 var shielded = map[uint32]bool{}
 
 func init() {
@@ -116,7 +120,8 @@ func init() {
 
 ## React to a kill
 
-A hit is lethal when the damage took all the health the victim had.
+In your `onDamaged` handler, a hit killed the victim when the health it took
+is at least the health the victim had.
 
 <Samples>
 
@@ -155,4 +160,5 @@ mod.OnDamaged(func(hit *mod.DamagedEvent) {
 
 </Samples>
 
-Use [Kill scoring](/mechanics/kill-scoring) to turn a kill into a score. It matches the attacker's entity back to a player.
+To turn a kill into a score, use [Kill scoring](/mechanics/kill-scoring),
+which finds the player whose hero has the attacker's entity number.

@@ -3,9 +3,10 @@ title: Checkpoint race
 description: Time each runner through a course of checkpoints.
 ---
 
-Checkpoints time a run. A course is a list of points. Each runner tracks the
-next checkpoint and a start time. A runner close enough to the next checkpoint
-advances; the last checkpoint stops the clock.
+A checkpoint race times each runner through a course, which is a list of
+points. Your mod keeps each runner's next checkpoint and start time. When a
+runner comes close enough to the next checkpoint, they move on to the one after
+it, and reaching the last checkpoint stops their clock.
 
 <Samples>
 
@@ -250,8 +251,8 @@ func main() {}
 - Show each checkpoint with [text in the world](/guides/world#place-text).
   In TypeScript, use [`RaceGate`](/guides/toolkit#stand-a-race-gate) for a
   glowing gate to run through.
-- A reload loses a run in progress.
-  [Hold the reload](/guides/reloads#hold-a-reload) while anyone is racing.
+- A reload loses a run in progress, so
+  [hold the reload](/guides/reloads#hold-a-reload) while anyone is racing.
 - Rank the times with a [board](/guides/data#boards) in milliseconds,
   ordered ascending.
 - The [`race`](https://github.com/paralin/modlock/tree/master/examples/race)

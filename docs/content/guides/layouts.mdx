@@ -4,10 +4,10 @@ description: Draw the mod's own layouts and style sheets, and how the game draws
 ---
 
 `<layout src="shop.xml" data={stock} />` loads a layout from the mod's
-content addon. It is the one element that runs code in the player's game;
-every other element is drawn by the game from the typed tree in
+content addon. It is the only element that runs code in the player's game. The
+game draws every other element from the typed tree in
 [`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto),
-and a press comes back to its `onPress`. The host clears an interface when
+and when the player presses one, the press comes back to its `onPress`. The host clears an interface when
 the player leaves or the mod stops.
 
 - A layout with no content to load draws an empty panel and logs one line in
@@ -17,16 +17,16 @@ the player leaves or the mod stops.
   scripts.
 - A host with its own interface script loads layouts by passing `Layouts` to
   the `Drawing` in `panorama/src/draw.ts`, such as `AddonLayouts`, which
-  follows the `addon` each screen's tree names. Modlock's own renderer loads
+  loads each layout from the `addon` given in the screen's tree. Modlock's own renderer loads
   the layouts of the content its session mounted.
 
 ## Style sheets
 
 `sheet('hud.css')` adds a sheet from `content/styles/` to every interface the
-mod shows; a later sheet wins a tie. In TypeScript,
+mod shows. When two sheets set the same property, the later sheet wins. In TypeScript,
 `import './content/styles/hud.css'` builds to the same call, and the build
-refuses a sheet outside `content/styles/`. An element wears the sheet's
-classes with `class="board gold"`; changing them runs the sheet's
+refuses a sheet outside `content/styles/`. An element takes the sheet's
+classes through `class="board gold"`. Changing its classes runs the sheet's
 transitions, and the element's own style wins over a class.
 
 Sheets load where layouts do: the build writes a layout beside each sheet
@@ -36,11 +36,11 @@ a sheet that fails to load leaves it drawn with one log line.
 
 ## Hand values to a layout
 
-A layout gets values from the mod two ways: the `data` of its own element, and
-routes, which `route(player, 'scores', scores)` hands to every layout the mod
-shows that player, so several layouts share one value without a parent passing
-it down. A value travels as JSON and changes only when the mod sends a
-different one; `route(player, name, undefined)` removes it. Go's `ui.Route`
+Your mod hands values to a layout in two ways: the `data` of the layout's own
+element, and routes. `route(player, 'scores', scores)` hands its value to every
+layout your mod shows that player, so several layouts share one value without a parent passing
+it down. A value travels as JSON, and the layout sees a change only
+when your mod sends a different value. `route(player, name, undefined)` removes the route. Go's `ui.Route`
 takes the value as JSON text, and an empty one removes it. The layout's
 script includes the library `scripts/modlock/layout.js` and reads them:
 
@@ -69,8 +69,8 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
 
 - The layout `panorama/layout/modlock/ui.xml` and its script, which a client
   content package installs as `scripts/modlock/ui.js`, beside the layout
-  library `scripts/modlock/layout.js`. A release's command
-  line carries it built in; `go run ./cmd/modlock-library` builds it from
+  library `scripts/modlock/layout.js`. The `modlock` command
+  line in a release has it built in, and `go run ./cmd/modlock-library` builds it from
   source into `js/built` for the next build of the command line to embed.
 - A client content package keeps the layout loaded through matches, and the
   renderer draws over the HUD.

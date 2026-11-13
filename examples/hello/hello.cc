@@ -10,9 +10,10 @@
 
 namespace {
 
-// HelloPlugin creates a native entity and removes it before shutdown.
-// Pass --reload to exercise the same operation across a world replacement.
-// The host's explicit check mode exercises only library and plugin lifetime.
+// HelloPlugin creates a native world text entity and removes it before the world ends.
+// Started with --reload, it changes the level once and repeats the same steps in the new
+// world. In the host's check mode it creates nothing and only exercises loading the
+// library and the plugin's lifetime.
 class HelloPlugin final : public modlock::Plugin {
  public:
   explicit HelloPlugin(const modlock::PluginContext& context)
@@ -44,7 +45,8 @@ class HelloPlugin final : public modlock::Plugin {
     if (!check_only_) {
       // Simulate each world while it runs.
       auto world = engine_->OnWorld({}, [this](std::string_view) {
-        // Each world starts unfinished and asks to keep simulating.
+        // Reset the run for each new world, and turn off hibernation so the server keeps
+        // simulating while nobody is connected.
         ++worlds_;
         finished_ = false;
         observed_ = false;

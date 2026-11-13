@@ -15,25 +15,27 @@ On each other PC, join it with the link the lobby shows:
 modlock join LINK
 ```
 
-`join` launches Deadlock and joins the server once the player is in the lobby.
-Each guest downloads the mod's content from the host before joining. Content
-changed after that loads when the guest joins again.
+Once the player is in the lobby, `join` launches Deadlock and joins your
+server. Each guest downloads the mod's content from your PC before joining, so
+content you change after that reaches a guest only when they join again.
 
-Both PCs sign in first with `modlock login`, which `modlock publish` also
-saves. Only a creator who may publish mods can open a lobby, and only the
-creator's friends can join it. The PCs link directly over WebRTC, through
-Hyperline's relay while the lobby is open when routers block a direct link.
+First sign in on both PCs with `modlock login`, or use the sign-in that
+`modlock publish` saved. Only a creator who may publish mods can open a
+lobby, and only that creator's friends can join it. The PCs connect directly
+over WebRTC, and when a router blocks the direct connection, the traffic goes
+through Hyperline's relay for as long as the lobby is open.
 
 ## Join codes
 
-`modlock play --host` gives a join code instead of a lobby; the other PC runs
-`modlock join CODE`. Anyone holding the code can join until the host stops.
-The code needs a direct connection between the PCs. When a lobby cannot open,
-`--lobby` falls back to a join code and says why. In the sandbox, play goes on locally without hosting.
+`modlock play --host` prints a join code instead of opening a lobby, and the
+other PC joins with `modlock join CODE`. Anyone who has the code can join until
+you stop hosting, but only over a direct connection between the PCs. When `--lobby` cannot open a lobby, it says why and
+gives a join code instead. In the sandbox, nothing is hosted and you play on
+your own PC.
 
 ## Which mods play
 
-A source project rebuilds and reloads on each save, and only one can be
-watched. Built mods run directly, several at once. To play several source
-projects, pass `--watch=false`, which uses each one's existing build and builds
-it first if it has none.
+`modlock play` watches one source project, which it rebuilds and reloads each
+time you save, and runs any number of built mods as they are. To play several
+source projects together, pass `--watch=false`: each project then plays from its
+existing build, which is made first if the project has none.

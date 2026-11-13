@@ -14,21 +14,21 @@ modlock.command("hello", function(player)
 end)
 ```
 
-The types check in strict mode. Editors with the Luau language server resolve
-the library. A module requires another by its relative path, such as
+The library's types check in strict mode, and an editor with the Luau
+language server finds the library and completes its calls. A module requires another by its relative path, such as
 `require("./round")`, as the [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example does.
 
-The library offers the calls of the TypeScript one under the same names. Call
-methods as `player:chat(text)`. A 64-bit id, such as a Steam ID, is a decimal
-string. Build interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`.
-
-The [guides](/guides/events) show every call in the language. Choose the
-language with the switch in the sidebar.
+The library has the TypeScript library's calls under the same names, which you
+call as methods, such as `player:chat(text)`. Because a Luau number cannot hold
+every 64-bit integer, a 64-bit id such as a Steam ID is a decimal string. Build
+interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`. The
+[guides](/guides/events) show every call in Luau when you choose it with the
+switch in the sidebar.
 
 ## Typed entities
 
-`@modlock/entities` reads and writes fields and creates entities. Give each
-entity a type so the analyzer checks it:
+`@modlock/entities` reads and writes entity fields and creates entities. Give
+each entity a type, so the analyzer checks the fields and inputs you use:
 
 ```luau
 local entities = require("@modlock/entities")
@@ -42,8 +42,8 @@ local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { p
 
 ## The console
 
-`@modlock/console` sets variables with `setBoolean`, `setNumber` and
-`setString`, and runs commands with `run`:
+With `@modlock/console` you set console variables with `setBoolean`,
+`setNumber` and `setString`, and run console commands with `run`:
 
 ```luau
 local console = require("@modlock/console")

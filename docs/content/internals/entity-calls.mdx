@@ -3,8 +3,7 @@ title: Entity calls
 description: What the host does and checks when a mod creates an entity, touches a field, sends an input or deals damage.
 ---
 
-Each entity call names an entity by one of its
-[four names](/internals/entity-schema#four-names-for-one-entity). The typed
+Each entity call takes an entity by one of its [four names](/internals/entity-schema#four-names-for-one-entity). The typed
 libraries [generated from the game](/internals/entity-schema) reduce to the
 calls on this page, which a mod may also make by hand.
 
@@ -66,8 +65,7 @@ leaves entities behind.
 `spawnNpc` and `createPickup` are built on the same call. `spawnNpc` takes any
 unit class the server has, with its subclass as `unit`, and adds what a unit
 needs: health and maximum health, and a lane. A lane is written to the class's
-`m_iLane` field before the unit spawns; a class that walks no lane, such as
-`npc_yakuza_gangster`, refuses one with a message naming it. `Npc` reads,
+`m_iLane` field before the unit spawns, so for a class without that field, such as `npc_yakuza_gangster`, the call fails with a message that gives the class. `Npc` reads,
 moves, heals and removes the unit.
 
 `createPickup` makes the soul urn or the movement buff with the designer name
@@ -90,7 +88,7 @@ The spawn keys `scale` and `ModelScale` set the same scale before spawn, but
 an entity whose game data sets its own model scale replaces them while
 spawning. The hideout ball shows both: its model spans ±7 units and its game
 data sets a model scale of 3, a radius of 21. With either key its collision
-stayed at 21 units; after `inputSetScale(9)` a trace meets it at 63, and at 7
+stayed at 21 units, but after `inputSetScale(9)` a trace meets it at 63, and at 7
 times the scale for every value from 0.5 to 9. Use the input for a scale that
 must hold.
 
@@ -114,10 +112,8 @@ const hero = new CCitadelPlayerPawn(pawn.entity)
 hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
-The host finds the field's offset through the schema each time the mod first
-names it, and caches it. Before it touches memory, it checks that the entity is
-of the named class or derives from it. A handle to a trooper named as a
-`CCitadelPlayerPawn` is refused with both class names, and nothing is written.
+The first time a mod uses a field, the host looks up its offset in the schema and caches it. Before it touches memory, it checks that the entity is
+of the class the call gives or derives from it, so a call that passes a trooper's handle with the class `CCitadelPlayerPawn` fails with a message giving both classes, and nothing is written.
 A write marks the field changed so the server sends it to the players.
 
 A dotted field name reaches a field inside an embedded structure, such as the
@@ -134,7 +130,7 @@ writeField(
 )
 ```
 
-Each segment names a field of the structure the segment before it holds, and
+Each segment is a field of the structure that the segment before it holds, and
 the host refuses a path through a field that holds a number, a pointer or a
 handle.
 
@@ -144,7 +140,7 @@ vectors. A typed field whose type is another entity class reads as that
 class, so `hero.m_hController` is a controller a mod can read further.
 
 The host checks the requested type against the type the schema declares for
-the field, and refuses a call whose type the field cannot hold, naming both:
+the field, and refuses a call whose type the field cannot hold, with a message giving both types:
 
 - Any number type, a boolean or a handle reads a field that holds a number,
   boolean, enum, handle or boxed number such as `GameTime_t`. The value is cut
@@ -162,8 +158,7 @@ can read or write by value; reach a structure's fields with a dotted name.
 The match's state, such as each team's gold, the game state, the winning team,
 the Mid Boss count and the pause fields, belongs to the game rules, which are
 not an entity. Their proxy entity, `citadel_gamerules`, points to them and sends
-them, so a mod names the rules classes `CGameRules` and `CCitadelGameRules`
-with the proxy's handle:
+them, so a mod reads them through the classes `CGameRules` and `CCitadelGameRules` with the proxy's handle:
 
 ```ts
 import { findEntities } from 'modlock'
@@ -239,8 +234,7 @@ defaults to the attacker, and an optional `ability`; `damage` also takes an
 To credit a death the engine would not attribute, such as a hero knocked out of
 the play area or into a hazard, the mod keeps the handle of the last enemy that
 hit or pushed the victim and passes it as `attacker` to `killEntity` when the
-victim dies. The engine then awards the kill, assists and rewards; a mod does
-not write scoreboard fields itself.
+victim dies. The engine then awards the kill, assists and rewards, so a mod should leave the scoreboard fields alone.
 
 ## What fails, and how
 

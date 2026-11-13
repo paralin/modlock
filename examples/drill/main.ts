@@ -26,10 +26,11 @@ onStart(() => {
   }
 })
 
-// A new world has removed every target.
+// Loading a new map removes every target, so the mod forgets the drills.
 onWorld(() => drills.clear())
 
-// Targets never take damage; a drill scores the shots that reach them.
+// A drill scores each shot on its targets, and the mod blocks the hit so the
+// targets never take damage.
 onDamage((hit) => {
   for (const drill of drills.values()) {
     if (drill.hit(hit)) {
@@ -63,7 +64,8 @@ command('drill', (player) => {
     return
   }
 
-  // The setting chooses the length; the targets join the other team.
+  // The player's length setting sets how long the drill lasts, and the targets
+  // join the team opposing the player's hero.
   const seconds = Number(player.setting('length') ?? '30')
   const drill = new Drill(
     player,
@@ -94,7 +96,7 @@ function finish(drill: Drill): void {
   drills.delete(shooter.slot)
   shooter.centerText('')
 
-  // Show the result and keep it.
+  // Show the result and add it to the player's metrics.
   shooter.announce('Drill over', `${score} points, ${headshots} headshots`)
   shooter.addMetric('drill.score', score)
   shooter.addMetric('drill.headshots', headshots)

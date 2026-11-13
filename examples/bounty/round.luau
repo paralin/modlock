@@ -56,7 +56,7 @@ end
 
 -- advance adds dt seconds to the holder's score. It returns true when the
 -- holder's whole seconds changed, and the holder once they reach the target.
--- A holder who left drops the bounty.
+-- When the holder has left, advance frees the bounty.
 function round.advance(dt: number): (boolean, Player?)
 	-- Score nobody while the bounty is free.
 	local player = holder

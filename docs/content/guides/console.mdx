@@ -3,8 +3,9 @@ title: Console
 description: Set console variables and run commands, within limits.
 ---
 
-`modlock/console` sets console variables and runs commands. Each variable uses
-the type the game declares.
+The `modlock/console` module sets the game's console variables and runs its
+console commands. The setter for each variable takes the type the game declares
+for it.
 
 <Samples>
 
@@ -42,16 +43,17 @@ _ = console.Changelevel.Run("street_test")
 
 </Samples>
 
-Every call runs one line through `serverCommand`. The command may set a
-development-only or cheat-protected variable. A variable whose value is a
-vector or a color has no typed setter. Set it with `serverCommand`.
+Every call runs one console line through `serverCommand`, so it can also set a
+development-only or cheat-protected variable. A variable whose value is a vector
+or a color has no typed setter, so set it with `serverCommand` yourself.
 
 ## Set up a mode
 
 `apply(settings)` sets several variables in order and returns the names the
-server refused. For a custom mode, `arena` empties the map. The server keeps
-running with no one connected, and no troopers, neutrals, practice bots or
-zipline starts appear. Spread it and add the mode's own:
+server refused. For a custom mode, start from `arena`, which empties the map:
+the server keeps running with no one connected, and no troopers, neutrals,
+practice bots or zipline starts appear. Spread it and add your mode's own
+settings:
 
 <Samples>
 
@@ -64,7 +66,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 ```luau
 local console = require("@modlock/console")
 
--- A later table's value wins.
+-- When two tables set the same variable, the later table's value wins.
 console.apply(console.arena, { citadel_allow_duplicate_heroes = true })
 ```
 
@@ -77,7 +79,7 @@ console.apply({**console.ARENA, "citadel_allow_duplicate_heroes": True})
 ```go
 import "github.com/paralin/modlock/mod/console"
 
-// Arena returns its settings; To makes one of your own.
+// Arena returns its settings as a slice, and To makes a setting of your own.
 console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(true))...)
 ```
 
@@ -85,7 +87,7 @@ console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(tru
 
 ## Limits
 
-A mod's console lines change the game only. They may set the game's rules and
+Your mod's console lines can change the game, but nothing outside it. They may set the game's rules and
 bots, change or reload the map, kick a player, quit, set the time scale, and
 start the game's own recording with `tv_enable` and `tv_record <name>`, whose
 name holds only letters, digits, `-` and `_`. They may not reach:
@@ -100,7 +102,7 @@ name holds only letters, digits, `-` and `_`. They may not reach:
 | Entities                  | `ent_create`, `ent_fire*`, `ent_call`, `firetarget`, and `give` for a class [`createEntity` refuses](/guides/entities#create-entities-and-send-inputs) |
 | The script VM             | `script_*`                                                                                                                                             |
 
-`toggle`, `incrementvar` and `multvar` set the variable they take. Each is
-refused for a variable that may not be set directly. The server checks every
-command in a line, after each `;` or newline. If a command is refused, the error
-identifies the first refused command.
+`toggle`, `incrementvar` and `multvar` set the variable they take, so the server
+refuses each of them for a variable your mod may not set directly. The server
+checks every command in a line, after each `;` or newline, and when it refuses
+one, the error gives the first command it refused.

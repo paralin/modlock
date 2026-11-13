@@ -16,22 +16,22 @@ import { apply, arena } from 'modlock/console'
 /** killTarget is the number of defeats that wins a match. */
 export const killTarget = 10
 
-/** matchSeconds ends a match that nobody wins first. */
+/** matchSeconds is how long a match lasts when nobody reaches killTarget. */
 const matchSeconds = 300
 
-/** countdownSeconds holds the fighters still before a match. */
+/** countdownSeconds is how long the fighters are held still before a match. */
 const countdownSeconds = 5
 
 /** respawnSeconds is how long a fallen fighter waits to return. */
 const respawnSeconds = 3
 
-/** protectionSeconds shields a returning hero while it finds its feet. */
+/** protectionSeconds is how long the mod blocks hits on a returning hero. */
 const protectionSeconds = 2
 
-/** resultSeconds shows the result before the arena waits for the next match. */
+/** resultSeconds is how long the result stays on screen after a match. */
 const resultSeconds = 8
 
-/** friendlyFire lets every hero hurt every other, whatever its team. */
+/** friendlyFire is the modifier state that lets a hero hurt its teammates. */
 const friendlyFire = 'MODIFIER_STATE_FRIENDLY_FIRE_ENABLED'
 
 /** botHero is the hero practice bots play. */
@@ -52,18 +52,19 @@ export interface Fighter {
   kills: number
   deaths: number
   streak: number
-  /** protectedUntil blocks the hits on a returning hero until then. */
+  /** protectedUntil is when the mod stops blocking hits on a returning hero. */
   protectedUntil: number
 }
 
 /**
- * Match runs free-for-all matches for the players in the arena: two ready
- * fighters start a countdown, the first to killTarget defeats wins, and the
- * arena waits for the next match. The mod calls it on the server's frame.
+ * Match keeps the fighters and moves the arena's free-for-all matches through
+ * their phases: when two fighters are ready a countdown starts, the first to
+ * killTarget defeats wins, and the arena then waits for the next match. The
+ * mod calls frame on every server frame.
  */
 export class Match {
   phase: Phase = 'waiting'
-  /** deadline ends the countdown, the match or the result. */
+  /** deadline is when the countdown, the match or the result ends. */
   deadline = 0
   /** now is the game clock at the latest frame. */
   now = 0
@@ -82,14 +83,18 @@ export class Match {
   private readonly bots: Player[] = []
 
   /**
-   * start empties the lanes so only heroes fight. The preset also keeps the
-   * server running while it is empty, so the mod can start a match.
+   * start turns off troopers, jungle camps and the server's own bots so only
+   * heroes fight. The preset also keeps the server running while it is empty,
+   * so the mod can start a match.
    */
   start(): void {
     apply(arena)
   }
 
-  /** world forgets the previous world's bots; it removed them. */
+  /**
+   * world forgets the practice bots and waits for a new match, because
+   * loading a new map has already removed the bots.
+   */
   world(): void {
     this.bots.length = 0
     this.phase = 'waiting'
@@ -183,7 +188,10 @@ export class Match {
     }
   }
 
-  /** addBot adds a practice bot that enters at once, and says how it went. */
+  /**
+   * addBot adds a practice bot that enters at once, and returns a message
+   * saying whether it joined.
+   */
   addBot(): string {
     // Alternate the bots between the two teams.
     const name = `Arena Bot ${this.bots.length + 1}`
@@ -193,7 +201,7 @@ export class Match {
       return 'The bot could not join.'
     }
 
-    // The bot enters once its connection shows up.
+    // When the bot connects, the cast calls join, which enters it at once.
     this.bots.push(bot)
     return `${name} joins the arena.`
   }
@@ -222,8 +230,8 @@ export class Match {
   }
 
   /**
-   * join makes the fighter of a new connection. A practice bot enters at
-   * once; a person hears the rules and types /ready.
+   * join makes the fighter for a new connection. A practice bot enters at
+   * once, while a person is shown the rules and enters by typing /ready.
    */
   private join({ player, name, bot }: Connection): Fighter {
     if (!bot) {
@@ -246,8 +254,9 @@ export class Match {
   }
 
   /**
-   * follow notes whether fighter's hero lives and shields it as it returns.
-   * The cast brings a fallen hero back.
+   * follow records whether fighter's hero is alive. When the hero appears or
+   * comes back, follow turns on friendly fire for it and blocks hits on it
+   * for protectionSeconds. The cast respawns a fallen hero itself.
    */
   private follow(fighter: Fighter): void {
     // A player without a hero has nothing to follow yet.

@@ -1,7 +1,8 @@
-// hello-ts shows the parts of a Modlock mod in TypeScript. Players type
-// /hello to be greeted in their chosen words, /sign to raise floating text
-// over their hero, /where to see where they stand, and /menu to open a panel
-// with their hero's health and buttons that act on the game.
+// hello-ts shows the parts of a Modlock mod in TypeScript. A player types
+// /hello to be greeted in the words their greeting setting chooses, /sign to
+// raise floating text over their hero, /where to see where their hero stands,
+// and /menu to open a panel with their hero's health and buttons that call
+// back into the mod.
 import {
   command,
   log,
@@ -22,12 +23,14 @@ import {
 } from './hello'
 import { closeMenu, drawMenus, openMenu } from './menu'
 
-// Log the arguments a server passes after -- on its command line.
+// When the server starts the mod, log the arguments its operator wrote after
+// `--` on the server's command line.
 onStart((args) => {
   log('hello-ts started with', args.length, 'arguments:', args.join(' '))
 })
 
-// A new world has removed every object, so forget the old signs.
+// When a map loads, the game has already removed every sign, so the mod
+// forgets them too.
 onWorld((map) => {
   forgetSigns()
   log('world loaded:', map)
@@ -64,14 +67,16 @@ command('close', (player) => {
   closeMenu(player)
 })
 
-// Tell a player when they change a setting on their profile.
+// When a player changes their greeting setting on their profile, tell them
+// the words they will now hear.
 onSettingChanged((player, key, value) => {
   if (key === 'greeting') {
     toast(player, `You will be greeted with "${greetings[value] ?? value}".`)
   }
 })
 
-// Bob the signs and keep open menus current.
+// On every frame, bob each sign and redraw each open menu with its player's
+// current health and souls.
 onFrame((frame) => {
   bobSigns(frame.timeSeconds)
   drawMenus()

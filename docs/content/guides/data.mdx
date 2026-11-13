@@ -3,14 +3,14 @@ title: Settings, metrics and boards
 description: Let players choose, count what they do and rank them.
 ---
 
-A mod declares three kinds of data in its manifest, and the host keeps them:
-settings a player chooses, metrics that count what players do, and boards that
-rank players. You can run all three without a database of your own.
+Your mod can declare settings that a player chooses, metrics that count what
+players do, and boards that rank players. You declare each in the manifest and
+the host stores them, so your mod needs no database of its own.
 
 ## Settings
 
 Declare a setting in [`mod.json`](/reference/manifest#settings), then read it.
-Every value is text. Bots read the defaults.
+Every value is text, and a bot reads each setting's default.
 
 <Samples>
 
@@ -117,7 +117,8 @@ _ = p.AddMetric("hud.opened", 1, &label)
 
 </Samples>
 
-If no host keeps them, `modlock dev` logs a session's totals when it ends.
+When no host stores metrics, `modlock dev` logs each session's totals when the
+session ends.
 
 ## Boards
 
@@ -191,11 +192,11 @@ mod.Command("top", func(p mod.Player, args string) {
 
 </Samples>
 
-| Call                                          | Does                                                                                                                           |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `reportScore(player, board, value, options?)` | Reports one score. Returns whether the host took it; a host without boards takes none, and the mod logs the score instead.     |
-| `reportMatch(board, places, options?)`        | Reports a whole match's places to a rated board. Players who tie share a place.                                                |
-| `readBoard(board, read?)`                     | Reads a page of a board, ten rows by default, as the host last read it. A page the host has not read yet comes back `loading`. |
+| Call                                          | Does                                                                                                                                      |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `reportScore(player, board, value, options?)` | Reports one score. Returns whether the host accepted it. A host without boards accepts none, and the score goes to the mod's log instead. |
+| `reportMatch(board, places, options?)`        | Reports a whole match's places to a rated board. Players who tie share a place.                                                           |
+| `readBoard(board, read?)`                     | Reads a page of a board, ten rows by default, as the host last read it. A page the host has not read yet comes back `loading`.            |
 
 Python spells them in `snake_case` with keyword options. Go spells them
 `Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's

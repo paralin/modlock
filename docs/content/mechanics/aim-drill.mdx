@@ -3,10 +3,10 @@ title: Aim drill
 description: Give one player a target and score thirty seconds of hits.
 ---
 
-A drill gives one player a timed score. The target is a bot on the other team.
-Count the hits the player lands on the target, and report the score when the
-time is up. After each hit, heal the target by the damage that hit dealt, so it
-stays standing for the whole drill.
+A drill scores one player's hits on a target for a set time. The target is a bot
+on the other team. Your mod counts the hits the player lands on it and reports
+the score when the time is up. After each hit, the mod heals the target by the
+damage that hit dealt, so the target stays standing for the whole drill.
 
 <Samples>
 
@@ -71,7 +71,7 @@ onDamaged((hit) => {
   drill.target.heal(hit.healthLost)
 })
 
-// A new world has removed the target.
+// A new world has already removed the target, so forget the drill.
 onWorld(() => {
   drill = undefined
 })
@@ -127,7 +127,7 @@ modlock.onDamaged(function(hit)
 	drill.target:heal(hit.healthLost)
 end)
 
--- A new world has removed the target.
+-- A new world has already removed the target, so forget the drill.
 modlock.onWorld(function()
 	drill = nil
 end)
@@ -194,7 +194,7 @@ def hit(hit: modlock.DamagedEvent) -> None:
     drill.target.heal(hit.health_lost)
 
 
-# A new world has removed the target.
+# A new world has already removed the target, so forget the drill.
 @modlock.on_world
 def forget(map_name: str) -> None:
     global drill
@@ -268,7 +268,7 @@ func init() {
 		_ = drill.target.Heal(int32(hit.GetHealthLost()))
 	})
 
-	// A new world has removed the target.
+	// A new world has already removed the target, so forget the drill.
 	mod.OnWorld(func(string) { drill = nil })
 }
 

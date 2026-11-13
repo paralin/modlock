@@ -68,11 +68,11 @@ compiled into it, and builds the TypeScript library in
 [`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and
 the preview page from the checkout, so your mods use the checkout's library.
 `modlock build` does the same from Modlock source in the Go module cache, and
-caches the result; a release build downloads the library its release
+caches the result, while a release build downloads the library its release
 publishes. After a `git pull`, build the command again.
 
 A build from source has no release to download the host from, so set
-`MODLOCK_HOST` to a `modlock-host.exe`; the sandbox needs it too, since it runs
+`MODLOCK_HOST` to a `modlock-host.exe`. The sandbox needs it too, because it runs
 the interpreters beside the host. For a checkout of a release, or close to one,
 unpack that release's host:
 

@@ -17,7 +17,8 @@ local keys: { [string]: number } = {
 	use = modlock.Buttons.use,
 }
 
--- reach is how far a flare can land, and lifetime how long it shows.
+-- reach is how far a flare can land, and lifetime is how many seconds it
+-- shows.
 local reach = 6000
 local lifetime = 4
 
@@ -101,7 +102,9 @@ function flare.expire(now: number)
 	end
 end
 
--- forget drops every sign; a new world has already removed them.
+-- forget clears the mod's record of its signs and cooldowns. It does not
+-- remove the signs from the game, because the game already removed them when
+-- it loaded the new map.
 function flare.forget()
 	table.clear(signs)
 	table.clear(ready)

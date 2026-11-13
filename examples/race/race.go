@@ -16,19 +16,20 @@ const grace = 30
 type Pass int
 
 const (
-	// PassNone leaves the racer's progress as it was.
+	// PassNone means the move left the racer's progress as it was.
 	PassNone Pass = iota
-	// PassCheckpoint passes the racer's next checkpoint.
+	// PassCheckpoint means the racer passed its next checkpoint.
 	PassCheckpoint
-	// PassLap crosses the start line and begins another lap.
+	// PassLap means the racer crossed the start line and began another lap.
 	PassLap
-	// PassFinish crosses the start line at the end of the last lap.
+	// PassFinish means the racer crossed the start line at the end of the last
+	// lap.
 	PassFinish
 )
 
 // Race is one run of a course: its racers, the start and the finish. A lap
 // runs through every checkpoint in order and back to the start line. Race
-// makes no calls into the game, so its rules test anywhere.
+// never calls into the game, so its tests run without a server.
 type Race struct {
 	// checkpoints are the course's positions; the first is the start line.
 	checkpoints []*mod.Vector

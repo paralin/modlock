@@ -3,8 +3,7 @@ title: Engine access
 description: How the host loads game modules and lends native capabilities to plugins.
 ---
 
-The host loads game modules and owns native hooks. Plugins borrow capabilities
-from `PluginContext::engine`. A borrowed interface, function pointer, or entity
+The host loads the game modules and installs and removes every native hook, and a plugin borrows what it needs from `PluginContext::engine`. A borrowed interface, function pointer, or entity
 view must not outlive its module or world.
 
 ## Modules and interfaces
@@ -28,8 +27,7 @@ holds a stable id, the modules that carry it, the pattern, what the match
 resolves to, and the native shape.
 
 - **Loading.** The SDK embeds the file as of its build. `modlock-host` loads the
-  file named by `--game-data`, else the copy installed beside it, at start, so a
-  game patch that moves a pattern ships as a new file without a new host. A
+  file named by `--game-data`, else the copy installed beside it, at start, so when a game patch moves a pattern, a new file fixes it without a new host. A
   malformed entry is skipped with a log line, and only the features that
   resolve its id fail.
 - **Resolving.** `ResolveSignature(image, id)` returns the match itself, the
@@ -46,7 +44,7 @@ modlock-sigcheck <deadlock-dir> [--baseline <previous-deadlock-dir>] \
   [--signatures data/game_signatures.txtpb]
 ```
 
-It resolves every entry in every module it names and exits nonzero when any
+It resolves every entry in every module you pass it and exits nonzero when any
 fails. `--signatures` checks an edited game data file without a rebuild. With a
 copy of the previous build as the baseline, each failed entry also gets a
 suggested pattern: the old match is decoded, its relative displacements and
@@ -55,13 +53,13 @@ that resolves once in the new build is printed. Review each suggestion against
 the recorded shape before replacing the entry in the game data file.
 
 Virtual functions that modlock calls or hooks through a dispatch table are
-`slots` entries in the same file. Each names its module, its class's RTTI name,
+`slots` entries in the same file. Each gives its module, its class's RTTI name,
 the index it held when recorded, and a pattern for the function's entry bytes.
 `ResolveVirtualSlot(id)` (`modlock/gameinterop/virtual_slots.h`) finds the
 class's table through its RTTI and returns the index of the one function that
 matches the pattern. A game update that inserts a virtual ahead of the slot
-moves the index without breaking the caller; the host logs the move once.
-Zero or several matches are an error naming the slot, and the feature that
+moves the index without breaking the caller, and the host logs the move once.
+Zero or several matches are an error that gives the slot, and the feature that
 needs it stays off.
 
 `modlock-sigcheck` checks every slot the same way. A moved slot passes and
@@ -83,14 +81,13 @@ table alive until restoration. Hooks stacked on the same slot must be removed
 in reverse installation order.
 
 `ThunkOwner` couples a slot hook to its callback cleanup. Destruction and move
-assignment restore the old slot before clearing callback state; moving transfers
-both duties. Callback holders declare their owner after borrowed handler storage
+assignment restore the old slot before they clear the callback state, and a move hands both duties to the new owner. Callback holders declare their owner after borrowed handler storage
 so dispatch is restored before that storage is destroyed.
 
 Inline detours use SafetyHook directly because native code can call a function
 without going through its virtual slot. Each hook keeps its own original-call
 signature, callback ordering, and thread contract. Installation and teardown
-follow the host's engine lifecycle; the RAII owners do not synchronize concurrent
+follow the host's engine lifecycle, but the RAII owners do not synchronize concurrent
 hook installation or wait for callbacks on other threads.
 
 ## Checks
@@ -98,5 +95,5 @@ hook installation or wait for callbacks on other threads.
 The SDK tests exercise unique signature matching, relative instruction bounds,
 dispatch-table preservation, move ownership, and restore-before-clear ordering.
 The independent hello plugin checks the installed SDK and plugin admission.
-Windows builds check native code paths; a live game run is needed to validate
+Windows builds check the native code paths, but only a live game run can validate
 patterns and ABI layouts against a new game binary.

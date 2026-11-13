@@ -1,12 +1,13 @@
-// inventory gives each player a bag of sixteen slots, drawn by the mod's own
-// layout in content/layout/inventory.xml inside a frame the mod draws. A
+// inventory gives each player a bag of sixteen slots. The mod draws the bag's
+// frame and puts its own layout, content/layout/inventory.xml, inside it. A
 // player types /inventory to open or close the bag, which shows their cursor
-// while it is open, and drags an item onto another slot. The layout sends the
-// move as the console command "inventory_move <from> <to>", and the mod sends the new
-// slots back as the layout's data. The style sheet content/styles/inventory.css
-// styles both, and fades the bag in when it opens. Only a host that has
-// reviewed the mod's content draws the layout, runs its script and applies the
-// sheet; Modlock's own renderer draws the frame unstyled around an empty panel.
+// while it is open, and drags an item onto another slot to move it. The layout
+// sends the move as the console command "inventory_move <from> <to>", and the
+// mod sends the new slots back as the layout's data. The style sheet
+// content/styles/inventory.css styles the frame and the layout, and fades the
+// bag in when it opens. Only a host that has reviewed the mod's content draws
+// the layout, runs its script and applies the sheet. Modlock's own renderer
+// draws the frame unstyled, around an empty panel where the layout would go.
 import './content/styles/inventory.css'
 import {
   after,
@@ -26,13 +27,13 @@ interface Item {
   readonly color: string
 }
 
-/** Bag is a player's slots in order; null marks an empty slot. */
+/** Bag is a player's slots in order, with null in each empty slot. */
 type Bag = (Item | null)[]
 
 /** size is the number of slots in a bag, four rows of four. */
 const size = 16
 
-/** starting fills a new bag's first slots; the rest start empty. */
+/** starting is the items in a new bag's first slots; the rest start empty. */
 const starting: readonly Item[] = [
   { name: 'Sword', color: '#c8553d' },
   { name: 'Shield', color: '#4f6d7a' },
@@ -51,7 +52,10 @@ const bags = new Map<bigint, Bag>()
  */
 const open = new Map<number, number>()
 
-/** bagBlock is what an open bag withholds from its player, so a click on a slot fires no weapon. */
+/**
+ * bagBlock is the buttons an open bag withholds from its player, so a click on
+ * a slot does not fire the weapon.
+ */
 const bagBlock = Buttons.attack | Buttons.altFire | Buttons.melee
 
 /** connection returns the human playing in player's slot. */
@@ -75,8 +79,9 @@ function bagOf(steamId: bigint): Bag {
 }
 
 /**
- * draw shows player their bag in the middle of the screen. The bag fades in
- * when it gains Bag-open, so opening draws it closed first.
+ * draw shows player their bag in the middle of the screen. The style sheet
+ * fades the bag in when its panel gains the Bag-open class, so opening the
+ * bag draws it once without the class first.
  */
 function draw(player: Player, bag: Bag, opened = true): void {
   show(
@@ -112,10 +117,10 @@ command('inventory', (player) => {
     if (isOpen(c)) draw(player, bag)
   })
 
-  // Free the cursor, which the game does not use to stop shots, so the bag
-  // withholds the weapon buttons itself. The player can put the cursor away
-  // with the game's own keys; closing the bag and opening it again brings it
-  // back.
+  // Free the cursor. A click still fires the weapon while the cursor is free,
+  // so the bag withholds the weapon buttons itself. The player can put the
+  // cursor away with the game's own keys, and closing the bag and opening it
+  // again brings it back.
   freeCursor(player, true)
   player.blockInput(bagBlock)
 })

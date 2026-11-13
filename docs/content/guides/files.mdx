@@ -3,17 +3,18 @@ title: Files
 description: Keep text files on the host, with defaults shipped in the mod.
 ---
 
-A mod stores text files such as its configuration or areas a player drew in
-the game. Defaults live in the project's `data/` directory. `modlock build`
-copies that directory into the build, and `modlock publish` releases the
-build.
+Your mod can read and write text files, such as its configuration or the
+areas a player drew in the game. You put each file's default in your project's
+`data/` directory: `modlock build` copies that directory into the build, and
+`modlock publish` uploads it with the rest of the build.
 
 <Samples>
 
 ```ts
 import { command, readFile, writeFile } from 'modlock'
 
-// data/motd.txt ships the default; a host's own copy replaces it.
+// The default message of the day is data/motd.txt. To show a different one,
+// a host puts its own motd.txt in the mod's files directory.
 let motd = readFile('motd.txt') ?? 'Welcome.'
 
 command('motd', (player, args) => {
@@ -29,7 +30,8 @@ command('motd', (player, args) => {
 ```
 
 ```luau
--- data/motd.txt ships the default; a host's own copy replaces it.
+-- The default message of the day is data/motd.txt. To show a different one,
+-- a host puts its own motd.txt in the mod's files directory.
 local motd = modlock.readFile("motd.txt") or "Welcome."
 
 modlock.command("motd", function(player, args)
@@ -45,7 +47,8 @@ end)
 ```
 
 ```python
-# data/motd.txt ships the default; a host's own copy replaces it.
+# The default message of the day is data/motd.txt. To show a different one,
+# a host puts its own motd.txt in the mod's files directory.
 motd = modlock.read_file("motd.txt") or "Welcome."
 
 
@@ -61,7 +64,8 @@ def show(player: modlock.Player, args: str) -> None:
 ```
 
 ```go
-// data/motd.txt ships the default; a host's own copy replaces it.
+// The default message of the day is data/motd.txt. To show a different one,
+// a host puts its own motd.txt in the mod's files directory.
 var motd = "Welcome."
 
 func init() {
@@ -86,29 +90,39 @@ func init() {
 
 </Samples>
 
-| Call                    | Effect                                                                                                           |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `readFile(name)`        | Returns the file's text: the host's copy first, then the build's `data/`. Returns `undefined` if neither exists. |
-| `writeFile(name, text)` | Replaces the host's copy in full, or writes nothing. Returns `false` when the host refuses.                      |
+| Call                    | Effect                                                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `readFile(name)`        | Returns the file's text. The host looks for its own copy first, then for the one in the build's `data/`, and returns `undefined` when it finds neither. |
+| `writeFile(name, text)` | Writes the whole file to the host's copy, or nothing if the write fails partway. Returns `false` when the host refuses the write.                       |
 
-A file name is a relative path such as `maps/dl_midtown.json`. Write segments
-with `/` between them. A segment may hold any text except `.` or `..`. The
-host refuses any other name.
+A file name is a relative path such as `maps/dl_midtown.json`, with `/`
+between its segments. The host refuses a name with an empty, `.` or `..`
+segment, and a name with a control character. It also refuses `\` and `:`,
+because Windows reads them as separators.
 
-The host keeps each mod's copies in a directory whose name is the mod's slug.
-The copies outlive an update of the mod. `modlock dev` and `modlock play`
-keep them in Modlock's configuration directory, such as
-`~/.config/modlock/files/<slug>/`. A server operator replaces a shipped
-file by placing a file of the same name there.
+The host keeps the files your mod writes in a directory named after the mod's
+slug, and they stay there when the server restarts or you publish an update.
+`modlock dev` and `modlock play` keep that directory under Modlock's
+configuration directory:
 
-A mod's copies hold up to 4 MiB together. Files are local to the host that
-runs the mod, so a missing file is a default, not a failure.
+| System  | Directory                                             |
+| ------- | ----------------------------------------------------- |
+| Linux   | `~/.config/modlock/files/<slug>/`                     |
+| macOS   | `~/Library/Application Support/modlock/files/<slug>/` |
+| Windows | `%AppData%\modlock\files\<slug>\`                     |
+
+To replace a file your mod ships, a server operator puts a file of the same name
+in that directory.
+
+The files your mod writes can take up to 4 MiB together, and the host refuses a
+write that would pass that. Each host keeps its own files, so your mod should
+treat a missing file as a reason to use its default rather than as an error.
 
 ## Structured files
 
-The host moves text, so the file format is the mod's own. A YAML mod
-bundles a YAML parser. A TypeScript mod bundles a parser for the format it
-likes:
+The host hands your mod each file's contents as a string and never parses
+them, so you choose the format and bundle a parser for it. This TypeScript mod
+keeps its areas in YAML, so it imports the `yaml` package:
 
 ```ts
 import { parse, stringify } from 'yaml'

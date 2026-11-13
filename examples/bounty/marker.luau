@@ -12,7 +12,7 @@ local marker = {}
 -- gold is the marker's color as 0xRRGGBBAA.
 local gold = 0xffc23dff
 
--- text is the marker in the world, and words what it shows.
+-- text is the marker in the world, and words is the text it shows.
 local text: WorldObject? = nil
 local words = ""
 
@@ -24,13 +24,16 @@ function marker.remove()
 	text = nil
 end
 
--- forget drops the marker; a new world has already removed it.
+-- forget clears the mod's record of the marker. It does not remove the
+-- marker from the game, because the game already removed it when it loaded
+-- the new map.
 function marker.forget()
 	text = nil
 end
 
--- follow moves the marker over the holder's hero and shows label. A holder
--- without a live hero hides it until they respawn.
+-- follow moves the marker over the holder's hero and shows label. While the
+-- holder has no living hero, follow removes the marker, and it raises a new
+-- one when they respawn.
 function marker.follow(holder: Player, label: string)
 	-- Hide the marker while the holder has no living hero.
 	local pawn = holder:pawn()
@@ -55,7 +58,7 @@ function marker.follow(holder: Player, label: string)
 		return
 	end
 
-	-- Carry the marker with the hero, changing its words only when they change.
+	-- Move the marker with the hero, and set its text only when the label changed.
 	current:move(position)
 	if label ~= words then
 		current:setText(label)

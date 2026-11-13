@@ -3,11 +3,11 @@ title: Camera
 description: Pull back, aim and shake the camera, and play curves on it.
 ---
 
-`playCamera` plays a curve on each camera param, all on one timeline, as the
-game's own lerps, so the move plays smoothly without the mod's timers. Camera
-curves are TypeScript only, so this page's samples stay in TypeScript;
-`moveCamera` and `clearCamera`, the calls they build on, are in every
-language.
+`playCamera` moves a player's camera along a curve for each camera param, all
+on one timeline. The host sends each curve to the game as the game's own lerps,
+so the game plays the move smoothly and your mod needs no timers for it. Camera
+curves exist only in TypeScript, so this page's samples are TypeScript only. The
+calls they build on, `moveCamera` and `clearCamera`, are in every language.
 
 ```ts
 // Pull back while the view widens, ease back in after two seconds.
@@ -37,13 +37,13 @@ after(30, () => tour?.cancel())
 
 ## Options
 
-| Option            | Does                                                                                                                                           |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tracks`          | A curve for each param: `distance`, `fieldOfView`, `target`, `verticalOffset`, `horizontalOffset`.                                             |
-| `relative`        | Adds each curve to the param's usual value; end it at zero.                                                                                    |
-| `loop`            | Plays the curves again until `cancel()`.                                                                                                       |
-| `rate`            | Lerps per second for a sampled span; 30 by default.                                                                                            |
-| context, priority | A move takes a context of its own unless you pass one. Moves in two contexts take turns by `priority`, and the higher hands back when it ends. |
+| Option            | Does                                                                                                                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tracks`          | A curve for each param: `distance`, `fieldOfView`, `target`, `verticalOffset`, `horizontalOffset`.                                                                                     |
+| `relative`        | Adds each curve to the param's usual value, so end each curve at zero.                                                                                                                 |
+| `loop`            | Plays the curves again until `cancel()`.                                                                                                                                               |
+| `rate`            | How many lerps a second the host sends for a sampled span. 30 by default.                                                                                                              |
+| context, priority | A move takes a context of its own unless you pass one. When moves in two contexts overlap, the one with the higher `priority` plays, and the camera returns to the other when it ends. |
 
 `playCamera` returns a move with `duration` and `cancel()`, or nothing when the
 player has no hero. Each param snaps back to its usual value when its curve
@@ -51,8 +51,8 @@ ends, so end a curve at rest.
 
 ## Curves
 
-The `curve` namespace builds curves. Each is a list of spans, and every builder
-returns one, so they compose:
+The `curve` namespace builds curves. A curve is a list of spans, and every
+builder returns a curve, so you can pass one builder's result to another:
 
 | Call                                                                 | Curve                                                                                                 |
 | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -66,10 +66,10 @@ returns one, so they compose:
 | `cameraPulse`                                                        | Moves a param out, holds it and brings it back, as an ability pulls the camera back while it charges. |
 | `cameraShake`                                                        | Shakes one param.                                                                                     |
 
-| Ease                                                                    | Plays as                                                                                                                                |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `linear`, `ease.bias(b)`, `ease.gain(g)` (Valve's, linear at 0.5)       | One lerp the game draws itself.                                                                                                         |
-| `in`, `out`, `inOut`, `sine`, `back`, `elastic`, `bounce`, `shaped(fn)` | `rate` lerps a second. The client plays at most one queued lerp a frame, so on a slower client the span plays slower than its duration. |
+| Ease                                                                    | Plays as                                                                                                                                                               |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `linear`, `ease.bias(b)`, `ease.gain(g)` (Valve's, linear at 0.5)       | One lerp the game draws itself.                                                                                                                                        |
+| `in`, `out`, `inOut`, `sine`, `back`, `elastic`, `bounce`, `shaped(fn)` | The host samples the ease into `rate` lerps a second. The client plays at most one queued lerp a frame, so on a slower client the span plays slower than its duration. |
 
 `curve.shaped(fn)` makes any function from 0 to 1 an ease.
 
@@ -77,7 +77,8 @@ returns one, so they compose:
 
 The game's camera operations (`CCitadelUserMsg_CameraController`) move only the
 five params above, and the view always looks along the player's own aim, so
-`Pawn.cameraPosition` and `cameraAngles` stay true for picking. Frame a higher
+`Pawn.cameraPosition` and `cameraAngles` stay accurate when your mod uses them
+to find what the player aims at. Frame a higher
 view by raising `verticalOffset` and pulling `distance` back, and shift it with
 `horizontalOffset`; the player tilts it with the mouse. Turning the view itself
 means setting the player's view angles, which takes over their look.

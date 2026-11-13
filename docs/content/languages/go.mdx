@@ -20,21 +20,24 @@ func init() {
 func main() {}
 ```
 
-The [guides](/guides/events) show every call in Go. Choose Go with the switch
-in the sidebar. Interfaces are built from the `mod/ui`, `mod/hud` and
+The [guides](/guides/events) show every call in Go when you choose it with the
+switch in the sidebar. Build interfaces with the `mod/ui`, `mod/hud` and
 `mod/theme` packages.
 
 ## Errors and tests
 
-Each call into the game returns an error. A mod may ignore the error to keep
-playing. Game rules that make no calls, such as the
-[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example,
-test with plain `go test`.
+Each call into the game returns an error, which you may ignore when the mod
+should keep playing anyway, such as when a chat message fails to send. Keep
+your game rules in functions that never call the game, as the
+[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example
+does, and you can test them with plain `go test`.
 
 ## Typed entities and the console
 
-[`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity) types every entity field and input.
-[`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) types every console variable and command:
+[`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity) has a
+typed accessor for every entity field and a method for every input, and
+[`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) has
+a typed setter for every console variable and a function for every command:
 
 ```go
 // Set a hero's health.

@@ -12,7 +12,7 @@ type Racer struct {
 	SteamID uint64
 	// Name is the player's name in the standings.
 	Name string
-	// Entity is the racer's hero, as damage events name it.
+	// Entity is the entity number of the racer's hero, as damage events give it.
 	Entity uint32
 	// Next is the index of the checkpoint the racer heads for; zero is the
 	// start line.
@@ -22,8 +22,8 @@ type Racer struct {
 	// Passed counts every checkpoint the racer passed, start lines included,
 	// to rank those still racing.
 	Passed int
-	// Fallen marks a racer whose hero died, to return it to its last
-	// checkpoint once it lives again.
+	// Fallen is true once the racer's hero dies, so the mode returns the hero
+	// to its last checkpoint when it respawns.
 	Fallen bool
 	// Time is the race clock when the racer finished, in seconds.
 	Time float64
