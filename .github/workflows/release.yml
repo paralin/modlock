@@ -39,7 +39,18 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Modlock $GITHUB_REF_NAME" --generate-notes
+        # Each file carries the label the release page shows in place of its
+        # name, so a reader picks by computer. Downloads still go by name.
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Modlock $GITHUB_REF_NAME" \
+            --notes-file .github/release-notes.md --generate-notes \
+            'dist/modlock-windows-amd64.exe#modlock for Windows' \
+            'dist/modlock-darwin-arm64#modlock for Mac (Apple silicon)' \
+            'dist/modlock-darwin-amd64#modlock for Mac (Intel)' \
+            'dist/modlock-linux-amd64#modlock for Linux (x86-64)' \
+            'dist/modlock-linux-arm64#modlock for Linux (ARM64)' \
+            'dist/modlock-host-windows-x64.zip#Game server: modlock downloads this itself'
       - uses: actions/upload-artifact@v4
         with:
           name: release

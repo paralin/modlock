@@ -5,7 +5,7 @@
 <p><b>Custom game modes for Deadlock, in the language you like.</b></p>
 
 <a href="https://discord.gg/DCErWrCFvh"><img alt="Join the Discord" src="https://img.shields.io/badge/Join_the_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white"></a>
-<a href="https://github.com/paralin/modlock/releases"><img alt="Download" src="https://img.shields.io/badge/Download-2b2b2b?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="#getting-started"><img alt="Install" src="https://img.shields.io/badge/Install-2b2b2b?style=for-the-badge&logo=github&logoColor=white"></a>
 <a href="https://hyperline.gg"><img alt="Publish on hyperline.gg" src="https://img.shields.io/badge/Publish_on-hyperline.gg-e4572e?style=for-the-badge"></a>
 
 <p>
@@ -62,25 +62,49 @@ command('hello', (player) => {
 
 ## Getting started
 
-Download `modlock` for your system from the
-[releases](https://github.com/paralin/modlock/releases), and on macOS or Linux
-install it on your `PATH`:
+You need one program, the `modlock` command. Install it with the line for your
+computer.
 
-```sh
-sudo install -m 755 modlock-darwin-arm64 /usr/local/bin/modlock
+Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/paralin/modlock/master/install.ps1 | iex
 ```
 
-On a Mac, clear the download's quarantine first:
-`xattr -c modlock-darwin-arm64`.
+macOS or Linux, in a terminal:
 
-Or install it from npm, into a project or globally, as its own command:
+```sh
+curl -fsSL https://raw.githubusercontent.com/paralin/modlock/master/install.sh | sh
+```
+
+Or with npm on any of them, into a project or globally, as its own command:
 
 ```sh
 npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-On Windows it runs the game server directly; on Linux it runs it through
+The installer downloads the right file from the
+[latest release](https://github.com/paralin/modlock/releases/latest) into
+`%LOCALAPPDATA%\Programs\modlock` on Windows or `~/.local/bin` elsewhere, and
+puts that directory on your `PATH` on Windows. To download it by hand instead,
+take the one file for your computer, rename it to `modlock` (`modlock.exe` on
+Windows) and put it in a directory on your `PATH`:
+
+| Your computer               | File                        |
+| --------------------------- | --------------------------- |
+| Windows                     | `modlock-windows-amd64.exe` |
+| Mac with Apple silicon      | `modlock-darwin-arm64`      |
+| Mac with an Intel processor | `modlock-darwin-amd64`      |
+| Linux, x86-64               | `modlock-linux-amd64`       |
+| Linux, ARM64                | `modlock-linux-arm64`       |
+
+A file a Mac's browser downloaded is quarantined; clear that with
+`xattr -c modlock-darwin-arm64`. The release's other file,
+`modlock-host-windows-x64.zip`, is the game server, which `modlock` downloads
+itself.
+
+On Windows `modlock` runs the game server directly; on Linux it runs it through
 Steam's Proton. It fetches the server that matches its release the first time.
 Script mods need nothing else installed; a Go mod needs
 [Go](https://go.dev/dl/).
