@@ -137,10 +137,18 @@ A TypeScript project holds:
 | File            | Holds                                                                |
 | --------------- | -------------------------------------------------------------------- |
 | `mod.json`      | The [manifest](#the-manifest): the mod's slug, name and version.     |
-| `main.ts`       | The mod. It answers `/hello` in chat.                                |
+| `main.ts`       | The mod: a starter with what most game modes begin from.             |
 | `tsconfig.json` | The compiler options your editor uses to check the code as you type. |
 
-The other languages are JavaScript, Luau, Python and Go. Complete game modes to start from include [`arena`](examples/arena) in
+The starter turns off the lane troopers and jungle creeps, lets any number of
+players pick the same hero, welcomes each player who joins and answers `/hello`
+in chat. In TypeScript and JavaScript it also keeps a [`Cast`](js/src/cast.ts)
+of the players, which seats each on the smaller team with a hero, skipping the
+game's team and hero screens, and brings a fallen hero back after 3 seconds.
+Delete the parts your mode does not want.
+
+The other languages are JavaScript, Luau, Python and Go; their starters leave
+team and hero choice to the game's own screens. Complete game modes to start from include [`arena`](examples/arena) in
 TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
 Go, all in the [`examples`](examples) directory.
 

@@ -20,14 +20,34 @@ import (
 // Module is the Go module of the Modlock library mods import.
 const Module = "github.com/paralin/modlock"
 
-// goMain is a new Go mod's main.go.
+// goMain is a new Go mod's main.go. Like every starter it sets the server
+// up, welcomes each player and answers /hello.
 const goMain = `// Command {{slug}} is a Modlock mod.
 package main
 
-import "github.com/paralin/modlock/mod"
+import (
+	"github.com/paralin/modlock/mod"
+	"github.com/paralin/modlock/mod/console"
+)
 
 // init registers the mod's handlers before the server starts it.
 func init() {
+	// Set the server up when the mod starts: no troopers in the lanes or
+	// creeps in the jungle, and any number of players on the same hero.
+	mod.OnStart(func(args []string) {
+		_ = console.CitadelTrooperSpawnEnabled.Set(false)
+		_ = console.CitadelNeutralSpawnEnabled.Set(false)
+		_ = console.CitadelAllowDuplicateHeroes.Set(true)
+	})
+
+	// Welcome each player once they finish joining. The game still shows
+	// them its own team and hero screens.
+	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
+		connection := joined.GetConnection()
+		player := mod.Player{Slot: connection.GetPlayer()}
+		_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
+	})
+
 	// Greet each player who types /hello in chat.
 	mod.Command("hello", func(p mod.Player, args string) {
 		_ = p.Chat({{greeting}})
@@ -38,8 +58,34 @@ func init() {
 func main() {}
 `
 
-// scriptMainSource is a new TypeScript or JavaScript mod's entry.
-const scriptMainSource = `import { command } from 'modlock'
+// scriptMainSource is a new TypeScript or JavaScript mod's entry. Its Cast
+// seats each player on a team with a hero and respawns them.
+const scriptMainSource = `import { Cast, command, onFrame, onStart } from 'modlock'
+import { apply } from 'modlock/console'
+
+// Set the server up when the mod starts: no troopers in the lanes or creeps
+// in the jungle, and any number of players on the same hero.
+onStart(() => {
+  apply({
+    citadel_trooper_spawn_enabled: false,
+    citadel_neutral_spawn_enabled: false,
+    citadel_allow_duplicate_heroes: true,
+  })
+})
+
+// Cast keeps one member for each player in the game. It puts each on the
+// smaller team with a hero, skipping the game's team and hero screens, and
+// brings a fallen hero back after 3 seconds. Whatever join returns is that
+// player's member, so keep what the mod tracks for them there.
+const cast = new Cast({
+  join: ({ player, name }) => {
+    player.announce({{name}}, 'Welcome, ' + name + '.')
+    return { player, name, score: 0 }
+  },
+  want: { hero: 'any', respawn: 3 },
+})
+
+onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 
 // Greet each player who types /hello in chat.
 command('hello', (player) => {
@@ -67,6 +113,22 @@ const scriptConfig = `{
 
 // luauMain is a new Luau mod's entry.
 const luauMain = `local modlock = require("@modlock")
+local console = require("@modlock/console")
+
+-- Set the server up when the mod starts: no troopers in the lanes or creeps
+-- in the jungle, and any number of players on the same hero.
+modlock.onStart(function()
+	console.setBoolean("citadel_trooper_spawn_enabled", false)
+	console.setBoolean("citadel_neutral_spawn_enabled", false)
+	console.setBoolean("citadel_allow_duplicate_heroes", true)
+end)
+
+-- Welcome each player once they finish joining. The game still shows them
+-- its own team and hero screens.
+modlock.onPlayerJoin(function(joined)
+	local connection = joined.connection
+	connection.player:announce({{name}}, "Welcome, " .. connection.name .. ".")
+end)
 
 -- Greet each player who types /hello in chat.
 modlock.command("hello", function(player)
@@ -76,6 +138,23 @@ end)
 
 // pythonMain is a new Python mod's entry.
 const pythonMain = `import modlock
+
+
+# Set the server up when the mod starts: no troopers in the lanes or creeps
+# in the jungle, and any number of players on the same hero.
+@modlock.on_start
+def start(args: list[str]) -> None:
+    modlock.server_command("citadel_trooper_spawn_enabled 0")
+    modlock.server_command("citadel_neutral_spawn_enabled 0")
+    modlock.server_command("citadel_allow_duplicate_heroes 1")
+
+
+# Welcome each player once they finish joining. The game still shows them
+# its own team and hero screens.
+@modlock.on_player_join
+def join(joined: modlock.PlayerJoinedEvent) -> None:
+    connection = joined.connection
+    connection.player.announce({{name}}, f"Welcome, {connection.name}.")
 
 
 # Greet each player who types /hello in chat.
@@ -112,13 +191,14 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 
 	// Choose the language's sources.
 	greeting := "Hello from " + name + "!"
+	quoted := strings.NewReplacer("{{slug}}", slug, "{{name}}", strconv.Quote(name), "{{greeting}}", strconv.Quote(greeting))
+	script := strings.NewReplacer("{{name}}", scriptString(name), "{{greeting}}", scriptString(greeting))
 	var files map[string]string
 	switch language {
 	case wasm.Manifest_LANGUAGE_GO:
-		expand := strings.NewReplacer("{{slug}}", slug, "{{greeting}}", strconv.Quote(greeting))
 		files = map[string]string{
 			"go.mod":     "module " + slug + "\n\ngo 1.25.0\n",
-			"main.go":    expand.Replace(goMain),
+			"main.go":    quoted.Replace(goMain),
 			".gitignore": "/" + BuildDir + "/\n",
 		}
 	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
@@ -127,19 +207,19 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 			scripts = "\n    \"allowJs\": true,\n    \"checkJs\": true,"
 		}
 		files = map[string]string{
-			scriptMain(language): strings.ReplaceAll(scriptMainSource, "{{greeting}}", scriptString(greeting)),
+			scriptMain(language): script.Replace(scriptMainSource),
 			"tsconfig.json":      strings.ReplaceAll(scriptConfig, "{{scripts}}", scripts),
 			".gitignore":         "/" + BuildDir + "/\n/node_modules/\n",
 		}
 	case wasm.Manifest_LANGUAGE_LUAU:
 		files = map[string]string{
-			"main.luau":  strings.ReplaceAll(luauMain, "{{greeting}}", strconv.Quote(greeting)),
+			"main.luau":  quoted.Replace(luauMain),
 			".luaurc":    luauConfig,
 			".gitignore": "/" + BuildDir + "/\n/.modlock/\n",
 		}
 	case wasm.Manifest_LANGUAGE_PYTHON:
 		files = map[string]string{
-			"main.py":            strings.ReplaceAll(pythonMain, "{{greeting}}", strconv.Quote(greeting)),
+			"main.py":            quoted.Replace(pythonMain),
 			"pyrightconfig.json": pythonConfig,
 			".gitignore":         "/" + BuildDir + "/\n/.modlock/\n",
 		}
