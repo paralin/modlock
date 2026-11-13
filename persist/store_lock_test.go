@@ -53,11 +53,12 @@ func TestSecondHostRefused(t *testing.T) {
 		t.Fatalf("first host: %q %v", line, err)
 	}
 
-	// The second is refused and told which process holds the records.
+	// The second is refused and told which process holds the records, by its
+	// process ID and its command line.
 	_, err = Open(dir)
 	pid := "process " + strconv.Itoa(first.Process.Pid)
-	if err == nil || !strings.Contains(err.Error(), "another modlock keeps these records") || !strings.Contains(err.Error(), pid) {
-		t.Fatalf("second host: got %v, want a refusal naming %s", err, pid)
+	if err == nil || !strings.Contains(err.Error(), "another modlock keeps these records") || !strings.Contains(err.Error(), pid) || !strings.Contains(err.Error(), "-test.run=^TestHoldStoreHelper$") {
+		t.Fatalf("second host: got %v, want a refusal naming %s and its arguments", err, pid)
 	}
 
 	// Once the first exits, the records open and take an update.
