@@ -92,6 +92,169 @@ function modlock.setOrbitCamera(player: Player, enabled: boolean): boolean
 	return flag and zoom
 end
 
+-- Scores report a player's results to the boards a mod declares in mod.json
+-- and read those boards back, over the host's scores service. A host without
+-- the service, such as a server with no backend, takes no score; the mod
+-- logs each one instead, so its author sees what it would report.
+--
+--   modlock.reportScore(player, "trial.time", elapsedMs, { partition = { course = "canyon" }, key = runId })
+
+-- scoresService names the host service that keeps scores.
+local scoresService = "scores"
+
+-- BoardWindow is a span of time a board keeps standings for, in UTC; a week
+-- starts Monday.
+export type BoardWindow = "allTime" | "day" | "week"
+
+-- MatchOptions describe where a match ranks and the run it came from.
+export type MatchOptions = {
+	-- partition names a value for each of the board's partitions.
+	partition: { [string]: string }?,
+	-- key identifies the run, so a resent score counts once.
+	key: string?,
+	-- earnedAt is when the score was earned, in Unix milliseconds; the host's
+	-- clock by default.
+	earnedAt: number?,
+	-- evidence names what shows the run, such as a recording.
+	evidence: string?,
+}
+
+-- ScoreOptions describe where a score ranks and the run it came from.
+export type ScoreOptions = MatchOptions & {
+	-- tiebreak ranks equal values, lower first, such as fewer deaths.
+	tiebreak: number?,
+}
+
+-- MatchPlace is one player's finishing place in a match, 1 for the winner.
+export type MatchPlace = {
+	player: Player,
+	place: number,
+	-- value is the player's score in the match, for a board that keeps one.
+	value: number?,
+}
+
+-- BoardRead selects a page of a board.
+export type BoardRead = {
+	-- partition names a value for each of the board's partitions.
+	partition: { [string]: string }?,
+	-- window is one of the board's windows; all time by default.
+	window: BoardWindow?,
+	-- offset skips that many rows from the top.
+	offset: number?,
+	-- limit bounds the rows; ten by default.
+	limit: number?,
+	-- player asks for this player's own row too.
+	player: Player?,
+}
+
+-- BoardRow is one player's place on a board.
+export type BoardRow = {
+	rank: number,
+	-- steamId is the player's 64-bit Steam ID in decimal.
+	steamId: string,
+	name: string,
+	value: number,
+	tiebreak: number,
+	count: number,
+}
+
+-- BoardPage is a page of a board.
+export type BoardPage = {
+	-- rows are the standings in rank order.
+	rows: { BoardRow },
+	-- player is the asked player's row, when they hold a standing.
+	player: BoardRow?,
+	-- loading is set until the host has read the board; read again on a later
+	-- frame.
+	loading: boolean,
+}
+
+-- describePartition writes partition values as "[course=canyon]", in name
+-- order.
+local function describePartition(partition: { [string]: string }?): string
+	local names: { string } = {}
+	for name, value in partition or {} :: { [string]: string } do
+		table.insert(names, `{name}={value}`)
+	end
+	if #names == 0 then
+		return ""
+	end
+	table.sort(names)
+	return `[{table.concat(names, " ")}]`
+end
+
+-- taken calls a reporting method and logs line when the host takes no score.
+local function taken(method: string, report: string, line: string): boolean
+	if modlock.callService(scoresService, method, report) ~= nil then
+		return true
+	end
+	modlock.log(`score {line} (not reported: the host keeps no scores)`)
+	return false
+end
+
+-- reportScore reports one score for player to a board the manifest declares.
+-- It reports whether the host took it; a host without the scores service
+-- takes none, and the mod logs the score instead.
+function modlock.reportScore(player: Player, board: string, value: number, options: ScoreOptions?): boolean
+	local o: ScoreOptions = options or {}
+	local report = wire.encode(schema, "ScoreReport", {
+		board = board,
+		player = player,
+		value = math.round(value),
+		tiebreak = math.round(o.tiebreak or 0),
+		partition = o.partition,
+		key = o.key,
+		earnedAtUnixMillis = math.round(o.earnedAt or 0),
+		evidence = o.evidence,
+	})
+	return taken("Report", report, `{board}{describePartition(o.partition)}: player {player.slot} {value}`)
+end
+
+-- reportMatch reports one match's places to a rating or match board the
+-- manifest declares. Players who tie, such as one team's members, share a
+-- place. It reports whether the host took it, as reportScore does.
+function modlock.reportMatch(board: string, places: { MatchPlace }, options: MatchOptions?): boolean
+	-- Encode each place and the line the mod logs when the host takes none.
+	local o: MatchOptions = options or {}
+	local encoded, lines = {}, {}
+	for _, p in places do
+		table.insert(encoded, { player = p.player, place = p.place, value = math.round(p.value or 0) })
+		table.insert(lines, `player {p.player.slot} #{p.place}`)
+	end
+
+	-- Report the match.
+	local report = wire.encode(schema, "MatchReport", {
+		board = board,
+		places = encoded,
+		partition = o.partition,
+		key = o.key,
+		earnedAtUnixMillis = math.round(o.earnedAt or 0),
+		evidence = o.evidence,
+	})
+	return taken("Match", report, `{board}{describePartition(o.partition)}: {table.concat(lines, ", ")}`)
+end
+
+-- readBoard reads a page of a board the manifest declares, as the host last
+-- read it, or nil when the host serves no scores. A page the host has not
+-- read yet comes back loading.
+function modlock.readBoard(board: string, read: BoardRead?): BoardPage?
+	-- Ask the host for the page; a host without scores answers nothing.
+	local r: BoardRead = read or {}
+	local query = wire.encode(schema, "BoardQuery", {
+		board = board,
+		partition = r.partition,
+		window = r.window,
+		offset = r.offset,
+		limit = r.limit,
+		player = r.player,
+	})
+	local reply = modlock.callService(scoresService, "Read", query)
+	if reply == nil then
+		return nil
+	end
+	return wire.decode(schema, "BoardPage", reply) :: BoardPage
+end
+
 -- Service answers the host's calls to one service the mod serves: the
 -- method's name and payload in, the answer out. An error becomes the call's
 -- error.

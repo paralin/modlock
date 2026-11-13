@@ -39,6 +39,11 @@ const modulePath = "github.com/paralin/modlock"
 // schemaFile is the file that declares the services.
 const schemaFile = modulePath + "/src/wasm/wasm.proto"
 
+// serviceFiles declare the messages of the services a host provides outside
+// Modlock, which the handwritten Luau and Python libraries encode for
+// callService.
+var serviceFiles = []string{modulePath + "/src/wasm/scores/scores.proto"}
+
 // outputs are the generated files and the writer of each, relative to the
 // repository root.
 var outputs = []struct {
@@ -101,10 +106,14 @@ func compile(ctx context.Context, root string) (*descriptorpb.FileDescriptorSet,
 	if err := compiler.Init(ctx); err != nil {
 		return nil, err
 	}
-	code, err := compiler.Run(ctx, []string{
+	args := []string{
 		"protoc", "-I/", "--include_imports", "--include_source_info",
 		"--descriptor_set_out=/set.pb", "/" + schemaFile,
-	})
+	}
+	for _, file := range serviceFiles {
+		args = append(args, "/"+file)
+	}
+	code, err := compiler.Run(ctx, args)
 	if err != nil {
 		return nil, err
 	}

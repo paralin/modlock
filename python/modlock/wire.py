@@ -20,6 +20,9 @@ class Field:
     # kind is the field's protobuf type, such as "uint32" or "message".
     kind: str
     repeated: bool = False
+    # map marks a repeated field of map entries, which the message holds as a
+    # dict from each entry's key to its value.
+    map: bool = False
     optional: bool = False
     # oneof names the oneof the field is a case of; the message holds the
     # case's value under that name.
@@ -164,6 +167,8 @@ def _read(schema: Schema, field: Field, data: bytes, i: int, kind: int) -> tuple
 
 def _default(schema: Schema, field: Field) -> Any:
     """_default returns the value of field when a message leaves it out."""
+    if field.map:
+        return {}
     if field.repeated:
         return []
     if field.optional or field.enum is not None or field.union is not None:
@@ -196,6 +201,10 @@ def decode(schema: Schema, name: str, data: bytes) -> Any:
         field = by_number.get(key >> 3)
         if field is None:
             i = _skip(data, i, kind)
+        elif field.map:
+            entry, i = _read(schema, field, data, i, kind)
+            entries: dict[Any, Any] = out.setdefault(field.name, {})
+            entries[_get(entry, "key")] = _get(entry, "value")
         elif field.repeated:
             items: list[Any] = out.setdefault(field.name, [])
             if kind == 2 and _packable(field.kind):
@@ -290,7 +299,10 @@ def encode(schema: Schema, name: str, value: Any) -> bytes:
         v = _get(value, field.name)
         if v is None:
             continue
-        if field.repeated and _packable(field.kind):
+        if field.map:
+            for key, item in cast(Mapping[Any, Any], v).items():
+                parts.append(_tag(field, kind) + _bytes(schema, field, {"key": key, "value": item}))
+        elif field.repeated and _packable(field.kind):
             if v:
                 body = b"".join(_bytes(schema, field, item) for item in v)
                 parts.append(_tag(field, 2) + _varint(len(body)) + body)

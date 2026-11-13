@@ -23486,6 +23486,7 @@ def create(
     keys: Mapping[str, object] | None = None,
     subclass: str | None = None,
     team: int = 0,
+    transmit_always: bool = False,
     facing: Angles | None = None,
     key_values: list[KeyValue] | None = None,
     fields: list[FieldWrite] | None = None,
@@ -23495,8 +23496,10 @@ def create(
     keys are its spawn key values, typed by the designer's Keys type, which a
     mod names where it keeps them; key_values are further key values, as
     create_entity takes them, and fields are schema fields written before the
-    entity spawns. It returns Any, so a mod names the class where it keeps the
-    entity."""
+    entity spawns. transmit_always sends the entity to every client, past the
+    game's own rule, which never sends one without a model, such as a
+    point_clientui_dialog. It returns Any, so a mod names the class where it
+    keeps the entity."""
     class_name, key_map, default_subclass = _DESIGNERS[designer_name]
     encoded = list(key_values or [])
     for key, value in (keys or {}).items():
@@ -23513,6 +23516,7 @@ def create(
             designer_name=designer_name,
             subclass=subclass or default_subclass,
             team=team,
+            transmit_always=transmit_always,
             position=position,
             facing=facing,
             key_values=encoded,

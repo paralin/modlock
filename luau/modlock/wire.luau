@@ -19,6 +19,9 @@ export type Field = {
 	kind: string,
 	-- repeated marks a list of values.
 	repeated: boolean?,
+	-- map marks a repeated field of map entries, which the message holds as a
+	-- table from each entry's key to its value.
+	map: boolean?,
 	-- optional marks a field whose presence the receiver sees, so the encoder
 	-- sends even its zero value.
 	optional: boolean?,
@@ -303,6 +306,12 @@ function decode(schema: Schema, name: string, s: string): any
 		local field = byNumber[bit32.rshift(key, 3)]
 		if field == nil then
 			i = skip(s, i, kind)
+		elseif field.map then
+			local entry
+			entry, i = read(schema, field, s, i, kind)
+			local entries = out[field.name] or {}
+			out[field.name] = entries
+			entries[entry.key] = entry.value
 		elseif field.repeated then
 			local list = out[field.name] or {}
 			out[field.name] = list
@@ -396,7 +405,8 @@ local function tag(field: Field, kind: number): string
 end
 
 -- encode returns the message name holding value. It leaves out fields that
--- are nil, and the zero values the receiver assumes. A oneof's value is
+-- are nil, and the zero values the receiver assumes. A map's entries go in
+-- no set order, as the protobuf wire allows. A oneof's value is
 -- either under a case's own name, which picks that case, or under the
 -- oneof's name, which takes the first case of its Luau type.
 function encode(schema: Schema, name: string, value: any): string
@@ -422,7 +432,11 @@ function encode(schema: Schema, name: string, value: any): string
 		if v == nil then
 			continue
 		end
-		if field.repeated and packable(field.kind) then
+		if field.map then
+			for key, item in v do
+				table.insert(parts, tag(field, kind) .. bytes(schema, field, { key = key, value = item }))
+			end
+		elseif field.repeated and packable(field.kind) then
 			if #v > 0 then
 				local packed = {}
 				for _, item in v do

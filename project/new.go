@@ -154,9 +154,11 @@ local console = require("@modlock/console")
 -- Set the server up when the mod starts: no troopers in the lanes or creeps
 -- in the jungle, and any number of players on the same hero.
 modlock.onStart(function()
-	console.setBoolean("citadel_trooper_spawn_enabled", false)
-	console.setBoolean("citadel_neutral_spawn_enabled", false)
-	console.setBoolean("citadel_allow_duplicate_heroes", true)
+	console.apply({
+		citadel_trooper_spawn_enabled = false,
+		citadel_neutral_spawn_enabled = false,
+		citadel_allow_duplicate_heroes = true,
+	})
 end)
 
 -- Give each player who joins a hero on the smaller team, skipping the game's

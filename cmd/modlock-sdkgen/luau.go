@@ -101,6 +101,7 @@ func writeLuau(s *schema) ([]byte, error) {
 			w.absent[f] = true
 		}
 	}
+	s.serviceAbsent(w.absent)
 	w.out.WriteString(luauPreamble)
 	if err := w.writeTypes(); err != nil {
 		return nil, err
@@ -304,8 +305,9 @@ func (w *luauWriter) writeCall(c *call) {
 }
 
 // writeSchema writes the descriptor of every message the library encodes or
-// decodes, which includes the interface tree the Ui call sends, and the wire
-// names of the enums only that tree reaches.
+// decodes, which includes the interface tree the Ui call sends and the
+// messages of the services outside Modlock, and the wire names of the enums
+// only those reach.
 func (w *luauWriter) writeSchema() error {
 	var r reach
 	for _, m := range w.s.messageOrder {
@@ -327,6 +329,9 @@ func (w *luauWriter) writeSchema() error {
 		r.add(m.request)
 		r.add(m.response)
 	}
+	for _, m := range w.s.services {
+		r.add(m)
+	}
 	for _, e := range r.enums {
 		if w.enumsIn[e] || w.enumsOut[e] {
 			continue
@@ -335,7 +340,11 @@ func (w *luauWriter) writeSchema() error {
 		for _, v := range e.named() {
 			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), luauKey(e.valueName(v)), v.number))
 		}
-		fmt.Fprintf(&w.out, "-- %s holds the wire names of the interface enum %s.\n", e.name, e.name)
+		what := "interface enum"
+		if e.file.isService() {
+			what = "service enum"
+		}
+		fmt.Fprintf(&w.out, "-- %s holds the wire names of the %s %s.\n", e.name, what, e.name)
 		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
 	}
 	for _, m := range w.s.messageOrder {
@@ -389,6 +398,8 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 		fmt.Sprintf("kind = %q", kind),
 	}
 	switch {
+	case f.isMap():
+		members = append(members, "repeated = true", "map = true")
 	case f.repeated:
 		members = append(members, "repeated = true")
 	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:

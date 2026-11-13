@@ -88,7 +88,8 @@ type pythonWriter struct {
 	// host leaves it out.
 	absent map[*field]bool
 	// library reaches the messages and enums of the Host methods the
-	// handwritten library calls itself, such as Ui, which it encodes as dicts.
+	// handwritten library calls itself, such as Ui, and of the services
+	// outside Modlock, which it encodes as dicts.
 	library reach
 }
 
@@ -115,6 +116,10 @@ func writePython(s *schema) ([]byte, error) {
 			w.library.add(m.response)
 		}
 	}
+	for _, m := range s.services {
+		w.library.add(m)
+	}
+	s.serviceAbsent(w.absent)
 	w.out.WriteString(pythonPreamble)
 	w.writeTypes()
 	for _, c := range classes {
@@ -330,8 +335,17 @@ func (w *pythonWriter) writeCall(c *call, indent string) {
 		fmt.Fprintf(&w.out, "%s    return %s) is not None\n", indent, send)
 		return
 	}
+
+	// Call the method and return the failure value when it fails.
 	fmt.Fprintf(&w.out, "%s    response = %s, %q)\n", indent, send, c.method.response.name)
 	fmt.Fprintf(&w.out, "%s    if response is None:\n%s        return %s\n", indent, indent, failure)
+
+	// A response the library also hands a mod, such as ServiceReply, decodes
+	// to its dataclass; the others decode to dicts.
+	if w.hasClass(c.method.response) {
+		fmt.Fprintf(&w.out, "%s    return response.%s\n", indent, pythonName(c.result.name))
+		return
+	}
 	fmt.Fprintf(&w.out, "%s    return response[%q]\n", indent, pythonName(c.result.name))
 }
 
@@ -397,6 +411,8 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 	}
 	args := []string{fmt.Sprintf("%d", f.number), fmt.Sprintf("%q", pythonName(f.name)), fmt.Sprintf("%q", kind)}
 	switch {
+	case f.isMap():
+		args = append(args, "repeated=True", "map=True")
 	case f.repeated:
 		args = append(args, "repeated=True")
 	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:

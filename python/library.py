@@ -481,6 +481,183 @@ def set_orbit_camera(player: Player, enabled: bool) -> bool:
     zoom = hold_modifier_state(pawn.entity, "MODIFIER_STATE_HIDEOUT_ZONE", enabled)
     return flag and zoom
 
+
+# Scores report a player's results to the boards a mod declares in mod.json
+# and read those boards back, over the host's scores service. A host without
+# the service, such as a server with no backend, takes no score; the mod logs
+# each one instead, so its author sees what it would report.
+#
+#   modlock.report_score(player, "trial.time", elapsed_ms, partition={"course": "canyon"}, key=run_id)
+
+# _SCORES names the host service that keeps scores.
+_SCORES = "scores"
+
+# BoardWindow is a span of time a board keeps standings for, in UTC; a week
+# starts Monday.
+type BoardWindow = Literal["all_time", "day", "week"]
+
+
+@dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
+class MatchPlace:
+    """MatchPlace is one player's finishing place in a match, 1 for the
+    winner."""
+
+    player: Player
+    place: int
+    # value is the player's score in the match, for a board that keeps one.
+    value: float = 0
+
+
+@dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
+class BoardRow:
+    """BoardRow is one player's place on a board."""
+
+    rank: int
+    steam_id: int
+    name: str
+    value: int
+    tiebreak: int
+    count: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
+class BoardPage:
+    """BoardPage is a page of a board."""
+
+    # rows are the standings in rank order.
+    rows: list[BoardRow]
+    # player is the asked player's row, when they hold a standing.
+    player: BoardRow | None
+    # loading is set until the host has read the board; read again on a later
+    # frame.
+    loading: bool
+
+
+def report_score(
+    player: Player,
+    board: str,
+    value: float,
+    *,
+    partition: Mapping[str, str] | None = None,
+    tiebreak: float = 0,
+    key: str | None = None,
+    earned_at: float = 0,
+    evidence: str | None = None,
+) -> bool:
+    """report_score reports one score for player to a board the manifest
+    declares. It reports whether the host took it; a host without the scores
+    service takes none, and the mod logs the score instead.
+
+    partition names a value for each of the board's partitions. tiebreak
+    ranks equal values, lower first, such as fewer deaths. key identifies the
+    run, so a resent score counts once. earned_at is when the score was
+    earned, in Unix milliseconds; the host's clock by default. evidence names
+    what shows the run, such as a recording."""
+    report = wire.encode(
+        _SCHEMA,
+        "ScoreReport",
+        {
+            "board": board,
+            "player": player,
+            "value": _int64(value),
+            "tiebreak": _int64(tiebreak),
+            "partition": partition,
+            "key": key,
+            "earned_at_unix_millis": _int64(earned_at),
+            "evidence": evidence,
+        },
+    )
+    return _taken("Report", report, f"{board}{_describe(partition)}: player {player.slot} {value}")
+
+
+def report_match(
+    board: str,
+    places: list[MatchPlace],
+    *,
+    partition: Mapping[str, str] | None = None,
+    key: str | None = None,
+    earned_at: float = 0,
+    evidence: str | None = None,
+) -> bool:
+    """report_match reports one match's places to a rating or match board the
+    manifest declares. Players who tie, such as one team's members, share a
+    place. It reports whether the host took it, as report_score does, and
+    takes the same options but tiebreak."""
+    report = wire.encode(
+        _SCHEMA,
+        "MatchReport",
+        {
+            "board": board,
+            "places": [{"player": p.player, "place": p.place, "value": _int64(p.value)} for p in places],
+            "partition": partition,
+            "key": key,
+            "earned_at_unix_millis": _int64(earned_at),
+            "evidence": evidence,
+        },
+    )
+    line = ", ".join(f"player {p.player.slot} #{p.place}" for p in places)
+    return _taken("Match", report, f"{board}{_describe(partition)}: {line}")
+
+
+def read_board(
+    board: str,
+    *,
+    partition: Mapping[str, str] | None = None,
+    window: BoardWindow | None = None,
+    offset: int = 0,
+    limit: int = 0,
+    player: Player | None = None,
+) -> BoardPage | None:
+    """read_board reads a page of a board the manifest declares, as the host
+    last read it, or returns None when the host serves no scores. A page the
+    host has not read yet comes back loading.
+
+    partition names a value for each of the board's partitions, window is one
+    of the board's windows, all time by default, offset skips that many rows
+    from the top and limit bounds the rows, ten by default. player asks for
+    this player's own row too."""
+    # Ask the host for the page; a host without scores answers nothing.
+    query = wire.encode(
+        _SCHEMA,
+        "BoardQuery",
+        {"board": board, "partition": partition, "window": window, "offset": offset, "limit": limit, "player": player},
+    )
+    reply = call_service(_SCORES, "Read", query)
+    if reply is None:
+        return None
+
+    # Read the standings into rows.
+    page = wire.decode(_SCHEMA, "BoardPage", reply)
+    standing = page["player"]
+    return BoardPage(
+        rows=[BoardRow(**row) for row in page["rows"]],
+        player=BoardRow(**standing) if standing is not None else None,
+        loading=page["loading"],
+    )
+
+
+def _taken(method: str, report: bytes, line: str) -> bool:
+    """_taken calls a reporting method and logs line when the host takes no
+    score."""
+    if call_service(_SCORES, method, report) is not None:
+        return True
+    log(f"score {line} (not reported: the host keeps no scores)")
+    return False
+
+
+def _int64(value: float) -> int:
+    """_int64 converts a number to the int64 a report carries, rounding a
+    fraction half up."""
+    return math.floor(value + 0.5)
+
+
+def _describe(partition: Mapping[str, str] | None) -> str:
+    """_describe writes partition values as "[course=canyon]", in name
+    order."""
+    if not partition:
+        return ""
+    return "[" + " ".join(f"{name}={partition[name]}" for name in sorted(partition)) + "]"
+
 def serve(service: str) -> Callable[[Service], Service]:
     """serve answers the host's calls to service with the decorated handler,
     replacing its earlier handler."""
