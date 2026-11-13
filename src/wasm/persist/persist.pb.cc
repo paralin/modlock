@@ -54,6 +54,24 @@ struct TagsDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TagsDefaultTypeInternal _Tags_default_instance_;
+template <typename>
+PROTOBUF_CONSTEXPR StoredRecord_KindsEntry_DoNotUse::StoredRecord_KindsEntry_DoNotUse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : StoredRecord_KindsEntry_DoNotUse::MapEntry(StoredRecord_KindsEntry_DoNotUse_class_data_.base()){}
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : StoredRecord_KindsEntry_DoNotUse::MapEntry() {
+}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+struct StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    StoredRecord_KindsEntry_DoNotUse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal _StoredRecord_KindsEntry_DoNotUse_default_instance_;
 
 inline constexpr GetRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -352,7 +370,8 @@ inline constexpr StoredRecord::Impl_::Impl_(
       : _cached_size_{0},
         recent_keys_{},
         record_{nullptr},
-        version_{::uint64_t{0u}} {}
+        version_{::uint64_t{0u}},
+        kinds_{} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR StoredRecord::StoredRecord(::_pbi::ConstantInitialized)
@@ -622,14 +641,23 @@ const ::uint32_t
         0,
         1,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse, _impl_.value_),
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord, _impl_.record_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord, _impl_.recent_keys_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord, _impl_.version_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::StoredRecord, _impl_.kinds_),
         1,
         0,
         2,
+        3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::PlayerFile_RecordsEntry_DoNotUse, _impl_._has_bits_),
         5, // hasbit index offset
@@ -663,9 +691,10 @@ static const ::_pbi::MigrationSchema
         {91, sizeof(::modlock::wasm::persist::PlayerRecord)},
         {98, sizeof(::modlock::wasm::persist::UpdateRequest)},
         {111, sizeof(::modlock::wasm::persist::UpdateReply)},
-        {118, sizeof(::modlock::wasm::persist::StoredRecord)},
-        {127, sizeof(::modlock::wasm::persist::PlayerFile_RecordsEntry_DoNotUse)},
-        {134, sizeof(::modlock::wasm::persist::PlayerFile)},
+        {118, sizeof(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse)},
+        {125, sizeof(::modlock::wasm::persist::StoredRecord)},
+        {136, sizeof(::modlock::wasm::persist::PlayerFile_RecordsEntry_DoNotUse)},
+        {143, sizeof(::modlock::wasm::persist::PlayerFile)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::persist::_RecordType_FieldsEntry_DoNotUse_default_instance_._instance,
@@ -683,6 +712,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::persist::_PlayerRecord_default_instance_._instance,
     &::modlock::wasm::persist::_UpdateRequest_default_instance_._instance,
     &::modlock::wasm::persist::_UpdateReply_default_instance_._instance,
+    &::modlock::wasm::persist::_StoredRecord_KindsEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::persist::_StoredRecord_default_instance_._instance,
     &::modlock::wasm::persist::_PlayerFile_RecordsEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::persist::_PlayerFile_default_instance_._instance,
@@ -724,29 +754,33 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\0132\030.modlock.wasm.persist.Op\022\022\n\nupdate_ke"
     "y\030\005 \001(\t\"M\n\013UpdateReply\022,\n\006record\030\001 \001(\0132\034"
     ".modlock.wasm.persist.Record\022\020\n\010repeated"
-    "\030\002 \001(\010\"b\n\014StoredRecord\022,\n\006record\030\001 \001(\0132\034"
-    ".modlock.wasm.persist.Record\022\023\n\013recent_k"
-    "eys\030\002 \003(\t\022\017\n\007version\030\003 \001(\004\"\262\001\n\nPlayerFil"
-    "e\022\020\n\010steam_id\030\001 \001(\004\022>\n\007records\030\002 \003(\0132-.m"
-    "odlock.wasm.persist.PlayerFile.RecordsEn"
-    "try\032R\n\014RecordsEntry\022\013\n\003key\030\001 \001(\t\0221\n\005valu"
-    "e\030\002 \001(\0132\".modlock.wasm.persist.StoredRec"
-    "ord:\0028\001*H\n\007Writers\022\023\n\017WRITERS_UNKNOWN\020\000\022"
-    "\023\n\017WRITERS_SERVERS\020\001\022\023\n\017WRITERS_PLAYERS\020"
-    "\002B5Z3github.com/paralin/modlock/src/wasm"
-    "/persist;persistb\006proto3"
+    "\030\002 \001(\010\"\360\001\n\014StoredRecord\022,\n\006record\030\001 \001(\0132"
+    "\034.modlock.wasm.persist.Record\022\023\n\013recent_"
+    "keys\030\002 \003(\t\022\017\n\007version\030\003 \001(\004\022<\n\005kinds\030\004 \003"
+    "(\0132-.modlock.wasm.persist.StoredRecord.K"
+    "indsEntry\032N\n\nKindsEntry\022\013\n\003key\030\001 \001(\t\022/\n\005"
+    "value\030\002 \001(\0162 .modlock.wasm.persist.Field"
+    ".Kind:\0028\001\"\262\001\n\nPlayerFile\022\020\n\010steam_id\030\001 \001"
+    "(\004\022>\n\007records\030\002 \003(\0132-.modlock.wasm.persi"
+    "st.PlayerFile.RecordsEntry\032R\n\014RecordsEnt"
+    "ry\022\013\n\003key\030\001 \001(\t\0221\n\005value\030\002 \001(\0132\".modlock"
+    ".wasm.persist.StoredRecord:\0028\001*H\n\007Writer"
+    "s\022\023\n\017WRITERS_UNKNOWN\020\000\022\023\n\017WRITERS_SERVER"
+    "S\020\001\022\023\n\017WRITERS_PLAYERS\020\002B5Z3github.com/p"
+    "aralin/modlock/src/wasm/persist;persistb"
+    "\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto = {
     false,
     false,
-    1824,
+    1967,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto,
     "github.com/paralin/modlock/src/wasm/persist/persist.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto_once,
     nullptr,
     0,
-    18,
+    19,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto::offsets,
@@ -5415,6 +5449,103 @@ void UpdateReply::InternalSwap(UpdateReply* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
 }
 // ===================================================================
 
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+StoredRecord_KindsEntry_DoNotUse::StoredRecord_KindsEntry_DoNotUse()
+    : SuperType(StoredRecord_KindsEntry_DoNotUse_class_data_.base()) {}
+StoredRecord_KindsEntry_DoNotUse::StoredRecord_KindsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+    : SuperType(arena, StoredRecord_KindsEntry_DoNotUse_class_data_.base()) {}
+#else   // PROTOBUF_CUSTOM_VTABLE
+StoredRecord_KindsEntry_DoNotUse::StoredRecord_KindsEntry_DoNotUse() : SuperType() {}
+StoredRecord_KindsEntry_DoNotUse::StoredRecord_KindsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+inline void* PROTOBUF_NONNULL StoredRecord_KindsEntry_DoNotUse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) StoredRecord_KindsEntry_DoNotUse(arena);
+}
+constexpr auto StoredRecord_KindsEntry_DoNotUse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(StoredRecord_KindsEntry_DoNotUse),
+                                            alignof(StoredRecord_KindsEntry_DoNotUse));
+}
+constexpr auto StoredRecord_KindsEntry_DoNotUse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_StoredRecord_KindsEntry_DoNotUse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &StoredRecord_KindsEntry_DoNotUse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<StoredRecord_KindsEntry_DoNotUse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &StoredRecord_KindsEntry_DoNotUse::SharedDtor,
+          static_cast<void (::google::protobuf::MessageLite::*)()>(&StoredRecord_KindsEntry_DoNotUse::ClearImpl),
+              ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
+              ,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_._cached_size_),
+          false,
+      },
+      &StoredRecord_KindsEntry_DoNotUse::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull StoredRecord_KindsEntry_DoNotUse_class_data_ =
+        StoredRecord_KindsEntry_DoNotUse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+StoredRecord_KindsEntry_DoNotUse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&StoredRecord_KindsEntry_DoNotUse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(StoredRecord_KindsEntry_DoNotUse_class_data_.tc_table);
+  return StoredRecord_KindsEntry_DoNotUse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 56, 2>
+StoredRecord_KindsEntry_DoNotUse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    StoredRecord_KindsEntry_DoNotUse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.wasm.persist.Field.Kind value = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(StoredRecord_KindsEntry_DoNotUse, _impl_.value_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_.value_)}},
+    // string key = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_.key_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string key = 1;
+    {PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // .modlock.wasm.persist.Field.Kind value = 2;
+    {PROTOBUF_FIELD_OFFSET(StoredRecord_KindsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+    "\54\3\0\0\0\0\0\0"
+    "modlock.wasm.persist.StoredRecord.KindsEntry"
+    "key"
+  }},
+};
+// ===================================================================
+
 class StoredRecord::_Internal {
  public:
   using HasBits =
@@ -5438,7 +5569,8 @@ PROTOBUF_NDEBUG_INLINE StoredRecord::Impl_::Impl_(
     [[maybe_unused]] const ::modlock::wasm::persist::StoredRecord& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        recent_keys_{visibility, arena, from.recent_keys_} {}
+        recent_keys_{visibility, arena, from.recent_keys_},
+        kinds_{visibility, arena, from.kinds_} {}
 
 StoredRecord::StoredRecord(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -5465,7 +5597,8 @@ PROTOBUF_NDEBUG_INLINE StoredRecord::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        recent_keys_{visibility, arena} {}
+        recent_keys_{visibility, arena},
+        kinds_{visibility, arena} {}
 
 inline void StoredRecord::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -5502,9 +5635,13 @@ constexpr auto StoredRecord::InternalNewImpl_() {
           decltype(StoredRecord::_impl_.recent_keys_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_.kinds_) +
+          decltype(StoredRecord::_impl_.kinds_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
   });
   if (arena_bits.has_value()) {
-    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
         sizeof(StoredRecord), alignof(StoredRecord), *arena_bits);
   } else {
     return ::google::protobuf::internal::MessageCreator(&StoredRecord::PlacementNew_,
@@ -5546,17 +5683,17 @@ StoredRecord::GetClassData() const {
   return StoredRecord_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 1, 53, 2>
+const ::_pbi::TcParseTable<2, 4, 2, 58, 2>
 StoredRecord::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
-    1,  // num_aux_entries
+    4,  // num_field_entries
+    2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     StoredRecord_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -5587,14 +5724,19 @@ StoredRecord::_table_ = {
     {PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_.recent_keys_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
     // uint64 version = 3;
     {PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_.version_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // map<string, .modlock.wasm.persist.Field.Kind> kinds = 4;
+    {PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_.kinds_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::persist::Record>()},
+      {::_pbi::TcParser::GetMapAuxInfo(
+          1, 0, 9, 14, 0)},
   }},
   {{
-    "\41\0\13\0\0\0\0\0"
+    "\41\0\13\0\5\0\0\0"
     "modlock.wasm.persist.StoredRecord"
     "recent_keys"
+    "kinds"
   }},
 };
 PROTOBUF_NOINLINE void StoredRecord::Clear() {
@@ -5614,7 +5756,12 @@ PROTOBUF_NOINLINE void StoredRecord::Clear() {
       _impl_.record_->Clear();
     }
   }
-  _impl_.version_ = ::uint64_t{0u};
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
+    _impl_.version_ = ::uint64_t{0u};
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      _impl_.kinds_.Clear();
+    }
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -5664,6 +5811,35 @@ PROTOBUF_NOINLINE void StoredRecord::Clear() {
     }
   }
 
+  // map<string, .modlock.wasm.persist.Field.Kind> kinds = 4;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    if (!this_._internal_kinds().empty()) {
+      using MapType = ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>;
+      using WireHelper = _pbi::MapEntryFuncs<::std::string, ::modlock::wasm::persist::Field_Kind,
+                                     _pbi::WireFormatLite::TYPE_STRING,
+                                     _pbi::WireFormatLite::TYPE_ENUM>;
+      const auto& field = this_._internal_kinds();
+
+      if (stream->IsSerializationDeterministic() && field.size() > 1) {
+        for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
+          target = WireHelper::InternalSerialize(
+              4, entry.first, entry.second, target, stream);
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.persist.StoredRecord.kinds");
+        }
+      } else {
+        for (const auto& entry : field) {
+          target = WireHelper::InternalSerialize(
+              4, entry.first, entry.second, target, stream);
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.persist.StoredRecord.kinds");
+        }
+      }
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -5689,7 +5865,7 @@ PROTOBUF_NOINLINE void StoredRecord::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     // repeated string recent_keys = 2;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size +=
@@ -5709,6 +5885,16 @@ PROTOBUF_NOINLINE void StoredRecord::Clear() {
       if (this_._internal_version() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_version());
+      }
+    }
+    // map<string, .modlock.wasm.persist.Field.Kind> kinds = 4;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_kinds_size());
+      for (const auto& entry : this_._internal_kinds()) {
+        total_size += _pbi::MapEntryFuncs<::std::string, ::modlock::wasm::persist::Field_Kind,
+                                       _pbi::WireFormatLite::TYPE_STRING,
+                                       _pbi::WireFormatLite::TYPE_ENUM>::ByteSizeLong(entry.first, entry.second);
       }
     }
   }
@@ -5731,7 +5917,7 @@ void StoredRecord::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_recent_keys()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -5749,6 +5935,9 @@ void StoredRecord::MergeImpl(::google::protobuf::MessageLite& to_msg,
       if (from._internal_version() != 0) {
         _this->_impl_.version_ = from._impl_.version_;
       }
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      _this->_impl_.kinds_.MergeFrom(from._impl_.kinds_);
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -5775,6 +5964,7 @@ void StoredRecord::InternalSwap(StoredRecord* PROTOBUF_RESTRICT PROTOBUF_NONNULL
       - PROTOBUF_FIELD_OFFSET(StoredRecord, _impl_.record_)>(
           reinterpret_cast<char*>(&_impl_.record_),
           reinterpret_cast<char*>(&other->_impl_.record_));
+  _impl_.kinds_.InternalSwap(&other->_impl_.kinds_);
 }
 
 ::google::protobuf::Metadata StoredRecord::GetMetadata() const {

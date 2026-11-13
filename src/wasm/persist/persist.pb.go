@@ -657,6 +657,9 @@ type StoredRecord struct {
 	RecentKeys []string `protobuf:"bytes,2,rep,name=recent_keys,json=recentKeys,proto3" json:"recentKeys,omitempty"`
 	// Version counts the updates that changed the record.
 	Version uint64 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	// Kinds are the kinds of the fields that wrote each value in record, so a
+	// value is changed only by a field of the same kind.
+	Kinds map[string]Field_Kind `protobuf:"bytes,4,rep,name=kinds,proto3" json:"kinds,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 }
 
 func (x *StoredRecord) Reset() {
@@ -684,6 +687,13 @@ func (x *StoredRecord) GetVersion() uint64 {
 		return x.Version
 	}
 	return 0
+}
+
+func (x *StoredRecord) GetKinds() map[string]Field_Kind {
+	if x != nil {
+		return x.Kinds
+	}
+	return nil
 }
 
 // PlayerFile is the file a local host keeps for one player of one mod: the
@@ -765,6 +775,32 @@ func (x *Record_FieldsEntry) GetValue() *Value {
 		return x.Value
 	}
 	return nil
+}
+
+type StoredRecord_KindsEntry struct {
+	unknownFields []byte
+	Key           string     `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         Field_Kind `protobuf:"varint,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *StoredRecord_KindsEntry) Reset() {
+	*x = StoredRecord_KindsEntry{}
+}
+
+func (*StoredRecord_KindsEntry) ProtoMessage() {}
+
+func (x *StoredRecord_KindsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *StoredRecord_KindsEntry) GetValue() Field_Kind {
+	if x != nil {
+		return x.Value
+	}
+	return Field_KIND_UNKNOWN
 }
 
 type PlayerFile_RecordsEntry struct {
@@ -1143,6 +1179,7 @@ func (m *StoredRecord) CloneVT() *StoredRecord {
 	r.Version = m.Version
 	r.Record = protobuf_go_lite.CloneVTValue(m.Record)
 	r.RecentKeys = protobuf_go_lite.CloneSlice(m.RecentKeys)
+	r.Kinds = protobuf_go_lite.CloneMap(m.Kinds)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1649,6 +1686,9 @@ func (this *StoredRecord) EqualVT(that *StoredRecord) bool {
 		return false
 	}
 	if this.Version != that.Version {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Kinds, that.Kinds) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2700,6 +2740,56 @@ func (x *UpdateReply) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the StoredRecord_KindsEntry message to JSON.
+func (x *StoredRecord_KindsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		x.Value.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the StoredRecord_KindsEntry to JSON.
+func (x *StoredRecord_KindsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the StoredRecord_KindsEntry message from JSON.
+func (x *StoredRecord_KindsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the StoredRecord_KindsEntry from JSON.
+func (x *StoredRecord_KindsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the StoredRecord message to JSON.
 func (x *StoredRecord) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2722,6 +2812,19 @@ func (x *StoredRecord) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("version")
 		s.WriteUint64(x.Version)
+	}
+	if x.Kinds != nil || s.HasField("kinds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kinds")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Kinds)) {
+			v := x.Kinds[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			v.MarshalProtoJSON(s)
+		}
+		s.WriteObjectEnd()
 	}
 	s.WriteObjectEnd()
 }
@@ -2757,6 +2860,18 @@ func (x *StoredRecord) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "version":
 			s.AddField("version")
 			x.Version = s.ReadUint64()
+		case "kinds":
+			s.AddField("kinds")
+			if s.ReadNil() {
+				x.Kinds = nil
+				return
+			}
+			x.Kinds = make(map[string]Field_Kind)
+			s.ReadStringMap(func(key string) {
+				var v Field_Kind
+				v.UnmarshalProtoJSON(s)
+				x.Kinds[key] = v
+			})
 		}
 	})
 }
@@ -3670,6 +3785,21 @@ func (m *StoredRecord) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Kinds) > 0 {
+		for k := range m.Kinds {
+			v := m.Kinds[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(v))
+			i--
+			dAtA[i] = 0x10
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
 	if m.Version != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Version))
 		i--
@@ -4057,6 +4187,12 @@ func (m *StoredRecord) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringSlice(1, m.RecentKeys)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Version)
+	for k, v := range m.Kinds {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeVarintValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -4437,6 +4573,24 @@ func (x *UpdateReply) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *StoredRecord_KindsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "KindsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteStringer(&sb, Field_Kind(x.Value))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *StoredRecord_KindsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *StoredRecord) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "StoredRecord")
@@ -4455,6 +4609,17 @@ func (x *StoredRecord) MarshalProtoText() string {
 	if x.Version != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "version")
 		protobuf_go_lite.TextWriteUint(&sb, x.Version)
+	}
+	if len(x.Kinds) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "kinds")
+		for _, k := range slices.Sorted(maps.Keys(x.Kinds)) {
+			v := x.Kinds[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteStringer(&sb, Field_Kind(v))
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5594,6 +5759,50 @@ func (m *StoredRecord) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kinds", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Kinds == nil {
+				m.Kinds = make(map[string]Field_Kind)
+			}
+			var mapkey string
+			var mapvalue Field_Kind
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					mapvalue = Field_Kind(_v)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Kinds[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

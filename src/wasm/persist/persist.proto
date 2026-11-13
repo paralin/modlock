@@ -209,6 +209,10 @@ message StoredRecord {
 
   // Version counts the updates that changed the record.
   uint64 version = 3;
+
+  // Kinds are the kinds of the fields that wrote each value in record, so a
+  // value is changed only by a field of the same kind.
+  map<string, Field.Kind> kinds = 4;
 }
 
 // PlayerFile is the file a local host keeps for one player of one mod: the

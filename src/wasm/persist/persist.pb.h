@@ -122,6 +122,10 @@ class StoredRecord;
 struct StoredRecordDefaultTypeInternal;
 MODLOCK_API extern StoredRecordDefaultTypeInternal _StoredRecord_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StoredRecord_class_data_;
+class StoredRecord_KindsEntry_DoNotUse;
+struct StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern StoredRecord_KindsEntry_DoNotUseDefaultTypeInternal _StoredRecord_KindsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StoredRecord_KindsEntry_DoNotUse_class_data_;
 class Tags;
 struct TagsDefaultTypeInternal;
 MODLOCK_API extern TagsDefaultTypeInternal _Tags_default_instance_;
@@ -438,6 +442,45 @@ class MODLOCK_API Tags final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Tags_class_data_;
+// -------------------------------------------------------------------
+
+class StoredRecord_KindsEntry_DoNotUse final
+    : public ::google::protobuf::internal::MapEntry<::std::string, ::modlock::wasm::persist::Field_Kind,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_ENUM> {
+ public:
+  using SuperType =
+      ::google::protobuf::internal::MapEntry<::std::string, ::modlock::wasm::persist::Field_Kind,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>;
+  StoredRecord_KindsEntry_DoNotUse();
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR StoredRecord_KindsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit StoredRecord_KindsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
+    return &_StoredRecord_KindsEntry_DoNotUse_default_instance_;
+  }
+
+
+  static constexpr auto InternalGenerateClassData_();
+
+ private:
+  friend class ::google::protobuf::MessageLite;
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 56,
+                                   2>
+      _table_;
+
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+};
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StoredRecord_KindsEntry_DoNotUse_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API GetRequest final : public ::google::protobuf::Message
@@ -2693,7 +2736,7 @@ class MODLOCK_API StoredRecord final : public ::google::protobuf::Message
     return *reinterpret_cast<const StoredRecord*>(
         &_StoredRecord_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(StoredRecord& a, StoredRecord& b) { a.Swap(&b); }
   inline void Swap(StoredRecord* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2783,6 +2826,7 @@ class MODLOCK_API StoredRecord final : public ::google::protobuf::Message
     kRecentKeysFieldNumber = 2,
     kRecordFieldNumber = 1,
     kVersionFieldNumber = 3,
+    kKindsFieldNumber = 4,
   };
   // repeated string recent_keys = 2;
   int recent_keys_size() const;
@@ -2831,12 +2875,27 @@ class MODLOCK_API StoredRecord final : public ::google::protobuf::Message
   void _internal_set_version(::uint64_t value);
 
   public:
+  // map<string, .modlock.wasm.persist.Field.Kind> kinds = 4;
+  int kinds_size() const;
+  private:
+  int _internal_kinds_size() const;
+
+  public:
+  void clear_kinds() ;
+  const ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>& kinds() const;
+  ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>* PROTOBUF_NONNULL mutable_kinds();
+
+  private:
+  const ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>& _internal_kinds() const;
+  ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>* PROTOBUF_NONNULL _internal_mutable_kinds();
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.persist.StoredRecord)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   1, 53,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   2, 58,
                                    2>
       _table_;
 
@@ -2860,6 +2919,10 @@ class MODLOCK_API StoredRecord final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField<::std::string> recent_keys_;
     ::modlock::wasm::persist::Record* PROTOBUF_NULLABLE record_;
     ::uint64_t version_;
+    ::google::protobuf::internal::MapField<StoredRecord_KindsEntry_DoNotUse, ::std::string, ::modlock::wasm::persist::Field_Kind,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>
+        kinds_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3562,7 +3625,7 @@ class MODLOCK_API PlayerFile final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerFile*>(
         &_PlayerFile_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(PlayerFile& a, PlayerFile& b) { a.Swap(&b); }
   inline void Swap(PlayerFile* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5627,6 +5690,8 @@ inline void UpdateReply::_internal_set_repeated(bool value) {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 // StoredRecord
 
 // .modlock.wasm.persist.Record record = 1;
@@ -5823,6 +5888,38 @@ inline ::uint64_t StoredRecord::_internal_version() const {
 inline void StoredRecord::_internal_set_version(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.version_ = value;
+}
+
+// map<string, .modlock.wasm.persist.Field.Kind> kinds = 4;
+inline int StoredRecord::_internal_kinds_size() const {
+  return _internal_kinds().size();
+}
+inline int StoredRecord::kinds_size() const {
+  return _internal_kinds_size();
+}
+inline void StoredRecord::clear_kinds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.kinds_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline const ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>& StoredRecord::_internal_kinds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.kinds_.GetMap();
+}
+inline const ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>& StoredRecord::kinds() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.persist.StoredRecord.kinds)
+  return _internal_kinds();
+}
+inline ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>* PROTOBUF_NONNULL StoredRecord::_internal_mutable_kinds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.kinds_.MutableMap();
+}
+inline ::google::protobuf::Map<::std::string, ::modlock::wasm::persist::Field_Kind>* PROTOBUF_NONNULL StoredRecord::mutable_kinds()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.persist.StoredRecord.kinds)
+  return _internal_mutable_kinds();
 }
 
 // -------------------------------------------------------------------

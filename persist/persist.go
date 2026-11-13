@@ -171,6 +171,9 @@ func Apply(recordType *persistpb.RecordType, stored *persistpb.StoredRecord, ops
 	if next.Record.Fields == nil {
 		next.Record.Fields = map[string]*persistpb.Value{}
 	}
+	if next.Kinds == nil {
+		next.Kinds = map[string]persistpb.Field_Kind{}
+	}
 
 	// Apply each op to its field.
 	for _, op := range ops {
@@ -178,11 +181,12 @@ func Apply(recordType *persistpb.RecordType, stored *persistpb.StoredRecord, ops
 		if declared == nil {
 			return nil, false, refuse("persist record type %s declares no field %q", recordType.GetName(), op.GetField())
 		}
-		value, err := applyOp(declared, next.Record.Fields[op.GetField()], op)
+		value, err := applyOp(declared, next.Kinds[op.GetField()], next.Record.Fields[op.GetField()], op)
 		if err != nil {
 			return nil, false, err
 		}
 		next.Record.Fields[op.GetField()] = value
+		next.Kinds[op.GetField()] = declared.GetKind()
 	}
 
 	// Check the result's size, and remember the key.
@@ -210,9 +214,14 @@ func hasAdd(ops []*persistpb.Op) bool {
 	return false
 }
 
-// holds reports whether value, as stored, is of a field of kind: a number
-// for a count, number or max, text for a string, and tags for tags.
-func holds(kind persistpb.Field_Kind, value *persistpb.Value) bool {
+// holds reports whether value, as stored by a field of kind wrote, may be
+// changed by a field of kind: only when the kinds are the same, so a best
+// score kept by a max is never added to by a count. A value with no recorded
+// kind is held by no field.
+func holds(kind, wrote persistpb.Field_Kind, value *persistpb.Value) bool {
+	if wrote != kind {
+		return false
+	}
 	switch value.GetValue().(type) {
 	case *persistpb.Value_Number:
 		return kind == persistpb.Field_KIND_COUNT || kind == persistpb.Field_KIND_NUMBER || kind == persistpb.Field_KIND_MAX
@@ -224,13 +233,14 @@ func holds(kind persistpb.Field_Kind, value *persistpb.Value) bool {
 	return false
 }
 
-// applyOp returns value, a field's current value or nil, changed by op. It
-// refuses an op on a value of another kind than the field's, such as text an
-// earlier build stored in a field this build counts, rather than read the
-// value as the new kind.
-func applyOp(field *persistpb.Field, value *persistpb.Value, op *persistpb.Op) (*persistpb.Value, error) {
+// applyOp returns value, a field's current value or nil, changed by op. wrote
+// is the kind of the field that stored value. It refuses an op on a value of
+// another kind than the field's, such as a best score an earlier build kept
+// with a max in a field this build counts, rather than read the value as the
+// new kind.
+func applyOp(field *persistpb.Field, wrote persistpb.Field_Kind, value *persistpb.Value, op *persistpb.Op) (*persistpb.Value, error) {
 	name := op.GetField()
-	if value.GetValue() != nil && !holds(field.GetKind(), value) {
+	if value.GetValue() != nil && !holds(field.GetKind(), wrote, value) {
 		return nil, refuse("persist field %s holds a value of another kind than this release's %s, kept by an earlier release; the record is unchanged", name, kindName(field.GetKind()))
 	}
 	number := func(v float64) (*persistpb.Value, error) {

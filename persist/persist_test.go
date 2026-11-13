@@ -186,7 +186,11 @@ func TestApplyKinds(t *testing.T) {
 		"title":     {Value: &persistpb.Value_Number{Number: 3}},
 		"unlocks":   {Value: &persistpb.Value_Text{Text: "cone"}},
 		"roundsWon": {Value: &persistpb.Value_Number{Number: 2}},
-	}}}
+	}}, Kinds: map[string]persistpb.Field_Kind{
+		"title":     persistpb.Field_KIND_COUNT,
+		"unlocks":   persistpb.Field_KIND_STRING,
+		"roundsWon": persistpb.Field_KIND_COUNT,
+	}}
 	_, _, err := Apply(stats, stored, []*persistpb.Op{setText("title", "hider")}, "")
 	refused(t, err, "another kind than this release's KIND_STRING")
 	_, _, err = Apply(stats, stored, []*persistpb.Op{insert("unlocks", "hat")}, "")
@@ -199,6 +203,57 @@ func TestApplyKinds(t *testing.T) {
 	next, _, err := Apply(stats, stored, []*persistpb.Op{add("roundsWon", 1)}, "round-1")
 	if err != nil || next.GetRecord().GetFields()["roundsWon"].GetNumber() != 3 {
 		t.Fatal(next, err)
+	}
+}
+
+// TestApplyNumberKinds refuses an op on a number stored by a field of another
+// of the three number kinds, for each pair both ways, so a count never adds
+// to a best score a max kept. A number of the same kind takes the op, and a
+// number with no recorded kind takes none.
+func TestApplyNumberKinds(t *testing.T) {
+	// opFor is an op each kind takes.
+	opFor := map[persistpb.Field_Kind]*persistpb.Op{
+		persistpb.Field_KIND_COUNT:  add("f", 1),
+		persistpb.Field_KIND_NUMBER: add("f", 1),
+		persistpb.Field_KIND_MAX:    {Field: "f", Op: &persistpb.Op_Max{Max: 100}},
+	}
+	kinds := []persistpb.Field_Kind{persistpb.Field_KIND_COUNT, persistpb.Field_KIND_NUMBER, persistpb.Field_KIND_MAX}
+	stored := func(wrote persistpb.Field_Kind) *persistpb.StoredRecord {
+		return &persistpb.StoredRecord{
+			Record: &persistpb.Record{Fields: map[string]*persistpb.Value{"f": {Value: &persistpb.Value_Number{Number: 40}}}},
+			Kinds:  map[string]persistpb.Field_Kind{"f": wrote},
+		}
+	}
+	typeOf := func(kind persistpb.Field_Kind) *persistpb.RecordType {
+		return &persistpb.RecordType{Name: "t", Writers: persistpb.Writers_WRITERS_SERVERS, Fields: map[string]*persistpb.Field{"f": {Kind: kind}}}
+	}
+	for _, wrote := range kinds {
+		for _, now := range kinds {
+			was := stored(wrote)
+			next, _, err := Apply(typeOf(now), was, []*persistpb.Op{opFor[now]}, "k")
+			if wrote == now {
+				if err != nil || next.GetKinds()["f"] != now {
+					t.Fatalf("%s on its own kind: %v %v", kindName(now), next, err)
+				}
+				continue
+			}
+			if err == nil || !strings.Contains(err.Error(), "another kind") || next != nil {
+				t.Fatalf("%s on a number a %s stored: %v %v", kindName(now), kindName(wrote), next, err)
+			}
+			if was.GetRecord().GetFields()["f"].GetNumber() != 40 {
+				t.Fatalf("%s on a %s changed the stored value", kindName(now), kindName(wrote))
+			}
+		}
+	}
+
+	// A number with no recorded kind is held by no field.
+	_, _, err := Apply(typeOf(persistpb.Field_KIND_COUNT), stored(persistpb.Field_KIND_UNKNOWN), []*persistpb.Op{add("f", 1)}, "k")
+	refused(t, err, "another kind")
+
+	// A first write records the field's kind.
+	next, _, err := Apply(stats, nil, []*persistpb.Op{add("roundsWon", 1), {Field: "bestHide", Op: &persistpb.Op_Max{Max: 3}}}, "k")
+	if err != nil || next.GetKinds()["roundsWon"] != persistpb.Field_KIND_COUNT || next.GetKinds()["bestHide"] != persistpb.Field_KIND_MAX {
+		t.Fatal("a first write's kinds", next.GetKinds(), err)
 	}
 }
 
