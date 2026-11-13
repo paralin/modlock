@@ -67,7 +67,11 @@ func newLocalPersist(out *printer, dirs []string) (*localPersist, error) {
 				return nil, err
 			}
 		}
-		local.mods[slug] = &persistMod{manifest: manifest, store: persist.NewStore(records)}
+		store, err := persist.Open(records)
+		if err != nil {
+			return nil, err
+		}
+		local.mods[slug] = &persistMod{manifest: manifest, store: store}
 		out.mark("·", dim, slug+": service persist: kept in "+records)
 	}
 	return local, nil

@@ -213,10 +213,10 @@ func TestApplyLimits(t *testing.T) {
 func TestStoreSurvivesRestart(t *testing.T) {
 	// A record written by one store reads back from a new one on the files.
 	dir := t.TempDir()
-	if _, _, err := NewStore(dir).Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 3)}, "round-1"); err != nil {
+	if _, _, err := newStore(dir).Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 3)}, "round-1"); err != nil {
 		t.Fatal(err)
 	}
-	restarted := NewStore(dir)
+	restarted := newStore(dir)
 	record, err := restarted.Get(76561197960265728, stats)
 	if err != nil || record.GetFields()["roundsWon"].GetNumber() != 3 {
 		t.Fatalf("after restart: %v %v", record, err)
@@ -244,7 +244,7 @@ func TestStoreRefusesLargeFile(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "1.json"), make([]byte, FileBytes+1), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := NewStore(dir).Get(1, stats); err == nil || !strings.Contains(err.Error(), "past the") {
+	if _, err := newStore(dir).Get(1, stats); err == nil || !strings.Contains(err.Error(), "past the") {
 		t.Fatalf("want the bound, got %v", err)
 	}
 }
@@ -252,7 +252,7 @@ func TestStoreRefusesLargeFile(t *testing.T) {
 // TestTwoWritersBothLand is the conflict of two servers that update one
 // player's record at once: every add lands, and a set's later write wins.
 func TestTwoWritersBothLand(t *testing.T) {
-	store := NewStore(t.TempDir())
+	store := newStore(t.TempDir())
 	const each = 50
 	var wg sync.WaitGroup
 	for server := range 2 {
@@ -279,7 +279,7 @@ func TestTwoWritersBothLand(t *testing.T) {
 }
 
 func TestAnswer(t *testing.T) {
-	store := NewStore(t.TempDir())
+	store := newStore(t.TempDir())
 	m := manifest()
 	players := func(slot int32) (uint64, bool) { return 100 + uint64(slot), slot < 4 }
 	call := func(method string, request interface{ MarshalVT() ([]byte, error) }) ([]byte, error) {
