@@ -2,15 +2,17 @@ import './global.css'
 
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
 import { LanguageSelect } from '@/components/language'
+import { Logo } from '@/components/logo'
 import { Provider } from '@/components/provider'
 import { defaultLanguage, restoreScript } from '@/lib/language'
 import { repositoryUrl, siteDescription, siteName } from '@/lib/site'
 import { source } from '@/lib/source'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-code' })
 
 export const metadata: Metadata = {
   title: { default: siteName, template: `%s | ${siteName}` },
@@ -22,7 +24,7 @@ export default function Layout({ children }: LayoutProps<'/'>) {
     <html
       lang="en"
       data-lang={defaultLanguage}
-      className={inter.className}
+      className={`${inter.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -32,7 +34,7 @@ export default function Layout({ children }: LayoutProps<'/'>) {
         <Provider>
           <DocsLayout
             tree={source.getPageTree()}
-            nav={{ title: siteName }}
+            nav={{ title: <Logo /> }}
             githubUrl={repositoryUrl}
             sidebar={{ banner: <LanguageSelect /> }}
           >

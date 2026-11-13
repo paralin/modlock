@@ -3,10 +3,10 @@ title: Modlock
 description: Custom game modes for Deadlock, in the language you like.
 ---
 
-Modlock is a tool for writing the logic of [Deadlock](https://store.steampowered.com/app/1422450/Deadlock/)
-custom game modes by hand. You write a mod in TypeScript, Luau, Python or
-Go. Modlock builds it for WebAssembly, and the game server runs it in a
-sandbox. Every language sees the same events and makes the same calls.
+<Hero />
+
+Every language sees the same events and makes the same calls. This mod answers
+`/hello` in chat:
 
 <Samples>
 
@@ -51,9 +51,6 @@ func main() {}
 
 </Samples>
 
-Pick your language with the switch in the sidebar, or on any sample. Every
-sample on the site follows it.
-
 <Callout title="Early development">
   The library may change between any two releases. TypeScript, JavaScript, Luau,
   Python and Go mods, the `modlock` command and `modlock publish` all work
@@ -63,41 +60,48 @@ sample on the site follows it.
 ## Where to go
 
 <Cards>
-  <Card title="Install" href="/start/install">
+  <Card icon={<Download />} title="Install" href="/start/install">
     Get the `modlock` command, the one program you need.
   </Card>
-  <Card title="Your first mod" href="/start/first-mod">
+  <Card icon={<Rocket />} title="Your first mod" href="/start/first-mod">
     Make a project, run it in the game and change it while it runs.
   </Card>
-  <Card title="Tutorial" href="/start/tutorial">
+  <Card icon={<GraduationCap />} title="Tutorial" href="/start/tutorial">
     Build a small brawl with a countdown, a score, a HUD and a sign.
   </Card>
-  <Card title="Guides" href="/guides/events">
+  <Card icon={<BookOpen />} title="Guides" href="/guides/events">
     One page for each thing a mod does: players, timers, damage, the world.
   </Card>
-  <Card title="Mechanics" href="/mechanics/ready-up">
+  <Card icon={<Swords />} title="Mechanics" href="/mechanics/ready-up">
     Recipes for whole mechanics: a countdown, kill scoring, a hill, a race.
   </Card>
-  <Card title="Reference" href="/reference/cli">
+  <Card icon={<SquareTerminal />} title="Reference" href="/reference/cli">
     Every command, every manifest field and how to publish.
   </Card>
 </Cards>
 
 ## Why WebAssembly
 
-- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server. It
-  has no files, network or environment, only the calls the schema offers. A
-  crash, an endless loop or a runaway allocation stops that mod with a log
-  line and leaves the match running. A slow event finishes, and the players
-  hear of it in chat. Any player can restart a stopped or slow mod with
-  `/restartmod`.
-- **Any language.** Anything that compiles to WebAssembly can be a mod, with a
-  small library per language.
-- **Built once.** A mod is one portable `.wasm` file that runs on any build of
-  the server.
-- **Fast.** Wasmtime compiles mods to machine code with Cranelift, and the
-  server calls them in the game frame, so a mod can decide whether to claim a
-  command or change a frame as it happens.
+<Cards>
+  <Card icon={<ShieldCheck />} title="Safe to share">
+    A mod runs in a [Wasmtime] sandbox inside the server, with no files, network
+    or environment, only the calls the schema offers. A crash, an endless loop
+    or a runaway allocation stops that mod with a log line and leaves the match
+    running, and any player can restart it with `/restartmod`.
+  </Card>
+  <Card icon={<Languages />} title="Any language">
+    Anything that compiles to WebAssembly can be a mod, with a small library per
+    language.
+  </Card>
+  <Card icon={<Package />} title="Built once">
+    A mod is one portable `.wasm` file that runs on any build of the server.
+  </Card>
+  <Card icon={<Zap />} title="Fast">
+    Wasmtime compiles mods to machine code with Cranelift, and the server calls
+    them in the game frame, so a mod can claim a command or change a frame as it
+    happens.
+  </Card>
+</Cards>
 
 [Wasmtime]: https://wasmtime.dev
 

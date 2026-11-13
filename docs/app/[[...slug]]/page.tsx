@@ -37,17 +37,24 @@ export default async function Page(props: PageProps<'/[[...slug]]'>) {
   ].join('/')
   const editUrl = `${repositoryUrl}/blob/${repository.branch}/${repository.contentDir}/${encodeURI(page.path)}`
 
+  // The home page opens with its own hero in place of the title and controls.
+  const home = page.slugs.length === 0
+
   // The page draws its title, the controls and then the body.
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">
-        {page.data.description}
-      </DocsDescription>
-      <div className="flex flex-row items-center gap-2 border-b pb-6">
-        <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={editUrl} />
-      </div>
+      {!home && (
+        <>
+          <DocsTitle>{page.data.title}</DocsTitle>
+          <DocsDescription className="mb-0">
+            {page.data.description}
+          </DocsDescription>
+          <div className="flex flex-row items-center gap-2 border-b pb-6">
+            <MarkdownCopyButton markdownUrl={markdownUrl} />
+            <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={editUrl} />
+          </div>
+        </>
+      )}
       <DocsBody>
         <MDX
           components={getMDXComponents({ a: createRelativeLink(source, page) })}

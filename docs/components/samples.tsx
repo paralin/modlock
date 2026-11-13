@@ -22,17 +22,25 @@ export function Samples({
   const first = held[0]
   return (
     <div data-samples="" data-langs={langs}>
-      {held.length > 1 && <LanguageButtons ids={held} />}
-      {first !== undefined &&
-        languages
-          .filter((language) => !held.includes(language.id))
-          .map((language) => (
-            <p key={language.id} data-missing={language.id}>
-              {held.length === 1
-                ? `This is ${languageName(first)} only.`
-                : `No ${language.name} sample yet. Showing ${languageName(first)}.`}
-            </p>
-          ))}
+      <div data-samples-bar="">
+        {held.length > 1 ? (
+          <LanguageButtons ids={held} />
+        ) : (
+          first !== undefined && (
+            <span data-samples-name="">{languageName(first)}</span>
+          )
+        )}
+        {first !== undefined &&
+          languages
+            .filter((language) => !held.includes(language.id))
+            .map((language) => (
+              <span key={language.id} data-missing={language.id}>
+                {held.length === 1
+                  ? `${languageName(first)} only`
+                  : `No ${language.name} sample yet`}
+              </span>
+            ))}
+      </div>
       {children}
     </div>
   )
