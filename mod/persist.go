@@ -76,8 +76,9 @@ func (p Player) GetRecord(recordType string, done func(*PersistRecord, error)) {
 // UpdateRecord changes the player's record of recordType by ops, which the
 // host applies all or none, so two servers that update one record at once
 // both land. With a key, such as a round's, an update the host already took
-// is left out and done hears repeated. done runs in a later frame and may be
-// nil.
+// is left out and done hears repeated. An update with a PersistAdd needs a
+// key, since a resend without one would count twice; the host refuses it
+// otherwise. done runs in a later frame and may be nil.
 func (p Player) UpdateRecord(recordType string, ops []*PersistOp, key string, done func(record *PersistRecord, repeated bool, err error)) {
 	if done == nil {
 		done = func(*PersistRecord, bool, error) {}

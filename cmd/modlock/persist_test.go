@@ -61,7 +61,7 @@ func TestLocalPersist(t *testing.T) {
 		return nil, nil
 	})
 	update := func(slot int32) error {
-		payload, _ := (&persistpb.UpdateRequest{Player: slot, Type: "stats", Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}}}).MarshalVT()
+		payload, _ := (&persistpb.UpdateRequest{Player: slot, Type: "stats", UpdateKey: "round-1", Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}}}).MarshalVT()
 		_, err := answer(t.Context(), &control.ServiceCall{Mod: "prophunt", Service: "persist", Method: "Update", Payload: payload})
 		return err
 	}

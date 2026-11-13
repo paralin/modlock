@@ -51,7 +51,10 @@ export type PersistChanges = Readonly<
 
 /** PersistOptions describe one update. */
 export interface PersistOptions {
-  /** key identifies the change, such as a round, so a resent update counts once. */
+  /**
+   * key identifies the change, such as a round, so a resent update counts
+   * once. An update that adds needs one.
+   */
   key?: string
   /** record selects the record; leave it unset, as hosts keep one record of each type for now. */
   record?: string
@@ -197,8 +200,10 @@ export const persist = {
   /**
    * update changes player's record of type by changes, which the host
    * applies all or none. With a key, an update the host already took is left
-   * out, so resending after a lost answer counts once. persist.get answers
-   * the changed record once the host has answered, and done runs then.
+   * out, so resending after a lost answer counts once. An update with an add
+   * and no key is refused without being sent, since a resend would count it
+   * twice. persist.get answers the changed record once the host has
+   * answered, and done runs then.
    */
   update(
     player: Player,
@@ -207,6 +212,15 @@ export const persist = {
     options: PersistOptions = {},
     done?: PersistDone,
   ): void {
+    // An add needs a key, as the host requires.
+    const ops = encode(changes)
+    if (!options.key && ops.some((op) => op.op?.case === 'add')) {
+      const why =
+        'a persist update that adds needs an update key, so a resend counts once'
+      log(`persist ${type} update: ${why}`)
+      done?.(undefined, why)
+      return
+    }
     const known = entry(player, type)
     const request = start(known)
     callServiceLater(
@@ -216,7 +230,7 @@ export const persist = {
         player: player.slot,
         type,
         key: options.record,
-        ops: encode(changes),
+        ops,
         updateKey: options.key,
       }),
       (reply, error) => {
