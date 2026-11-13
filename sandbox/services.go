@@ -52,7 +52,11 @@ func (s *Sandbox) provide(path string, build *Build) error {
 			}
 			dir = temp
 		}
-		build.records = persist.NewStore(dir)
+		records, err := persist.Open(dir)
+		if err != nil {
+			return err
+		}
+		build.records = records
 		s.log(mod, "service "+persist.Service+": the sandbox, kept in "+dir)
 	}
 
