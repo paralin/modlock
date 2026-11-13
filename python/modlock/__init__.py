@@ -5058,7 +5058,14 @@ def command[F: Callable[[Player, str], object]](name: str) -> Callable[[F], F]:
     or their client sends the console command name to the server. The
     handler runs with the next server frame, before the frame handlers, and
     receives the text after the name, trimmed of surrounding spaces.
-    Registering a name again replaces its handler."""
+    Registering a name again replaces its handler.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.command("hello")
+        def hello(player: modlock.Player, args: str) -> None: ...
+    """
 
     def register(handler: F) -> F:
         _commands[name] = handler
@@ -5069,13 +5076,27 @@ def command[F: Callable[[Player, str], object]](name: str) -> Callable[[F], F]:
 
 def on_start[F: Callable[[list[str]], object]](handler: F) -> F:
     """on_start calls handler once when the server starts the mod, with the
-    arguments that follow -- on the modlock-host command line."""
+    arguments that follow -- on the modlock-host command line.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_start
+        def start(args: list[str]) -> None: ...
+    """
     _starts.append(handler)
     return handler
 
 
 def on_frame[F: Callable[[FrameEvent], object]](handler: F) -> F:
-    """on_frame calls handler once per server frame."""
+    """on_frame calls handler once per server frame.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_frame
+        def frame(event: modlock.FrameEvent) -> None: ...
+    """
     _frames.append(handler)
     return handler
 
@@ -5200,7 +5221,14 @@ def _advance_timers(seconds: float) -> None:
 def on_world[F: Callable[[str], object]](handler: F) -> F:
     """on_world calls handler with the map's name each time a world loads,
     and at start when one already has. Objects and bots from an earlier
-    world are gone by then."""
+    world are gone by then.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_world
+        def world(map: str) -> None: ...
+    """
     _worlds.append(handler)
     return handler
 
@@ -5208,7 +5236,14 @@ def on_world[F: Callable[[str], object]](handler: F) -> F:
 def on_input[F: Callable[[Player, Buttons, Buttons], object]](handler: F) -> F:
     """on_input calls handler with the watched buttons a player pressed and
     released before the next frame. A button is held from its press until
-    its release."""
+    its release.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_input
+        def input(player: modlock.Player, pressed: modlock.Buttons, released: modlock.Buttons) -> None: ...
+    """
     _inputs.append(handler)
     return handler
 
@@ -5216,14 +5251,28 @@ def on_input[F: Callable[[Player, Buttons, Buttons], object]](handler: F) -> F:
 def on_restored[F: Callable[[Player, str | None], object]](handler: F) -> F:
     """on_restored calls handler when a player's Player.restore_hero ends:
     the error is None once the target held for a second, or says why it did
-    not."""
+    not.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_restored
+        def restored(player: modlock.Player, error: str | None) -> None: ...
+    """
     _restoreds.append(handler)
     return handler
 
 
 def on_npcs_restored[F: Callable[[str | None], object]](handler: F) -> F:
     """on_npcs_restored calls handler when restore_npcs ends: the error is
-    None once the map holds every target, or says why it does not."""
+    None once the map holds every target, or says why it does not.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_npcs_restored
+        def restored(error: str | None) -> None: ...
+    """
     _npcs_restoreds.append(handler)
     return handler
 
@@ -5231,14 +5280,28 @@ def on_npcs_restored[F: Callable[[str | None], object]](handler: F) -> F:
 def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
     """on_damage calls handler before each hit lands, so it can block the
     hit or change its damage. Later handlers see the earlier ones'
-    amount."""
+    amount.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_damage
+        def damage(hit: modlock.DamageEvent) -> modlock.DamageResult | None: ...
+    """
     _damages.append(handler)
     return handler
 
 
 def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
     """on_chat calls handler with each chat line a player writes, commands
-    included, on the next server frame."""
+    included, on the next server frame.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_chat
+        def chat(line: modlock.ChatEvent) -> None: ...
+    """
     _chats.append(handler)
     return handler
 
@@ -5246,7 +5309,14 @@ def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
 def on_player_join[F: Callable[[PlayerJoinedEvent], object]](handler: F) -> F:
     """on_player_join calls handler once for each player the mod serves when
     they are ready: a human who finished joining, a bot once added, and at
-    start each player already in the game."""
+    start each player already in the game.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_player_join
+        def join(joined: modlock.PlayerJoinedEvent) -> None: ...
+    """
     _joins.append(handler)
     return handler
 
@@ -5255,34 +5325,69 @@ def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
     """on_player_leave calls handler once for each joined player who leaves
     the mod, with the reason the server dropped them when it gave one. A
     player who disconnects still has their slot and hero during the call. A
-    player the mod stops serving leaves too, with disconnected false."""
+    player the mod stops serving leaves too, with disconnected false.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_player_leave
+        def leave(left: modlock.PlayerLeftEvent) -> None: ...
+    """
     _leaves.append(handler)
     return handler
 
 
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
-    """on_damaged calls handler on the frame after each hit lands."""
+    """on_damaged calls handler on the frame after each hit lands.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_damaged
+        def damaged(hit: modlock.DamagedEvent) -> None: ...
+    """
     _damageds.append(handler)
     return handler
 
 
 def on_launch[F: Callable[[LaunchEvent], object]](handler: F) -> F:
     """on_launch calls handler with each watched projectile's first frame,
-    before the next frame. watch_projectiles names the projectiles."""
+    before the next frame. watch_projectiles names the projectiles.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_launch
+        def launch(projectile: modlock.LaunchEvent) -> None: ...
+    """
     _launches.append(handler)
     return handler
 
 
 def on_impact[F: Callable[[ImpactEvent], object]](handler: F) -> F:
     """on_impact calls handler when a watched projectile strikes something,
-    inside the game's impact: its calls apply before the game continues."""
+    inside the game's impact: its calls apply before the game continues.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_impact
+        def impact(hit: modlock.ImpactEvent) -> None: ...
+    """
     _impacts.append(handler)
     return handler
 
 
 def on_landed[F: Callable[[LandedEvent], object]](handler: F) -> F:
     """on_landed calls handler when a hero lands under the manifest's
-    QuakeWorld movement, before the next frame."""
+    QuakeWorld movement, before the next frame.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_landed
+        def landed(landing: modlock.LandedEvent) -> None: ...
+    """
     _landeds.append(handler)
     return handler
 
@@ -5290,7 +5395,14 @@ def on_landed[F: Callable[[LandedEvent], object]](handler: F) -> F:
 def on_setting_changed[F: Callable[[Player, str, str], object]](handler: F) -> F:
     """on_setting_changed calls handler when a player's setting changes
     outside the mod, such as on the player's profile. The mod's own
-    Player.set_setting calls do not reach it."""
+    Player.set_setting calls do not reach it.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_setting_changed
+        def changed(player: modlock.Player, key: str, value: str) -> None: ...
+    """
     _setting_changes.append(handler)
     return handler
 

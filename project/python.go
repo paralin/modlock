@@ -18,12 +18,17 @@ import (
 
 // pythonConfig is a Python project's pyrightconfig.json, which the checker
 // and editors read: strict checking against the runtime's Python, with the
-// installed library on the import path.
+// installed library on the import path. A parameter without an annotation is
+// reported once, as missing its annotation, and not again at each use of it.
 const pythonConfig = `{
   "typeCheckingMode": "strict",
   "pythonVersion": "3.14",
   "extraPaths": [".modlock"],
   "reportMissingModuleSource": false,
+  "reportUnknownParameterType": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownArgumentType": false,
+  "reportUnknownVariableType": false,
   "exclude": ["build", ".modlock"]
 }
 `
@@ -55,8 +60,16 @@ func (p *Project) buildPython(ctx context.Context, output io.Writer) error {
 	check.Stderr = output
 	err = check.Run()
 	diagnostics := pyrightDiagnostics(report.Bytes())
+	unannotated := false
 	for _, d := range diagnostics {
 		fmt.Fprintf(output, "%s:%d:%d: %s (%s)\n", d.GetFile(), d.GetLine(), d.GetColumn(), d.GetMessage(), d.GetCode())
+		unannotated = unannotated || d.GetCode() == "reportMissingParameterType"
+	}
+
+	// Python reads a handler's parameter types from its own annotations and
+	// not from its decorator, so say what to write.
+	if unannotated {
+		fmt.Fprintln(output, "give each parameter its type, such as def frame(event: modlock.FrameEvent) -> None; each decorator's documentation shows its handler")
 	}
 	if err != nil {
 		return &CheckError{Err: errors.New("the mod has type errors"), Diagnostics: diagnostics}
