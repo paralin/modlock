@@ -447,6 +447,12 @@ service Host {
   // MODIFIER_STATE_PARRY_ACTIVE.
   rpc ModifierState(modlock.wasm.abilities.ModifierStateRequest) returns (modlock.wasm.abilities.ActiveResponse);
 
+  // Modifiers lists every modifier an entity holds, such as the stun a
+  // hero's ultimate keeps on its target, with its name, class, caster,
+  // ability, age, time left and stacks. An entity that holds none answers an
+  // empty list.
+  rpc Modifiers(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.abilities.ModifiersResponse);
+
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.

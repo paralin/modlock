@@ -604,6 +604,61 @@ function toAbilityOptions(value: AbilityOptions): abilitiesPb.AbilityOptions {
   }
 }
 
+/** Modifier is one modifier an entity holds, as the game keeps it. */
+export interface Modifier {
+  /**
+   * name is the modifier's name, such as modifier_citadel_knockdown, as
+   * GiveModifier and ReadModifierField name it. It is empty when the game
+   * keeps no readable name.
+   */
+  readonly name: string
+  /**
+   * className is the modifier's server class, such as
+   * CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+   * names can share a class.
+   */
+  readonly className: string
+  /**
+   * caster is the handle of the entity that applied it, such as the hero
+   * whose ability did, or 0 when none did.
+   */
+  readonly caster: number
+  /**
+   * ability is the handle of the ability that applied it, or 0 when none did.
+   */
+  readonly ability: number
+  /** age is how many seconds ago the game created it. */
+  readonly age: number
+  /**
+   * remaining is how many seconds it has left since it was last applied. It
+   * is absent for a modifier that lasts until something removes it.
+   */
+  readonly remaining?: number
+  /** stacks and maxStacks count its stacks, for a modifier that stacks. */
+  readonly stacks: number
+  readonly maxStacks: number
+  /** team is the team number it belongs to. */
+  readonly team: number
+  /** disabled is true while the game keeps it without its effects. */
+  readonly disabled: boolean
+}
+
+/** fromModifier decodes a Modifier. */
+function fromModifier(message: abilitiesPb.Modifier): Modifier {
+  return {
+    name: message.name ?? '',
+    className: message.className ?? '',
+    caster: message.caster ?? 0,
+    ability: message.ability ?? 0,
+    age: message.age ?? 0,
+    remaining: message.remaining,
+    stacks: message.stacks ?? 0,
+    maxStacks: message.maxStacks ?? 0,
+    team: message.team ?? 0,
+    disabled: message.disabled ?? false,
+  }
+}
+
 /** BuildCategory is one named group of a build's items. */
 export interface BuildCategory {
   /** name is the category's title. */
@@ -3473,6 +3528,19 @@ export function modifierState(entity: number, state: string): boolean {
   if (reply === undefined) return false
   const response = abilitiesPb.ActiveResponse.fromBinary(reply)
   return response.active ?? false
+}
+
+/**
+ * modifiers lists every modifier an entity holds, such as the stun a
+ * hero's ultimate keeps on its target, with its name, class, caster,
+ * ability, age, time left and stacks. An entity that holds none answers an
+ * empty list.
+ */
+export function modifiers(entity: number): Modifier[] {
+  const reply = call('Modifiers', entitiesPb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return []
+  const response = abilitiesPb.ModifiersResponse.fromBinary(reply)
+  return (response.modifiers ?? []).map((v) => fromModifier(v))
 }
 
 /**

@@ -319,6 +319,9 @@ type Ability = abilitiespb.Ability
 // AbilityOptions changes one ability of a player's hero.
 type AbilityOptions = abilitiespb.AbilityOptions
 
+// Modifier is one modifier an entity holds, as the game keeps it.
+type Modifier = abilitiespb.Modifier
+
 // BuildCategory is one named group of a build's items.
 type BuildCategory = abilitiespb.BuildCategory
 
@@ -1296,6 +1299,19 @@ func ModifierState(entity uint32, state string) (bool, error) {
 		return false, err
 	}
 	return response.GetActive(), nil
+}
+
+// Modifiers lists every modifier an entity holds, such as the stun a
+// hero's ultimate keeps on its target, with its name, class, caster,
+// ability, age, time left and stacks. An entity that holds none answers an
+// empty list.
+func Modifiers(entity uint32) ([]*Modifier, error) {
+	request := &entitiespb.EntityRequest{Entity: entity}
+	response := &abilitiespb.ModifiersResponse{}
+	if err := invoke("Modifiers", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetModifiers(), nil
 }
 
 // HoldModifierState holds a modifier state, such as

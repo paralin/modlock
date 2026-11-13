@@ -598,6 +598,15 @@ class HostService {
     return std::unexpected("this host does not support ModifierState");
   }
 
+  // Modifiers lists every modifier an entity holds, such as the stun a
+  // hero's ultimate keeps on its target, with its name, class, caster,
+  // ability, age, time left and stacks. An entity that holds none answers an
+  // empty list.
+  virtual std::expected<abilities::ModifiersResponse, std::string> Modifiers(
+      const entities::EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support Modifiers");
+  }
+
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.
@@ -1580,6 +1589,14 @@ class HostService {
              return detail::Fail("the ModifierState request is malformed");
            }
            return detail::Answer(host.ModifierState(request));
+         }},
+        {"Modifiers",
+         [](HostService& host, const std::string& bytes) {
+           entities::EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Modifiers request is malformed");
+           }
+           return detail::Answer(host.Modifiers(request));
          }},
         {"HoldModifierState",
          [](HostService& host, const std::string& bytes) {

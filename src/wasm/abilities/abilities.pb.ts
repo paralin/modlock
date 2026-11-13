@@ -970,6 +970,200 @@ export const ActiveResponse: MessageType<ActiveResponse> =
   )
 
 /**
+ * ModifiersResponse lists the modifiers an entity holds, in the game's order.
+ *
+ * @generated from message modlock.wasm.abilities.ModifiersResponse
+ */
+export interface ModifiersResponse {
+  modifiers?: Modifier[]
+}
+
+export const ModifiersResponse: MessageType<ModifiersResponse> =
+  /* @__PURE__ */ createMessageType<ModifiersResponse>(
+    'modlock.wasm.abilities.ModifiersResponse',
+    () => [[1, 'modifiers', 11, 1, Modifier.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ModifiersResponse,
+      ): ModifiersResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.modifiers ??= []).push(Modifier.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModifiersResponse, w: Writer): void => {
+        {
+          const a = m.modifiers
+          if (a != null) for (const e of a) Modifier.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Modifier is one modifier an entity holds, as the game keeps it.
+ *
+ * @generated from message modlock.wasm.abilities.Modifier
+ */
+export interface Modifier {
+  /**
+   * Name is the modifier's name, such as modifier_citadel_knockdown, as
+   * GiveModifier and ReadModifierField name it. It is empty when the game
+   * keeps no readable name.
+   */
+  name?: string
+  /**
+   * ClassName is the modifier's server class, such as
+   * CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+   * names can share a class.
+   */
+  className?: string
+  /**
+   * Caster is the handle of the entity that applied it, such as the hero
+   * whose ability did, or 0 when none did.
+   */
+  caster?: number
+  /**
+   * Ability is the handle of the ability that applied it, or 0 when none did.
+   */
+  ability?: number
+  /**
+   * Age is how many seconds ago the game created it.
+   */
+  age?: number
+  /**
+   * Remaining is how many seconds it has left since it was last applied. It
+   * is absent for a modifier that lasts until something removes it.
+   */
+  remaining?: number
+  /**
+   * Stacks and MaxStacks count its stacks, for a modifier that stacks.
+   */
+  stacks?: number
+  maxStacks?: number
+  /**
+   * Team is the team number it belongs to.
+   */
+  team?: number
+  /**
+   * Disabled is true while the game keeps it without its effects.
+   */
+  disabled?: boolean
+}
+
+export const Modifier: MessageType<Modifier> =
+  /* @__PURE__ */ createMessageType<Modifier>(
+    'modlock.wasm.abilities.Modifier',
+    () => [
+      [1, 'name', 9],
+      [2, 'class_name', 9],
+      [3, 'caster', 13],
+      [4, 'ability', 13],
+      [5, 'age', 2],
+      [6, 'remaining', 2, 4],
+      [7, 'stacks', 5],
+      [8, 'max_stacks', 5],
+      [9, 'team', 13],
+      [10, 'disabled', 8],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Modifier): Modifier => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.className = r.string()
+              break
+            case 3:
+              m.caster = r.uint32()
+              break
+            case 4:
+              m.ability = r.uint32()
+              break
+            case 5:
+              m.age = r.float()
+              break
+            case 6:
+              m.remaining = r.float()
+              break
+            case 7:
+              m.stacks = r.int32()
+              break
+            case 8:
+              m.maxStacks = r.int32()
+              break
+            case 9:
+              m.team = r.uint32()
+              break
+            case 10:
+              m.disabled = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Modifier, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.className
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.caster
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(32).uint32(v)
+        }
+        {
+          const v = m.age
+          if (v != null && v !== 0) w.uint32(45).float(v)
+        }
+        {
+          const v = m.remaining
+          if (v != null) w.uint32(53).float(v)
+        }
+        {
+          const v = m.stacks
+          if (v) w.uint32(56).int32(v)
+        }
+        {
+          const v = m.maxStacks
+          if (v) w.uint32(64).int32(v)
+        }
+        {
+          const v = m.team
+          if (v) w.uint32(72).uint32(v)
+        }
+        {
+          const v = m.disabled
+          if (v) w.uint32(80).bool(v)
+        }
+      },
+    },
+  )
+
+/**
  * HoldModifierStateRequest holds one modifier state on an entity, or
  * releases it.
  *

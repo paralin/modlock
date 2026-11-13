@@ -509,6 +509,35 @@ export type AbilityOptions = {
 	maxCharges: number?,
 }
 
+-- Modifier is one modifier an entity holds, as the game keeps it.
+export type Modifier = {
+	-- name is the modifier's name, such as modifier_citadel_knockdown, as
+	-- GiveModifier and ReadModifierField name it. It is empty when the game
+	-- keeps no readable name.
+	name: string,
+	-- className is the modifier's server class, such as
+	-- CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+	-- names can share a class.
+	className: string,
+	-- caster is the handle of the entity that applied it, such as the hero
+	-- whose ability did, or 0 when none did.
+	caster: number,
+	-- ability is the handle of the ability that applied it, or 0 when none did.
+	ability: number,
+	-- age is how many seconds ago the game created it.
+	age: number,
+	-- remaining is how many seconds it has left since it was last applied. It
+	-- is absent for a modifier that lasts until something removes it.
+	remaining: number?,
+	-- stacks and maxStacks count its stacks, for a modifier that stacks.
+	stacks: number,
+	maxStacks: number,
+	-- team is the team number it belongs to.
+	team: number,
+	-- disabled is true while the game keeps it without its effects.
+	disabled: boolean,
+}
+
 -- BuildCategory is one named group of a build's items.
 export type BuildCategory = {
 	-- name is the category's title.
@@ -2702,6 +2731,21 @@ schema.ModifierStateRequest = {
 schema.ActiveResponse = {
 	{ number = 1, name = "active", kind = "bool" },
 }
+schema.ModifiersResponse = {
+	{ number = 1, name = "modifiers", kind = "message", repeated = true, message = "Modifier" },
+}
+schema.Modifier = {
+	{ number = 1, name = "name", kind = "string" },
+	{ number = 2, name = "className", kind = "string" },
+	{ number = 3, name = "caster", kind = "uint32" },
+	{ number = 4, name = "ability", kind = "uint32" },
+	{ number = 5, name = "age", kind = "float" },
+	{ number = 6, name = "remaining", kind = "float", optional = true },
+	{ number = 7, name = "stacks", kind = "int32" },
+	{ number = 8, name = "maxStacks", kind = "int32" },
+	{ number = 9, name = "team", kind = "uint32" },
+	{ number = 10, name = "disabled", kind = "bool" },
+}
 schema.HoldModifierStateRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
 	{ number = 2, name = "state", kind = "string" },
@@ -4056,6 +4100,18 @@ function modlock.modifierState(entity: number, state: string): boolean
 		return false
 	end
 	return response.active
+end
+
+-- modifiers lists every modifier an entity holds, such as the stun a
+-- hero's ultimate keeps on its target, with its name, class, caster,
+-- ability, age, time left and stacks. An entity that holds none answers an
+-- empty list.
+function modlock.modifiers(entity: number): { Modifier }
+	local response = call("Modifiers", "EntityRequest", { entity = entity }, "ModifiersResponse")
+	if response == nil then
+		return {}
+	end
+	return response.modifiers
 end
 
 -- holdModifierState holds a modifier state, such as

@@ -186,6 +186,48 @@ message ActiveResponse {
   bool active = 1;
 }
 
+// ModifiersResponse lists the modifiers an entity holds, in the game's order.
+message ModifiersResponse {
+  repeated Modifier modifiers = 1;
+}
+
+// Modifier is one modifier an entity holds, as the game keeps it.
+message Modifier {
+  // Name is the modifier's name, such as modifier_citadel_knockdown, as
+  // GiveModifier and ReadModifierField name it. It is empty when the game
+  // keeps no readable name.
+  string name = 1;
+
+  // ClassName is the modifier's server class, such as
+  // CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+  // names can share a class.
+  string class_name = 2;
+
+  // Caster is the handle of the entity that applied it, such as the hero
+  // whose ability did, or 0 when none did.
+  uint32 caster = 3;
+
+  // Ability is the handle of the ability that applied it, or 0 when none did.
+  uint32 ability = 4;
+
+  // Age is how many seconds ago the game created it.
+  float age = 5;
+
+  // Remaining is how many seconds it has left since it was last applied. It
+  // is absent for a modifier that lasts until something removes it.
+  optional float remaining = 6;
+
+  // Stacks and MaxStacks count its stacks, for a modifier that stacks.
+  int32 stacks = 7;
+  int32 max_stacks = 8;
+
+  // Team is the team number it belongs to.
+  uint32 team = 9;
+
+  // Disabled is true while the game keeps it without its effects.
+  bool disabled = 10;
+}
+
 // HoldModifierStateRequest holds one modifier state on an entity, or
 // releases it.
 message HoldModifierStateRequest {

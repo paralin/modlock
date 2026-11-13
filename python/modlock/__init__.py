@@ -903,6 +903,37 @@ class AbilityOptions:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class Modifier:
+    """Modifier is one modifier an entity holds, as the game keeps it."""
+
+    # name is the modifier's name, such as modifier_citadel_knockdown, as
+    # GiveModifier and ReadModifierField name it. It is empty when the game
+    # keeps no readable name.
+    name: str = ""
+    # class_name is the modifier's server class, such as
+    # CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+    # names can share a class.
+    class_name: str = ""
+    # caster is the handle of the entity that applied it, such as the hero
+    # whose ability did, or 0 when none did.
+    caster: int = 0
+    # ability is the handle of the ability that applied it, or 0 when none did.
+    ability: int = 0
+    # age is how many seconds ago the game created it.
+    age: float = 0.0
+    # remaining is how many seconds it has left since it was last applied. It
+    # is absent for a modifier that lasts until something removes it.
+    remaining: float | None = None
+    # stacks and max_stacks count its stacks, for a modifier that stacks.
+    stacks: int = 0
+    max_stacks: int = 0
+    # team is the team number it belongs to.
+    team: int = 0
+    # disabled is true while the game keeps it without its effects.
+    disabled: bool = False
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class BuildCategory:
     """BuildCategory is one named group of a build's items."""
 
@@ -2778,6 +2809,27 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "active", "bool"),
+        ],
+    ),
+    "ModifiersResponse": (
+        None,
+        [
+            wire.Field(1, "modifiers", "message", repeated=True, message="Modifier"),
+        ],
+    ),
+    "Modifier": (
+        Modifier,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "class_name", "string"),
+            wire.Field(3, "caster", "uint32"),
+            wire.Field(4, "ability", "uint32"),
+            wire.Field(5, "age", "float"),
+            wire.Field(6, "remaining", "float", optional=True),
+            wire.Field(7, "stacks", "int32"),
+            wire.Field(8, "max_stacks", "int32"),
+            wire.Field(9, "team", "uint32"),
+            wire.Field(10, "disabled", "bool"),
         ],
     ),
     "HoldModifierStateRequest": (
@@ -4767,6 +4819,18 @@ def modifier_state(entity: int, state: str) -> bool:
     if response is None:
         return False
     return response["active"]
+
+
+def modifiers(entity: int) -> list[Modifier]:
+    """modifiers lists every modifier an entity holds, such as the stun a
+    hero's ultimate keeps on its target, with its name, class, caster,
+    ability, age, time left and stacks. An entity that holds none answers an
+    empty list.
+    """
+    response = _call("Modifiers", "EntityRequest", {"entity": entity}, "ModifiersResponse")
+    if response is None:
+        return []
+    return response["modifiers"]
 
 
 def hold_modifier_state(entity: int, state: str, active: bool | None = None) -> bool:

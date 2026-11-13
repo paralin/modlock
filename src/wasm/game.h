@@ -525,6 +525,8 @@ class Game : public HostService {
       const fields::ReadFieldRequest& request) override;
   std::expected<fields::FieldResponse, std::string> ReadModifierField(
       const fields::ReadModifierFieldRequest& request) override;
+  std::expected<abilities::ModifiersResponse, std::string> Modifiers(
+      const entities::EntityRequest& request) override;
   std::expected<void, std::string> WriteFieldList(
       const fields::WriteFieldListRequest& request) override;
   std::expected<entities::EntityClassResponse, std::string> EntityClass(
@@ -734,6 +736,10 @@ class Game : public HostService {
     unsigned char* predicted = nullptr;
     uint32_t bit = 0;
   };
+
+  // EntityModifiers returns the address of each modifier entity holds, in
+  // the game's order, or none for an entity without a modifier property.
+  std::expected<std::vector<unsigned char*>, std::string> EntityModifiers(void* entity);
 
   // FindModifierWord locates state on entity, or returns nothing when the
   // entity has no modifiers.

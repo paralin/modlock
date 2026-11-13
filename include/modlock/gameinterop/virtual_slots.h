@@ -48,6 +48,12 @@ struct VirtualSlot {
 [[nodiscard]] MODLOCK_API std::expected<size_t, std::string> FindVtable(
     const ModuleImage& image, std::string_view class_name);
 
+// ObjectClassName returns the RTTI class name of the live polymorphic object
+// at object, such as CCitadel_Modifier_Knockdown, read through its dispatch
+// table's object locator with ReadNative, so a stale or foreign pointer
+// answers empty instead of faulting. It answers empty off Windows.
+[[nodiscard]] MODLOCK_API std::string ObjectClassName(const void* object);
+
 // VtableEntries returns the image offset of each function in the table at
 // image offset table, ending at the first entry outside executable code.
 [[nodiscard]] MODLOCK_API std::vector<size_t> VtableEntries(const ModuleImage& image, size_t table);
