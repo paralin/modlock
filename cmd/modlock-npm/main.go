@@ -2,14 +2,15 @@
 // layout esbuild uses: one package per system holding that system's command
 // line, and @modlock/modlock, which holds the TypeScript library and its
 // declarations and a launcher that runs the command line npm installed for
-// the system it runs on:
+// the system it runs on. @modlock/create starts a mod with npm create @modlock:
 //
 //	modlock-npm -version v0.2.0 -dist dist -library js/built -out dist/npm
 //
 // -dist holds the release's command lines, named modlock-<os>-<arch>, and
 // -library the built library. Each package goes in its own directory under
 // -out, named after the package without its scope, ready for npm publish;
-// publish the system packages before @modlock/modlock, which depends on them.
+// publish the system packages before @modlock/modlock, which depends on them,
+// and @modlock/create after it.
 //
 // npm refuses the unscoped name modlock as too close to another package's.
 // Mods still import modlock: the command line writes the declarations there.
@@ -32,6 +33,11 @@ import (
 //go:embed launcher.js
 var launcher []byte
 
+// creator is @modlock/create's bin/create.js.
+//
+//go:embed create.js
+var creator []byte
+
 // system is one system the release builds the command line for.
 type system struct {
 	// goos and goarch name it to Go and in the release's file names.
@@ -53,6 +59,7 @@ var systems = []system{
 var repository = map[string]string{"type": "git", "url": "git+https://github.com/paralin/modlock.git"}
 
 func main() {
+	// Read the release and the directories from the command line.
 	tag := flag.String("version", "", "release tag, such as v0.2.0")
 	dist := flag.String("dist", "dist", "directory holding the release's command lines")
 	library := flag.String("library", filepath.Join("js", js.Built), "built library directory")
@@ -63,6 +70,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, "modlock-npm: -version names a release tag, such as v0.2.0")
 		os.Exit(2)
 	}
+
+	// Write the packages.
 	if err := assemble(version, *dist, *library, *out); err != nil {
 		fmt.Fprintln(os.Stderr, "modlock-npm:", err)
 		os.Exit(1)
@@ -97,9 +106,8 @@ func assemble(version, dist, library, out string) error {
 		}
 	}
 
-	// Write @modlock/modlock: the library's modules and declarations, with the
-	// launcher. The game's renderer and layout library stay out, since a mod
-	// never imports them.
+	// Collect the library's modules and declarations. The game's renderer
+	// and layout library stay out, since a mod never imports them.
 	files := map[string]string{}
 	entries, err := os.ReadDir(library)
 	if err != nil {
@@ -116,6 +124,8 @@ func assemble(version, dist, library, out string) error {
 		return fmt.Errorf("%s holds no built library; run go run ./cmd/modlock-library", library)
 	}
 	files["LICENSE"] = "LICENSE"
+
+	// Write @modlock/modlock: the library with the launcher.
 	dir := filepath.Join(out, "modlock")
 	err = writePackage(dir, map[string]any{
 		"name":                 "@modlock/modlock",
@@ -137,13 +147,39 @@ func assemble(version, dist, library, out string) error {
 	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(readme), 0o644); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, "bin", "modlock.js"), launcher, 0o755)
+	if err := os.WriteFile(filepath.Join(dir, "bin", "modlock.js"), launcher, 0o755); err != nil {
+		return err
+	}
+
+	// Write @modlock/create, which npm create @modlock runs: it depends on
+	// this release's @modlock/modlock and starts its modlock new.
+	dir = filepath.Join(out, "create")
+	err = writePackage(dir, map[string]any{
+		"name":         "@modlock/create",
+		"version":      version,
+		"description":  "Start a mod for Deadlock: npm create @modlock",
+		"license":      "MIT",
+		"repository":   repository,
+		"homepage":     "https://github.com/paralin/modlock#readme",
+		"type":         "module",
+		"bin":          map[string]string{"create-modlock": "bin/create.js"},
+		"dependencies": map[string]string{"@modlock/modlock": version},
+	}, map[string]string{"LICENSE": "LICENSE"})
+	if err != nil {
+		return err
+	}
+	readme = "# @modlock/create\n\nStart a mod for Deadlock:\n\n```sh\nnpm create @modlock@latest\n```\n\nIt asks for the mod's name and language, as `modlock new` does. See\nhttps://github.com/paralin/modlock for the guide.\n"
+	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(readme), 0o644); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, "bin", "create.js"), creator, 0o755)
 }
 
 // writePackage writes a package to dir: its package.json from manifest, and
 // each file in files, by its path in the package, copied from the path it
 // maps to. A command line stays executable.
 func writePackage(dir string, manifest map[string]any, files map[string]string) error {
+	// Write the manifest.
 	if err := os.MkdirAll(filepath.Join(dir, "bin"), 0o755); err != nil {
 		return err
 	}

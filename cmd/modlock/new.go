@@ -84,10 +84,20 @@ func newCommand(out *printer) *cli.Command {
 				out.note("open the", dir, "folder itself in your editor, so that it finds the modlock library")
 			}
 			out.note("next: cd", dir)
-			out.note("then: modlock dev")
+			out.note("then:", invocation(), "dev")
 			return nil
 		},
 	}
+}
+
+// invocation returns how the person runs modlock from a terminal: by name
+// once it is installed, or through npx when a package runner such as npm
+// create started this run from its cache, which is on no PATH.
+func invocation() string {
+	if _, err := exec.LookPath("modlock"); err == nil || os.Getenv("npm_config_user_agent") == "" {
+		return "modlock"
+	}
+	return "npx @modlock/modlock"
 }
 
 // newTarget returns the directory and display name of the project to create

@@ -80,6 +80,16 @@ jobs:
         run: |
           go run ./cmd/modlock-npm -version "$GITHUB_REF_NAME"
           for dir in dist/npm/*/; do
-            if [ "$dir" != dist/npm/modlock/ ]; then npm publish --access public "$dir"; fi
+            case "$dir" in
+              dist/npm/modlock/ | dist/npm/create/) ;;
+              *) npm publish --access public "$dir" ;;
+            esac
           done
           npm publish --access public dist/npm/modlock
+          # Trusted publishing cannot make a package, only release one that
+          # exists, so @modlock/create waits for its first release by hand.
+          if npm view @modlock/create name >/dev/null 2>&1; then
+            npm publish --access public dist/npm/create
+          else
+            echo "::warning::@modlock/create is not on npm yet; publish dist/npm/create once by hand and add this workflow as its trusted publisher"
+          fi
