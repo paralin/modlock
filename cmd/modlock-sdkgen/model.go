@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -67,6 +68,19 @@ type field struct {
 	// message and enum are the field's type when it has one.
 	message *message
 	enum    *enum
+	// hero marks a string field that names a hero by the game's name, such
+	// as hero_nano. The libraries take any name heroNamed accepts there, such
+	// as Calico, and send the game's name.
+	hero bool
+}
+
+// heroFields are the fields, by message and field name, that name a hero by
+// the game's name and are arguments a mod writes.
+var heroFields = []string{
+	".modlock.wasm.PrecacheOptions.heroes",
+	".modlock.wasm.abilities.HeroBuildRequest.hero",
+	".modlock.wasm.players.BotOptions.hero_name",
+	".modlock.wasm.players.SelectHeroRequest.hero_name",
 }
 
 // oneof is one oneof of a message, which a field outside the oneof never
@@ -218,6 +232,20 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 		if p.field.message == nil && p.field.enum == nil {
 			return nil, fmt.Errorf("field %s has unknown type %s", p.field.name, p.typeName)
 		}
+	}
+
+	// Mark the fields that name a hero.
+	for _, name := range heroFields {
+		dot := strings.LastIndex(name, ".")
+		m := s.messages[name[:dot]]
+		if m == nil {
+			return nil, fmt.Errorf("hero field %s: no such message", name)
+		}
+		i := slices.IndexFunc(m.fields, func(f *field) bool { return f.name == name[dot+1:] })
+		if i < 0 || m.fields[i].kind != descriptorpb.FieldDescriptorProto_TYPE_STRING {
+			return nil, fmt.Errorf("hero field %s: no such string field", name)
+		}
+		m.fields[i].hero = true
 	}
 
 	// Read the services.

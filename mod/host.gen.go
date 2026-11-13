@@ -710,7 +710,14 @@ func (p Player) Announce(title, text string) error {
 // reload, prepares only the world after the next map change. Name every
 // hero whose abilities ReplaceAbility gives, with their particles.
 func Precache(options *PrecacheOptions) error {
-	return invoke("Precache", options, nil)
+	request := options.CloneVT()
+	if request == nil {
+		request = &PrecacheOptions{}
+	}
+	for i, hero := range request.Heroes {
+		request.Heroes[i] = heroName(hero)
+	}
+	return invoke("Precache", request, nil)
 }
 
 // Pawn returns the player's pawn this frame: the hero, or the game's
@@ -829,7 +836,7 @@ func (p Player) SelectHero(hero any, team int32) (uint32, error) {
 	request := &playerspb.SelectHeroRequest{Player: p.Slot, Team: team}
 	switch hero := hero.(type) {
 	case string:
-		request.Hero = &playerspb.SelectHeroRequest_HeroName{HeroName: hero}
+		request.Hero = &playerspb.SelectHeroRequest_HeroName{HeroName: heroName(hero)}
 	case uint32:
 		request.Hero = &playerspb.SelectHeroRequest_HeroId{HeroId: hero}
 	default:
@@ -992,7 +999,7 @@ func (p Player) TrainAbility(slot uint32) error {
 // without a build answers with no categories. The call needs a loaded
 // world.
 func HeroBuild(hero string) ([]*BuildCategory, error) {
-	request := &abilitiespb.HeroBuildRequest{Hero: hero}
+	request := &abilitiespb.HeroBuildRequest{Hero: heroName(hero)}
 	response := &abilitiespb.HeroBuildResponse{}
 	if err := invoke("HeroBuild", request, response); err != nil {
 		return nil, err
@@ -1419,8 +1426,15 @@ func (w WorldObject) Entity() (uint32, error) {
 // AddBot adds a bot player and returns it. The bot leaves when the world
 // ends or the mod stops.
 func AddBot(options *BotOptions) (Player, error) {
+	request := options.CloneVT()
+	if request == nil {
+		request = &BotOptions{}
+	}
+	if hero, ok := request.Hero.(*playerspb.BotOptions_HeroName); ok {
+		hero.HeroName = heroName(hero.HeroName)
+	}
 	response := &playerspb.BotResponse{}
-	if err := invoke("AddBot", options, response); err != nil {
+	if err := invoke("AddBot", request, response); err != nil {
 		return Player{}, err
 	}
 	return Player{Slot: response.GetPlayer()}, nil

@@ -284,6 +284,33 @@ export const heroes: readonly Hero[] = [
   },
 ]
 
+/**
+ * heroesByName holds each released hero under every name heroNamed accepts,
+ * reduced as plain reduces them. Game names go in last, so a title that
+ * equals another hero's game name could never take it.
+ */
+const heroesByName = new Map<string, Hero>([
+  ...heroes.map((hero) => [plain(hero.title), hero] as const),
+  ...heroes.map((hero) => [hero.name.replace(/^hero_/, ''), hero] as const),
+  ...heroes.map((hero) => [hero.name, hero] as const),
+])
+
+/**
+ * heroNamed returns the released hero that name names exactly: its game
+ * name, such as 'hero_nano', that name without 'hero_', such as 'nano', or
+ * its title in any case, with or without spaces and punctuation, such as
+ * 'Calico' or 'ladygeist'. Unlike findHero it matches no part of a name, so
+ * a misspelled name finds no hero rather than another one.
+ */
+export function heroNamed(name: string): Hero | undefined {
+  return heroesByName.get(plain(name))
+}
+
+/** plain reduces text to its lower-case letters, digits and underscores. */
+function plain(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9_]/g, '')
+}
+
 /** findHero matches what a player typed to a hero, as findTitled does. */
 export function findHero(typed: string): Hero | undefined {
   return findTitled(heroes, typed)
@@ -299,17 +326,17 @@ export function findTitled<T extends Titled>(
   typed: string,
 ): T | undefined {
   // Reduce what was typed to letters, digits and underscores.
-  const key = typed.toLowerCase().replace(/[^a-z0-9_]/g, '')
+  const key = plain(typed)
   if (key === '') {
     return undefined
   }
 
   // Compare it with each name and plain title.
-  const plain = (entry: T) =>
+  const title = (entry: T) =>
     entry.title.toLowerCase().replace(/[^a-z0-9]/g, '')
   return (
-    list.find((entry) => entry.name === key || plain(entry) === key) ??
-    list.find((entry) => plain(entry).startsWith(key)) ??
-    list.find((entry) => plain(entry).includes(key))
+    list.find((entry) => entry.name === key || title(entry) === key) ??
+    list.find((entry) => title(entry).startsWith(key)) ??
+    list.find((entry) => title(entry).includes(key))
   )
 }

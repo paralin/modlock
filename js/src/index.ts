@@ -36,7 +36,6 @@ import {
 } from './host.gen.js'
 import { serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
-import { findHero as heroNamed } from './heroes.js'
 import { keepPlayers, players } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
@@ -63,6 +62,7 @@ export {
   findTitled,
   type Hero,
   heroes,
+  heroNamed,
   type Titled,
 } from './heroes.js'
 export { item, type Item, itemId, items, type Slot } from './items.js'
@@ -112,7 +112,7 @@ export {
   type RaceGateOptions,
   raceGateResources,
 } from './racegate.js'
-export { players } from './players.js'
+export { connection, players } from './players.js'
 export {
   afterMatch,
   fewestPlayed,
@@ -328,14 +328,9 @@ export interface Seating {
  * frame itself.
  */
 export function seatPlayers(seating: Seating = {}): Cast<Connection> {
-  // Take the hero by any name a player would call it.
-  const { team, respawn } = seating
-  let hero = seating.hero ?? 'any'
-  if (typeof hero === 'string' && hero !== 'any') {
-    hero = heroNamed(hero)?.name ?? hero
-  }
-
   // Decide each player's seat once, as they join.
+  const { team, respawn } = seating
+  const hero = seating.hero ?? 'any'
   const wants = new Map<Connection, Want>()
   const cast = new Cast<Connection>({
     join(connection) {

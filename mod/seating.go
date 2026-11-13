@@ -24,16 +24,10 @@ type Seating struct {
 // after a hero change. It returns the Cast that does the seating, whose
 // members are the players' connections, and runs it each frame itself.
 func SeatPlayers(seating Seating) *Cast[*Connection] {
-	// Without a hero, any hero does; take one by any name a player would
-	// call it.
+	// Without a hero, any hero does.
 	hero := seating.Hero
 	if hero == nil {
 		hero = AnyHero
-	}
-	if typed, ok := hero.(string); ok && typed != AnyHero {
-		if named, found := FindHero(typed); found {
-			hero = named.Name
-		}
 	}
 
 	// Decide each player's seat once, as they join, and keep it by slot.

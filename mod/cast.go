@@ -261,7 +261,7 @@ func (c *Cast[M]) wantOf(seat *seat[M]) Want {
 }
 
 // seated reports whether the member's hero shows the hero and team they want.
-// hero is a game name, AnyHero or an id, as heroOf returns it.
+// hero is a hero's name, AnyHero or an id, as heroOf returns it.
 func (c *Cast[M]) seated(seat *seat[M], want Want, hero any) bool {
 	// A member needs a hero on the team they want before the hero counts.
 	pawn := seat.pawn
@@ -332,7 +332,7 @@ func (c *Cast[M]) side(seat *seat[M]) int32 {
 	return 2
 }
 
-// heroOf returns a Want.Hero as SelectHero takes it: a game name or AnyHero
+// heroOf returns a Want.Hero as SelectHero takes it: a hero's name or AnyHero
 // as a string, or an id as a uint32. It returns nil for a free hero or a value
 // of another type.
 func heroOf(hero any) any {

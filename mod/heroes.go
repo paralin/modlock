@@ -65,15 +65,21 @@ var Heroes = []Hero{
 	{Name: "hero_yamato", ID: 27, Title: "Yamato", Portrait: "file://{images}/heroes/yamato_sm.psd"},
 }
 
-// HeroNamed returns the released hero with the game name name, such as
-// "hero_atlas", and false when no released hero has it.
+// heroesByName holds each released hero under every name HeroNamed accepts,
+// reduced as plain reduces them. Game names go in last, so a title that
+// equals another hero's game name could never take it.
+var heroesByName = indexHeroes()
+
+// HeroNamed returns the released hero that name names exactly: its game name,
+// such as "hero_nano", that name without "hero_", such as "nano", or its
+// title in any case, with or without spaces and punctuation, such as "Calico"
+// or "ladygeist".
+// Unlike FindHero it matches no part of a name, so a misspelled name finds no
+// hero rather than another one.
+// Returns false when name names no released hero.
 func HeroNamed(name string) (Hero, bool) {
-	for _, hero := range Heroes {
-		if hero.Name == name {
-			return hero, true
-		}
-	}
-	return Hero{}, false
+	hero, ok := heroesByName[plain(name, true)]
+	return hero, ok
 }
 
 // FindHero matches what a player typed, such as "geist", "Lady Geist" or
@@ -112,4 +118,29 @@ func plain(text string, underscores bool) string {
 		}
 		return -1
 	}, strings.ToLower(text))
+}
+
+// heroName returns the game's name for the hero name names, as HeroNamed
+// finds it, or name itself when it names no released hero, so the host's
+// error still reports it. Every generated call that takes a hero resolves it
+// through heroName.
+func heroName(name string) string {
+	if hero, ok := HeroNamed(name); ok {
+		return hero.Name
+	}
+	return name
+}
+
+// indexHeroes returns Heroes by each name HeroNamed accepts: plain title, game
+// name without its prefix, then game name, each later one taking precedence.
+func indexHeroes() map[string]Hero {
+	byName := make(map[string]Hero, 3*len(Heroes))
+	for _, hero := range Heroes {
+		byName[plain(hero.Title, false)] = hero
+	}
+	for _, hero := range Heroes {
+		byName[strings.TrimPrefix(hero.Name, "hero_")] = hero
+		byName[hero.Name] = hero
+	}
+	return byName
 }

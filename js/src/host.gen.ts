@@ -17,6 +17,7 @@ import * as playersPb from '../../src/wasm/players/players.pb.js'
 import * as settingsPb from '../../src/wasm/settings/settings.pb.js'
 import * as uiPb from '../../src/wasm/ui/ui.pb.js'
 import * as wasmPb from '../../src/wasm/wasm.pb.js'
+import { heroNamed } from './heroes.js'
 import { call } from './host.js'
 
 /** Vector is a position or direction in the world, in game units. */
@@ -45,6 +46,15 @@ function vector(value: { x?: number; y?: number; z?: number } | undefined): Vect
  */
 function int32(value: number): number {
   return Math.trunc(Math.min(Math.max(value, -0x80000000), 0x7fffffff))
+}
+
+/**
+ * heroName returns the game's name for the hero name names, as heroNamed
+ * finds it, or name itself when it names no released hero, so the host's
+ * error still reports it.
+ */
+function heroName(name: string): string {
+  return heroNamed(name)?.name ?? name
 }
 
 /** angles reads wire angles, taking absent components as zero. */
@@ -2288,7 +2298,7 @@ function toBotOptions(value: BotOptions): playersPb.BotOptions {
   return {
     name: value.name,
     team: int32(value.team),
-    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: (value.hero as string) } : typeof value.hero === 'number' ? { case: 'heroId' as const, value: (value.hero as number) } : undefined,
+    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: heroName((value.hero as string)) } : typeof value.hero === 'number' ? { case: 'heroId' as const, value: (value.hero as number) } : undefined,
     position: value.position,
   }
 }
@@ -2560,7 +2570,7 @@ export interface PrecacheOptions {
 /** toPrecacheOptions encodes a PrecacheOptions. */
 function toPrecacheOptions(value: PrecacheOptions): wasmPb.PrecacheOptions {
   return {
-    heroes: value.heroes?.slice(),
+    heroes: value.heroes?.map((v) => heroName(v)),
     resources: value.resources?.slice(),
   }
 }
@@ -2684,7 +2694,7 @@ export class Player {
    * gap, up to 5 seconds, fails and leaves the pick to land.
    */
   selectHero(hero: string | number, team: number): number | undefined {
-    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: (hero as string) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))
+    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: heroName((hero as string)) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))
     if (reply === undefined) return undefined
     const response = playersPb.HeroResponse.fromBinary(reply)
     return response.hero ?? 0
@@ -3330,7 +3340,7 @@ export function handedOff(): string | undefined {
  * world.
  */
 export function heroBuild(hero: string): BuildCategory[] {
-  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero }))
+  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero: heroName(hero) }))
   if (reply === undefined) return []
   const response = abilitiesPb.HeroBuildResponse.fromBinary(reply)
   return (response.categories ?? []).map((v) => fromBuildCategory(v))

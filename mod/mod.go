@@ -421,6 +421,25 @@ func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
 	return nil
 }
 
+// ConnectionOf returns the connection of player: their name, Steam ID,
+// whether they are a bot and whether they finished joining. It returns nil
+// when nobody holds the slot.
+func ConnectionOf(player Player) *Connection {
+	// Read the roster the host reported, or ask for it.
+	held := registered.roster
+	if held == nil {
+		held, _ = Players()
+	}
+
+	// Find the slot.
+	for _, connection := range held {
+		if connection.GetPlayer() == player.Slot {
+			return connection
+		}
+	}
+	return nil
+}
+
 // Players lists the occupied player slots in slot order. It answers from the
 // roster the host last reported, and asks the host until a report arrives.
 func Players() ([]*Connection, error) {

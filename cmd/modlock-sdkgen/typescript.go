@@ -14,7 +14,8 @@ import (
 
 // typeScriptPreamble opens the generated module with the vector types and
 // their readers.
-const typeScriptPreamble = `import { call } from './host.js'
+const typeScriptPreamble = `import { heroNamed } from './heroes.js'
+import { call } from './host.js'
 
 /** Vector is a position or direction in the world, in game units. */
 export interface Vector {
@@ -42,6 +43,15 @@ function vector(value: { x?: number; y?: number; z?: number } | undefined): Vect
  */
 function int32(value: number): number {
   return Math.trunc(Math.min(Math.max(value, -0x80000000), 0x7fffffff))
+}
+
+/**
+ * heroName returns the game's name for the hero name names, as heroNamed
+ * finds it, or name itself when it names no released hero, so the host's
+ * error still reports it.
+ */
+function heroName(name: string): string {
+  return heroNamed(name)?.name ?? name
 }
 
 /** angles reads wire angles, taking absent components as zero. */
@@ -697,6 +707,8 @@ func (w *tsWriter) toValue(f *field, value string) string {
 		return fmt.Sprintf("to%s(%s)", f.message.name, value)
 	case f.kind == descriptorpb.FieldDescriptorProto_TYPE_INT32:
 		return fmt.Sprintf("int32(%s)", value)
+	case f.hero:
+		return fmt.Sprintf("heroName(%s)", value)
 	}
 	return value
 }

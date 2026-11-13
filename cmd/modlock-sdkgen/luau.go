@@ -61,6 +61,16 @@ local function with(options: any, name: string, value: any): any
 	return request
 end
 
+-- heroNamed is modlock.heroNamed, which the library defines below.
+local heroNamed: (name: string) -> { name: string }?
+
+-- heroName returns the game's name of the hero name names, as heroNamed
+-- matches it, or name itself when it names no released hero.
+local function heroName(name: string): string
+	local hero = heroNamed(name)
+	return if hero then hero.name else name
+end
+
 `
 
 // luauWriter writes the Luau library's module.
@@ -401,6 +411,9 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 	}
 	if isID(f) {
 		members = append(members, "id = true")
+	}
+	if f.hero {
+		members = append(members, "resolve = heroName")
 	}
 	return strings.Join(members, ", "), nil
 }

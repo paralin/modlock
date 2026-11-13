@@ -9,9 +9,10 @@ const AnyHero = "any"
 // Want is what a member's hero should be; each field it leaves at its zero
 // value is free.
 type Want struct {
-	// Hero seats the member on a hero: its game name, such as "hero_atlas",
-	// its id as an int or uint32, or AnyHero for the hero they have or else a
-	// random one. Nil leaves the hero free.
+	// Hero seats the member on a hero: its name as players know it or as the
+	// game does, such as "Calico" or "hero_nano", its id as an int or uint32,
+	// or AnyHero for the hero they have or else a random one. Nil leaves the
+	// hero free.
 	Hero any
 	// Team is the team, 2 or 3, to seat the member on. Without one a member
 	// keeps their hero's team, or else joins the side with fewer heroes.

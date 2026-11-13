@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 import _modlock
 
+from . import heroes as _heroes
 from . import wire
 
 
@@ -48,6 +49,13 @@ def _with(options: Any, name: str, value: Any) -> dict[str, Any]:
     request = {f.name: getattr(options, f.name) for f in dataclasses.fields(options)}
     request[name] = value
     return request
+
+
+def _hero_name(name: str) -> str:
+    """_hero_name returns the game's name of the hero name names, as
+    hero_named matches it, or name itself when it names no released hero."""
+    hero = _heroes.hero_named(name)
+    return name if hero is None else hero.name
 
 
 # ScreenEffect is a stock full-screen view effect.
@@ -2772,7 +2780,7 @@ _SCHEMA: wire.Schema = {
     "HeroBuildRequest": (
         None,
         [
-            wire.Field(1, "hero", "string"),
+            wire.Field(1, "hero", "string", resolve=_hero_name),
         ],
     ),
     "HeroBuildResponse": (
@@ -3828,7 +3836,7 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
-            wire.Field(2, "hero_name", "string", oneof="hero"),
+            wire.Field(2, "hero_name", "string", oneof="hero", resolve=_hero_name),
             wire.Field(3, "hero_id", "uint32", oneof="hero"),
             wire.Field(4, "team", "int32"),
         ],
@@ -4044,7 +4052,7 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "name", "string"),
             wire.Field(2, "team", "int32"),
-            wire.Field(3, "hero_name", "string", oneof="hero"),
+            wire.Field(3, "hero_name", "string", oneof="hero", resolve=_hero_name),
             wire.Field(4, "hero_id", "uint32", oneof="hero"),
             wire.Field(5, "position", "message", optional=True, message="Vec3"),
         ],
@@ -4453,7 +4461,7 @@ _SCHEMA: wire.Schema = {
     "PrecacheOptions": (
         PrecacheOptions,
         [
-            wire.Field(1, "heroes", "string", repeated=True),
+            wire.Field(1, "heroes", "string", repeated=True, resolve=_hero_name),
             wire.Field(2, "resources", "string", repeated=True),
         ],
     ),
@@ -5208,19 +5216,13 @@ def seat_players(
         modlock.seat_players(hero="any", respawn=3)
 
     hero is each player's hero: its name as players know it or as the game
-    does, such as "haze" or "hero_haze", its id, or "any" for the hero they
-    have or else a random one. team is the team, 2
-    or 3, every player joins, or a function that picks the team for one
-    player as they join; without one each player joins the side with fewer
-    heroes. Without respawn a fallen hero is left to the game.
+    does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
+    have or else a random one. team is the team, 2 or 3, every player joins,
+    or a function that picks the team for one player as they join; without
+    one each player joins the side with fewer heroes. Without respawn a fallen hero is left to the game.
 
     It returns the Cast that does the seating, whose members are the players'
     connections, and runs it each frame itself."""
-    # Take the hero by any name a player would call it.
-    if isinstance(hero, str) and hero != "any":
-        named = find_hero(hero)
-        hero = hero if named is None else named.name
-
     # Decide each player's seat once, as they join, and keep it by slot.
     wants: dict[int, Want] = {}
 
@@ -5247,6 +5249,17 @@ _spawned: dict[int, int] = {}
 
 # _roster is the player list the host last reported, or None before one.
 _roster: list[Connection] | None = None
+
+
+def connection(player: Player | int) -> Connection | None:
+    """connection returns the connection of one player, given the player or
+    their slot: their name, Steam ID, whether they are a bot and whether they
+    finished joining. It returns None when nobody holds the slot."""
+    slot = player if isinstance(player, int) else player.slot
+    for held in _roster if _roster is not None else players():
+        if held.player.slot == slot:
+            return held
+    return None
 
 
 def players() -> list[Connection]:
@@ -5300,8 +5313,9 @@ class Want:
     """Want is what a member's hero should be; each field it leaves None is
     free."""
 
-    # hero seats the member on a hero: its game name, such as "hero_atlas",
-    # its id, or "any" for the hero they have or else a random one.
+    # hero seats the member on a hero: its name as players know it or as the
+    # game does, such as "Calico" or "hero_nano", its id, or "any" for the
+    # hero they have or else a random one.
     hero: str | int | None = None
     # team is the team, 2 or 3, to seat the member on. Without one a member
     # keeps their hero's team, or else joins the side with fewer members.

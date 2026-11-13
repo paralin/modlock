@@ -44,6 +44,16 @@ local function with(options: any, name: string, value: any): any
 	return request
 end
 
+-- heroNamed is modlock.heroNamed, which the library defines below.
+local heroNamed: (name: string) -> { name: string }?
+
+-- heroName returns the game's name of the hero name names, as heroNamed
+-- matches it, or name itself when it names no released hero.
+local function heroName(name: string): string
+	local hero = heroNamed(name)
+	return if hero then hero.name else name
+end
+
 -- ScreenEffect is a stock full-screen view effect.
 export type ScreenEffect = "killed" | "black" | "blinded" | "darkness" | "matchIntro"
 local ScreenEffect: { [any]: any } = {
@@ -2688,7 +2698,7 @@ schema.HoldModifierStateRequest = {
 	{ number = 3, name = "active", kind = "bool", optional = true },
 }
 schema.HeroBuildRequest = {
-	{ number = 1, name = "hero", kind = "string" },
+	{ number = 1, name = "hero", kind = "string", resolve = heroName },
 }
 schema.HeroBuildResponse = {
 	{ number = 1, name = "categories", kind = "message", repeated = true, message = "BuildCategory" },
@@ -3354,7 +3364,7 @@ schema.Score = {
 }
 schema.SelectHeroRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
-	{ number = 2, name = "heroName", kind = "string", oneof = "hero" },
+	{ number = 2, name = "heroName", kind = "string", oneof = "hero", resolve = heroName },
 	{ number = 3, name = "heroId", kind = "uint32", oneof = "hero" },
 	{ number = 4, name = "team", kind = "int32" },
 }
@@ -3495,7 +3505,7 @@ schema.TimerTarget = {
 schema.BotOptions = {
 	{ number = 1, name = "name", kind = "string" },
 	{ number = 2, name = "team", kind = "int32" },
-	{ number = 3, name = "heroName", kind = "string", oneof = "hero" },
+	{ number = 3, name = "heroName", kind = "string", oneof = "hero", resolve = heroName },
 	{ number = 4, name = "heroId", kind = "uint32", oneof = "hero" },
 	{ number = 5, name = "position", kind = "message", optional = true, message = "Vec3" },
 }
@@ -3778,7 +3788,7 @@ schema.ServerCommandRequest = {
 	{ number = 1, name = "command", kind = "string" },
 }
 schema.PrecacheOptions = {
-	{ number = 1, name = "heroes", kind = "string", repeated = true },
+	{ number = 1, name = "heroes", kind = "string", repeated = true, resolve = heroName },
 	{ number = 2, name = "resources", kind = "string", repeated = true },
 }
 
@@ -4631,6 +4641,19 @@ function modlock.players(): { Connection }
 	return response.players
 end
 
+-- connection returns the connection of one player, given the player or their
+-- slot: their name, Steam ID, whether they are a bot and whether they
+-- finished joining. It returns nil when nobody holds the slot.
+function modlock.connection(player: Player | number): Connection?
+	local slot = if type(player) == "number" then player else player.slot
+	for _, held in roster or modlock.players() do
+		if held.player.slot == slot then
+			return held
+		end
+	end
+	return nil
+end
+
 -- Hero is one released hero.
 export type Hero = {
 	-- name is the game's name for the hero, such as "hero_atlas".
@@ -4694,16 +4717,32 @@ local heroes: { Hero } = {
 }
 modlock.heroes = heroes
 
--- heroIds maps each released hero's game name to its id.
-local heroIds: { [string]: number } = {}
-for _, hero in heroes do
-	heroIds[hero.name] = hero.id
-end
-
 -- plainTitle is a hero's title in lower case without spaces or punctuation.
 local function plainTitle(hero: Hero): string
 	return (string.gsub(string.lower(hero.title), "[^a-z0-9]", ""))
 end
+
+-- heroesByName holds each released hero under every name heroNamed accepts,
+-- reduced as heroNamed reduces them. Game names go in last, so a title that
+-- equals another hero's game name could never take it.
+local heroesByName: { [string]: Hero } = {}
+for _, hero in heroes do
+	heroesByName[plainTitle(hero)] = hero
+end
+for _, hero in heroes do
+	heroesByName[string.sub(hero.name, #"hero_" + 1)] = hero
+	heroesByName[hero.name] = hero
+end
+
+-- heroNamed returns the released hero that name names exactly: its game name,
+-- such as "hero_nano", that name without "hero_", such as "nano", or its
+-- title in any case, with or without spaces and punctuation, such as "Calico"
+-- or "ladygeist". Unlike findHero it matches no part of a name, so a
+-- misspelled name finds no hero rather than another one.
+function modlock.heroNamed(name: string): Hero?
+	return heroesByName[(string.gsub(string.lower(name), "[^a-z0-9_]", ""))]
+end
+heroNamed = modlock.heroNamed
 
 -- findHero matches what a player typed, such as "geist", "Lady Geist" or
 -- "hero_ghost", to a hero: an exact game name or title first, then the first
@@ -4736,8 +4775,9 @@ end
 
 -- Want is what a member's hero should be; each field it leaves out is free.
 export type Want = {
-	-- hero seats the member on a hero: its name, such as "hero_atlas", its id,
-	-- or "any" for the hero they have or else a random one.
+	-- hero seats the member on a hero: its name as players know it or as the
+	-- game does, such as "Calico" or "hero_nano", its id, or "any" for the hero
+	-- they have or else a random one.
 	hero: (string | number)?,
 	-- team is the team, 2 or 3, to seat the member on. Without one a member
 	-- keeps their hero's team, or else joins the side with fewer heroes.
@@ -4990,7 +5030,8 @@ local function seated<M>(seat: Seat<M>, want: Want, hero: string | number): bool
 
 	-- A name outside the released heroes, such as one the game added since,
 	-- is met by whatever hero the game gave for it.
-	local id = if type(hero) == "number" then hero else heroIds[hero]
+	local known = if type(hero) == "string" then modlock.heroNamed(hero) else nil
+	local id = if type(hero) == "number" then hero elseif known then known.id else nil
 	return id == nil or pawn.hero == id
 end
 
@@ -5301,7 +5342,7 @@ end
 -- Seating is where seatPlayers puts each player who joins.
 export type Seating = {
 	-- hero is each player's hero: its name as players know it or as the game
-	-- does, such as "haze" or "hero_haze", its id, or "any" for the hero they
+	-- does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
 	-- have or else a random one. "any" is the default.
 	hero: (string | number)?,
 	-- team is the team, 2 or 3, every player joins, or a function that picks
@@ -5320,15 +5361,9 @@ export type Seating = {
 -- seating, whose members are the players' connections, and runs it each frame
 -- itself.
 function modlock.seatPlayers(seating: Seating?): Cast<Connection>
-	-- Take the hero by any name a player would call it.
+	-- Decide each player's seat once, as they join.
 	local options: Seating = seating or {}
 	local hero: string | number = options.hero or "any"
-	if type(hero) == "string" and hero ~= "any" then
-		local named = modlock.findHero(hero)
-		hero = if named then named.name else hero
-	end
-
-	-- Decide each player's seat once, as they join.
 	local team = options.team
 	local wants: { [Connection]: Want } = {}
 	local cast: Cast<Connection> = Cast.new({

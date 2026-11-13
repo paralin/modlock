@@ -68,20 +68,29 @@ HEROES: tuple[Hero, ...] = (
     Hero("hero_yamato", 27, "Yamato", "file://{images}/heroes/yamato_sm.psd"),
 )
 
-# _BY_NAME finds each hero by its game name.
-_BY_NAME = {hero.name: hero for hero in HEROES}
-
-
-def hero_named(name: str) -> Hero | None:
-    """hero_named returns the released hero with the game's name, such as
-    "hero_atlas", or None for a name outside the table."""
-    return _BY_NAME.get(name)
-
-
 def _plain(text: str, keep: str = "") -> str:
     """_plain reduces text to its lowercase ASCII letters and digits, and the
     characters in keep."""
     return "".join(c for c in text.lower() if c.isascii() and c.isalnum() or c in keep)
+
+
+# _BY_NAME holds each released hero under every name hero_named accepts,
+# reduced as _plain reduces them. Game names go in last, so a title that
+# equals another hero's game name could never take it.
+_BY_NAME = {
+    **{_plain(hero.title): hero for hero in HEROES},
+    **{hero.name.removeprefix("hero_"): hero for hero in HEROES},
+    **{hero.name: hero for hero in HEROES},
+}
+
+
+def hero_named(name: str) -> Hero | None:
+    """hero_named returns the released hero that name names exactly: its game
+    name, such as "hero_nano", that name without "hero_", such as "nano", or
+    its title in any case, with or without spaces and punctuation, such as
+    "Calico" or "ladygeist". Unlike find_hero it matches no part of a name, so
+    a misspelled name finds no hero rather than another one."""
+    return _BY_NAME.get(_plain(name, "_"))
 
 
 def find_hero(typed: str) -> Hero | None:

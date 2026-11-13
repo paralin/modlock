@@ -4,7 +4,7 @@ instance of its generated class, whose attributes are the fields' names in
 the schema; the schema's rules for each field are on its descriptor."""
 
 import struct
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -34,6 +34,9 @@ class Field:
     # cls is the class the field's number addresses, which key holds.
     cls: type[Any] | None = None
     key: str | None = None
+    # resolve maps a string field's value to the one the game reads, such as
+    # a hero's title to its game name, before it is encoded.
+    resolve: Callable[[str], str] | None = None
 
 
 # Schema holds each message's class and fields by the message's name. A
@@ -224,7 +227,8 @@ def _bytes(schema: Schema, field: Field, value: Any) -> bytes:
         body = encode(schema, field.message or "", value)
         return _varint(len(body)) + body
     if field.kind == "string":
-        body = str(value).encode()
+        text = str(value)
+        body = (field.resolve(text) if field.resolve is not None else text).encode()
         return _varint(len(body)) + body
     if field.kind == "bytes":
         return _varint(len(value)) + bytes(value)

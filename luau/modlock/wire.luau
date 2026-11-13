@@ -37,6 +37,9 @@ export type Field = {
 	key: string?,
 	-- id marks a 64-bit integer held as a decimal string.
 	id: boolean?,
+	-- resolve maps a string field's value to the one the game reads, such as
+	-- a hero's title to its game name, before it is encoded.
+	resolve: ((string) -> string)?,
 }
 
 -- Schema holds each message's fields by the message's name.
@@ -352,6 +355,9 @@ local function bytes(schema: Schema, field: Field, value: any): string
 		local body = encode(schema, field.message :: string, value)
 		return varint(#body, 0) .. body
 	elseif field.kind == "string" or field.kind == "bytes" then
+		if field.resolve then
+			value = field.resolve(value)
+		end
 		return varint(#value, 0) .. value
 	elseif field.kind == "float" then
 		return string.pack("<f", value)

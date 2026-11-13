@@ -27,6 +27,7 @@ from typing import Any, Literal
 
 import _modlock
 
+from . import heroes as _heroes
 from . import wire
 
 
@@ -66,6 +67,13 @@ def _with(options: Any, name: str, value: Any) -> dict[str, Any]:
     request = {f.name: getattr(options, f.name) for f in dataclasses.fields(options)}
     request[name] = value
     return request
+
+
+def _hero_name(name: str) -> str:
+    """_hero_name returns the game's name of the hero name names, as
+    hero_named matches it, or name itself when it names no released hero."""
+    hero = _heroes.hero_named(name)
+    return name if hero is None else hero.name
 
 
 `
@@ -408,6 +416,9 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 	}
 	if c := classOf(f); c != nil {
 		args = append(args, "cls="+c.name, fmt.Sprintf("key=%q", c.key))
+	}
+	if f.hero {
+		args = append(args, "resolve=_hero_name")
 	}
 	return strings.Join(args, ", "), nil
 }
