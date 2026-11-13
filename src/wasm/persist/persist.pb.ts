@@ -940,6 +940,11 @@ export interface StoredRecord {
    * Version counts the updates that changed the record.
    */
   version?: bigint
+  /**
+   * Kinds are the kinds of the fields that wrote each value in record, so a
+   * value is changed only by a field of the same kind.
+   */
+  kinds?: { [key: string]: Field_Kind }
 }
 
 export const StoredRecord: MessageType<StoredRecord> =
@@ -949,6 +954,7 @@ export const StoredRecord: MessageType<StoredRecord> =
       [1, 'record', 11, 0, Record.codec],
       [2, 'recent_keys', 9, 1],
       [3, 'version', 4],
+      [4, 'kinds', 14, 584, Field_Kind_Enum],
     ],
     {
       decode: (r: BinaryReader, end: number, m: StoredRecord): StoredRecord => {
@@ -965,6 +971,17 @@ export const StoredRecord: MessageType<StoredRecord> =
             case 3:
               m.version = r.uint64()
               break
+            case 4: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.int32(),
+                '',
+                0,
+              )
+              m.kinds ??= newMap()
+              m.kinds[k] = v
+              break
+            }
             default:
               r.skip(t)
           }
@@ -983,6 +1000,16 @@ export const StoredRecord: MessageType<StoredRecord> =
         {
           const v = m.version
           if (v) w.uint32(24).uint64(v)
+        }
+        {
+          const o = m.kinds
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(34).fork()
+              w.uint32(10).string(k)
+              w.uint32(16).int32(v)
+              w.join(s)
+            }
         }
       },
     },
