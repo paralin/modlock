@@ -5,6 +5,7 @@
 import { Setting } from './settings/settings.pb.js'
 import { Metric } from './metrics/metrics.pb.js'
 import { Board } from './scores/scores.pb.js'
+import { RecordType } from './persist/persist.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType, newMap } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -98,6 +99,11 @@ export interface Manifest {
    * calls then fail.
    */
   services?: Service[]
+  /**
+   * Persist are the record types the mod keeps for each player through the
+   * host's persist service, such as stats or unlocks, up to 8.
+   */
+  persist?: RecordType[]
 }
 
 export const Manifest: MessageType<Manifest> =
@@ -119,6 +125,7 @@ export const Manifest: MessageType<Manifest> =
       [13, 'content_addon', 9],
       [14, 'boards', 11, 1, Board.codec],
       [15, 'services', 11, 1, Service.codec],
+      [16, 'persist', 11, 1, RecordType.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Manifest): Manifest => {
@@ -172,6 +179,9 @@ export const Manifest: MessageType<Manifest> =
               break
             case 15:
               ;(m.services ??= []).push(Service.decode(r, r.delimited(), {}))
+              break
+            case 16:
+              ;(m.persist ??= []).push(RecordType.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -239,6 +249,10 @@ export const Manifest: MessageType<Manifest> =
         {
           const a = m.services
           if (a != null) for (const e of a) Service.writeField(w, 15, e)
+        }
+        {
+          const a = m.persist
+          if (a != null) for (const e of a) RecordType.writeField(w, 16, e)
         }
       },
     },

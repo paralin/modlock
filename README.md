@@ -598,6 +598,7 @@ When the mode plays well, [publish it](#publishing).
 | [`inventory`](examples/inventory)       | A drag inventory in the mod's own layout, script and style sheet.   |
 | [`bounty`](examples/bounty)             | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
 | [`race`](examples/race)                 | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
+| [`prop-stats`](examples/prop-stats)     | A player's stats and unlocks kept across sessions with persist.     |
 | [`hello-luau`](examples/hello-luau)     | The smallest mod in Luau.                                           |
 | [`hello-python`](examples/hello-python) | The smallest mod in Python.                                         |
 | [`hello-go`](examples/hello-go)         | The smallest mod in Go.                                             |
@@ -873,6 +874,7 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | `player.addMetric(name, value, label?)`                                                                                           | Add to the player's total of a metric.                                |
 | `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`                                             | Report a score or a match's places to a board.                        |
 | `readBoard(board, read?)`                                                                                                         | Read a page of a board, such as its top five.                         |
+| `persist.get(player, type)`, `persist.getMany(players, type)`, `persist.update(player, type, changes, options?, done?)`           | Read or change the player's record of a [persist](#persist) type.     |
 | `player.handoff(text)`, `handedOff()`                                                                                             | Hand the player's state to the next build, and read it back.          |
 | `player.watchMovement(true)`                                                                                                      | Add the hero's movement, landings and wall jumps to each frame.       |
 | `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                                                       | Play curves on the camera; see [Camera moves](#camera-moves).         |
@@ -1651,6 +1653,7 @@ Every project has a `mod.json` at its root:
 | `settings`    |          | [Choices](#settings) each player makes about the mod.                                              |
 | `metrics`     |          | [Totals](#metrics) the mod keeps for each player.                                                  |
 | `boards`      |          | [Rankings](#boards) the mod reports scores to.                                                     |
+| `persist`     |          | [Records](#persist) the mod keeps for each player across sessions, such as stats or unlocks.       |
 | `services`    |          | [Services](#services) the mod calls, each needed or optional.                                      |
 
 ### Map
@@ -1846,6 +1849,57 @@ The host's scores service ranks them; it decides who may report and how far it
 trusts each server. Without a host service that keeps scores, `modlock dev`
 checks each score against its board and logs it, and the mod logs a score the
 host does not take.
+
+### Persist
+
+```json
+"services": [{ "name": "persist" }],
+"persist": [
+  {
+    "name": "stats",
+    "writers": "WRITERS_SERVERS",
+    "fields": {
+      "roundsWon": { "kind": "KIND_COUNT" },
+      "longestHide": { "kind": "KIND_MAX" },
+      "title": { "kind": "KIND_STRING", "maxBytes": 32 },
+      "unlocks": { "kind": "KIND_TAGS" }
+    }
+  }
+]
+```
+
+A mod keeps one record of each declared type for each player, up to 8 types,
+and names the `persist` service. Each type has up to 32 fields, and a record
+holds up to 8 KB.
+
+| Kind          | Holds                                                            | Changes                    |
+| ------------- | ---------------------------------------------------------------- | -------------------------- |
+| `KIND_COUNT`  | A whole number from zero up.                                     | `add`, `set`               |
+| `KIND_NUMBER` | Any number.                                                      | `add`, `max`, `min`, `set` |
+| `KIND_MAX`    | The highest number it was given.                                 | `max`                      |
+| `KIND_STRING` | Text of up to `maxBytes` bytes: 64 unless declared, at most 256. | `set`                      |
+| `KIND_TAGS`   | Up to 256 sorted tags of up to 32 bytes.                         | `insert`, `remove`         |
+
+`writers` is who may change a type's records: `WRITERS_SERVERS` takes changes
+only from a game server the host trusts, for values that carry its trust;
+`WRITERS_PLAYERS` also takes the player's own choices.
+
+`persist.get(player, 'stats')` answers `loading` until the record arrives a
+frame or more later, then `loaded` with the record, or `unavailable` with why;
+a record never written loads empty. `persist.update(player, 'stats', {
+roundsWon: { add: 1 }, longestHide: { max: 41 } }, { key: roundId })` sends up
+to 32 changes the host applies all or none. Changes merge rather than replace,
+so two servers that update one player at once both land; of two `set`s the
+later wins. A `key` of up to 64 bytes makes a resent update count once: the
+host keeps each record's last 64 keys. A change outside its kind's rules, an
+undeclared field or a record past its bound is refused whole, and the record
+is unchanged.
+
+`modlock play` keeps the records itself, in the sandbox and in the game, one
+file per player in the project's `.modlock/persist/`, so they survive a
+restart. In the game it learns the player in each slot as they join, and
+refuses a bot's record. It answers persist itself even with
+`--forward-services`.
 
 ### The built manifest
 

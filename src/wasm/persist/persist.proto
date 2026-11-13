@@ -1,0 +1,221 @@
+syntax = "proto3";
+
+package modlock.wasm.persist;
+
+option go_package = "github.com/paralin/modlock/src/wasm/persist;persist";
+
+// RecordType is one kind of record a mod declares in its manifest under
+// persist, such as a player's stats or unlocks. A host that serves the
+// persist service keeps one record of each type for each player of the mod.
+message RecordType {
+  // Name names the type in the mod's code: up to 32 letters, digits and
+  // underscores, starting with a letter.
+  string name = 1;
+
+  // Writers is who may change the type's records.
+  Writers writers = 2;
+
+  // Fields are the record's fields by name: up to 32, each up to 32
+  // letters, digits and underscores, starting with a letter.
+  map<string, Field> fields = 3;
+}
+
+// Writers is who may change a record type's records.
+enum Writers {
+  // WRITERS_UNKNOWN is an unset or unsupported value; a manifest must set
+  // one of the others.
+  WRITERS_UNKNOWN = 0;
+
+  // WRITERS_SERVERS takes changes only from a game server the host trusts
+  // to run the mod, for a player in its game, so the values carry that
+  // server's trust, such as a level or rounds won.
+  WRITERS_SERVERS = 1;
+
+  // WRITERS_PLAYERS holds the player's own choices, such as settings: the
+  // host also takes changes made for the player by the player's own PC.
+  WRITERS_PLAYERS = 2;
+}
+
+// Field is one declared field of a record type.
+message Field {
+  // Kind is what the field holds and which operations change it.
+  enum Kind {
+    // KIND_UNKNOWN is an unset or unsupported kind.
+    KIND_UNKNOWN = 0;
+
+    // KIND_COUNT is a whole number from zero up, changed by add and set.
+    KIND_COUNT = 1;
+
+    // KIND_NUMBER is any number, changed by add, max, min and set.
+    KIND_NUMBER = 2;
+
+    // KIND_MAX is a number that keeps the highest value it was given,
+    // changed by max.
+    KIND_MAX = 3;
+
+    // KIND_STRING is text of up to max_bytes bytes, changed by set.
+    KIND_STRING = 4;
+
+    // KIND_TAGS is a set of up to 256 short strings, such as unlocks or
+    // completed goals, changed by insert and remove.
+    KIND_TAGS = 5;
+  }
+
+  Kind kind = 1;
+
+  // MaxBytes bounds a KIND_STRING field's text, up to 256; zero is 64.
+  uint32 max_bytes = 2;
+}
+
+// Value is one field's value in a record.
+message Value {
+  oneof value {
+    // Number holds a KIND_COUNT, KIND_NUMBER or KIND_MAX field.
+    double number = 1;
+
+    // Text holds a KIND_STRING field.
+    string text = 2;
+
+    // Tags holds a KIND_TAGS field.
+    Tags tags = 3;
+  }
+}
+
+// Tags is the members of a KIND_TAGS field, in sorted order.
+message Tags {
+  // Members are 1 to 32 bytes each.
+  repeated string members = 1;
+}
+
+// Record is one player's values of one record type. A field never changed
+// is absent and reads as zero, empty text or no tags.
+message Record {
+  map<string, Value> fields = 1;
+}
+
+// Op is one change to one field of a record.
+message Op {
+  // Field names a field the record type declares.
+  string field = 1;
+
+  oneof op {
+    // Add adds to a KIND_COUNT or KIND_NUMBER field; a count takes only a
+    // whole number from zero up.
+    double add = 2;
+
+    // Max raises a KIND_NUMBER or KIND_MAX field to this value when it is
+    // higher.
+    double max = 3;
+
+    // Min lowers a KIND_NUMBER field to this value when it is lower.
+    double min = 4;
+
+    // Set replaces a KIND_COUNT, KIND_NUMBER or KIND_STRING field's value.
+    Value set = 5;
+
+    // Insert adds a member to a KIND_TAGS field.
+    string insert = 6;
+
+    // Remove takes a member from a KIND_TAGS field.
+    string remove = 7;
+  }
+}
+
+// GetRequest reads one player's record, the request of the persist
+// service's Get method.
+message GetRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Type names a record type the manifest declares.
+  string type = 2;
+
+  // Key selects one of the player's records of the type. Empty is the one
+  // record each player has; hosts refuse any other key for now.
+  string key = 3;
+}
+
+// GetReply is the response of the Get method.
+message GetReply {
+  // Record is the player's record; a record never written comes back empty.
+  Record record = 1;
+}
+
+// GetManyRequest reads the records of several players, such as a lobby at
+// join, the request of the GetMany method.
+message GetManyRequest {
+  // Players are the players' server slots, up to 16.
+  repeated int32 players = 1;
+
+  // Type names a record type the manifest declares.
+  string type = 2;
+}
+
+// GetManyReply is the response of the GetMany method.
+message GetManyReply {
+  // Records holds one entry for each asked player, in the asked order.
+  repeated PlayerRecord records = 1;
+}
+
+// PlayerRecord is one player's record in a GetManyReply.
+message PlayerRecord {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  Record record = 2;
+}
+
+// UpdateRequest changes one player's record by field operations, the
+// request of the Update method. The host applies every op or none, so two
+// servers that update one record at once both land; a set is the one op
+// whose later write wins.
+message UpdateRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Type names a record type the manifest declares.
+  string type = 2;
+
+  // Key selects the record, as in GetRequest.
+  string key = 3;
+
+  // Ops are the changes, applied in order, up to 32.
+  repeated Op ops = 4;
+
+  // UpdateKey identifies the change, such as a round, so a resent update
+  // counts once: an update whose key is among the record's last 64 is
+  // left out. Up to 64 bytes; empty applies the update every time.
+  string update_key = 5;
+}
+
+// UpdateReply is the response of the Update method.
+message UpdateReply {
+  // Record is the record after the update.
+  Record record = 1;
+
+  // Repeated is set when the update's key was among the record's recent
+  // keys, so the host left the record as it was.
+  bool repeated = 2;
+}
+
+// StoredRecord is a record as a host keeps it: its values and the keys of
+// its most recent updates.
+message StoredRecord {
+  Record record = 1;
+
+  // RecentKeys are the update keys of the record's last 64 keyed updates,
+  // oldest first.
+  repeated string recent_keys = 2;
+
+  // Version counts the updates that changed the record.
+  uint64 version = 3;
+}
+
+// PlayerFile is the file a local host keeps for one player of one mod: the
+// player's record of each type, by type name.
+message PlayerFile {
+  // SteamId is the player's SteamID64.
+  uint64 steam_id = 1;
+
+  map<string, StoredRecord> records = 2;
+}

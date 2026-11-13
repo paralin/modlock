@@ -34,4 +34,8 @@ type Config struct {
 	// path, or empty when it has none; see FixtureDir. Nil gives no mod
 	// fixtures.
 	Fixtures func(path string) string
+	// Persist returns the directory that keeps the records of the built mod
+	// at path, the mod slug, through the persist service, or empty to keep
+	// them for the session only. Nil keeps every mod's for the session only.
+	Persist func(path, slug string) string
 }

@@ -1,0 +1,18 @@
+{
+  "slug": "prop-stats",
+  "name": "Prop Stats",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "services": [{ "name": "persist" }],
+  "persist": [
+    {
+      "name": "stats",
+      "writers": "WRITERS_SERVERS",
+      "fields": {
+        "roundsWon": { "kind": "KIND_COUNT" },
+        "longestHide": { "kind": "KIND_MAX" },
+        "unlocks": { "kind": "KIND_TAGS" }
+      }
+    }
+  ]
+}

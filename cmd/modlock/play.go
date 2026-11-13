@@ -13,6 +13,7 @@ import (
 	"github.com/aperturerobotics/cli"
 	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/js"
+	"github.com/paralin/modlock/persist"
 	"github.com/paralin/modlock/project"
 	modpublish "github.com/paralin/modlock/publish"
 	"github.com/paralin/modlock/sandbox"
@@ -191,6 +192,7 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 		},
 		Events:   events,
 		Fixtures: projectFixtures,
+		Persist:  persistDir,
 	}), nil
 }
 
@@ -235,8 +237,14 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 	}
 	// Hand the host the projects' service fixtures, or the services to
 	// forward, naming who answers each service the mods call.
+	// Persist is answered here from the projects' files, whatever else is
+	// forwarded.
 	forward := strings.TrimSuffix(c.String("forward-services"), "/")
-	fixtures, err := writeFixtures(out, mods, filepath.Join(filepath.Dir(logPath), "fixtures.pb"), forward)
+	records, err := newLocalPersist(out, mods)
+	if err != nil {
+		return nil, err
+	}
+	fixtures, err := writeFixtures(out, mods, filepath.Join(filepath.Dir(logPath), "fixtures.pb"), forward, records)
 	if err != nil {
 		return nil, err
 	}
@@ -244,6 +252,8 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 	if err != nil {
 		return nil, err
 	}
+	answer = records.answer(answer)
+	events = records.follow(events)
 	running, err := session.Start(c.Context, session.Config{
 		Version:    Version,
 		Mods:       mods,
@@ -276,10 +286,10 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 
 // writeFixtures writes the service fixtures of the projects whose builds are
 // mods to path, as the host's --fixtures file, and prints which answers each
-// service a mod names: a fixture or nobody. It returns path, or empty when no
-// mod has a fixture. The host refuses to start a mod whose needed service
-// nobody provides.
-func writeFixtures(out *printer, mods []string, path, forward string) (string, error) {
+// service a mod names: a fixture, the local persist store or nobody. It
+// returns path, or empty when no mod has a fixture. The host refuses to start
+// a mod whose needed service nobody provides.
+func writeFixtures(out *printer, mods []string, path, forward string, records *localPersist) (string, error) {
 	// Read each named service's fixture from its mod's project, or forward
 	// every service to the origin forward names.
 	fixtures := &control.Fixtures{}
@@ -291,6 +301,10 @@ func writeFixtures(out *printer, mods []string, path, forward string) (string, e
 		slug := manifest.GetSlug()
 		for _, service := range manifest.GetServices() {
 			name := service.GetName()
+			if name == persist.Service && records.declares(slug) {
+				fixtures.Forwards = append(fixtures.Forwards, &control.Forward{Mod: slug, Service: name, Target: "this computer"})
+				continue
+			}
 			if forward != "" {
 				out.mark("·", dim, slug+": service "+name+": forwarded to "+forward)
 				fixtures.Forwards = append(fixtures.Forwards, &control.Forward{Mod: slug, Service: name, Target: forward})

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/paralin/modlock/persist"
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
@@ -37,6 +38,24 @@ func (s *Sandbox) provide(path string, build *Build) error {
 		dir = s.config.Fixtures(path)
 	}
 
+	// Keep the records of the persist service in the mod's directory, or for
+	// the session when it has none.
+	if len(build.Manifest.GetPersist()) != 0 {
+		dir := ""
+		if s.config.Persist != nil {
+			dir = s.config.Persist(path, mod)
+		}
+		if dir == "" {
+			temp, err := os.MkdirTemp("", "modlock-persist-")
+			if err != nil {
+				return err
+			}
+			dir = temp
+		}
+		build.records = persist.NewStore(dir)
+		s.log(mod, "service "+persist.Service+": the sandbox, kept in "+dir)
+	}
+
 	// Name each service's provider: the sandbox itself, a fixture or nobody.
 	var missing error
 	for _, service := range build.Manifest.GetServices() {
@@ -47,6 +66,7 @@ func (s *Sandbox) provide(path string, build *Build) error {
 			return err
 		case provider == nil && name == scoresService:
 			s.log(mod, "service "+name+": the sandbox")
+		case provider == nil && name == persist.Service && build.records != nil:
 		case provider != nil:
 			s.log(mod, "service "+name+": fixture "+provider.path)
 			if build.fixtures == nil {
@@ -129,6 +149,22 @@ func (f *fixture) answer(call *wasm.ServiceCall) *wasm.Reply {
 	return &wasm.Reply{Response: response}
 }
 
+// persist answers the persist service from build's records, for the
+// sandbox's one player in slot 0. A refused call is logged, so the mod's
+// author sees why.
+func (s *Sandbox) persist(build *Build, call *wasm.ServiceCall) *wasm.Reply {
+	players := func(slot int32) (uint64, bool) {
+		return player.GetSteamId(), slot == player.GetPlayer()
+	}
+	response, err := persist.Answer(build.records, build.Manifest, players, call.GetMethod(), call.GetPayload())
+	if err != nil {
+		s.log(build.Manifest.GetSlug(), "persist "+call.GetMethod()+": "+err.Error())
+		return &wasm.Reply{Error: err.Error()}
+	}
+	reply, _ := (&wasm.ServiceReply{Payload: response}).MarshalVT()
+	return &wasm.Reply{Response: reply}
+}
+
 // maxServiceCalls bounds the calls a mod starts between frames, as the host
 // does.
 const maxServiceCalls = 256
@@ -148,6 +184,9 @@ type serviceCalls struct {
 func (s *Sandbox) callService(build *Build, request *wasm.ServiceCall) *wasm.Reply {
 	if request.GetService() == scoresService {
 		return s.scores(build.Manifest, request)
+	}
+	if request.GetService() == persist.Service && build.records != nil {
+		return s.persist(build, request)
 	}
 	if provider := build.fixtures[request.GetService()]; provider != nil {
 		return provider.answer(request)

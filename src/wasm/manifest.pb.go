@@ -15,6 +15,7 @@ import (
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	metrics "github.com/paralin/modlock/src/wasm/metrics"
+	persist "github.com/paralin/modlock/src/wasm/persist"
 	scores "github.com/paralin/modlock/src/wasm/scores"
 	settings "github.com/paralin/modlock/src/wasm/settings"
 )
@@ -256,6 +257,9 @@ type Manifest struct {
 	// it needs has no provider, and starts it without an optional one, whose
 	// calls then fail.
 	Services []*Service `protobuf:"bytes,15,rep,name=services,proto3" json:"services,omitempty"`
+	// Persist are the record types the mod keeps for each player through the
+	// host's persist service, such as stats or unlocks, up to 8.
+	Persist []*persist.RecordType `protobuf:"bytes,16,rep,name=persist,proto3" json:"persist,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -365,6 +369,13 @@ func (x *Manifest) GetBoards() []*scores.Board {
 func (x *Manifest) GetServices() []*Service {
 	if x != nil {
 		return x.Services
+	}
+	return nil
+}
+
+func (x *Manifest) GetPersist() []*persist.RecordType {
+	if x != nil {
+		return x.Persist
 	}
 	return nil
 }
@@ -589,6 +600,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Metrics = protobuf_go_lite.CloneVTSlice(m.Metrics)
 	r.Boards = protobuf_go_lite.CloneVTSlice(m.Boards)
 	r.Services = protobuf_go_lite.CloneVTSlice(m.Services)
+	r.Persist = protobuf_go_lite.CloneVTSlice(m.Persist)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -702,6 +714,9 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Services, that.Services, func() *Service { return &Service{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Persist, that.Persist, func() *persist.RecordType { return &persist.RecordType{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -986,6 +1001,17 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if len(x.Persist) > 0 || s.HasField("persist") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("persist")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Persist {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("persist"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1126,6 +1152,24 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 					return
 				}
 				x.Services = append(x.Services, v)
+			})
+		case "persist":
+			s.AddField("persist")
+			if s.ReadNil() {
+				x.Persist = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Persist = append(x.Persist, nil)
+					return
+				}
+				v := &persist.RecordType{}
+				v.UnmarshalProtoJSON(s.WithField("persist", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Persist = append(x.Persist, v)
 			})
 		}
 	})
@@ -1614,6 +1658,20 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Persist) > 0 {
+		for iNdEx := len(m.Persist) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Persist[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0x82
+		}
+	}
 	if len(m.Services) > 0 {
 		for iNdEx := len(m.Services) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Services[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -1942,6 +2000,10 @@ func (m *Manifest) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	for _, e := range m.Persist {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -2105,6 +2167,18 @@ func (x *Manifest) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteListSeparator(&sb, i)
 			if v == nil {
 				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Service{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Persist) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "persist")
+		for i, v := range x.Persist {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &persist.RecordType{})
 			} else {
 				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
 			}
@@ -2456,6 +2530,19 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Services = append(m.Services, &Service{})
 			if err := m.Services[len(m.Services)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 16:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Persist", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Persist = append(m.Persist, &persist.RecordType{})
+			if err := m.Persist[len(m.Persist)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
