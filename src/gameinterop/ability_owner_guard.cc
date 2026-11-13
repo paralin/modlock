@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/entity_abi.h"
 
 namespace modlock::gameinterop {
@@ -94,6 +95,17 @@ OwnerState OwnerStateOf(const void* entity_system, uint32_t handle, const Bounde
   return (*flags & kEfDeleteFlags) != 0 ? OwnerState::kDeleting : OwnerState::kLive;
 }
 
+// HandleOf reads the handle of the entity at identity, index and serial, even
+// while the game deletes it, or the invalid handle when it cannot be read.
+uint32_t HandleOf(const uint8_t* identity, const BoundedReader& read) {
+  const auto stored = ReadValue<uint32_t>(identity, kIdentityEHandleOffset, read);
+  const auto flags = ReadValue<uint32_t>(identity, kIdentityFlagsOffset, read);
+  if (!stored || !flags) {
+    return kInvalidEHandleIndex;
+  }
+  return LiveHandleOf(*stored, *flags & ~kEfDeleteFlags).value_or(kInvalidEHandleIndex);
+}
+
 // IsAbilityClass reports whether entity_class binds a schema class deriving
 // from CCitadelBaseAbility, remembering the answer for the schema class.
 bool IsAbilityClass(const void* entity_class, const BoundedReader& read, AbilityClasses& classes) {
@@ -149,6 +161,7 @@ std::vector<OwnedAbility> FindOwnedAbilities(const void* entity_system, size_t o
       abilities.push_back(OwnedAbility{
           .entity = identity->instance,
           .index = chunk * kMaxEntitiesInList + slot,
+          .handle = HandleOf(entries + slot * kIdentitySize, read),
           .owner = owner,
           .state = OwnerStateOf(entity_system, owner, read),
       });
@@ -157,20 +170,97 @@ std::vector<OwnedAbility> FindOwnedAbilities(const void* entity_system, size_t o
   return abilities;
 }
 
-std::vector<OwnedAbility> WithholdOwnerless(TransmitSet& set,
-                                            std::span<const OwnedAbility> abilities) {
-  std::vector<OwnedAbility> withheld;
+void HeldAbilities::Track(int32_t slot, bool occupied, uint32_t generation) {
+  // A slot without its connection holds nothing.
+  if (!occupied) {
+    slots_.erase(slot);
+    return;
+  }
+
+  // A new connection in the slot starts with nothing.
+  auto [entry, added] = slots_.try_emplace(slot);
+  if (!added && entry->second.generation != generation) {
+    entry->second.handles.clear();
+  }
+  entry->second.generation = generation;
+}
+
+bool HeldAbilities::Holds(int32_t slot, const OwnedAbility& ability) const {
+  const auto found = slots_.find(slot);
+  if (found == slots_.end()) {
+    return false;
+  }
+  const auto held = found->second.handles.find(ability.index);
+  if (held == found->second.handles.end()) {
+    return false;
+  }
+  return ability.handle == kInvalidEHandleIndex || held->second == ability.handle;
+}
+
+void HeldAbilities::Hold(int32_t slot, const OwnedAbility& ability) {
+  // An untracked slot keeps no records.
+  const auto found = slots_.find(slot);
+  if (found == slots_.end()) {
+    return;
+  }
+
+  // An unknown handle keeps a record of the ability before it.
+  auto [held, added] = found->second.handles.try_emplace(ability.index, ability.handle);
+  if (ability.handle != kInvalidEHandleIndex) {
+    held->second = ability.handle;
+  }
+}
+
+void HeldAbilities::Prune(std::span<const OwnedAbility> abilities) {
+  // Index the abilities in the world by their entity index.
+  std::unordered_map<uint32_t, uint32_t> present;
+  present.reserve(abilities.size());
+  for (const auto& ability : abilities) {
+    present.insert_or_assign(ability.index, ability.handle);
+  }
+
+  // Forget each record whose ability left the world or whose index another
+  // ability took. An unknown handle proves neither.
+  for (auto& [slot, records] : slots_) {
+    std::erase_if(records.handles, [&](const auto& record) {
+      const auto found = present.find(record.first);
+      if (found == present.end()) {
+        return true;
+      }
+      return found->second != kInvalidEHandleIndex && record.second != kInvalidEHandleIndex &&
+             found->second != record.second;
+    });
+  }
+}
+
+size_t HeldAbilities::Count(int32_t slot) const {
+  const auto found = slots_.find(slot);
+  return found == slots_.end() ? 0 : found->second.handles.size();
+}
+
+GuardedAbilities WithholdOwnerless(TransmitSet& set, std::span<const OwnedAbility> abilities,
+                                   HeldAbilities& held) {
+  GuardedAbilities guarded;
+  const int32_t slot = set.Slot();
   for (const auto& ability : abilities) {
     if (!set.Sends(ability.index)) {
       continue;
     }
-    if (ability.state == OwnerState::kLive && set.Sends(ability.owner)) {
+
+    // Withhold an ownerless ability the client cannot hold yet; one it may
+    // hold stays, since clearing its bit drops it on the client only.
+    const bool owned = ability.state == OwnerState::kLive && set.Sends(ability.owner);
+    if (!owned && !held.Holds(slot, ability)) {
+      set.Withhold(ability.index);
+      guarded.withheld.push_back(ability);
       continue;
     }
-    set.Withhold(ability.index);
-    withheld.push_back(ability);
+    if (!owned) {
+      guarded.kept.push_back(ability);
+    }
+    held.Hold(slot, ability);
   }
-  return withheld;
+  return guarded;
 }
 
 // State is the guard's memory across passes, shared with its handler.
@@ -187,9 +277,11 @@ struct AbilityOwnerGuard::State {
   bool reported_offset = false;
   bool reported_system = false;
   uint64_t pass = 0;
-  // seen holds the pass in which each (slot, ability index) withhold last
+  // seen holds the pass in which each (kind, slot, ability index) report last
   // happened.
   std::unordered_map<uint64_t, uint64_t> seen;
+  // held records the abilities each player's client may hold.
+  HeldAbilities held;
   std::chrono::steady_clock::time_point minute{};
   int lines = 0;
   size_t unlogged = 0;
@@ -220,10 +312,12 @@ struct AbilityOwnerGuard::State {
     return owner_offset;
   }
 
-  // Log reports one withhold, unless it was logged within the last second or
-  // the minute's lines are spent.
-  void Log(int32_t slot, const OwnedAbility& ability) {
-    const uint64_t key = (uint64_t{static_cast<uint32_t>(slot)} << 32) | ability.index;
+  // Log reports one withhold, or one ability kept because the client may
+  // hold it, unless the same report for that player and ability was logged
+  // within the last second or the minute's lines are spent.
+  void Log(int32_t slot, const OwnedAbility& ability, bool kept) {
+    const uint64_t key =
+        (uint64_t{kept} << 63) | (uint64_t{static_cast<uint32_t>(slot)} << 32) | ability.index;
     auto [entry, added] = seen.try_emplace(key, pass);
     const bool lapsed = added || pass - entry->second > kRelogPasses;
     entry->second = pass;
@@ -247,9 +341,11 @@ struct AbilityOwnerGuard::State {
     ++lines;
     char owner[16];
     std::snprintf(owner, sizeof(owner), "0x%08x", ability.owner);
-    std::cerr << "[modlock] ability owner guard: withheld " << DesignerName(ability.entity)
-              << " (entity " << ability.index << ") from slot " << slot << ": owner " << owner
-              << ' ' << OwnerStateName(ability.state)
+    std::cerr << "[modlock] ability owner guard: " << (kept ? "kept " : "withheld ")
+              << DesignerName(ability.entity) << " (entity " << ability.index << ") "
+              << (kept ? "for slot " : "from slot ") << slot
+              << (kept ? ", whose client may hold it" : "") << ": owner " << owner << ' '
+              << OwnerStateName(ability.state)
               << (ability.state == OwnerState::kLive ? ", not sent" : "") << '\n';
   }
 
@@ -271,9 +367,20 @@ struct AbilityOwnerGuard::State {
       return;
     }
     const auto abilities = FindOwnedAbilities(*system, *offset, &ReadNative, classes);
+    held.Prune(abilities);
     for (auto& set : sets) {
-      for (const auto& ability : WithholdOwnerless(set, abilities)) {
-        Log(set.Slot(), ability);
+      // A slot's records belong to its current connection.
+      const int32_t slot = set.Slot();
+      const auto connection = ConnectionTracker::StateForSlot(slot);
+      held.Track(slot, connection.occupied, connection.generation);
+
+      // Withhold what the client cannot hold yet, and report both kinds.
+      const auto guarded = WithholdOwnerless(set, abilities, held);
+      for (const auto& ability : guarded.withheld) {
+        Log(slot, ability, false);
+      }
+      for (const auto& ability : guarded.kept) {
+        Log(slot, ability, true);
       }
     }
 
