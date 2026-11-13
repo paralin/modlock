@@ -251,7 +251,7 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 	switch language {
 	case wasm.Manifest_LANGUAGE_GO:
 		files = map[string]string{
-			"go.mod":     "module " + slug + "\n\ngo 1.25.0\n",
+			"go.mod":     "module " + goModule(slug) + "\n\ngo 1.25.0\n",
 			"main.go":    quoted.Replace(goMain),
 			".gitignore": "/" + BuildDir + "/\n",
 		}
@@ -338,6 +338,14 @@ func Vacant(dir string) error {
 		return errors.Errorf("%s already has files in it; choose another name", dir)
 	}
 	return nil
+}
+
+// goModule returns the module path of a new Go mod named slug. Go keeps
+// paths without a dot for its standard library and refuses a module named
+// after one of its packages, such as go or net, so the path gets a prefix no
+// standard package has.
+func goModule(slug string) string {
+	return "mods/" + slug
 }
 
 // SlugFor turns a display name into a slug, such as "Zombie Tag!" into

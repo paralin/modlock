@@ -35,6 +35,7 @@ constexpr Unmade kUnmade[] = {
     {"citadel_herotest_orbspawner", kMapData},
     {"citadel_hideout_prop_base", kOwnerHero},
     {"citadel_hideout_shootable_target_spawner", kMapData},
+    {"citadel_koth_cashin", "a game mode's cash-in data"},
     {"citadel_magician_turret_object", kMakerAbility},
     {"citadel_mobile_resupply_object", kMakerAbility},
     {"citadel_multi_capture_point", "a game mode's capture data"},
