@@ -16,14 +16,13 @@ const grace = 30
 type Pass int
 
 const (
-	// PassNone means the move left the racer's progress as it was.
+	// PassNone leaves the racer's progress as it was.
 	PassNone Pass = iota
-	// PassCheckpoint means the racer passed its next checkpoint.
+	// PassCheckpoint passes the racer's next checkpoint.
 	PassCheckpoint
-	// PassLap means the racer crossed the start line and began another lap.
+	// PassLap crosses the start line and begins another lap.
 	PassLap
-	// PassFinish means the racer crossed the start line at the end of the last
-	// lap.
+	// PassFinish crosses the start line at the end of the last lap.
 	PassFinish
 )
 

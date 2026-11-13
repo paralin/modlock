@@ -292,9 +292,9 @@ lists each input's value type. When the server does not know a designer name, or
 the entity has no such input, only that call fails.
 
 The host resolves the designer name's class before it creates anything.
-The host refuses an ability, item or weapon, because only a hero can hold one: created
-alone, it crashes the server once it thinks or is removed. The error points you to
-`giveItem` and `replaceAbility` instead.
+The host refuses to create an ability, item or weapon on its own, because only a hero
+can hold one, and one created alone crashes the server the first time it thinks or is
+removed. The error points you to `giveItem` and `replaceAbility` instead.
 `spawnNpc` and `createPickup` build on the same call. `spawnNpc` takes any unit
 class the server has and refuses a `lane` for a class that walks none.
 
