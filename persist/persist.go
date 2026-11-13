@@ -155,6 +155,9 @@ func Apply(recordType *persistpb.RecordType, stored *persistpb.StoredRecord, ops
 	if len(updateKey) > UpdateKeyBytes {
 		return nil, false, refuse("a persist update key is up to %d bytes", UpdateKeyBytes)
 	}
+	if updateKey == "" && hasAdd(ops) {
+		return nil, false, refuse("a persist update that adds needs an update key, so a resend counts once")
+	}
 	next := stored.CloneVT()
 	if next == nil {
 		next = &persistpb.StoredRecord{}
@@ -196,9 +199,40 @@ func Apply(recordType *persistpb.RecordType, stored *persistpb.StoredRecord, ops
 	return next, false, nil
 }
 
-// applyOp returns value, a field's current value or nil, changed by op.
+// hasAdd reports whether any of ops adds to a field. Every other op leaves
+// the same record when applied twice.
+func hasAdd(ops []*persistpb.Op) bool {
+	for _, op := range ops {
+		if _, ok := op.GetOp().(*persistpb.Op_Add); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// holds reports whether value, as stored, is of a field of kind: a number
+// for a count, number or max, text for a string, and tags for tags.
+func holds(kind persistpb.Field_Kind, value *persistpb.Value) bool {
+	switch value.GetValue().(type) {
+	case *persistpb.Value_Number:
+		return kind == persistpb.Field_KIND_COUNT || kind == persistpb.Field_KIND_NUMBER || kind == persistpb.Field_KIND_MAX
+	case *persistpb.Value_Text:
+		return kind == persistpb.Field_KIND_STRING
+	case *persistpb.Value_Tags:
+		return kind == persistpb.Field_KIND_TAGS
+	}
+	return false
+}
+
+// applyOp returns value, a field's current value or nil, changed by op. It
+// refuses an op on a value of another kind than the field's, such as text an
+// earlier build stored in a field this build counts, rather than read the
+// value as the new kind.
 func applyOp(field *persistpb.Field, value *persistpb.Value, op *persistpb.Op) (*persistpb.Value, error) {
 	name := op.GetField()
+	if value.GetValue() != nil && !holds(field.GetKind(), value) {
+		return nil, refuse("persist field %s holds a value of another kind than this release's %s, kept by an earlier release; the record is unchanged", name, kindName(field.GetKind()))
+	}
 	number := func(v float64) (*persistpb.Value, error) {
 		if math.IsNaN(v) || math.IsInf(v, 0) {
 			return nil, refuse("persist field %s takes a finite number", name)

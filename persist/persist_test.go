@@ -136,7 +136,7 @@ func TestApplyRules(t *testing.T) {
 		"names no operation": {Field: "score"},
 	}
 	for text, op := range wrong {
-		_, _, err := Apply(stats, next, []*persistpb.Op{add("roundsWon", 1), op}, "")
+		_, _, err := Apply(stats, next, []*persistpb.Op{add("roundsWon", 1), op}, "round-2")
 		refused(t, err, text)
 	}
 	if next.GetRecord().GetFields()["roundsWon"].GetNumber() != 2 {
@@ -145,6 +145,14 @@ func TestApplyRules(t *testing.T) {
 }
 
 func TestApplyKeys(t *testing.T) {
+	// An add without a key is refused, since a resend would count it twice;
+	// other changes need none.
+	_, _, err := Apply(stats, nil, []*persistpb.Op{setText("title", "hider"), add("roundsWon", 1)}, "")
+	refused(t, err, "adds needs an update key")
+	if _, _, err := Apply(stats, nil, []*persistpb.Op{setText("title", "hider"), insert("unlocks", "cone")}, ""); err != nil {
+		t.Fatal("a keyless update without an add was refused", err)
+	}
+
 	// A key seen among the recent keys is left out.
 	next, _, err := Apply(stats, nil, []*persistpb.Op{add("roundsWon", 1)}, "round-1")
 	if err != nil {
@@ -166,6 +174,31 @@ func TestApplyKeys(t *testing.T) {
 	}
 	if _, repeated, _ := Apply(stats, next, []*persistpb.Op{add("roundsWon", 1)}, "round-1"); repeated {
 		t.Fatal("a key past the recent ones is still a repeat")
+	}
+}
+
+// TestApplyKinds refuses, changing nothing, an op on a value an earlier build
+// stored as another kind than the field's now, and keeps applying ops to
+// values of the field's kind.
+func TestApplyKinds(t *testing.T) {
+	// An earlier build counted title and kept unlocks as text.
+	stored := &persistpb.StoredRecord{Record: &persistpb.Record{Fields: map[string]*persistpb.Value{
+		"title":     {Value: &persistpb.Value_Number{Number: 3}},
+		"unlocks":   {Value: &persistpb.Value_Text{Text: "cone"}},
+		"roundsWon": {Value: &persistpb.Value_Number{Number: 2}},
+	}}}
+	_, _, err := Apply(stats, stored, []*persistpb.Op{setText("title", "hider")}, "")
+	refused(t, err, "another kind than this release's KIND_STRING")
+	_, _, err = Apply(stats, stored, []*persistpb.Op{insert("unlocks", "hat")}, "")
+	refused(t, err, "another kind than this release's KIND_TAGS")
+	if stored.GetRecord().GetFields()["title"].GetNumber() != 3 {
+		t.Fatal("a refused update changed the record it was given")
+	}
+
+	// A field whose value is of its kind still takes its ops.
+	next, _, err := Apply(stats, stored, []*persistpb.Op{add("roundsWon", 1)}, "round-1")
+	if err != nil || next.GetRecord().GetFields()["roundsWon"].GetNumber() != 3 {
+		t.Fatal(next, err)
 	}
 }
 

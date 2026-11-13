@@ -1891,9 +1891,11 @@ roundsWon: { add: 1 }, longestHide: { max: 41 } }, { key: roundId })` sends up
 to 32 changes the host applies all or none. Changes merge rather than replace,
 so two servers that update one player at once both land; of two `set`s the
 later wins. A `key` of up to 64 bytes makes a resent update count once: the
-host keeps each record's last 64 keys. A change outside its kind's rules, an
-undeclared field or a record past its bound is refused whole, and the record
-is unchanged.
+host keeps each record's last 64 keys. An update with an `add` needs a key and
+is refused without one. A change outside its kind's rules, an undeclared
+field, a field whose stored value is of another kind than mod.json now
+declares, or a record past its bound is refused whole, and the record is
+unchanged.
 
 `modlock play` keeps the records itself, in the sandbox and in the game, one
 file per player in the project's `.modlock/persist/`, so they survive a

@@ -150,7 +150,7 @@ test('an answer to an earlier read does not replace a later update', () => {
   const player = Player.of(6)
   persist.get(player, 'stats')
   const read = started.length
-  persist.update(player, 'stats', { roundsWon: { add: 1 } })
+  persist.update(player, 'stats', { roundsWon: { add: 1 } }, { key: 'round-1' })
   const update = started.length
   replied(update, {
     payload: UpdateReply.toBinary({
@@ -211,4 +211,25 @@ test('getMany fills each player, and a new player in a slot reads anew', () => {
   // A player who takes slot 8 next is a new Player, whose record loads.
   Player.release(8)
   expect(persist.get(Player.of(8), 'stats')).toEqual({ state: 'loading' })
+})
+
+test('an update that adds without a key is refused and not sent', () => {
+  const player = Player.of(8)
+  const at = started.length
+  const ended: string[] = []
+  persist.update(
+    player,
+    'stats',
+    { title: { set: 'hider' }, roundsWon: { add: 1 } },
+    {},
+    (record, error) => ended.push(`${record === undefined} ${error}`),
+  )
+  expect(started.length).toBe(at)
+  expect(ended).toEqual([
+    'true a persist update that adds needs an update key, so a resend counts once',
+  ])
+
+  // A keyless update without an add is sent.
+  persist.update(player, 'stats', { title: { set: 'hider' } })
+  expect(started.length).toBe(at + 1)
 })

@@ -70,7 +70,7 @@ func TestSecondHostRefused(t *testing.T) {
 	if err != nil {
 		t.Fatalf("after the first exits: %v", err)
 	}
-	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, ""); err != nil {
+	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-1"); err != nil {
 		t.Fatal(err)
 	}
 
