@@ -365,11 +365,11 @@ if err == nil {
 </Samples>
 
 `create` knows only the designer names that survived their spawn on a dedicated
-server, 577 of the game's 1,183. Each name that needs a subclass gets the one it
+server, 578 of the 1,191 surveyed. Each name that needs a subclass gets the one it
 lived with, so `create('npc_trooper_boss', ...)` makes a Guardian without asking
 for `npc_boss_tier1`. A name that never lived, such as an abstract base or one
 that crashes the server, has no constructor. The type checker rejects it.
-[docs/ENTITY_SCHEMA.md](/internals/entity-schema) explores the whole entity
+[Entity schema](/internals/entity-schema) explores the whole entity
 system: the dump, the survey, the generated classes in each language and what
 the host checks.
 

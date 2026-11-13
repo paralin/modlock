@@ -32,32 +32,24 @@ the host loads it.
 To build from a source archive without `.git`, pass its commit with
 `-DMODLOCK_REVISION=<40-character SHA>`.
 
-`modlock-host --dump DIRECTORY` starts the dedicated server, writes the game
-as it describes itself to `schemas.json` (schema classes and enums),
-`entities.json` (designer names, key values, inputs and outputs) and
-`console.json` (console variables and commands), and quits. The documents
-follow [`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto) and are
-sorted by name, so two builds' dumps diff cleanly. Beside them, `survey.json`
-records what creating each designer name on a dedicated server did: whether
-the entity lived, vanished, was refused or crashed the server, alone and with
-the subclass its game data suggests. The libraries type only the names that
-lived, and `create` gives a name that needs a subclass the one it lived with.
-After a game update, replace [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) with a new dump and
-survey, and regenerate the entity classes and console:
+After a game update, regenerate the entity and console libraries as
+[The entity system](/internals/entity-schema#updating-for-a-new-game-build)
+describes.
 
-```sh
-scripts/gen-entities.sh
-```
+## Checks
 
-`bun install` installs a pre-commit hook. The hook formats the staged files
-with oxfmt and restages them. It then checks the staged TypeScript for commented
-code paragraphs with `scripts/tsstyle.ts` and lints it with type-aware oxlint.
-`bun run typecheck`, `bun run lint`, `bun run format` and `bun run test` run the
-same tools across the repository. `bun run lint:cc` reports the includes a C++
-source does not use, and `bun run lint:cc --fix` removes them; it reads the
-compile databases of `build` and `scripts/proton-build.sh`, so build both
-first. Lint the example mods after
-`go run ./cmd/modlock build examples/<mod>` installs their typings.
+`bun install` installs a pre-commit hook that formats the staged files with
+oxfmt and restages them, checks the staged TypeScript for commented code
+paragraphs with `scripts/tsstyle.ts`, and lints it with type-aware oxlint.
+These scripts run the same tools across the repository:
+
+| Script                       | Does                                                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run format`             | Formats with oxfmt                                                                                                                                         |
+| `bun run lint`               | Lints with oxlint; lint the example mods after `go run ./cmd/modlock build examples/<mod>` installs their typings                                          |
+| `bun run typecheck`          | Type checks the TypeScript                                                                                                                                 |
+| `bun run test`               | Runs the tests                                                                                                                                             |
+| `bun run lint:cc [--fix]`    | Reports, or removes, the includes a C++ source does not use; it reads the compile databases of `build` and `scripts/proton-build.sh`, so build both first |
 
 ## Run the command from a clone
 
@@ -72,9 +64,12 @@ go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
 ```
 
 Build without `-trimpath`: the command finds the checkout through the paths
-compiled into it, and builds the TypeScript library, the renderer and the
-preview page from the checkout, so your mods use the checkout's library. After
-a `git pull`, build the command again.
+compiled into it, and builds the TypeScript library in
+[`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and
+the preview page from the checkout, so your mods use the checkout's library.
+`modlock build` does the same from Modlock source in the Go module cache, and
+caches the result; a release build downloads the library its release
+publishes. After a `git pull`, build the command again.
 
 A build from source has no release to download the host from, so set
 `MODLOCK_HOST` to a `modlock-host.exe`; the sandbox needs it too, since it runs
@@ -92,7 +87,6 @@ modlock dev
 
 On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
 change to the host itself, the C++ under `src/`, needs a host built from the
-same checkout, as this page describes above: `scripts/win-build.ps1`
-installs it in `build-win/sdk/bin`, and `scripts/proton-build.sh` in
-`build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
+same checkout: `scripts/win-build.ps1` installs it in `build-win/sdk/bin`, and
+`scripts/proton-build.sh` in `build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
 library makes.

@@ -3,9 +3,8 @@ title: Events
 description: The moments a mod hears about, and how to register a handler for each.
 ---
 
-A mod is a set of handlers. The mod registers them as it loads. The server
-calls each handler at its moment: a chat command, a frame, a player joining,
-a hit about to land.
+A mod registers handlers as it loads, and the server calls each at its moment:
+a chat command, a frame, a player joining, a hit about to land.
 
 <Samples>
 
@@ -98,9 +97,9 @@ func main() {}
 
 ## Every event
 
-The table lists each call as TypeScript and Luau spell it. Python exposes
-snake_case decorators, such as `@modlock.on_player_join`. Go exposes exported
-functions, such as `mod.OnPlayerJoin`.
+Python spells each as a `snake_case` decorator, such as
+`@modlock.on_player_join`, and Go as an exported function, such as
+`mod.OnPlayerJoin`.
 
 | Call                                                | Runs the handler                                               |
 | --------------------------------------------------- | -------------------------------------------------------------- |
@@ -119,9 +118,8 @@ functions, such as `mod.OnPlayerJoin`.
 
 ## A player's stages
 
-A player passes through four stages. Each stage has its own event. Most mods
-need only the join, to greet the player, and the spawn, to act on the player's
-hero.
+Most mods need only the join, to greet the player, and the spawn, to act on
+the hero.
 
 | Stage      | What is true                                                                                           | How the mod sees it                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
@@ -131,20 +129,15 @@ hero.
 | Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
 
 Between joined and in play, the player picks a team or hero, or the game has
-not placed the hero yet. [`seatPlayers`](/guides/toolkit#seat-the-players)
+not placed the hero yet; [`seatPlayers`](/guides/toolkit#seat-the-players)
 skips those screens. A call that needs a hero, such as a teleport, fails
-before the spawn. Make it in the spawn event instead of the join. A bot joins
-as soon as it is added.
+before the spawn, so make it in `onSpawn`, which fires for the first hero,
+each respawn and each new hero. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
-A join and a leave carry the player's `connection`: the slot, SteamID64 and
-name. A leave also says whether the player `disconnected` from the server.
-`disconnected` is false when the player stays but the mod stops serving them.
-The leave carries the `reason` the server gave, such as `'kicked'` or
-`'disconnectByUser'`, when the server gave one. Each joined player leaves
-exactly once. A player who disconnects leaves before the server removes them,
-so the player's hero still reads:
+Each joined player leaves exactly once, before the server removes them, so
+the hero still reads:
 
 <Samples>
 
@@ -183,13 +176,15 @@ mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
 
 </Samples>
 
+| Field          | On             | Holds                                                                                    |
+| -------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `connection`   | join and leave | The slot, SteamID64 and name.                                                            |
+| `disconnected` | leave          | Whether the player left the server; false when they stay but the mod stops serving them. |
+| `reason`       | leave          | The server's reason, such as `'kicked'` or `'disconnectByUser'`, when it gave one.       |
+
 ## Spawns
 
-A player who has just joined may have no hero yet. The player is still picking
-a team or hero, or the game has not put the hero in the world. A spawn fires
-once the hero is in play, so the mod can move, equip and read the hero. It
-fires for a player's first hero, for each respawn, and for each new hero after
-a change:
+`onSpawn` hands over the player and the hero now in play:
 
 <Samples>
 

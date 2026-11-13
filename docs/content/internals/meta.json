@@ -5,6 +5,7 @@
     "building",
     "native-plugins",
     "engine-access",
-    "entity-schema"
+    "entity-schema",
+    "entity-calls"
   ]
 }

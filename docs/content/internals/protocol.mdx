@@ -16,23 +16,21 @@ The calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob
 `Call` selects one method of the `Host` service, when a mod calls the game, or
 of the `Mod` service, when the host delivers an event, and carries its encoded
 request. The `Reply` carries the encoded response or an error. A new capability
-is a new method; the functions never change. Each event runs within a time budget, which stops a runaway loop, and each mod has a memory limit.
+is a new method; the functions never change. Each event runs within a time
+budget, which stops a runaway loop, and each mod has a memory limit.
 
 A program that embeds the host can offer mods more than the game, such as a game
 mode's match rules. The program provides a service with `WasmHost::Provide`, and
-mods call it with the host's `CallService` method. It calls a service a mod
-serves with `WasmHost::Call`, which delivers the mod's `Serve` event. Each
+mods call it with the host's `CallService` method, `callService(service,
+method, payload)` in a mod's library. It calls a service a mod serves with
+`WasmHost::Call`, which delivers the mod's `Serve` event to the handler the mod
+registered with `serve(service, handler)`. Each
 service defines its methods and the encoding of their payloads. A mod cannot be
 called while it is calling the host.
 
 An interpreted mod's built `mod.json` sets its runtime, such as
 `RUNTIME_QUICKJS`, in place of a module. The host runs the interpreter module
 beside `modlock-host` and hands it the mod's source in the start event.
-
-## Services
-
-`callService(service, method, payload)` calls a service the host provides, and
-`serve(service, handler)` answers the host's calls to one the mod serves.
 
 ## Protocols
 
@@ -43,7 +41,5 @@ and the Go package `github.com/paralin/modlock/src/wasm/players`. The mod
 boundary's calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto) and the
 messages they carry in the packages beside it. `bun run gen` regenerates all of the Go, TypeScript, Luau, Python, and
 C++ code with the protobuf toolchain the repository pins.
-
-`modlock build` builds the TypeScript library in [`js/`](https://github.com/paralin/modlock/tree/master/js) from the Modlock
-source when the source is on disk, in a checkout or the Go module cache, and
-caches it. A release build downloads the library its release publishes.
+[Building Modlock](/internals/building#run-the-command-from-a-clone) says where
+`modlock build` gets the TypeScript library.

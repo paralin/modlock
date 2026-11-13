@@ -22,19 +22,21 @@ Portable parsing, callback dispatch, and fixture tests run without game modules.
 ## Signatures and addresses
 
 `ParseSignature` and `SignatureScan` operate on borrowed byte spans. Every
-game signature is one entry in the game data file
-`data/game_signatures.txtpb`, a protobuf text file of
-`src/gameinterop/signatures/signatures.proto`: a stable id, the modules that carry it,
-the pattern, what the match resolves to, and the native shape. The SDK embeds
-the file as of its build, and `modlock-host` loads the file named by
-`--game-data`, else the copy installed beside it, at start, so a game patch
-that moves a pattern ships as a new file without a new host. A malformed entry is skipped with a log line, and only the
-features that resolve its id fail. Callers resolve
-an entry with `ResolveSignature(image, id)`. The target is the match itself,
-the `E8` call at a delta into the match, or the RIP-relative operand of a
-seven-byte instruction at a delta. Missing and ambiguous matches fail with the
-entry's id, and relative targets check that the complete instruction fits
-before reading its signed displacement.
+game signature is one entry in the game data file `data/game_signatures.txtpb`,
+a protobuf text file of `src/gameinterop/signatures/signatures.proto`. An entry
+holds a stable id, the modules that carry it, the pattern, what the match
+resolves to, and the native shape.
+
+- **Loading.** The SDK embeds the file as of its build. `modlock-host` loads the
+  file named by `--game-data`, else the copy installed beside it, at start, so a
+  game patch that moves a pattern ships as a new file without a new host. A
+  malformed entry is skipped with a log line, and only the features that
+  resolve its id fail.
+- **Resolving.** `ResolveSignature(image, id)` returns the match itself, the
+  target of the `E8` call at a delta into the match, or the RIP-relative operand
+  of a seven-byte instruction at a delta. A relative target checks that the
+  whole instruction fits before reading its signed displacement.
+- **Failing.** A missing or ambiguous match fails with the entry's id.
 
 After a game update, build `modlock-sigcheck` and run it against the Deadlock
 install:
@@ -98,29 +100,3 @@ dispatch-table preservation, move ownership, and restore-before-clear ordering.
 The independent hello plugin checks the installed SDK and plugin admission.
 Windows builds check native code paths; a live game run is needed to validate
 patterns and ABI layouts against a new game binary.
-
-## Attributed damage and deaths
-
-`damage({ victim, attacker, inflictor, ability, amount })` deals ordinary damage
-through the engine. Entity handles include their generation: a stale handle
-fails instead of selecting a replacement entity. `inflictor` defaults to the
-attacker and `ability` may be omitted.
-
-`killEntity({ victim, attacker, inflictor, ability })` forces a hero or unit to
-die and credits the attacker through the game's own damage and reward logic.
-It bypasses resistance and damage modification, suppresses item procs, and
-succeeds without another reward when the victim is already dead. A living pawn
-at zero health still receives its death transition. The caller releases any
-mode-owned immortality before killing.
-
-Omitting `attacker` keeps the death environmental and suppresses credit and
-rewards, as `player.kill()` does. Both damage and forced kills reject the world,
-props and buildings because clients cannot safely process their damage events.
-
-To credit a death the engine would not attribute, such as a hero knocked out
-of the play area or into a hazard, the mod keeps the handle of the last enemy
-that hit or pushed the victim. When the victim dies, it passes that handle as
-`attacker` to `killEntity`. Because handles carry their generation, a source
-that has since died or left fails instead of crediting another entity. The
-engine then awards the kill, assists and rewards; mods should not write
-scoreboard fields themselves.

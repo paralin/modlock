@@ -6,8 +6,8 @@ description: The parts Modlock is made of.
 The WebAssembly host is built on Modlock's C++ framework, which also serves
 [native plugins](/internals/native-plugins):
 
-- **Plugin host.** `modlock-host` runs a server that loads mods and plugins,
-  or the game's own client.
+- **Plugin host.** `modlock-host` runs a dedicated server that loads mods and
+  plugins.
 - **Engine events.** `EngineHost` delivers frames, chat, commands, damage,
   connections, respawns and worlds.
 - **Entities and rendering.** World text, particles and effects; player pawns;
