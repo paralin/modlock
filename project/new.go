@@ -75,16 +75,16 @@ func init() {
 		_ = console.CitadelAllowDuplicateHeroes.Set(true)
 	})
 
-	// Give each player who joins a hero on the smaller team, skipping the
-	// game's team and hero screens, and bring a fallen hero back after 3
-	// seconds. Team: 2 puts everyone on one team, and TeamOf picks a team
-	// for each player.
-	mod.SeatPlayers(mod.Seating{Hero: mod.AnyHero, Respawn: 3 * time.Second})
+	// Bring a fallen hero back after 3 seconds.
+	mod.SetRespawnDelay(3 * time.Second)
 
-	// Welcome each player as they join.
+	// Give each player who joins a hero on the smaller team, skipping the
+	// game's team and hero screens, and welcome them. Hero: "haze" names the
+	// hero and Team: 2 the team.
 	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 		connection := joined.GetConnection()
 		player := mod.Player{Slot: connection.GetPlayer()}
+		player.Seat(mod.Seating{Hero: mod.AnyHero})
 		_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
 	})
 
@@ -99,7 +99,7 @@ func main() {}
 `
 
 // scriptMainSource is a new TypeScript or JavaScript mod's entry.
-const scriptMainSource = `import { command, onPlayerJoin, onStart, seatPlayers } from 'modlock'
+const scriptMainSource = `import { command, onPlayerJoin, onStart, setRespawnDelay } from 'modlock'
 import { apply } from 'modlock/console'
 
 // Set the server up when the mod starts: no troopers in the lanes or creeps
@@ -112,14 +112,14 @@ onStart(() => {
   })
 })
 
-// Give each player who joins a hero on the smaller team, skipping the game's
-// team and hero screens, and bring a fallen hero back after 3 seconds. Add
-// team: 2 to put everyone on one team, or a function that picks a team for
-// each player.
-seatPlayers({ hero: 'any', respawn: 3 })
+// Bring a fallen hero back after 3 seconds.
+setRespawnDelay(3)
 
-// Welcome each player as they join.
+// Give each player who joins a hero on the smaller team, skipping the game's
+// team and hero screens, and welcome them. hero: 'haze' names the hero and
+// team: 2 the team.
 onPlayerJoin(({ connection }) => {
+  connection.player.seat({ hero: 'any' })
   connection.player.announce({{name}}, 'Welcome, ' + connection.name + '.')
 })
 
@@ -161,15 +161,15 @@ modlock.onStart(function()
 	})
 end)
 
--- Give each player who joins a hero on the smaller team, skipping the game's
--- team and hero screens, and bring a fallen hero back after 3 seconds. Add
--- team = 2 to put everyone on one team, or a function that picks a team for
--- each player.
-modlock.seatPlayers({ hero = "any", respawn = 3 })
+-- Bring a fallen hero back after 3 seconds.
+modlock.setRespawnDelay(3)
 
--- Welcome each player as they join.
+-- Give each player who joins a hero on the smaller team, skipping the game's
+-- team and hero screens, and welcome them. hero = "haze" names the hero and
+-- team = 2 the team.
 modlock.onPlayerJoin(function(joined)
 	local connection = joined.connection
+	connection.player:seat({ hero = "any" })
 	connection.player:announce({{name}}, "Welcome, " .. connection.name .. ".")
 end)
 
@@ -197,17 +197,17 @@ def start(args: list[str]) -> None:
     )
 
 
+# Bring a fallen hero back after 3 seconds.
+modlock.set_respawn_delay(3)
+
+
 # Give each player who joins a hero on the smaller team, skipping the game's
-# team and hero screens, and bring a fallen hero back after 3 seconds. Add
-# team=2 to put everyone on one team, or a function that picks a team for
-# each player.
-modlock.seat_players(hero="any", respawn=3)
-
-
-# Welcome each player as they join.
+# team and hero screens, and welcome them. hero="haze" names the hero and
+# team=2 the team.
 @modlock.on_player_join
 def joined(event: modlock.PlayerJoinedEvent) -> None:
     connection = event.connection
+    connection.player.seat(hero="any")
     connection.player.announce({{name}}, f"Welcome, {connection.name}.")
 
 

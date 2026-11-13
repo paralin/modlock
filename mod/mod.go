@@ -421,19 +421,33 @@ func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
 	return nil
 }
 
-// ConnectionOf returns the connection of player: their name, Steam ID,
-// whether they are a bot and whether they finished joining. It returns nil
-// when nobody holds the slot.
-func ConnectionOf(player Player) *Connection {
-	// Read the roster the host reported, or ask for it.
-	held := registered.roster
-	if held == nil {
-		held, _ = Players()
+// roster returns the player list the host last reported, or asks for it.
+func roster() []*Connection {
+	if held := registered.roster; held != nil {
+		return held
 	}
+	held, _ := Players()
+	return held
+}
 
-	// Find the slot.
-	for _, connection := range held {
-		if connection.GetPlayer() == player.Slot {
+// Connection returns the player's connection: their name, Steam ID, whether
+// they are a bot and whether they finished joining. It returns nil when
+// nobody holds the slot.
+func (p Player) Connection() *Connection {
+	for _, connection := range roster() {
+		if connection.GetPlayer() == p.Slot {
+			return connection
+		}
+	}
+	return nil
+}
+
+// ConnectionOfSteamID returns the connection of the account with a Steam ID,
+// or nil when it is not connected. Its GetPlayer is the slot of the Player to
+// call.
+func ConnectionOfSteamID(steamID uint64) *Connection {
+	for _, connection := range roster() {
+		if connection.GetSteamId() == steamID {
 			return connection
 		}
 	}

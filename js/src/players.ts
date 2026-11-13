@@ -62,13 +62,21 @@ export function watchPlayers(
 }
 
 /**
- * connection returns the connection of one player, given the player or
- * their slot: their name, Steam ID, whether they are a bot and whether they
- * finished joining. It returns undefined when nobody holds the slot.
+ * connection returns the connection of one player, given the player, their
+ * slot as a number or their Steam ID as a bigint: their name, Steam ID,
+ * whether they are a bot and whether they finished joining. It returns
+ * undefined when nobody holds the slot or the account is not connected. Its
+ * player field is the Player to call.
  */
-export function connection(player: Player | number): Connection | undefined {
+export function connection(
+  player: Player | number | bigint,
+): Connection | undefined {
+  const held = roster ?? players()
+  if (typeof player === 'bigint') {
+    return held.find((c) => c.steamId === player)
+  }
   const slot = typeof player === 'number' ? player : player.slot
-  return (roster ?? players()).find((c) => c.player.slot === slot)
+  return held.find((c) => c.player.slot === slot)
 }
 
 /**

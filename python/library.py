@@ -111,45 +111,6 @@ _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
 _setting_changes: list[Callable[[Player, str, str], object]] = []
 
-def seat_players(
-    *,
-    hero: str | int = "any",
-    team: int | Callable[[Connection], int] | None = None,
-    respawn: float | None = None,
-) -> Cast[Connection]:
-    """seat_players gives every player who joins a hero on a team, skipping
-    the game's team and hero screens, and keeps them seated for the rest of
-    the game: it brings a fallen hero back after respawn seconds and seats a
-    player again after a hero change.
-
-        modlock.seat_players(hero="any", respawn=3)
-
-    hero is each player's hero: its name as players know it or as the game
-    does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
-    have or else a random one. team is the team, 2 or 3, every player joins,
-    or a function that picks the team for one player as they join; without
-    one each player joins the side with fewer heroes. Without respawn a fallen hero is left to the game.
-
-    It returns the Cast that does the seating, whose members are the players'
-    connections, and runs it each frame itself."""
-    # Decide each player's seat once, as they join, and keep it by slot.
-    wants: dict[int, Want] = {}
-
-    def join(connection: Connection) -> Connection:
-        side = team(connection) if callable(team) else team
-        wants[connection.player.slot] = Want(hero=hero, team=side, respawn=respawn)
-        return connection
-
-    def leave(member: Connection, connection: Connection) -> None:
-        wants.pop(connection.player.slot, None)
-
-    cast = Cast(join, leave=leave, want=lambda member: wants[member.player.slot])
-
-    # Run the cast with the mod's frames.
-    _frames.append(lambda event: cast.frame(event.time_seconds))
-    return cast
-
-
 _spawns: list[Callable[[Player, Pawn], object]] = []
 
 # _spawned maps each slot whose hero is in play to that hero's entity, as the
@@ -160,15 +121,21 @@ _spawned: dict[int, int] = {}
 _roster: list[Connection] | None = None
 
 
+# _MAX_SLOT is above every player slot and below every Steam ID.
+_MAX_SLOT = 0xFFFF
+
+
 def connection(player: Player | int) -> Connection | None:
-    """connection returns the connection of one player, given the player or
-    their slot: their name, Steam ID, whether they are a bot and whether they
-    finished joining. It returns None when nobody holds the slot."""
+    """connection returns the connection of one player, given the player,
+    their slot or their Steam ID: their name, Steam ID, whether they are a bot
+    and whether they finished joining. A number above 65535 is a Steam ID. It
+    returns None when nobody holds the slot or the account is not connected.
+    Its player field is the Player to call."""
+    held = _roster if _roster is not None else players()
+    if isinstance(player, int) and player > _MAX_SLOT:
+        return next((c for c in held if c.steam_id == player), None)
     slot = player if isinstance(player, int) else player.slot
-    for held in _roster if _roster is not None else players():
-        if held.player.slot == slot:
-            return held
-    return None
+    return next((c for c in held if c.player.slot == slot), None)
 
 
 def players() -> list[Connection]:
@@ -462,6 +429,99 @@ class Cast[M]:
                 sapphire += 1
         return 3 if sapphire < amber else 2
 
+
+
+# Seating keeps each player the mod seats on the hero and team it asked for.
+# seat records what one player should have, and one Cast the library runs
+# itself asks the game until the player's hero shows it, and again after a
+# hero change. The same Cast brings fallen heroes back after the respawn
+# delay. It starts with the first seat or respawn delay, so a mod that uses
+# neither pays nothing.
+
+# _seated holds what each seated player wants by slot, with the generation of
+# the connection it was asked for, so a wish never passes to the next player
+# in the slot.
+_seated: dict[int, tuple[int, Want]] = {}
+
+# _unseated is the want of a player the mod did not seat: only the respawn
+# delay.
+_unseated: Want | None = None
+
+# _seating is the Cast that seats players, once the mod uses seating.
+_seating: Cast[Connection] | None = None
+
+
+def _seat_want(member: Connection) -> Want:
+    """_seat_want returns what the seating Cast's member wants now."""
+    held = _seated.get(member.player.slot)
+    if held is not None and held[0] == member.generation:
+        return held[1]
+    return _unseated if _unseated is not None else _NO_WANT
+
+
+def _seat_left(member: Connection, connection: Connection) -> None:
+    """_seat_left forgets the wish of a seated player who left."""
+    held = _seated.get(member.player.slot)
+    if held is not None and held[0] == member.generation:
+        del _seated[member.player.slot]
+
+
+def _start_seating() -> None:
+    """_start_seating makes the seating Cast and runs it with the mod's
+    frames. Bots are members, so the mod can seat one and the respawn delay
+    brings theirs back too."""
+    global _seating
+    if _seating is not None:
+        return
+    cast = Cast[Connection](lambda connection: connection, leave=_seat_left, want=_seat_want, bots="join")
+    _seating = cast
+    _frames.append(lambda event: cast.frame(event.time_seconds))
+
+
+class _PlayerMethods:
+    def connection(self: Player) -> Connection | None:
+        """connection returns the player's connection: their name, Steam ID,
+        whether they are a bot and whether they finished joining. It returns
+        None when nobody holds the slot."""
+        return connection(self)
+
+    def seat(self: Player, *, hero: str | int = "any", team: int | None = None) -> bool:
+        """seat gives the player a hero on a team, skipping the game's team
+        and hero screens. Call it as the player joins:
+
+            @modlock.on_player_join
+            def joined(event: modlock.PlayerJoinedEvent) -> None:
+                event.connection.player.seat(hero="haze", team=2)
+
+        hero is the hero's name as players know it or as the game does, such
+        as "Calico" or "hero_nano", its id, or "any" for the hero the player
+        has or else a random one. team is 2 or 3; without one the player
+        keeps their hero's team or joins the side with fewer heroes.
+
+        The hero appears on a later frame, and on_spawn hears of it. The
+        library asks the game again until the player has the seat, and once
+        more after the player changes hero, so a call before the game is
+        ready is not lost. Seating the player again replaces the seat, and it
+        ends when they leave. It returns False when nobody holds the player's
+        slot."""
+        held = connection(self)
+        if held is None:
+            return False
+        respawn = None if _unseated is None else _unseated.respawn
+        _seated[self.slot] = (held.generation, Want(hero=hero, team=team, respawn=respawn))
+        _start_seating()
+        return True
+
+
+def set_respawn_delay(seconds: float | None) -> None:
+    """set_respawn_delay brings every fallen hero back after seconds, in
+    place of the game's own respawn time. None leaves fallen heroes to the
+    game again."""
+    global _unseated
+    _unseated = None if seconds is None else Want(respawn=seconds)
+    for slot, (generation, want) in _seated.items():
+        _seated[slot] = (generation, dataclasses.replace(want, respawn=seconds))
+    _start_seating()
 
 
 def set_orbit_camera(player: Player, enabled: bool) -> bool:

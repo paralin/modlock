@@ -36,7 +36,7 @@ import {
 } from './host.gen.js'
 import { serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
-import { keepPlayers, players } from './players.js'
+import { connection, keepPlayers, players } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { advance, after } from './timer.js'
@@ -298,59 +298,131 @@ export function onSpawn(handler: (player: Player, pawn: Pawn) => void): void {
  */
 let spawned = new Map<number, number>()
 
-/** Seating is where seatPlayers puts each player who joins. */
+/** Seating is the hero and team seat gives one player. */
 export interface Seating {
   /**
-   * hero is each player's hero: its name as players know it or as the game
-   * does, such as 'haze' or 'hero_haze', its id, or 'any' for the hero they
-   * have or else a random one. 'any' is the default.
+   * hero is the hero's name as players know it or as the game does, such as
+   * 'haze' or 'hero_haze', its id, or 'any' for the hero the player has or
+   * else a random one. 'any' is the default.
    */
   readonly hero?: string | number
   /**
-   * team is the team, 2 or 3, every player joins, or a function that picks
-   * the team for one player as they join. Without one each player joins the
-   * side with fewer heroes.
+   * team is the team, 2 or 3. Without one the player keeps their hero's team
+   * or joins the side with fewer heroes.
    */
-  readonly team?: number | ((connection: Connection) => number)
-  /**
-   * respawn is the seconds a fallen hero waits before it comes back. Without
-   * one a fallen hero is left to the game.
-   */
-  readonly respawn?: number
+  readonly team?: number
 }
 
 /**
- * seatPlayers gives every player who joins a hero on a team, skipping the
- * game's team and hero screens, and keeps them seated for the rest of the
- * game: it brings a fallen hero back after the respawn delay and seats a
- * player again after a hero change. It returns the Cast that does the
- * seating, whose members are the players' connections, and runs it each
- * frame itself.
+ * seated holds what each seated player wants by slot, with the generation of
+ * the connection it was asked for, so a wish never passes to the next player
+ * in the slot.
  */
-export function seatPlayers(seating: Seating = {}): Cast<Connection> {
-  // Decide each player's seat once, as they join.
-  const { team, respawn } = seating
-  const hero = seating.hero ?? 'any'
-  const wants = new Map<Connection, Want>()
-  const cast = new Cast<Connection>({
-    join(connection) {
-      const side = typeof team === 'function' ? team(connection) : team
-      wants.set(connection, {
-        hero,
-        ...(side === undefined ? {} : { team: side }),
-        ...(respawn === undefined ? {} : { respawn }),
-      })
-      return connection
-    },
-    leave(connection) {
-      wants.delete(connection)
-    },
-    want: (connection) => wants.get(connection) ?? {},
-  })
+const seated = new Map<number, { generation: number; want: Want }>()
 
-  // Run the cast with the mod's frames.
+/** respawnDelay is the seconds a fallen hero waits, or undefined for the game's own time. */
+let respawnDelay: number | undefined
+
+/** unseated is the want of a player the mod did not seat: only the respawn delay. */
+let unseated: Want = {}
+
+/** seating is the Cast that seats players, once the mod uses seating. */
+let seating: Cast<Connection> | undefined
+
+/**
+ * startSeating makes the seating Cast and runs it with the mod's frames. Bots
+ * are members, so the mod can seat one and the respawn delay brings theirs
+ * back too. It starts with the first seat or respawn delay, so a mod that uses
+ * neither pays nothing.
+ */
+function startSeating(): void {
+  if (seating) {
+    return
+  }
+  const cast = new Cast<Connection>({
+    join: (connection) => connection,
+    leave(member) {
+      if (seated.get(member.player.slot)?.generation === member.generation) {
+        seated.delete(member.player.slot)
+      }
+    },
+    want(member) {
+      const held = seated.get(member.player.slot)
+      return held?.generation === member.generation ? held.want : unseated
+    },
+    bots: 'join',
+  })
+  seating = cast
   onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
-  return cast
+}
+
+/** wantOf returns a seating with the respawn delay as the seating Cast's want. */
+function wantOf(seating: Seating): Want {
+  return {
+    hero: seating.hero ?? 'any',
+    ...(seating.team === undefined ? {} : { team: seating.team }),
+    ...(respawnDelay === undefined ? {} : { respawn: respawnDelay }),
+  }
+}
+
+// The library adds the methods below to the generated Player.
+declare module './host.gen.js' {
+  interface Player {
+    /**
+     * connection returns the player's connection: their name, Steam ID,
+     * whether they are a bot and whether they finished joining. It returns
+     * undefined when nobody holds the slot.
+     */
+    connection(): Connection | undefined
+    /**
+     * seat gives the player a hero on a team, skipping the game's team and
+     * hero screens. Call it as the player joins:
+     *
+     *     onPlayerJoin(({ connection }) => connection.player.seat({ hero: 'haze', team: 2 }))
+     *
+     * The hero appears on a later frame, and onSpawn hears of it. The library
+     * asks the game again until the player has the seat, and once more after
+     * the player changes hero, so a call before the game is ready is not
+     * lost. Seating the player again replaces the seat, and it ends when they
+     * leave. It returns false when nobody holds the player's slot.
+     */
+    seat(seating?: Seating): boolean
+  }
+}
+
+Player.prototype.connection = function (this: Player): Connection | undefined {
+  return connection(this)
+}
+
+Player.prototype.seat = function (
+  this: Player,
+  seating: Seating = {},
+): boolean {
+  // Find the connection the seat is for.
+  const held = connection(this)
+  if (!held) {
+    return false
+  }
+
+  // Keep the seat for the seating Cast to ask for.
+  seated.set(this.slot, { generation: held.generation, want: wantOf(seating) })
+  startSeating()
+  return true
+}
+
+/**
+ * setRespawnDelay brings every fallen hero back after seconds, in place of
+ * the game's own respawn time. Without seconds it leaves fallen heroes to the
+ * game again.
+ */
+export function setRespawnDelay(seconds?: number): void {
+  respawnDelay = seconds
+  unseated = seconds === undefined ? {} : { respawn: seconds }
+  for (const held of seated.values()) {
+    const { respawn: _, ...want } = held.want
+    held.want = { ...want, ...unseated }
+  }
+  startSeating()
 }
 
 /** watchSpawns tells the spawn handlers of each hero that entered play since the last frame. */

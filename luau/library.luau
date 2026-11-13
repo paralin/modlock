@@ -345,13 +345,18 @@ function modlock.players(): { Connection }
 	return response.players
 end
 
--- connection returns the connection of one player, given the player or their
--- slot: their name, Steam ID, whether they are a bot and whether they
--- finished joining. It returns nil when nobody holds the slot.
-function modlock.connection(player: Player | number): Connection?
-	local slot = if type(player) == "number" then player else player.slot
+-- connection returns the connection of one player, given the player, their
+-- slot as a number or their Steam ID as a string: their name, Steam ID,
+-- whether they are a bot and whether they finished joining. It returns nil
+-- when nobody holds the slot or the account is not connected. Its player
+-- field is the Player to call.
+function modlock.connection(player: Player | number | string): Connection?
 	for _, held in roster or modlock.players() do
-		if held.player.slot == slot then
+		if type(player) == "string" then
+			if held.steamId == player then
+				return held
+			end
+		elseif held.player.slot == (if type(player) == "number" then player else player.slot) then
 			return held
 		end
 	end
@@ -1043,55 +1048,104 @@ function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
 
--- Seating is where seatPlayers puts each player who joins.
+-- Seating is the hero and team seat gives one player.
 export type Seating = {
-	-- hero is each player's hero: its name as players know it or as the game
-	-- does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
-	-- have or else a random one. "any" is the default.
+	-- hero is the hero's name as players know it or as the game does, such as
+	-- "Calico" or "hero_nano", its id, or "any" for the hero the player has or
+	-- else a random one. "any" is the default.
 	hero: (string | number)?,
-	-- team is the team, 2 or 3, every player joins, or a function that picks
-	-- the team for one player as they join. Without one each player joins the
-	-- side with fewer heroes.
-	team: (number | (connection: Connection) -> number)?,
-	-- respawn is the seconds a fallen hero waits before it comes back. Without
-	-- one a fallen hero is left to the game.
-	respawn: number?,
+	-- team is the team, 2 or 3. Without one the player keeps their hero's team
+	-- or joins the side with fewer heroes.
+	team: number?,
 }
 
--- seatPlayers gives every player who joins a hero on a team, skipping the
--- game's team and hero screens, and keeps them seated for the rest of the
--- game: it brings a fallen hero back after the respawn delay and seats a
--- player again after a hero change. It returns the Cast that does the
--- seating, whose members are the players' connections, and runs it each frame
--- itself.
-function modlock.seatPlayers(seating: Seating?): Cast<Connection>
-	-- Decide each player's seat once, as they join.
-	local options: Seating = seating or {}
-	local hero: string | number = options.hero or "any"
-	local team = options.team
-	local wants: { [Connection]: Want } = {}
+-- wishes holds what each seated player wants by slot, with the generation of
+-- the connection it was asked for, so a wish never passes to the next player
+-- in the slot.
+local wishes: { [number]: { generation: number, want: Want } } = {}
+
+-- unseated is the want of a player the mod did not seat: only the respawn
+-- delay.
+local unseated: Want = {}
+
+-- seating is the Cast that seats players, once the mod uses seating.
+local seating: Cast<Connection>? = nil
+
+-- startSeating makes the seating Cast and runs it with the mod's frames. Bots
+-- are members, so the mod can seat one and the respawn delay brings theirs
+-- back too. It starts with the first seat or respawn delay, so a mod that uses
+-- neither pays nothing.
+local function startSeating()
+	if seating then
+		return
+	end
 	local cast: Cast<Connection> = Cast.new({
 		join = function(connection: Connection): Connection
-			wants[connection] = {
-				hero = hero,
-				team = if type(team) == "function" then team(connection) else team,
-				respawn = options.respawn,
-			}
 			return connection
 		end,
 		leave = function(member: Connection)
-			wants[member] = nil
+			local held = wishes[member.player.slot]
+			if held and held.generation == member.generation then
+				wishes[member.player.slot] = nil
+			end
 		end,
 		want = function(member: Connection): Want
-			return wants[member]
+			local held = wishes[member.player.slot]
+			if held and held.generation == member.generation then
+				return held.want
+			end
+			return unseated
 		end,
+		bots = "join",
 	})
-
-	-- Run the cast with the mod's frames.
+	seating = cast
 	table.insert(frames, function(frame: FrameEvent)
 		cast:frame(frame.timeSeconds)
 	end)
-	return cast
+end
+
+-- connection returns the player's connection: their name, Steam ID, whether
+-- they are a bot and whether they finished joining. It returns nil when
+-- nobody holds the slot.
+function Player.connection(self: Player): Connection?
+	return modlock.connection(self)
+end
+
+-- seat gives the player a hero on a team, skipping the game's team and hero
+-- screens. Call it as the player joins:
+--
+--     modlock.onPlayerJoin(function(joined)
+--         joined.connection.player:seat({ hero = "haze", team = 2 })
+--     end)
+--
+-- The hero appears on a later frame, and onSpawn hears of it. The library asks
+-- the game again until the player has the seat, and once more after the player
+-- changes hero, so a call before the game is ready is not lost. Seating the
+-- player again replaces the seat, and it ends when they leave. It returns
+-- false when nobody holds the player's slot.
+function Player.seat(self: Player, options: Seating?): boolean
+	local held = modlock.connection(self)
+	if not held then
+		return false
+	end
+	local chosen: Seating = options or {}
+	wishes[self.slot] = {
+		generation = held.generation,
+		want = { hero = chosen.hero or "any", team = chosen.team, respawn = unseated.respawn },
+	}
+	startSeating()
+	return true
+end
+
+-- setRespawnDelay brings every fallen hero back after seconds, in place of the
+-- game's own respawn time. Without seconds it leaves fallen heroes to the game
+-- again.
+function modlock.setRespawnDelay(seconds: number?)
+	unseated = { respawn = seconds }
+	for _, held in wishes do
+		held.want = { hero = held.want.hero, team = held.want.team, respawn = seconds }
+	end
+	startSeating()
 end
 
 -- spawns holds the spawn handlers, which run in registration order.

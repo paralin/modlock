@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/aperturerobotics/protobuf-go-lite/types/descriptorpb"
@@ -82,6 +83,32 @@ type luauWriter struct {
 	// absent holds the result field of each call that answers nil when the
 	// host leaves it out.
 	absent map[*field]bool
+	// library is the handwritten library, whose class methods join each
+	// class's type.
+	library []byte
+}
+
+// luauMethod matches a method the handwritten library adds to a class, such
+// as function Player.seat(self: Player, options: Seating?): boolean, with the
+// comment lines above it.
+var luauMethod = regexp.MustCompile(`(?m)((?:^--.*\n)*)^function (\w+)\.(\w+)\((self: \w+(?:, .*)?)\)(?:: (.*))?\n`)
+
+// writeMethods writes the type fields of the methods the handwritten library
+// adds to c. The library defines them on the class's table itself.
+func (w *luauWriter) writeMethods(c *class) {
+	for _, m := range luauMethod.FindAllSubmatch(w.library, -1) {
+		if string(m[2]) != c.name {
+			continue
+		}
+		for line := range strings.Lines(string(m[1])) {
+			w.out.WriteString("\t" + line)
+		}
+		result := string(m[5])
+		if result == "" {
+			result = "()"
+		}
+		fmt.Fprintf(&w.out, "\t%s: (%s) -> %s,\n", m[3], m[4], result)
+	}
 }
 
 // writeLuau returns luau/modlock/init.luau, which ends with the handwritten
@@ -95,7 +122,7 @@ func writeLuau(s *schema) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	w := &luauWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}}
+	w := &luauWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}, library: library}
 	for _, c := range calls {
 		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
 			w.absent[f] = true
@@ -211,6 +238,7 @@ func (w *luauWriter) writeClass(c *class) {
 			fmt.Fprintf(&w.out, "\t%s: (%s) -> %s,\n", call.name, strings.Join(params, ", "), result)
 		}
 	}
+	w.writeMethods(c)
 	w.out.WriteString("}\n")
 	fmt.Fprintf(&w.out, "local %s = {}\n%s.__index = %s\n\n", c.name, c.name, c.name)
 	fmt.Fprintf(&w.out, "-- new returns the %s with %s.\n", c.name, c.key)

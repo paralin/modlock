@@ -91,6 +91,33 @@ type pythonWriter struct {
 	// handwritten library calls itself, such as Ui, and of the services
 	// outside Modlock, which it encodes as dicts.
 	library reach
+	// methods holds the handwritten methods of each class by its name, as the
+	// lines of the class body.
+	methods map[string]string
+}
+
+// pythonMethods cuts the handwritten methods of each class out of the
+// library. The library writes them as the body of a class named after it,
+// such as _PlayerMethods for Player, which keeps the file valid Python. It
+// returns the library without those classes and each body by class name.
+func pythonMethods(library []byte) ([]byte, map[string]string) {
+	// Find each class by name, and take its header and indented lines.
+	methods := map[string]string{}
+	for _, c := range classes {
+		header := "class _" + c.name + "Methods:\n"
+		before, after, found := strings.Cut(string(library), header)
+		if !found {
+			continue
+		}
+		lines := strings.SplitAfter(after, "\n")
+		end := 0
+		for end < len(lines) && (strings.HasPrefix(lines[end], " ") || strings.TrimSpace(lines[end]) == "") {
+			end++
+		}
+		methods[c.name] = strings.TrimRight(strings.Join(lines[:end], ""), "\n") + "\n"
+		library = []byte(before + strings.TrimLeft(strings.Join(lines[end:], ""), "\n"))
+	}
+	return library, methods
 }
 
 // writePython returns python/modlock/__init__.py, which ends with the
@@ -104,7 +131,8 @@ func writePython(s *schema) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	w := &pythonWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}}
+	library, methods := pythonMethods(library)
+	w := &pythonWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}, methods: methods}
 	for _, c := range calls {
 		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
 			w.absent[f] = true
@@ -262,6 +290,9 @@ func (w *pythonWriter) writeClass(c *class) {
 			w.out.WriteString("\n")
 			w.writeCall(call, "    ")
 		}
+	}
+	if methods := w.methods[c.name]; methods != "" {
+		w.out.WriteString("\n" + methods)
 	}
 	w.out.WriteString("\n\n")
 }
