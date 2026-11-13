@@ -27,7 +27,8 @@ jobs:
         with:
           version: 0.16.0
       - name: Build the files
-        run: scripts/dist.sh "master-${GITHUB_SHA::12}"
+        # The runner only builds, so the game server compiles on every core.
+        run: MODLOCK_BUILD_JOBS=$(nproc) scripts/dist.sh "master-${GITHUB_SHA::12}"
       # The version file names the build the other files belong to. It goes up
       # last, so the command line never reads a new version beside old files;
       # it checks the version again after each download.
