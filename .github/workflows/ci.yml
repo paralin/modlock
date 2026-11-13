@@ -1,8 +1,17 @@
 name: CI
+# The Docs workflow builds and checks docs/, and nothing here reads it, so a
+# change to the docs alone runs only that workflow.
 on:
   push:
     branches: [master]
+    paths-ignore: ['docs/**']
   pull_request:
+    paths-ignore: ['docs/**']
+# A new push to a pull request supersedes its running checks, so they stop.
+# Each push to master keeps its own run, so every commit there has a result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
 jobs:
   specs:
     runs-on: ubuntu-24.04
@@ -28,8 +37,16 @@ jobs:
         run: bun run --cwd vscode typecheck
       - name: Package the extension
         run: bun run --cwd vscode package
+  # Each library test file is a scriptc build of about three minutes, three at
+  # a time on one runner, so the files are split across shards that run at
+  # once. Keep each shard at three runnable files or fewer: add a shard when
+  # js/test gains files.
   scriptc:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -39,15 +56,38 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.16.0
+          # Each shard builds different files, so each keeps its own cache.
+          cache-key: scriptc-${{ matrix.shard }}
       - name: Install Bun dependencies
         run: bun install --frozen-lockfile --ignore-scripts
+      # The same test as bun run test:scriptc, limited to this shard's files:
+      # every shard-count-th file of js/test, in name order. Each file the
+      # shard names must report a result, so a name the pattern misses fails
+      # here rather than going untested.
       - name: Run the library tests as scriptc WebAssembly
-        run: bun run test:scriptc
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: ${{ strategy.job-total }}
+        run: |
+          set -o pipefail
+          names=$(cd js/test && ls -1 *.test.ts | LC_ALL=C sort | sed 's/\.test\.ts$//' | awk -v n="$SHARDS" -v i="$SHARD" '(NR - 1) % n == i')
+          if [ -z "$names" ]; then echo "This shard has no files."; exit 0; fi
+          echo "This shard runs:" $names
+          pattern=$(echo "$names" | paste -sd '|' -)
+          go test -timeout 60m -run "^TestScriptcSuite\$/^($pattern)\$" -v ./js | tee "$RUNNER_TEMP/scriptc.log"
+          for name in $names; do
+            grep -Eq -- "--- (PASS|SKIP): TestScriptcSuite/$name " "$RUNNER_TEMP/scriptc.log" || { echo "::error::$name reported no result"; exit 1; }
+          done
   sdk:
     runs-on: ubuntu-24.04
     env:
       CC: gcc-14
       CXX: g++-14
+      # CMake runs every C and C++ compile, including the examples', through
+      # ccache, so unchanged sources, above all abseil and protobuf, come
+      # from the cache.
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,6 +95,15 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      # Pushes to master save the cache and pull requests read it, so the
+      # repository keeps one line of ccache entries. Entries this run did not
+      # use are dropped before the save.
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: sdk-gcc-14
+          max-size: 1G
+          evict-old-files: job
+          save: ${{ github.event_name == 'push' }}
       - name: Resolve dependencies
         run: go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp github.com/aperturerobotics/starpc
       - name: Build and test SDK
