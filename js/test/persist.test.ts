@@ -107,7 +107,10 @@ test('an update sends its changes and keeps the record the host answers', () => 
     },
     { key: 'round-9' },
     (record, error, repeated) =>
-      ended.push(error ?? `${JSON.stringify(record)} ${repeated}`),
+      ended.push(
+        error ??
+          `${Object.keys(record ?? {}).join(',')} ${String(record?.roundsWon)} ${repeated}`,
+      ),
   )
   const update = started.length
   const request = UpdateRequest.fromBinary(started[update - 1]!.payload)
@@ -135,7 +138,7 @@ test('an update sends its changes and keeps the record the host answers', () => 
       repeated: true,
     }),
   })
-  expect(ended).toEqual(['{"roundsWon":1} true'])
+  expect(ended).toEqual(['roundsWon 1 true'])
   expect(persist.get(player, 'stats')).toEqual({
     state: 'loaded',
     record: { roundsWon: 1 },
