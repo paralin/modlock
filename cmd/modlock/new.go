@@ -49,10 +49,7 @@ func newCommand(out *printer) *cli.Command {
 			if c.NArg() > 1 {
 				return errors.New("modlock new takes one directory, such as: modlock new my-mod")
 			}
-			var ask *prompt.Terminal
-			if !out.json && terminal(os.Stdin) && ansi(os.Stderr) {
-				ask = prompt.NewTerminal(os.Stdin, os.Stderr, out.errColor)
-			}
+			ask := asker(out)
 			dir, name, err := newTarget(ask, c.Args().First(), c.String("name"))
 			if err != nil {
 				return cancelled(err)
@@ -74,9 +71,17 @@ func newCommand(out *printer) *cli.Command {
 			}
 			out.note("created", created.Manifest.GetSlug(), "in", created.Dir)
 
+			// Offer the Modlock extension to an editor without it.
+			chosenEditor := preferredEditor()
+			if ask != nil && chosenEditor != nil && os.Getenv("CI") == "" && !chosenEditor.has(project.Extension) {
+				if err := offerExtension(c.Context, out, ask, *chosenEditor); err != nil {
+					return cancelled(err)
+				}
+			}
+
 			// Open the project in the editor, and give the next steps as
 			// separate lines: Windows PowerShell has no && to join them.
-			opened, err := openEditor(ask, created.Dir)
+			opened, err := openEditor(ask, chosenEditor, created.Dir)
 			if err != nil {
 				return cancelled(err)
 			}
@@ -165,24 +170,32 @@ func newLanguage(ask *prompt.Terminal, flag string) (language, error) {
 	return languages[selected], nil
 }
 
-// openEditor offers to open the new project's directory in Visual Studio
-// Code, when its code command is installed, and reports whether it opened.
-// An editor that opens the project's own folder finds the project's library
-// and settings; one left on the folder above a Python project cannot resolve
-// its import of modlock.
-func openEditor(ask *prompt.Terminal, dir string) (bool, error) {
-	// Offer it only to a person who has the editor.
-	code, err := exec.LookPath("code")
-	if ask == nil || err != nil {
+// openEditor offers to open the new project's directory in e, an editor on
+// this computer or nil for none, and reports whether it opened. An editor
+// that opens the project's own folder finds the project's library and
+// settings; one left on the folder above a Python project cannot resolve its
+// import of modlock.
+func openEditor(ask *prompt.Terminal, e *localEditor, dir string) (bool, error) {
+	// Offer it only to a person who has an editor.
+	if ask == nil || e == nil {
 		return false, nil
 	}
-	open, err := ask.Confirm("Open "+filepath.Base(dir)+" in VS Code?", true)
+	open, err := ask.Confirm("Open "+filepath.Base(dir)+" in "+e.name+"?", true)
 	if err != nil || !open {
 		return false, err
 	}
 
 	// A failure to open leaves the project created, so carry on.
-	return exec.Command(code, dir).Run() == nil, nil
+	return exec.Command(e.program, dir).Run() == nil, nil
+}
+
+// asker returns the terminal to ask a person questions on, or nil under
+// --json or when no person is at a terminal.
+func asker(out *printer) *prompt.Terminal {
+	if out.json || !terminal(os.Stdin) || !ansi(os.Stderr) {
+		return nil
+	}
+	return prompt.NewTerminal(os.Stdin, os.Stderr, out.errColor)
 }
 
 // cancelled turns a question the person cancelled into a quiet exit with the

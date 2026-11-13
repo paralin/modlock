@@ -126,11 +126,21 @@ cd my-mod
 modlock dev
 ```
 
-`modlock new` asks for the mod's name and its language, and offers to open the
-project in VS Code when that is installed. A name such as "Zombie Tag" becomes
-the directory `zombie-tag`. `modlock new my-mod --language typescript` answers
-both up front, and a script or `--json` gets no questions: it needs the
-directory, and takes TypeScript without `--language`.
+`modlock new` asks for the mod's name and its language, and offers to install
+the Modlock extension and open the project in your editor when one is
+installed. A name such as "Zombie Tag" becomes the directory `zombie-tag`.
+`modlock new my-mod --language typescript` answers both up front, and a script
+or `--json` gets no questions: it needs the directory, and takes TypeScript
+without `--language`.
+
+`modlock editor` sets up your editor: it installs the Modlock extension into
+VS Code, Cursor, Windsurf or VSCodium, from the editor's extension store or
+else from the release's `modlock.vsix`, and in a mod project the extension for
+the mod's language too. It picks the editor whose terminal you run it in, or
+every one installed; `--editor cursor` picks one. `modlock new` offers the
+same, and so does `modlock dev`, once, in an editor's terminal;
+`modlock config set editor-offer off` stops that question. A new project's
+`.vscode/extensions.json` also has the editor recommend the extensions.
 
 A TypeScript project holds:
 

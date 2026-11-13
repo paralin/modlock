@@ -593,12 +593,21 @@ export interface Config {
    * SkipUpdateCheck stops commands from looking for a newer release.
    */
   skipUpdateCheck?: boolean
+  /**
+   * EditorOffered records that modlock dev or play offered, once, to install
+   * the Modlock extension into the editor whose terminal it ran in, so it
+   * never asks again. Setting it before any offer turns the offer off.
+   */
+  editorOffered?: boolean
 }
 
 export const Config: MessageType<Config> =
   /* @__PURE__ */ createMessageType<Config>(
     'modlock.cli.Config',
-    () => [[1, 'skip_update_check', 8]],
+    () => [
+      [1, 'skip_update_check', 8],
+      [2, 'editor_offered', 8],
+    ],
     {
       decode: (r: BinaryReader, end: number, m: Config): Config => {
         while (r.pos < end) {
@@ -607,6 +616,9 @@ export const Config: MessageType<Config> =
           switch (t >>> 3) {
             case 1:
               m.skipUpdateCheck = r.bool()
+              break
+            case 2:
+              m.editorOffered = r.bool()
               break
             default:
               r.skip(t)
@@ -619,12 +631,17 @@ export const Config: MessageType<Config> =
           const v = m.skipUpdateCheck
           if (v) w.uint32(8).bool(v)
         }
+        {
+          const v = m.editorOffered
+          if (v) w.uint32(16).bool(v)
+        }
       },
     },
   )
 
 /**
- * Input is one thing the stand-in player does in the sandbox.
+ * Input is one line a program sends a session: something the stand-in player
+ * does in the sandbox, or a line for a mod's console in any session.
  *
  * @generated from message modlock.cli.Input
  */
@@ -639,6 +656,7 @@ export interface Input {
     | { value: string; case: 'command' }
     | { value: Press; case: 'press' }
     | { value: Change; case: 'change' }
+    | { value: ConsoleLine; case: 'console' }
 }
 
 export const Input: MessageType<Input> =
@@ -648,6 +666,7 @@ export const Input: MessageType<Input> =
       [1, 'command', 9, 0, 0, 'body'],
       [2, 'press', 11, 0, Press.codec, 'body'],
       [3, 'change', 11, 0, Change.codec, 'body'],
+      [4, 'console', 11, 0, ConsoleLine.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Input): Input => {
@@ -678,6 +697,16 @@ export const Input: MessageType<Input> =
                 ),
               }
               break
+            case 4:
+              m.body = {
+                case: 'console',
+                value: ConsoleLine.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'console' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -699,6 +728,79 @@ export const Input: MessageType<Input> =
           const o = m.body
           if (o?.case === 'change' && o.value != null)
             Change.writeField(w, 3, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'console' && o.value != null)
+            ConsoleLine.writeField(w, 4, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * ConsoleLine is a line of code for a running mod to run, as typed at its
+ * language's console. The answer is the host's called event with the same
+ * id: what the console shows for the line, or why the line did not run.
+ *
+ * @generated from message modlock.cli.ConsoleLine
+ */
+export interface ConsoleLine {
+  /**
+   * Mod is the mod's name. Empty is the mod that started or reloaded last.
+   */
+  mod?: string
+  /**
+   * Code is the line.
+   */
+  code?: string
+  /**
+   * Id is returned with the answer, to match it to this line.
+   */
+  id?: string
+}
+
+export const ConsoleLine: MessageType<ConsoleLine> =
+  /* @__PURE__ */ createMessageType<ConsoleLine>(
+    'modlock.cli.ConsoleLine',
+    () => [
+      [1, 'mod', 9],
+      [2, 'code', 9],
+      [3, 'id', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ConsoleLine): ConsoleLine => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.code = r.string()
+              break
+            case 3:
+              m.id = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ConsoleLine, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.code
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.id
+          if (v) w.uint32(26).string(v)
         }
       },
     },

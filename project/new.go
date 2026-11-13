@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"os"
 	"os/exec"
@@ -19,6 +20,37 @@ import (
 
 // Module is the Go module of the Modlock library mods import.
 const Module = "github.com/paralin/modlock"
+
+// Extension is the identifier of the Modlock extension for VS Code and the
+// editors built on it, in the Visual Studio Marketplace and Open VSX.
+const Extension = "modlock.modlock"
+
+// LanguageExtension returns the identifier of the editor extension that reads
+// language's sources, or "" when VS Code reads them itself, as it does
+// TypeScript and JavaScript.
+func LanguageExtension(language wasm.Manifest_Language) string {
+	switch language {
+	case wasm.Manifest_LANGUAGE_PYTHON:
+		return "ms-python.python"
+	case wasm.Manifest_LANGUAGE_LUAU:
+		return "johnnymorganz.luau-lsp"
+	case wasm.Manifest_LANGUAGE_GO:
+		return "golang.go"
+	default:
+		return ""
+	}
+}
+
+// editorRecommendations returns a project's .vscode/extensions.json, which
+// asks the editor to offer the Modlock extension and language's own.
+func editorRecommendations(language wasm.Manifest_Language) string {
+	recommended := []string{Extension}
+	if id := LanguageExtension(language); id != "" {
+		recommended = append(recommended, id)
+	}
+	data, _ := json.MarshalIndent(map[string][]string{"recommendations": recommended}, "", "  ")
+	return string(data) + "\n"
+}
 
 // goMain is a new Go mod's main.go. Like every starter it sets the server
 // up, seats each player on a team with a hero, welcomes them
@@ -246,6 +278,7 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 	default:
 		return nil, errors.Errorf("modlock cannot create %s mods yet", language)
 	}
+	files[".vscode/extensions.json"] = editorRecommendations(language)
 
 	// Write the manifest and sources.
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -256,7 +289,11 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		return nil, err
 	}
 	for name, content := range files {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+		path := filepath.Join(dir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, errors.Wrap(err, "create the project")
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return nil, errors.Wrap(err, "create the project")
 		}
 	}

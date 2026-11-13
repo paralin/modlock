@@ -60,6 +60,12 @@ func runDev(c *cli.Context, out *printer, command string) error {
 	}
 	out.header(command, opened.Manifest.GetSlug())
 
+	// Offer the Modlock extension, once, to the editor whose terminal this
+	// is, before the build's output starts.
+	if err := offerExtensionOnce(c.Context, out); err != nil {
+		return cancelled(err)
+	}
+
 	// Serve the preview page, which takes the player's input once
 	// the mods run in the sandbox.
 	watch := c.Bool("watch")

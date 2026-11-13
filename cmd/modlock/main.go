@@ -65,6 +65,7 @@ func main() {
 			loginCommand(out),
 			logoutCommand(out),
 			updateCommand(out),
+			editorCommand(out),
 		}, tools(
 			studioCommand(out),
 			panoramaCommand(out),
