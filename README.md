@@ -1870,7 +1870,9 @@ host does not take.
 
 A mod keeps one record of each declared type for each player, up to 8 types,
 and names the `persist` service. Each type has up to 32 fields, and a record
-holds up to 8 KB.
+holds up to 8 KB. Keep `mod.json` under 256 KiB: Hyperline refuses every
+persist call against a release whose `mod.json` is larger, though the release
+still publishes.
 
 | Kind          | Holds                                                            | Changes                    |
 | ------------- | ---------------------------------------------------------------- | -------------------------- |
