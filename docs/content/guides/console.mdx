@@ -61,10 +61,24 @@ import { apply, arena } from 'modlock/console'
 apply({ ...arena, citadel_allow_duplicate_heroes: true })
 ```
 
+```luau
+local console = require("@modlock/console")
+
+-- A later table's value wins.
+console.apply(console.arena, { citadel_allow_duplicate_heroes = true })
+```
+
 ```python
 from modlock import console
 
 console.apply({**console.ARENA, "citadel_allow_duplicate_heroes": True})
+```
+
+```go
+import "github.com/paralin/modlock/mod/console"
+
+// Arena returns its settings; To makes one of your own.
+console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(true))...)
 ```
 
 </Samples>

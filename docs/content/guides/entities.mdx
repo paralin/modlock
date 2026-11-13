@@ -384,47 +384,38 @@ created, no other client ever receives it. This keeps a per-player
 import { showEntityOnlyTo } from 'modlock'
 import { create } from 'modlock/entities'
 
-const dialog = create('point_clientui_dialog', { transmitAlways: true, keys })
+const dialog = create('point_clientui_dialog', {
+  position,
+  transmitAlways: true,
+  keys,
+})
 if (dialog) showEntityOnlyTo(dialog.handle, [player.slot])
 ```
 
 ```luau
-local dialog = modlock.createEntity({
-	designerName = "point_clientui_dialog",
-	subclass = "",
-	team = 0,
-	position = position,
-	transmitAlways = true,
-})
+local dialog = entities.create("point_clientui_dialog", { position = position, transmitAlways = true })
 if dialog then
-	modlock.showEntityOnlyTo(dialog, { player.slot })
+	modlock.showEntityOnlyTo(dialog.handle, { player.slot })
 end
 ```
 
 ```python
-dialog = modlock.create_entity(
-    modlock.EntityOptions(designer_name="point_clientui_dialog", position=position, transmit_always=True)
-)
+dialog = entities.create("point_clientui_dialog", position, transmit_always=True)
 if dialog is not None:
-    modlock.show_entity_only_to(dialog, [player.slot])
+    modlock.show_entity_only_to(dialog.handle, [player.slot])
 ```
 
 ```go
-always := true
-dialog, err := mod.CreateEntity(&mod.EntityOptions{
-	DesignerName:   "point_clientui_dialog",
-	Position:       position,
-	TransmitAlways: &always,
-})
+dialog, err := entity.PointClientuiDialog.Create(&mod.EntityOptions{Position: position, TransmitAlways: new(true)}, nil)
 if err == nil {
-	_ = mod.ShowEntityOnlyTo(dialog, []int32{p.Slot})
+	_ = mod.ShowEntityOnlyTo(dialog.Handle, []int32{p.Slot})
 }
 ```
 
 </Samples>
 
-Only TypeScript's `create` takes `transmitAlways`. The other languages create
-the dialog with `createEntity`.
+`transmitAlways` sends the entity to every client, past the game's rule that
+never sends one without a model.
 
 A player who leaves drops from every list. The next player in that slot then
 does not receive the entity. Removing the entity drops its list. Entities

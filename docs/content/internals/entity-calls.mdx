@@ -273,8 +273,6 @@ the server.
 | A model or path from a map | `func_precipitation`, `spark_shower`, `path_node`, `path_node_mover`                                                                                    |
 | The hideout map            | `npc_neutral_hideout_cat`, `npc_neutral_hideout_rabbit`                                                                                                 |
 | A game mode's capture data | `citadel_capture_point`, `citadel_multi_capture_point`                                                                                                  |
+| A game mode's cash-in data | `citadel_koth_cashin`                                                                                                                                   |
 | A player or bot            | `baseplayerpawn` (spawn a hero), `npc_player_bot_brain` (add a bot)                                                                                     |
 | Joined objects             | `physics_npc_solver`                                                                                                                                    |
-
-`citadel_koth_cashin` also crashed the build 6774 survey. It has no
-constructor, but `createEntity` does not refuse it yet.

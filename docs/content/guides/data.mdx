@@ -128,11 +128,46 @@ each of the board's partitions.
 <Samples>
 
 ```ts
-import { reportScore } from 'modlock'
+import { command, readBoard, reportScore } from 'modlock'
 
 reportScore(player, 'aim.score', 4210, {
   partition: { scenario: 'tracking', difficulty: 'hard' },
 })
+
+// Show the top five.
+command('top', (player) => {
+  for (const row of readBoard('aim.score', { limit: 5 })?.rows ?? []) {
+    player.chat(`${row.rank}. ${row.name} ${row.value}`)
+  }
+})
+```
+
+```luau
+modlock.reportScore(player, "aim.score", 4210, {
+	partition = { scenario = "tracking", difficulty = "hard" },
+})
+
+-- Show the top five.
+modlock.command("top", function(player)
+	local page = modlock.readBoard("aim.score", { limit = 5 })
+	for _, row in if page then page.rows else {} do
+		player:chat(`{row.rank}. {row.name} {row.value}`)
+	end
+end)
+```
+
+```python
+modlock.report_score(
+    player, "aim.score", 4210, partition={"scenario": "tracking", "difficulty": "hard"}
+)
+
+
+# Show the top five.
+@modlock.command("top")
+def top(player: modlock.Player, args: str) -> None:
+    page = modlock.read_board("aim.score", limit=5)
+    for row in page.rows if page is not None else []:
+        player.chat(f"{row.rank}. {row.name} {row.value}")
 ```
 
 ```go
@@ -141,10 +176,27 @@ _ = p.ReportScore(&mod.ScoreReport{
 	Value:     4210,
 	Partition: map[string]string{"scenario": "tracking", "difficulty": "hard"},
 })
+
+// Show the top five.
+mod.Command("top", func(p mod.Player, args string) {
+	page, err := mod.ReadBoard(&mod.BoardQuery{Board: "aim.score", Limit: 5})
+	if err != nil {
+		return
+	}
+	for _, row := range page.GetRows() {
+		_ = p.Chat(fmt.Sprintf("%d. %s %d", row.GetRank(), row.GetName(), row.GetValue()))
+	}
+})
 ```
 
 </Samples>
 
-Boards report from TypeScript and Go today. `reportMatch` reports a whole
-match's places to a rated board. `readBoard` reads a page of a board, such as
-its top five, to show in the game.
+| Call                                          | Does                                                                                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `reportScore(player, board, value, options?)` | Reports one score. Returns whether the host took it; a host without boards takes none, and the mod logs the score instead.     |
+| `reportMatch(board, places, options?)`        | Reports a whole match's places to a rated board. Players who tie share a place.                                                |
+| `readBoard(board, read?)`                     | Reads a page of a board, ten rows by default, as the host last read it. A page the host has not read yet comes back `loading`. |
+
+Python spells them in `snake_case` with keyword options. Go spells them
+`Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's
+error where the others return false.
