@@ -49,6 +49,13 @@
     $env:Path = "$env:Path;$dir"
   }
 
+  # A program that was already running keeps the PATH it started with, and so
+  # does every terminal it opens, so say which windows find modlock now.
   Write-Host "Installed $(& $exe --version) at $exe"
-  Write-Host 'Start a mod with: modlock new my-mod'
+  Write-Host ''
+  Write-Host 'modlock works in this window now: start a mod with  modlock new'
+  Write-Host ''
+  Write-Host 'Other windows find it once their program restarts. A terminal inside an'
+  Write-Host 'editor such as VS Code needs the whole editor closed and opened again,'
+  Write-Host 'not only a new terminal tab.'
 }

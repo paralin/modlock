@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/paralin/modlock/master/install.sh |
 
 **With npm**, on any of them: `npm install --global @modlock/modlock`
 
-Then run `modlock new my-mod`. The [README](https://github.com/paralin/modlock#getting-started) continues from there.
+Then run `modlock new`. If the terminal cannot find `modlock`, close and reopen the program it runs in; for a terminal inside VS Code, that is the whole editor. The [README](https://github.com/paralin/modlock#getting-started) continues from there.
 
 To download by hand instead, take the file for your computer from the assets below:
 

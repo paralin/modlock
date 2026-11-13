@@ -26,10 +26,16 @@ func terminal(f *os.File) bool {
 	return term.IsTerminal(int(f.Fd()))
 }
 
+// ansi reports whether f is a terminal that obeys ANSI codes, which move the
+// cursor and set color.
+func ansi(f *os.File) bool {
+	return terminal(f) && os.Getenv("TERM") != "dumb" && enableColor(f)
+}
+
 // colorful reports whether text for the terminal f may carry color: it is a
 // terminal that shows color, and NO_COLOR does not turn color off.
 func colorful(f *os.File) bool {
-	return terminal(f) && os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb" && enableColor(f)
+	return os.Getenv("NO_COLOR") == "" && ansi(f)
 }
 
 // paint returns text in tone when on is true, and text unchanged otherwise.

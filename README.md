@@ -104,6 +104,10 @@ A file a Mac's browser downloaded is quarantined; clear that with
 `modlock-host-windows-x64.zip`, is the game server, which `modlock` downloads
 itself.
 
+On Windows a program that was already running keeps its old `PATH`. If a
+terminal says `modlock` is not found after the install, close that program and
+open it again; for a terminal inside VS Code, that means the whole editor.
+
 On Windows `modlock` runs the game server directly; on Linux it runs it through
 Steam's Proton. It fetches the server that matches its release the first time.
 Script mods need nothing else installed; a Go mod needs
@@ -114,13 +118,21 @@ and says when one is out; `modlock update` installs it in place. The check is
 off in CI, with `MODLOCK_NO_UPDATE_CHECK` set, or after
 `modlock config set update-check off`.
 
+Then make a mod and run it:
+
 ```sh
-modlock new my-mod
+modlock new
 cd my-mod
-modlock dev --watch
+modlock dev
 ```
 
-`modlock new` writes a TypeScript project:
+`modlock new` asks for the mod's name and its language, and offers to open the
+project in VS Code when that is installed. A name such as "Zombie Tag" becomes
+the directory `zombie-tag`. `modlock new my-mod --language typescript` answers
+both up front, and a script or `--json` gets no questions: it needs the
+directory, and takes TypeScript without `--language`.
+
+A TypeScript project holds:
 
 | File            | Holds                                                                |
 | --------------- | -------------------------------------------------------------------- |
@@ -128,17 +140,17 @@ modlock dev --watch
 | `main.ts`       | The mod. It answers `/hello` in chat.                                |
 | `tsconfig.json` | The compiler options your editor uses to check the code as you type. |
 
-Pass `--language javascript`, `luau`, `python` or `go` for another language.
-Complete game modes to start from include [`arena`](examples/arena) in
+The other languages are JavaScript, Luau, Python and Go. Complete game modes to start from include [`arena`](examples/arena) in
 TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
 Go, all in the [`examples`](examples) directory.
 
 `modlock dev` builds the mod, starts a local server, and launches Deadlock
-through Steam to join. With `--watch`, each time you save, it rebuilds the mod
-and swaps it in; a failed build prints its errors and keeps the last good build
+through Steam to join. Each time you save, it rebuilds the mod and swaps it
+in; a failed build prints its errors and keeps the last good build
 running. The watch skips `build/`, `node_modules`, hidden files and `*.log`. The
 terminal shows the mod's log, reloads and player joins; the server console goes
-to `build/server.log`.
+to `build/server.log`. `--watch=false` builds the mod once and leaves saves
+alone.
 
 ### With a second player
 
@@ -211,7 +223,7 @@ unzip modlock-host-windows-x64.zip -d ~/modlock-host
 export MODLOCK_HOST=~/modlock-host/modlock-host.exe
 modlock new my-mod
 cd my-mod
-modlock dev --watch
+modlock dev
 ```
 
 On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
@@ -227,7 +239,7 @@ library makes.
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `modlock new DIR`       | Create a mod project in `DIR`.                                                                                                               |
 | `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                           |
-| `modlock dev`           | Build the mod, run it in a local server, and join it; `--watch` reloads it on each save.                                                     |
+| `modlock dev`           | Build the mod, run it in a local server, join it, and reload it on each save.                                                                |
 | `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and projects reload on save unless `--watch=false`.              |
 | `modlock join CODE`     | Join a session another PC hosts, by its join code or its dev lobby's link, and launch Deadlock into it.                                      |
 | `modlock publish`       | Build and check the mod, then [publish it](#publishing).                                                                                     |
@@ -750,8 +762,8 @@ createModel({ resource: 'models/{addon}/pawn.vmdl', position })
 
 `modlock dev` and `modlock play` mount each mod's content in the game before
 the server starts, so the server and the player's game both load it, and
-`modlock join` mounts the host's before the guest's game starts. With
-`--watch`, each rebuild adds the mod's changed content to the mounted package
+`modlock join` mounts the host's before the guest's game starts. While
+watching, each rebuild adds the mod's changed content to the mounted package
 under the addon's new name, so the running server and game load a changed
 layout, style sheet or model the next time the mod asks for it, without a
 restart. A guest keeps the content it joined with. A path inside a compiled
@@ -1947,7 +1959,10 @@ def hello(player: modlock.Player, args: str) -> None:
     player.chat("Hello from Python!")
 ```
 
-Pyright and Pylance check the types in strict mode. A module imports another by
+Pyright and Pylance check the types in strict mode. They read the project's
+`pyrightconfig.json`, which points them at the library in `.modlock`, only from
+the folder the editor has open: open the mod's own folder, or the editor
+reports that `modlock` could not be resolved. A module imports another by
 name, such as `import round`. Mods run on Python 3.14 with standard modules such
 as `dataclasses`, `enum`, `json`, `math`, `random` and `re`.
 

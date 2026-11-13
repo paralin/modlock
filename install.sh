@@ -49,7 +49,7 @@ echo "Installed $("$dir/modlock" --version) at $dir/modlock"
 
 case ":$PATH:" in
   *":$dir:"*)
-    echo "Start a mod with: modlock new my-mod"
+    echo "Start a mod with: modlock new"
     ;;
   *)
     echo "$dir is not on your PATH. Add this line to your shell profile, then open a new terminal:"

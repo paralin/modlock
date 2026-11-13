@@ -94,15 +94,20 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 	if err != nil {
 		return nil, errors.Wrap(err, "create the project")
 	}
-	slug := filepath.Base(dir)
-	if err := check.Slug(slug); err != nil {
-		return nil, errors.Wrap(err, "name the directory as the mod's slug")
+	if err := Vacant(dir); err != nil {
+		return nil, err
 	}
+	slug := filepath.Base(dir)
 	if name == "" {
 		name = title(slug)
 	}
-	if entries, err := os.ReadDir(dir); err == nil && len(entries) > 0 {
-		return nil, errors.Errorf("%s is not empty", dir)
+
+	// A Go project fetches its library with Go, so find Go before writing
+	// anything: a project left half made would block the next attempt.
+	if language == wasm.Manifest_LANGUAGE_GO {
+		if _, err := exec.LookPath("go"); err != nil {
+			return nil, errors.New("a Go mod needs Go: install it from https://go.dev/dl/, open a new terminal and run this again")
+		}
 	}
 
 	// Choose the language's sources.
@@ -181,6 +186,28 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		}
 	}
 	return created, nil
+}
+
+// Vacant reports whether a project can be created in dir: its last element
+// is a valid slug, and it does not exist or is empty. The error says what to
+// change.
+func Vacant(dir string) error {
+	if err := check.Slug(filepath.Base(dir)); err != nil {
+		return errors.Wrap(err, "name the directory as the mod's slug")
+	}
+	if entries, err := os.ReadDir(dir); err == nil && len(entries) > 0 {
+		return errors.Errorf("%s already has files in it; choose another name", dir)
+	}
+	return nil
+}
+
+// SlugFor turns a display name into a slug, such as "Zombie Tag!" into
+// "zombie-tag". It returns "" for a name with no ASCII letter or digit.
+func SlugFor(name string) string {
+	words := strings.FieldsFunc(strings.ToLower(name), func(r rune) bool {
+		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
+	})
+	return strings.Join(words, "-")
 }
 
 // scriptString quotes text as a single-quoted JavaScript string.
