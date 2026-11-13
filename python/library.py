@@ -16,6 +16,14 @@
 # None, so a mod can retry on a later frame instead of stopping. print writes
 # to the server log.
 
+import math
+import random
+
+from .heroes import HEROES as HEROES
+from .heroes import Hero as Hero
+from .heroes import find_hero as find_hero
+from .heroes import hero_named as hero_named
+
 
 class Buttons(enum.IntFlag):
     """Buttons names input bits for block_input, watch_input and
@@ -114,6 +122,285 @@ def players() -> list[Connection]:
     if response is None:
         return []
     return response["players"]
+
+
+# _player_watchers hear each player list the host reports.
+_player_watchers: list[Callable[[list[Connection]], object]] = []
+
+
+def _watch_players(watcher: Callable[[list[Connection]], object]) -> None:
+    """_watch_players calls watcher with each player list the host reports,
+    and at once with the last one when a report already arrived."""
+    _player_watchers.append(watcher)
+    if _roster is not None:
+        watcher(_roster)
+
+
+# Cast keeps a mode's players: one member for each human who finished
+# joining, made by the mode's join and ended by its leave. Members are keyed
+# by slot and connection generation, so a reconnect is a leave and a join.
+# Cast learns of joins and leaves from the host's player reports and settles
+# them on the next frame; it never walks the player list on a frame where
+# nothing changed.
+#
+# A member may carry a want: to sit on a hero and team, and to come back a
+# while after its hero falls. The mode gives one want for every member or a
+# function that reads it from the member each frame, so a want follows the
+# member's own state. A human whose want leaves the hero free still gets one
+# when the game leaves them on a team without a hero, as its own spawn on
+# joining can, since nothing else would ever seat them. Each frame Cast
+# compares the want with what the member's hero shows, asks the game again at
+# most once a second while they differ, and stops asking once they match.
+# That is a reconciliation loop: a lost or refused ask is only asked again,
+# never reported as a failure.
+#
+# A frame costs one pawn read per member, which the mode reads back with
+# Cast.pawn instead of asking the game again.
+
+
+@dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
+class Want:
+    """Want is what a member's hero should be; each field it leaves None is
+    free."""
+
+    # hero seats the member on a hero: its game name, such as "hero_atlas",
+    # its id, or "any" for the hero they have or else a random one.
+    hero: str | int | None = None
+    # team is the team, 2 or 3, to seat the member on. Without one a member
+    # keeps their hero's team, or else joins the side with fewer members.
+    team: int | None = None
+    # respawn is the seconds a fallen hero waits before Cast asks for it back.
+    respawn: float | None = None
+
+
+# _CHANGE_SECONDS is how long Cast leaves a member without a hero after they
+# had one, or after they joined when their hero is free. The game's own
+# Change Hero removes the hero before it spawns the new one, and seating the
+# member in that gap would override their pick.
+_CHANGE_SECONDS = 3.0
+
+# _NO_WANT leaves a member's hero free.
+_NO_WANT = Want()
+
+
+@dataclasses.dataclass(slots=True)
+class _Seat[M]:
+    """_Seat is one member with what Cast last saw of their hero."""
+
+    connection: Connection
+    member: M
+    # joined_at is when the member joined.
+    joined_at: float
+    # pawn is the member's hero this frame.
+    pawn: Pawn | None = None
+    alive: bool = False
+    # fell_at is when Cast last saw the hero fall.
+    fell_at: float = -math.inf
+    # hero is the member's hero last frame, or 0 without one.
+    hero: int = 0
+    # hero_lost_at is when the member last went from a hero to none.
+    hero_lost_at: float = -math.inf
+    # asked_at is when Cast last asked the game for the want.
+    asked_at: float = -math.inf
+
+
+class Cast[M]:
+    """Cast keeps one member of type M per human player.
+
+    join makes the member for a human who finished joining, and leave ends a
+    member whose connection left the slot. want is what every member wants,
+    or a function that returns what one member wants now; Cast calls it once
+    per member each frame, so it should return a want it keeps rather than
+    make a new one. bots says what to do with a bot: "skip" leaves it out of
+    the cast, "join" makes it a member as a human is, and "kick" asks the
+    server to remove it, once per connection."""
+
+    def __init__(
+        self,
+        join: Callable[[Connection], M],
+        *,
+        leave: Callable[[M, Connection], object] | None = None,
+        want: Want | Callable[[M], Want] = _NO_WANT,
+        bots: Literal["skip", "join", "kick"] = "skip",
+    ) -> None:
+        self._join = join
+        self._leave = leave
+        self._want = want
+        self._bots = bots
+        # _seats holds each member by slot, in the order they joined.
+        self._seats: dict[int, _Seat[M]] = {}
+        # _kicked holds the connection generation each kicked bot's slot had.
+        self._kicked: dict[int, int] = {}
+        # _reported is the player list the host reported since the last frame.
+        self._reported: list[Connection] | None = None
+        # _random draws the hero for "any". It is the cast's own, seeded when
+        # the mod makes the cast, because the runtime's shared generator
+        # starts from the same seed in every instance.
+        self._random = random.Random()
+        _watch_players(self._report)
+
+    @property
+    def size(self) -> int:
+        """size is the number of members."""
+        return len(self._seats)
+
+    def members(self) -> list[M]:
+        """members lists the members in the order they joined."""
+        return [seat.member for seat in self._seats.values()]
+
+    def get(self, player: Player) -> M | None:
+        """get returns the member in player's slot, if any."""
+        seat = self._seats.get(player.slot)
+        return None if seat is None else seat.member
+
+    def pawn(self, player: Player) -> Pawn | None:
+        """pawn returns the member's hero as Cast read it this frame."""
+        seat = self._seats.get(player.slot)
+        return None if seat is None else seat.pawn
+
+    def frame(self, seconds: float) -> None:
+        """frame settles the joins and leaves reported since the last frame,
+        reads each member's hero, and asks the game once a second for any want
+        it does not show yet. seconds is the game clock."""
+        if self._reported is not None:
+            self._settle(self._reported, seconds)
+            self._reported = None
+        for seat in self._seats.values():
+            self._reconcile(seat, seconds)
+
+    def _report(self, players: list[Connection]) -> None:
+        self._reported = players
+
+    def _settle(self, players: list[Connection], now: float) -> None:
+        """_settle ends the members whose connection left and makes the new
+        ones, joined at now."""
+        # A member leaves when their slot empties or a new connection takes it.
+        present = {c.player.slot: c for c in players}
+        for slot, seat in list(self._seats.items()):
+            connection = present.get(slot)
+            if connection is None or connection.generation != seat.connection.generation:
+                del self._seats[slot]
+                if self._leave is not None:
+                    self._leave(seat.member, seat.connection)
+
+        # A human who finished joining becomes a member, and a bot as the
+        # policy says.
+        for connection in players:
+            slot = connection.player.slot
+            if not connection.ready or slot in self._seats:
+                continue
+            if connection.bot and self._bots != "join":
+                if self._bots == "kick":
+                    self._kick(connection)
+                continue
+            self._seats[slot] = _Seat(connection, self._join(connection), now)
+
+    def _kick(self, connection: Connection) -> None:
+        """_kick asks the server to remove a bot, once per connection."""
+        slot = connection.player.slot
+        if self._kicked.get(slot) == connection.generation:
+            return
+        self._kicked[slot] = connection.generation
+        server_command(f'kick "{connection.name}"')
+
+    def _reconcile(self, seat: _Seat[M], now: float) -> None:
+        """_reconcile reads a member's hero and asks for the part of the want
+        it lacks."""
+        # Note when the hero falls.
+        pawn = seat.connection.player.pawn()
+        alive = pawn is not None and pawn.hero != 0 and pawn.health > 0
+        if seat.alive and not alive:
+            seat.fell_at = now
+        seat.pawn = pawn
+        seat.alive = alive
+
+        # Note when a member who had a hero is left without one, so a hero
+        # change the game is making finishes before Cast seats them again.
+        had = 0 if pawn is None else pawn.hero
+        if had == 0 and seat.hero != 0:
+            seat.hero_lost_at = now
+        seat.hero = had
+        changing = had == 0 and now - seat.hero_lost_at < _CHANGE_SECONDS
+
+        # Ask at most once a second, first for the seat, then for the hero
+        # back.
+        if now - seat.asked_at < 1 or changing:
+            return
+        want = self._want if isinstance(self._want, Want) else self._want(seat.member)
+        hero = want.hero if want.hero is not None else self._stranded(seat, now)
+        if hero is not None and not self._seated(seat, want, hero):
+            seat.asked_at = now
+            self._seat(seat, want, hero)
+        elif (
+            want.respawn is not None
+            and pawn is not None
+            and pawn.hero != 0
+            and not alive
+            and now - seat.fell_at >= want.respawn
+        ):
+            seat.asked_at = now
+            seat.connection.player.respawn()
+
+    def _stranded(self, seat: _Seat[M], now: float) -> Literal["any"] | None:
+        """_stranded returns "any" for a human whose hero is free when the
+        game has left them on a team without one for _CHANGE_SECONDS since
+        they joined, and otherwise leaves the hero free. Such a pawn never
+        gets a hero on its own, while a player still choosing one has no pawn
+        and a spectator stands on team 1. A bot is left to the game, which
+        seats it."""
+        pawn = seat.pawn
+        heroless = pawn is not None and pawn.hero == 0 and pawn.team in (2, 3)
+        if heroless and not seat.connection.bot and now - seat.joined_at >= _CHANGE_SECONDS:
+            return "any"
+        return None
+
+    def _seated(self, seat: _Seat[M], want: Want, hero: str | int) -> bool:
+        """_seated reports whether the member's hero shows the hero and team
+        they want."""
+        # A member needs a hero on the team they want before the hero counts.
+        pawn = seat.pawn
+        if pawn is None or pawn.hero == 0:
+            return False
+        if want.team is not None and pawn.team != want.team:
+            return False
+        if hero == "any":
+            return True
+
+        # A name outside the released heroes, such as one the game added
+        # since, is met by whatever hero the game gave for it.
+        if isinstance(hero, int):
+            return pawn.hero == hero
+        known = hero_named(hero)
+        return known is None or pawn.hero == known.id
+
+    def _seat(self, seat: _Seat[M], want: Want, hero: str | int) -> None:
+        """_seat asks the game to put the member on hero and their team."""
+        # Any hero keeps the one the member has, or else takes a random one.
+        pawn = seat.pawn
+        pick = hero
+        if hero == "any":
+            pick = pawn.hero if pawn is not None and pawn.hero != 0 else self._random.choice(HEROES).name
+        team = want.team if want.team is not None else self._side(seat)
+        seat.connection.player.select_hero(pick, team)
+
+    def _side(self, seat: _Seat[M]) -> int:
+        """_side is the team a member joins: their hero's, or the one with
+        fewer heroes."""
+        # A hero keeps its team. The game puts each connecting player on a
+        # team before they have a hero, so a member without one is counted
+        # afresh.
+        pawn = seat.pawn
+        if pawn is not None and pawn.hero != 0 and pawn.team in (2, 3):
+            return pawn.team
+        amber = sapphire = 0
+        for other in self._seats.values():
+            if other is seat or other.pawn is None or other.pawn.hero == 0:
+                continue
+            if other.pawn.team == 2:
+                amber += 1
+            if other.pawn.team == 3:
+                sapphire += 1
+        return 3 if sapphire < amber else 2
 
 
 
@@ -505,6 +792,8 @@ def _setting_changed(event: SettingChangedEvent) -> None:
 def _players_changed(event: PlayersChangedEvent) -> None:
     global _roster
     _roster = event.players
+    for watcher in _player_watchers:
+        watcher(_roster)
 
 
 # A join and a leave run at once, so the leaving player's hero still reads.

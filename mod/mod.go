@@ -63,6 +63,9 @@ type handlers struct {
 
 	// roster is the player list the host last reported, or nil before one.
 	roster []*Connection
+	// rosters counts the player lists the host reported, so a Cast settles
+	// joins and leaves only after a new one.
+	rosters uint64
 
 	// result holds the last encoded Reply until the host has copied it.
 	result []byte
@@ -355,6 +358,7 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 	if h.roster == nil {
 		h.roster = []*Connection{}
 	}
+	h.rosters++
 	return nil
 }
 

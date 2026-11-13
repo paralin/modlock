@@ -21,11 +21,14 @@ import (
 const Module = "github.com/paralin/modlock"
 
 // goMain is a new Go mod's main.go. Like every starter it sets the server
-// up, welcomes each player and answers /hello.
+// up, seats each player on a team with a hero through a Cast, welcomes them
+// and answers /hello.
 const goMain = `// Command {{slug}} is a Modlock mod.
 package main
 
 import (
+	"time"
+
 	"github.com/paralin/modlock/mod"
 	"github.com/paralin/modlock/mod/console"
 )
@@ -40,12 +43,21 @@ func init() {
 		_ = console.CitadelAllowDuplicateHeroes.Set(true)
 	})
 
-	// Welcome each player once they finish joining. The game still shows
-	// them its own team and hero screens.
-	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
-		connection := joined.GetConnection()
-		player := mod.Player{Slot: connection.GetPlayer()}
-		_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
+	// Cast keeps one member for each player in the game. It puts each on
+	// the smaller team with a hero, skipping the game's team and hero
+	// screens, and brings a fallen hero back after 3 seconds. Whatever Join
+	// returns is that player's member, so keep what the mod tracks for them
+	// there.
+	cast := mod.NewCast(mod.CastOptions[mod.Player]{
+		Join: func(connection *mod.Connection) mod.Player {
+			player := mod.Player{Slot: connection.GetPlayer()}
+			_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
+			return player
+		},
+		Want: mod.Want{Hero: mod.AnyHero, Respawn: 3 * time.Second},
+	})
+	mod.OnFrame(func(frame *mod.FrameEvent) {
+		cast.Frame(frame.GetTimeSeconds())
 	})
 
 	// Greet each player who types /hello in chat.
@@ -58,8 +70,7 @@ func init() {
 func main() {}
 `
 
-// scriptMainSource is a new TypeScript or JavaScript mod's entry. Its Cast
-// seats each player on a team with a hero and respawns them.
+// scriptMainSource is a new TypeScript or JavaScript mod's entry.
 const scriptMainSource = `import { Cast, command, onFrame, onStart } from 'modlock'
 import { apply } from 'modlock/console'
 
@@ -123,11 +134,20 @@ modlock.onStart(function()
 	console.setBoolean("citadel_allow_duplicate_heroes", true)
 end)
 
--- Welcome each player once they finish joining. The game still shows them
--- its own team and hero screens.
-modlock.onPlayerJoin(function(joined)
-	local connection = joined.connection
-	connection.player:announce({{name}}, "Welcome, " .. connection.name .. ".")
+-- Cast keeps one member for each player in the game. It puts each on the
+-- smaller team with a hero, skipping the game's team and hero screens, and
+-- brings a fallen hero back after 3 seconds. Whatever join returns is that
+-- player's member, so keep what the mod tracks for them there.
+local cast = modlock.Cast.new({
+	join = function(connection: modlock.Connection)
+		connection.player:announce({{name}}, "Welcome, " .. connection.name .. ".")
+		return { player = connection.player, name = connection.name, score = 0 }
+	end,
+	want = { hero = "any", respawn = 3 },
+})
+
+modlock.onFrame(function(frame)
+	cast:frame(frame.timeSeconds)
 end)
 
 -- Greet each player who types /hello in chat.
@@ -138,23 +158,37 @@ end)
 
 // pythonMain is a new Python mod's entry.
 const pythonMain = `import modlock
+from modlock import console
 
 
 # Set the server up when the mod starts: no troopers in the lanes or creeps
 # in the jungle, and any number of players on the same hero.
 @modlock.on_start
 def start(args: list[str]) -> None:
-    modlock.server_command("citadel_trooper_spawn_enabled 0")
-    modlock.server_command("citadel_neutral_spawn_enabled 0")
-    modlock.server_command("citadel_allow_duplicate_heroes 1")
+    console.apply(
+        {
+            "citadel_trooper_spawn_enabled": False,
+            "citadel_neutral_spawn_enabled": False,
+            "citadel_allow_duplicate_heroes": True,
+        }
+    )
 
 
-# Welcome each player once they finish joining. The game still shows them
-# its own team and hero screens.
-@modlock.on_player_join
-def join(joined: modlock.PlayerJoinedEvent) -> None:
-    connection = joined.connection
+# Cast keeps one member for each player in the game. It puts each on the
+# smaller team with a hero, skipping the game's team and hero screens, and
+# brings a fallen hero back after 3 seconds. Whatever welcome returns is that
+# player's member, so keep what the mod tracks for them there.
+def welcome(connection: modlock.Connection) -> modlock.Player:
     connection.player.announce({{name}}, f"Welcome, {connection.name}.")
+    return connection.player
+
+
+cast = modlock.Cast(welcome, want=modlock.Want(hero="any", respawn=3))
+
+
+@modlock.on_frame
+def frame(event: modlock.FrameEvent) -> None:
+    cast.frame(event.time_seconds)
 
 
 # Greet each player who types /hello in chat.
