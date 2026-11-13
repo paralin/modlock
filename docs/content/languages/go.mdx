@@ -3,7 +3,7 @@ title: Go
 description: 'Go mods: a main package, errors you may ignore and typed entities.'
 ---
 
-A Go mod is a `main` package that imports
+A Go mod is a `main` package. It imports
 [`github.com/paralin/modlock/mod`](https://github.com/paralin/modlock/tree/master/mod) and registers its handlers in `init`:
 
 ```go
@@ -20,36 +20,21 @@ func init() {
 func main() {}
 ```
 
-This page covers what is particular to the language. The
-[guides](/guides/events) show every call in it: choose it with the switch
-in the sidebar.
+The [guides](/guides/events) show every call in Go. Choose Go with the switch
+in the sidebar. Interfaces are built from the `mod/ui`, `mod/hud` and
+`mod/theme` packages.
 
 ## Errors and tests
 
-Each call into the game returns an error, which a mod may ignore to keep
-playing. Game rules that make no calls, such as those in the
-[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example, test with plain `go test`. Interfaces
-are built from the `mod/ui`, `mod/hud` and `mod/theme` packages.
-
-## Damage
-
-Handlers see every hit before the game applies it, and can change or block it:
-
-```go
-// Headshots deal double damage.
-mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
-	if hit.GetHitGroup() != 1 {
-		return nil
-	}
-	amount := hit.GetAmount() * 2
-	return &mod.DamageResult{Amount: &amount}
-})
-```
+Each call into the game returns an error. A mod may ignore the error to keep
+playing. Game rules that make no calls, such as the
+[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example,
+test with plain `go test`.
 
 ## Typed entities and the console
 
-[`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity) types every entity field and input, and
-[`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) every console variable and command:
+[`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity) types every entity field and input.
+[`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) types every console variable and command:
 
 ```go
 // Set a hero's health.

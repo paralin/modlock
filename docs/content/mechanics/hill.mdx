@@ -3,9 +3,7 @@ title: King of the hill
 description: Score a point each second a hero holds a spot alone.
 ---
 
-A hill is a point and a radius. Once a second, find the living heroes
-inside it. One hero alone scores; nobody, or a crowd, scores nothing. A
-timer does the counting, so the frame rate does not change the score.
+A hill is a point with a radius. Once a second, a timer counts the living heroes inside the radius. One hero alone scores. Nobody or a crowd scores nothing. The score does not depend on frame rate.
 
 <Samples>
 
@@ -221,10 +219,7 @@ func main() {}
 
 ## Make it yours
 
-- Put the hill where you stand: read your position with a command, as
-  [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
-- Move the hill every minute with a second timer, and move its text with
-  it.
-- Score teams instead of players by counting the teams on the hill: the
-  pawn's `team` is 2 or 3.
+- Put the hill where you stand: read your position with a command, as [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
+- Move the hill every minute with a second timer, and move its text with it.
+- Score teams instead of players by counting the teams on the hill. A pawn's `team` is 2 or 3.
 - The [`hill`](https://github.com/paralin/modlock/tree/master/examples/hill) example is a complete mode built this way.

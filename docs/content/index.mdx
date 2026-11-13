@@ -52,16 +52,15 @@ func main() {}
 </Samples>
 
 <Callout title="Early development">
-  The library may change between any two releases. TypeScript, JavaScript, Luau,
-  Python and Go mods, the `modlock` command and `modlock publish` all work
-  today.
+  The library may change between releases. TypeScript, JavaScript, Luau, Python
+  and Go mods, the `modlock` command and `modlock publish` all work today.
 </Callout>
 
 ## Where to go
 
 <Cards>
   <Card icon={<Download />} title="Install" href="/start/install">
-    Get the `modlock` command, the one program you need.
+    Get the `modlock` command.
   </Card>
   <Card icon={<Rocket />} title="Your first mod" href="/start/first-mod">
     Make a project, run it in the game and change it while it runs.
@@ -84,22 +83,17 @@ func main() {}
 
 <Cards>
   <Card icon={<ShieldCheck />} title="Safe to share">
-    A mod runs in a [Wasmtime] sandbox inside the server, with no files, network
-    or environment, only the calls the schema offers. A crash, an endless loop
-    or a runaway allocation stops that mod with a log line and leaves the match
-    running, and any player can restart it with `/restartmod`.
+    Mods run in a [Wasmtime] sandbox that blocks file and network access. A mod
+    that crashes or hangs stops alone, and the match plays on.
   </Card>
   <Card icon={<Languages />} title="Any language">
-    Anything that compiles to WebAssembly can be a mod, with a small library per
-    language.
+    Anything that compiles to WebAssembly can be a mod.
   </Card>
   <Card icon={<Package />} title="Built once">
     A mod is one portable `.wasm` file that runs on any build of the server.
   </Card>
   <Card icon={<Zap />} title="Fast">
-    Wasmtime compiles mods to machine code with Cranelift, and the server calls
-    them in the game frame, so a mod can claim a command or change a frame as it
-    happens.
+    Mods compile to machine code and run inside the game frame.
   </Card>
 </Cards>
 

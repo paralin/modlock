@@ -15,28 +15,33 @@ def hello(player: modlock.Player, args: str) -> None:
     player.chat("Hello from Python!")
 ```
 
-This page covers what is particular to the language. The
-[guides](/guides/events) show every call in it: choose it with the switch
-in the sidebar.
+The [guides](/guides/events) show every call in Python: choose it with the
+switch in the sidebar.
 
 ## Types and modules
 
-Pyright and Pylance check the types. A wrong type is an error that stops the
-build. A value that may be `None`, such as what `find_hero` returns, and a
-parameter without an annotation are warnings: the build prints them and goes
-on. For stricter or looser checking, edit `typeCheckingMode` and the report
-rules in the project's `pyrightconfig.json`. The checkers read that file,
-which also points them at the library in `.modlock`, only from the folder the
-editor has open: open the mod's own folder, or the editor reports that
-`modlock` could not be resolved. A module imports another by
-name, such as `import round`. Mods run on Python 3.14 with standard modules such
-as `dataclasses`, `enum`, `json`, `math`, `random` and `re`.
+Pyright and Pylance check the types.
+
+| Report  | Cause                                                                                               | Effect                             |
+| ------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Error   | A wrong type.                                                                                       | Stops the build.                   |
+| Warning | A value that may be `None`, such as what `find_hero` returns, or a parameter without an annotation. | The build prints it and continues. |
+
+For stricter or looser checking, edit `typeCheckingMode` and the report rules
+in the project's `pyrightconfig.json`. The checkers read that file only from
+the folder the editor has open. The file also points them at the library in
+`.modlock`. Open the mod's own folder. Otherwise, the editor reports that
+`modlock` could not be resolved.
+
+A module imports another by name, such as `import round`. Mods run on Python
+3.14 with standard modules such as `dataclasses`, `enum`, `json`, `math`,
+`random` and `re`.
 
 ## The library
 
-The library has the TypeScript calls in snake_case. Messages are dataclasses,
-enums are string literals, and 64-bit ids are Python integers. Interfaces are
-built with `modlock.ui`, `modlock.hud` and `modlock.theme`.
+The library exposes the TypeScript calls in snake_case. Messages are
+dataclasses, enums are string literals, and 64-bit ids are Python integers.
+Build interfaces with `modlock.ui`, `modlock.hud` and `modlock.theme`.
 
 ```python
 # Headshots deal double damage.
@@ -83,5 +88,28 @@ console.set_number("citadel_trooper_gold_reward", 40)
 console.run("changelevel", "street_test")
 ```
 
-A field reads as `None`, and a write is ignored, when the server cannot read
-or write it; the server log says why.
+If the server cannot read or write a field, the field reads as `None` and the
+server ignores writes to it. The server log says why.
+
+## Run a line in the running mod
+
+In `modlock dev` and `modlock play`, a terminal line that starts with `>`
+runs in the mod, in `main.py`'s module, as at Python's own prompt:
+
+```text
+> modlock.players()
+[Connection(player=Player(slot=0), name='Player', ...)]
+> _[0].name
+'Player'
+> score["kills"] += 1
+```
+
+| A line that is | Shows                                                 |
+| -------------- | ----------------------------------------------------- |
+| an expression  | its value, which `_` then holds; `None` shows nothing |
+| a statement    | nothing, after changing the mod's names               |
+| a `print`      | the printed text                                      |
+| an error       | its traceback, and the mod keeps running              |
+
+The line runs between frames, in the sandbox and in the game. Mods in other
+languages answer that they have no console.

@@ -3,9 +3,9 @@ title: The world
 description: Place text, models and effects, and load what they need.
 ---
 
-A mod places things in the world: text, models, effects and fog. Each is an
-object you move, change or remove later. A new map removes them all, and so
-does stopping or reloading the mod.
+A mod places text, models, effects and fog in the world. Each placed thing is
+an object you can move, change or remove later. A new map, stopping the mod, or
+reloading the mod removes every placed object.
 
 ## Place text
 
@@ -73,8 +73,8 @@ if err == nil {
 
 ## Load heroes and resources
 
-The game loads a hero, model or effect with the world. Precache what your
-mode uses when the mod starts, or the first use shows nothing.
+Precache the heroes, models and effects your mode uses when the mod starts.
+Otherwise the first use shows nothing. The game loads each one with the world.
 
 <Samples>
 
@@ -108,33 +108,45 @@ mod.OnStart(func([]string) {
 
 ## Forget objects when the world changes
 
-A new world has already removed everything the mod placed. Drop your
-references in the world event and place things again there.
+A new world removes everything the mod placed. In the world event, drop your
+references and place the objects again.
 
 ## Every call
 
-The table names each call as TypeScript and Luau spell it; Python uses
-snake_case and Go exported names. `Dropper` is part of the TypeScript
-library today.
+The table lists each call as TypeScript and Luau spell it. Python uses
+snake_case and Go exported names. `Dropper` is in the TypeScript library today.
 
-| Call                                                     | Effect                                                                         |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `createText`, `createModel`, `createParticle`            | Place text, a model or an effect; move, change or remove it later.             |
-| `createFog({ position, mins, maxs, strength, color })`   | Fill a box with tinted fog; tile boxes to darken all but one area.             |
-| `precache({ heroes, resources })`                        | Load heroes and resources with the next world.                                 |
-| `serverCommand(line)`                                    | Run a line at the server console, within [its limits](/guides/console#limits). |
-| `moveEntity`, `pushEntity`, `emitSound`                  | Move an entity, set or add to its velocity, or play a sound on it.             |
-| `modifierState(entity, state)`, `holdModifierState(...)` | Test a modifier state on an entity, or hold one on it.                         |
-| `silenceVoice(concepts)`, `player.silenceVoice(...)`     | Keep every hero, or one, from speaking the named voice concepts.               |
-| `giveEntityModifier`, `holdEntityModifier`               | Give a modifier to a live entity, such as an NPC, or hold it on it.            |
-| `readField`, `writeField`, `entityClass`                 | Read or write any schema field of a live entity, or name its class.            |
-| `loadSpot(spot)`, `encodeSpot`, `decodeSpot`             | Place a [spot](/guides/world#spots) on the running map, or save it.            |
-| `new Dropper(catalog, spot)`                             | Let players build a spot while they play.                                      |
+| Call                                                   | Effect                                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `createText`                                           | Place text. You can move, change or remove it later.                           |
+| `createModel`                                          | Place a model. You can move, change or remove it later.                        |
+| `createParticle`                                       | Place an effect. You can move, change or remove it later.                      |
+| `createFog({ position, mins, maxs, strength, color })` | Fill a box with tinted fog. Tile boxes to darken all but one area.             |
+| `precache({ heroes, resources })`                      | Load heroes and resources with the next world.                                 |
+| `serverCommand(line)`                                  | Run a line at the server console, within [its limits](/guides/console#limits). |
+| `moveEntity`                                           | Move an entity.                                                                |
+| `pushEntity`                                           | Set or add to an entity's velocity.                                            |
+| `emitSound`                                            | Play a sound on an entity.                                                     |
+| `modifierState(entity, state)`                         | Test a modifier state on an entity.                                            |
+| `holdModifierState(...)`                               | Hold a modifier state on an entity.                                            |
+| `silenceVoice(concepts)`                               | Keep every hero from speaking the listed voice concepts.                       |
+| `player.silenceVoice(...)`                             | Keep one hero from speaking the listed voice concepts.                         |
+| `giveEntityModifier`                                   | Give a modifier to a live entity, such as an NPC.                              |
+| `holdEntityModifier`                                   | Hold a modifier on a live entity.                                              |
+| `readField`                                            | Read any schema field of a live entity.                                        |
+| `writeField`                                           | Write any schema field of a live entity.                                       |
+| `entityClass`                                          | Return the class of a live entity.                                             |
+| `loadSpot(spot)`                                       | Place a [spot](/guides/world#spots) on the running map.                        |
+| `encodeSpot`                                           | Save a spot.                                                                   |
+| `decodeSpot`                                           | Restore a saved spot.                                                          |
+| `new Dropper(catalog, spot)`                           | Let players build a spot while they play.                                      |
 
 ## Spots
 
-A spot is a base map and the solid objects players placed on it.
-[`examples/dropper`](https://github.com/paralin/modlock/tree/master/examples/dropper) builds one on Midtown: `/build` opens the
-catalog, and every player drops into the same spot. The document in
-[`mod/spot/spot.proto`](https://github.com/paralin/modlock/blob/master/mod/spot/spot.proto) stores each
-model path and builder once, so a few hundred objects fit in a few kilobytes.
+A spot is a base map plus the solid objects players placed on it.
+[`examples/dropper`](https://github.com/paralin/modlock/tree/master/examples/dropper) builds a
+spot on Midtown. `/build` opens the catalog, and every player drops into the
+same spot. The document at
+[`mod/spot/spot.proto`](https://github.com/paralin/modlock/blob/master/mod/spot/spot.proto)
+stores each model path and builder once. A few hundred objects fit in a few
+kilobytes.

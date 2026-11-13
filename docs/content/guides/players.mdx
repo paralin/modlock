@@ -3,14 +3,14 @@ title: Players and heroes
 description: List the players, read their heroes and move them through the match.
 ---
 
-A player is a seat on the server, known by its slot. A player's pawn is
-their hero as it is this frame. Bots are players too.
+A player is a seat on the server, known by its slot. The pawn is the
+player's hero as it is this frame. Bots are players too.
 
 ## List the players
 
-The player list holds every connection: its player, name, Steam ID, whether
-it is a bot, and a `generation` that changes when someone new takes the
-slot.
+The player list holds every connection. Each connection has a player, a
+name, a Steam ID, whether it is a bot, and a `generation`. The generation
+changes when someone new takes the slot.
 
 <Samples>
 
@@ -54,10 +54,64 @@ mod.Command("who", func(p mod.Player, args string) {
 
 </Samples>
 
+`connection` looks up one player's connection, and returns nothing for an
+empty slot:
+
+<Samples>
+
+```ts
+import { command, connection } from 'modlock'
+
+command('me', (player) => {
+  player.chat(connection(player)?.name ?? 'Nobody')
+})
+```
+
+```luau
+modlock.command("me", function(player)
+	local connection = modlock.connection(player)
+	player:chat(if connection then connection.name else "Nobody")
+end)
+```
+
+```python
+@modlock.command("me")
+def me(player: modlock.Player, args: str) -> None:
+    connection = modlock.connection(player)
+    player.chat(connection.name if connection is not None else "Nobody")
+```
+
+```go
+mod.Command("me", func(p mod.Player, args string) {
+	name := "Nobody"
+	if c := mod.ConnectionOf(p); c != nil {
+		name = c.GetName()
+	}
+	_ = p.Chat(name)
+})
+```
+
+</Samples>
+
+### Roles
+
+A connection's `roles` say who builds and tests the mod. A role decides only
+what the mod shows, such as a menu still in testing; whatever guards saved data
+checks the player where the data lives.
+
+| Role        | Who                                  |
+| ----------- | ------------------------------------ |
+| `developer` | Builds the mod.                      |
+| `tester`    | Tries the mod's unfinished features. |
+
+`modlock dev` and `modlock play` give every local player both. A platform that
+hosts the mod sends its own roles over the control link, one table per mod.
+
 ## Read the hero
 
-The pawn holds the hero's health, team, position, aim and souls. There is
-none until the hero spawns, so check for it. A hero at zero health is dead.
+The pawn holds the hero's health, team, position, aim and souls. No pawn
+exists until the hero spawns, so check for one. A hero at zero health is
+dead.
 
 <Samples>
 
@@ -92,13 +146,16 @@ if err == nil && pawn != nil && pawn.GetHealth() > 0 {
 
 ## Move the hero through the match
 
-Pick a hero and team, bring a hero back, put it somewhere, hold it still,
-pay it or heal it. Teams are 2 and 3.
+Pick a hero and team, by any [hero name](#heroes). Teams are 2 and 3. A
+selected hero appears on a later frame, and one call may not seat a player.
+[`seatPlayers`](/guides/toolkit#seat-the-players) and
+[`Cast`](/guides/toolkit#keep-the-players-with-cast) ask again until the hero
+shows.
 
 <Samples>
 
 ```ts
-player.selectHero('hero_atlas', 2)
+player.selectHero('abrams', 2)
 player.respawn()
 player.teleport({ x: 0, y: 0, z: 256 }, { pitch: 0, yaw: 90, roll: 0 })
 player.freeze(true)
@@ -107,7 +164,7 @@ player.heal(250)
 ```
 
 ```luau
-player:selectHero("hero_atlas", 2)
+player:selectHero("abrams", 2)
 player:respawn()
 player:teleport({ x = 0, y = 0, z = 256 }, { pitch = 0, yaw = 90, roll = 0 })
 player:freeze(true)
@@ -116,7 +173,7 @@ player:heal(250)
 ```
 
 ```python
-player.select_hero("hero_atlas", 2)
+player.select_hero("abrams", 2)
 player.respawn()
 player.teleport(modlock.Vector(0, 0, 256), modlock.Angles(0, 90, 0))
 player.freeze(True)
@@ -125,7 +182,7 @@ player.heal(250)
 ```
 
 ```go
-_, _ = p.SelectHero("hero_atlas", 2)
+_, _ = p.SelectHero("abrams", 2)
 _ = p.Respawn()
 _ = p.Teleport(&mod.Vector{Z: 256}, &mod.Angles{Yaw: 90}, nil)
 _ = p.Freeze(nil) // nil freezes; pass a pointer to false to release
@@ -137,7 +194,7 @@ _ = p.Heal(250)
 
 ## Add bots
 
-A bot fills a seat for testing or for play. It is a player like any other.
+A bot fills a seat for testing or play. It is a player like any other.
 
 <Samples>
 
@@ -172,79 +229,83 @@ if err == nil {
 
 ## Every call
 
-The table names each call as TypeScript and Luau spell it; Python uses
-snake_case and Go exported names. `Hook`, the camera curves and the ability
-bar helpers are part of the TypeScript library today.
+Python spells each call in `snake_case` and Go with exported names.
 
-| Call                                                                                                                              | Effect                                                                |
-| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `players()`                                                                                                                       | List the connected players and bots.                                  |
-| `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                                                        | Keep one member per human and get them the hero they want.            |
-| `player.pawn()`                                                                                                                   | Read the hero: health, team, position, aim and stamina.               |
-| `player.chat`, `centerText`, `announce`                                                                                           | Show text to one player.                                              |
-| `player.sound(sound, { volume, pitch, listeners })`, `adjustSound(id, volume, pitch)`, `stopSound(id)`                            | Play a sound on the hero, change it while it plays, or stop it.       |
-| `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`                                                       | Move the hero through the match.                                      |
-| `player.zipline(lane)`                                                                                                            | Put the hero on the yellow, green, blue or purple lane's zipline.     |
-| `player.spectate()`                                                                                                               | Move the player to the spectators, without a hero.                    |
-| `player.watch(target, chase?)`, `freeCamera(position, facing)`, `unwatch()`                                                       | Watch a hero, chase it or fly freely, and return to the hero.         |
-| `player.moveCamera(options)`, `clearCamera(context?)`                                                                             | Pull back, widen, offset or aim the camera, as abilities do.          |
-| `player.clearItems`, `giveItem(item, imbue?)`, `buyItem(item, imbue?, source?)`, `restoreStamina`, `setStamina`, `refreshAbility` | Change what the hero carries, imbuing an ability with an item.        |
-| `player.abilities()`, `setAbility`, `replaceAbility`, `trainAbility`, `giveModifier`, `holdModifier`                              | Read, change or train abilities, their timers and charges, modifiers. |
-| `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)`                                            | Read or change the player's settings.                                 |
-| `player.addMetric(name, value, label?)`                                                                                           | Add to the player's total of a metric.                                |
-| `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`                                             | Report a score or a match's places to a board.                        |
-| `readBoard(board, read?)`                                                                                                         | Read a page of a board, such as its top five.                         |
-| `player.handoff(text)`, `handedOff()`                                                                                             | Hand the player's state to the next build, and read it back.          |
-| `player.watchMovement(true)`                                                                                                      | Add the hero's movement, landings and wall jumps to each frame.       |
-| `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                                                       | Play curves on the camera; see [Camera moves](/guides/camera).        |
-| `setOrbitCamera(player, enabled)`                                                                                                 | Switch the hero to the hideout's zoom camera and HUD, or back.        |
-| `addBot(options)`, `player.removeBot()`                                                                                           | Add or remove a bot player.                                           |
+| Call                                                                                                                              | Effect                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `players()`                                                                                                                       | List the connected players and bots.                                             |
+| `connection(player)`, Go `ConnectionOf`                                                                                           | One player's connection, or nothing for an empty slot.                           |
+| `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                                                        | Keep one member per human and get them the hero they want.                       |
+| `player.pawn()`                                                                                                                   | Read the hero: health, team, position, aim and stamina.                          |
+| `player.chat`, `centerText`, `announce`                                                                                           | Show text to one player.                                                         |
+| `player.sound(sound, { volume, pitch, listeners })`, `adjustSound(id, volume, pitch)`, `stopSound(id)`                            | Play a sound on the hero, change it while it plays, or stop it.                  |
+| `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`                                                       | Move the hero through the match.                                                 |
+| `player.zipline(lane)`                                                                                                            | Put the hero on the yellow, green, blue or purple lane's zipline.                |
+| `player.spectate()`                                                                                                               | Move the player to the spectators, without a hero.                               |
+| `player.watch(target, chase?)`, `freeCamera(position, facing)`, `unwatch()`                                                       | Watch a hero, chase it or fly freely, and return to the hero.                    |
+| `player.moveCamera(options)`, `clearCamera(context?)`                                                                             | Pull back, widen, offset or aim the camera, as abilities do.                     |
+| `player.clearItems`, `giveItem(item, imbue?)`, `buyItem(item, imbue?, source?)`, `restoreStamina`, `setStamina`, `refreshAbility` | Change what the hero carries; see [Abilities and items](/guides/abilities).      |
+| `player.abilities()`, `setAbility`, `replaceAbility`, `trainAbility`, `giveModifier`, `holdModifier`                              | Read, change or train abilities, their timers and charges, modifiers.            |
+| `abilityBarPresses`, `abilityDisplay`                                                                                             | Answer and redraw the ability bar; see [Abilities and items](/guides/abilities). |
+| `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)`                                            | Read or change the player's settings.                                            |
+| `player.addMetric(name, value, label?)`                                                                                           | Add to the player's total of a metric.                                           |
+| `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`                                             | Report a score or a match's places to a board.                                   |
+| `readBoard(board, read?)`                                                                                                         | Read a page of a board, such as its top five.                                    |
+| `player.handoff(text)`, `handedOff()`                                                                                             | Hand the player's state to the next build, and read it back.                     |
+| `player.watchMovement(true)`                                                                                                      | Add the hero's movement, landings and wall jumps to each frame.                  |
+| `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                                                       | Play curves on the camera, TypeScript only; see [Camera moves](/guides/camera).  |
+| `setOrbitCamera(player, enabled)`                                                                                                 | Switch the hero to the hideout's zoom camera and HUD, or back.                   |
+| `addBot(options)`, `player.removeBot()`                                                                                           | Add or remove a bot player.                                                      |
 
 ## Heroes
 
-`heroes` lists the released heroes by title, each with its game name, such as
-`hero_atlas`, and fixed id. `findHero(typed)` matches what a player typed,
-such as `geist`, `Lady Geist` or `hero_ghost`, and `findTitled(list, typed)`
-does the same over a list of your own with `name` and `title`. A `Hook` watches
-one Bebop's hook: `update(player, now)` each frame reports the hero it holds
-and each new throw, keeps it fully upgraded and sets its cooldown.
+Every call that takes a hero, such as `selectHero`, `addBot`, `precache` and a
+Cast's want, accepts the game's name (`hero_nano`), that name without `hero_`
+(`nano`), or the title in any case (`Calico`, `lady geist`). A command that
+takes a hero from chat matches it loosely with `findHero`:
 
-## Abilities and items
+<Samples>
 
-`replaceAbility(index, name, keep?)` honors an explicit main slot, 0 to 3,
-including an ultimate placed on another ability key. The same definition can
-occupy several main slots as separate native ability entities. Replacements
-start untrained; with `keep` the new ability takes the old one's training,
-bought upgrades, cooldown and charges. The game trains and upgrades main
-slots by slot, so a player holds the upgrade key and presses the slot's
-ability key, and training an untrained replacement costs an ability unlock.
-`trainAbility(slot)` does the same from the mod, on whatever ability the hero
-holds in a main slot, through the game's own path: it charges the unlock or
-the points, and returns false, spending nothing, when the game refuses. The
-game's own `upgrade_ability` and `trainorupgradeability` commands look up the
-hero's own ability for a slot, so a mod that claims them answers with
-`trainAbility`.
-`buyItem(item, imbue?, source?)` buys an item through the game's own shop,
-which applies its rules and charges the souls, and returns false when it
-refuses. With `imbue`, the item strengthens whatever ability the hero holds in
-that slot, as `giveItem` does; the check runs before anything is spent. The
-game's `buydependentitem` command looks up the hero's own ability for the slot,
-so a mod that claims it answers with `buyItem`.
-A click on the game's ability bar sends nothing for an ability
-`replaceAbility` gave; `abilityBarPresses(player, (player, slot) => ...)`
-reports each click on a slot's icon or pips, so a mod answers it with
-`trainAbility`. A click the game answers itself, with `upgrade_ability`,
-reaches the mod both ways. Clicks arrive only while the mod's screen holds the
-player's HUD, so a player who left sends none.
-The game's Tab screen and ability bar draw each hero's standard abilities by
-slot, so a replaced one shows as the ability it replaced.
-`abilityDisplay(viewer, [{ player, abilities: [{ name, image, upgrades }] }])`
-shows viewer each row's abilities there instead, in the game's frame and pips
-with its ability window over them, the viewer's own row on the bar too, and
-Modlock gives the game's own back as the player leaves. A row finds its Tab
-row by the player's name, else by the hero's, which a bot's row shows.
-`adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
-`abilityPoints` and `abilityUnlocks` read what is left. A hero change or
-`resetHero` restores the hero's own abilities, so reapply a swap then. Use
-`restoreHero` ability targets with their definition ID and slot to train each
-copy; `setAbility` addresses the first matching name.
+```ts
+import { command, findHero } from 'modlock'
+
+command('hero', (player, args) => {
+  const hero = findHero(args)
+  if (hero) player.selectHero(hero.name, 2)
+})
+```
+
+```luau
+modlock.command("hero", function(player, args)
+	local hero = modlock.findHero(args)
+	if hero then
+		player:selectHero(hero.name, 2)
+	end
+end)
+```
+
+```python
+@modlock.command("hero")
+def hero(player: modlock.Player, args: str) -> None:
+    found = modlock.find_hero(args)
+    if found is not None:
+        player.select_hero(found.name, 2)
+```
+
+```go
+mod.Command("hero", func(p mod.Player, args string) {
+	if hero, ok := mod.FindHero(args); ok {
+		_, _ = p.SelectHero(hero.Name, 2)
+	}
+})
+```
+
+</Samples>
+
+| Call                      | Returns                                                                                                                                                 | Languages  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `heroes`                  | The released heroes by title, each with its game name, title and fixed id. Python spells it `HEROES`.                                                   | All        |
+| `heroNamed(name)`         | The hero a name names exactly, as the calls above read it, or nothing. A misspelled name finds no hero rather than another one.                         | All        |
+| `findHero(typed)`         | The hero a player typed: an exact name or title first, then the first title that starts with or contains it, such as `geist`.                           | All        |
+| `findTitled(list, typed)` | The same match over your own list of entries with `name` and `title`.                                                                                   | TypeScript |
+| `Hook`                    | Watches one Bebop's hook. `update(player, now)` each frame reports the hero it holds and each new throw, keeps it fully upgraded and sets its cooldown. | TypeScript |

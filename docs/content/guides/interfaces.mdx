@@ -3,13 +3,101 @@ title: Interfaces
 description: Draw a HUD, a menu or a notice on a player's screen.
 ---
 
-<Callout title="TypeScript">
-  Interfaces are part of the TypeScript library today. The samples on this page
-  stay in TypeScript whichever language you chose.
-</Callout>
+Every language draws interfaces: TypeScript in JSX, Luau with `@modlock/ui`,
+Python with `modlock.ui` and Go with `mod/ui`, each with a HUD kit (`hud`) and
+tokens (`theme`). A screen the player clicks frees the cursor and blocks the
+buttons a click would fire:
 
-A mod in another language shows text with `chat`, `centerText` and
-`announce`, and [text in the world](/guides/world).
+<Samples>
+
+```tsx
+import { Buttons, freeCursor, hide, type Player, show } from 'modlock'
+
+function openPicks(player: Player): void {
+  show(
+    player,
+    <panel style={{ flow: 'down', padding: 24, background: '#101820e0' }}>
+      <label style={{ fontSize: 28 }}>Pick a hero</label>
+      <button onPress={closePicks}>Ready</button>
+    </panel>,
+  )
+  freeCursor(player, true)
+  player.blockInput(Buttons.attack | Buttons.altFire | Buttons.melee)
+}
+
+function closePicks(player: Player): void {
+  player.blockInput(0n)
+  hide(player)
+}
+```
+
+```luau
+local modlock = require("@modlock")
+local ui = require("@modlock/ui")
+
+local function closePicks(player: modlock.Player)
+	player:blockInput(0)
+	ui.hide(player)
+end
+
+local function openPicks(player: modlock.Player)
+	ui.show(player, ui.panel {
+		style = { flow = "down", padding = 24, background = "#101820e0" },
+		ui.label { style = { fontSize = 28 }, "Pick a hero" },
+		ui.button { onPress = closePicks, "Ready" },
+	})
+	ui.freeCursor(player, true)
+	-- Buttons are bits; their sum blocks each of them.
+	player:blockInput(modlock.Buttons.attack + modlock.Buttons.altFire + modlock.Buttons.melee)
+end
+```
+
+```python
+import modlock
+from modlock.ui import button, free_cursor, hide, label, panel, show
+
+
+def open_picks(player: modlock.Player) -> None:
+    show(player, panel(style={"flow": "down", "padding": 24, "background": "#101820e0"})[
+        label(style={"font_size": 28})["Pick a hero"],
+        button(on_press=close_picks)["Ready"],
+    ])
+    free_cursor(player, True)
+    player.block_input(modlock.Buttons.ATTACK | modlock.Buttons.ALT_FIRE | modlock.Buttons.MELEE)
+
+
+def close_picks(player: modlock.Player) -> None:
+    player.block_input(0)
+    hide(player)
+```
+
+```go
+// import "github.com/paralin/modlock/mod/ui"
+func openPicks(p mod.Player) {
+	ui.Show(p, ui.Panel{
+		Style: ui.Style{Flow: ui.Down, Padding: ui.Edges{24}, Background: "#101820e0"},
+		Children: ui.Nodes{
+			ui.Label{Style: ui.Style{FontSize: 28}, Text: "Pick a hero"},
+			ui.Button{OnPress: closePicks, Children: ui.Text("Ready")},
+		},
+	})
+	ui.FreeCursor(p, true)
+	_ = p.BlockInput(mod.ButtonAttack | mod.ButtonAltFire | mod.ButtonMelee)
+}
+
+func closePicks(p mod.Player) {
+	_ = p.BlockInput(0)
+	ui.Hide(p)
+}
+```
+
+</Samples>
+
+## Calls
+
+Luau spells each call as TypeScript does, Python in `snake_case` and Go with
+exported names; Go's `toast` with seconds is `ToastFor` and `uiSound` is
+`Sound`.
 
 | Call                                    | Effect                                                                                 |
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -18,171 +106,120 @@ A mod in another language shows text with `chat`, `centerText` and
 | `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` cuts it short.      |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
-| `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot, for abilities the game cannot train.    |
+| `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).     |
 | `abilityDisplay(viewer, rows?)`         | Show players' replaced abilities on Tab and the ability bar; no rows restores.         |
 | `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |
-| `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. `item` prop shows its card.  |
+| `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.             |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
 | `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
-| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                                     |
+| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`; see [Layouts](/guides/layouts).     |
 
-A screen the player clicks, such as a pick screen, frees the cursor and withholds
-the buttons a click would fire:
+## The cursor
 
-```tsx
-import { Buttons, freeCursor, show } from 'modlock'
+- The game keeps shooting, turning and moving while the cursor is up, so the
+  mod blocks the buttons itself and releases them when the screen closes.
+  `hide` gives the mouse back to aiming.
+- The player can put the cursor away with the game's own keys, and that
+  holds while the screen changes. Each `freeCursor(player, true)` shows it
+  again.
+- `cursorFree(player)` reports whether the cursor is up, and nothing while the
+  player has no hero. A mod that wants it back calls `freeCursor` again when
+  it reports false, on a press or a timer.
 
-show(player, <PickScreen />)
-freeCursor(player, true)
-player.blockInput(Buttons.attack | Buttons.altFire | Buttons.melee)
-```
-
-The game does not stop shots, camera or movement while the cursor is up, so
-`blockInput` is the mod's job; call `player.blockInput(0n)` and `hide(player)`
-when the screen closes, and hiding gives the mouse back to aiming. The player
-can still put the cursor away with the game's own keys, and that choice holds: a screen that changes keeps it, and each
-`freeCursor(player, true)` shows the cursor again. `cursorFree(player)` reports
-whether the cursor is up, so a mod that wants it back asks again, such as
-`if (cursorFree(player) === false) freeCursor(player, true)` on a button press
-or a timer. It is `undefined` while the player has no hero.
+## Style it
 
 Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
 
-- Layout: `width`, `height`, `minWidth`, `maxWidth`, `minHeight`,
-  `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`,
-  `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`)
-  and `overflow`, `overflowX` or `overflowY` (`'squish'`, `'clip'`,
-  `'scroll'`, `'show'`).
-- Paint: `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`,
-  `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`,
-  `brightness`, `contrast` and `blur`.
-- Text: `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`
-  typeface), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`,
-  `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`,
-  `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`
-  and `textShadow`.
-- Motion: `translate`, `scale`, `rotate` and `origin`, and `transition`, in
-  seconds or `{ seconds, delay, easing }`. A change to any style property
-  that the game animates eases to its new value instead of jumping.
+| Group  | Properties                                                                                                                                                                                                                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout | `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`, `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`), `overflow`, `overflowX`, `overflowY` (`'squish'`, `'clip'`, `'scroll'`, `'show'`) |
+| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`                                                                                                               |
+| Text   | `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`, `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`, `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`, `textShadow`      |
+| Motion | `translate`, `scale`, `rotate`, `origin`, `transition` (seconds or `{ seconds, delay, easing }`); a change to a property the game animates eases instead of jumping                                                                                                                            |
 
-Any element takes `hover`, a style laid over its own while the pointer is on
-it, `tooltip`, text the game shows beside it, `item`, an item's class name
-whose shop card shows instead, `ability`, `{ name, player }`, whose game window
-for that ability shows instead of either, in the player's language and with
-the numbers of `player`'s hero, and `hoverSound`, a game sound event such as
-`'UI.MainMenu.Hover'`. A `button` also takes `sound`, played on
-a press, and `disabled`, which stops its presses. An `image` takes `scaling`
-(`'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`), and
-`<hero hero={15} look="card" />` draws the game's own picture of a hero, in the
-`small`, `card`, `icon`, `vertical`, `topBar` or `minimap` look. Interfaces
-load no pages, styles or scripts from outside the game.
+## Elements and props
 
-`enter`, `exit` and `cycle` move an element with its `transition`: it
-appears at its `enter` style and eases to its own, eases to its `exit` style
-before it goes when the mod stops drawing it, and swings between its own style
-and `cycle: { style, seconds, count }`, `count` times there and back or forever
-without one. A `label` with `token="#Citadel_HeroName_Haze"` shows the game's
-own text in the player's language, filling its places from `variables`, and
-`<avatar steamId={connection.steamId} />`, with an entry of `players()`,
-draws a player's Steam picture.
+| Prop or element         | On       | Does                                                                                                                                |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `hover`                 | any      | A style laid over the element's own while the pointer is on it.                                                                     |
+| `tooltip`               | any      | Text the game shows beside it.                                                                                                      |
+| `item`                  | any      | An item's class name; its shop card shows instead.                                                                                  |
+| `ability`               | any      | `{ name, player }`; the game's window for that ability shows instead, in the player's language with the numbers of `player`'s hero. |
+| `hoverSound`            | any      | A game sound event, such as `'UI.MainMenu.Hover'`.                                                                                  |
+| `enter`, `exit`         | any      | Styles it eases from as it appears and to before it goes, with its `transition`.                                                    |
+| `cycle`                 | any      | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                       |
+| `sound`, `disabled`     | `button` | A sound played on a press; `disabled` stops presses.                                                                                |
+| `scaling`               | `image`  | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                             |
+| `<hero hero={15} look>` |          | The game's picture of a hero: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                           |
+| `token`, `variables`    | `label`  | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                    |
+| `<avatar steamId>`      |          | A player's Steam picture, from an entry of `players()`.                                                                             |
 
-Four inputs take a value and hand each change to `onChange(player, value)`:
-`<entry value placeholder maxLength>` for text, `<slider value min max
-step>`, `<toggle on>` with its label as children, and `<dropdown options
-selected>`, whose value is the chosen option's index. The host checks each
-change against the input the player was shown: it clamps a slider to its range
-and step, cuts text to `maxLength` characters, and drops a change to a
-disabled input or one the player no longer sees. The mod's value stays the
-truth: the player's edit shows until the mod draws a new value, so a mod that
-keeps the value it is handed keeps the input in step.
+Interfaces load no pages, styles or scripts from outside the game.
 
-The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
-sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
-counts as the round counter does, `<Tag>` labels a status, `<Banner>`
-announces a moment, `<TopStrip>` with a `<Score>` in it fills the top of
-the screen, and `<Roster>` lists the players down the top right corner with
-their hero portraits. `<Action kind>` is a button in the game's menu look,
-with its hover, sounds and disabled state, and `<Meter value>` fills a bar
-that eases to each new value. Each entry in `heroes` carries its small
-`portrait`.
-`theme` holds the tokens, such as `theme.tones` and
-`theme.sizes`, for a mod's own panels.
+## Inputs
 
-An interface travels as the typed tree in
-[`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto). The player's game draws it
-and runs no mod code, and a button press comes back to its `onPress`. The host
-clears it when the player leaves or the mod stops.
+Each input hands each change to `onChange(player, value)`:
 
-`<layout src="shop.xml" data={stock} />` is the one element that runs code in
-the player's game: it loads a layout from the mod's content addon. Modlock's own
-renderer loads the layouts of the content its session mounted, and a host with
-its own interface script loads them by passing `Layouts` to the `Drawing` in
-`panorama/src/draw.ts`, such as `AddonLayouts`, which follows the `addon` each
-screen's tree names. A layout with no content to load draws an empty panel and
-logs one line in the game's console. The `modlock dev` preview page draws the
-layout from the mod's latest build, with its panels, inline styles and style
-sheets, but runs none of its scripts.
+| Input        | Props                               | Value                                    |
+| ------------ | ----------------------------------- | ---------------------------------------- |
+| `<entry>`    | `value`, `placeholder`, `maxLength` | Text, cut to `maxLength` characters.     |
+| `<slider>`   | `value`, `min`, `max`, `step`       | A number, clamped to the range and step. |
+| `<toggle>`   | `on`, label as children             | On or off.                               |
+| `<dropdown>` | `options`, `selected`               | The chosen option's index.               |
 
-`import './content/styles/hud.css'` adds that style sheet to every interface
-the mod shows, after the sheets added before it, so a later sheet wins a tie;
-the build turns the import into `sheet('hud.css')`, which a mod may also call
-itself, and refuses a sheet outside `content/styles/`. Any element takes
-`class="board gold"`, the sheet's classes it wears; changing them runs the
-sheet's transitions, and the element's own style wins over a class. The build
-writes beside each sheet a layout that includes only that sheet, and the
-player's game loads it into the interface's root panel, so sheets load where
-layouts do: a host that passes no `Layouts` draws the interface without them,
-and a sheet that fails to load leaves it drawn with one log line.
+The host drops a change to a disabled input or one the player no longer sees.
+The player's edit shows until the mod draws a new value, so keep the value
+you are handed.
 
-A layout gets values from the mod two ways: the `data` of its own element, and
-routes, which `route(player, 'scores', scores)` hands to every layout the mod
-shows that player, so several layouts share one value without a parent passing
-it down. A value travels as JSON and changes only when the mod sends a
-different one; `route(player, name, undefined)` removes it. The layout's
-script includes the library `scripts/modlock/layout.js` and reads them:
+## The HUD kit
 
-```xml
-<scripts>
-  <include src="file://{resources}/scripts/modlock/layout.js" />
-  <include src="file://{resources}/scripts/{addon}/shop.js" />
-</scripts>
+The HUD kit draws in the stock HUD's look. A round's score across the top:
+
+<Samples>
+
+```tsx
+import { Score, show, TopStrip } from 'modlock'
+
+show(
+  player,
+  <TopStrip heading="Round 2">
+    <Score points={[1, 0]} />
+  </TopStrip>,
+)
 ```
 
-```js
-Modlock.data((stock) => drawShop(stock))
-Modlock.route('scores', (scores) => drawScores(scores))
+```luau
+local hud = require("@modlock/hud")
+
+ui.show(player, hud.TopStrip { heading = "Round 2", hud.Score { points = { 1, 0 } } })
 ```
 
-Each handler runs at once with the current value and again after each change,
-with `undefined` while the mod sends none. The library reads the panel's
-`modlock_data` and `modlock_route_<name>` attributes and rereads them on the
-unhandled `PlaySoundEffect` event `modlock_data_changed`, which the renderer
-sends once per draw that changes any. The layout answers the mod with its own
-console commands.
+```python
+from modlock.hud import score, top_strip
 
-The game draws interfaces with the renderer in [`panorama/`](https://github.com/paralin/modlock/tree/master/panorama):
+show(player, top_strip(heading="Round 2")[score(points=(1, 0))])
+```
 
-- The layout `panorama/layout/modlock/ui.xml` and its script, which a client
-  content package installs as `scripts/modlock/ui.js`, beside the layout
-  library `scripts/modlock/layout.js`. A release's command
-  line carries it built in; `go run ./cmd/modlock-library` builds it from
-  source into `js/built` for the next build of the command line to embed.
-- A client content package keeps the layout loaded through matches, and the
-  renderer draws over the HUD.
-- `modlock dev` and `modlock play` serve the local player's interfaces on
-  `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
-  https pages, so the renderer reads them through a relay page at `--ui-relay`,
-  `https://hyperline.gg` by default. The controller answers only that origin's
-  page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
-  and the page reads the screen from that loopback port.
-- Both commands also install the renderer in the game for the session, so its
-  interfaces show with no setup. They write `game/citadel/modlock_dev`, a
-  package that adds the renderer to the stock news layout, and mount it
-  between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
-  content, removed when the session ends. The game reads it at startup, so a
-  game already running shows the interfaces after a restart.
-- A press runs the console command `modlockpress <mod> <node>` in the player's
-  game. `pressCommand` in `panorama/src/draw.ts` builds it, so a host with its
-  own renderer presses the same way. The server presses the node for the
-  player who sent it, and only when that player's interface shows it as a
-  button.
+```go
+// import "github.com/paralin/modlock/mod/hud"
+ui.Show(p, hud.TopStrip{Heading: "Round 2", Children: hud.Score{Points: [2]int{1, 0}}})
+```
+
+</Samples>
+
+| Component               | Draws                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `<Text role>`           | Text in one of the kit's type roles.                                         |
+| `<Plate>`, `<Pill>`     | Text held over a bright sky.                                                 |
+| `<Pips>`                | A count, as the round counter shows it.                                      |
+| `<Tag>`                 | A status label.                                                              |
+| `<Banner>`              | An announcement of a moment.                                                 |
+| `<TopStrip>`, `<Score>` | The top of the screen, with a score in it.                                   |
+| `<Roster>`              | The players down the top right corner, with hero portraits.                  |
+| `<Action kind>`         | A button in the game's menu look, with its hover, sounds and disabled state. |
+| `<Meter value>`         | A bar that eases to each new value.                                          |
+
+`theme` holds the tokens, such as `theme.tones` and `theme.sizes`, for a mod's
+own panels, and each entry in `heroes` carries its small `portrait`.
+[Layouts](/guides/layouts) covers layouts from the mod's content, style
+sheets and how the game draws an interface.

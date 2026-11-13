@@ -2,6 +2,7 @@
   "pages": [
     "events",
     "players",
+    "abilities",
     "timers",
     "damage",
     "input",
@@ -10,6 +11,7 @@
     "console",
     "camera",
     "interfaces",
+    "layouts",
     "client-content",
     "data",
     "files",

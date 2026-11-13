@@ -1,0 +1,93 @@
+---
+title: Layouts
+description: Draw the mod's own layouts and style sheets, and how the game draws interfaces.
+---
+
+`<layout src="shop.xml" data={stock} />` loads a layout from the mod's
+content addon. It is the one element that runs code in the player's game;
+every other element is drawn by the game from the typed tree in
+[`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto),
+and a press comes back to its `onPress`. The host clears an interface when
+the player leaves or the mod stops.
+
+- A layout with no content to load draws an empty panel and logs one line in
+  the game's console.
+- The `modlock dev` preview page draws the layout from the mod's latest build,
+  with its panels, inline styles and style sheets, but runs none of its
+  scripts.
+- A host with its own interface script loads layouts by passing `Layouts` to
+  the `Drawing` in `panorama/src/draw.ts`, such as `AddonLayouts`, which
+  follows the `addon` each screen's tree names. Modlock's own renderer loads
+  the layouts of the content its session mounted.
+
+## Style sheets
+
+`sheet('hud.css')` adds a sheet from `content/styles/` to every interface the
+mod shows; a later sheet wins a tie. In TypeScript,
+`import './content/styles/hud.css'` builds to the same call, and the build
+refuses a sheet outside `content/styles/`. An element wears the sheet's
+classes with `class="board gold"`; changing them runs the sheet's
+transitions, and the element's own style wins over a class.
+
+Sheets load where layouts do: the build writes a layout beside each sheet
+that includes only that sheet, which the game loads into the interface's root
+panel. A host that passes no `Layouts` draws the interface without them, and
+a sheet that fails to load leaves it drawn with one log line.
+
+## Hand values to a layout
+
+A layout gets values from the mod two ways: the `data` of its own element, and
+routes, which `route(player, 'scores', scores)` hands to every layout the mod
+shows that player, so several layouts share one value without a parent passing
+it down. A value travels as JSON and changes only when the mod sends a
+different one; `route(player, name, undefined)` removes it. Go's `ui.Route`
+takes the value as JSON text, and an empty one removes it. The layout's
+script includes the library `scripts/modlock/layout.js` and reads them:
+
+```xml
+<scripts>
+  <include src="file://{resources}/scripts/modlock/layout.js" />
+  <include src="file://{resources}/scripts/{addon}/shop.js" />
+</scripts>
+```
+
+```js
+Modlock.data((stock) => drawShop(stock))
+Modlock.route('scores', (scores) => drawScores(scores))
+```
+
+Each handler runs at once with the current value and again after each change,
+with `undefined` while the mod sends none. The library reads the panel's
+`modlock_data` and `modlock_route_<name>` attributes and rereads them on the
+unhandled `PlaySoundEffect` event `modlock_data_changed`, which the renderer
+sends once per draw that changes any. The layout answers the mod with its own
+console commands.
+
+## The renderer
+
+The game draws interfaces with the renderer in [`panorama/`](https://github.com/paralin/modlock/tree/master/panorama):
+
+- The layout `panorama/layout/modlock/ui.xml` and its script, which a client
+  content package installs as `scripts/modlock/ui.js`, beside the layout
+  library `scripts/modlock/layout.js`. A release's command
+  line carries it built in; `go run ./cmd/modlock-library` builds it from
+  source into `js/built` for the next build of the command line to embed.
+- A client content package keeps the layout loaded through matches, and the
+  renderer draws over the HUD.
+- `modlock dev` and `modlock play` serve the local player's interfaces on
+  `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
+  https pages, so the renderer reads them through a relay page at `--ui-relay`,
+  `https://hyperline.gg` by default. The controller answers only that origin's
+  page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
+  and the page reads the screen from that loopback port.
+- Both commands also install the renderer in the game for the session, so its
+  interfaces show with no setup. They write `game/citadel/modlock_dev`, a
+  package that adds the renderer to the stock news layout, and mount it
+  between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
+  content, removed when the session ends. The game reads it at startup, so a
+  game already running shows the interfaces after a restart.
+- A press runs the console command `modlockpress <mod> <node>` in the player's
+  game. `pressCommand` in `panorama/src/draw.ts` builds it, so a host with its
+  own renderer presses the same way. The server presses the node for the
+  player who sent it, and only when that player's interface shows it as a
+  button.

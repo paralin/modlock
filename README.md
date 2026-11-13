@@ -84,39 +84,10 @@ npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-The installer downloads the right file from the
-[latest release](https://github.com/paralin/modlock/releases/latest) into
-`%LOCALAPPDATA%\Programs\modlock` on Windows or `~/.local/bin` elsewhere, and
-puts that directory on your `PATH` on Windows. To download it by hand instead,
-take the one file for your computer, rename it to `modlock` (`modlock.exe` on
-Windows) and put it in a directory on your `PATH`:
-
-| Your computer               | File                        |
-| --------------------------- | --------------------------- |
-| Windows                     | `modlock-windows-amd64.exe` |
-| Mac with Apple silicon      | `modlock-darwin-arm64`      |
-| Mac with an Intel processor | `modlock-darwin-amd64`      |
-| Linux, x86-64               | `modlock-linux-amd64`       |
-| Linux, ARM64                | `modlock-linux-arm64`       |
-
-A file a Mac's browser downloaded is quarantined; clear that with
-`xattr -c modlock-darwin-arm64`. The release's other file,
-`modlock-host-windows-x64.zip`, is the game server, which `modlock` downloads
-itself.
-
-On Windows a program that was already running keeps its old `PATH`. If a
-terminal says `modlock` is not found after the install, close that program and
-open it again; for a terminal inside VS Code, that means the whole editor.
-
-On Windows `modlock` runs the game server directly; on Linux it runs it through
-Steam's Proton. It fetches the server that matches its release the first time.
 Script mods need nothing else installed; a Go mod needs
-[Go](https://go.dev/dl/).
-
-`modlock` looks for a newer release at most once a day, in the background,
-and says when one is out; `modlock update` installs it in place. The check is
-off in CI, with `MODLOCK_NO_UPDATE_CHECK` set, or after
-`modlock config set update-check off`.
+[Go](https://go.dev/dl/). The
+[install page](https://paralin.github.io/modlock/start/install) covers
+downloading it by hand and what to do when `modlock` is not found.
 
 Then make a mod and run it:
 
@@ -126,48 +97,15 @@ cd my-mod
 modlock dev
 ```
 
-`modlock new` asks for the mod's name and its language, and offers to install
-the Modlock extension and open the project in your editor when one is
-installed. A name such as "Zombie Tag" becomes the directory `zombie-tag`.
-`modlock new my-mod --language typescript` answers both up front, and a script
-or `--json` gets no questions: it needs the directory, and takes TypeScript
-without `--language`.
+`modlock new` asks for the mod's name and its language. `modlock dev` builds the
+mod, starts a local server and launches Deadlock through Steam to join. Each
+time you save, it rebuilds the mod and swaps it in. The starter answers
+`/hello` in chat; [Your first mod](https://paralin.github.io/modlock/start/first-mod)
+walks through the rest.
 
-`modlock editor` sets up your editor: it installs the Modlock extension into
-VS Code, Cursor, Windsurf or VSCodium, from the editor's extension store or
-else from the release's `modlock.vsix`, and in a mod project the extension for
-the mod's language too. It picks the editor whose terminal you run it in, or
-every one installed; `--editor cursor` picks one. `modlock new` offers the
-same, and so does `modlock dev`, once, in an editor's terminal;
-`modlock config set editor-offer off` stops that question. A new project's
-`.vscode/extensions.json` also has the editor recommend the extensions.
-
-A TypeScript project holds:
-
-| File            | Holds                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| `mod.json`      | The [manifest](https://paralin.github.io/modlock/reference/manifest): the mod's slug, name and version. |
-| `main.ts`       | The mod: a starter with what most game modes begin from.                                                |
-| `tsconfig.json` | The compiler options your editor uses to check the code as you type.                                    |
-
-The starter turns off the lane troopers and jungle creeps, lets any number of
-players pick the same hero, welcomes each player who joins and answers `/hello`
-in chat. One call, `seatPlayers`, gives each player a hero on the smaller team,
-skipping the game's team and hero screens, and brings a fallen hero back after
-3 seconds; give it a team to choose the sides yourself. Delete the parts your mode does not want.
-
-The other languages are JavaScript, Luau, Python and Go, and their starters do
-the same. Complete game modes to start from include [`arena`](examples/arena) in
+Complete game modes to start from include [`arena`](examples/arena) in
 TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
 Go, all in the [`examples`](examples) directory.
-
-`modlock dev` builds the mod, starts a local server, and launches Deadlock
-through Steam to join. Each time you save, it rebuilds the mod and swaps it
-in; a failed build prints its errors and keeps the last good build
-running. The watch skips `build/`, `node_modules`, hidden files and `*.log`. The
-terminal shows the mod's log, reloads and player joins; the server console goes
-to `build/server.log`. `--watch=false` builds the mod once and leaves saves
-alone.
 
 ## Documentation
 

@@ -3,9 +3,7 @@ title: Ready up and count down
 description: Hold the round until every player is ready, then count it in.
 ---
 
-Most modes open the same way: wait for everyone, freeze them, count down
-and let go. The round is a small state machine with three phases, and each
-handler checks the phase before it acts.
+Most modes open the same way: wait for everyone, freeze them, count down and let go. A round is a state machine with three phases. Each handler checks the phase before it acts.
 
 | Phase       | Players can     | Moves on when             |
 | ----------- | --------------- | ------------------------- |
@@ -284,10 +282,7 @@ func main() {}
 
 ## Make it yours
 
-- Set `phase` back to `waiting` when your round ends, so the next one waits
-  for players again.
-- [Block hits](/guides/damage#block-a-hit) or
-  [withhold the attack button](/guides/input#block-and-press) until the
-  phase is `live`.
-- A reload resets `phase`. [Hand it to the next build](/guides/reloads#hand-state-to-the-next-build)
-  to keep a round going while you edit.
+- Set `phase` back to `waiting` when your round ends, so the next round waits for players again.
+- [Block hits](/guides/damage#block-a-hit) until the phase is `live`.
+- [Withhold the attack button](/guides/input#block-and-press) until the phase is `live`.
+- A reload resets `phase`. [Hand it to the next build](/guides/reloads#hand-state-to-the-next-build) to keep a round going while you edit.

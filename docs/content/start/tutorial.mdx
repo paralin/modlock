@@ -3,10 +3,11 @@ title: Tutorial
 description: Build a small brawl with a countdown, a score, a HUD and a sign.
 ---
 
-Each step adds a few lines to the project `modlock new` wrote, and you can
-try each one as soon as it saves. Together they build a small brawl with a
-countdown, a score, a HUD and a sign. The [examples](/start/examples) carry
-the same ideas into complete game modes you can play.
+Each step adds a few lines to the project `modlock new` wrote, and you can try it as soon as it saves. Together they build a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) carry the same ideas into complete game modes you can play.
+
+Put a step's import lines at the top of the main file and the rest at the end. Each step imports only the names it adds.
+In Luau, Python and Go, the interface calls in steps 1, 5 and 7 need a release
+newer than v0.1.78; `modlock update` installs the newest.
 
 ## 1. Answer a command
 
@@ -15,7 +16,7 @@ the same ideas into complete game modes you can play.
 <Samples>
 
 ```ts
-import { command, toast } from 'modlock'
+import { toast } from 'modlock'
 
 command('roll', (player, args) => {
   const sides = Number(args) || 6
@@ -25,35 +26,33 @@ command('roll', (player, args) => {
 ```
 
 ```luau
-local modlock = require("@modlock")
+local ui = require("@modlock/ui")
 
 modlock.command("roll", function(player, args)
 	local sides = math.max(1, math.floor(tonumber(args) or 6))
 	local roll = math.random(1, sides)
-	player:chat(`You rolled {roll} out of {sides}.`)
+	ui.toast(player, `You rolled {roll} out of {sides}.`)
 end)
 ```
 
 ```python
 import random
 
-import modlock
+from modlock.ui import toast
 
 
 @modlock.command("roll")
 def roll(player: modlock.Player, args: str) -> None:
     sides = int(args) if args.isdigit() and int(args) > 0 else 6
-    player.chat(f"You rolled {random.randint(1, sides)} out of {sides}.")
+    toast(player, f"You rolled {random.randint(1, sides)} out of {sides}.")
 ```
 
 ```go
-package main
-
 import (
 	"math/rand/v2"
 	"strconv"
 
-	"github.com/paralin/modlock/mod"
+	"github.com/paralin/modlock/mod/ui"
 )
 
 func init() {
@@ -63,33 +62,24 @@ func init() {
 			sides = 6
 		}
 		roll := 1 + rand.IntN(sides)
-		_ = p.Chat("You rolled " + strconv.Itoa(roll) + " out of " + strconv.Itoa(sides) + ".")
+		ui.Toast(p, "You rolled "+strconv.Itoa(roll)+" out of "+strconv.Itoa(sides)+".")
 	})
 }
-
-func main() {}
 ```
 
 </Samples>
 
 Type `/roll 20`.
 
-<Only lang="ts">
-  `toast` shows a notice that fades. It is part of the TypeScript library's
-  [interfaces](/guides/interfaces).
-</Only>
+`toast` shows a notice that fades, one of the [interface](/guides/interfaces) calls.
 
 ## 2. Read the hero
 
-A player's pawn is their hero as it is this frame: its health, team,
-position, aim direction and souls. There is none until the hero spawns, and
-a hero whose health has reached zero is dead.
+A player's pawn is their hero as it is this frame. It holds the hero's health, team, position, aim direction and souls. No pawn exists until the hero spawns. A hero with zero health is dead.
 
 <Samples>
 
 ```ts
-import { command, toast } from 'modlock'
-
 command('where', (player) => {
   const pawn = player.pawn()
   if (pawn === undefined || pawn.health <= 0) {
@@ -128,36 +118,41 @@ def where(player: modlock.Player, args: str) -> None:
 ```
 
 ```go
-mod.Command("where", func(p mod.Player, args string) {
-	pawn, err := p.Pawn()
-	if err != nil || pawn == nil || pawn.GetHealth() <= 0 {
-		_ = p.Chat("You have no living hero.")
-		return
-	}
-	at := pawn.GetPosition()
-	_ = p.Chat(fmt.Sprintf("You stand at %.0f, %.0f with %d health.",
-		at.GetX(), at.GetY(), pawn.GetHealth()))
-})
+import "fmt"
+
+func init() {
+	mod.Command("where", func(p mod.Player, args string) {
+		pawn, err := p.Pawn()
+		if err != nil || pawn == nil || pawn.GetHealth() <= 0 {
+			_ = p.Chat("You have no living hero.")
+			return
+		}
+		at := pawn.GetPosition()
+		_ = p.Chat(fmt.Sprintf("You stand at %.0f, %.0f with %d health.",
+			at.GetX(), at.GetY(), pawn.GetHealth()))
+	})
+}
 ```
 
 </Samples>
 
 ## 3. Count down with a timer
 
-A timer runs a function once, some seconds of game time from now. The game
-clock stops when the game pauses, so a paused round holds its timers. The
-player list holds everyone connected, bots included.
+A timer runs a function once, some seconds of game time from now. The game clock stops when the game pauses, so a paused round holds its timers. The player list holds everyone connected, bots included. `live` records that the round has started. The next step reads it.
 
 <Samples>
 
 ```ts
-import { after, command, players } from 'modlock'
+import { after, players } from 'modlock'
+
+let live = false
 
 command('start', () => {
   for (const { player } of players()) {
     player.freeze(true)
   }
   after(5, () => {
+    live = true
     for (const { player } of players()) {
       player.freeze(false)
       player.announce('Fight!', 'The round is live.')
@@ -167,11 +162,14 @@ command('start', () => {
 ```
 
 ```luau
+local live = false
+
 modlock.command("start", function()
 	for _, connection in modlock.players() do
 		connection.player:freeze(true)
 	end
 	modlock.after(5, function()
+		live = true
 		for _, connection in modlock.players() do
 			connection.player:freeze(false)
 			connection.player:announce("Fight!", "The round is live.")
@@ -181,12 +179,17 @@ end)
 ```
 
 ```python
+live = False
+
+
 @modlock.command("start")
-def start(player: modlock.Player, args: str) -> None:
+def countdown(player: modlock.Player, args: str) -> None:
     for connection in modlock.players():
         connection.player.freeze(True)
 
     def go() -> None:
+        global live
+        live = True
         for connection in modlock.players():
             connection.player.freeze(False)
             connection.player.announce("Fight!", "The round is live.")
@@ -195,21 +198,26 @@ def start(player: modlock.Player, args: str) -> None:
 ```
 
 ```go
-mod.Command("start", func(mod.Player, string) {
-	connections, _ := mod.Players()
-	for _, c := range connections {
-		_ = mod.Player{Slot: c.GetPlayer()}.Freeze(nil)
-	}
-	mod.After(5*time.Second, func() {
-		released := false
+var live bool
+
+func init() {
+	mod.Command("start", func(mod.Player, string) {
 		connections, _ := mod.Players()
 		for _, c := range connections {
-			p := mod.Player{Slot: c.GetPlayer()}
-			_ = p.Freeze(&released)
-			_ = p.Announce("Fight!", "The round is live.")
+			_ = mod.Player{Slot: c.GetPlayer()}.Freeze(nil)
 		}
+		mod.After(5*time.Second, func() {
+			live = true
+			released := false
+			connections, _ := mod.Players()
+			for _, c := range connections {
+				p := mod.Player{Slot: c.GetPlayer()}
+				_ = p.Freeze(&released)
+				_ = p.Announce("Fight!", "The round is live.")
+			}
+		})
 	})
-})
+}
 ```
 
 </Samples>
@@ -219,18 +227,15 @@ mod.Command("start", func(mod.Player, string) {
 
 ## 4. Decide the fights
 
-The damage event sees each hit before it lands: block it, or change its
-amount. The damaged event reports each hit after it lands, with the
-victim's health before and the health it lost, so a lethal hit is one that
-took all of it. Hits refer to heroes by their entity, the same number as
-the pawn's `entity`.
+The damage event sees each hit before it lands. Block the hit or change its amount.
+The damaged event reports each hit after it lands, with the victim's health before and the health it lost. A lethal hit took all of that health.
+Hits refer to heroes by their entity, the same number as the pawn's `entity`.
 
 <Samples>
 
 ```ts
-import { onDamage, onDamaged, type Player, players } from 'modlock'
+import { onDamage, onDamaged, type Player } from 'modlock'
 
-let live = false
 const defeats = new Map<number, number>()
 
 // Nobody gets hurt until the round is live.
@@ -252,7 +257,6 @@ function playerOf(entity: number): Player | undefined {
 ```
 
 ```luau
-local live = false
 local defeats: { [number]: number } = {}
 
 local function playerOf(entity: number): modlock.Player?
@@ -284,7 +288,6 @@ end)
 ```
 
 ```python
-live = False
 defeats: dict[int, int] = {}
 
 
@@ -312,10 +315,7 @@ def scored(hit: modlock.DamagedEvent) -> None:
 ```
 
 ```go
-var (
-	live    bool
-	defeats = map[int32]int{}
-)
+var defeats = map[int32]int{}
 
 func init() {
 	// Nobody gets hurt until the round is live.
@@ -351,26 +351,15 @@ func playerOf(entity uint32) (mod.Player, bool) {
 
 </Samples>
 
-Set `live` in step 3's timer, where the round goes live. This map keys
-scores by slot. When players come and go, key them by slot and
-`generation`: the generation changes when someone new takes the slot.
+This map keys scores by slot. When players come and go, key them by slot and `generation`. The generation changes when someone new takes the slot.
 
-Each connection also carries `roles`, which say who builds and tests the mod:
-`developer` and `tester`. `modlock dev` and `modlock play` give every local
-player both, and a platform that hosts the mod sends its own over the control
-link, one table per mod. A role decides only what the mod shows, such as a menu still in testing;
-whatever guards saved data must check the player where the data lives.
+Each connection also carries [`roles`](/guides/players#roles), which say who builds and tests the mod.
 
 ## 5. Show a HUD
 
-<Callout>
-  Interfaces are written in TypeScript today. A mod in another language shows
-  text with `chat`, `centerText` and `announce`, and world text from the next
-  step.
-</Callout>
+An interface is a tree of elements. In TypeScript, you write it as JSX in a `.tsx` module. In the other languages, you call the `ui` library. Put this HUD in its own module beside the main one: `hud.tsx`, `hud.luau` or `hud.py`, or in Go a `hud.go` in the same package:
 
-An interface is JSX in a `.tsx` module. Put this HUD in `hud.tsx` beside
-`main.ts`:
+<Samples>
 
 ```tsx
 import { type Player, show } from 'modlock'
@@ -399,9 +388,83 @@ function Score(props: { defeats: number }) {
 }
 ```
 
-and draw it from `main.ts` on every frame:
+```luau
+local modlock = require("@modlock")
+local ui = require("@modlock/ui")
+
+local hud = {}
+
+function hud.drawScore(player: modlock.Player, defeats: number)
+	ui.show(player, ui.panel {
+		style = {
+			horizontalAlign = "right",
+			verticalAlign = "top",
+			margin = { 80, 24 },
+			padding = 10,
+			background = "#101820d0",
+			borderRadius = 6,
+		},
+		ui.label { style = { fontSize = 24, bold = true }, `{defeats} defeats` },
+	})
+end
+
+return hud
+```
+
+```python
+import modlock
+from modlock.ui import label, panel, show
+
+
+def draw_score(player: modlock.Player, defeats: int) -> None:
+    show(player, panel(style={
+        "horizontal_align": "right",
+        "vertical_align": "top",
+        "margin": (80, 24),
+        "padding": 10,
+        "background": "#101820d0",
+        "border_radius": 6,
+    })[
+        label(style={"font_size": 24, "bold": True})[f"{defeats} defeats"],
+    ])
+```
+
+```go
+package main
+
+import (
+	"strconv"
+
+	"github.com/paralin/modlock/mod"
+	"github.com/paralin/modlock/mod/ui"
+)
+
+func drawScore(p mod.Player, defeats int) {
+	ui.Show(p, ui.Panel{
+		Style: ui.Style{
+			HorizontalAlign: ui.Right,
+			VerticalAlign:   ui.Top,
+			Margin:          ui.Edges{80, 24},
+			Padding:         ui.Edges{10},
+			Background:      "#101820d0",
+			BorderRadius:    6,
+		},
+		Children: ui.Label{
+			Style: ui.Style{FontSize: 24, Bold: true},
+			Text:  strconv.Itoa(defeats) + " defeats",
+		},
+	})
+}
+```
+
+</Samples>
+
+Draw the HUD from the main module on every frame:
+
+<Samples>
 
 ```ts
+import { onFrame } from 'modlock'
 import { drawScore } from './hud'
 
 onFrame(() => {
@@ -411,22 +474,52 @@ onFrame(() => {
 })
 ```
 
-`show` sends only what changed since its last call, so redraw every player's HUD
-from your state each frame. A `<button onPress={(player) => ready(player)}>`
-calls back into the mod when a player presses it.
+```luau
+local hud = require("./hud")
+
+modlock.onFrame(function()
+	for _, connection in modlock.players() do
+		hud.drawScore(connection.player, defeats[connection.player.slot] or 0)
+	end
+end)
+```
+
+```python
+import hud
+
+
+@modlock.on_frame
+def draw(frame: modlock.FrameEvent) -> None:
+    for connection in modlock.players():
+        hud.draw_score(connection.player, defeats.get(connection.player.slot, 0))
+```
+
+```go
+func init() {
+	mod.OnFrame(func(*mod.FrameEvent) {
+		connections, _ := mod.Players()
+		for _, c := range connections {
+			p := mod.Player{Slot: c.GetPlayer()}
+			drawScore(p, defeats[p.Slot])
+		}
+	})
+}
+```
+
+</Samples>
+
+`show` sends only what changed since its last call. Redraw every player's HUD from your state each frame. A button's `onPress` calls back into the mod with the player who pressed it.
 
 [Interfaces](/guides/interfaces) lists every element and style.
 
 ## 6. Place things in the world
 
-A mod places text, props and effects, each an object to move, change or
-remove. A new map removes everything, so forget your objects in the world
-event, which runs as each world loads.
+A mod places text, props and effects. Each one is an object to move, change or remove. A new map removes everything. Forget your objects in the world event, which runs as each world loads.
 
 <Samples>
 
 ```ts
-import { command, createText, onWorld, type WorldObject } from 'modlock'
+import { createText, onWorld, type WorldObject } from 'modlock'
 
 let sign: WorldObject | undefined
 
@@ -537,15 +630,11 @@ func init() {
 
 </Samples>
 
-Precache the heroes and models your mode uses when the mod starts, so they
-load with the world. [The world](/guides/world) covers models, effects and
-fog.
+Precache the heroes and models your mode uses when the mod starts, so they load with the world. [The world](/guides/world) covers models, effects and fog.
 
 ## 7. Let players choose, and keep score
 
-A setting is a choice each player keeps between matches, such as where the score
-sits. A metric is a total the mod keeps for each player, such as their defeats.
-Declare both in `mod.json` under `settings` and `metrics`:
+A setting is a choice each player keeps between matches, such as where the score sits. A metric is a total the mod keeps for each player, such as their defeats. Declare both in `mod.json` under `settings` and `metrics`:
 
 ```json
 "settings": [
@@ -562,8 +651,7 @@ Declare both in `mod.json` under `settings` and `metrics`:
 "metrics": [{ "name": "brawl.defeats", "kind": "KIND_COUNT" }]
 ```
 
-Then read the player's setting when you draw the HUD, and add to the metric
-when they score:
+Read the player's setting in `drawScore` and align the panel with it. Add to the metric in the damaged handler once the hit scores:
 
 <Samples>
 
@@ -583,21 +671,20 @@ scorer.add_metric("brawl.defeats", 1)
 ```
 
 ```go
-corner, _ := p.Setting("corner")
+var corner ui.Align = ui.Right
+if choice, _ := p.Setting("corner"); choice == "left" {
+	corner = ui.Left
+}
 _ = scorer.AddMetric("brawl.defeats", 1, nil)
 ```
 
 </Samples>
 
-A board ranks players against each other, such as the fastest clear of each
-course. [Settings, metrics and boards](/guides/data) shows how to declare
-one and report to it.
+A board ranks players against each other, such as the fastest clear of each course. [Settings, metrics and boards](/guides/data) shows how to declare one and report to it.
 
 ## 8. Split it into modules
 
-As the mode grows, keep `main.ts` a short list of wiring and the game's state in
-one object the handlers call into. Split the rest by concern. `modlock build`
-bundles and type-checks every module `main.ts` imports.
+As the mode grows, keep `main.ts` a short list of wiring and the game's state in one object the handlers call into. Split the rest by concern. `modlock build` bundles and type-checks every module `main.ts` imports.
 
 ```ts
 import { command, onDamage, onFrame, onStart, onWorld } from 'modlock'
@@ -617,36 +704,12 @@ onFrame((frame) => {
 command('ready', (player) => match.ready(player))
 ```
 
-[`examples/arena`](https://github.com/paralin/modlock/tree/master/examples/arena) is laid out this way. An event that takes
-more than 500 ms of processor time, counting the game calls it makes but not
-a stall in which the server waits, such as paging on a machine short of
-memory, still finishes. The host logs where its time went, warns the players
-in chat, and for the next five minutes lets any of them restart the mod with
-`/restartmod`, in case it is stuck. Only a runaway event past five seconds
-stops the mod. A mod that stops, by a crash or a runaway event, clears what it
-placed and shows and stays stopped: the host warns in chat each minute until
-a player types `/restartmod` or a reload replaces it. A restart starts the
-same build in a new instance, as a reload does.
+[`examples/arena`](https://github.com/paralin/modlock/tree/master/examples/arena) is laid out this way.
+
+An event past 500 ms of processor time warns the players, and one past five seconds stops the mod until `/restartmod`; see [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods).
 
 ## 9. Test a whole round
 
-The sandbox runs commands and interfaces in seconds; use it while you write
-the rules. To test a whole round in the game, let the mod test itself. Started
-with `modlock play --arg probe`, it seats bots with `addBot`, plays the round,
-checks the outcome, logs PASS or FAIL and quits with `serverCommand('quit')`.
-[`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts) does this.
-
-`ProbeRun` does the bookkeeping. Call `tick` each frame with the step the
-probe waits on and a check that returns `true` to pass, a message to fail, or
-`false` to wait. It logs each new step once, fails the run after its timeout,
-then logs `<name> probe PASS` or `FAIL` and quits:
-
-```ts
-const run = new ProbeRun('Duel', 120)
-onFrame((frame) => {
-  run.tick(frame.timeSeconds, 'two fighters', () => fighters() >= 2)
-})
-```
-
-[Testing](/guides/testing) has more. When the mode plays well,
-[publish it](/reference/publishing).
+To test a whole round in the game, a mod can test itself with bots and log
+PASS or FAIL; [Testing](/guides/testing#in-the-game) shows how. When the mode
+plays well, [publish it](/reference/publishing).

@@ -3,10 +3,10 @@ title: Aim drill
 description: Give one player a target and score thirty seconds of hits.
 ---
 
-A drill is a timed score for one player: add a target, count the hits that
-player lands on it, and report the result when the time is up. The target
-is a bot on the other team. Healing it by what each hit took keeps it
-standing for the whole drill.
+A drill gives one player a timed score. The target is a bot on the other team.
+Count the hits the player lands on the target, and report the score when the
+time is up. After each hit, heal the target by the damage that hit dealt, so it
+stays standing for the whole drill.
 
 <Samples>
 
@@ -277,7 +277,7 @@ func main() {}
 
 </Samples>
 
-The mod declares the metric it adds to in `mod.json`:
+The mod declares the metric in `mod.json`:
 
 ```json
 "metrics": [{ "name": "drill.damage", "kind": "KIND_MAX" }]
@@ -285,8 +285,8 @@ The mod declares the metric it adds to in `mod.json`:
 
 ## Make it yours
 
-- Move the target between hits with `teleport`, so the player tracks it.
+- Move the target between hits with `teleport` so the player tracks it.
 - Freeze the target so it stands still, or leave it free to fight back.
-- Rank the scores with a [board](/guides/data#boards), partitioned by
+- Rank scores with a [board](/guides/data#boards), partitioned by
   scenario and difficulty.
 - The [`drill`](https://github.com/paralin/modlock/tree/master/examples/drill) example is a complete drill mode.

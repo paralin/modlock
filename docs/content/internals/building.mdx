@@ -58,3 +58,41 @@ source does not use, and `bun run lint:cc --fix` removes them; it reads the
 compile databases of `build` and `scripts/proton-build.sh`, so build both
 first. Lint the example mods after
 `go run ./cmd/modlock build examples/<mod>` installs their typings.
+
+## Run the command from a clone
+
+To run Modlock from a clone, such as for a fix that is not in a release yet or
+to change Modlock itself, build the command from the checkout with
+[Go](https://go.dev/dl/):
+
+```sh
+git clone https://github.com/paralin/modlock.git
+cd modlock
+go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
+```
+
+Build without `-trimpath`: the command finds the checkout through the paths
+compiled into it, and builds the TypeScript library, the renderer and the
+preview page from the checkout, so your mods use the checkout's library. After
+a `git pull`, build the command again.
+
+A build from source has no release to download the host from, so set
+`MODLOCK_HOST` to a `modlock-host.exe`; the sandbox needs it too, since it runs
+the interpreters beside the host. For a checkout of a release, or close to one,
+unpack that release's host:
+
+```sh
+curl -LO https://github.com/paralin/modlock/releases/latest/download/modlock-host-windows-x64.zip
+unzip modlock-host-windows-x64.zip -d ~/modlock-host
+export MODLOCK_HOST=~/modlock-host/modlock-host.exe
+modlock new my-mod
+cd my-mod
+modlock dev
+```
+
+On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
+change to the host itself, the C++ under `src/`, needs a host built from the
+same checkout, as this page describes above: `scripts/win-build.ps1`
+installs it in `build-win/sdk/bin`, and `scripts/proton-build.sh` in
+`build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
+library makes.

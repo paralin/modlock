@@ -3,8 +3,8 @@ title: Input
 description: Hear button presses, press buttons for a hero and withhold them.
 ---
 
-A mod hears only the buttons it watches. Watch them once, then the input
-event reports each press and release as button bits.
+A mod hears only the buttons it watches. Watch them once; the input event
+reports each press and release as button bits.
 
 <Samples>
 
@@ -64,14 +64,16 @@ A button is held from its press until its release.
 
 ## Block and press
 
-Withhold buttons to take an action away, such as shooting during a
-countdown, and press them to act for a hero.
+Withhold buttons to remove an action, such as shooting during a countdown.
+Press buttons to act for a hero.
 
-| Call                                                | Effect                                                  |
-| --------------------------------------------------- | ------------------------------------------------------- |
-| `blockInput(buttons)`, `player.blockInput(buttons)` | Withhold buttons from every hero, or from one.          |
-| `player.press(buttons)`, `player.buttons()`         | Press buttons for a hero, or read the buttons it holds. |
-| `remapInput(from, to, repeat)`                      | Make one button act as another for every hero.          |
+| Call                           | Effect                                         |
+| ------------------------------ | ---------------------------------------------- |
+| `blockInput(buttons)`          | Withhold buttons from every hero.              |
+| `player.blockInput(buttons)`   | Withhold buttons from one hero.                |
+| `player.press(buttons)`        | Press buttons for a hero.                      |
+| `player.buttons()`             | Read the buttons a hero holds.                 |
+| `remapInput(from, to, repeat)` | Make one button act as another for every hero. |
 
 <Samples>
 
@@ -103,5 +105,5 @@ mod.After(5*time.Second, func() { _ = mod.BlockInput(0) })
 
 </Samples>
 
-Each call replaces the set of blocked buttons, so blocking none releases
-them.
+Each call replaces the set of blocked buttons. A call with no buttons releases
+every blocked button.

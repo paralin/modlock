@@ -3,14 +3,14 @@ title: Settings, metrics and boards
 description: Let players choose, count what they do and rank them.
 ---
 
-A mod declares three kinds of data in its manifest, and the host keeps them
-for it: settings a player chooses, metrics that count what players do, and
-boards that rank them. Nothing here needs a database of your own.
+A mod declares three kinds of data in its manifest, and the host keeps them:
+settings a player chooses, metrics that count what players do, and boards that
+rank players. You can run all three without a database of your own.
 
 ## Settings
 
-Declare a setting in [`mod.json`](/reference/manifest#settings), then read
-it. Every value is text, and bots read the defaults.
+Declare a setting in [`mod.json`](/reference/manifest#settings), then read it.
+Every value is text. Bots read the defaults.
 
 <Samples>
 
@@ -46,8 +46,8 @@ _ = p.SetSetting("layout", "full")
 
 </Samples>
 
-A player may change a setting outside the mod, such as on a profile page.
-The setting-changed event reports it:
+A player may change a setting outside the mod, such as on a profile page. The
+`setting-changed` event reports the change:
 
 <Samples>
 
@@ -89,7 +89,7 @@ mod.OnSettingChanged(func(p mod.Player, key, value string) {
 ## Metrics
 
 A metric is a running total for each player: a count, a sum or a maximum.
-Declare it in [`mod.json`](/reference/manifest#metrics) and add to it. The
+Declare it in [`mod.json`](/reference/manifest#metrics), then add to it. The
 optional label splits one metric into several totals.
 
 <Samples>
@@ -117,14 +117,13 @@ _ = p.AddMetric("hud.opened", 1, &label)
 
 </Samples>
 
-Without a host that keeps them, `modlock dev` logs a session's totals as it
-ends.
+If no host keeps them, `modlock dev` logs a session's totals when it ends.
 
 ## Boards
 
 A board ranks players against each other. Declare it in
-[`mod.json`](/reference/manifest#boards), then report each score with a
-value for each of the board's partitions.
+[`mod.json`](/reference/manifest#boards). Report each score with a value for
+each of the board's partitions.
 
 <Samples>
 
@@ -147,5 +146,5 @@ _ = p.ReportScore(&mod.ScoreReport{
 </Samples>
 
 Boards report from TypeScript and Go today. `reportMatch` reports a whole
-match's places to a rated board, and `readBoard` reads a page of a board,
-such as its top five, to show in the game.
+match's places to a rated board. `readBoard` reads a page of a board, such as
+its top five, to show in the game.

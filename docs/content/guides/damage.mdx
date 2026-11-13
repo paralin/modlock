@@ -3,15 +3,17 @@ title: Damage
 description: Change or block a hit before it lands, and react to it after.
 ---
 
-Two events cover every hit. The damage event runs before the hit lands and
-may change its amount or block it. The damaged event runs after it lands,
-with the health the victim had and the health it lost.
+Two events cover every hit.
 
-Both name heroes by their entity, the same number as a pawn's `entity`.
+The damage event runs before the hit lands. It may change the hit's amount or block it.
+
+The damaged event runs after the hit lands. It gives the health the victim had and the health it lost.
+
+Both events identify each hero by its entity. The entity is the same number as a pawn's `entity`.
 
 ## Change a hit
 
-Return a new amount to change the hit, and nothing to leave it alone.
+To change the hit, return a new amount. Return nothing to leave the hit alone.
 
 <Samples>
 
@@ -56,8 +58,11 @@ mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
 
 ## Block a hit
 
-Block hits to protect a hero that just spawned, to hold fire before a round
-starts, or to turn off friendly fire.
+Block a hit to:
+
+- Protect a hero that just spawned.
+- Hold fire before a round starts.
+- Turn off friendly fire.
 
 <Samples>
 
@@ -111,7 +116,7 @@ func init() {
 
 ## React to a kill
 
-A hit is lethal when it took all the health the victim had.
+A hit is lethal when the damage took all the health the victim had.
 
 <Samples>
 
@@ -150,5 +155,4 @@ mod.OnDamaged(func(hit *mod.DamagedEvent) {
 
 </Samples>
 
-[Kill scoring](/mechanics/kill-scoring) turns this into a score, with the
-attacker's entity matched back to a player.
+Use [Kill scoring](/mechanics/kill-scoring) to turn a kill into a score. It matches the attacker's entity back to a player.

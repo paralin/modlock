@@ -3,9 +3,10 @@ title: Files
 description: Keep text files on the host, with defaults shipped in the mod.
 ---
 
-A mod keeps text files, such as its configuration or areas a player drew in
-the game. It ships defaults in its project's `data/` directory, which
-`modlock build` copies into the build and `modlock publish` releases with it:
+A mod stores text files such as its configuration or areas a player drew in
+the game. Defaults live in the project's `data/` directory. `modlock build`
+copies that directory into the build, and `modlock publish` releases the
+build.
 
 <Samples>
 
@@ -85,25 +86,29 @@ func init() {
 
 </Samples>
 
-| Call                    | Effect                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
-| `readFile(name)`        | The file's text: the host's copy, then the build's `data/`; `undefined` if neither has it. |
-| `writeFile(name, text)` | Replace the host's copy, whole or not at all; `false` when the host refuses it.            |
+| Call                    | Effect                                                                                                           |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `readFile(name)`        | Returns the file's text: the host's copy first, then the build's `data/`. Returns `undefined` if neither exists. |
+| `writeFile(name, text)` | Replaces the host's copy in full, or writes nothing. Returns `false` when the host refuses.                      |
 
-A name is a relative path such as `maps/dl_midtown.json`, with `/` between
-segments and no `.` or `..`; any other name is refused. The host keeps each
-mod's copies in a directory of its own, named by the slug, and they outlive an
-update of the mod. `modlock dev` and `modlock play` keep them in Modlock's
-configuration directory, such as `~/.config/modlock/files/<slug>/`, so a server
-operator replaces a shipped file by placing one of the same name there. A
-mod's copies hold up to 4 MiB together. The host moves text, and the format is
-the mod's own: a YAML mod bundles a YAML parser, as above. Files are local to
-the host that runs the mod, so a missing one is a default, not a failure.
+A file name is a relative path such as `maps/dl_midtown.json`. Write segments
+with `/` between them. A segment may hold any text except `.` or `..`. The
+host refuses any other name.
+
+The host keeps each mod's copies in a directory whose name is the mod's slug.
+The copies outlive an update of the mod. `modlock dev` and `modlock play`
+keep them in Modlock's configuration directory, such as
+`~/.config/modlock/files/<slug>/`. A server operator replaces a shipped
+file by placing a file of the same name there.
+
+A mod's copies hold up to 4 MiB together. Files are local to the host that
+runs the mod, so a missing file is a default, not a failure.
 
 ## Structured files
 
-The format is the mod's own. A TypeScript mod bundles a parser for the
-format it likes:
+The host moves text, so the file format is the mod's own. A YAML mod
+bundles a YAML parser. A TypeScript mod bundles a parser for the format it
+likes:
 
 ```ts
 import { parse, stringify } from 'yaml'

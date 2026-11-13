@@ -3,9 +3,7 @@ title: Kill scoring and respawn
 description: Score each kill, bring the fallen back and end the round at a goal.
 ---
 
-A deathmatch needs three things: who landed the lethal hit, a score for
-them, and the victim back in the fight. The damaged event gives the first.
-It names heroes by entity, so match each entity back to its player.
+A deathmatch scores the player who made the lethal hit and puts the victim back in the fight. The damaged event reports the attacker and victim by entity. Match each entity to its player.
 
 <Samples>
 
@@ -217,10 +215,7 @@ func main() {}
 
 ## Make it yours
 
-- Scores here are keyed by slot and dropped when the player leaves. To keep
-  a score through a reconnect, key it by Steam ID instead.
-- Pay the scorer with `adjustSouls`, or heal them, to reward a streak.
-- Count kills across sessions with a [metric](/guides/data#metrics), or
-  rank players with a [board](/guides/data#boards).
-- The [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example builds on this: the leader
-  carries a marker, and whoever defeats them takes it.
+- Keep a score through a reconnect by keying it by Steam ID instead of slot. The sample keys scores by slot and drops them when the player leaves.
+- Pay the scorer with `adjustSouls` or heal them to reward a streak.
+- Count kills across sessions with a [metric](/guides/data#metrics), or rank players with a [board](/guides/data#boards).
+- The [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example builds on this. The leader carries a marker, and whoever defeats them takes it.

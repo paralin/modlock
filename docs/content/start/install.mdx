@@ -1,10 +1,9 @@
 ---
 title: Install
-description: Get the modlock command, the one program you need.
+description: Install the modlock command.
 ---
 
-You need one program, the `modlock` command. Install it with the line for your
-computer.
+Install `modlock` with the line for your computer.
 
 Windows, in PowerShell:
 
@@ -18,19 +17,34 @@ macOS or Linux, in a terminal:
 curl -fsSL https://raw.githubusercontent.com/paralin/modlock/master/install.sh | sh
 ```
 
-Or with npm on any of them, into a project or globally, as its own command:
+Or with npm, into a project:
 
 ```sh
 npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-The installer downloads the right file from the
-[latest release](https://github.com/paralin/modlock/releases/latest) into
-`%LOCALAPPDATA%\Programs\modlock` on Windows or `~/.local/bin` elsewhere, and
-puts that directory on your `PATH` on Windows. To download it by hand instead,
-take the one file for your computer, rename it to `modlock` (`modlock.exe` on
-Windows) and put it in a directory on your `PATH`:
+With npm, run every command through `npx`, as in `npx modlock dev`.
+
+That is all a TypeScript, JavaScript, Luau or Python mod needs. A Go mod also
+needs [Go](https://go.dev/dl/). On its first run, `modlock` downloads the game
+server, and `modlock update` installs a newer release.
+
+<Callout title="modlock is not found">
+  On Windows, a program already running keeps the old `PATH`. Close the terminal
+  and open it again. For a terminal inside VS Code, close the whole editor. On
+  macOS or Linux, the installer prints a line to add to your shell's startup
+  file when its directory is not on your `PATH`.
+</Callout>
+
+Next: [make your first mod](/start/first-mod).
+
+## Download it by hand
+
+Download the file for your computer from the
+[latest release](https://github.com/paralin/modlock/releases/latest), rename it
+to `modlock` (`modlock.exe` on Windows), and put it in a directory on your
+`PATH`. On macOS or Linux, make it runnable with `chmod +x modlock`.
 
 | Your computer               | File                        |
 | --------------------------- | --------------------------- |
@@ -40,67 +54,10 @@ Windows) and put it in a directory on your `PATH`:
 | Linux, x86-64               | `modlock-linux-amd64`       |
 | Linux, ARM64                | `modlock-linux-arm64`       |
 
-A file a Mac's browser downloaded is quarantined; clear that with
-`xattr -c modlock-darwin-arm64`. The release's other file,
-`modlock-host-windows-x64.zip`, is the game server, which `modlock` downloads
-itself.
+A file downloaded in a browser can trigger a Windows SmartScreen or macOS
+warning; the installers avoid this. On a Mac, clear it with
+`xattr -c modlock`. `modlock` is a terminal program, so run it from
+a terminal. Double-clicking it only prints how to install it.
 
-On Windows a program that was already running keeps its old `PATH`. If a
-terminal says `modlock` is not found after the install, close that program and
-open it again; for a terminal inside VS Code, that means the whole editor.
-
-On Windows `modlock` runs the game server directly; on Linux it runs it through
-Steam's Proton. It fetches the server that matches its release the first time.
-Script mods need nothing else installed; a Go mod needs
-[Go](https://go.dev/dl/).
-
-`modlock` looks for a newer release at most once a day, in the background,
-and says when one is out; `modlock update` installs it in place. The check is
-off in CI, with `MODLOCK_NO_UPDATE_CHECK` set, or after
-`modlock config set update-check off`.
-
-<Callout title="Run it from a terminal">
-  `modlock` is a terminal program. Double-clicking it in a file manager only
-  prints how to install it. A file you download by hand may also set off a
-  Windows SmartScreen or macOS warning; the installers avoid both.
-</Callout>
-
-Next: [make your first mod](/start/first-mod).
-
-## From source
-
-To run Modlock from a clone, such as for a fix that is not in a release yet or
-to change Modlock itself, build the command from the checkout with
-[Go](https://go.dev/dl/):
-
-```sh
-git clone https://github.com/paralin/modlock.git
-cd modlock
-go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
-```
-
-Build without `-trimpath`: the command finds the checkout through the paths
-compiled into it, and builds the TypeScript library, the renderer and the
-preview page from the checkout, so your mods use the checkout's library. After
-a `git pull`, build the command again.
-
-A build from source has no release to download the host from, so set
-`MODLOCK_HOST` to a `modlock-host.exe`; the sandbox needs it too, since it runs
-the interpreters beside the host. For a checkout of a release, or close to one,
-unpack that release's host:
-
-```sh
-curl -LO https://github.com/paralin/modlock/releases/latest/download/modlock-host-windows-x64.zip
-unzip modlock-host-windows-x64.zip -d ~/modlock-host
-export MODLOCK_HOST=~/modlock-host/modlock-host.exe
-modlock new my-mod
-cd my-mod
-modlock dev
-```
-
-On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
-change to the host itself, the C++ under `src/`, needs a host built from the
-same checkout, as [Building](/internals/building) describes: `scripts/win-build.ps1`
-installs it in `build-win/sdk/bin`, and `scripts/proton-build.sh` in
-`build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
-library makes.
+To run Modlock from a clone, see
+[Building Modlock](/internals/building#run-the-command-from-a-clone).

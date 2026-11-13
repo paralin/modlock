@@ -3,9 +3,9 @@ title: Checkpoint race
 description: Time each runner through a course of checkpoints.
 ---
 
-A course is a list of points. Each runner has a next checkpoint and a start
-time. Every frame, a runner who is close enough to their next checkpoint
-moves on to the one after, and the last one stops the clock.
+Checkpoints time a run. A course is a list of points. Each runner tracks the
+next checkpoint and a start time. A runner close enough to the next checkpoint
+advances; the last checkpoint stops the clock.
 
 <Samples>
 
@@ -248,11 +248,11 @@ func main() {}
 ## Make it yours
 
 - Show each checkpoint with [text in the world](/guides/world#place-text).
-  The TypeScript library also has [`RaceGate`](/guides/toolkit#stand-a-race-gate),
-  a glowing gate to run through.
-- A reload would lose a run in progress.
+  In TypeScript, use [`RaceGate`](/guides/toolkit#stand-a-race-gate) for a
+  glowing gate to run through.
+- A reload loses a run in progress.
   [Hold the reload](/guides/reloads#hold-a-reload) while anyone is racing.
 - Rank the times with a [board](/guides/data#boards) in milliseconds,
   ordered ascending.
-- The [`race`](https://github.com/paralin/modlock/tree/master/examples/race) example is a complete race in Go, with its
-  rules tested by plain `go test`.
+- The [`race`](https://github.com/paralin/modlock/tree/master/examples/race)
+  example is a complete race in Go, with its rules tested by plain `go test`.

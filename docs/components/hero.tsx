@@ -12,15 +12,15 @@ import { LanguageButtons } from './language'
 export function Hero() {
   return (
     <section className="hero not-prose">
-      <p className="hero-eyebrow">Open source · MIT · Runs on WebAssembly</p>
+      <p className="hero-eyebrow">Open source · MIT · WebAssembly</p>
       <h1 className="hero-title">
         Custom game modes for Deadlock,{' '}
         <span className="hero-accent">in the language you like.</span>
       </h1>
       <p className="hero-lead">
         Write a mod in TypeScript, Luau, Python or Go. Modlock builds it for
-        WebAssembly, and the game server runs it in a sandbox, reloading it each
-        time you save.
+        WebAssembly, and the game server runs it in a sandbox, reloading on
+        every save.
       </p>
       <div className="hero-actions">
         <Link href="/start/install" className="hero-primary">

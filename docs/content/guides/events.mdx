@@ -3,9 +3,9 @@ title: Events
 description: The moments a mod hears about, and how to register a handler for each.
 ---
 
-A mod is a set of handlers. It registers them as it loads, and the server
-calls each one when its moment comes: a command typed in chat, a frame, a
-player who joined, a hit about to land.
+A mod is a set of handlers. The mod registers them as it loads. The server
+calls each handler at its moment: a chat command, a frame, a player joining,
+a hit about to land.
 
 <Samples>
 
@@ -98,29 +98,30 @@ func main() {}
 
 ## Every event
 
-The table names each call as TypeScript and Luau spell it. Python uses
-snake_case decorators, such as `@modlock.on_player_join`, and Go exported
+The table lists each call as TypeScript and Luau spell it. Python exposes
+snake_case decorators, such as `@modlock.on_player_join`. Go exposes exported
 functions, such as `mod.OnPlayerJoin`.
 
-| Call                                                | Runs the handler                                              |
-| --------------------------------------------------- | ------------------------------------------------------------- |
-| `command(name, handler)`                            | On the frame after a player types `/name` in chat.            |
-| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.   |
-| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.      |
-| `onWorld(handler)`                                  | As each world loads, with its map; at start if one has.       |
-| `onFrame(handler)`                                  | Once per server frame.                                        |
-| `onPlayerJoin(handler)`                             | As each player finishes joining; at start for each.           |
-| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.         |
-| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.    |
-| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands. |
-| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.        |
-| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.              |
-| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.     |
+| Call                                                | Runs the handler                                               |
+| --------------------------------------------------- | -------------------------------------------------------------- |
+| `command(name, handler)`                            | On the frame after a player types `/name` in chat.             |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.    |
+| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.       |
+| `onWorld(handler)`                                  | As each world loads, with its map; at start if one has loaded. |
+| `onFrame(handler)`                                  | Once per server frame.                                         |
+| `onPlayerJoin(handler)`                             | As each player finishes joining; at start for each.            |
+| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.          |
+| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.     |
+| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.  |
+| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.         |
+| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.               |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.      |
 
 ## A player's stages
 
-A player passes through four stages, and each has its own event. Most mods
-need only the join, to greet the player, and the spawn, to act on their hero.
+A player passes through four stages. Each stage has its own event. Most mods
+need only the join, to greet the player, and the spawn, to act on the player's
+hero.
 
 | Stage      | What is true                                                                                           | How the mod sees it                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
@@ -129,20 +130,21 @@ need only the join, to greet the player, and the spawn, to act on their hero.
 | In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn and each new hero.                        |
 | Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
 
-Between joined and in play the player is picking a team or a hero, or the
-game has not placed the hero yet; [`seatPlayers`](/guides/toolkit#seat-the-players)
+Between joined and in play, the player picks a team or hero, or the game has
+not placed the hero yet. [`seatPlayers`](/guides/toolkit#seat-the-players)
 skips those screens. A call that needs a hero, such as a teleport, fails
-before the spawn, so make it in the spawn event and not in the join. A bot is
-joined as soon as it is added.
+before the spawn. Make it in the spawn event instead of the join. A bot joins
+as soon as it is added.
 
 ## Joins and leaves
 
-A join and a leave carry the player's `connection`, with their slot, SteamID64
-and name. A leave also says whether the player `disconnected` from the server,
-false when they stay but the mod stops serving them, and the `reason` the
-server gave, such as `'kicked'` or `'disconnectByUser'`, when it gave one. Each
-joined player leaves exactly once, and a player who disconnects leaves before
-the server removes them, so their hero still reads:
+A join and a leave carry the player's `connection`: the slot, SteamID64 and
+name. A leave also says whether the player `disconnected` from the server.
+`disconnected` is false when the player stays but the mod stops serving them.
+The leave carries the `reason` the server gave, such as `'kicked'` or
+`'disconnectByUser'`, when the server gave one. Each joined player leaves
+exactly once. A player who disconnects leaves before the server removes them,
+so the player's hero still reads:
 
 <Samples>
 
@@ -183,11 +185,11 @@ mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
 
 ## Spawns
 
-A player who has just joined may have no hero yet: they are still picking a
-team or a hero, or the game has not put the hero in the world. A spawn fires
-once the hero is in play, so the mod can move it, equip it and read it. It
-fires for a player's first hero, for each respawn and for each new hero after a
-change:
+A player who has just joined may have no hero yet. The player is still picking
+a team or hero, or the game has not put the hero in the world. A spawn fires
+once the hero is in play, so the mod can move, equip and read the hero. It
+fires for a player's first hero, for each respawn, and for each new hero after
+a change:
 
 <Samples>
 
