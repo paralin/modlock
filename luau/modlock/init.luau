@@ -5298,6 +5298,63 @@ function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
 
+-- Seating is where seatPlayers puts each player who joins.
+export type Seating = {
+	-- hero is each player's hero: its name as players know it or as the game
+	-- does, such as "haze" or "hero_haze", its id, or "any" for the hero they
+	-- have or else a random one. "any" is the default.
+	hero: (string | number)?,
+	-- team is the team, 2 or 3, every player joins, or a function that picks
+	-- the team for one player as they join. Without one each player joins the
+	-- side with fewer heroes.
+	team: (number | (connection: Connection) -> number)?,
+	-- respawn is the seconds a fallen hero waits before it comes back. Without
+	-- one a fallen hero is left to the game.
+	respawn: number?,
+}
+
+-- seatPlayers gives every player who joins a hero on a team, skipping the
+-- game's team and hero screens, and keeps them seated for the rest of the
+-- game: it brings a fallen hero back after the respawn delay and seats a
+-- player again after a hero change. It returns the Cast that does the
+-- seating, whose members are the players' connections, and runs it each frame
+-- itself.
+function modlock.seatPlayers(seating: Seating?): Cast<Connection>
+	-- Take the hero by any name a player would call it.
+	local options: Seating = seating or {}
+	local hero: string | number = options.hero or "any"
+	if type(hero) == "string" and hero ~= "any" then
+		local named = modlock.findHero(hero)
+		hero = if named then named.name else hero
+	end
+
+	-- Decide each player's seat once, as they join.
+	local team = options.team
+	local wants: { [Connection]: Want } = {}
+	local cast: Cast<Connection> = Cast.new({
+		join = function(connection: Connection): Connection
+			wants[connection] = {
+				hero = hero,
+				team = if type(team) == "function" then team(connection) else team,
+				respawn = options.respawn,
+			}
+			return connection
+		end,
+		leave = function(member: Connection)
+			wants[member] = nil
+		end,
+		want = function(member: Connection): Want
+			return wants[member]
+		end,
+	})
+
+	-- Run the cast with the mod's frames.
+	table.insert(frames, function(frame: FrameEvent)
+		cast:frame(frame.timeSeconds)
+	end)
+	return cast
+end
+
 -- spawns holds the spawn handlers, which run in registration order.
 local spawns: { (player: Player, pawn: Pawn) -> () } = {}
 

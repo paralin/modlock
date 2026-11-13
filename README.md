@@ -142,9 +142,9 @@ A TypeScript project holds:
 
 The starter turns off the lane troopers and jungle creeps, lets any number of
 players pick the same hero, welcomes each player who joins and answers `/hello`
-in chat. It also keeps a `Cast` of the players, which seats each on the smaller
-team with a hero, skipping the game's team and hero screens, and brings a
-fallen hero back after 3 seconds. Delete the parts your mode does not want.
+in chat. One call, `seatPlayers`, gives each player a hero on the smaller team,
+skipping the game's team and hero screens, and brings a fallen hero back after
+3 seconds; give it a team to choose the sides yourself. Delete the parts your mode does not want.
 
 The other languages are JavaScript, Luau, Python and Go, and their starters do
 the same. Complete game modes to start from include [`arena`](examples/arena) in

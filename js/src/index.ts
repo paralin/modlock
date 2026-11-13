@@ -19,6 +19,7 @@
 import {
   type DamageEvent,
   type ChatEvent,
+  type Connection,
   type DamagedEvent,
   type DamageResult,
   type FrameEvent,
@@ -34,6 +35,8 @@ import {
   serveMod,
 } from './host.gen.js'
 import { serveEvents } from './host.js'
+import { Cast, type Want } from './cast.js'
+import { findHero as heroNamed } from './heroes.js'
 import { keepPlayers, players } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
@@ -294,6 +297,66 @@ export function onSpawn(handler: (player: Player, pawn: Pawn) => void): void {
  * spawn handlers last heard of it.
  */
 let spawned = new Map<number, number>()
+
+/** Seating is where seatPlayers puts each player who joins. */
+export interface Seating {
+  /**
+   * hero is each player's hero: its name as players know it or as the game
+   * does, such as 'haze' or 'hero_haze', its id, or 'any' for the hero they
+   * have or else a random one. 'any' is the default.
+   */
+  readonly hero?: string | number
+  /**
+   * team is the team, 2 or 3, every player joins, or a function that picks
+   * the team for one player as they join. Without one each player joins the
+   * side with fewer heroes.
+   */
+  readonly team?: number | ((connection: Connection) => number)
+  /**
+   * respawn is the seconds a fallen hero waits before it comes back. Without
+   * one a fallen hero is left to the game.
+   */
+  readonly respawn?: number
+}
+
+/**
+ * seatPlayers gives every player who joins a hero on a team, skipping the
+ * game's team and hero screens, and keeps them seated for the rest of the
+ * game: it brings a fallen hero back after the respawn delay and seats a
+ * player again after a hero change. It returns the Cast that does the
+ * seating, whose members are the players' connections, and runs it each
+ * frame itself.
+ */
+export function seatPlayers(seating: Seating = {}): Cast<Connection> {
+  // Take the hero by any name a player would call it.
+  const { team, respawn } = seating
+  let hero = seating.hero ?? 'any'
+  if (typeof hero === 'string' && hero !== 'any') {
+    hero = heroNamed(hero)?.name ?? hero
+  }
+
+  // Decide each player's seat once, as they join.
+  const wants = new Map<Connection, Want>()
+  const cast = new Cast<Connection>({
+    join(connection) {
+      const side = typeof team === 'function' ? team(connection) : team
+      wants.set(connection, {
+        hero,
+        ...(side === undefined ? {} : { team: side }),
+        ...(respawn === undefined ? {} : { respawn }),
+      })
+      return connection
+    },
+    leave(connection) {
+      wants.delete(connection)
+    },
+    want: (connection) => wants.get(connection) ?? {},
+  })
+
+  // Run the cast with the mod's frames.
+  onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
+  return cast
+}
 
 /** watchSpawns tells the spawn handlers of each hero that entered play since the last frame. */
 function watchSpawns(): void {

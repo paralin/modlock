@@ -5194,6 +5194,51 @@ _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
 _setting_changes: list[Callable[[Player, str, str], object]] = []
 
+def seat_players(
+    *,
+    hero: str | int = "any",
+    team: int | Callable[[Connection], int] | None = None,
+    respawn: float | None = None,
+) -> Cast[Connection]:
+    """seat_players gives every player who joins a hero on a team, skipping
+    the game's team and hero screens, and keeps them seated for the rest of
+    the game: it brings a fallen hero back after respawn seconds and seats a
+    player again after a hero change.
+
+        modlock.seat_players(hero="any", respawn=3)
+
+    hero is each player's hero: its name as players know it or as the game
+    does, such as "haze" or "hero_haze", its id, or "any" for the hero they
+    have or else a random one. team is the team, 2
+    or 3, every player joins, or a function that picks the team for one
+    player as they join; without one each player joins the side with fewer
+    heroes. Without respawn a fallen hero is left to the game.
+
+    It returns the Cast that does the seating, whose members are the players'
+    connections, and runs it each frame itself."""
+    # Take the hero by any name a player would call it.
+    if isinstance(hero, str) and hero != "any":
+        named = find_hero(hero)
+        hero = hero if named is None else named.name
+
+    # Decide each player's seat once, as they join, and keep it by slot.
+    wants: dict[int, Want] = {}
+
+    def join(connection: Connection) -> Connection:
+        side = team(connection) if callable(team) else team
+        wants[connection.player.slot] = Want(hero=hero, team=side, respawn=respawn)
+        return connection
+
+    def leave(member: Connection, connection: Connection) -> None:
+        wants.pop(connection.player.slot, None)
+
+    cast = Cast(join, leave=leave, want=lambda member: wants[member.player.slot])
+
+    # Run the cast with the mod's frames.
+    _frames.append(lambda event: cast.frame(event.time_seconds))
+    return cast
+
+
 _spawns: list[Callable[[Player, Pawn], object]] = []
 
 # _spawned maps each slot whose hero is in play to that hero's entity, as the

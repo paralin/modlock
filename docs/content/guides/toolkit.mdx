@@ -3,8 +3,8 @@ title: Toolkit
 description: 'Helpers built on the library: vectors, number formats, a player roster, the floor, race gates and a frame clock.'
 ---
 
-Every language has [`Cast`](#keep-the-players-with-cast), the player roster,
-and `trace`, the call `ground` is built on.
+Every language has [`seatPlayers`](#seat-the-players),
+[`Cast`](#keep-the-players-with-cast), the player roster, and `trace`, the call `ground` is built on.
 
 <Callout title="TypeScript">
   The rest of the toolkit is part of the TypeScript library today: vectors,
@@ -24,6 +24,81 @@ game's scripts have no locale data: `clock(65)` is `1:05`, `stopwatch(64.37)`
 is `1:04.37`, `percent(3, 4)` is `75%`, `grouped(4210)` is `4,210`,
 `ordinal(2)` is `2nd`, `count(3, 'kill')` is `3 kills` and
 `clip('Lady Geist wins', 10)` is `Lady…`.
+
+## Seat the players
+
+`seatPlayers` gives every player who joins a hero on a team, with no team or
+hero screen, and keeps them seated: it brings a fallen hero back after the
+respawn delay and seats a player again after a hero change. One line does it:
+
+<Samples>
+
+```ts
+import { seatPlayers } from 'modlock'
+
+seatPlayers({ hero: 'any', respawn: 3 })
+```
+
+```luau
+modlock.seatPlayers({ hero = "any", respawn = 3 })
+```
+
+```python
+modlock.seat_players(hero="any", respawn=3)
+```
+
+```go
+mod.SeatPlayers(mod.Seating{Hero: mod.AnyHero, Respawn: 3 * time.Second})
+```
+
+</Samples>
+
+The hero is a hero's name, as players know it or as the game does, its id, or
+any: the hero the player has, or else a
+random one. Without a team each player joins the side with fewer heroes. Give
+a team, 2 or 3, to put everyone on it, or a function that picks the team for
+each player as they join:
+
+<Samples>
+
+```ts
+seatPlayers({
+  hero: 'haze',
+  team: ({ player }) => (player.slot % 2 === 0 ? 2 : 3),
+})
+```
+
+```luau
+modlock.seatPlayers({
+	hero = "haze",
+	team = function(connection)
+		return if connection.player.slot % 2 == 0 then 2 else 3
+	end,
+})
+```
+
+```python
+def team_for(connection: modlock.Connection) -> int:
+    return 2 if connection.player.slot % 2 == 0 else 3
+
+
+modlock.seat_players(hero="haze", team=team_for)
+```
+
+```go
+mod.SeatPlayers(mod.Seating{
+	Hero: "haze",
+	TeamOf: func(connection *mod.Connection) int32 {
+		return 2 + connection.GetPlayer()%2
+	},
+})
+```
+
+</Samples>
+
+`seatPlayers` is a [`Cast`](#keep-the-players-with-cast) that runs itself, and
+returns it. Use a Cast directly when the mod keeps its own state for each
+player or changes what a player wants during the game.
 
 ## Keep the players with Cast
 
