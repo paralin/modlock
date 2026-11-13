@@ -57,6 +57,49 @@ jobs:
           path: |
             dist/modlock-*
             js/built
+  # The extension carries the tag's version and downloads that release's
+  # command line. Each store publishes once its token is a repository secret;
+  # Open VSX also needs the modlock namespace made once by hand.
+  vscode:
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Bun dependencies
+        run: |
+          bun install --frozen-lockfile --ignore-scripts
+          bun install --frozen-lockfile --ignore-scripts --cwd vscode
+      - name: Package the extension
+        run: bun run --cwd vscode package --version "$GITHUB_REF_NAME"
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            'vscode/modlock.vsix#VS Code extension'
+      - name: Publish to the VS Code Marketplace
+        working-directory: vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::VSCE_PAT is not set; the extension is not on the VS Code Marketplace"
+            exit 0
+          fi
+          bunx vsce publish --packagePath modlock.vsix --skip-duplicate
+      - name: Publish to Open VSX
+        working-directory: vscode
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT is not set; the extension is not on Open VSX"
+            exit 0
+          fi
+          bunx ovsx publish --packagePath modlock.vsix --skip-duplicate
   npm:
     needs: release
     runs-on: ubuntu-24.04

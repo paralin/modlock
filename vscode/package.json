@@ -1,0 +1,255 @@
+{
+  "name": "modlock",
+  "displayName": "Modlock",
+  "description": "Create, run and publish Deadlock mods with Modlock.",
+  "publisher": "modlock",
+  "version": "0.0.0",
+  "license": "MIT",
+  "homepage": "https://paralin.github.io/modlock/",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paralin/modlock",
+    "directory": "vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/paralin/modlock/issues"
+  },
+  "type": "commonjs",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/mod.json"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "modlock.newMod",
+        "title": "New Mod",
+        "category": "Modlock"
+      },
+      {
+        "command": "modlock.build",
+        "title": "Build Mod",
+        "category": "Modlock",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "modlock.run",
+        "title": "Run Mod",
+        "category": "Modlock",
+        "icon": "$(play)"
+      },
+      {
+        "command": "modlock.host",
+        "title": "Host for Friends",
+        "category": "Modlock",
+        "icon": "$(broadcast)"
+      },
+      {
+        "command": "modlock.copyInvite",
+        "title": "Copy Invite",
+        "category": "Modlock",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "modlock.stop",
+        "title": "Stop",
+        "category": "Modlock",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "modlock.sendCommand",
+        "title": "Send Command",
+        "category": "Modlock",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "modlock.publish",
+        "title": "Publish Mod",
+        "category": "Modlock",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "modlock.showPlayerView",
+        "title": "Show Player View",
+        "category": "Modlock",
+        "icon": "$(device-desktop)"
+      },
+      {
+        "command": "modlock.showOutput",
+        "title": "Show Output",
+        "category": "Modlock"
+      }
+    ],
+    "configuration": {
+      "title": "Modlock",
+      "properties": {
+        "modlock.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to your own `modlock` command line. When empty, the extension downloads and runs the one from the Modlock release it came with, and puts it on `PATH` in VS Code's terminals."
+        },
+        "modlock.autoUpdate": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Move the `modlock` command line to each newer Modlock release as soon as it is out. Off, the extension asks first."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "modlock",
+          "title": "Modlock",
+          "icon": "media/modlock.svg"
+        }
+      ]
+    },
+    "views": {
+      "modlock": [
+        {
+          "id": "modlock.session",
+          "name": "Session"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "modlock.session",
+        "when": "modlock.project",
+        "contents": "Run your mod to try it. It plays in a local Deadlock server, or without the game when Deadlock is not installed.\n[Run Mod](command:modlock.run)\nHost it to play with friends, who join from a lobby link.\n[Host for Friends](command:modlock.host)\nEach save rebuilds and reloads it."
+      },
+      {
+        "view": "modlock.session",
+        "when": "!modlock.project",
+        "contents": "Open a folder that holds a mod, or create one.\n[New Mod](command:modlock.newMod)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "modlock.run",
+          "when": "view == modlock.session && modlock.project && !modlock.running",
+          "group": "navigation@1"
+        },
+        {
+          "command": "modlock.host",
+          "when": "view == modlock.session && modlock.project && !modlock.running",
+          "group": "navigation@2"
+        },
+        {
+          "command": "modlock.sendCommand",
+          "when": "view == modlock.session && modlock.sandbox",
+          "group": "navigation@1"
+        },
+        {
+          "command": "modlock.showPlayerView",
+          "when": "view == modlock.session && modlock.running",
+          "group": "navigation@2"
+        },
+        {
+          "command": "modlock.stop",
+          "when": "view == modlock.session && modlock.running",
+          "group": "navigation@3"
+        },
+        {
+          "command": "modlock.newMod",
+          "when": "view == modlock.session",
+          "group": "more@1"
+        },
+        {
+          "command": "modlock.publish",
+          "when": "view == modlock.session && modlock.project",
+          "group": "more@2"
+        },
+        {
+          "command": "modlock.showOutput",
+          "when": "view == modlock.session",
+          "group": "more@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "modlock.copyInvite",
+          "when": "view == modlock.session && viewItem == invite",
+          "group": "inline"
+        },
+        {
+          "command": "modlock.showPlayerView",
+          "when": "view == modlock.session && viewItem == player",
+          "group": "inline"
+        },
+        {
+          "command": "modlock.showPlayerView",
+          "when": "view == modlock.session && viewItem == player",
+          "group": "1_player@1"
+        },
+        {
+          "command": "modlock.sendCommand",
+          "when": "view == modlock.session && viewItem == player && modlock.sandbox",
+          "group": "1_player@2"
+        },
+        {
+          "command": "modlock.showOutput",
+          "when": "view == modlock.session && viewItem =~ /^(server|mod)$/",
+          "group": "1_session@1"
+        },
+        {
+          "command": "modlock.build",
+          "when": "view == modlock.session && viewItem == mod",
+          "group": "1_session@2"
+        },
+        {
+          "command": "modlock.stop",
+          "when": "view == modlock.session && viewItem == server",
+          "group": "2_stop@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "modlock.stop",
+          "when": "modlock.running"
+        },
+        {
+          "command": "modlock.sendCommand",
+          "when": "modlock.sandbox"
+        },
+        {
+          "command": "modlock.showPlayerView",
+          "when": "modlock.running"
+        },
+        {
+          "command": "modlock.copyInvite",
+          "when": "modlock.running"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "bun build.ts",
+    "package": "bun build.ts --package",
+    "typecheck": "tsrs --noEmit -p ."
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "~1.95.0",
+    "@vscode/vsce": "^3.6.0",
+    "ovsx": "1.4.0",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929"
+  },
+  "keywords": [
+    "deadlock",
+    "modding",
+    "mods",
+    "modlock",
+    "source 2",
+    "game server"
+  ]
+}
