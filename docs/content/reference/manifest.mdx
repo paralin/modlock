@@ -294,6 +294,57 @@ answers later with `WasmHost::ProvideLater`.
 { "read": { "key": "slide" }, "save": true }
 ```
 
+## Persist
+
+```json
+"services": [{ "name": "persist" }],
+"persist": [
+  {
+    "name": "stats",
+    "writers": "WRITERS_SERVERS",
+    "fields": {
+      "roundsWon": { "kind": "KIND_COUNT" },
+      "longestHide": { "kind": "KIND_MAX" },
+      "title": { "kind": "KIND_STRING", "maxBytes": 32 },
+      "unlocks": { "kind": "KIND_TAGS" }
+    }
+  }
+]
+```
+
+A mod keeps one record of each declared type for each player, up to 8 types,
+and names the `persist` service. Each type has up to 32 fields, and a record
+holds up to 8 KB.
+
+| Kind          | Holds                                                            | Changes                    |
+| ------------- | ---------------------------------------------------------------- | -------------------------- |
+| `KIND_COUNT`  | A whole number from zero up.                                     | `add`, `set`               |
+| `KIND_NUMBER` | Any number.                                                      | `add`, `max`, `min`, `set` |
+| `KIND_MAX`    | The highest number it was given.                                 | `max`                      |
+| `KIND_STRING` | Text of up to `maxBytes` bytes: 64 unless declared, at most 256. | `set`                      |
+| `KIND_TAGS`   | Up to 256 sorted tags of up to 32 bytes.                         | `insert`, `remove`         |
+
+`writers` is who may change a type's records: `WRITERS_SERVERS` takes changes
+only from a game server the host trusts, for values that carry its trust;
+`WRITERS_PLAYERS` also takes the player's own choices.
+
+`persist.get(player, 'stats')` answers `loading` until the record arrives a
+frame or more later, then `loaded` with the record, or `unavailable` with why;
+a record never written loads empty. `persist.update(player, 'stats', {
+roundsWon: { add: 1 }, longestHide: { max: 41 } }, { key: roundId })` sends up
+to 32 changes the host applies all or none. Changes merge rather than replace,
+so two servers that update one player at once both land; of two `set`s the
+later wins. A `key` of up to 64 bytes makes a resent update count once: the
+host keeps each record's last 64 keys. A change outside its kind's rules, an
+undeclared field or a record past its bound is refused whole, and the record
+is unchanged.
+
+`modlock play` keeps the records itself, in the sandbox and in the game, one
+file per player in the project's `.modlock/persist/`, so they survive a
+restart. In the game it learns the player in each slot as they join, and
+refuses a bot's record. It answers persist itself even with
+`--forward-services`.
+
 ## The built manifest
 
 `modlock build` writes a `mod.json` into `build/` that adds the `entry` file and

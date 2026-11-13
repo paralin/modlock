@@ -39,7 +39,7 @@ func TestWriteFixtures(t *testing.T) {
 	// Write the host's file, keeping what the session prints.
 	path := filepath.Join(t.TempDir(), "fixtures.pb")
 	printed, written := capture(t, func() (string, error) {
-		return writeFixtures(&printer{}, []string{build}, path, "")
+		return writeFixtures(&printer{}, []string{build}, path, "", &localPersist{})
 	})
 	if written != path {
 		t.Fatalf("wrote %q, want %q", written, path)
@@ -81,7 +81,7 @@ func TestWriteFixtures(t *testing.T) {
 	}
 
 	// A built mod outside a project, with no fixture, writes no file.
-	none, err := writeFixtures(&printer{brief: true}, []string{dir}, filepath.Join(t.TempDir(), "none.pb"), "")
+	none, err := writeFixtures(&printer{brief: true}, []string{dir}, filepath.Join(t.TempDir(), "none.pb"), "", &localPersist{})
 	if err != nil || none != "" {
 		t.Fatalf("a mod without fixtures wrote %q, %v", none, err)
 	}
@@ -89,7 +89,7 @@ func TestWriteFixtures(t *testing.T) {
 	// A forward origin forwards every service the mod names, fixture or not.
 	forwarded := filepath.Join(t.TempDir(), "forwarded.pb")
 	printed, _ = capture(t, func() (string, error) {
-		return writeFixtures(&printer{}, []string{build}, forwarded, "http://127.0.0.1:9")
+		return writeFixtures(&printer{}, []string{build}, forwarded, "http://127.0.0.1:9", &localPersist{})
 	})
 	data, err = os.ReadFile(forwarded)
 	if err != nil {

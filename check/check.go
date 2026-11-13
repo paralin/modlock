@@ -13,6 +13,7 @@ import (
 
 	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/metrics"
+	"github.com/paralin/modlock/persist"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm"
@@ -66,6 +67,9 @@ func Mod(ctx context.Context, dist fs.FS) (*wasm.Manifest, error) {
 		return nil, err
 	}
 	if err := boards.Validate(m); err != nil {
+		return nil, err
+	}
+	if err := persist.Validate(m); err != nil {
 		return nil, err
 	}
 

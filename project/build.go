@@ -10,11 +10,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/internal/filelock"
 	"github.com/paralin/modlock/internal/fileretry"
-	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/metrics"
+	"github.com/paralin/modlock/persist"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
@@ -67,6 +68,9 @@ func (p *Project) Build(ctx context.Context, output io.Writer, mode Mode) error 
 		return err
 	}
 	if err := boards.Validate(p.Manifest); err != nil {
+		return err
+	}
+	if err := persist.Validate(p.Manifest); err != nil {
 		return err
 	}
 	if err := p.shipMap(); err != nil {

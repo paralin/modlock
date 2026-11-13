@@ -5,6 +5,7 @@ package modlock.wasm;
 option go_package = "github.com/paralin/modlock/src/wasm;wasm";
 
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
+import "github.com/paralin/modlock/src/wasm/persist/persist.proto";
 import "github.com/paralin/modlock/src/wasm/scores/scores.proto";
 import "github.com/paralin/modlock/src/wasm/settings/settings.proto";
 
@@ -112,6 +113,10 @@ message Manifest {
   // it needs has no provider, and starts it without an optional one, whose
   // calls then fail.
   repeated Service services = 15;
+
+  // Persist are the record types the mod keeps for each player through the
+  // host's persist service, such as stats or unlocks, up to 8.
+  repeated modlock.wasm.persist.RecordType persist = 16;
 }
 
 // Service names one service a mod calls.
