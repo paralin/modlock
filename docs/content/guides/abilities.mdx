@@ -35,8 +35,8 @@ them.
 
 ## Game commands a mod claims
 
-The game's own commands look up the hero's own ability for a slot, so a mod
-that swaps abilities claims them and answers with its own call:
+The game's own commands look up the hero's own ability for a slot. A mod that
+swaps abilities claims those commands and answers each with its own call:
 
 | Game command                               | Answer with    |
 | ------------------------------------------ | -------------- |
@@ -55,7 +55,7 @@ ended, sends none.
 The Tab screen and ability bar draw each hero's standard abilities by slot,
 so a replaced ability shows as the one it replaced. `abilityDisplay(viewer,
 [{ player, abilities: [{ name, image, upgrades }] }])` draws the rows in the
-game's frame and pips, with the ability window over them, and the viewer's
-own row on the bar too. Modlock matches each row to a Tab row by the
+game's frame and pips, with the ability window over them. The call also draws
+the viewer's own row on the bar. Modlock matches each row to a Tab row by the
 player's name, or else by the hero's name, which is what a bot's row shows. When
 the viewer leaves or the session ends, the game's own display comes back.

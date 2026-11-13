@@ -36,11 +36,15 @@ After a game update, regenerate the entity and console libraries as
 [The entity system](/internals/entity-schema#updating-for-a-new-game-build)
 describes.
 
-## Checks
+## Pre-commit hook and scripts
 
-`bun install` installs a pre-commit hook that formats the staged files with
-oxfmt and restages them, checks the staged TypeScript for commented code
-paragraphs with `scripts/tsstyle.ts`, and lints it with type-aware oxlint.
+`bun install` installs a pre-commit hook. On each commit, the hook:
+
+- formats the staged files with oxfmt and restages them
+- checks the staged TypeScript for commented code paragraphs with
+  `scripts/tsstyle.ts`
+- lints the staged TypeScript with type-aware oxlint
+
 These scripts run the same tools across the repository:
 
 | Script                       | Does                                                                                                                                                       |
@@ -53,8 +57,8 @@ These scripts run the same tools across the repository:
 
 ## Run the command from a clone
 
-To run Modlock from a clone, such as for a fix that is not in a release yet or
-to change Modlock itself, build the command from the checkout with
+Run Modlock from a clone for a fix that is not in a release yet, or to change
+Modlock itself. Build the command from the checkout with
 [Go](https://go.dev/dl/):
 
 ```sh
@@ -64,9 +68,9 @@ go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
 ```
 
 Build without `-trimpath`: the command finds the checkout through the paths
-compiled into it, and builds the TypeScript library in
-[`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and
-the preview page from the checkout, so your mods use the checkout's library.
+compiled into it. It builds the TypeScript library in
+[`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and the
+preview page from the checkout, so your mods use the checkout's library.
 `modlock build` does the same from Modlock source in the Go module cache, and
 caches the result, while a release build downloads the library its release
 publishes. After a `git pull`, build the command again.

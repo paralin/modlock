@@ -44,10 +44,9 @@ in the game's `citadel/maps`. When the mod leaves `map` out, it starts on
 
 A mod plays on the stock Deadlock map, `dl_midtown`, or on a map of its own.
 For your own map, call it `hl_<name>` and put the compiled map in
-`maps/hl_<name>.vpk`: `build` copies it into the build, and `publish` refuses a
+`maps/hl_<name>.vpk`. `build` copies it into the build, and `publish` refuses a
 build that lacks it. The build refuses any other map name, because a map that is
-only in your own game's `citadel/maps` would load for you and for no one
-else.
+only in your own game's `citadel/maps` would load for you and for no one else.
 
 ## Movement
 
@@ -119,12 +118,12 @@ the stock values while play uses the changed ones.
 | `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                          |
 | `textFields` | Text, symbol, sound event and Panorama image schema fields by `Class.m_field/Class.m_field` path, with `{addon}` replaced by the mod's content addon.                                                          |
 
-A path's last step can end in `[Enum.Value]` to select one value of a map
-keyed by an enum, such as a hero's starting stats, or one entry of a modifier's
-`m_vecScriptValues` list by its `EModifierValue`. A single value you give fills
-every level of a level float or script value, and both bounds of a range. The
-server writes the changes when it loads the definitions, and again on each new
-map.
+A path's last step can end in `[Enum.Value]` to select one value of a map keyed
+by an enum, such as a hero's starting stats. On a modifier's `m_vecScriptValues`
+list, the same suffix selects one entry by its `EModifierValue`. A single value
+you give fills every level of a level float or script value, and both bounds of
+a range. The server writes the changes when it loads the definitions, and again
+on each new map.
 
 A bot difficulty entry is an `ECitadelBotDifficulty` value, and every bot of
 that difficulty reads the changed record, including bots already playing. A bot
@@ -185,10 +184,10 @@ with no choices or a number whose `min` is not below its `max`. [Settings](/guid
 
 A `name` uses letters, digits, underscores and dots. To keep a separate total
 for each value of something, such as one total per HUD layout, list the values
-in `labels` and pass the label as the third argument of
+in `labels`. Then pass the label as the third argument of
 `player.addMetric(name, value, label)`. The host keeps the totals in memory and
 passes them to its metrics service once, when the player leaves or the mod
-stops, and when no service takes them, the mod logs them instead. Bots never get
+stops. When no service takes them, the mod logs them instead. Bots never get
 totals.
 
 ## Boards
@@ -219,7 +218,7 @@ totals.
 | `label`             | The board's title on screen.                                                                                                |
 | `unit`              | `UNIT_NUMBER` or `UNIT_MILLISECONDS`.                                                                                       |
 | `order`             | `ORDER_DESCENDING` ranks the highest value first. `ORDER_ASCENDING` ranks the lowest first, as for a time.                  |
-| `keep`              | Which of a player's scores make up their standing: the best, the sum, a count, the latest or a rating.                      |
+| `keep`              | The rule that turns a player's scores into their standing, from the table below.                                            |
 | `rating`            | `RATING_ELO` or `RATING_GLICKO2`, for a `KEEP_RATING` board.                                                                |
 | `partitions`        | Up to four dimensions that split the board into separate rankings. Each dimension may list allowed values.                  |
 | `windows`           | `WINDOW_ALL_TIME`, `WINDOW_DAY` and `WINDOW_WEEK`. All time alone by default. Windows follow UTC, and a week starts Monday. |
@@ -245,6 +244,6 @@ its board and logs it, and the mod logs any score the host does not accept.
 
 ## The built manifest
 
-`modlock build` writes a `mod.json` into `build/` that adds the `entry` file
-and sets the `runtime` that runs it, and `modlock-host --plugin build` loads the
-mod from it.
+`modlock build` writes a `mod.json` into `build/` that adds the `entry` file and
+sets the `runtime` that runs it. `modlock-host --plugin build` loads the mod
+from that file.

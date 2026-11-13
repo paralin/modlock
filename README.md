@@ -55,9 +55,8 @@ command('hello', (player) => {
   mod with `/restartmod`.
 - **Any language.** You can write a mod in any language that compiles to
   WebAssembly, using a small library for that language.
-- **Built once.** A game update moves fields around in the server's memory.
-  The server finds each field and input by name, so a mod built before an
-  update still works after it.
+- **Built once.** The server looks up each field and input a mod uses by name,
+  so a mod built before a game update still works after it.
 - **Fast.** Wasmtime compiles mods to machine code with Cranelift. The server
   calls a mod inside the game frame and waits for its answer, so the mod can
   claim a command or change that frame before the game moves on.
@@ -102,8 +101,8 @@ modlock dev
 ```
 
 `modlock new` asks for the mod's name and its language. `modlock dev` builds the
-mod, starts a local server and launches Deadlock through Steam to join it, and
-each time you save, it rebuilds the mod and replaces the running one. The
+mod, starts a local server and launches Deadlock through Steam to join it. Each
+time you save, it rebuilds the mod and replaces the running one. The
 starter mod replies to `/hello` in chat, and
 [Your first mod](https://paralin.github.io/modlock/start/first-mod) walks
 through the rest.
@@ -114,7 +113,7 @@ Go, all in the [`examples`](examples) directory.
 
 ## Documentation
 
-The documentation is at **[paralin.github.io/modlock](https://paralin.github.io/modlock/)**.
+The documentation is at [paralin.github.io/modlock](https://paralin.github.io/modlock/).
 Every sample there comes in TypeScript, Luau, Python and Go, and once you
 choose your language, every page shows its samples in it.
 

@@ -30,14 +30,14 @@ Pyright, and Pylance in VS Code, check your mod's types.
 For stricter or looser checking, edit `typeCheckingMode` and the report rules
 in the project's `pyrightconfig.json`. That file also tells the checkers where
 the library is, in `.modlock`, and they read it only from the folder the editor
-has open. Open the mod's own folder in the editor: from any other folder, it
+has open. Open the mod's own folder, because from any other folder the editor
 reports that `modlock` could not be resolved.
 
 One module imports another by its name, such as `import round`. Mods run on
 Python 3.14 and can import standard modules such as `dataclasses`, `enum`,
 `json`, `math`, `random` and `re`.
 
-## The library
+## Calls and types
 
 The library has the TypeScript library's calls, spelled in snake_case. Each
 message is a dataclass, each enum is a set of string literals, and a 64-bit id
@@ -95,8 +95,8 @@ server ignores writes to it, and the server log gives the reason.
 
 ## Run a line in the running mod
 
-While `modlock dev` or `modlock play` runs, type a line that starts with `>`
-in its terminal, and the mod runs it in `main.py`'s module, as Python's own
+While `modlock dev` or `modlock play` runs, type a line that starts with `>` in
+its terminal. The mod runs it in `main.py`'s module, as Python's own
 prompt would:
 
 ```text

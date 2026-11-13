@@ -23,9 +23,8 @@ TypeScript only.
 
 The build starts from `main.ts`, or `main.js`, and type-checks a JavaScript mod
 from its JSDoc comments. Each build writes the library's types to
-`node_modules/modlock` for your editor and the type checker, and bundles your
-mod with the copy of the library built into `modlock`, so you install nothing
-else.
+`node_modules/modlock` for your editor and the type checker. It bundles your mod
+with the copy of the library built into `modlock`, so you install nothing else.
 [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto)
 documents every call, its arguments and its result.
 
@@ -33,7 +32,7 @@ documents every call, its arguments and its result.
 
 Every build bundles your mod for QuickJS, an interpreter that runs any
 JavaScript, so the build takes a moment. When your mod's frames take too long,
-set `"runtime": "RUNTIME_WASM"` in its `mod.json`, and `modlock publish` then
+set `"runtime": "RUNTIME_WASM"` in its `mod.json`. `modlock publish` then
 compiles it ahead of time to WebAssembly with [scriptc](https://scriptc.dev),
 which `modlock` downloads the first time. The compiled mod runs about 2.5 times
 faster, but the compile takes about a minute and a few gigabytes of memory. To
@@ -46,10 +45,10 @@ refuses to upload it unless you pass `--allow-fallback`:
 - scriptc cannot compile part of the mod. The build lists each such place and
   the reason.
 - The two builds behave differently. To find out, the build plays both in the
-  sandbox through a start, a player joining, a world loading and five seconds
-  of frames, with one clock and the same random bytes. Each event goes to the
-  QuickJS build first, and whenever the WebAssembly build makes the same call,
-  it gets the reply QuickJS got. The build prints the first event where their
+  sandbox through a start, a player joining, a world loading and five seconds of
+  frames. Both builds share one clock and the same random bytes. Each event goes
+  to the QuickJS build first, and whenever the WebAssembly build makes the same
+  call, it gets the reply QuickJS got. The build prints the first event where their
   calls or answers differ and what each build did there. A run of server
   commands is compared as a set, because their order does not change the game.
   The check compiles QuickJS with scriptc's copy of Zig, once per scriptc

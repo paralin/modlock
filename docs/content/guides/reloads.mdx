@@ -75,7 +75,8 @@ func endRun() { _ = mod.HoldReload(false) }
 
 ## Hand state to the next build
 
-To keep what a reload should not reset, such as the round the game is on or the panels each player has open, hand it to the next build as handoff state:
+Some state should survive a reload, such as the round the game is on or the
+panels each player has open. Hand that state to the next build as handoff state:
 
 <Samples>
 

@@ -23,8 +23,8 @@ addon's name goes, and the build or the host fills it in:
   `build/panorama/layout/SLUG-DIGEST/scoreboard.vxml_c`, and models to
   `models/SLUG-DIGEST/` and so on.
 - A release that changes only code has the same addon and paths as the one
-  before it, so a
-  game that mounted the previous release still finds the new one's resources.
+  before it. A game that mounted the previous release still finds the new
+  one's resources.
 - Keep sources outside `content/`: the build refuses a source the game cannot
   load, such as a `.vmdl` or a Hammer map's `.vmap`. The publishing check
   refuses client files outside the addon's directories.
@@ -96,8 +96,8 @@ _, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: positi
 
 A panel that the map placed got its layout path before the addon's name
 existed. Point it at your mod's layout with `writeField`, which also fills in
-`{addon}`. The map's entities exist only once a world has loaded, after
-your mod started, so make the write in your world handler. Each write sends
+`{addon}`. Mods start before the map's entities exist, so do it as each world
+loads. Each write sends
 connected players a full update that stalls their game for a moment. Write a
 layout only when it has changed:
 
@@ -157,7 +157,7 @@ mod.OnWorld(func(mapName string) {
 </Samples>
 
 [`world-panel`](https://github.com/paralin/modlock/tree/master/examples/world-panel)
-is the whole mod, and
+is the whole mod.
 [`inventory`](https://github.com/paralin/modlock/tree/master/examples/inventory)
 draws a scripted bag through the [layout element](/guides/layouts): the
 player drags items with the freed cursor, the script sends each move as a

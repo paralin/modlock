@@ -73,12 +73,12 @@ builder returns a curve, so you can pass one builder's result to another:
 
 `curve.shaped(fn)` makes any function from 0 to 1 an ease.
 
-## No pitch
+## The view follows the aim
 
-The game's camera operations (`CCitadelUserMsg_CameraController`) move only the
-five params above. The view always looks along the player's own aim, which keeps
+The view always looks along the player's own aim, which keeps
 `Pawn.cameraPosition` and `cameraAngles` accurate for finding what the player
-aims at. Frame a higher
+aims at. The game's camera operations (`CCitadelUserMsg_CameraController`) move
+only the five params above. Frame a higher
 view by raising `verticalOffset` and pulling `distance` back, and shift it with
 `horizontalOffset`; the player tilts it with the mouse. Turning the view itself
 means setting the player's view angles, which takes over their look.

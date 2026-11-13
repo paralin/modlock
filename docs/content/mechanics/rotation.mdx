@@ -19,9 +19,9 @@ and the rest watch from the stands. Each piece has its calls:
 | Waiting in the stands                | `holdBystander`, `playCamera`, `curve.hold` |
 | Heroes left behind by a swap         | `Strays`                                    |
 
-The rotation calls are TypeScript only, and each is pure: your mod keeps the line
-and the standings, and each call reads only what you pass it. That is how
-`js/test/rotation.test.ts` runs a whole session without the game.
+The rotation calls are TypeScript only. Each is pure: your mod keeps the line
+and the standings, and each call reads only what you pass it. Because the calls
+are pure, `js/test/rotation.test.ts` runs a whole session without the game.
 
 ## The line and the standings
 
@@ -61,12 +61,16 @@ const cast = new Cast({
 
 ## The next match
 
-`nextMatch(line, size, standing)` takes the `2 * size` players who have played
-fewest, earlier in line first among equals, and deals them by rating in a
-snake (first, second, second, first) so the sides' ratings stay close: with
-two per side, the best pairs with the worst against the middle two. While too
-few players wait, it returns nothing, and your HUD can show that as waiting for
-players.
+`nextMatch(line, size, standing)` picks the next match in two steps:
+
+1. It takes the `2 * size` players who have played fewest. Among equals, the
+   one earlier in line goes first.
+2. It deals them to the sides by rating in a snake (first, second, second,
+   first), which keeps the sides' ratings close. With two per side, the best
+   pairs with the worst against the middle two.
+
+While too few players wait, `nextMatch` returns nothing, and your HUD can show
+that as waiting for players.
 
 ```ts
 const sides = nextMatch(line, size, (each) => each.standing)
@@ -77,8 +81,7 @@ if (sides) {
 }
 ```
 
-Count the match as played when it is seated, not when it ends, so a fighter
-who leaves mid-match still goes to the back of the order.
+Count the match as played when it is seated, not when it ends, so a fighter who leaves mid-match still goes to the back of the order.
 
 ## The result
 
@@ -101,8 +104,7 @@ line = afterMatch(line, [...winners, ...losers])
 
 When the mode picks each fighter's hero from a short list, count each
 player's matches per hero. `leastUsed(counts, prefer)` returns the one played
-least, or `prefer` on a tie, so everyone plays every hero about equally and
-two fighters can start on different heroes by preferring different ones.
+least, or `prefer` on a tie, so everyone plays every hero about equally and two fighters can start on different heroes by preferring different ones.
 
 ```ts
 const choice = leastUsed(fighter.standing.heroes, side === 0 ? 0 : 1)
@@ -143,10 +145,10 @@ hero:
   over it;
 - cannot be pulled from its seat by displacement.
 
-Teleport the hero to its seat facing the ring, then aim `playCamera`'s
-`target`, the point the camera turns around, at the ring's center with a long
-`distance`, for a view the player circles with the mouse. Each param snaps
-back as soon as its curve ends. Hold each curve longer than any wait, and clear
+Teleport the hero to its seat facing the ring. Then aim `playCamera`'s `target`,
+the point the camera turns around, at the ring's center with a long `distance`.
+The player circles that view with the mouse. Each param snaps
+back when its curve ends. Hold each curve longer than any wait, and clear
 the context when the player leaves the stands:
 
 ```ts
@@ -190,21 +192,19 @@ function unseat(player: Player, pawn: number): void {
 ```
 
 `playCamera` returns nothing while the player has no hero. Mark the seat taken
-only once `seat` returns true, and try again each frame until it does. A bystander
+only once `seat` returns true, and try again each frame. A bystander
 can still die from a fall or world damage, so respawn it and seat it again.
 
 ## Heroes left behind
 
 Swapping a player's hero, or moving them to the spectators and back, can
 leave the old hero with no player controlling it. The game still revives that
-hero on its own timer. Keep one `Strays` and call `sweep(now)` each frame:
-
-- A hero belongs to a player while its controller points to it, so a player
-  joining or spectating keeps theirs.
-- One that has belonged to nobody for `strayGraceSeconds` is killed once,
-  with its respawn held off for good.
-- The sweep checks once a second, with one entity listing and two field reads
-  per hero.
+hero on its own timer. A hero belongs to a player while the player's controller
+points to it, so a player who joins or spectates keeps their hero. Once a hero
+has belonged to nobody for `strayGraceSeconds`, `Strays` kills it once and holds
+off its respawn for good. The sweep checks once a second, with one entity
+listing and two field reads per hero. Keep one `Strays` and call `sweep(now)`
+each frame:
 
 ```ts
 import { onFrame, Strays } from 'modlock'

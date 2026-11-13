@@ -54,22 +54,23 @@ mod.Command("who", func(p mod.Player, args string) {
 
 </Samples>
 
-`connection` looks up one player's connection, and returns nothing for an
-empty slot:
+A player's connection has their name, Steam ID, whether they are a bot and
+whether they finished joining. `player.connection()` returns it, or nothing when
+nobody holds the slot:
 
 <Samples>
 
 ```ts
-import { command, connection } from 'modlock'
+import { command } from 'modlock'
 
 command('me', (player) => {
-  player.chat(connection(player)?.name ?? 'Nobody')
+  player.chat(player.connection()?.name ?? 'Nobody')
 })
 ```
 
 ```luau
 modlock.command("me", function(player)
-	local connection = modlock.connection(player)
+	local connection = player:connection()
 	player:chat(if connection then connection.name else "Nobody")
 end)
 ```
@@ -77,14 +78,14 @@ end)
 ```python
 @modlock.command("me")
 def me(player: modlock.Player, args: str) -> None:
-    connection = modlock.connection(player)
+    connection = player.connection()
     player.chat(connection.name if connection is not None else "Nobody")
 ```
 
 ```go
 mod.Command("me", func(p mod.Player, args string) {
 	name := "Nobody"
-	if c := mod.ConnectionOf(p); c != nil {
+	if c := p.Connection(); c != nil {
 		name = c.GetName()
 	}
 	_ = p.Chat(name)
@@ -92,6 +93,17 @@ mod.Command("me", func(p mod.Player, args string) {
 ```
 
 </Samples>
+
+You can also find a connection from a Steam ID, and make a Player from a slot:
+
+| Language   | Connection from a Steam ID                           | Player from a slot         |
+| ---------- | ---------------------------------------------------- | -------------------------- |
+| TypeScript | `connection(steamId)`, with a bigint                 | `Player.of(slot)`          |
+| Luau       | `modlock.connection(steamId)`, with a string         | `modlock.Player.new(slot)` |
+| Python     | `modlock.connection(steam_id)`, a number above 65535 | `modlock.Player(slot)`     |
+| Go         | `mod.ConnectionOfSteamID(steamID)`                   | `mod.Player{Slot: slot}`   |
+
+The same `connection` call also takes a player or a slot.
 
 ### Roles
 
@@ -148,9 +160,8 @@ if err == nil && pawn != nil && pawn.GetHealth() > 0 {
 
 Pick a hero and a team for a player, with any [hero name](#heroes). The teams
 are 2 and 3. The game places the selected hero on a later frame, and one call
-does not always seat the player, so
-[`seatPlayers`](/guides/toolkit#seat-the-players) and
-[`Cast`](/guides/toolkit#keep-the-players-with-cast) ask again until the hero
+does not always seat the player. [`player.seat`](/guides/toolkit#seat-the-players)
+and [`Cast`](/guides/toolkit#keep-the-players-with-cast) ask again until the hero
 appears.
 
 <Samples>
@@ -195,7 +206,7 @@ _ = p.Heal(250)
 
 ## Add bots
 
-A bot fills a seat for testing or play. It is a player like any other.
+A bot is a player like any other, and fills a seat for testing or play.
 
 <Samples>
 
@@ -235,7 +246,7 @@ Python spells each call in `snake_case`, and Go capitalizes it.
 | Call                                                                                                                              | Effect                                                                           |
 | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `players()`                                                                                                                       | List the connected players and bots.                                             |
-| `connection(player)`, Go `ConnectionOf`                                                                                           | One player's connection, or nothing for an empty slot.                           |
+| `player.connection()`, `connection(x)`                                                                                            | One player's connection, or nothing for an empty slot.                           |
 | `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                                                        | Keep one member per human and get them the hero they want.                       |
 | `player.pawn()`                                                                                                                   | Read the hero: health, team, position, aim and stamina.                          |
 | `player.chat`, `centerText`, `announce`                                                                                           | Show text to one player.                                                         |
@@ -261,9 +272,13 @@ Python spells each call in `snake_case`, and Go capitalizes it.
 ## Heroes
 
 Every call that takes a hero, such as `selectHero`, `addBot`, `precache` and a
-Cast's want, accepts the game's name (`hero_nano`), that name without `hero_`
-(`nano`), or the title in any case (`Calico`, `lady geist`). A command that
-takes a hero from chat matches it loosely with `findHero`:
+Cast's want, accepts any of three names for it:
+
+- the game's name, such as `hero_nano`;
+- that name without `hero_`, such as `nano`;
+- the title in any case, such as `Calico` or `lady geist`.
+
+A command that takes a hero from chat matches it loosely with `findHero`:
 
 <Samples>
 

@@ -23,7 +23,7 @@ Portable parsing, callback dispatch, and fixture tests run without game modules.
 `ParseSignature` and `SignatureScan` operate on borrowed byte spans. Every
 game signature is one entry in the game data file `data/game_signatures.txtpb`,
 a protobuf text file of `src/gameinterop/signatures/signatures.proto`. An entry
-has a stable id, the modules the pattern appears in, the pattern, what the match
+has a stable id, the modules where the pattern matches exactly once, the pattern, what the match
 resolves to, and the native shape.
 
 - **Loading.** The SDK embeds the file as of its build. `modlock-host` loads the
@@ -46,11 +46,11 @@ modlock-sigcheck <deadlock-dir> [--baseline <previous-deadlock-dir>] \
 
 It resolves every entry in every module you pass it and exits nonzero when any
 fails. `--signatures` checks an edited game data file without a rebuild. With a
-copy of the previous build as the baseline, each failed entry also gets a
-suggested pattern: the old match is decoded, its relative displacements and
-branch targets become wildcards, and the shortest instruction-aligned prefix
-that resolves once in the new build is printed. Review each suggestion against
-the recorded shape before replacing the entry in the game data file.
+copy of the previous build as the baseline, `modlock-sigcheck` also suggests a pattern for each
+failed entry. It decodes the old match, turns its relative displacements and
+branch targets into wildcards, and prints the shortest instruction-aligned
+prefix that resolves once in the new build. Review each suggestion against the
+recorded shape before replacing the entry in the game data file.
 
 Virtual functions that modlock calls or hooks through a dispatch table are
 `slots` entries in the same file. Each gives its module, its class's RTTI name,
@@ -90,7 +90,7 @@ signature, callback ordering, and thread contract. Installation and teardown
 follow the host's engine lifecycle, but the RAII owners do not synchronize concurrent
 hook installation or wait for callbacks on other threads.
 
-## Checks
+## What the tests cover
 
 The SDK tests exercise unique signature matching, relative instruction bounds,
 dispatch-table preservation, move ownership, and restore-before-clear ordering.

@@ -91,9 +91,8 @@ func main() {}
     You can write a mod in any language that compiles to WebAssembly.
   </Card>
   <Card icon={<Package />} title="Built once">
-    A game update moves fields around in the server's memory. The server finds
-    each field and input by name, so a mod built before an update still works
-    after it.
+    The server looks up each field and input a mod uses by name, so a mod built
+    before a game update still works after it.
   </Card>
   <Card icon={<Zap />} title="Fast">
     The server calls each mod inside the game's own frame, and Wasmtime runs its

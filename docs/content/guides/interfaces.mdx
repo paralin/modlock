@@ -116,16 +116,16 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 
 ## The cursor
 
-- While the cursor is up, the game still shoots, turns and moves the hero. The
-  mod blocks those buttons itself, and releases them in the same call that
-  hides the screen.
-  `hide` gives the mouse back to aiming.
-- The player can put the cursor away with the game's own keys, and it
-  stays away while the screen changes. Each `freeCursor(player, true)` shows it
-  again.
-- `cursorFree(player)` reports whether the cursor is up, and nothing while the
-  player has no hero. A mod that wants the cursor back calls `freeCursor` again
-  when `cursorFree` reports false, on a press or a timer.
+While the cursor is up, the game still shoots, turns and moves the hero. The mod
+blocks those buttons itself, and releases them in the same call that hides the
+screen. `hide` gives the mouse back to aiming.
+
+The player can also put the cursor away with the game's own keys. The cursor
+then stays away while the screen changes, until the next
+`freeCursor(player, true)` shows it again. `cursorFree(player)` reports whether
+the cursor is up, and nothing while the player has no hero. A mod that wants the
+cursor back calls `freeCursor` again when `cursorFree` reports false, on a press
+or a timer.
 
 ## Style it
 

@@ -6,8 +6,10 @@ description: How the typed entity libraries are generated from the game's own de
 Everything a player sees in a Deadlock match is an entity: heroes, troopers,
 Guardians, pickups, zip lines, lights, sounds, the shop. A mod creates any
 entity the server can create, reads and writes any field the game's schema
-declares, and sends any input a map's output could send, from TypeScript, Go or
-Luau, with types generated from the game itself. This page explains how those types are generated, and [Entity calls](/internals/entity-calls) explains what the host does and checks when a mod uses them.
+declares, and sends any input a map's output could send. The typed libraries for
+TypeScript, Go and Luau are generated from the game itself. This page explains
+how those types are generated, and [Entity calls](/internals/entity-calls)
+explains what the host does and checks when a mod uses them.
 
 ## Four names for one entity
 
@@ -21,10 +23,11 @@ An entity has four names, and each part of the system uses one:
 | Entity name   | `arena_spawn_red`  | The targetname a map gives it      | `findEntitiesByName`, `entityName`   |
 
 `entityClass(handle)` returns the first two for a live entity. The subclass is
-the data an entity reads while it spawns: a lane Guardian and a base Guardian
-share a class and differ in their subclass, which gives their health, model
-and weapons. The entity name is the one a map's author chose, often shared by
-a group of entities, and an entity without one has an empty name. A mod gives the entities it creates an entity name with the `targetname` key value, and finds a map's
+the data an entity reads while it spawns, such as its health, model and weapons.
+A lane Guardian and a base Guardian share a class and differ in their subclass.
+The entity name is the one a map's author chose, often shared by a group of
+entities, and an entity without one has an empty name. A mod gives the entities
+it creates an entity name with the `targetname` key value, and finds a map's
 markers with `findEntitiesByName` instead of hardcoding their positions:
 
 ```ts
@@ -55,15 +58,15 @@ is written by hand, so a game update is a new dump.
 
 - **Schema classes.** `schemas.json` lists each class under its module, and the `server` module contains the entity classes. A field has its name, its type as the game
   spells it, and its offset. The generated libraries use the name and type.
-  The host finds the offset by name the first time a mod uses the field, so a
-  game update that moves a field needs no new build of a mod.
+  The host finds the offset by name the first time a mod uses the field. A game
+  update that moves a field needs no new build of a mod.
 - **Data descriptions.** A designer name points at its data description, the
   table a map reads when it places the entity. It adds key values and inputs to
   its base and may embed others. A key value has a name, such as `rendercolor`,
   and a type, such as a 32-bit color. An input has a name, such as `Color`, and
   the Pulse type of its one parameter, if it takes one.
 - **Component keys.** An entity also takes the key values of the components its
-  class has: the body component's scene node takes `origin`, `angles`,
+  class has. The body component's scene node takes `origin`, `angles`,
   `scale` and `ModelScale` on every entity, so `CBaseEntity`'s table lists them. Keys the scene node parses itself, such as `scale`, have a type but no
   field to read back.
 
@@ -71,11 +74,11 @@ is written by hand, so a game update is a new dump.
 
 `survey.json` records what happens when a mod creates each designer name on a
 dedicated server with nothing else around it. A survey mod created each name,
-waited a frame and recorded the result, and a runner split the names over twelve
-servers and resumed from the next name after each crash or hang. Each name is
-tried twice: first with the subclass the game's own data suggests, when there
-is one, then, for each name that lived, without it, to learn whether it needs
-one.
+waited a frame and recorded the result. A runner split the names over twelve
+servers and resumed from the next name after each crash or hang. The survey
+tried each name with the subclass the game's own data suggests, when there is
+one. It then tried each name that lived without that subclass, to learn whether
+the name needs one.
 
 | Result                | Names | Meaning                                                                                                                           |
 | --------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -108,14 +111,14 @@ player pawn has `CBaseEntity`'s health.
 
 **A constructor per designer name that lived.** It takes only that entity's
 spawn keys, each as the type the entity reads, and returns the entity as its
-class. It gives the subclass the survey found by default, so
+class. The constructor passes the subclass the survey found by default, so
 `create('npc_trooper_boss', ...)` makes a lane Guardian without passing `npc_boss_tier1`. A designer name that never lived has no constructor: the
 type checker rejects `create('path_node', ...)` before the mod runs.
 
 **Typed console values.** Each variable takes the type the game declares;
 each command runs one line.
 
-A mod's bundle contains only the classes it uses. The generator writes output that is stable
+A mod's bundle contains only what the mod uses. The generator writes output that is stable
 across runs, so a game update shows up as a readable diff of what the game
 changed.
 
@@ -128,6 +131,6 @@ After a game update:
 3. Run `scripts/gen-entities.sh` and review the diff of the generated
    libraries, which shows what the update changed.
 
-The host looks up fields and inputs by name, not by offset. A mod built against
+The host looks up fields and inputs by name. A mod built against
 an earlier dump keeps working as long as the fields and inputs it uses still
 exist after the update.

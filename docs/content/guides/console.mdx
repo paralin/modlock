@@ -50,8 +50,8 @@ or a color has no typed setter, so set it with `serverCommand` yourself.
 ## Set up a mode
 
 `apply(settings)` sets several variables in order and returns the names the
-server refused. For a custom mode, start from `arena`, which empties the map:
-the server keeps running with no one connected, and no troopers, neutrals,
+server refused. For a custom mode, start from `arena`, which empties the map.
+The server keeps running with no one connected, and no troopers, neutrals,
 practice bots or zipline starts appear. Spread it and add your mode's own
 settings:
 
@@ -87,10 +87,11 @@ console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(tru
 
 ## Limits
 
-Your mod's console lines can change the game, but nothing outside it. They may set the game's rules and
-bots, change or reload the map, kick a player, quit, set the time scale, and
-start the game's own recording with `tv_enable` and `tv_record <name>`, whose
-name holds only letters, digits, `-` and `_`. They may not reach:
+Your mod's console lines can change the game, but nothing outside it. They may
+set the game's rules and bots, change or reload the map, kick a player, quit and
+set the time scale. They may also start the game's own recording with
+`tv_enable` and `tv_record <name>`, where the name contains only letters,
+digits, `-` and `_`. They may not reach:
 
 | Area                      | Refused                                                                                                                                                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -104,5 +105,5 @@ name holds only letters, digits, `-` and `_`. They may not reach:
 
 `toggle`, `incrementvar` and `multvar` set the variable they take, so the server
 refuses each of them for a variable your mod may not set directly. The server
-checks every command in a line, after each `;` or newline, and when it refuses
-one, the error gives the first command it refused.
+checks every command in a line, after each `;` or newline. When it refuses one,
+the error gives the first command it refused.

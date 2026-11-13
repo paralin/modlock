@@ -3,8 +3,8 @@ title: Events
 description: The moments a mod hears about, and how to register a handler for each.
 ---
 
-Your mod registers its handlers as it loads, and the server calls each one when
-its moment comes:
+Your mod registers its handlers as it loads. The server calls each one when its
+moment comes:
 a chat command, a frame, a player joining, a hit about to land.
 
 <Samples>
@@ -130,9 +130,9 @@ the hero.
 | Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
 
 Between joined and in play, the player is picking a team or a hero, or the game
-has not placed the hero yet. [`seatPlayers`](/guides/toolkit#seat-the-players)
+has not placed the hero yet. [`player.seat`](/guides/toolkit#seat-the-players)
 skips the team and hero screens. A call that needs a hero, such as a teleport, fails
-before the spawn, so make it in `onSpawn`, which fires for the first hero,
+before the hero spawns. Make it in `onSpawn`, which fires for the first hero,
 each respawn and each new hero. A bot joins as soon as it is added.
 
 ## Joins and leaves

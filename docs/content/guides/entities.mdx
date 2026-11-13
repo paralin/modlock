@@ -89,7 +89,7 @@ animated.
 
 A write changes the field on the server and sends it to the players. The host
 refuses an entity that is not of the class you pass or one derived from it,
-such as a trooper passed as a `CCitadelPlayerPawn`, and its error gives both
+such as a trooper passed as a `CCitadelPlayerPawn`. The error gives both
 classes. The entity stays unchanged and your mod keeps running.
 
 Some fields matter only while an entity spawns, such as `m_iInitialTeamNum`.
@@ -292,9 +292,9 @@ lists each input's value type. When the server does not know a designer name, or
 the entity has no such input, only that call fails.
 
 The host resolves the designer name's class before it creates anything.
-The host refuses to create an ability, item or weapon on its own, because only a hero
-can hold one, and one created alone crashes the server the first time it thinks or is
-removed. The error points you to `giveItem` and `replaceAbility` instead.
+Because only a hero can hold an ability, item or weapon, the host refuses to
+create one on its own. One created alone crashes the server the first time it
+thinks or is removed. The error points you to `giveItem` and `replaceAbility` instead.
 `spawnNpc` and `createPickup` build on the same call. `spawnNpc` takes any unit
 class the server has and refuses a `lane` for a class that walks none.
 

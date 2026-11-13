@@ -3,7 +3,7 @@ title: Tutorial
 description: Build a small brawl with a countdown, a score, a HUD and a sign.
 ---
 
-Each step adds a few lines to the project that `modlock new` made. When you save, `modlock dev` reloads the mod, and you can try the step in the game right away. By the last step you have a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) build the same ideas into complete game modes you can play.
+Each step adds a few lines to the project that `modlock new` made. When you save, `modlock dev` reloads the mod, and you can try the step right away. By the last step you have a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) build the same ideas into complete game modes you can play.
 
 Put a step's import lines at the top of the main file and the rest of its code at the end. A step imports only the names it adds, so keep the imports from earlier steps.
 
@@ -224,7 +224,7 @@ Type `/start`: every hero freezes for five seconds, and then the mod announces t
 
 ## 4. Decide the fights
 
-Your mod can handle two events for each hit. The damage event fires before the game applies the hit, and your handler can block it or change its amount. The damaged event fires afterwards and gives the victim's health before the hit and the health it lost, so a hit that lost all of that health was lethal. A hit gives each hero as an entity number, the same number as the pawn's `entity`, which is how `playerOf` finds the player.
+Your mod can handle two events for each hit. The damage event fires before the game applies the hit, and your handler can block it or change its amount. The damaged event fires afterwards with the victim's health before the hit and the health it lost. A hit that lost all of that health was lethal. In a hit, each hero is an entity number, the same number as the pawn's `entity`, and `playerOf` finds the player by that number.
 
 <Samples>
 
@@ -346,13 +346,13 @@ func playerOf(entity uint32) (mod.Player, bool) {
 
 </Samples>
 
-This map keys scores by slot. When one player leaves and another joins, the newcomer takes the same slot. In a mode where players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
+This map keys scores by slot. A slot is reused when one player leaves and another joins. In a mode where players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
 ## 5. Show a HUD
 
-An interface is a tree of elements, which you write as JSX in a `.tsx` module in TypeScript and build with calls to the `ui` library in the other languages. Put this HUD in its own module beside the main one: `hud.tsx`, `hud.luau` or `hud.py`, or in Go a `hud.go` in the same package:
+An interface is a tree of elements. In TypeScript you write it as JSX in a `.tsx` module, and in the other languages you build it with calls to the `ui` library. Put this HUD in its own module beside the main one: `hud.tsx`, `hud.luau` or `hud.py`, or in Go a `hud.go` in the same package:
 
 <Samples>
 
@@ -509,7 +509,7 @@ Redraw every player's HUD from your state on each frame. `show` compares the tre
 
 ## 6. Place things in the world
 
-Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each new world loads.
+Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each world loads.
 
 <Samples>
 
@@ -679,7 +679,7 @@ A board ranks players against each other, such as by their fastest clear of each
 
 ## 8. Split it into modules
 
-As the mode grows, keep `main.ts` a short list that registers the handlers, keep the game's state in one object that the handlers call into, and give each concern its own module. `modlock build` bundles and type-checks every module that `main.ts` imports.
+As the mode grows, give each concern its own module. Keep `main.ts` a short list that registers the handlers, and keep the game's state in one object that the handlers call into. `modlock build` bundles and type-checks every module that `main.ts` imports.
 
 ```ts
 import { command, onDamage, onFrame, onStart, onWorld } from 'modlock'
@@ -701,7 +701,7 @@ command('ready', (player) => match.ready(player))
 
 [`examples/arena`](https://github.com/paralin/modlock/tree/master/examples/arena) is laid out this way.
 
-Keep each handler quick. When one event takes more than 500 ms of processor time, the players see a warning, and when one takes more than five seconds, the server stops the mod until a player types `/restartmod` or a reload replaces it. [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods) explains both limits.
+Keep each handler quick. An event that takes more than 500 ms of processor time shows the players a warning. When one takes more than five seconds, the server stops the mod until a player types `/restartmod` or a reload replaces it. [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods) explains both limits.
 
 ## 9. Test a whole round
 

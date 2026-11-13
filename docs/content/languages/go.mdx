@@ -26,8 +26,8 @@ every call in it. Build interfaces with the `mod/ui`, `mod/hud` and
 
 ## Errors and tests
 
-Each call into the game returns an error, which you may ignore when the mod
-should keep playing anyway, such as when a chat message fails to send. Keep
+Each call into the game returns an error. You may ignore it when the mod should
+keep playing anyway, such as when a chat message fails to send. Keep
 your game rules in functions that never call the game, as the
 [`race`](https://github.com/paralin/modlock/tree/master/examples/race) example
 does, and you can test them with plain `go test`.

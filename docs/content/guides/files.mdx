@@ -3,9 +3,9 @@ title: Files
 description: Keep text files on the host, with defaults shipped in the mod.
 ---
 
-A mod's files are text files on the host, such as its configuration or the
-areas a player drew in the game. You put each file's default in your project's
-`data/` directory: `modlock build` copies that directory into the build, and
+Your mod reads and writes text files on the host, such as its configuration or the
+areas a player drew in the game. Put each file's default in your project's
+`data/` directory. `modlock build` copies that directory into the build, and
 `modlock publish` uploads it with the rest of the build.
 
 <Samples>
@@ -101,7 +101,7 @@ segment, and a name with a control character. It also refuses `\` and `:`,
 because Windows reads them as separators.
 
 The host keeps the files your mod writes in a directory named after the mod's
-slug, and they stay there when the server restarts or you publish an update.
+slug. They stay there when the server restarts or you publish an update.
 `modlock dev` and `modlock play` keep that directory under Modlock's
 configuration directory:
 

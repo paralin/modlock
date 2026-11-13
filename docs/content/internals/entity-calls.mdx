@@ -135,19 +135,20 @@ writeField(
 )
 ```
 
-Each segment is a field of the segment before it, which must be an embedded
-structure: the host refuses a path through a field whose type is a number, a
-pointer or a handle.
+Each segment is a field of the structure that the segment before it holds, and
+the host refuses a path through a field that holds a number, a pointer or a
+handle.
 
 Field types cover booleans, signed and unsigned integers of 8 to 64 bits, 32
 and 64-bit floats, vectors, entity handles and strings. Angles travel as
 vectors. A typed field whose type is another entity class reads as that
 class, so `hero.m_hController` is a controller a mod can read further.
 
-The host checks the requested type against the type the schema declares for
-the field, and refuses a call whose type does not fit the field, with a message giving both types:
+The host checks the requested type against the type the schema declares for the
+field, and refuses a mismatch with a message giving both types. Each requested
+type fits these fields:
 
-- Any number type, a boolean or a handle reads a field whose type is a number,
+- Any number type, a boolean or a handle reads a field that holds a number,
   boolean, enum, handle or boxed number such as `GameTime_t`. The value is cut
   to the requested type's size.
 - `vector` reads a `Vector`, `VectorWS` or `QAngle`.
@@ -160,10 +161,11 @@ can read or write by value; reach a structure's fields with a dotted name.
 
 ### The match's state
 
-The match's state, such as each team's gold, the game state, the winning team,
-the Mid Boss count and the pause fields, belongs to the game rules, which are
-not an entity. Their proxy entity, `citadel_gamerules`, points to them and sends
-them, so a mod reads them through the classes `CGameRules` and `CCitadelGameRules` with the proxy's handle:
+The match's state is in the game rules, which are not an entity: each team's
+gold, the game state, the winning team, the Mid Boss count and the pause fields.
+Their proxy entity, `citadel_gamerules`, points to them and sends them to the
+players. A mod reads them through the classes `CGameRules` and
+`CCitadelGameRules` with the proxy's handle:
 
 ```ts
 import { findEntities } from 'modlock'
@@ -178,11 +180,11 @@ A write sends the whole rules to the players, so players already in the match
 see the change at once. A field the game's clients derive from other state may
 be set again by the game on its next update.
 
-A field whose type is a list of numbers, handles, booleans, vectors or text, such
+A field that holds a list of numbers, handles, booleans, vectors or text, such
 as the banned heroes or the neutral camp spawn times, reads as an array and
-writes by replacing the array. The host grows the game's list when the new array
-is longer than the space the game allocated. A list of structures, such as the
-Mid Boss team states, has no accessor.
+writes by replacing the array. The host grows the game's list when the
+new array is longer than the space the game allocated. A list of structures,
+such as the Mid Boss team states, has no accessor.
 
 ```ts
 rules.m_vecBannedHeroes = [1, 2, 3]
@@ -222,24 +224,24 @@ hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor`, which
 defaults to the attacker, and an optional `ability`; `damage` also takes an
 `amount`.
 
-- **A handle includes its entity's generation.** A stale handle fails instead of selecting
-  a replacement entity, so an attacker that has since died or left credits
-  nobody.
-- **Forced kills use the game's own logic.** `killEntity` credits the attacker
-  through the game's damage and reward logic, bypasses resistance and damage
-  modification, and suppresses item procs. A living pawn at zero health still
-  receives its death transition, and a victim already dead succeeds without a
-  second reward. The caller releases any immortality its mode gave the victim
-  first.
-- **No attacker means an environmental death**, with no credit or rewards, as
-  `player.kill()` does.
-- **The world, props and buildings are refused** by both calls, because clients
-  cannot safely process their damage events.
+- A handle includes its entity's generation, so a stale handle fails instead of
+  selecting a replacement entity. An attacker that has since died or left
+  credits nobody.
+- `killEntity` credits the attacker through the game's own damage and reward
+  logic, bypasses resistance and damage modification, and suppresses item
+  procs. A living pawn at zero health still receives its death transition, and
+  a victim already dead succeeds without a second reward. The caller releases
+  any immortality its mode gave the victim first.
+- A call with no attacker causes an environmental death with no credit or
+  rewards, as `player.kill()` does.
+- Both calls refuse the world, props and buildings, because clients cannot
+  safely process their damage events.
 
-To credit a death the engine would not attribute, such as a hero knocked out of
-the play area or into a hazard, the mod keeps the handle of the last enemy that
-hit or pushed the victim and passes it as `attacker` to `killEntity` when the
-victim dies. The engine then awards the kill, assists and rewards, so a mod should leave the scoreboard fields alone.
+The engine credits no one for some deaths, such as a hero knocked out of the
+play area or into a hazard. To credit one, the mod keeps the handle of the last
+enemy that hit or pushed the victim. When the victim dies, the mod passes that
+handle as `attacker` to `killEntity`. The engine then awards the kill, assists
+and rewards, so a mod should leave the scoreboard fields alone.
 
 ## What fails, and how
 
@@ -259,10 +261,9 @@ failures a mod can meet:
 
 `createEntity` refuses the 25 designer names below before they exist, and none
 has a constructor. Each reads state that a map, a game mode, an owning hero or
-the ability that makes it provides, and crashes the server when made without
-it. A bounce pad, for one, is created safely, but finds its team through
-the ability that placed it, so the first hero to cross a pad made alone crashes
-the server.
+the ability that makes it provides, and crashes the server when made alone. A bounce pad, for one, is created safely but finds its team through the
+ability that placed it. The first hero to cross a pad made alone crashes the
+server.
 
 | Needs                      | Designer names                                                                                                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |

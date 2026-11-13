@@ -4,7 +4,7 @@ description: Draw the mod's own layouts and style sheets, and how the game draws
 ---
 
 `<layout src="shop.xml" data={stock} />` loads a layout from the mod's
-content addon. It is the only element that runs code in the player's game. The
+content addon. No other element runs code in the player's game. The
 game draws every other element from the typed tree in
 [`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto),
 and when the player presses one, the press comes back to its `onPress`. The host clears an interface when
@@ -15,9 +15,9 @@ the player leaves or the mod stops.
 - The `modlock dev` preview page draws the layout from the mod's latest build,
   with its panels, inline styles and style sheets, but runs none of its
   scripts.
-- A host with its own interface script loads layouts by passing `Layouts` to
-  the `Drawing` in `panorama/src/draw.ts`, such as `AddonLayouts`, which
-  loads each layout from the `addon` given in the screen's tree. Modlock's own renderer loads
+- A host with its own interface script loads layouts by passing `Layouts` to the
+  `Drawing` in `panorama/src/draw.ts`. `AddonLayouts`, for example, loads each
+  layout from the `addon` given in the screen's tree. Modlock's own renderer loads
   the layouts of the content its session mounted.
 
 ## Style sheets
@@ -29,9 +29,9 @@ refuses a sheet outside `content/styles/`. An element takes the sheet's
 classes through `class="board gold"`. Changing its classes runs the sheet's
 transitions, and the element's own style wins over a class.
 
-Sheets load where layouts do: the build writes a layout beside each sheet
-that includes only that sheet, which the game loads into the interface's root
-panel. A host that passes no `Layouts` draws the interface without them, and
+Sheets load where layouts do. Beside each sheet, the build writes a layout that
+includes only that sheet, and the game loads that layout into the interface's
+root panel. A host that passes no `Layouts` draws the interface without them, and
 a sheet that fails to load leaves it drawn with one log line.
 
 ## Hand values to a layout
@@ -58,9 +58,9 @@ Modlock.route('scores', (scores) => drawScores(scores))
 
 Each handler runs at once with the current value and again after each change,
 with `undefined` while the mod sends none. The library reads the panel's
-`modlock_data` and `modlock_route_<name>` attributes and rereads them on the
-unhandled `PlaySoundEffect` event `modlock_data_changed`, which the renderer
-sends once per draw that changes any. The layout answers the mod with its own
+`modlock_data` and `modlock_route_<name>` attributes. It rereads them on
+`modlock_data_changed`, an unhandled `PlaySoundEffect` event that the renderer
+sends once per draw that changes any of them. The layout answers the mod with its own
 console commands.
 
 ## The renderer
@@ -70,8 +70,9 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
 - The layout `panorama/layout/modlock/ui.xml` and its script, which a client
   content package installs as `scripts/modlock/ui.js`, beside the layout
   library `scripts/modlock/layout.js`. The `modlock` command
-  line in a release has it built in, and `go run ./cmd/modlock-library` builds it from
-  source into `js/built` for the next build of the command line to embed.
+  line in a release has the library built in. `go run ./cmd/modlock-library`
+  builds it from source into `js/built`, where the next build of the command
+  line embeds it.
 - The game keeps a client content package, and the layout in it, loaded
   through matches. The renderer draws over the HUD.
 - `modlock dev` and `modlock play` serve the local player's interfaces on
@@ -80,12 +81,10 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
   `https://hyperline.gg` by default. The controller answers only that origin's
   page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
   and the page reads the screen from that loopback port.
-- For the session, both commands also install the renderer in the game, with no
-  setup from you. They write `game/citadel/modlock_dev`, a
-  package that adds the renderer to the stock news layout, and mount it
-  between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
-  content, and remove it when the session ends. The game reads the package only
-  at startup, so a game that was already running shows the interfaces only
+- Both commands also install the renderer in the game for the session, so its
+  interfaces show with no setup. They write `game/citadel/modlock_dev`, a package that adds the
+  renderer to the stock news layout. They mount it between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
+  content, and remove it when the session ends. The game reads the package at startup, so a game that was already running shows the interfaces only
   after a restart.
 - A press runs the console command `modlockpress <mod> <node>` in the player's
   game. `pressCommand` in `panorama/src/draw.ts` builds that command, and a host

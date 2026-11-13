@@ -8,7 +8,7 @@ description: Try a mod in seconds without the game, and test a whole round in it
 On macOS, or on any computer without Deadlock, `modlock dev` runs your mod in
 the sandbox. The sandbox has the same runtime and limits as a server, and one
 stand-in player with no hero. When you type `/hello` and press Enter, the
-sandbox sends it as that player's chat, and the terminal shows your mod's log
+sandbox sends it as that player's chat. The terminal shows your mod's log
 and everything it sends to players. Calls that need the game, such as
 reading a hero's position, return nothing.
 
@@ -33,15 +33,16 @@ Python inside the running mod. See [Python](/languages/python#run-a-line-in-the-
 
 ## In the game
 
-To test a whole round in the game, build the test into the mod. When you start
-it with `modlock play --arg probe`, the mod seats bots with `addBot`, plays the round,
-checks the outcome, logs PASS or FAIL and quits with `serverCommand('quit')`,
-as [`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts)
+To test a whole round in the game, build the test into the mod. Started with
+`modlock play --arg probe`, the mod seats bots with `addBot` and plays the
+round. The mod then checks the outcome, logs PASS or FAIL and quits with
+`serverCommand('quit')`, as
+[`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts)
 does.
 
 In TypeScript, `ProbeRun` keeps track of the probe's steps. Call `tick` on each
-frame with the step the probe waits on and a check that returns `true` to pass,
-a message to fail, or `false` to keep waiting. `ProbeRun` logs each new step
+frame with the step the probe waits on and a check. The check returns `true` to
+pass, a message to fail, or `false` to keep waiting. `ProbeRun` logs each new step
 once and fails the run when its timeout passes. Then it logs `<name> probe PASS` or `FAIL` and quits:
 
 ```ts
