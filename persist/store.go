@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/paralin/modlock/internal/filelock"
@@ -83,9 +82,18 @@ func Open(dir string) (*Store, error) {
 		return nil, errors.Wrapf(err, "lock %s", abs)
 	}
 
-	// Name this process for the next one, and keep the lock for its life.
-	name := fmt.Sprintf("process %d, %s", os.Getpid(), strings.Join(os.Args, " "))
-	if err := os.WriteFile(filepath.Join(abs, HolderFile), []byte(name), 0o644); err != nil {
+	// Name this process for the next one by its ID and program name, never
+	// its arguments, which may carry a path or a token, and keep the lock for
+	// its life. Only the next modlock of the same user reads the name.
+	// A file an older modlock left keeps its mode through the write, so set
+	// the mode too.
+	name := fmt.Sprintf("process %d, %s", os.Getpid(), filepath.Base(os.Args[0]))
+	path := filepath.Join(abs, HolderFile)
+	if err := os.WriteFile(path, []byte(name), 0o600); err != nil {
+		_ = held.Close()
+		return nil, err
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
 		_ = held.Close()
 		return nil, err
 	}

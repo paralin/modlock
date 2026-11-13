@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -30,10 +31,15 @@ func TestHoldStoreHelper(t *testing.T) {
 
 // TestSecondHostRefused starts a first host in another process and checks
 // that a second cannot open the same records, that its error names the
-// first, and that the records open once the first exits.
+// first by process ID and program name only, that the holder file is the
+// owner's alone, and that the records open once the first exits.
 func TestSecondHostRefused(t *testing.T) {
 	// Start the first host and wait until it holds the store.
+	// An older modlock left a world-readable holder file with its arguments.
 	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, HolderFile), []byte("process 1, modlock play -test.run=old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	first := exec.Command(os.Args[0], "-test.run=^TestHoldStoreHelper$", "-test.count=1")
 	first.Env = append(os.Environ(), holdEnv+"="+dir)
 	stdin, err := first.StdinPipe()
@@ -54,11 +60,20 @@ func TestSecondHostRefused(t *testing.T) {
 	}
 
 	// The second is refused and told which process holds the records, by its
-	// process ID and its command line.
+	// process ID and program name, never its arguments, and the holder file
+	// is the owner's alone.
 	_, err = Open(dir)
 	pid := "process " + strconv.Itoa(first.Process.Pid)
-	if err == nil || !strings.Contains(err.Error(), "another modlock keeps these records") || !strings.Contains(err.Error(), pid) || !strings.Contains(err.Error(), "-test.run=^TestHoldStoreHelper$") {
-		t.Fatalf("second host: got %v, want a refusal naming %s and its arguments", err, pid)
+	program := filepath.Base(os.Args[0])
+	if err == nil || !strings.Contains(err.Error(), "another modlock keeps these records") || !strings.Contains(err.Error(), pid+", "+program) || strings.Contains(err.Error(), "-test.run") {
+		t.Fatalf("second host: got %v, want a refusal naming %s and %s without arguments", err, pid, program)
+	}
+	held, err := os.ReadFile(filepath.Join(dir, HolderFile))
+	if err != nil || string(held) != pid+", "+program {
+		t.Fatalf("holder file: %q %v, want %q", held, err, pid+", "+program)
+	}
+	if info, err := os.Stat(filepath.Join(dir, HolderFile)); err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("holder file mode: %v %v, want 0600", info.Mode().Perm(), err)
 	}
 
 	// Once the first exits, the records open and take an update.
