@@ -30,7 +30,7 @@ Pyright, and Pylance in VS Code, check your mod's types.
 For stricter or looser checking, edit `typeCheckingMode` and the report rules
 in the project's `pyrightconfig.json`. That file also tells the checkers where
 the library is, in `.modlock`, and they read it only from the folder the editor
-has open. Open the mod's own folder, because from any other folder the editor
+has open. Open the mod's own folder in the editor: from any other folder, it
 reports that `modlock` could not be resolved.
 
 One module imports another by its name, such as `import round`. Mods run on

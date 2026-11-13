@@ -24,9 +24,8 @@ function marker.remove()
 	text = nil
 end
 
--- forget clears the mod's record of the marker. It does not remove the
--- marker from the game, because the game already removed it when it loaded
--- the new map.
+-- forget clears the mod's record of the marker. The marker itself is already
+-- gone from the game, which removed it with the old map.
 function marker.forget()
 	text = nil
 end

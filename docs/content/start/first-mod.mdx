@@ -16,21 +16,24 @@ modlock dev
 `modlock new` asks for your mod's name and language, then writes the project
 into a directory named after the mod, so "Zombie Tag" becomes `zombie-tag`.
 
-## What the project holds
+## Project files
+
+A project is a directory with the manifest, an entry file and the files your
+editor needs for the mod's language:
 
 | Language   | Files                                                    | Notes                                                   |
 | ---------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`, `node_modules/`  | `node_modules/modlock` holds the library's types.       |
+| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`, `node_modules/`  | `node_modules/modlock` contains the library's types.    |
 | JavaScript | `mod.json`, `main.js`, `tsconfig.json`, `node_modules/`  | Your editor checks types from JSDoc comments.           |
-| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` holds the library's types.                  |
-| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | `.modlock/` holds the library's types.                  |
+| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` contains the library's types.               |
+| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | `.modlock/` contains the library's types.               |
 | Go         | `mod.json`, `main.go`, `go.mod`, `go.sum`                | `modlock new` needs [Go](https://go.dev/dl/) installed. |
 
 Every project also gets a `.gitignore` and a `.vscode/extensions.json`, which
-suggests the editor extensions for its language.
+lists the editor extensions suggested for its language.
 
-`mod.json` is the [manifest](/reference/manifest), which holds the mod's slug,
-name and version. The entry file, such as `main.ts`, holds your mod's code, and
+`mod.json` is the [manifest](/reference/manifest), which has the mod's slug,
+name and version. The entry file, such as `main.ts`, contains your mod's code, and
 `modlock new` fills it with what most game modes start from. It turns off lane
 troopers and jungle creeps, lets any number of players pick the same hero, and
 [seats](/guides/toolkit#seat-the-players) each player who joins on a team with a

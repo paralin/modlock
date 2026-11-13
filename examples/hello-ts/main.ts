@@ -29,8 +29,7 @@ onStart((args) => {
   log('hello-ts started with', args.length, 'arguments:', args.join(' '))
 })
 
-// When a map loads, the game has already removed every sign, so the mod
-// forgets them too.
+// Loading a map removes every sign from the game. The mod forgets them too.
 onWorld((map) => {
   forgetSigns()
   log('world loaded:', map)

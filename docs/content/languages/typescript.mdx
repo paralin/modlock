@@ -22,10 +22,10 @@ TypeScript only.
 ## The build
 
 The build starts from `main.ts`, or `main.js`, and type-checks a JavaScript mod
-from its JSDoc comments. You install nothing else, because each build writes
-the library's types to `node_modules/modlock` for your editor and the type
-checker, and bundles your mod with the copy of the library built into
-`modlock`.
+from its JSDoc comments. Each build writes the library's types to
+`node_modules/modlock` for your editor and the type checker, and bundles your
+mod with the copy of the library built into `modlock`, so you install nothing
+else.
 [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto)
 documents every call, its arguments and its result.
 

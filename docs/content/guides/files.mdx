@@ -3,7 +3,7 @@ title: Files
 description: Keep text files on the host, with defaults shipped in the mod.
 ---
 
-Your mod can read and write text files, such as its configuration or the
+A mod's files are text files on the host, such as its configuration or the
 areas a player drew in the game. You put each file's default in your project's
 `data/` directory: `modlock build` copies that directory into the build, and
 `modlock publish` uploads it with the rest of the build.
@@ -122,7 +122,7 @@ treat a missing file as a reason to use its default rather than as an error.
 
 The host hands your mod each file's contents as a string and never parses
 them, so you choose the format and bundle a parser for it. This TypeScript mod
-keeps its areas in YAML, so it imports the `yaml` package:
+keeps its areas in YAML and imports the `yaml` package to read them:
 
 ```ts
 import { parse, stringify } from 'yaml'

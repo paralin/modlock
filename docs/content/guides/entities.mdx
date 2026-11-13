@@ -3,8 +3,8 @@ title: Entities
 description: Read and write any field of a live entity, create entities and send them inputs.
 ---
 
-Your mod can read and write every schema field of the game's entities, create
-any entity by its designer name and send any input, in every language. The
+The calls on this page read and write any schema field of the game's entities,
+create any entity by its designer name and send any input, in every language. The
 [Luau](/languages/luau#typed-entities),
 [Python](/languages/python#typed-entities-and-the-console) and
 [Go](/languages/go#typed-entities-and-the-console) pages describe their typed
@@ -370,7 +370,7 @@ if err == nil {
 dedicated server, 578 of the 1,191 surveyed. Each name that needs a subclass gets
 the subclass it spawned with, so `create('npc_trooper_boss', ...)` makes a Guardian without asking
 for `npc_boss_tier1`. A name that never stayed alive, such as an abstract base or
-one that crashes the server, has no constructor, so the type checker rejects it.
+one that crashes the server, has no constructor, and the type checker rejects it.
 [Entity schema](/internals/entity-schema) describes the whole entity
 system: the dump, the survey, the generated classes in each language and what
 the host checks.

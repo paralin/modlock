@@ -3,7 +3,10 @@ title: The manifest
 description: Every field of mod.json.
 ---
 
-Every project has a `mod.json` at its root:
+The manifest is the `mod.json` file at a project's root. It has the mod's
+slug, name, version and language, and may add its map, movement, definition
+changes, settings, metrics and boards. The smallest manifest has the four
+required fields:
 
 ```json
 {
@@ -25,7 +28,7 @@ Every project has a `mod.json` at its root:
 | `movement`    |          | A [movement model](/reference/manifest#movement) that replaces how heroes move.                                       |
 | `definitions` |          | [Definition changes](/reference/manifest#definitions) to heroes and abilities.                                        |
 | `settings`    |          | [Choices](/reference/manifest#settings) each player makes about the mod.                                              |
-| `metrics`     |          | [Totals](/reference/manifest#metrics) the mod keeps for each player.                                                  |
+| `metrics`     |          | Running [totals](/reference/manifest#metrics) for each player, which the mod adds to.                                 |
 | `boards`      |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                                     |
 | `freeForAll`  |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
 
@@ -127,13 +130,13 @@ A bot difficulty entry is an `ECitadelBotDifficulty` value, and every bot of
 that difficulty reads the changed record, including bots already playing. A bot
 whose difficulty has no record in the file uses the easy one. A bot retreats to
 its base when its health falls below `low_health` percent, or below
-`low_health_pushed` percent when it is near an enemy tower, so setting both to 0
+`low_health_pushed` percent when it is near an enemy tower. Setting both to 0
 makes bots fight to the death.
 
 Every bot reads the one `npc_player_bot_brain` unit. When an enemy stands more
 than `m_flDisengageFromEnemyToLaneDist` beyond the front of the bot's lane, the
-bot gives up the chase and walks back to the lane, so raising that field lets
-bots fight away from the lanes.
+bot gives up the chase and walks back to the lane. Raise that field to let bots
+fight away from the lanes.
 
 ## Settings
 
@@ -174,7 +177,7 @@ with no choices or a number whose `min` is not below its `max`. [Settings](/guid
 ]
 ```
 
-| Kind         | Keeps                        |
+| Kind         | Total                        |
 | ------------ | ---------------------------- |
 | `KIND_COUNT` | How many times it was added. |
 | `KIND_SUM`   | The sum of the added values. |
@@ -216,7 +219,7 @@ totals.
 | `label`             | The board's title on screen.                                                                                                |
 | `unit`              | `UNIT_NUMBER` or `UNIT_MILLISECONDS`.                                                                                       |
 | `order`             | `ORDER_DESCENDING` ranks the highest value first. `ORDER_ASCENDING` ranks the lowest first, as for a time.                  |
-| `keep`              | What a player's standing keeps.                                                                                             |
+| `keep`              | Which of a player's scores make up their standing: the best, the sum, a count, the latest or a rating.                      |
 | `rating`            | `RATING_ELO` or `RATING_GLICKO2`, for a `KEEP_RATING` board.                                                                |
 | `partitions`        | Up to four dimensions that split the board into separate rankings. Each dimension may list allowed values.                  |
 | `windows`           | `WINDOW_ALL_TIME`, `WINDOW_DAY` and `WINDOW_WEEK`. All time alone by default. Windows follow UTC, and a week starts Monday. |
@@ -225,7 +228,7 @@ totals.
 | `version`           | Raise it to start a fresh ranking when the unit, order, keep rule, rating or partitions change.                             |
 | `hud`               | `HUD_END_CARD` asks the host to show the player's place after each score.                                                   |
 
-| Keep          | Keeps                                              |
+| Keep          | Standing                                           |
 | ------------- | -------------------------------------------------- |
 | `KEEP_BEST`   | The best value by the board's order.               |
 | `KEEP_SUM`    | The sum of the values.                             |
@@ -234,7 +237,7 @@ totals.
 | `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
 
 When your mod reports a score, it gives a value for each partition and may give
-a `key` for the run, so a score that is sent twice counts once. Between equal
+a `key` for the run. A score sent twice with the same key counts once. Between equal
 values, the lower `tiebreak` ranks first. The host's scores service ranks the
 scores, decides who may report and how far it trusts each server. Under
 `modlock dev`, where no such service runs, the host checks each score against

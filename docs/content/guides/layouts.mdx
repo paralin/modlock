@@ -72,22 +72,23 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
   library `scripts/modlock/layout.js`. The `modlock` command
   line in a release has it built in, and `go run ./cmd/modlock-library` builds it from
   source into `js/built` for the next build of the command line to embed.
-- A client content package keeps the layout loaded through matches, and the
-  renderer draws over the HUD.
+- The game keeps a client content package, and the layout in it, loaded
+  through matches. The renderer draws over the HUD.
 - `modlock dev` and `modlock play` serve the local player's interfaces on
   `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
   https pages, so the renderer reads them through a relay page at `--ui-relay`,
   `https://hyperline.gg` by default. The controller answers only that origin's
   page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
   and the page reads the screen from that loopback port.
-- Both commands also install the renderer in the game for the session, so its
-  interfaces show with no setup. They write `game/citadel/modlock_dev`, a
+- For the session, both commands also install the renderer in the game, with no
+  setup from you. They write `game/citadel/modlock_dev`, a
   package that adds the renderer to the stock news layout, and mount it
   between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
-  content, removed when the session ends. The game reads it at startup, so a
-  game already running shows the interfaces after a restart.
+  content, and remove it when the session ends. The game reads the package only
+  at startup, so a game that was already running shows the interfaces only
+  after a restart.
 - A press runs the console command `modlockpress <mod> <node>` in the player's
-  game. `pressCommand` in `panorama/src/draw.ts` builds it, so a host with its
-  own renderer presses the same way. The server presses the node for the
+  game. `pressCommand` in `panorama/src/draw.ts` builds that command, and a host
+  with its own renderer calls it to press the same way. The server presses the node for the
   player who sent it, and only when that player's interface shows it as a
   button.

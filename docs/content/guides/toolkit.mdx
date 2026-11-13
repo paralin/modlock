@@ -210,7 +210,7 @@ mod.OnFrame(func(frame *mod.FrameEvent) { cast.Frame(frame.GetTimeSeconds()) })
 
 | Option  | Does                                                                                                                                                                             |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `join`  | Makes a member when a player arrives. A reconnect is a leave and a join, so a member never carries the last player's state.                                                      |
+| `join`  | Makes a member when a player arrives. A reconnect is a leave and a join, so a member never has the last player's state.                                                          |
 | `leave` | Runs when the member's player leaves.                                                                                                                                            |
 | `bots`  | Makes bots members or kicks them; without it bots are left out.                                                                                                                  |
 | `want`  | A hero, team and respawn delay for everyone, or a function of the member read each frame. Without a team, a member keeps their hero's team or joins the side with fewer members. |

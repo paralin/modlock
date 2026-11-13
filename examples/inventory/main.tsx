@@ -46,15 +46,15 @@ const starting: readonly Item[] = [
 const bags = new Map<bigint, Bag>()
 
 /**
- * open holds the connection generation of each slot whose bag is open. The
+ * open is the connection generation of each slot whose bag is open. The
  * host clears a player's interface when they leave, so a new connection in
  * the slot starts closed.
  */
 const open = new Map<number, number>()
 
 /**
- * bagBlock is the buttons an open bag withholds from its player, so a click on
- * a slot does not fire the weapon.
+ * bagBlock is the buttons the mod blocks while a player's bag is open, so a
+ * click on a slot does not fire the weapon.
  */
 const bagBlock = Buttons.attack | Buttons.altFire | Buttons.melee
 

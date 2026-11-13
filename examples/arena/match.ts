@@ -71,7 +71,7 @@ export class Match {
   /** result is the last match's outcome. */
   result = ''
   /**
-   * fighters holds a fighter for each player and practice bot, which come
+   * fighters has a fighter for each player and practice bot, which come
    * back respawnSeconds after they fall.
    */
   readonly fighters = new Cast<Fighter>({
@@ -79,7 +79,7 @@ export class Match {
     want: { respawn: respawnSeconds },
     bots: 'join',
   })
-  /** bots holds the practice bots the mod added. */
+  /** bots is the practice bots the mod added. */
   private readonly bots: Player[] = []
 
   /**

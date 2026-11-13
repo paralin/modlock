@@ -28,8 +28,8 @@ import {
   watchInput,
 } from 'modlock'
 
-// The game deletes a solid model that carries physics prop data, so the
-// catalog holds only models it keeps.
+// The game deletes a solid model that has physics prop data, so the catalog
+// contains only models the game keeps.
 const catalog: CatalogEntry[] = [
   {
     name: 'Crate',

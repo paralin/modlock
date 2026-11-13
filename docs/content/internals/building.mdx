@@ -72,8 +72,8 @@ caches the result, while a release build downloads the library its release
 publishes. After a `git pull`, build the command again.
 
 A build from source has no release to download the host from, so set
-`MODLOCK_HOST` to a `modlock-host.exe`. The sandbox needs it too, because it runs
-the interpreters beside the host. For a checkout of a release, or close to one,
+`MODLOCK_HOST` to a `modlock-host.exe`. The sandbox runs the interpreters beside
+the host and needs it too. For a checkout of a release, or close to one,
 unpack that release's host:
 
 ```sh

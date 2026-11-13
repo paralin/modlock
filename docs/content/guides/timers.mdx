@@ -74,7 +74,7 @@ mod.Sequence(func(run int) (time.Duration, bool) {
 Each call returns a timer with `finished` and `cancel()`.
 
 - Timers count the game's clock, so pausing the game pauses them. They keep running across a map change.
-- A timer runs on the first frame at or after its time, and at most once per frame, so the frame rate sets its precision. A repeating timer that falls behind skips the runs it missed.
+- The frame rate sets a timer's precision: it runs on the first frame at or after its time, and at most once per frame. A repeating timer that falls behind skips the runs it missed.
 - Timers due on one frame run in the order they came due.
 - A timer made inside a callback first runs on the next frame.
 - A callback that throws ends only its own timer and logs `timer failed`.

@@ -55,11 +55,12 @@ command('hello', (player) => {
   mod with `/restartmod`.
 - **Any language.** You can write a mod in any language that compiles to
   WebAssembly, using a small library for that language.
-- **Built once.** A mod keeps working across game updates, because the server
-  looks up the fields and inputs it uses by name when it runs.
-- **Fast.** Wasmtime compiles mods to machine code with Cranelift, and the
-  server calls them in the game frame, so a mod can decide whether to claim a
-  command or change a frame as it happens.
+- **Built once.** A game update moves fields around in the server's memory.
+  The server finds each field and input by name, so a mod built before an
+  update still works after it.
+- **Fast.** Wasmtime compiles mods to machine code with Cranelift. The server
+  calls a mod inside the game frame and waits for its answer, so the mod can
+  claim a command or change that frame before the game moves on.
 
 [Wasmtime]: https://wasmtime.dev
 

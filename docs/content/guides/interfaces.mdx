@@ -3,11 +3,10 @@ title: Interfaces
 description: Draw a HUD, a menu or a notice on a player's screen.
 ---
 
-Your mod can draw interfaces in every language: TypeScript in JSX, Luau with
-`@modlock/ui`, Python with `modlock.ui` and Go with `mod/ui`. Each has a HUD kit
-(`hud`) and style tokens (`theme`). When a screen asks the player to click, your
-mod frees the cursor and blocks the buttons a click would fire, then releases
-them when the screen closes:
+Each language has an interface library: JSX in TypeScript, `@modlock/ui` in
+Luau, `modlock.ui` in Python and `mod/ui` in Go. Each library has a HUD kit
+(`hud`) and style tokens (`theme`). This screen asks the player to click. The mod frees the
+cursor and blocks the buttons a click would fire, and `closePicks` releases them:
 
 <Samples>
 
@@ -117,15 +116,16 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 
 ## The cursor
 
-- The game keeps shooting, turning and moving while the cursor is up, so the
-  mod blocks the buttons itself and releases them when the screen closes.
+- While the cursor is up, the game still shoots, turns and moves the hero. The
+  mod blocks those buttons itself, and releases them in the same call that
+  hides the screen.
   `hide` gives the mouse back to aiming.
 - The player can put the cursor away with the game's own keys, and it
   stays away while the screen changes. Each `freeCursor(player, true)` shows it
   again.
 - `cursorFree(player)` reports whether the cursor is up, and nothing while the
-  player has no hero. A mod that wants it back calls `freeCursor` again when
-  it reports false, on a press or a timer.
+  player has no hero. A mod that wants the cursor back calls `freeCursor` again
+  when `cursorFree` reports false, on a press or a timer.
 
 ## Style it
 
@@ -221,7 +221,7 @@ ui.Show(p, hud.TopStrip{Heading: "Round 2", Children: hud.Score{Points: [2]int{1
 | `<Action kind>`         | A button in the game's menu look, with its hover, sounds and disabled state. |
 | `<Meter value>`         | A bar that eases to each new value.                                          |
 
-`theme` holds the tokens, such as `theme.tones` and `theme.sizes`, for a mod's
-own panels, and each entry in `heroes` carries its small `portrait`.
+`theme` contains the tokens for a mod's own panels, such as `theme.tones` and
+`theme.sizes`, and each entry in `heroes` has its small `portrait`.
 [Layouts](/guides/layouts) covers layouts from the mod's content, style
 sheets and how the game draws an interface.

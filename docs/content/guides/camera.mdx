@@ -5,7 +5,7 @@ description: Pull back, aim and shake the camera, and play curves on it.
 
 `playCamera` moves a player's camera along a curve for each camera param, all
 on one timeline. The host sends each curve to the game as the game's own lerps,
-so the game plays the move smoothly and your mod needs no timers for it. Camera
+and the game plays them smoothly with no timers in your mod. Camera
 curves exist only in TypeScript, so this page's samples are TypeScript only. The
 calls they build on, `moveCamera` and `clearCamera`, are in every language.
 
@@ -76,9 +76,9 @@ builder returns a curve, so you can pass one builder's result to another:
 ## No pitch
 
 The game's camera operations (`CCitadelUserMsg_CameraController`) move only the
-five params above, and the view always looks along the player's own aim, so
-`Pawn.cameraPosition` and `cameraAngles` stay accurate when your mod uses them
-to find what the player aims at. Frame a higher
+five params above. The view always looks along the player's own aim, which keeps
+`Pawn.cameraPosition` and `cameraAngles` accurate for finding what the player
+aims at. Frame a higher
 view by raising `verticalOffset` and pulling `distance` back, and shift it with
 `horizontalOffset`; the player tilts it with the mouse. Turning the view itself
 means setting the player's view angles, which takes over their look.

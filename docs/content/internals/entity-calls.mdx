@@ -57,15 +57,17 @@ order:
 6. It spawns the entity and returns its handle.
 
 The host records every entity a mod creates. The world removes them when it
-ends, and stopping or reloading the mod removes them too, so a mod never
-leaves entities behind.
+ends, and stopping or reloading the mod removes them too. A mod never leaves
+entities behind.
 
 ### Units and pickups
 
 `spawnNpc` and `createPickup` are built on the same call. `spawnNpc` takes any
 unit class the server has, with its subclass as `unit`, and adds what a unit
-needs: health and maximum health, and a lane. A lane is written to the class's
-`m_iLane` field before the unit spawns, so for a class without that field, such as `npc_yakuza_gangster`, the call fails with a message that gives the class. `Npc` reads,
+needs: health and maximum health, and a lane. The host writes the lane to the
+class's `m_iLane` field before the unit spawns. For a class without that field,
+such as `npc_yakuza_gangster`, the call fails with a message that gives the
+class. `Npc` reads,
 moves, heals and removes the unit.
 
 `createPickup` makes the soul urn or the movement buff with the designer name
@@ -112,8 +114,11 @@ const hero = new CCitadelPlayerPawn(pawn.entity)
 hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
-The first time a mod uses a field, the host looks up its offset in the schema and caches it. Before it touches memory, it checks that the entity is
-of the class the call gives or derives from it, so a call that passes a trooper's handle with the class `CCitadelPlayerPawn` fails with a message giving both classes, and nothing is written.
+The first time any mod on the server uses a field, the host looks up its offset
+in the schema and caches it until the server exits. Before it touches memory,
+it checks that the entity is of the class the call gives or derives from it. A
+call that passes a trooper's handle with the class `CCitadelPlayerPawn` fails
+with a message giving both classes, and nothing is written.
 A write marks the field changed so the server sends it to the players.
 
 A dotted field name reaches a field inside an embedded structure, such as the
@@ -130,9 +135,9 @@ writeField(
 )
 ```
 
-Each segment is a field of the structure that the segment before it holds, and
-the host refuses a path through a field that holds a number, a pointer or a
-handle.
+Each segment is a field of the segment before it, which must be an embedded
+structure: the host refuses a path through a field whose type is a number, a
+pointer or a handle.
 
 Field types cover booleans, signed and unsigned integers of 8 to 64 bits, 32
 and 64-bit floats, vectors, entity handles and strings. Angles travel as
@@ -140,9 +145,9 @@ vectors. A typed field whose type is another entity class reads as that
 class, so `hero.m_hController` is a controller a mod can read further.
 
 The host checks the requested type against the type the schema declares for
-the field, and refuses a call whose type the field cannot hold, with a message giving both types:
+the field, and refuses a call whose type does not fit the field, with a message giving both types:
 
-- Any number type, a boolean or a handle reads a field that holds a number,
+- Any number type, a boolean or a handle reads a field whose type is a number,
   boolean, enum, handle or boxed number such as `GameTime_t`. The value is cut
   to the requested type's size.
 - `vector` reads a `Vector`, `VectorWS` or `QAngle`.
@@ -173,7 +178,7 @@ A write sends the whole rules to the players, so players already in the match
 see the change at once. A field the game's clients derive from other state may
 be set again by the game on its next update.
 
-A field that holds a list of numbers, handles, booleans, vectors or text, such
+A field whose type is a list of numbers, handles, booleans, vectors or text, such
 as the banned heroes or the neutral camp spawn times, reads as an array and
 writes by replacing the array. The host grows the game's list when the new array
 is longer than the space the game allocated. A list of structures, such as the
@@ -217,7 +222,7 @@ hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor`, which
 defaults to the attacker, and an optional `ability`; `damage` also takes an
 `amount`.
 
-- **Handles carry their generation.** A stale handle fails instead of selecting
+- **A handle includes its entity's generation.** A stale handle fails instead of selecting
   a replacement entity, so an attacker that has since died or left credits
   nobody.
 - **Forced kills use the game's own logic.** `killEntity` credits the attacker
@@ -244,7 +249,7 @@ failures a mod can meet:
 
 | Message                                       | Cause                                                        |
 | --------------------------------------------- | ------------------------------------------------------------ |
-| `the server has no entity NAME`               | The designer name is not one this build knows                |
+| `the server has no entity NAME`               | The designer name is not in this build                       |
 | `NAME is an ability, which only a hero holds` | An ability, item or weapon; give it to a hero instead        |
 | `NAME crashes the server when created alone`  | One of the entities below; the message says what it needs    |
 | `NAME walks no lane`                          | `spawnNpc` was given a lane for a class without `m_iLane`    |
@@ -253,9 +258,9 @@ failures a mod can meet:
 | A class mismatch naming both classes          | A field was named on a class the entity does not derive from |
 
 `createEntity` refuses the 25 designer names below before they exist, and none
-has a constructor. Each crashes the server when made alone, because it reads
-state that a map, a game mode, an owning hero or the ability that makes it
-provides. A bounce pad, for one, is created safely, but finds its team through
+has a constructor. Each reads state that a map, a game mode, an owning hero or
+the ability that makes it provides, and crashes the server when made without
+it. A bounce pad, for one, is created safely, but finds its team through
 the ability that placed it, so the first hero to cross a pad made alone crashes
 the server.
 

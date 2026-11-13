@@ -14,7 +14,7 @@ one:
 
 The calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto). A
 `Call` selects one method of the `Host` service, when a mod calls the game, or
-of the `Mod` service, when the host delivers an event, and holds its encoded request. The `Reply` holds the encoded response or an error. A new capability is added as a new method, so the three functions never change. Each event runs within a time
+of the `Mod` service, when the host delivers an event, and contains its encoded request. The `Reply` contains the encoded response or an error. A new capability is added as a new method, so the three functions never change. Each event runs within a time
 budget, which stops a runaway loop, and each mod has a memory limit.
 
 A program that embeds the host can offer mods more than the game, such as a game
@@ -36,8 +36,8 @@ Each concern's messages live in a `.proto` beside the code that implements it,
 in its own package with its directory's name: `src/wasm/players/players.proto`
 declares `modlock.wasm.players`, the C++ namespace `modlock::wasm::players`
 and the Go package `github.com/paralin/modlock/src/wasm/players`. The mod
-boundary's calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto) and the
-messages they carry in the packages beside it. `bun run gen` regenerates all of the Go, TypeScript, Luau, Python, and
+boundary's calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto), and their
+messages are in the packages beside it. `bun run gen` regenerates all of the Go, TypeScript, Luau, Python, and
 C++ code with the protobuf toolchain the repository pins.
 [Building Modlock](/internals/building#run-the-command-from-a-clone) says where
 `modlock build` gets the TypeScript library.

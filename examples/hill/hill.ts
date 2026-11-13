@@ -93,9 +93,8 @@ export class Hill {
   }
 
   /**
-   * forget clears the mod's record of the hill. It does not remove the
-   * markers from the game, because the game already removed them when it
-   * loaded the new map.
+   * forget clears the mod's record of the hill. The markers themselves are
+   * already gone from the game, which removed them with the old map.
    */
   forget(): void {
     this.ring = []

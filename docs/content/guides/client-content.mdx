@@ -4,8 +4,8 @@ description: Ship layouts, style sheets, models and sounds to every player.
 ---
 
 The build packs the files under your project's `content/` into the mod's own
-addon, which every player's game mounts. The addon is named `SLUG-DIGEST`, from
-the mod's slug and a digest of the content, so write `{addon}` wherever the
+addon, which every player's game mounts. The addon's name, `SLUG-DIGEST`, comes
+from the mod's slug and a digest of the content. Write `{addon}` wherever the
 addon's name goes, and the build or the host fills it in:
 
 ```xml
@@ -22,13 +22,15 @@ addon's name goes, and the build or the host fills it in:
 - `content/layout/scoreboard.xml` builds to
   `build/panorama/layout/SLUG-DIGEST/scoreboard.vxml_c`, and models to
   `models/SLUG-DIGEST/` and so on.
-- A release that changes only code keeps the addon and every path in it, so a
+- A release that changes only code has the same addon and paths as the one
+  before it, so a
   game that mounted the previous release still finds the new one's resources.
-- The build refuses a source the game cannot load, such as a `.vmdl` or a
-  Hammer map's `.vmap`, so keep sources outside `content/`. The publishing check
+- Keep sources outside `content/`: the build refuses a source the game cannot
+  load, such as a `.vmdl` or a Hammer map's `.vmap`. The publishing check
   refuses client files outside the addon's directories.
-- The build does not rewrite a path inside a compiled resource, so point it at
-  the game's own resources, or at the addon's name for the version you build.
+- The build does not rewrite a path inside a compiled resource. Point such a
+  path at the game's own resources, or at the addon's name for the version you
+  build.
 
 ## Draw a layout in the world
 
@@ -94,9 +96,10 @@ _, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: positi
 
 A panel that the map placed got its layout path before the addon's name
 existed. Point it at your mod's layout with `writeField`, which also fills in
-`{addon}`. Do it as each world loads, because mods start before the map's
-entities exist. Each write sends connected players a full update that stalls
-their game for a moment, so write a layout only when it changes:
+`{addon}`. The map's entities exist only once a world has loaded, after
+your mod started, so make the write in your world handler. Each write sends
+connected players a full update that stalls their game for a moment. Write a
+layout only when it has changed:
 
 <Samples>
 

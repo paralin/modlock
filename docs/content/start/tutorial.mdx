@@ -3,7 +3,7 @@ title: Tutorial
 description: Build a small brawl with a countdown, a score, a HUD and a sign.
 ---
 
-Each step adds a few lines to the project that `modlock new` made, and `modlock dev` reloads the mod when you save, so you can try each step right away. By the last step you have a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) build the same ideas into complete game modes you can play.
+Each step adds a few lines to the project that `modlock new` made. When you save, `modlock dev` reloads the mod, and you can try the step in the game right away. By the last step you have a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) build the same ideas into complete game modes you can play.
 
 Put a step's import lines at the top of the main file and the rest of its code at the end. A step imports only the names it adds, so keep the imports from earlier steps.
 
@@ -346,7 +346,7 @@ func playerOf(entity uint32) (mod.Player, bool) {
 
 </Samples>
 
-This map keys scores by slot. A slot is reused when one player leaves and another joins, so when players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
+This map keys scores by slot. When one player leaves and another joins, the newcomer takes the same slot. In a mode where players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
@@ -503,13 +503,13 @@ func init() {
 
 </Samples>
 
-Redraw every player's HUD from your state on each frame. This costs little, because `show` compares the tree with the one it sent last and sends the player only what changed. When a player presses a button, the mod calls its `onPress` with that player.
+Redraw every player's HUD from your state on each frame. `show` compares the tree with the one it sent last and sends the player only what changed, so a redraw on every frame costs little. When a player presses a button, the mod calls its `onPress` with that player.
 
 [Interfaces](/guides/interfaces) lists every element and style.
 
 ## 6. Place things in the world
 
-Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them, so drop your references in the world event, which fires as each world loads.
+Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each new world loads.
 
 <Samples>
 
@@ -629,7 +629,7 @@ When the mod starts, precache the heroes and models your mode uses, so the game 
 
 ## 7. Let players choose, and keep score
 
-A setting is a choice each player makes once and keeps between matches, such as where the score sits on screen. A metric is a running total the mod keeps for each player, such as their defeats. Declare both in `mod.json`, under `settings` and `metrics`:
+A setting is a choice each player makes once and keeps between matches, such as where the score sits on screen. A metric is a running total for each player that the mod adds to, such as their defeats. Declare both in `mod.json`, under `settings` and `metrics`:
 
 ```json
 "settings": [

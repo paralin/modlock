@@ -33,7 +33,7 @@ type Sign = {
 	expires: number,
 }
 
--- signs holds the flares in the world, oldest first.
+-- signs is the list of flares in the world, oldest first.
 local signs: { Sign } = {}
 
 -- ready maps each slot to the game time its next flare is allowed.
@@ -102,9 +102,9 @@ function flare.expire(now: number)
 	end
 end
 
--- forget clears the mod's record of its signs and cooldowns. It does not
--- remove the signs from the game, because the game already removed them when
--- it loaded the new map.
+-- forget clears the mod's record of its signs and cooldowns. The signs
+-- themselves are already gone from the game, which removed them with the old
+-- map.
 function flare.forget()
 	table.clear(signs)
 	table.clear(ready)

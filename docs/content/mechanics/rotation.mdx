@@ -25,8 +25,10 @@ and the standings, and each call reads only what you pass it. That is how
 
 ## The line and the standings
 
-Keep the line as an array of your own players, in arrival order, and a
-`Standings`, which holds one `Standing` per Steam ID for the session:
+A player's standing is their record for the session: matches played, rating,
+wins, losses and current win streak. A `Standings` contains one `Standing` per
+Steam ID. Keep the line as an array of your own players, in arrival order,
+beside one `Standings`:
 
 - A player who leaves and rejoins keeps their record and place.
 - `join` creates the standing at `startingRating`, then raises matches played
@@ -144,7 +146,7 @@ hero:
 Teleport the hero to its seat facing the ring, then aim `playCamera`'s
 `target`, the point the camera turns around, at the ring's center with a long
 `distance`, for a view the player circles with the mouse. Each param snaps
-back when its curve ends, so hold each curve longer than any wait, and clear
+back as soon as its curve ends. Hold each curve longer than any wait, and clear
 the context when the player leaves the stands:
 
 ```ts
@@ -187,16 +189,15 @@ function unseat(player: Player, pawn: number): void {
 }
 ```
 
-`playCamera` returns nothing while the player has no hero, so mark the seat
-taken only once `seat` returns true, and try again each frame. A bystander
+`playCamera` returns nothing while the player has no hero. Mark the seat taken
+only once `seat` returns true, and try again each frame until it does. A bystander
 can still die from a fall or world damage, so respawn it and seat it again.
 
 ## Heroes left behind
 
 Swapping a player's hero, or moving them to the spectators and back, can
-leave the old hero with no player controlling it, and the game revives it on its
-own timer. Keep
-one `Strays` and call `sweep(now)` each frame:
+leave the old hero with no player controlling it. The game still revives that
+hero on its own timer. Keep one `Strays` and call `sweep(now)` each frame:
 
 - A hero belongs to a player while its controller points to it, so a player
   joining or spectating keeps theirs.

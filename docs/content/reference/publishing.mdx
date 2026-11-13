@@ -22,10 +22,10 @@ another service with the same API, pass its address with `--origin`. The
 `github` destination publishes with the [`gh`](https://cli.github.com) command
 line, signed in as `gh` is.
 
-The built `mod.json` keeps every field you add that Modlock itself does not
-read, such as a description for a store, so the destination can read them.
-Hyperline accepts each version only once, so raise `version` in `mod.json`
-before you publish again.
+The build copies into the built `mod.json` every field you add that Modlock
+itself does not read, such as a description for a store, and the destination
+reads them there. Hyperline accepts each version only once: raise `version` in
+`mod.json` before you publish again.
 
 Pass `--notes` to say what changed: hyperline.gg shows the notes on the game's
 page, and the `github` destination puts them on the new release.
@@ -35,8 +35,8 @@ the mod's testers only, and every game keeps playing its current release.
 hyperline.gg adds a Draft copy of each of the mod's games, such as "Zombie Tag
 Prerelease", which plays the prerelease, and anyone a tester invites may join
 it. A later prerelease replaces the one before it. When you choose that Draft
-copy as current on hyperline.gg, the same build becomes the release, so you do
-not publish again.
+copy as current on hyperline.gg, the same build becomes the release without
+another publish.
 
 After the upload, `modlock publish` tells you where the release can be
 played. A mod with code plays on hyperline.gg's game servers at once, and on

@@ -3,7 +3,7 @@ title: Abilities and items
 description: Swap, train and upgrade abilities, buy items, and redraw the ability bar.
 ---
 
-Your mod can swap a hero's abilities and buy items for the hero, and the game
+These calls swap a hero's abilities and buy items for the hero. The game
 applies its own rules and costs to each. The table spells each call as
 TypeScript and Luau do. Python spells them in `snake_case`, and Go capitalizes
 them.
@@ -45,11 +45,11 @@ that swaps abilities claims them and answers with its own call:
 
 ## The ability bar
 
-When a player clicks an ability that `replaceAbility` gave on the game's
-ability bar, the game sends nothing, so `abilityBarPresses` reports the click
+The game sends nothing when a player clicks an ability that `replaceAbility`
+gave on the game's ability bar. `abilityBarPresses` reports that click instead,
 and your mod answers it with `trainAbility`. A click the game answers itself,
 with `upgrade_ability`, reaches your mod both ways. Clicks reach your mod only
-while its screen holds the player's HUD, so a player who left, or whose session
+while its screen holds the player's HUD. A player who left, or whose session
 ended, sends none.
 
 The Tab screen and ability bar draw each hero's standard abilities by slot,

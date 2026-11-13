@@ -89,9 +89,9 @@ func (c *Course) Clear() {
 	c.Forget()
 }
 
-// Forget clears the checkpoints and the course's record of its labels without
-// removing the labels from the game, because the game already removed them
-// when it loaded the new map.
+// Forget clears the checkpoints and the course's record of its labels. The
+// labels themselves are already gone from the game, which removed them with
+// the old map.
 func (c *Course) Forget() {
 	c.checkpoints = nil
 	c.labels = nil

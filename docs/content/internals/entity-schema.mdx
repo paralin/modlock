@@ -39,7 +39,7 @@ const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
 description of itself and quits. Each document follows
 [`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto)
 and is sorted by name, so two builds' dumps diff cleanly.
-[`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) holds
+[`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) contains
 the current set:
 
 | File            | Contents                                                    | Count                                                                         |
@@ -53,17 +53,17 @@ The first three come from the game's own registries: the schema system, the
 entity factories with their data descriptions, and the console. Nothing in them
 is written by hand, so a game update is a new dump.
 
-- **Schema classes.** `schemas.json` lists each class under its module, and the `server` module holds the entity classes. A field has its name, its type as the game
-  spells it, and its offset. Modlock keeps the name and type and finds the
-  offset at run time, so a game update that moves a field needs no new build
-  of a mod.
+- **Schema classes.** `schemas.json` lists each class under its module, and the `server` module contains the entity classes. A field has its name, its type as the game
+  spells it, and its offset. The generated libraries use the name and type.
+  The host finds the offset by name the first time a mod uses the field, so a
+  game update that moves a field needs no new build of a mod.
 - **Data descriptions.** A designer name points at its data description, the
   table a map reads when it places the entity. It adds key values and inputs to
   its base and may embed others. A key value has a name, such as `rendercolor`,
   and a type, such as a 32-bit color. An input has a name, such as `Color`, and
   the Pulse type of its one parameter, if it takes one.
 - **Component keys.** An entity also takes the key values of the components its
-  class holds: the body component's scene node takes `origin`, `angles`,
+  class has: the body component's scene node takes `origin`, `angles`,
   `scale` and `ModelScale` on every entity, so `CBaseEntity`'s table lists them. Keys the scene node parses itself, such as `scale`, have a type but no
   field to read back.
 
@@ -115,7 +115,7 @@ type checker rejects `create('path_node', ...)` before the mod runs.
 **Typed console values.** Each variable takes the type the game declares;
 each command runs one line.
 
-A bundle keeps only what it uses. The generator writes output that is stable
+A mod's bundle contains only the classes it uses. The generator writes output that is stable
 across runs, so a game update shows up as a readable diff of what the game
 changed.
 
@@ -128,5 +128,6 @@ After a game update:
 3. Run `scripts/gen-entities.sh` and review the diff of the generated
    libraries, which shows what the update changed.
 
-A mod built against an earlier dump keeps working when its fields and inputs
-survive the update, because the host resolves them by name at run time.
+The host looks up fields and inputs by name, not by offset. A mod built against
+an earlier dump keeps working as long as the fields and inputs it uses still
+exist after the update.

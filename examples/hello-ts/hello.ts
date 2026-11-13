@@ -23,8 +23,8 @@ interface Sign {
 }
 
 /**
- * signs holds each player's sign by their slot. When a map loads, the game
- * removes every sign, so forgetSigns empties this map.
+ * signs is each player's sign, by slot. Loading a map removes every sign from
+ * the game, and forgetSigns then empties this map.
  */
 const signs = new Map<number, Sign>()
 
@@ -81,9 +81,8 @@ export function placeSign(player: Player, words: string): boolean {
 }
 
 /**
- * forgetSigns clears the mod's signs map. It does not remove the signs from
- * the game, because the game already removed every sign when it loaded the new
- * map.
+ * forgetSigns clears the mod's signs map. The signs themselves are already
+ * gone from the game, which removed them with the old map.
  */
 export function forgetSigns(): void {
   signs.clear()

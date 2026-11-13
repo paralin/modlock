@@ -14,7 +14,7 @@ import {
 
 import { Drill, serverConfig } from './drill'
 
-/** drills holds the running drill of each shooter, by player slot. */
+/** drills is the running drill of each shooter, by player slot. */
 const drills = new Map<number, Drill>()
 
 /** now is the game clock at the latest frame. */

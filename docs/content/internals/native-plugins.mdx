@@ -117,7 +117,7 @@ began starting stops in reverse order, including the one that failed. Remove
 live entities in `OnWorldEnding`, before the engine tears down the world, and
 drop views of the previous world in `OnWorld`. `Stop` runs after the engine
 returns. Each plugin is destroyed inside its own library before that library
-unloads. To load a new build of a plugin, restart the host, because plugins cannot be reloaded while it runs.
+unloads. Plugins cannot be reloaded while the host runs: to load a new build of a plugin, restart the host.
 
 [Engine access](/internals/engine-access) covers module lookup, signature
 resolution, platform boundaries, and hook lifetime.
