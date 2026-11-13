@@ -25,9 +25,11 @@ console.run("changelevel", "street_test")
 ```
 
 ```python
-modlock.server_command("citadel_allow_purchasing_anywhere true")
-modlock.server_command("citadel_trooper_gold_reward 40")
-modlock.server_command("changelevel street_test")
+from modlock import console
+
+console.set_boolean("citadel_allow_purchasing_anywhere", True)
+console.set_number("citadel_trooper_gold_reward", 40)
+console.run("changelevel", "street_test")
 ```
 
 ```go
@@ -44,11 +46,6 @@ Each call runs one line through `serverCommand`, which may set a
 development-only or cheat-protected variable. A variable whose value is a
 vector or a color has no typed setter; set it with `serverCommand`.
 
-<Only lang="python">
-  Python has no typed console module yet: it runs each line with
-  `modlock.server_command`.
-</Only>
-
 ## Set up a mode
 
 `apply(settings)` sets several variables in order and returns the names the
@@ -56,11 +53,21 @@ server refused. `arena` empties the map for a custom mode: the server keeps
 running with no one connected, and no troopers, neutrals, practice bots or
 zipline starts appear. Spread it and add the mode's own:
 
+<Samples>
+
 ```ts
 import { apply, arena } from 'modlock/console'
 
 apply({ ...arena, citadel_allow_duplicate_heroes: true })
 ```
+
+```python
+from modlock import console
+
+console.apply({**console.ARENA, "citadel_allow_duplicate_heroes": True})
+```
+
+</Samples>
 
 ## Limits
 

@@ -3,13 +3,14 @@ title: Toolkit
 description: 'Helpers built on the library: vectors, number formats, a player roster, the floor, race gates and a frame clock.'
 ---
 
-<Callout title="TypeScript">
-  The toolkit is part of the TypeScript library today. The samples on this page
-  stay in TypeScript whichever language you chose.
-</Callout>
+Every language has [`Cast`](#keep-the-players-with-cast), the player roster,
+and `trace`, the call `ground` is built on.
 
-Every language has `trace`, the call `ground` is built on, and the calls
-the rest compose.
+<Callout title="TypeScript">
+  The rest of the toolkit is part of the TypeScript library today: vectors,
+  number formats, the floor, race gates and the frame clock. Their samples stay
+  in TypeScript whichever language you chose.
+</Callout>
 
 ## Vectors and HUD text
 
@@ -30,21 +31,27 @@ is `1:04.37`, `percent(3, 4)` is `75%`, `grouped(4210)` is `4,210`,
 when someone arrives and `leave` when they go, and treats a reconnect as a
 leave and a join, so a member never carries the last player's state. It learns
 of joins from the host's player reports, so a frame where nobody came or went
-walks no player list. Bots are left out, or kicked with `bots: 'kick'`.
+walks no player list. Bots are left out unless the `bots` option says to make
+them members or kick them.
 
-A member can want a hero, a team and a respawn delay. `cast.frame` reads each
-member's hero once and asks the game, at most once a second, for whatever the
-hero does not show yet, until it does. Give `want` one want for everyone, or a
-function of the member, such as `(fighter) => fighter.want`, that Cast reads
-each frame. Read the hero back with `cast.pawn` instead of asking the game
-again.
+A member can want a hero, a team and a respawn delay. Each frame, Cast reads
+each member's hero once and asks the game, at most once a second, for whatever
+the hero does not show yet, until it does. Give one want for everyone, or a
+function of the member that Cast reads each frame. Without a team, a member
+keeps their hero's team or joins the side with fewer members. Read the hero
+back from the cast instead of asking the game again.
+
+This cast welcomes each player, seats them on any hero and brings a fallen
+hero back after 3 seconds:
+
+<Samples>
 
 ```ts
 import { Cast, onFrame } from 'modlock'
 
 const cast = new Cast({
   join: ({ player, name }) => {
-    player.announce('ARENA', `Welcome, ${name}.`)
+    player.announce('My Mod', `Welcome, ${name}.`)
     return { player, kills: 0 }
   },
   want: { hero: 'any', respawn: 3 },
@@ -52,6 +59,59 @@ const cast = new Cast({
 
 onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 ```
+
+```luau
+local cast = modlock.Cast.new({
+	join = function(connection: modlock.Connection)
+		connection.player:announce("My Mod", "Welcome, " .. connection.name .. ".")
+		return { player = connection.player, name = connection.name, kills = 0 }
+	end,
+	want = { hero = "any", respawn = 3 },
+})
+
+modlock.onFrame(function(frame)
+	cast:frame(frame.timeSeconds)
+end)
+```
+
+```python
+def welcome(connection: modlock.Connection) -> modlock.Player:
+    connection.player.announce("My Mod", f"Welcome, {connection.name}.")
+    return connection.player
+
+
+cast = modlock.Cast(welcome, want=modlock.Want(hero="any", respawn=3))
+
+
+@modlock.on_frame
+def frame(event: modlock.FrameEvent) -> None:
+    cast.frame(event.time_seconds)
+```
+
+```go
+// import "time"
+cast := mod.NewCast(mod.CastOptions[mod.Player]{
+	Join: func(connection *mod.Connection) mod.Player {
+		player := mod.Player{Slot: connection.GetPlayer()}
+		_ = player.Announce("My Mod", "Welcome, "+connection.GetName()+".")
+		return player
+	},
+	Want: mod.Want{Hero: mod.AnyHero, Respawn: 3 * time.Second},
+})
+
+mod.OnFrame(func(frame *mod.FrameEvent) { cast.Frame(frame.GetTimeSeconds()) })
+```
+
+</Samples>
+
+The cast answers who is here and where their hero is:
+
+| TypeScript and Luau | Python      | Go        | Returns                                   |
+| ------------------- | ----------- | --------- | ----------------------------------------- |
+| `size`              | `size`      | `Size`    | How many members there are.               |
+| `members`           | `members()` | `Members` | Every member.                             |
+| `get(player)`       | `get`       | `Get`     | The member for a player, if they are one. |
+| `pawn(player)`      | `pawn`      | `Pawn`    | The member's hero as Cast last read it.   |
 
 ## Find the floor
 

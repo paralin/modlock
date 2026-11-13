@@ -32,7 +32,7 @@ as `dataclasses`, `enum`, `json`, `math`, `random` and `re`.
 
 The library has the TypeScript calls in snake_case. Messages are dataclasses,
 enums are string literals, and 64-bit ids are Python integers. Python mods do
-not yet build interfaces or use typed entity classes.
+not yet build interfaces.
 
 ```python
 # Headshots deal double damage.
@@ -58,3 +58,26 @@ def fire(
     if pressed & modlock.Buttons.ATTACK:
         player.center_text("Fire!")
 ```
+
+## Typed entities and the console
+
+`modlock.entities` types each entity class, with its fields as attributes, and
+creates entities by designer name. `modlock.console` sets console variables by
+name and runs commands. Import each beside `modlock`:
+
+```python
+from modlock import console, entities
+
+# Set a hero's health.
+hero = entities.CCitadelPlayerPawn(pawn.entity)
+hero.m_iHealth = 500
+
+keys: entities.CNPC_TrooperBossKeys = {"LaneNum": 2}
+boss = entities.create("npc_trooper_boss", modlock.Vector(x=0, y=0, z=0), keys=keys)
+
+console.set_number("citadel_trooper_gold_reward", 40)
+console.run("changelevel", "street_test")
+```
+
+A field reads as `None`, and a write is ignored, when the server cannot read
+or write it; the server log says why.
