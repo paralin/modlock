@@ -14,7 +14,7 @@ description: Every modlock command, its options and where it finds the game.
 | `modlock editor`        | Install the Modlock extension, and in a mod project its language's extension, into VS Code, VS Code Insiders, Cursor, Windsurf or VSCodium: the editor whose terminal this is, or every one installed. `--editor` picks one: `code`, `code-insiders`, `cursor`, `windsurf` or `codium`.                         |
 | `modlock login`         | Sign in to hyperline.gg in the browser. `--host`, `join` and `publish` then use that sign-in.                                                                                                                                                                                                                   |
 | `modlock logout`        | Remove the saved sign-in. `--host` and `join` then connect the PCs directly.                                                                                                                                                                                                                                    |
-| `modlock update`        | Install the newest release over this `modlock`. `--check` only reports whether a newer release is out. `--release v0.1.9` installs that one.                                                                                                                                                                    |
+| `modlock update`        | Install the newest release over this `modlock`. `--check` only reports whether a newer release is out. `--release v0.1.9` installs that one. A [channel](#where-it-lives-and-how-it-updates) chooses between releases and builds of the master branch.                                                          |
 | `modlock config`        | List the settings. `modlock config set update-check off` stops the check for releases, and `editor-offer off` stops `new`, `dev` and `play` offering the editor extension.                                                                                                                                      |
 | `modlock daemon`        | `status` shows the background process that keeps this PC's mod store and its connection to other PCs. `probe PEER` measures the link to another PC. `stop` ends it.                                                                                                                                             |
 | `modlock lfs setup`     | Keep this Git repository's LFS files in this PC's mod store, so `git push` sends the remote only their pointers.                                                                                                                                                                                                |
@@ -52,6 +52,15 @@ In a Python mod, a line that starts with `>` runs in `main.py`'s module, as at P
 On Windows, the installer puts `modlock` in `%LOCALAPPDATA%\Programs\modlock`, adds that directory to your `PATH`, and `modlock` starts the game server directly. On macOS and Linux, the installer puts it in `~/.local/bin`, and on Linux `modlock` starts the Windows game server through Steam's Proton.
 
 Once a day at most, `modlock` checks in the background for a newer release and tells you when one is out. It skips the check in CI, when `MODLOCK_NO_UPDATE_CHECK` is set, and after `modlock config set update-check off`.
+
+`modlock update` installs from a channel: releases, or builds of the master branch. It remembers the channel you choose, and the daily check uses that channel too:
+
+| Command                             | Does                                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `modlock update --channel master`   | Installs the build of the master branch's newest commit. Its version reads `master-` and 12 digits of the commit. |
+| `modlock update --channel stable`   | Goes back to releases, the default channel.                                                                       |
+| `modlock config set channel master` | Sets the channel without updating.                                                                                |
+| `modlock update --from-source`      | Builds the master branch on your computer, which needs Git, Go, Zig, CMake and Ninja.                             |
 
 ## Game files
 
