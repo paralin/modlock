@@ -93,3 +93,26 @@ jobs:
           else
             echo "::warning::@modlock/create is not on npm yet; publish dist/npm/create once by hand and add this workflow as its trusted publisher"
           fi
+  # PyPI makes the project on its first release from a publisher registered
+  # there, so this runs once the PYPI_PUBLISH repository variable says one is.
+  pypi:
+    needs: release
+    if: vars.PYPI_PUBLISH == 'true'
+    runs-on: ubuntu-24.04
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+      - name: Build the wheels
+        run: go run ./cmd/modlock-pypi -version "$GITHUB_REF_NAME"
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/pypi
