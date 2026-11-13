@@ -93,7 +93,7 @@ func WindowsCommand(ctx context.Context, version string) (string, error) {
 	if runtime.GOOS == "windows" && runtime.GOARCH == "amd64" {
 		return os.Executable()
 	}
-	if !strings.HasPrefix(version, "v") {
+	if !fetch.Published(version) {
 		return "", errors.New("this modlock build has no release, so it has no Windows command line to pack")
 	}
 	dir, err := fetch.Cache("command", version)
@@ -101,7 +101,7 @@ func WindowsCommand(ctx context.Context, version string) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		return fetch.File(ctx, fetch.Release(version, windowsCommand), filepath.Join(staging, "modlock.exe"))
+		return fetch.ReleaseFile(ctx, version, windowsCommand, filepath.Join(staging, "modlock.exe"))
 	})
 	return filepath.Join(dir, "modlock.exe"), err
 }

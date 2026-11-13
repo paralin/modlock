@@ -19,32 +19,20 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.16.0
-      - name: Build the Windows host
-        run: |
-          scripts/proton-build.sh
-          mkdir -p dist
-          (cd build-proton/sdk/bin && zip -r "$GITHUB_WORKSPACE/dist/modlock-host-windows-x64.zip" .)
-      - name: Build the TypeScript library
-        run: go run ./cmd/modlock-library
-      - name: Build the command line
-        run: |
-          for target in windows/amd64 linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
-            os=${target%/*}
-            arch=${target#*/}
-            name="modlock-$os-$arch"
-            if [ "$os" = windows ]; then name="$name.exe"; fi
-            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
-              -ldflags "-X main.Version=$GITHUB_REF_NAME" -o "dist/$name" ./cmd/modlock
-          done
+      - name: Build the files
+        run: scripts/dist.sh "$GITHUB_REF_NAME"
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         # Each file carries the label the release page shows in place of its
         # name, so a reader picks by computer. Downloads still go by name.
+        # The generated notes start at the release before this one, which the
+        # master-build prerelease would otherwise stand in for.
         run: |
+          previous=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName // empty')
           gh release create "$GITHUB_REF_NAME" \
             --title "Modlock $GITHUB_REF_NAME" \
-            --notes-file .github/release-notes.md --generate-notes \
+            --notes-file .github/release-notes.md --generate-notes ${previous:+--notes-start-tag "$previous"} \
             'dist/modlock-windows-amd64.exe#modlock for Windows' \
             'dist/modlock-darwin-arm64#modlock for Mac (Apple silicon)' \
             'dist/modlock-darwin-amd64#modlock for Mac (Intel)' \

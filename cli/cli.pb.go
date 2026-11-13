@@ -446,6 +446,10 @@ type Config struct {
 	// the Modlock extension into the editor whose terminal it ran in, so it
 	// never asks again. Setting it before any offer turns the offer off.
 	EditorOffered bool `protobuf:"varint,2,opt,name=editor_offered,json=editorOffered,proto3" json:"editorOffered,omitempty"`
+	// Channel names the builds modlock update installs and the update check
+	// looks for: "stable" for releases, which empty also means, or "master" for
+	// the build of the master branch's newest commit.
+	Channel string `protobuf:"bytes,3,opt,name=channel,proto3" json:"channel,omitempty"`
 }
 
 func (x *Config) Reset() {
@@ -466,6 +470,13 @@ func (x *Config) GetEditorOffered() bool {
 		return x.EditorOffered
 	}
 	return false
+}
+
+func (x *Config) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
 }
 
 // Input is one line a program sends a session: something the stand-in player
@@ -1136,6 +1147,7 @@ func (m *Config) CloneVT() *Config {
 	r := new(Config)
 	r.SkipUpdateCheck = m.SkipUpdateCheck
 	r.EditorOffered = m.EditorOffered
+	r.Channel = m.Channel
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1773,6 +1785,9 @@ func (this *Config) EqualVT(that *Config) bool {
 		return false
 	}
 	if this.EditorOffered != that.EditorOffered {
+		return false
+	}
+	if this.Channel != that.Channel {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2658,6 +2673,11 @@ func (x *Config) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("editorOffered")
 		s.WriteBool(x.EditorOffered)
 	}
+	if x.Channel != "" || s.HasField("channel") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("channel")
+		s.WriteString(x.Channel)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2681,6 +2701,9 @@ func (x *Config) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "editor_offered", "editorOffered":
 			s.AddField("editor_offered")
 			x.EditorOffered = s.ReadBool()
+		case "channel":
+			s.AddField("channel")
+			x.Channel = s.ReadString()
 		}
 	})
 }
@@ -3787,6 +3810,11 @@ func (m *Config) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Channel) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Channel)
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.EditorOffered {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.EditorOffered)
 		i--
@@ -4604,6 +4632,7 @@ func (m *Config) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.SkipUpdateCheck)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.EditorOffered)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Channel)
 	n += len(m.unknownFields)
 	return n
 }
@@ -5050,6 +5079,10 @@ func (x *Config) MarshalProtoText() string {
 	if x.EditorOffered != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "editor_offered")
 		protobuf_go_lite.TextWriteBool(&sb, x.EditorOffered)
+	}
+	if x.Channel != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "channel")
+		protobuf_go_lite.TextWriteString(&sb, x.Channel)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5935,6 +5968,16 @@ func (m *Config) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.EditorOffered = bool(v)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Channel", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Channel = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

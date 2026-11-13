@@ -1,0 +1,47 @@
+name: Master build
+# Builds each push to master and puts the files in the master-build
+# prerelease, which modlock update --channel master installs. A docs-only push
+# changes none of them.
+on:
+  push:
+    branches: [master]
+    paths-ignore: ['docs/**']
+# One build publishes at a time, so the prerelease never mixes two builds'
+# files. A push during a build waits for it, and only the newest waits.
+concurrency:
+  group: master-build
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Build the files
+        run: scripts/dist.sh "master-${GITHUB_SHA::12}"
+      # The version file names the build the other files belong to. It goes up
+      # last, so the command line never reads a new version beside old files;
+      # it checks the version again after each download.
+      - name: Publish the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view master-build >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/master-build" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+          else
+            gh release create master-build --prerelease --target "$GITHUB_SHA" \
+              --title "Modlock master" \
+              --notes 'The newest commit of the master branch, built on each push. Run `modlock update --channel master` to follow it and `modlock update --channel stable` to return to the releases.'
+          fi
+          gh release upload master-build --clobber dist/modlock-*
+          printf 'master-%s\n' "${GITHUB_SHA::12}" > dist/version
+          gh release upload master-build --clobber dist/version

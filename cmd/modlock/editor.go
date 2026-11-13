@@ -267,7 +267,7 @@ func setUpEditor(ctx context.Context, out *printer, e localEditor) error {
 }
 
 // extensionFile returns the address of the Modlock extension's .vsix file in
-// this release, or in the newest one for a development build.
+// this release, or in the newest one for any other build.
 func extensionFile() string {
 	if !selfupdate.Released(Version) {
 		return "https://github.com/paralin/modlock/releases/latest/download/modlock.vsix"

@@ -141,6 +141,11 @@ message Config {
   // the Modlock extension into the editor whose terminal it ran in, so it
   // never asks again. Setting it before any offer turns the offer off.
   bool editor_offered = 2;
+
+  // Channel names the builds modlock update installs and the update check
+  // looks for: "stable" for releases, which empty also means, or "master" for
+  // the build of the master branch's newest commit.
+  string channel = 3;
 }
 
 // Input is one line a program sends a session: something the stand-in player

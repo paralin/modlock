@@ -83,8 +83,8 @@ func Executable() (string, error) {
 	return resolved, nil
 }
 
-// Install replaces the executable at exe with the command line of the release
-// tagged version. It downloads the new file beside exe, runs it once to check
+// Install replaces the executable at exe with the command line of version, a
+// release or a build of master. It downloads the new file beside exe, runs it once to check
 // that it starts and names version, and only then renames it into place, so
 // a failed or interrupted update leaves the old command line working. An
 // error wrapping fs.ErrPermission means exe's directory is not writable.
@@ -100,7 +100,7 @@ func Install(ctx context.Context, version, exe string) error {
 	ext := filepath.Ext(exe)
 	staged := filepath.Join(filepath.Dir(exe), "."+strings.TrimSuffix(filepath.Base(exe), ext)+".update"+ext)
 	defer os.Remove(staged)
-	if err := fetch.File(ctx, fetch.Release(version, Asset()), staged); err != nil {
+	if err := fetch.ReleaseFile(ctx, version, Asset(), staged); err != nil {
 		return err
 	}
 	if err := os.Chmod(staged, mode); err != nil {
@@ -113,6 +113,9 @@ func Install(ctx context.Context, version, exe string) error {
 	output, err := exec.CommandContext(checkCtx, staged, "--version").Output()
 	if err != nil {
 		return errors.Wrapf(err, "the downloaded %s does not run", Asset())
+	}
+	if !bytes.Contains(output, []byte(version)) && fetch.Master(version) {
+		return errors.Errorf("master's build is being replaced right now; run modlock update again in a minute")
 	}
 	if !bytes.Contains(output, []byte(version)) {
 		return errors.Errorf("the downloaded %s reports %q, not %s", Asset(), strings.TrimSpace(string(output)), version)

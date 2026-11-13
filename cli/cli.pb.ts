@@ -599,6 +599,12 @@ export interface Config {
    * never asks again. Setting it before any offer turns the offer off.
    */
   editorOffered?: boolean
+  /**
+   * Channel names the builds modlock update installs and the update check
+   * looks for: "stable" for releases, which empty also means, or "master" for
+   * the build of the master branch's newest commit.
+   */
+  channel?: string
 }
 
 export const Config: MessageType<Config> =
@@ -607,6 +613,7 @@ export const Config: MessageType<Config> =
     () => [
       [1, 'skip_update_check', 8],
       [2, 'editor_offered', 8],
+      [3, 'channel', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Config): Config => {
@@ -619,6 +626,9 @@ export const Config: MessageType<Config> =
               break
             case 2:
               m.editorOffered = r.bool()
+              break
+            case 3:
+              m.channel = r.string()
               break
             default:
               r.skip(t)
@@ -634,6 +644,10 @@ export const Config: MessageType<Config> =
         {
           const v = m.editorOffered
           if (v) w.uint32(16).bool(v)
+        }
+        {
+          const v = m.channel
+          if (v) w.uint32(26).string(v)
         }
       },
     },
