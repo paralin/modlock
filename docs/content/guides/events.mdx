@@ -117,6 +117,24 @@ functions, such as `mod.OnPlayerJoin`.
 | `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.              |
 | `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.     |
 
+## A player's stages
+
+A player passes through four stages, and each has its own event. Most mods
+need only the join, to greet the player, and the spawn, to act on their hero.
+
+| Stage      | What is true                                                                                           | How the mod sees it                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Connecting | The player holds a slot and is still loading the map. Nothing sent to them shows yet.                  | In the [player list](/guides/players#list-the-players) with `ready` false. |
+| Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may have no hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
+| In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn and each new hero.                        |
+| Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
+
+Between joined and in play the player is picking a team or a hero, or the
+game has not placed the hero yet; [`seatPlayers`](/guides/toolkit#seat-the-players)
+skips those screens. A call that needs a hero, such as a teleport, fails
+before the spawn, so make it in the spawn event and not in the join. A bot is
+joined as soon as it is added.
+
 ## Joins and leaves
 
 A join and a leave carry the player's `connection`, with their slot, SteamID64
