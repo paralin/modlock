@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/python"
@@ -17,10 +20,39 @@ import (
 )
 
 // pythonConfig is a Python project's pyrightconfig.json, which the checker
-// and editors read: strict checking against the runtime's Python, with the
-// installed library on the import path. A parameter without an annotation is
-// reported once, as missing its annotation, and not again at each use of it.
+// and editors read: standard checking against the runtime's Python, with the
+// installed library on the import path. A value that may be None and a
+// parameter without an annotation are warnings, which the build prints and
+// passes, since a mod often knows the value is there.
 const pythonConfig = `{
+  "typeCheckingMode": "standard",
+  "pythonVersion": "3.14",
+  "extraPaths": [".modlock"],
+  "reportMissingModuleSource": false,
+  "reportMissingParameterType": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportOptionalIterable": "warning",
+  "reportOptionalCall": "warning",
+  "reportOptionalOperand": "warning",
+  "reportOptionalContextManager": "warning",
+  "exclude": ["build", ".modlock"]
+}
+`
+
+// pythonConfigsBefore are the configurations earlier versions wrote. A
+// project that still has one unchanged gets the current one on its next
+// build; one its author edited is left alone.
+var pythonConfigsBefore = []string{
+	`{
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.14",
+  "extraPaths": [".modlock"],
+  "reportMissingModuleSource": false,
+  "exclude": ["build", ".modlock"]
+}
+`,
+	`{
   "typeCheckingMode": "strict",
   "pythonVersion": "3.14",
   "extraPaths": [".modlock"],
@@ -31,13 +63,29 @@ const pythonConfig = `{
   "reportUnknownVariableType": false,
   "exclude": ["build", ".modlock"]
 }
-`
+`,
+}
+
+// refreshPythonConfig replaces a configuration an earlier version wrote, if
+// the project still has it unchanged.
+func refreshPythonConfig(dir string) error {
+	// Leave a missing or edited configuration alone.
+	file := filepath.Join(dir, "pyrightconfig.json")
+	data, err := os.ReadFile(file)
+	if err != nil || !slices.Contains(pythonConfigsBefore, strings.ReplaceAll(string(data), "\r\n", "\n")) {
+		return nil
+	}
+	return os.WriteFile(file, []byte(pythonConfig), 0o644)
+}
 
 // buildPython type checks a Python project and zips its sources with the
 // library for the Python runtime.
 func (p *Project) buildPython(ctx context.Context, output io.Writer) error {
 	// Install the library and the checker, then gather the sources.
 	if err := installTree(p.Dir, python.Library); err != nil {
+		return err
+	}
+	if err := refreshPythonConfig(p.Dir); err != nil {
 		return err
 	}
 	node, pyright, err := python.Checker(ctx)
@@ -90,6 +138,7 @@ func (p *Project) buildPython(ctx context.Context, output io.Writer) error {
 // pyrightReport is the part of Pyright's --outputjson report that locates
 // problems. Lines and characters count from zero.
 type pyrightReport struct {
+	// GeneralDiagnostics lists each problem with its file, rule and place.
 	GeneralDiagnostics []struct {
 		File     string `json:"file"`
 		Severity string `json:"severity"`
@@ -105,22 +154,29 @@ type pyrightReport struct {
 }
 
 // pyrightDiagnostics reads Pyright's JSON report. It leaves out
-// informational notes.
+// informational notes and marks each warning, which does not fail the build.
 func pyrightDiagnostics(output []byte) []*cli.Diagnostic {
+	// Read the report; output that is not one locates nothing.
 	var report pyrightReport
 	if json.Unmarshal(output, &report) != nil {
 		return nil
 	}
+
+	// Keep each warning and error with its place, counted from one.
 	var found []*cli.Diagnostic
 	for _, d := range report.GeneralDiagnostics {
 		if d.Severity == "information" {
 			continue
 		}
+		message := d.Message
+		if d.Severity == "warning" {
+			message = "warning: " + message
+		}
 		found = append(found, &cli.Diagnostic{
 			File:    d.File,
 			Line:    d.Range.Start.Line + 1,
 			Column:  d.Range.Start.Character + 1,
-			Message: d.Message,
+			Message: message,
 			Source:  "pyright",
 			Code:    d.Rule,
 		})
