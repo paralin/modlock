@@ -1,0 +1,159 @@
+---
+title: Your first mod
+description: Make a project, run it in the game and change it while it runs.
+---
+
+## Make a project
+
+Run these one line at a time, in a terminal:
+
+```sh
+modlock new
+cd my-mod
+modlock dev
+```
+
+`modlock new` asks for the mod's name and its language, and offers to open the
+project in VS Code when that is installed. A name such as "Zombie Tag" becomes
+the directory `zombie-tag`. `modlock new my-mod --language typescript` answers
+both up front, and a script or `--json` gets no questions: it needs the
+directory, and takes TypeScript without `--language`.
+
+## What the project holds
+
+| Language   | Files                                                    | Notes                                                          |
+| ---------- | -------------------------------------------------------- | -------------------------------------------------------------- |
+| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`                   | Your editor checks the code as you type.                       |
+| JavaScript | `mod.json`, `main.js`, `tsconfig.json`                   | The same, checked from JSDoc.                                  |
+| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` holds the library's types for the language server. |
+| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | Open the mod's own folder in your editor, not its parent.      |
+| Go         | `mod.json`, `main.go`, `go.mod`                          | Needs [Go](https://go.dev/dl/) installed.                      |
+
+`mod.json` is the [manifest](/reference/manifest): the mod's slug, name and
+version. The entry file is the mod: a starter with what most game modes
+begin from. It turns off the lane troopers and jungle creeps, lets any
+number of players pick the same hero, welcomes each player who joins and
+answers `/hello` in chat. Delete the parts your mode does not want.
+
+The starter says in its own comments what each part does. Where it keeps a
+[`Cast`](/guides/toolkit#keep-the-players-with-cast) of the players, it also
+seats each player on the smaller team with a hero, skipping the game's team
+and hero screens, and brings a fallen hero back after 3 seconds.
+
+The part that answers `/hello` is this small:
+
+<Samples>
+
+```ts
+import { command } from 'modlock'
+
+command('hello', (player) => {
+  player.chat('Hello from TypeScript!')
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+modlock.command("hello", function(player)
+	player:chat("Hello from Luau!")
+end)
+```
+
+```python
+import modlock
+
+
+@modlock.command("hello")
+def hello(player: modlock.Player, args: str) -> None:
+    player.chat("Hello from Python!")
+```
+
+```go
+package main
+
+import "github.com/paralin/modlock/mod"
+
+func init() {
+	mod.Command("hello", func(p mod.Player, args string) {
+		_ = p.Chat("Hello from Go!")
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+Each language has [a page of its own](/languages/typescript) with what is
+particular to it.
+
+## Run it
+
+`modlock dev` builds the mod, starts a local server, and launches Deadlock
+through Steam to join. Each time you save, it rebuilds the mod and swaps it
+in; a failed build prints its errors and keeps the last good build
+running. The watch skips `build/`, `node_modules`, hidden files and `*.log`. The
+terminal shows the mod's log, reloads and player joins; the server console goes
+to `build/server.log`. `--watch=false` builds the mod once and leaves saves
+alone.
+
+Type `/hello` in the game's chat. Then change the reply, save, and type it
+again: the new build is already running.
+
+On a Mac, or a PC without the game, `modlock dev` runs the mod in a sandbox
+with a stand-in player instead. Type `/hello` in the terminal.
+
+## With a second player
+
+`modlock play --lobby` runs the mods on your PC and opens a Hyperline
+friends lobby. A source project rebuilds and reloads on each save by default;
+`--watch=false` uses its existing build, building it first if needed. Watching
+takes one project. Built mods run directly, including several together; pass
+`--watch=false` when playing several source projects.
+On another PC, `modlock join LINK` launches Deadlock and joins the server after
+the player joins the lobby. Each guest downloads the mod's content from the
+host before joining and sees their own player interface. Content changed after
+that loads when the guest joins again.
+
+Both PCs sign in with `modlock login` (`modlock publish` saves the same
+sign-in). A creator who may publish mods can open a lobby; only the creator's
+friends can join it. The PCs link directly over WebRTC, with Hyperline's relay
+available while the lobby is open when routers block a direct connection.
+
+Use `modlock play --host` for a join code without a lobby, then
+`modlock join CODE` on the other PC. Anyone holding the code can join until the
+host stops. This path uses Hyperline signaling but requires a direct connection
+between the PCs. If a lobby cannot open, `--lobby` falls back to a join code
+and reports why. Hosting is unavailable in the sandbox; local play continues.
+
+## Without the game
+
+On macOS, or on a computer without Deadlock, `modlock dev` runs the mod in the
+sandbox: the same runtime and limits, with a stand-in player who has no hero.
+Type `/hello` and press Enter to send it as that player. The terminal shows the
+mod's log and everything it sends players. Calls that need the game, such as
+reading a hero's position, return nothing in the sandbox. `--sandbox` uses the
+sandbox even where the game is installed.
+
+Open `http://127.0.0.1:4322/` to see the screens your mod shows that player,
+drawn as the game would draw them. Press their buttons and send chat commands
+from the page as that player, and choose a screenshot of the game as the
+backdrop. The page shows when the mod is building, the errors of a failed build,
+and why a mod stopped. `--preview-port` moves it, and 0 turns it off. When
+another program holds the port, the page takes a free one, and the terminal
+prints its address.
+
+## If something goes wrong
+
+| You see                                                        | Do this                                                                                                                                                                       |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock` is not recognized, right after installing on Windows | Close the program the terminal runs in and open it again. For a terminal inside VS Code, close the whole editor, since each new terminal there keeps the editor's old `PATH`. |
+| `Import "modlock" could not be resolved` in a Python mod       | Open the mod's own folder in the editor. Pyright reads `pyrightconfig.json` only from the folder the editor opened.                                                           |
+| `modlock new` stops before writing a Go project                | Install [Go](https://go.dev/dl/), then run it again.                                                                                                                          |
+| A build fails while `modlock dev` runs                         | Fix the error it prints and save. The last good build keeps running meanwhile.                                                                                                |
+
+## Next
+
+The [tutorial](/start/tutorial) grows a project into a small game mode, a
+few lines at a time.

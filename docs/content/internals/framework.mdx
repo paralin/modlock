@@ -1,0 +1,25 @@
+---
+title: The framework
+description: The parts Modlock is made of.
+---
+
+The WebAssembly host is built on Modlock's C++ framework, which also serves
+[native plugins](/internals/native-plugins):
+
+- **Plugin host.** `modlock-host` runs a server that loads mods and plugins,
+  or the game's own client.
+- **Engine events.** `EngineHost` delivers frames, chat, commands, damage,
+  connections, respawns and worlds.
+- **Entities and rendering.** World text, particles and effects; player pawns;
+  bots; ray traces.
+- **Engine interop.** Signature scanning, vtable hooks, schema offsets, and
+  `CEntityKeyValues` construction. Every byte signature lives in one table, and
+  `modlock-sigcheck` checks it against the game binaries.
+- **Session content.** Precache heroes and resources, and advertise content
+  addons to connecting clients.
+- **Protocols.** Protobuf for mods, HUD text, chat and camera paths in C++, Go,
+  TypeScript, Luau and Python.
+- **Portable tests.** Parsing, dispatch, sandbox, and fixture tests run on macOS
+  and Linux without the game.
+
+The game runtime is Windows x64, including Windows builds under Proton.

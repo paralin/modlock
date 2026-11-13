@@ -1,4 +1,7 @@
-# The entity system
+---
+title: The entity system
+description: From the game's own description of its entities to a typed call in a mod.
+---
 
 Everything a player sees in a Deadlock match is an entity: heroes, troopers,
 Guardians, pickups, zip lines, lights, sounds, the shop. Modlock gives a mod
@@ -40,8 +43,8 @@ const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
 
 `modlock-host --dump DIRECTORY` starts a dedicated server, reads the game's
 description of itself and quits. It writes four documents, each following
-[`src/host_app/dump/dump.proto`](../src/host_app/dump/dump.proto) and sorted
-by name so two builds diff cleanly. [`data/dump`](../data/dump) holds them for
+[`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto) and sorted
+by name so two builds diff cleanly. [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) holds them for
 the current game build, 6839:
 
 | File            | Contents                                                    | Count in 6839                                                          |
@@ -104,11 +107,11 @@ does not check that the entity looks or behaves right.
 `scripts/gen-entities.sh` runs `modlock-entitygen` over the dump and writes the
 typed libraries:
 
-| Language   | Classes and constructors                                                                       | Console                         |
-| ---------- | ---------------------------------------------------------------------------------------------- | ------------------------------- |
-| TypeScript | [`js/src/entities.ts`](../js/src/entities.ts), imported as `modlock/entities`                  | `modlock/console`               |
-| Go         | [`mod/entity`](../mod/entity)                                                                  | [`mod/console`](../mod/console) |
-| Luau       | [`luau/modlock/entities.luau`](../luau/modlock/entities.luau), required as `@modlock/entities` | `@modlock/console`              |
+| Language   | Classes and constructors                                                                                                                   | Console                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| TypeScript | [`js/src/entities.ts`](https://github.com/paralin/modlock/blob/master/js/src/entities.ts), imported as `modlock/entities`                  | `modlock/console`                                                           |
+| Go         | [`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity)                                                                  | [`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) |
+| Luau       | [`luau/modlock/entities.luau`](https://github.com/paralin/modlock/blob/master/luau/modlock/entities.luau), required as `@modlock/entities` | `@modlock/console`                                                          |
 
 Each library has three parts.
 

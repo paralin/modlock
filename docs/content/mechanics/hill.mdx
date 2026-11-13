@@ -1,0 +1,230 @@
+---
+title: King of the hill
+description: Score a point each second a hero holds a spot alone.
+---
+
+A hill is a point and a radius. Once a second, find the living heroes
+inside it. One hero alone scores; nobody, or a crowd, scores nothing. A
+timer does the counting, so the frame rate does not change the score.
+
+<Samples>
+
+```ts
+import { createText, every, onWorld, players, type Vector } from 'modlock'
+
+const hill: Vector = { x: 0, y: 0, z: 0 }
+const radius = 400
+const goal = 30
+const points = new Map<number, number>()
+
+// Mark the hill each time a world loads, and start the score over.
+onWorld(() => {
+  points.clear()
+  createText({
+    text: 'HILL',
+    position: { x: hill.x, y: hill.y, z: hill.z + 200 },
+    faceCamera: true,
+  })
+})
+
+every(1, () => {
+  const holders = players().filter(({ player }) => {
+    const pawn = player.pawn()
+    return (
+      pawn !== undefined &&
+      pawn.health > 0 &&
+      Math.hypot(pawn.position.x - hill.x, pawn.position.y - hill.y) <= radius
+    )
+  })
+  const [holder] = holders
+  if (holder === undefined || holders.length > 1) {
+    return // empty or contested
+  }
+  const total = (points.get(holder.player.slot) ?? 0) + 1
+  points.set(holder.player.slot, total)
+  holder.player.centerText(`${total} / ${goal}`)
+  if (total >= goal) {
+    for (const { player } of players()) {
+      player.announce(
+        `${holder.name} holds the hill`,
+        'A new round starts now.',
+      )
+    }
+    points.clear()
+  }
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+local hill = { x = 0, y = 0, z = 0 }
+local radius = 400
+local goal = 30
+local points: { [number]: number } = {}
+
+-- Mark the hill each time a world loads, and start the score over.
+modlock.onWorld(function()
+	points = {}
+	modlock.createText({
+		text = "HILL",
+		position = { x = hill.x, y = hill.y, z = hill.z + 200 },
+		faceCamera = true,
+	})
+end)
+
+modlock.every(1, function()
+	local holders: { modlock.Connection } = {}
+	for _, connection in modlock.players() do
+		local pawn = connection.player:pawn()
+		if pawn and pawn.health > 0 then
+			local dx, dy = pawn.position.x - hill.x, pawn.position.y - hill.y
+			if math.sqrt(dx * dx + dy * dy) <= radius then
+				table.insert(holders, connection)
+			end
+		end
+	end
+	if #holders ~= 1 then
+		return -- empty or contested
+	end
+	local holder = holders[1]
+	local total = (points[holder.player.slot] or 0) + 1
+	points[holder.player.slot] = total
+	holder.player:centerText(`{total} / {goal}`)
+	if total >= goal then
+		for _, connection in modlock.players() do
+			connection.player:announce(`{holder.name} holds the hill`, "A new round starts now.")
+		end
+		points = {}
+	end
+end)
+```
+
+```python
+import math
+
+import modlock
+
+HILL = modlock.Vector(0, 0, 0)
+RADIUS = 400
+GOAL = 30
+points: dict[int, int] = {}
+
+
+# Mark the hill each time a world loads, and start the score over.
+@modlock.on_world
+def mark(map_name: str) -> None:
+    points.clear()
+    modlock.create_text(
+        modlock.TextOptions(
+            text="HILL",
+            position=modlock.Vector(HILL.x, HILL.y, HILL.z + 200),
+            face_camera=True,
+        )
+    )
+
+
+def on_hill(connection: modlock.Connection) -> bool:
+    pawn = connection.player.pawn()
+    if pawn is None or pawn.health <= 0:
+        return False
+    return math.hypot(pawn.position.x - HILL.x, pawn.position.y - HILL.y) <= RADIUS
+
+
+def score() -> None:
+    holders = [c for c in modlock.players() if on_hill(c)]
+    if len(holders) != 1:
+        return  # empty or contested
+    holder = holders[0]
+    total = points.get(holder.player.slot, 0) + 1
+    points[holder.player.slot] = total
+    holder.player.center_text(f"{total} / {GOAL}")
+    if total >= GOAL:
+        for connection in modlock.players():
+            connection.player.announce(f"{holder.name} holds the hill", "A new round starts now.")
+        points.clear()
+
+
+modlock.every(1, score)
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"math"
+	"time"
+
+	"github.com/paralin/modlock/mod"
+)
+
+const (
+	radius = 400
+	goal   = 30
+)
+
+var (
+	hill   = &mod.Vector{}
+	points = map[int32]int{}
+)
+
+func onHill(c *mod.Connection) bool {
+	pawn, err := mod.Player{Slot: c.GetPlayer()}.Pawn()
+	if err != nil || pawn == nil || pawn.GetHealth() <= 0 {
+		return false
+	}
+	at := pawn.GetPosition()
+	return math.Hypot(float64(at.GetX()-hill.GetX()), float64(at.GetY()-hill.GetY())) <= radius
+}
+
+func init() {
+	// Mark the hill each time a world loads, and start the score over.
+	mod.OnWorld(func(string) {
+		clear(points)
+		faceCamera := true
+		_, _ = mod.CreateText(&mod.TextOptions{
+			Text:       "HILL",
+			Position:   &mod.Vector{X: hill.GetX(), Y: hill.GetY(), Z: hill.GetZ() + 200},
+			FaceCamera: &faceCamera,
+		})
+	})
+
+	mod.Every(time.Second, func() {
+		connections, _ := mod.Players()
+		var holders []*mod.Connection
+		for _, c := range connections {
+			if onHill(c) {
+				holders = append(holders, c)
+			}
+		}
+		if len(holders) != 1 {
+			return // empty or contested
+		}
+		holder := holders[0]
+		points[holder.GetPlayer()]++
+		total := points[holder.GetPlayer()]
+		_ = mod.Player{Slot: holder.GetPlayer()}.CenterText(fmt.Sprintf("%d / %d", total, goal))
+		if total >= goal {
+			for _, c := range connections {
+				_ = mod.Player{Slot: c.GetPlayer()}.Announce(holder.GetName()+" holds the hill", "A new round starts now.")
+			}
+			clear(points)
+		}
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+## Make it yours
+
+- Put the hill where you stand: read your position with a command, as
+  [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
+- Move the hill every minute with a second timer, and move its text with
+  it.
+- Score teams instead of players by counting the teams on the hill: the
+  pawn's `team` is 2 or 3.
+- The [`hill`](https://github.com/paralin/modlock/tree/master/examples/hill) example is a complete mode built this way.

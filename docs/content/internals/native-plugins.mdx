@@ -1,0 +1,121 @@
+---
+title: Native plugins
+description: Write a plugin in C++ against the host itself.
+---
+
+Native C++ plugins extend the host with engine hooks, host calls for mods and
+framework features. They have full access to the game and no sandbox. The
+installed SDK exports `modlock::sdk` through CMake:
+
+```cmake
+find_package(Modlock CONFIG REQUIRED)
+add_library(my_plugin MODULE my_plugin.cc)
+target_link_libraries(my_plugin PRIVATE modlock::sdk)
+target_compile_features(my_plugin PRIVATE cxx_std_23)
+```
+
+A plugin implements `modlock::Plugin`, and `MODLOCK_PLUGIN` exports it to the
+host. `Load`, `Tick` and `Stop` are optional:
+
+```cpp
+#include <print>
+#include <string_view>
+
+#include "modlock/engine_host.h"
+#include "modlock/plugin_library.h"
+
+// Greeter answers the console command "hello".
+class Greeter final : public modlock::Plugin {
+ public:
+  explicit Greeter(const modlock::PluginContext& context) : engine_(*context.engine) {}
+
+  uint32_t InterfaceVersion() const override { return modlock::PluginInterfaceVersion; }
+  const char* Name() const override { return "greeter"; }
+
+  bool Start() override {
+    auto command = engine_.OnCommand([](int32_t slot, std::string_view text) {
+      if (text != "hello") {
+        return false;  // leave the command to the next handler
+      }
+      std::println("hello, player {}", slot);
+      return true;
+    });
+    if (!command) {
+      return false;
+    }
+    command_ = std::move(*command);
+    return true;
+  }
+
+  void Stop() override { command_.Reset(); }
+
+ private:
+  modlock::EngineHost& engine_;
+  modlock::Subscription command_;
+};
+
+MODLOCK_PLUGIN(Greeter)
+```
+
+[`examples/hello`](https://github.com/paralin/modlock/tree/master/examples/hello) is a complete plugin that creates a world
+text entity, runs a console command, removes the entity before the world shuts
+down, and then exits. Build and run it against the SDK you installed:
+
+```sh
+cmake -S examples/hello -B build-hello -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$PWD/build/sdk"
+cmake --build build-hello --parallel "$jobs"
+
+modlock-host --check-plugin --plugin <hello library>
+modlock-host --game-dir <Deadlock installation> --plugin <hello library>
+```
+
+| Option               | Effect                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--plugin PATH`      | Load a built mod (a directory with `mod.json`, or a `.wasm` file) or a plugin library; repeat for several.                                       |
+| `--control ADDRESS`  | Report mod starts, logs, failures and player joins to the controller at `ADDRESS`, and take reloads from it. The `modlock` command line uses it. |
+| `--settings PATH`    | Keep players' mod settings in the JSON file at `PATH`; without it they last for the run. A native plugin may keep them instead.                  |
+| `--game-data PATH`   | Read game signatures and virtual slots from `PATH`, falling back to the `game_signatures.txtpb` beside the host when it cannot be read.          |
+| `--check-plugin`     | Load, start, and stop the plugins without opening game modules.                                                                                  |
+| `--game-dir DIR`     | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`).                                                                 |
+| `--map NAME`         | Start on `NAME` (default `dl_midtown`).                                                                                                          |
+| `--hostport PORT`    | Serve on UDP `PORT` (default 27067).                                                                                                             |
+| `--engine-args ARGS` | Append engine command-line arguments.                                                                                                            |
+| `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
+
+`modlock-host` runs only a dedicated server; players join it with the game's
+own, unchanged client. See `modlock-host --help` for every option.
+
+## Plugin contract
+
+**ABI.** Before it creates a plugin, the loader checks that the plugin was built
+with the same interface version, SDK source, public headers, compiler, standard
+library, build mode, and runtime configuration as the host. A plugin loads only
+into the host it was built with, so build and ship the host, SDK, and plugins
+together.
+
+**Engine access.** The host loads the engine and its hooks. Plugins reach it
+through `PluginContext::engine` and keep the returned `Subscription`s. Resetting
+one removes its callback and frees what it captured.
+
+**Sandboxed mods.** `PluginContext::wasm` lends the host's `WasmHost`. A plugin
+that hosts games of its own, such as game modes published as sandboxed mods,
+loads them there, provides them services with `Provide` and calls theirs with
+`Call`. The plugin itself drives each of these mods through its `Start`, `Tick`
+and `Stop` calls.
+
+**Dispatch.** Callbacks run on the engine thread in the order they were
+registered. For a command, damage, or respawn decision, the first callback that
+returns true handles it, and later callbacks are not called.
+
+**Lifecycle.** `Load`, `Start`, and `Stop` each run once, in order, with `Tick`
+once per frame between `Start` and `Stop`. If startup fails, every plugin that
+began starting stops in reverse order, including the one that failed. Remove
+live entities in `OnWorldEnding`, before the engine tears down the world, and
+drop views of the previous world in `OnWorld`. `Stop` runs after the engine
+returns. Each plugin is destroyed inside its own library before that library
+unloads. Plugins cannot be reloaded while the host runs; restart the host to
+load a new build.
+
+[Engine access](/internals/engine-access) covers module lookup, signature
+resolution, platform boundaries, and hook lifetime.

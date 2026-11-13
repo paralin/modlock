@@ -1,0 +1,78 @@
+---
+title: Command line
+description: Every modlock command, its options and where it finds the game.
+---
+
+| Command                 | Effect                                                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock new DIR`       | Create a mod project in `DIR`.                                                                                                               |
+| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                           |
+| `modlock dev`           | Build the mod, run it in a local server, join it, and reload it on each save.                                                                |
+| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and projects reload on save unless `--watch=false`.              |
+| `modlock join CODE`     | Join a session another PC hosts, by its join code or its dev lobby's link, and launch Deadlock into it.                                      |
+| `modlock publish`       | Build and check the mod, then [publish it](/reference/publishing).                                                                           |
+| `modlock update`        | Install the newest release over this `modlock`; `--check` only says whether one is out.                                                      |
+| `modlock config`        | List the settings; `modlock config set update-check off` stops the check for releases.                                                       |
+| `modlock daemon`        | `status` shows the background process that holds this PC's mod store and peer; `probe PEER` measures the link to another PC; `stop` ends it. |
+| `modlock lfs setup`     | Keep this Git repository's LFS files in this PC's mod store; `git push` then sends the remote only their pointers.                           |
+
+`dev` and `play` fall back to the sandbox when the game is missing. They also take these options:
+
+| Option        | Effect                                                    |
+| ------------- | --------------------------------------------------------- |
+| `--no-game`   | Run the server without launching Deadlock.                |
+| `--port PORT` | Serve on another UDP port.                                |
+| `--arg VALUE` | Pass `VALUE` to the mods' `onStart` handlers; repeatable. |
+| `--sandbox`   | Run in the sandbox even when the game is installed.       |
+
+| Variable                  | Use it when                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| `DEADLOCK_DIR`            | Deadlock is installed outside the Steam libraries.                                   |
+| `MODLOCK_HOST`            | You built `modlock-host.exe` yourself. The sandbox reads the interpreters beside it. |
+| `MODLOCK_PROTON`          | You want a particular Proton installation.                                           |
+| `MODLOCK_NO_UPDATE_CHECK` | You want no check for a newer release in this environment.                           |
+
+## Game files
+
+These commands work on the game's own file formats, with no game or Valve
+tools installed.
+
+| Command                                    | Effect                                                                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`), scripts (`.js`) and style sheets (`.css`) under `DIR/panorama/` into `DIR.vpk`. |
+| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, a script (`.vjs_c`) as its source, or a style sheet (`.vcss_c`) as CSS.    |
+| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                                               |
+| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                                                     |
+| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive; equal directories pack to equal bytes.                                               |
+| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON; `--blocks` lists its blocks.                                      |
+| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                          |
+
+`panorama compile` keeps every other file in `DIR` as it is, so compiled
+resources such as images ship beside the layouts; `-o` writes to another archive,
+or to a directory. A style sheet's `url()` names an image or another sheet in the
+game's files, as `s2r://`, `file://{images}/` or `file://{resources}/`, and
+compiles to the resource the game loads, so `file://{images}/icons/mark.png`
+becomes `s2r://panorama/images/icons/mark_png.vtex`; any other URL is refused
+with its line. `decompile` and `kv3` take `--archive`
+to read `FILE` from inside an archive, including the game's split
+`game/citadel/pak01_dir.vpk`:
+
+```sh
+modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c
+```
+
+`modlock studio` prints a local address to open in a browser. Modlock Studio
+lists every file in the installed game's archive, draws models with their
+levels of detail, mesh groups and materials, shows textures as the GPU stores
+them, plays and downloads MP3 and PCM sounds, and shows other resources'
+KeyValues3. It reads each file from your
+own install as you open it; Modlock ships none of the game's files. `--port`
+moves it, and `DEADLOCK_DIR` points it at a game outside the Steam libraries.
+
+A mod that tracks large files, such as VPKs, with Git LFS can keep them out of
+its Git remote. Run `modlock lfs setup` in the repository once, after
+`git lfs track`; git-lfs then hands each file to modlock, which stores it in
+this PC's mod store, and a fresh clone runs the same setup before `git lfs
+pull`. Files are stored by content, so repositories that share a file keep it
+once. They stay on this PC: another PC's clone can pull them only from its own
+store.

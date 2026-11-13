@@ -1,0 +1,121 @@
+---
+title: Files
+description: Keep text files on the host, with defaults shipped in the mod.
+---
+
+A mod keeps text files, such as its configuration or areas a player drew in
+the game. It ships defaults in its project's `data/` directory, which
+`modlock build` copies into the build and `modlock publish` releases with it:
+
+<Samples>
+
+```ts
+import { command, readFile, writeFile } from 'modlock'
+
+// data/motd.txt ships the default; a host's own copy replaces it.
+let motd = readFile('motd.txt') ?? 'Welcome.'
+
+command('motd', (player, args) => {
+  if (args === '') {
+    player.chat(motd)
+    return
+  }
+  motd = args
+  if (!writeFile('motd.txt', motd)) {
+    player.chat('The message was not saved.')
+  }
+})
+```
+
+```luau
+-- data/motd.txt ships the default; a host's own copy replaces it.
+local motd = modlock.readFile("motd.txt") or "Welcome."
+
+modlock.command("motd", function(player, args)
+	if args == "" then
+		player:chat(motd)
+		return
+	end
+	motd = args
+	if not modlock.writeFile("motd.txt", motd) then
+		player:chat("The message was not saved.")
+	end
+end)
+```
+
+```python
+# data/motd.txt ships the default; a host's own copy replaces it.
+motd = modlock.read_file("motd.txt") or "Welcome."
+
+
+@modlock.command("motd")
+def show(player: modlock.Player, args: str) -> None:
+    global motd
+    if not args:
+        player.chat(motd)
+        return
+    motd = args
+    if not modlock.write_file("motd.txt", motd):
+        player.chat("The message was not saved.")
+```
+
+```go
+// data/motd.txt ships the default; a host's own copy replaces it.
+var motd = "Welcome."
+
+func init() {
+	mod.OnStart(func([]string) {
+		if text, err := mod.ReadFile("motd.txt"); err == nil && text != nil {
+			motd = *text
+		}
+	})
+
+	mod.Command("motd", func(p mod.Player, args string) {
+		if args == "" {
+			_ = p.Chat(motd)
+			return
+		}
+		motd = args
+		if err := mod.WriteFile("motd.txt", motd); err != nil {
+			_ = p.Chat("The message was not saved.")
+		}
+	})
+}
+```
+
+</Samples>
+
+| Call                    | Effect                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `readFile(name)`        | The file's text: the host's copy, then the build's `data/`; `undefined` if neither has it. |
+| `writeFile(name, text)` | Replace the host's copy, whole or not at all; `false` when the host refuses it.            |
+
+A name is a relative path such as `maps/dl_midtown.json`, with `/` between
+segments and no `.` or `..`; any other name is refused. The host keeps each
+mod's copies in a directory of its own, named by the slug, and they outlive an
+update of the mod. `modlock dev` and `modlock play` keep them in Modlock's
+configuration directory, such as `~/.config/modlock/files/<slug>/`, so a server
+operator replaces a shipped file by placing one of the same name there. A
+mod's copies hold up to 4 MiB together. The host moves text, and the format is
+the mod's own: a YAML mod bundles a YAML parser, as above. Files are local to
+the host that runs the mod, so a missing one is a default, not a failure.
+
+## Structured files
+
+The format is the mod's own. A TypeScript mod bundles a parser for the
+format it likes:
+
+```ts
+import { parse, stringify } from 'yaml'
+import { command, readFile, writeFile } from 'modlock'
+
+const areas = parse(readFile('areas.yaml') ?? 'spawn: []')
+
+command('savearea', (player) => {
+  const pawn = player.pawn()
+  if (!pawn) return
+  areas.spawn.push(pawn.position)
+  if (!writeFile('areas.yaml', stringify(areas)))
+    player.chat('The area was not saved.')
+})
+```

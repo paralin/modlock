@@ -1,0 +1,60 @@
+---
+title: Python
+description: 'Python mods: decorators, dataclasses and strict type checking.'
+---
+
+A Python mod imports `modlock` and registers its handlers with decorators in
+`main.py`:
+
+```python
+import modlock
+
+
+@modlock.command("hello")
+def hello(player: modlock.Player, args: str) -> None:
+    player.chat("Hello from Python!")
+```
+
+This page covers what is particular to the language. The
+[guides](/guides/events) show every call in it: choose it with the switch
+in the sidebar.
+
+## Types and modules
+
+Pyright and Pylance check the types in strict mode. They read the project's
+`pyrightconfig.json`, which points them at the library in `.modlock`, only from
+the folder the editor has open: open the mod's own folder, or the editor
+reports that `modlock` could not be resolved. A module imports another by
+name, such as `import round`. Mods run on Python 3.14 with standard modules such
+as `dataclasses`, `enum`, `json`, `math`, `random` and `re`.
+
+## The library
+
+The library has the TypeScript calls in snake_case. Messages are dataclasses,
+enums are string literals, and 64-bit ids are Python integers. Python mods do
+not yet build interfaces or use typed entity classes.
+
+```python
+# Headshots deal double damage.
+@modlock.on_damage
+def headshots(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
+    if hit.hit_group == 1:
+        return modlock.DamageResult(amount=hit.amount * 2)
+    return None
+
+
+# Pay a soul bonus on /bonus.
+@modlock.command("bonus")
+def bonus(player: modlock.Player, args: str) -> None:
+    player.adjust_souls(500)
+    player.announce("Bonus", "500 souls")
+
+
+# Answer the attack button.
+@modlock.on_input
+def fire(
+    player: modlock.Player, pressed: modlock.Buttons, released: modlock.Buttons
+) -> None:
+    if pressed & modlock.Buttons.ATTACK:
+        player.center_text("Fire!")
+```

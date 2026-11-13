@@ -1,0 +1,177 @@
+---
+title: Entities
+description: Read and write any field of a live entity, create entities and send them inputs.
+---
+
+Past the library's own calls, a mod reaches the game's entities directly:
+every schema field, every designer name and every input.
+
+<Callout title="Typed in TypeScript, Luau and Go">
+  The samples on this page are TypeScript.
+  [Luau](/languages/luau#typed-entities) and
+  [Go](/languages/go#typed-entities-and-the-console) have the same typed
+  classes. Python reads and writes fields by name with `read_field` and
+  `write_field`, and creates entities with `create_entity`.
+</Callout>
+
+## Read and write fields
+
+A mod reads and writes any schema field of a live entity by its class and field
+names:
+
+```ts
+import { readField, writeField } from 'modlock'
+
+const health = readField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32')
+writeField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32', 500)
+```
+
+An animated prop's `CBaseAnimGraphController` fields resolve through its body
+component. A mod can stop native playback and hold a non-animgraph sequence at
+an authored pose without restarting it:
+
+```ts
+fireInput(prop, 'SetAnimation', { text: 'hand_pose_aligned' })
+fireInput(prop, 'SetPlaybackRate', { number: 0 })
+writeField(
+  prop,
+  'CBaseAnimGraphController',
+  'm_flSeqFixedCycle',
+  'float32',
+  1 / 6,
+)
+```
+
+Choose the sequence and cycle for that model. A cycle write changes its pose;
+the model's existing transform stays in place. Nonanimated entities are refused.
+
+A write changes the field on the server and sends it to the players. The host
+checks that the entity is of the class you pass or one derived from it, and refuses
+one that is not, such as a trooper passed as a `CCitadelPlayerPawn`, with a
+message that gives both classes. The entity stays unchanged, and the mod keeps
+running.
+
+Some fields matter only while an entity spawns, such as `m_iInitialTeamNum`.
+`spawnNpc` writes those first:
+
+```ts
+spawnNpc({
+  className: 'npc_trooper_boss',
+  unit: 'npc_boss_tier1',
+  team: 2,
+  position,
+  fields: [
+    {
+      className: 'CBaseEntity',
+      field: 'm_iInitialTeamNum',
+      type: 'int32',
+      value: 2,
+    },
+  ],
+})
+```
+
+`modlock/entities` types each server entity class, with a getter per field and a
+setter for each but strings:
+
+```ts
+import { CCitadelPlayerPawn } from 'modlock/entities'
+
+const hero = new CCitadelPlayerPawn(pawn.entity)
+hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
+```
+
+A bundle keeps only the classes it uses. [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) lists every
+class, its base and its fields in `schemas.json`.
+
+## Create entities and send inputs
+
+`createEntity` creates an entity the server knows by its designer name, with
+the spawn key values a map would give it and fields written before it spawns.
+`fireInput` sends an entity an input, as a map's output would, and
+`removeEntity` removes one the mod created. The world's end, or the mod's,
+removes them.
+
+```ts
+import { createEntity, fireInput, removeEntity } from 'modlock'
+
+const guardian = createEntity({
+  designerName: 'npc_trooper_boss',
+  subclass: 'npc_boss_tier1',
+  team: 3,
+  position,
+  keyValues: [{ key: 'rendercolor', value: { text: '255 0 0' } }],
+})
+fireInput(guardian, 'Alpha', { integer: 128 })
+fireInput(guardian, 'Color', { color: 0x00ff00ff })
+fireInput(guardian, 'DisableShadow')
+removeEntity(guardian)
+```
+
+An NPC needs its subclass, the game data entry it reads while it spawns. An
+input reads its value as the type it takes and does not convert text: `Alpha`
+takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` lists each
+input's value type. A designer name the server lacks, or an input the entity
+lacks, fails that call alone.
+
+The host resolves the designer name's class before it creates anything. An
+ability, item or weapon, which only a hero holds, is refused with a message
+pointing at `giveItem` and `replaceAbility`, because one created alone takes the
+server down once it thinks or is removed. `spawnNpc` and `createPickup` build on
+the same call, so `spawnNpc` takes any unit class the server has and refuses a
+`lane` for a class that walks none.
+
+Entities keep to the same [console limits](/guides/console#limits) as `serverCommand`. The
+host refuses to create, spawn or send inputs to `point_servercommand`,
+`point_clientcommand`, `point_broadcastclientcommand`, `point_commentary_node`,
+`logic_script` and `point_prefab`, which run console lines on the server or on
+players' clients, or load scripts and entities no check sees; an entity of one
+of those classes that a map placed takes no input from a mod either. It
+refuses the key values `vscripts`, `precommands`, `postcommands` and any ending
+in `_script_func`, the fields they fill, `m_iszPrivateVScripts`,
+`m_iszPreCommands` and `m_iszPostCommands`, whether written before spawn or
+with `writeField`, and the inputs `AddOutput`, `RunScriptCode`,
+`RunScriptFile` and the `Call*ScriptFunction` inputs on every entity.
+
+`create` in `modlock/entities` types the same call by designer name: it takes
+only that entity's spawn keys, each as the type the entity reads, and returns
+the entity as its class, with a method per input:
+
+```ts
+import { create } from 'modlock/entities'
+
+const guardian = create('npc_trooper_boss', {
+  subclass: 'npc_boss_tier1',
+  team: 3,
+  position,
+  keys: { rendercolor: 0xff0000ff },
+})
+guardian?.inputAlpha(128)
+guardian?.inputDisableShadow()
+```
+
+`create` knows only the designer names that survived their spawn on a
+dedicated server, 577 of the game's 1,183, and gives each name that needs a
+subclass the one it lived with, so `create('npc_trooper_boss', ...)` makes a
+Guardian without asking for `npc_boss_tier1`. A name that never lived, such as an
+abstract base or one that crashes the server, has no constructor, and the type
+checker rejects it. [docs/ENTITY_SCHEMA.md](/internals/entity-schema) explores
+the whole entity system: the dump, the survey, the generated classes in each
+language and what the host checks.
+
+`showEntityOnlyTo` sends an entity the mod created only to the listed player
+slots, and `showEntityToAll` undoes it. Called right after the entity is
+created, no other client ever receives it, which keeps a per-player
+`point_clientui_dialog` from every other player:
+
+```ts
+import { showEntityOnlyTo } from 'modlock'
+import { create } from 'modlock/entities'
+
+const dialog = create('point_clientui_dialog', { transmitAlways: true, keys })
+if (dialog) showEntityOnlyTo(dialog.handle, [player.slot])
+```
+
+A player who leaves is dropped from every list, so the next player in their
+slot does not receive the entity; removing the entity drops its list.
+Entities parented to it need their own call.

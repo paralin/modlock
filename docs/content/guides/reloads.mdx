@@ -1,0 +1,135 @@
+---
+title: Reloads and failures
+description: What a reload resets, how to carry state across one, and what a failed call does.
+---
+
+`modlock dev` swaps in a new build each time you save, while the game
+runs. A reload starts the mod fresh: its variables reset, and everything it
+placed is removed.
+
+## Failed calls
+
+A failed call logs why and returns `false` or `undefined`; it never stops the
+mod. Everything a mod places leaves with the world. Stopping or reloading the
+mod removes it and releases frozen heroes, modifier states and input.
+
+<Only lang="go">
+  In Go each call returns an error instead, which a mod may ignore to keep
+  playing.
+</Only>
+
+## Hold a reload
+
+A mod in the middle of something a new build would lose, such as a timed run,
+calls `holdReload(true)`, and `holdReload(false)` once it ends. A reload that
+arrives meanwhile waits for it, and the newest build replaces the running one on
+the next frame after the release. A mod that stops also releases its hold.
+
+<Samples>
+
+```ts
+import { holdReload } from 'modlock'
+
+function startRun() {
+  holdReload(true)
+}
+
+function endRun() {
+  holdReload(false)
+}
+```
+
+```luau
+local function startRun()
+	modlock.holdReload(true)
+end
+
+local function endRun()
+	modlock.holdReload(false)
+end
+```
+
+```python
+def start_run() -> None:
+    modlock.hold_reload(True)
+
+
+def end_run() -> None:
+    modlock.hold_reload(False)
+```
+
+```go
+func startRun() { _ = mod.HoldReload(true) }
+
+func endRun() { _ = mod.HoldReload(false) }
+```
+
+</Samples>
+
+## Hand state to the next build
+
+A mod hands what a reload should not reset, such as which round it plays or the
+panels each player has open, to its next build as handoff state: `handoff(text)`
+for the game and `player.handoff(text)` for one player, read back on load with
+`handedOff()` and `player.handedOff()`. Handoff state lasts only through a reload
+in the same game. The host holds it in memory, up to 64 KiB per call, and never
+writes it to disk; the game's state ends when the mod stops or the server
+restarts, and a player's when that player leaves. A bot has none. Handing off an
+empty text forgets it.
+
+<Samples>
+
+```ts
+import { handedOff, handoff } from 'modlock'
+
+// Pick up the round the last build was on.
+let round = Number(handedOff() ?? 1)
+
+function nextRound() {
+  round += 1
+  handoff(String(round))
+}
+```
+
+```luau
+-- Pick up the round the last build was on.
+local round = tonumber(modlock.handedOff()) or 1
+
+local function nextRound()
+	round += 1
+	modlock.handoff(tostring(round))
+end
+```
+
+```python
+# Pick up the round the last build was on.
+round_number = int(modlock.handed_off() or 1)
+
+
+def next_round() -> None:
+    global round_number
+    round_number += 1
+    modlock.handoff(str(round_number))
+```
+
+```go
+var round = 1
+
+func init() {
+	// Pick up the round the last build was on.
+	mod.OnStart(func([]string) {
+		if text, err := mod.HandedOff(); err == nil {
+			if n, err := strconv.Atoi(text); err == nil {
+				round = n
+			}
+		}
+	})
+}
+
+func nextRound() {
+	round++
+	_ = mod.Handoff(strconv.Itoa(round))
+}
+```
+
+</Samples>

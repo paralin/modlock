@@ -1,0 +1,292 @@
+---
+title: Aim drill
+description: Give one player a target and score thirty seconds of hits.
+---
+
+A drill is a timed score for one player: add a target, count the hits that
+player lands on it, and report the result when the time is up. The target
+is a bot on the other team. Healing it by what each hit took keeps it
+standing for the whole drill.
+
+<Samples>
+
+```ts
+import {
+  addBot,
+  after,
+  command,
+  onDamaged,
+  onWorld,
+  type Player,
+} from 'modlock'
+
+const seconds = 30
+
+interface Drill {
+  player: Player
+  target: Player
+  hits: number
+  damage: number
+}
+let drill: Drill | undefined
+
+command('drill', (player) => {
+  if (drill !== undefined) {
+    player.chat('A drill is already running.')
+    return
+  }
+  // The target joins the other team, so hits on it count.
+  const target = addBot({
+    name: 'Target',
+    team: player.pawn()?.team === 2 ? 3 : 2,
+  })
+  if (target === undefined) {
+    return
+  }
+  const current: Drill = { player, target, hits: 0, damage: 0 }
+  drill = current
+  player.announce('Aim drill', `Hit the target for ${seconds} seconds.`)
+  after(seconds, () => {
+    if (drill !== current) {
+      return
+    }
+    player.announce('Time!', `${current.hits} hits, ${current.damage} damage`)
+    player.addMetric('drill.damage', current.damage)
+    target.removeBot()
+    drill = undefined
+  })
+})
+
+// Count the player's hits, and keep the target standing.
+onDamaged((hit) => {
+  if (
+    drill === undefined ||
+    hit.victim !== drill.target.pawn()?.entity ||
+    hit.attacker !== drill.player.pawn()?.entity
+  ) {
+    return
+  }
+  drill.hits += 1
+  drill.damage += hit.healthLost
+  drill.target.heal(hit.healthLost)
+})
+
+// A new world has removed the target.
+onWorld(() => {
+  drill = undefined
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+local seconds = 30
+
+type Drill = { player: modlock.Player, target: modlock.Player, hits: number, damage: number }
+local drill: Drill? = nil
+
+modlock.command("drill", function(player)
+	if drill then
+		player:chat("A drill is already running.")
+		return
+	end
+	-- The target joins the other team, so hits on it count.
+	local pawn = player:pawn()
+	local target = modlock.addBot({
+		name = "Target",
+		team = if pawn and pawn.team == 2 then 3 else 2,
+	})
+	if target == nil then
+		return
+	end
+	local current: Drill = { player = player, target = target, hits = 0, damage = 0 }
+	drill = current
+	player:announce("Aim drill", `Hit the target for {seconds} seconds.`)
+	modlock.after(seconds, function()
+		if drill ~= current then
+			return
+		end
+		player:announce("Time!", `{current.hits} hits, {current.damage} damage`)
+		player:addMetric("drill.damage", current.damage)
+		target:removeBot()
+		drill = nil
+	end)
+end)
+
+-- Count the player's hits, and keep the target standing.
+modlock.onDamaged(function(hit)
+	if drill == nil then
+		return
+	end
+	local target, shooter = drill.target:pawn(), drill.player:pawn()
+	if target == nil or shooter == nil or hit.victim ~= target.entity or hit.attacker ~= shooter.entity then
+		return
+	end
+	drill.hits += 1
+	drill.damage += hit.healthLost
+	drill.target:heal(hit.healthLost)
+end)
+
+-- A new world has removed the target.
+modlock.onWorld(function()
+	drill = nil
+end)
+```
+
+```python
+import dataclasses
+
+import modlock
+
+SECONDS = 30
+
+
+@dataclasses.dataclass
+class Drill:
+    player: modlock.Player
+    target: modlock.Player
+    hits: int = 0
+    damage: int = 0
+
+
+drill: Drill | None = None
+
+
+@modlock.command("drill")
+def start(player: modlock.Player, args: str) -> None:
+    global drill
+    if drill is not None:
+        player.chat("A drill is already running.")
+        return
+    # The target joins the other team, so hits on it count.
+    pawn = player.pawn()
+    team = 3 if pawn is not None and pawn.team == 2 else 2
+    target = modlock.add_bot(modlock.BotOptions(name="Target", team=team))
+    if target is None:
+        return
+    current = drill = Drill(player, target)
+    player.announce("Aim drill", f"Hit the target for {SECONDS} seconds.")
+
+    def finish() -> None:
+        global drill
+        if drill is not current:
+            return
+        player.announce("Time!", f"{current.hits} hits, {current.damage} damage")
+        player.add_metric("drill.damage", current.damage)
+        target.remove_bot()
+        drill = None
+
+    modlock.after(SECONDS, finish)
+
+
+# Count the player's hits, and keep the target standing.
+@modlock.on_damaged
+def hit(hit: modlock.DamagedEvent) -> None:
+    if drill is None:
+        return
+    target, shooter = drill.target.pawn(), drill.player.pawn()
+    if target is None or shooter is None:
+        return
+    if hit.victim != target.entity or hit.attacker != shooter.entity:
+        return
+    drill.hits += 1
+    drill.damage += hit.health_lost
+    drill.target.heal(hit.health_lost)
+
+
+# A new world has removed the target.
+@modlock.on_world
+def forget(map_name: str) -> None:
+    global drill
+    drill = None
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/paralin/modlock/mod"
+)
+
+const seconds = 30
+
+type drillRun struct {
+	player, target mod.Player
+	hits, damage   int
+}
+
+var drill *drillRun
+
+// entityOf returns the entity of a player's hero, or 0 without one.
+func entityOf(p mod.Player) uint32 {
+	pawn, err := p.Pawn()
+	if err != nil || pawn == nil {
+		return 0
+	}
+	return pawn.GetEntity()
+}
+
+func init() {
+	mod.Command("drill", func(p mod.Player, args string) {
+		if drill != nil {
+			_ = p.Chat("A drill is already running.")
+			return
+		}
+		// The target joins the other team, so hits on it count.
+		team := int32(2)
+		if pawn, err := p.Pawn(); err == nil && pawn != nil && pawn.GetTeam() == 2 {
+			team = 3
+		}
+		target, err := mod.AddBot(&mod.BotOptions{Name: "Target", Team: team})
+		if err != nil {
+			return
+		}
+		current := &drillRun{player: p, target: target}
+		drill = current
+		_ = p.Announce("Aim drill", fmt.Sprintf("Hit the target for %d seconds.", seconds))
+		mod.After(seconds*time.Second, func() {
+			if drill != current {
+				return
+			}
+			_ = p.Announce("Time!", fmt.Sprintf("%d hits, %d damage", current.hits, current.damage))
+			_ = p.AddMetric("drill.damage", float64(current.damage), nil)
+			_ = target.RemoveBot()
+			drill = nil
+		})
+	})
+
+	// Count the player's hits, and keep the target standing.
+	mod.OnDamaged(func(hit *mod.DamagedEvent) {
+		if drill == nil || hit.GetVictim() != entityOf(drill.target) || hit.GetAttacker() != entityOf(drill.player) {
+			return
+		}
+		drill.hits++
+		drill.damage += int(hit.GetHealthLost())
+		_ = drill.target.Heal(int32(hit.GetHealthLost()))
+	})
+
+	// A new world has removed the target.
+	mod.OnWorld(func(string) { drill = nil })
+}
+
+func main() {}
+```
+
+</Samples>
+
+The mod declares the metric it adds to in `mod.json`:
+
+```json
+"metrics": [{ "name": "drill.damage", "kind": "KIND_MAX" }]
+```
+
+## Make it yours
+
+- Move the target between hits with `teleport`, so the player tracks it.
+- Freeze the target so it stands still, or leave it free to fight back.
+- Rank the scores with a [board](/guides/data#boards), partitioned by
+  scenario and difficulty.
+- The [`drill`](https://github.com/paralin/modlock/tree/master/examples/drill) example is a complete drill mode.

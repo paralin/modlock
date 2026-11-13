@@ -1,0 +1,53 @@
+---
+title: Testing
+description: Try a mod in seconds without the game, and test a whole round in it.
+---
+
+## In the sandbox
+
+On macOS, or on a computer without Deadlock, `modlock dev` runs the mod in the
+sandbox: the same runtime and limits, with a stand-in player who has no hero.
+Type `/hello` and press Enter to send it as that player. The terminal shows the
+mod's log and everything it sends players. Calls that need the game, such as
+reading a hero's position, return nothing in the sandbox. `--sandbox` uses the
+sandbox even where the game is installed.
+
+Open `http://127.0.0.1:4322/` to see the screens your mod shows that player,
+drawn as the game would draw them. Press their buttons and send chat commands
+from the page as that player, and choose a screenshot of the game as the
+backdrop. The page shows when the mod is building, the errors of a failed build,
+and why a mod stopped. `--preview-port` moves it, and 0 turns it off. When
+another program holds the port, the page takes a free one, and the terminal
+prints its address.
+
+<Only lang="go">
+  Game rules that make no calls into the game test with plain `go test`, as the
+  [`race`](https://github.com/paralin/modlock/tree/master/examples/race) example
+  does.
+</Only>
+
+## In the game
+
+The sandbox runs commands and interfaces in seconds; use it while you write
+the rules. To test a whole round in the game, let the mod test itself. Started
+with `modlock play --arg probe`, it seats bots with `addBot`, plays the round,
+checks the outcome, logs PASS or FAIL and quits with `serverCommand('quit')`.
+[`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts) does this.
+
+`ProbeRun` does the bookkeeping. Call `tick` each frame with the step the
+
+<Callout title="TypeScript">
+  `ProbeRun` is part of the TypeScript library today. The samples on this page
+  stay in TypeScript whichever language you chose.
+</Callout>
+
+probe waits on and a check that returns `true` to pass, a message to fail, or
+`false` to wait. It logs each new step once, fails the run after its timeout,
+then logs `<name> probe PASS` or `FAIL` and quits:
+
+```ts
+const run = new ProbeRun('Duel', 120)
+onFrame((frame) => {
+  run.tick(frame.timeSeconds, 'two fighters', () => fighters() >= 2)
+})
+```

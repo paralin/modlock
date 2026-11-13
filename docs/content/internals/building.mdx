@@ -1,0 +1,60 @@
+---
+title: Building Modlock
+description: Build the command line, the host and the libraries from source.
+---
+
+Requirements: Go, CMake 3.24+ and a C++23 compiler. CMake downloads
+[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) for QuickJS and Luau.
+
+```sh
+git submodule update --init --recursive
+go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp
+
+jobs=$(( $(getconf _NPROCESSORS_ONLN) / 2 ))
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel "$jobs"
+ctest --test-dir build --output-on-failure
+cmake --install build --prefix "$PWD/build/sdk"
+```
+
+Protobuf and abseil take a long time to build. Use half the cores, as shown, so
+the build leaves the machine usable.
+
+CMake downloads the [Wasmtime C API](https://docs.wasmtime.dev/c-api/) release
+for the target platform. Pass `-DMODLOCK_WASMTIME_DIR=<extracted release>` to
+build offline. Install puts the Wasmtime library next to `modlock-host`, where
+the host loads it.
+
+- **Windows:** run `scripts/win-build.ps1` from a Visual Studio developer shell.
+- **macOS or Linux, targeting Windows:** `scripts/proton-build.sh` cross-builds
+  the Windows SDK with Zig.
+
+To build from a source archive without `.git`, pass its commit with
+`-DMODLOCK_REVISION=<40-character SHA>`.
+
+`modlock-host --dump DIRECTORY` starts the dedicated server, writes the game
+as it describes itself to `schemas.json` (schema classes and enums),
+`entities.json` (designer names, key values, inputs and outputs) and
+`console.json` (console variables and commands), and quits. The documents
+follow [`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto) and are
+sorted by name, so two builds' dumps diff cleanly. Beside them, `survey.json`
+records what creating each designer name on a dedicated server did: whether
+the entity lived, vanished, was refused or crashed the server, alone and with
+the subclass its game data suggests. The libraries type only the names that
+lived, and `create` gives a name that needs a subclass the one it lived with.
+After a game update, replace [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) with a new dump and
+survey, and regenerate the entity classes and console:
+
+```sh
+scripts/gen-entities.sh
+```
+
+`bun install` installs a pre-commit hook. The hook formats the staged files
+with oxfmt and restages them. It then checks the staged TypeScript for commented
+code paragraphs with `scripts/tsstyle.ts` and lints it with type-aware oxlint.
+`bun run typecheck`, `bun run lint`, `bun run format` and `bun run test` run the
+same tools across the repository. `bun run lint:cc` reports the includes a C++
+source does not use, and `bun run lint:cc --fix` removes them; it reads the
+compile databases of `build` and `scripts/proton-build.sh`, so build both
+first. Lint the example mods after
+`go run ./cmd/modlock build examples/<mod>` installs their typings.

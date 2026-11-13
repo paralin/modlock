@@ -1,0 +1,60 @@
+---
+title: TypeScript
+description: 'TypeScript and JavaScript mods: the build, the two runtimes and the widest library.'
+---
+
+A TypeScript or JavaScript mod imports `modlock` and registers its handlers
+when it loads:
+
+```ts
+import { command } from 'modlock'
+
+command('hello', (player) => {
+  player.chat('Hello from TypeScript!')
+})
+```
+
+This page covers what is particular to the language. The
+[guides](/guides/events) show every call in it: choose it with the switch
+in the sidebar.
+
+TypeScript has the widest library. [Interfaces](/guides/interfaces),
+[camera curves](/guides/camera), the [toolkit](/guides/toolkit) and typed
+[entities](/guides/entities) and [console variables](/guides/console) are
+all here first.
+
+## The build
+
+A TypeScript or JavaScript mod imports `modlock` and registers its handlers when
+it loads. `main.ts`, or `main.js`, is the entry, and the types check as you
+type, with no Node.js or npm to install. Each build writes the library's
+declarations to the project's `node_modules/modlock`, where editors and the type
+checker find them, and bundles the mod with the library built into the command
+line. A JavaScript mod is checked from its JSDoc.
+[`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto) documents every call, its
+arguments and its result.
+
+## Two runtimes
+
+Every build bundles the mod for QuickJS, which runs any JavaScript and builds in
+a moment. A mod whose frames run too long on QuickJS can set `"runtime":
+"RUNTIME_WASM"` in its `mod.json`; `modlock publish` then compiles it ahead of
+time to WebAssembly with [scriptc](https://scriptc.dev), which runs it about
+2.5 times faster but takes about a minute and a few gigabytes of memory to
+build, and which it downloads the first time. `modlock build --release` builds
+the same way to check the published build before you publish. When scriptc
+cannot compile part of the mod, the build lists each place and the reason, and
+bundles the mod for QuickJS instead. `modlock publish` then refuses to publish
+it, so a mod does not ship on QuickJS unnoticed; fix what scriptc reports, or
+pass `--allow-fallback` to publish the QuickJS build.
+
+Before it ships the WebAssembly build, the build plays it in the sandbox beside
+the QuickJS bundle: Start, a player, the world and five seconds of frames, with
+one clock and the same random bytes for both. Each event goes to QuickJS first,
+then to WebAssembly, which gets QuickJS's reply to each equal call. When the two
+builds make different calls or answer an event differently, the build prints
+the first event where they part, with what each build did there, and ships the
+QuickJS bundle, which `modlock publish` refuses in the same way. A run of server commands compares as a set, since the order in
+which a mod sends a group of console variables does not change the game. The
+check builds the QuickJS runtime with the zig that scriptc uses, once per
+version.

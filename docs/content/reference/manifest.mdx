@@ -1,0 +1,241 @@
+---
+title: The manifest
+description: Every field of mod.json.
+---
+
+Every project has a `mod.json` at its root:
+
+```json
+{
+  "slug": "my-mod",
+  "name": "My Mod",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT"
+}
+```
+
+| Field         | Required | Value                                                                                              |
+| ------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `slug`        | yes      | The mod's identifier: lowercase letters, digits and hyphens.                                       |
+| `name`        | yes      | The name players see.                                                                              |
+| `version`     | yes      | A semantic version of up to 64 letters, digits, `.`, `+` and `-`. Raise it for each publication.   |
+| `language`    | yes      | `LANGUAGE_TYPESCRIPT`, `LANGUAGE_JAVASCRIPT`, `LANGUAGE_LUAU`, `LANGUAGE_PYTHON` or `LANGUAGE_GO`. |
+| `map`         |          | The [map](/reference/manifest#map) the mod plays on.                                               |
+| `movement`    |          | A [movement model](/reference/manifest#movement) that replaces how heroes move.                    |
+| `definitions` |          | [Definition changes](/reference/manifest#definitions) to heroes and abilities.                     |
+| `settings`    |          | [Choices](/reference/manifest#settings) each player makes about the mod.                           |
+| `metrics`     |          | [Totals](/reference/manifest#metrics) the mod keeps for each player.                               |
+| `boards`      |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                  |
+
+## Map
+
+```json
+"map": "hl_parry_ball"
+```
+
+`dev` and `play` start on the first map a mod asks for in the game's
+`citadel/maps`, or `dl_midtown`, which hyperline.gg also plays for a mod
+that asks for no map.
+
+A mod plays a stock Deadlock map, `dl_midtown`, or its own map. Name its own
+map `hl_<name>` and put the compiled map in the project's `maps/hl_<name>.vpk`;
+`build` ships it and `publish` refuses a build without it. Any other name is
+refused: a map only in your game's `citadel/maps` loads for you and for no
+one else.
+
+## Movement
+
+```json
+"movement": { "model": "MODEL_QUAKEWORLD", "scale": 1.25 }
+```
+
+| Field   | Value                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------ |
+| `model` | `MODEL_QUAKEWORLD`: heroes move by QuakeWorld's rules against the Quake collision in `maps/<map>.bsp`. |
+| `scale` | Game units per Quake unit.                                                                             |
+
+The server runs the movement. A player's game stays stock: it predicts the
+game's own movement and the server corrects it. Each landing calls `onLanded`
+with the player and anyone they landed on.
+
+## Definitions
+
+```json
+"definitions": [
+  {
+    "file": "FILE_HEROES",
+    "entry": "hero_priest",
+    "fields": { "CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth]": 10000 }
+  },
+  {
+    "file": "FILE_BOT_DIFFICULTY",
+    "entry": "k_ECitadelBotDifficulty_Hard",
+    "fields": { "CBotDifficultyDefinition.low_health": 0, "CBotDifficultyDefinition.low_health_pushed": 0 }
+  },
+  {
+    "file": "FILE_NPC_UNITS",
+    "entry": "npc_player_bot_brain",
+    "fields": { "CCitadelPlayerBotNPCBrainVData.m_flDisengageFromEnemyToLaneDist": 100000 }
+  },
+  {
+    "file": "FILE_MODIFIERS",
+    "entry": "ability_doorman_hotel/pre_teleport",
+    "fields": {
+      "CModifierVData.m_flDuration": 12,
+      "CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_FALL_SPEED_MAX]": 42
+    }
+  },
+  {
+    "entry": "gunslinger_rocket_launcher",
+    "properties": { "AbilityCooldown": 0.8, "Damage": 120 },
+    "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
+    "copyFields": {
+      "CAbilityRocketLauncherVData.m_ExplosionParticle": "CitadelAbilityVData.m_skillshotMissParticle"
+    },
+    "textFields": {
+      "CitadelAbilityVData.m_strCastSound": "Hero.Warden.Flask.Throw"
+    }
+  }
+]
+```
+
+Each entry changes one stock definition on the server; players' games keep
+their own definitions, so tooltips and parts of the HUD show the stock values
+while play uses the changed ones.
+
+| Field        | Value                                                                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, `FILE_BOT_DIFFICULTY` for bot difficulties, `FILE_NPC_UNITS` for units and the bot brain, or `FILE_MODIFIERS` for modifiers. |
+| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher`, `upgrade_colossus/modifier_colossus_active` or `k_ECitadelBotDifficulty_Hard`.                                                       |
+| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                                                                                                           |
+| `fields`     | Float, range-float and modifier-level-float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                                                         |
+| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                          |
+| `textFields` | Text, symbol, sound event and Panorama image schema fields by `Class.m_field/Class.m_field` path, with `{addon}` replaced by the mod's content addon.                                                          |
+
+A path's last step can end in `[Enum.Value]` to select one value of a map keyed
+by an enum, such as a hero's starting stats, or one entry of a modifier's
+`m_vecScriptValues` list by `EModifierValue`. One value fills every level of a
+level float or script value and both bounds of a range. The server writes the
+changes when it loads the definitions and again in each new map.
+
+A bot difficulty is named by its `ECitadelBotDifficulty` value. Every bot of
+that difficulty reads the changed record, including bots already playing, and a
+bot whose difficulty has no record in the file uses the easy one. A bot
+retreats to its base when its health falls below `low_health` percent, or
+`low_health_pushed` near an enemy tower; setting both to 0 makes it fight to
+the death.
+
+Every bot shares the `npc_player_bot_brain` unit. A bot gives up an enemy who
+stands more than `m_flDisengageFromEnemyToLaneDist` beyond its lane's front and
+walks back to the lane; raising it lets bots fight away from the lanes.
+
+## Settings
+
+```json
+"settings": [
+  {
+    "key": "layout",
+    "label": "HUD layout",
+    "kind": "KIND_CHOICE",
+    "choices": [
+      { "value": "full", "label": "Full" },
+      { "value": "compact", "label": "Compact" }
+    ],
+    "default": "compact"
+  },
+  { "key": "sounds", "label": "Sounds", "kind": "KIND_SWITCH" },
+  { "key": "volume", "label": "Volume", "kind": "KIND_NUMBER", "min": 0, "max": 100, "step": 5 }
+]
+```
+
+| Kind          | Extra fields         | Value                 | Starts at without `default` |
+| ------------- | -------------------- | --------------------- | --------------------------- |
+| `KIND_CHOICE` | `choices`            | One choice's `value`  | The first choice            |
+| `KIND_SWITCH` |                      | `"true"` or `"false"` | Off                         |
+| `KIND_NUMBER` | `min`, `max`, `step` | A number on the step  | `min`                       |
+
+A `key` is up to 64 letters, digits and underscores, not starting with a
+digit. Every value is text: `player.setting(key)` reads it,
+`player.setSetting(key, value)` changes it, and `settingOn` and
+`settingNumber` read a switch or a number with its type. `onSettingChanged`
+hears of changes made elsewhere, such as on a profile page. Bots read the
+defaults. `modlock build` rejects a setting players could not choose from.
+
+## Metrics
+
+```json
+"metrics": [
+  { "name": "hud.opened", "kind": "KIND_COUNT", "labels": ["full", "compact"] },
+  { "name": "round.best", "kind": "KIND_MAX" }
+]
+```
+
+| Kind         | Keeps                        |
+| ------------ | ---------------------------- |
+| `KIND_COUNT` | How many times it was added. |
+| `KIND_SUM`   | The sum of the added values. |
+| `KIND_MAX`   | The largest added value.     |
+
+A `name` is letters, digits, underscores and dots. Optional `labels` split a
+metric, such as one total per HUD layout; pass the label as the third argument
+of `player.addMetric(name, value, label)`. The host keeps the totals in memory
+and hands them on once, when the player leaves or the mod stops. Without a
+host service that takes them, the mod logs them, so `modlock dev` shows a
+session's totals as it ends. Bots keep no totals.
+
+## Boards
+
+```json
+"boards": [
+  {
+    "name": "aim.score",
+    "label": "Best score",
+    "unit": "UNIT_NUMBER",
+    "order": "ORDER_DESCENDING",
+    "keep": "KEEP_BEST",
+    "partitions": [
+      { "name": "scenario" },
+      { "name": "difficulty", "values": ["easy", "medium", "hard"] }
+    ],
+    "windows": ["WINDOW_ALL_TIME", "WINDOW_WEEK", "WINDOW_DAY"],
+    "tier": "TIER_ADMITTED",
+    "lowest": "0",
+    "highest": "100000"
+  }
+]
+```
+
+| Field               | Value                                                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `name`              | The name the code reports to: letters, digits, underscores and dots.                                                        |
+| `label`             | The board's title on screen.                                                                                                |
+| `unit`              | `UNIT_NUMBER` or `UNIT_MILLISECONDS`.                                                                                       |
+| `order`             | `ORDER_DESCENDING` ranks the highest value first; `ORDER_ASCENDING` the lowest, as for a time.                              |
+| `keep`              | What a player's standing keeps; see below.                                                                                  |
+| `rating`            | `RATING_ELO` or `RATING_GLICKO2`, for a `KEEP_RATING` board.                                                                |
+| `partitions`        | Up to four dimensions that split the board into separate rankings, each with optional allowed values.                       |
+| `windows`           | `WINDOW_ALL_TIME`, `WINDOW_DAY` and `WINDOW_WEEK`; all time alone by default. Windows follow UTC, and a week starts Monday. |
+| `tier`              | The least trusted server whose scores rank: `TIER_HOSTED`, `TIER_ADMITTED` or `TIER_DEDICATED`.                             |
+| `lowest`, `highest` | The plausible values; a host holds a score outside them for review.                                                         |
+| `version`           | Raise it to start a fresh ranking when the unit, order, keep rule, rating or partitions change.                             |
+| `hud`               | `HUD_END_CARD` asks the host to show the player's place after each score.                                                   |
+
+| Keep          | Keeps                                              |
+| ------------- | -------------------------------------------------- |
+| `KEEP_BEST`   | The best value by the board's order.               |
+| `KEEP_SUM`    | The sum of the values.                             |
+| `KEEP_COUNT`  | How many scores the player reported.               |
+| `KEEP_LATEST` | The latest value.                                  |
+| `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
+
+A score names a value for each partition and an optional `key` for its run, so a
+resent score counts once, and a `tiebreak` that ranks equal values lower first.
+The host's scores service ranks them; it decides who may report and how far it
+trusts each server. Without a host service that keeps scores, `modlock dev`
+checks each score against its board and logs it, and the mod logs a score the
+host does not take.
+
+## The built manifest
+
+The built `mod.json` in `build/` adds the `runtime` and `entry`;
+`modlock-host --plugin build` loads it.

@@ -1,0 +1,154 @@
+---
+title: Damage
+description: Change or block a hit before it lands, and react to it after.
+---
+
+Two events cover every hit. The damage event runs before the hit lands and
+may change its amount or block it. The damaged event runs after it lands,
+with the health the victim had and the health it lost.
+
+Both name heroes by their entity, the same number as a pawn's `entity`.
+
+## Change a hit
+
+Return a new amount to change the hit, and nothing to leave it alone.
+
+<Samples>
+
+```ts
+import { onDamage } from 'modlock'
+
+// Headshots deal double damage.
+onDamage((hit) => (hit.hitGroup === 1 ? { amount: hit.amount * 2 } : undefined))
+```
+
+```luau
+-- Headshots deal double damage.
+modlock.onDamage(function(hit)
+	if hit.hitGroup == 1 then
+		return { amount = hit.amount * 2 }
+	end
+	return nil
+end)
+```
+
+```python
+# Headshots deal double damage.
+@modlock.on_damage
+def headshots(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
+    if hit.hit_group == 1:
+        return modlock.DamageResult(amount=hit.amount * 2)
+    return None
+```
+
+```go
+// Headshots deal double damage.
+mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
+	if hit.GetHitGroup() != 1 {
+		return nil
+	}
+	amount := hit.GetAmount() * 2
+	return &mod.DamageResult{Amount: &amount}
+})
+```
+
+</Samples>
+
+## Block a hit
+
+Block hits to protect a hero that just spawned, to hold fire before a round
+starts, or to turn off friendly fire.
+
+<Samples>
+
+```ts
+import { onDamage } from 'modlock'
+
+// Entities that take no damage, such as heroes that just spawned.
+const shielded = new Set<number>()
+
+onDamage((hit) => (shielded.has(hit.victim) ? { block: true } : undefined))
+```
+
+```luau
+-- Entities that take no damage, such as heroes that just spawned.
+local shielded: { [number]: boolean } = {}
+
+modlock.onDamage(function(hit)
+	if shielded[hit.victim] then
+		return { block = true }
+	end
+	return nil
+end)
+```
+
+```python
+# Entities that take no damage, such as heroes that just spawned.
+shielded: set[int] = set()
+
+
+@modlock.on_damage
+def shield(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
+    return modlock.DamageResult(block=True) if hit.victim in shielded else None
+```
+
+```go
+// Entities that take no damage, such as heroes that just spawned.
+var shielded = map[uint32]bool{}
+
+func init() {
+	mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
+		if !shielded[hit.GetVictim()] {
+			return nil
+		}
+		block := true
+		return &mod.DamageResult{Block: &block}
+	})
+}
+```
+
+</Samples>
+
+## React to a kill
+
+A hit is lethal when it took all the health the victim had.
+
+<Samples>
+
+```ts
+import { log, onDamaged } from 'modlock'
+
+onDamaged((hit) => {
+  if (hit.healthLost >= hit.healthBefore) {
+    log(`entity ${hit.attacker} defeated entity ${hit.victim}`)
+  }
+})
+```
+
+```luau
+modlock.onDamaged(function(hit)
+	if hit.healthLost >= hit.healthBefore then
+		modlock.log(`entity {hit.attacker} defeated entity {hit.victim}`)
+	end
+end)
+```
+
+```python
+@modlock.on_damaged
+def defeated(hit: modlock.DamagedEvent) -> None:
+    if hit.health_lost >= hit.health_before:
+        modlock.log(f"entity {hit.attacker} defeated entity {hit.victim}")
+```
+
+```go
+mod.OnDamaged(func(hit *mod.DamagedEvent) {
+	if hit.GetHealthLost() >= hit.GetHealthBefore() {
+		mod.Log("entity", hit.GetAttacker(), "defeated entity", hit.GetVictim())
+	}
+})
+```
+
+</Samples>
+
+[Kill scoring](/mechanics/kill-scoring) turns this into a score, with the
+attacker's entity matched back to a player.

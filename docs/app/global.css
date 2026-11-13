@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/*
+ * The language switch. The root element carries the reader's language as
+ * data-lang, and these rules show the matching sample of each block, mark the
+ * chosen button and reveal language-specific notes. Everything follows from
+ * that one attribute, so the first paint is already in the right language.
+ */
+
+[data-sample],
+[data-missing],
+[data-only] {
+  display: none;
+}
+
+html[data-lang='ts'] [data-sample='ts'],
+html[data-lang='luau'] [data-sample='luau'],
+html[data-lang='python'] [data-sample='python'],
+html[data-lang='go'] [data-sample='go'],
+html[data-lang='ts'] [data-missing='ts'],
+html[data-lang='luau'] [data-missing='luau'],
+html[data-lang='python'] [data-missing='python'],
+html[data-lang='go'] [data-missing='go'],
+html[data-lang='ts'] [data-only~='ts'],
+html[data-lang='luau'] [data-only~='luau'],
+html[data-lang='python'] [data-only~='python'],
+html[data-lang='go'] [data-only~='go'],
+/* A block without the reader's language shows its first sample. */
+html[data-lang='ts'] [data-samples]:not([data-langs~='ts']) > [data-sample]:first-of-type,
+html[data-lang='luau'] [data-samples]:not([data-langs~='luau']) > [data-sample]:first-of-type,
+html[data-lang='python'] [data-samples]:not([data-langs~='python']) > [data-sample]:first-of-type,
+html[data-lang='go'] [data-samples]:not([data-langs~='go']) > [data-sample]:first-of-type {
+  display: block;
+}
+
+[data-samples] {
+  @apply my-6;
+}
+
+[data-samples] > [data-sample] > figure {
+  @apply my-0;
+}
+
+[data-samples] > [data-missing] {
+  @apply text-fd-muted-foreground my-0 mb-2 text-sm;
+}
+
+[data-language-buttons] {
+  @apply bg-fd-muted text-fd-muted-foreground inline-flex gap-0.5 rounded-lg p-0.5 text-sm;
+}
+
+[data-samples] > [data-language-buttons] {
+  @apply mb-2;
+}
+
+[data-language-buttons] > button {
+  @apply rounded-md px-2.5 py-1 font-medium transition-colors;
+}
+
+[data-language-buttons] > button:hover {
+  @apply text-fd-foreground;
+}
+
+html[data-lang='ts'] [data-language-buttons] > [data-language='ts'],
+html[data-lang='luau'] [data-language-buttons] > [data-language='luau'],
+html[data-lang='python'] [data-language-buttons] > [data-language='python'],
+html[data-lang='go'] [data-language-buttons] > [data-language='go'],
+/* The fallback sample's button is marked when the block lacks the language. */
+html[data-lang='ts'] [data-samples]:not([data-langs~='ts']) > [data-language-buttons] > button:first-child,
+html[data-lang='luau'] [data-samples]:not([data-langs~='luau']) > [data-language-buttons] > button:first-child,
+html[data-lang='python'] [data-samples]:not([data-langs~='python']) > [data-language-buttons] > button:first-child,
+html[data-lang='go'] [data-samples]:not([data-langs~='go']) > [data-language-buttons] > button:first-child {
+  @apply bg-fd-background text-fd-foreground shadow-sm;
+}
+
+.language-select {
+  @apply flex flex-col gap-1.5;
+}
+
+.language-select-label {
+  @apply text-fd-muted-foreground text-xs font-medium;
+}
+
+.language-select > [data-language-buttons] {
+  @apply flex text-xs;
+}
+
+.language-select > [data-language-buttons] > button {
+  @apply flex-1 px-1;
+}

@@ -1,0 +1,107 @@
+---
+title: Toolkit
+description: 'Helpers built on the library: vectors, number formats, a player roster, the floor, race gates and a frame clock.'
+---
+
+<Callout title="TypeScript">
+  The toolkit is part of the TypeScript library today. The samples on this page
+  stay in TypeScript whichever language you chose.
+</Callout>
+
+Every language has `trace`, the call `ground` is built on, and the calls
+the rest compose.
+
+## Vectors and HUD text
+
+`vector` works in world units with z up and view angles in degrees, pitch
+positive looking down. `vector.distance`, `flatDistance`, `toward`, `lerp`
+and the arithmetic helpers place things; `yawToward`, `level`, `aimAt` and
+`forward` turn a hero to face a point or read where it looks.
+
+`format` writes the numbers a HUD shows the way players read them, since the
+game's scripts have no locale data: `clock(65)` is `1:05`, `stopwatch(64.37)`
+is `1:04.37`, `percent(3, 4)` is `75%`, `grouped(4210)` is `4,210`,
+`ordinal(2)` is `2nd`, `count(3, 'kill')` is `3 kills` and
+`clip('Lady Geist wins', 10)` is `Lady…`.
+
+## Keep the players with Cast
+
+`Cast` keeps one member per human who finished joining. It calls your `join`
+when someone arrives and `leave` when they go, and treats a reconnect as a
+leave and a join, so a member never carries the last player's state. It learns
+of joins from the host's player reports, so a frame where nobody came or went
+walks no player list. Bots are left out, or kicked with `bots: 'kick'`.
+
+A member can want a hero, a team and a respawn delay. `cast.frame` reads each
+member's hero once and asks the game, at most once a second, for whatever the
+hero does not show yet, until it does. Give `want` one want for everyone, or a
+function of the member, such as `(fighter) => fighter.want`, that Cast reads
+each frame. Read the hero back with `cast.pawn` instead of asking the game
+again.
+
+```ts
+import { Cast, onFrame } from 'modlock'
+
+const cast = new Cast({
+  join: ({ player, name }) => {
+    player.announce('ARENA', `Welcome, ${name}.`)
+    return { player, kills: 0 }
+  },
+  want: { hero: 'any', respawn: 3 },
+})
+
+onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
+```
+
+## Find the floor
+
+`ground(point)` returns the floor under a point with one trace straight down,
+from 64 units above it to 1024 below, through solid and player clip. It
+returns nothing when no floor is in reach, when the point is inside a wall, or
+before the world's collision is ready, so `ground(spawn) ?? spawn` keeps the
+point when there is no floor. `above`, `below` and `layers` change the reach.
+
+## Stand a race gate
+
+`RaceGate.stand` stands a checkpoint or finish gate across a lane. The gate is
+a window of thin glowing lines inside a racing checker band that runs round
+its sides and top. It is Tron cyan by default, and a runner reads it at once
+as "go through here". `foot` is the road point under the middle of the
+opening, and `yaw` is the direction a runner passes through, in degrees.
+Precache `raceGateResources` in `onStart`:
+
+```ts
+import { ground, onStart, precache, RaceGate, raceGateResources } from 'modlock'
+
+onStart(() => precache({ resources: raceGateResources }))
+
+const gate = RaceGate.stand({ foot: ground(spot) ?? spot, yaw: 90 })
+gate.remove()
+```
+
+`width` and `height` size the opening, 112 by 144 units by default, rounded to
+whole 8-unit cells. `color` and `faded` color the band's inner and outer
+rings, and `viewer` shows the gate to one player slot only. World text and
+beams ignore alpha, so the outer ring uses a darker shade to look see-through.
+
+## Time your frames
+
+`frameClock` shows how much of a slow server's frame is your mod's, and which
+part spends it. Call `begin` as a frame starts, `lap` with a name after each
+part, and `end` with the frame's tick. Once a minute it logs the median and
+slowest frame, each part's mean and slowest milliseconds, and the parts that
+cost the most in the minute's slowest frame, which a part that spikes once a
+minute needs to show up at all.
+
+```ts
+import { frameClock, onFrame } from 'modlock'
+
+onFrame((frame) => {
+  frameClock.begin()
+  moveBots()
+  frameClock.lap('bots')
+  drawHud()
+  frameClock.lap('hud')
+  frameClock.end(frame.tick)
+})
+```

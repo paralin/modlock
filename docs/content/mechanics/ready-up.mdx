@@ -1,0 +1,293 @@
+---
+title: Ready up and count down
+description: Hold the round until every player is ready, then count it in.
+---
+
+Most modes open the same way: wait for everyone, freeze them, count down
+and let go. The round is a small state machine with three phases, and each
+handler checks the phase before it acts.
+
+| Phase       | Players can     | Moves on when             |
+| ----------- | --------------- | ------------------------- |
+| `waiting`   | Type `/ready`   | Every human is ready.     |
+| `countdown` | Watch the count | The count reaches zero.   |
+| `live`      | Play            | Your mode ends the round. |
+
+<Samples>
+
+```ts
+import { command, onPlayerLeave, type Player, players, sequence } from 'modlock'
+
+let phase: 'waiting' | 'countdown' | 'live' = 'waiting'
+const ready = new Set<number>()
+
+function humans(): Player[] {
+  return players()
+    .filter((connection) => !connection.bot)
+    .map((connection) => connection.player)
+}
+
+command('ready', (player) => {
+  if (phase !== 'waiting') {
+    return
+  }
+  ready.add(player.slot)
+  const everyone = humans()
+  const missing = everyone.filter((p) => !ready.has(p.slot)).length
+  if (missing > 0) {
+    for (const p of everyone) {
+      p.centerText(`Waiting for ${missing} more`)
+    }
+    return
+  }
+  countDown()
+})
+
+function countDown() {
+  phase = 'countdown'
+  for (const p of humans()) {
+    p.freeze(true)
+  }
+  // Runs at 3, 2, 1 and then starts the round.
+  sequence((run) => {
+    const left = 4 - run
+    for (const p of humans()) {
+      if (left > 0) {
+        p.centerText(String(left))
+      } else {
+        p.freeze(false)
+        p.announce('Fight!', 'The round is live.')
+      }
+    }
+    if (left > 0) {
+      return 1
+    }
+    phase = 'live'
+    ready.clear()
+  })
+}
+
+// A player who leaves no longer holds the round up.
+onPlayerLeave(({ connection }) => {
+  ready.delete(connection.player.slot)
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+local phase: "waiting" | "countdown" | "live" = "waiting"
+local ready: { [number]: boolean } = {}
+
+local function humans(): { modlock.Player }
+	local list = {}
+	for _, connection in modlock.players() do
+		if not connection.bot then
+			table.insert(list, connection.player)
+		end
+	end
+	return list
+end
+
+local function countDown()
+	phase = "countdown"
+	for _, p in humans() do
+		p:freeze(true)
+	end
+	-- Runs at 3, 2, 1 and then starts the round.
+	modlock.sequence(function(run)
+		local left = 4 - run
+		for _, p in humans() do
+			if left > 0 then
+				p:centerText(tostring(left))
+			else
+				p:freeze(false)
+				p:announce("Fight!", "The round is live.")
+			end
+		end
+		if left > 0 then
+			return 1
+		end
+		phase = "live"
+		ready = {}
+		return nil
+	end)
+end
+
+modlock.command("ready", function(player)
+	if phase ~= "waiting" then
+		return
+	end
+	ready[player.slot] = true
+	local everyone = humans()
+	local missing = 0
+	for _, p in everyone do
+		if not ready[p.slot] then
+			missing += 1
+		end
+	end
+	if missing > 0 then
+		for _, p in everyone do
+			p:centerText(`Waiting for {missing} more`)
+		end
+		return
+	end
+	countDown()
+end)
+
+-- A player who leaves no longer holds the round up.
+modlock.onPlayerLeave(function(left)
+	ready[left.connection.player.slot] = nil
+end)
+```
+
+```python
+import modlock
+
+phase = "waiting"  # then "countdown", then "live"
+ready: set[int] = set()
+
+
+def humans() -> list[modlock.Player]:
+    return [c.player for c in modlock.players() if not c.bot]
+
+
+@modlock.command("ready")
+def ready_up(player: modlock.Player, args: str) -> None:
+    if phase != "waiting":
+        return
+    ready.add(player.slot)
+    everyone = humans()
+    missing = sum(1 for p in everyone if p.slot not in ready)
+    if missing > 0:
+        for p in everyone:
+            p.center_text(f"Waiting for {missing} more")
+        return
+    count_down()
+
+
+def count_down() -> None:
+    global phase
+    phase = "countdown"
+    for p in humans():
+        p.freeze(True)
+
+    # Runs at 3, 2, 1 and then starts the round.
+    def step(run: int) -> float | None:
+        global phase
+        left = 4 - run
+        for p in humans():
+            if left > 0:
+                p.center_text(str(left))
+            else:
+                p.freeze(False)
+                p.announce("Fight!", "The round is live.")
+        if left > 0:
+            return 1
+        phase = "live"
+        ready.clear()
+        return None
+
+    modlock.sequence(step)
+
+
+# A player who leaves no longer holds the round up.
+@modlock.on_player_leave
+def left(event: modlock.PlayerLeftEvent) -> None:
+    ready.discard(event.connection.player.slot)
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/paralin/modlock/mod"
+)
+
+var (
+	phase = "waiting" // then "countdown", then "live"
+	ready = map[int32]bool{}
+)
+
+func humans() []mod.Player {
+	var list []mod.Player
+	connections, _ := mod.Players()
+	for _, c := range connections {
+		if !c.GetBot() {
+			list = append(list, mod.Player{Slot: c.GetPlayer()})
+		}
+	}
+	return list
+}
+
+func init() {
+	mod.Command("ready", func(p mod.Player, args string) {
+		if phase != "waiting" {
+			return
+		}
+		ready[p.Slot] = true
+		everyone := humans()
+		missing := 0
+		for _, other := range everyone {
+			if !ready[other.Slot] {
+				missing++
+			}
+		}
+		if missing > 0 {
+			for _, other := range everyone {
+				_ = other.CenterText(fmt.Sprintf("Waiting for %d more", missing))
+			}
+			return
+		}
+		countDown()
+	})
+
+	// A player who leaves no longer holds the round up.
+	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
+		delete(ready, left.GetConnection().GetPlayer())
+	})
+}
+
+func countDown() {
+	phase = "countdown"
+	for _, p := range humans() {
+		_ = p.Freeze(nil)
+	}
+	// Runs at 3, 2, 1 and then starts the round.
+	mod.Sequence(func(run int) (time.Duration, bool) {
+		left, released := 4-run, false
+		for _, p := range humans() {
+			if left > 0 {
+				_ = p.CenterText(strconv.Itoa(left))
+			} else {
+				_ = p.Freeze(&released)
+				_ = p.Announce("Fight!", "The round is live.")
+			}
+		}
+		if left > 0 {
+			return time.Second, true
+		}
+		phase = "live"
+		clear(ready)
+		return 0, false
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+## Make it yours
+
+- Set `phase` back to `waiting` when your round ends, so the next one waits
+  for players again.
+- [Block hits](/guides/damage#block-a-hit) or
+  [withhold the attack button](/guides/input#block-and-press) until the
+  phase is `live`.
+- A reload resets `phase`. [Hand it to the next build](/guides/reloads#hand-state-to-the-next-build)
+  to keep a round going while you edit.

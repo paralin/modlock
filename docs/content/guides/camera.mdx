@@ -1,0 +1,80 @@
+---
+title: Camera
+description: Pull back, aim and shake the camera, and play curves on it.
+---
+
+<Callout title="TypeScript">
+  Camera curves are part of the TypeScript library today. The samples on this
+  page stay in TypeScript whichever language you chose.
+</Callout>
+
+`move_camera` and `clear_camera`, the calls the curves are built on, are in
+every language.
+
+`playCamera` plays a curve on each camera param you pass (`distance`,
+`fieldOfView`, `target`, `verticalOffset`, `horizontalOffset`), all on one
+timeline. The whole move goes to the client at once, as the game's own lerps
+queued in one context, so it plays smoothly without the mod's timers. It
+returns a move with `duration` and `cancel()`, or nothing when the player has
+no hero. Each param snaps back to its usual value when its curve ends, so
+end a curve at rest: at zero when it is `relative`. A move takes a context of its own unless you
+pass one; moves in two contexts take turns by `priority`, and the higher one
+hands back when it ends. `loop` plays the curves again until `cancel()`.
+
+The camera has no pitch param. The game's camera operations
+(`CCitadelUserMsg_CameraController`) move only the distance, field of view,
+target, vertical offset and horizontal offset, and the view always looks along
+the player's own aim, so `Pawn.cameraPosition` and `cameraAngles` stay true for
+picking. Frame a higher view by raising `verticalOffset` and pulling
+`distance` back, and shift it with `horizontalOffset`; the player tilts it
+with the mouse. Turning the view itself means setting the player's view
+angles, which takes over their look.
+
+The `curve` namespace builds curves. Each one is a list of spans, and every
+builder returns one, so they compose:
+
+| Call                                                                 | Curve                                                         |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `curve.line(from, to, seconds, ease?)`, `curve.hold(value, seconds)` | A move from one value to another, or a value held.            |
+| `curve.keyframes(keys, { smooth? })`                                 | Through `{ at, value, ease? }` keys, straight or on a spline. |
+| `curve.through(points, { speed, ease?, smooth? })`                   | Through points at a speed, each move as long as its distance. |
+| `curve.orbit({ center, radius, duration, turns?, start?, rise? })`   | Around a point, for the `target` param; a spiral when rising. |
+| `curve.wave({ amplitude, frequency, duration, decay? })`             | Swings either side of zero, shrinking with `decay`.           |
+| `curve.chain(...)`, `repeat(c, n)`, `reverse(c)`, `pingPong(c)`      | Curves one after another, repeated, backward, there and back. |
+| `curve.durationOf(c)`, `curve.valueAt(c, seconds)`                   | How long a curve plays, and its value at a time.              |
+
+`curve.ease` holds `linear`, `in`, `out`, `inOut`, `sine`, `back`, `elastic`
+and `bounce`, and `curve.shaped(fn)` makes any function from 0 to 1 an ease. The game's lerp
+draws `linear`, `ease.bias(b)` and `ease.gain(g)` itself (Valve's bias and
+gain, each linear at 0.5), so a span with one of them plays as one lerp. Any
+other span is sampled into `rate` lerps a second, 30 unless you set it. The
+client plays at most one queued lerp a frame, so on a client slower than the
+rate a sampled span plays slower than its duration. `cameraPulse` moves a param out by an amount,
+holds it and brings it back, as an ability pulls the camera back while it
+charges, and `cameraShake` shakes one.
+
+```ts
+// Pull back while the view widens, ease back in after two seconds.
+playCamera(player, {
+  relative: true,
+  tracks: {
+    distance: curve.chain(
+      curve.line(0, 300, 0.4, curve.ease.out),
+      curve.hold(300, 2),
+      curve.line(300, 0, 0.6, curve.ease.inOut),
+    ),
+    fieldOfView: curve.keyframes([
+      { at: 0, value: 0 },
+      { at: 0.4, value: 15, ease: curve.ease.out },
+      { at: 3, value: 0, ease: curve.ease.sine },
+    ]),
+  },
+})
+
+// Circle a point of interest until the round starts.
+const tour = playCamera(player, {
+  loop: true,
+  tracks: { target: curve.orbit({ center: spot, radius: 400, duration: 12 }) },
+})
+after(30, () => tour?.cancel())
+```

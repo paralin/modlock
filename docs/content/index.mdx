@@ -1,0 +1,108 @@
+---
+title: Modlock
+description: Custom game modes for Deadlock, in the language you like.
+---
+
+Modlock is a tool for writing the logic of [Deadlock](https://store.steampowered.com/app/1422450/Deadlock/)
+custom game modes by hand. You write a mod in TypeScript, Luau, Python or
+Go. Modlock builds it for WebAssembly, and the game server runs it in a
+sandbox. Every language sees the same events and makes the same calls.
+
+<Samples>
+
+```ts
+import { command } from 'modlock'
+
+command('hello', (player) => {
+  player.chat('Hello from TypeScript!')
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+modlock.command("hello", function(player)
+	player:chat("Hello from Luau!")
+end)
+```
+
+```python
+import modlock
+
+
+@modlock.command("hello")
+def hello(player: modlock.Player, args: str) -> None:
+    player.chat("Hello from Python!")
+```
+
+```go
+package main
+
+import "github.com/paralin/modlock/mod"
+
+func init() {
+	mod.Command("hello", func(p mod.Player, args string) {
+		_ = p.Chat("Hello from Go!")
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+Pick your language with the switch in the sidebar, or on any sample. Every
+sample on the site follows it.
+
+<Callout title="Early development">
+  The library may change between any two releases. TypeScript, JavaScript, Luau,
+  Python and Go mods, the `modlock` command and `modlock publish` all work
+  today.
+</Callout>
+
+## Where to go
+
+<Cards>
+  <Card title="Install" href="/start/install">
+    Get the `modlock` command, the one program you need.
+  </Card>
+  <Card title="Your first mod" href="/start/first-mod">
+    Make a project, run it in the game and change it while it runs.
+  </Card>
+  <Card title="Tutorial" href="/start/tutorial">
+    Build a small brawl with a countdown, a score, a HUD and a sign.
+  </Card>
+  <Card title="Guides" href="/guides/events">
+    One page for each thing a mod does: players, timers, damage, the world.
+  </Card>
+  <Card title="Mechanics" href="/mechanics/ready-up">
+    Recipes for whole mechanics: a countdown, kill scoring, a hill, a race.
+  </Card>
+  <Card title="Reference" href="/reference/cli">
+    Every command, every manifest field and how to publish.
+  </Card>
+</Cards>
+
+## Why WebAssembly
+
+- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server. It
+  has no files, network or environment, only the calls the schema offers. A
+  crash, an endless loop or a runaway allocation stops that mod with a log
+  line and leaves the match running. A slow event finishes, and the players
+  hear of it in chat. Any player can restart a stopped or slow mod with
+  `/restartmod`.
+- **Any language.** Anything that compiles to WebAssembly can be a mod, with a
+  small library per language.
+- **Built once.** A mod is one portable `.wasm` file that runs on any build of
+  the server.
+- **Fast.** Wasmtime compiles mods to machine code with Cranelift, and the
+  server calls them in the game frame, so a mod can decide whether to claim a
+  command or change a frame as it happens.
+
+[Wasmtime]: https://wasmtime.dev
+
+## Community
+
+Questions, ideas or a mod to show off? [Join the Discord](https://discord.gg/DCErWrCFvh).
+Modlock is open source under the MIT license, on
+[GitHub](https://github.com/paralin/modlock).
