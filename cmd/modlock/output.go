@@ -45,6 +45,8 @@ type printer struct {
 	// once the person was told about it.
 	latest  string
 	noticed bool
+	// mod is the mod that started or reloaded last, which takes console lines.
+	mod string
 	// names holds each joined player's name by slot.
 	names map[int32]string
 }
@@ -227,6 +229,7 @@ func (p *printer) sandbox(reason string) {
 	}
 	p.mark("●", yellow, reason+"; running the mods in the sandbox, without the game, with a stand-in player")
 	p.field("input", "type a command, such as /hello, and press Enter to send it as the player")
+	p.field("run", runHint)
 }
 
 // host reports one event from the server.
@@ -234,6 +237,11 @@ func (p *printer) host(event *control.HostEvent) {
 	// Send every event, interface changes included, to a program.
 	wrapped := &cli.Event{Body: &cli.Event_Host{Host: event}}
 	p.observe(wrapped)
+	if started := event.GetStarted(); started != nil {
+		p.mu.Lock()
+		p.mod = started.GetMod()
+		p.mu.Unlock()
+	}
 	if p.json {
 		p.emit(wrapped)
 		return
@@ -263,8 +271,36 @@ func (p *printer) host(event *control.HostEvent) {
 		p.failed(event.GetFailed().GetMod(), event.GetFailed().GetError())
 	case event.GetCalls() != nil:
 		p.refused(event.GetCalls())
+	case event.GetCalled() != nil:
+		p.called(event.GetCalled())
 	case event.GetSlowFrame() != nil:
 		p.slowFrame(event.GetSlowFrame())
+	}
+}
+
+// runHint tells a person how to reach a mod's console.
+const runHint = "start a line with > to run it in a Python mod, such as > modlock.players()"
+
+// started returns the mod that started or reloaded last, or empty before
+// the first one.
+func (p *printer) started() string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.mod
+}
+
+// called prints what a console line showed, or why it did not run. A mod
+// whose language has no console serves no such service.
+func (p *printer) called(result *control.ModCallResult) {
+	switch failure := result.GetError(); {
+	case strings.Contains(failure, "serves no service"):
+		p.mark("!", yellow, result.GetMod()+" has no console; a mod written in Python has one")
+	case failure != "":
+		p.mark("✗", red, failure)
+	case len(result.GetPayload()) != 0:
+		for _, line := range strings.Split(strings.TrimRight(string(result.GetPayload()), "\n"), "\n") {
+			p.line(p.pad() + line)
+		}
 	}
 }
 

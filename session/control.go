@@ -64,6 +64,12 @@ func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error
 	})
 }
 
+// Call asks the host to call one method of a service a running mod serves.
+// The host answers with a called event that carries the call's id.
+func (c *Control) Call(ctx context.Context, call *control.ModCall) error {
+	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Call{Call: call}})
+}
+
 // request queues request for the call.
 func (c *Control) request(ctx context.Context, request *control.ControlRequest) error {
 	select {

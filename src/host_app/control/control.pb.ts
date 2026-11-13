@@ -60,6 +60,7 @@ export interface ControlRequest {
     | { value: ReloadRequest; case: 'reload' }
     | { value: RolesTable; case: 'roles' }
     | { value: ServiceReply; case: 'service' }
+    | { value: ModCall; case: 'call' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
@@ -69,6 +70,7 @@ export const ControlRequest: MessageType<ControlRequest> =
       [1, 'reload', 11, 0, ReloadRequest.codec, 'body'],
       [2, 'roles', 11, 0, RolesTable.codec, 'body'],
       [3, 'service', 11, 0, ServiceReply.codec, 'body'],
+      [4, 'call', 11, 0, ModCall.codec, 'body'],
     ],
     {
       decode: (
@@ -110,6 +112,16 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 4:
+              m.body = {
+                case: 'call',
+                value: ModCall.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'call' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -131,6 +143,183 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'service' && o.value != null)
             ServiceReply.writeField(w, 3, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'call' && o.value != null)
+            ModCall.writeField(w, 4, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * ModCall calls one method of a service a running mod serves, on the game's
+ * thread between frames. Only the controller can send it; no player can.
+ *
+ * @generated from message modlock.host_app.control.ModCall
+ */
+export interface ModCall {
+  /**
+   * Mod is the running mod's slug.
+   */
+  mod?: string
+  /**
+   * Service and Method select the call, such as the library's "console"
+   * service and its "run" method.
+   */
+  service?: string
+  method?: string
+  /**
+   * Payload is the call's encoded request, opaque to the host.
+   */
+  payload?: Uint8Array
+  /**
+   * Id identifies this call in its result, opaque to the host.
+   */
+  id?: string
+}
+
+export const ModCall: MessageType<ModCall> =
+  /* @__PURE__ */ createMessageType<ModCall>(
+    'modlock.host_app.control.ModCall',
+    () => [
+      [1, 'mod', 9],
+      [2, 'service', 9],
+      [3, 'method', 9],
+      [4, 'payload', 12],
+      [5, 'id', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ModCall): ModCall => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.service = r.string()
+              break
+            case 3:
+              m.method = r.string()
+              break
+            case 4:
+              m.payload = r.bytes()
+              break
+            case 5:
+              m.id = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModCall, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(34).bytes(v)
+        }
+        {
+          const v = m.id
+          if (v) w.uint32(42).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ModCallResult answers one ModCall.
+ *
+ * @generated from message modlock.host_app.control.ModCallResult
+ */
+export interface ModCallResult {
+  /**
+   * Id matches the ModCall this result answers.
+   */
+  id?: string
+  /**
+   * Mod is the mod that was called.
+   */
+  mod?: string
+  /**
+   * Payload is the mod's encoded answer.
+   */
+  payload?: Uint8Array
+  /**
+   * Error says why the call failed: no such mod is running, the mod serves
+   * no such service, or its handler failed. It is empty on success.
+   */
+  error?: string
+}
+
+export const ModCallResult: MessageType<ModCallResult> =
+  /* @__PURE__ */ createMessageType<ModCallResult>(
+    'modlock.host_app.control.ModCallResult',
+    () => [
+      [1, 'id', 9],
+      [2, 'mod', 9],
+      [3, 'payload', 12],
+      [4, 'error', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ModCallResult,
+      ): ModCallResult => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.string()
+              break
+            case 2:
+              m.mod = r.string()
+              break
+            case 3:
+              m.payload = r.bytes()
+              break
+            case 4:
+              m.error = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModCallResult, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.mod
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(26).bytes(v)
+        }
+        {
+          const v = m.error
+          if (v) w.uint32(34).string(v)
         }
       },
     },
@@ -207,6 +396,7 @@ export interface HostEvent {
     | { value: ModCalls; case: 'calls' }
     | { value: ModSlowFrame; case: 'slowFrame' }
     | { value: ServiceResult; case: 'serviceApplied' }
+    | { value: ModCallResult; case: 'called' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -225,6 +415,7 @@ export const HostEvent: MessageType<HostEvent> =
       [10, 'calls', 11, 0, ModCalls.codec, 'body'],
       [11, 'slow_frame', 11, 0, ModSlowFrame.codec, 'body'],
       [12, 'service_applied', 11, 0, ServiceResult.codec, 'body'],
+      [13, 'called', 11, 0, ModCallResult.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -352,6 +543,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 13:
+              m.body = {
+                case: 'called',
+                value: ModCallResult.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'called' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -418,6 +619,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'serviceApplied' && o.value != null)
             ServiceResult.writeField(w, 12, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'called' && o.value != null)
+            ModCallResult.writeField(w, 13, o.value)
         }
       },
     },

@@ -5110,8 +5110,11 @@ def _serve_mod(handlers: Mapping[str, Callable[[Any], Any]], data: bytes) -> byt
 # None, so a mod can retry on a later frame instead of stopping. print writes
 # to the server log.
 
+import io
 import math
 import random
+import sys
+import traceback
 
 from .heroes import HEROES as HEROES
 from .heroes import Hero as Hero
@@ -6074,8 +6077,42 @@ def _ui_input(event: UiInputEvent) -> None:
         after(0, lambda: ui.change(player, node, value))
 
 
+def _console(method: str, payload: bytes) -> bytes:
+    """_console runs one line typed at the mod's console, modlock dev's and
+    modlock play's lines that start with >, and returns what Python's own
+    console would show: what the line printed, then an expression's value, or
+    the error's traceback. The line runs in main.py's module, so it reads and
+    changes the mod's own names, and _ holds the last value."""
+    scope = sys.modules["main"].__dict__
+    shown = io.StringIO()
+    printed, sys.stdout = sys.stdout, shown
+    try:
+        # An expression shows its value; anything else runs as a statement.
+        code = payload.decode()
+        try:
+            expression = compile(code, "<console>", "eval")
+        except SyntaxError:
+            expression = None
+        if expression is None:
+            exec(compile(code, "<console>", "exec"), scope)
+        else:
+            value = eval(expression, scope)
+            if value is not None:
+                scope["_"] = value
+                shown.write(repr(value))
+    except Exception as error:
+        # Show the error from the line's own frame down.
+        frame = error.__traceback__
+        shown.write("".join(traceback.format_exception(type(error), error, frame and frame.tb_next)))
+    finally:
+        sys.stdout = printed
+    return shown.getvalue().rstrip().encode()
+
+
 def _serve(event: ServiceCall) -> ServiceReply:
     handler = _services.get(event.service)
+    if handler is None and event.service == "console":
+        handler = _console
     if handler is None:
         raise LookupError("the mod serves no service " + event.service)
     return ServiceReply(payload=handler(event.method, event.payload))
