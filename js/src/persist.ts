@@ -202,7 +202,9 @@ export const persist = {
    * applies all or none. With a key, an update the host already took is left
    * out, so resending after a lost answer counts once. An update with an add
    * and no key is refused without being sent, since a resend would count it
-   * twice. persist.get answers the changed record once the host has
+   * twice. An update the host answers as taking too long may still have been
+   * kept: send it again with the same key, and do not act as if nothing was
+   * written. persist.get answers the changed record once the host has
    * answered, and done runs then.
    */
   update(

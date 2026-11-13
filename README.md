@@ -1894,7 +1894,9 @@ to 32 changes the host applies all or none. Changes merge rather than replace,
 so two servers that update one player at once both land; of two `set`s the
 later wins. A `key` of up to 64 bytes makes a resent update count once: the
 host keeps each record's last 64 keys. An update with an `add` needs a key and
-is refused without one. A change outside its kind's rules, an undeclared
+is refused without one. An update the host answers as taking too long may
+still have been kept: send it again with the same key, and do not act as if
+nothing was written. A change outside its kind's rules, an undeclared
 field, a field whose stored value is of another kind than mod.json now
 declares, or a record past its bound is refused whole, and the record is
 unchanged.
