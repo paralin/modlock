@@ -106,6 +106,9 @@ _restoreds: list[Callable[[Player, str | None], object]] = []
 _npcs_restoreds: list[Callable[[str | None], object]] = []
 _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
+_kills: list[Callable[[KillEvent], object]] = []
+_ability_casts: list[Callable[[AbilityCastEvent], object]] = []
+_modifier_events: dict[str, list[Callable[[ModifierFiredEvent], object]]] = {}
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
@@ -1052,6 +1055,50 @@ def _watch_spawns() -> None:
     _spawned.update(present)
 
 
+def on_kill[F: Callable[[KillEvent], object]](handler: F) -> F:
+    """on_kill calls handler after each hit that kills a hero or a unit, before
+    the next frame. The kill names both entities and the player of each: a
+    slot of -1 is a unit's, or a hazard's for the attacker.
+
+        @modlock.on_kill
+        def killed(kill: modlock.KillEvent) -> None: ...
+    """
+    _kills.append(handler)
+    return handler
+
+
+def on_ability_cast[F: Callable[[AbilityCastEvent], object]](handler: F) -> F:
+    """on_ability_cast calls handler after each ability the game executes,
+    before the next frame: a hero's abilities and the items a player
+    activates, at the moment the cast takes effect.
+
+        @modlock.on_ability_cast
+        def cast(event: modlock.AbilityCastEvent) -> None: ...
+    """
+    _ability_casts.append(handler)
+    return handler
+
+
+def on_modifier_event[F: Callable[[ModifierFiredEvent], object]](
+    name: str,
+) -> Callable[[F], F]:
+    """on_modifier_event calls the decorated handler each time the game fires
+    the modifier event with this EModifierEvent name, such as
+    ABILITY_CAST_STARTED, PARRY_SUCCESS or PLAYER_RESPAWNED, before the next
+    frame. Register before the mod starts. A name the running game lacks is
+    logged once and never fires.
+
+        @modlock.on_modifier_event("PARRY_SUCCESS")
+        def parried(event: modlock.ModifierFiredEvent) -> None: ...
+    """
+
+    def register(handler: F) -> F:
+        _modifier_events.setdefault(name, []).append(handler)
+        return handler
+
+    return register
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands.
 
@@ -1132,6 +1179,9 @@ def _start(event: StartEvent) -> StartResult:
         damaged=bool(_damageds),
         chat=bool(_chats),
         joins=bool(_joins or _leaves),
+        casts=bool(_ability_casts),
+        kills=bool(_kills),
+        modifier_events=list(_modifier_events),
     )
 
 
@@ -1277,6 +1327,21 @@ def _damaged(event: DamagedEvent) -> None:
         handler(event)
 
 
+def _killed(event: KillEvent) -> None:
+    for handler in _kills:
+        handler(event)
+
+
+def _ability_cast(event: AbilityCastEvent) -> None:
+    for handler in _ability_casts:
+        handler(event)
+
+
+def _modifier_fired(event: ModifierFiredEvent) -> None:
+    for handler in _modifier_events.get(event.name, ()):
+        handler(event)
+
+
 def _input(event: InputEvent) -> None:
     for handler in _inputs:
         handler(event.player, Buttons(event.pressed), Buttons(event.released))
@@ -1342,6 +1407,9 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "serve": _serve,
     "damage": _damage,
     "damaged": _damaged,
+    "killed": _killed,
+    "ability_cast": _ability_cast,
+    "modifier_fired": _modifier_fired,
     "input": _input,
     "restored": _restored,
     "npcs_restored": _npcs_restored,

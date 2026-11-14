@@ -188,6 +188,64 @@ func (x *DamagedEvent) GetDealt() int32 {
 	return 0
 }
 
+// KillEvent reports one hero or unit that a hit killed.
+type KillEvent struct {
+	unknownFields []byte
+	// Victim is the entity that died.
+	Victim uint32 `protobuf:"varint,1,opt,name=victim,proto3" json:"victim,omitempty"`
+	// VictimPlayer is the slot of the player whose hero died, or -1 for a unit.
+	VictimPlayer int32 `protobuf:"varint,2,opt,name=victim_player,json=victimPlayer,proto3" json:"victimPlayer,omitempty"`
+	// Attacker is the entity credited with the killing hit, or zero for a
+	// hazard.
+	Attacker uint32 `protobuf:"varint,3,opt,name=attacker,proto3" json:"attacker,omitempty"`
+	// AttackerPlayer is the slot of the player whose hero is the attacker, or
+	// -1. It is the victim's own slot when a hero killed itself.
+	AttackerPlayer int32 `protobuf:"varint,4,opt,name=attacker_player,json=attackerPlayer,proto3" json:"attackerPlayer,omitempty"`
+	// Ability is the ability that dealt the killing hit, or zero.
+	Ability uint32 `protobuf:"varint,5,opt,name=ability,proto3" json:"ability,omitempty"`
+}
+
+func (x *KillEvent) Reset() {
+	*x = KillEvent{}
+}
+
+func (*KillEvent) ProtoMessage() {}
+
+func (x *KillEvent) GetVictim() uint32 {
+	if x != nil {
+		return x.Victim
+	}
+	return 0
+}
+
+func (x *KillEvent) GetVictimPlayer() int32 {
+	if x != nil {
+		return x.VictimPlayer
+	}
+	return 0
+}
+
+func (x *KillEvent) GetAttacker() uint32 {
+	if x != nil {
+		return x.Attacker
+	}
+	return 0
+}
+
+func (x *KillEvent) GetAttackerPlayer() int32 {
+	if x != nil {
+		return x.AttackerPlayer
+	}
+	return 0
+}
+
+func (x *KillEvent) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
 // LaunchEvent is a watched projectile's first frame.
 type LaunchEvent struct {
 	unknownFields []byte
@@ -602,6 +660,67 @@ func (x *TraceHit) GetEntity() uint32 {
 	return 0
 }
 
+// ModifierFiredEvent reports one of the game's modifier events the mod
+// watches, with the entities the game fired it with. Which of them an event
+// fills depends on the event.
+type ModifierFiredEvent struct {
+	unknownFields []byte
+	// Name is the event as the mod named it in StartResult.modifier_events.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Caster is the entity the event is about, such as the hero that parried
+	// or respawned, or zero.
+	Caster uint32 `protobuf:"varint,2,opt,name=caster,proto3" json:"caster,omitempty"`
+	// Player is the slot of the player whose hero the caster is, or -1.
+	Player int32 `protobuf:"varint,3,opt,name=player,proto3" json:"player,omitempty"`
+	// Target is the other entity of the event, such as the victim of a kill,
+	// or zero.
+	Target uint32 `protobuf:"varint,4,opt,name=target,proto3" json:"target,omitempty"`
+	// Ability is the ability or other entity the event names as its source, or
+	// zero.
+	Ability uint32 `protobuf:"varint,5,opt,name=ability,proto3" json:"ability,omitempty"`
+}
+
+func (x *ModifierFiredEvent) Reset() {
+	*x = ModifierFiredEvent{}
+}
+
+func (*ModifierFiredEvent) ProtoMessage() {}
+
+func (x *ModifierFiredEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ModifierFiredEvent) GetCaster() uint32 {
+	if x != nil {
+		return x.Caster
+	}
+	return 0
+}
+
+func (x *ModifierFiredEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ModifierFiredEvent) GetTarget() uint32 {
+	if x != nil {
+		return x.Target
+	}
+	return 0
+}
+
+func (x *ModifierFiredEvent) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
 func (m *DamageEvent) CloneVT() *DamageEvent {
 	if m == nil {
 		return (*DamageEvent)(nil)
@@ -659,6 +778,26 @@ func (m *DamagedEvent) CloneVT() *DamagedEvent {
 }
 
 func (m *DamagedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *KillEvent) CloneVT() *KillEvent {
+	if m == nil {
+		return (*KillEvent)(nil)
+	}
+	r := new(KillEvent)
+	r.Victim = m.Victim
+	r.VictimPlayer = m.VictimPlayer
+	r.Attacker = m.Attacker
+	r.AttackerPlayer = m.AttackerPlayer
+	r.Ability = m.Ability
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *KillEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -817,6 +956,26 @@ func (m *TraceHit) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ModifierFiredEvent) CloneVT() *ModifierFiredEvent {
+	if m == nil {
+		return (*ModifierFiredEvent)(nil)
+	}
+	r := new(ModifierFiredEvent)
+	r.Name = m.Name
+	r.Caster = m.Caster
+	r.Player = m.Player
+	r.Target = m.Target
+	r.Ability = m.Ability
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ModifierFiredEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (this *DamageEvent) EqualVT(that *DamageEvent) bool {
 	if this == that {
 		return true
@@ -907,6 +1066,38 @@ func (this *DamagedEvent) EqualVT(that *DamagedEvent) bool {
 
 func (this *DamagedEvent) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*DamagedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *KillEvent) EqualVT(that *KillEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Victim != that.Victim {
+		return false
+	}
+	if this.VictimPlayer != that.VictimPlayer {
+		return false
+	}
+	if this.Attacker != that.Attacker {
+		return false
+	}
+	if this.AttackerPlayer != that.AttackerPlayer {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *KillEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*KillEvent)
 	if !ok {
 		return false
 	}
@@ -1154,6 +1345,38 @@ func (this *TraceHit) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *ModifierFiredEvent) EqualVT(that *ModifierFiredEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Caster != that.Caster {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Target != that.Target {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ModifierFiredEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ModifierFiredEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 // MarshalProtoJSON marshals the DamageEvent message to JSON.
 func (x *DamageEvent) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1383,6 +1606,80 @@ func (x *DamagedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the DamagedEvent from JSON.
 func (x *DamagedEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the KillEvent message to JSON.
+func (x *KillEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Victim != 0 || s.HasField("victim") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("victim")
+		s.WriteUint32(x.Victim)
+	}
+	if x.VictimPlayer != 0 || s.HasField("victimPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("victimPlayer")
+		s.WriteInt32(x.VictimPlayer)
+	}
+	if x.Attacker != 0 || s.HasField("attacker") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attacker")
+		s.WriteUint32(x.Attacker)
+	}
+	if x.AttackerPlayer != 0 || s.HasField("attackerPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attackerPlayer")
+		s.WriteInt32(x.AttackerPlayer)
+	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the KillEvent to JSON.
+func (x *KillEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the KillEvent message from JSON.
+func (x *KillEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "victim":
+			s.AddField("victim")
+			x.Victim = s.ReadUint32()
+		case "victim_player", "victimPlayer":
+			s.AddField("victim_player")
+			x.VictimPlayer = s.ReadInt32()
+		case "attacker":
+			s.AddField("attacker")
+			x.Attacker = s.ReadUint32()
+		case "attacker_player", "attackerPlayer":
+			s.AddField("attacker_player")
+			x.AttackerPlayer = s.ReadInt32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the KillEvent from JSON.
+func (x *KillEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2032,6 +2329,80 @@ func (x *TraceHit) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ModifierFiredEvent message to JSON.
+func (x *ModifierFiredEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Caster != 0 || s.HasField("caster") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("caster")
+		s.WriteUint32(x.Caster)
+	}
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Target != 0 || s.HasField("target") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("target")
+		s.WriteUint32(x.Target)
+	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ModifierFiredEvent to JSON.
+func (x *ModifierFiredEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModifierFiredEvent message from JSON.
+func (x *ModifierFiredEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "caster":
+			s.AddField("caster")
+			x.Caster = s.ReadUint32()
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "target":
+			s.AddField("target")
+			x.Target = s.ReadUint32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ModifierFiredEvent from JSON.
+func (x *ModifierFiredEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *DamageEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2192,6 +2563,63 @@ func (m *DamagedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Attacker != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Attacker))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Victim != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Victim))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *KillEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *KillEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *KillEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.AttackerPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AttackerPlayer))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Attacker != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Attacker))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.VictimPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.VictimPlayer))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -2681,6 +3109,63 @@ func (m *TraceHit) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ModifierFiredEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ModifierFiredEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ModifierFiredEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.Target != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Target))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Caster != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Caster))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *DamageEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2722,6 +3207,21 @@ func (m *DamagedEvent) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.HealthLost)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.HealthBefore)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Dealt)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *KillEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Victim)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.VictimPlayer)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Attacker)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.AttackerPlayer)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2868,6 +3368,21 @@ func (m *TraceHit) SizeVT() (n int) {
 	return n
 }
 
+func (m *ModifierFiredEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Caster)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Target)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (x *DamageEvent) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "DamageEvent")
@@ -2955,6 +3470,36 @@ func (x *DamagedEvent) MarshalProtoText() string {
 }
 
 func (x *DamagedEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *KillEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "KillEvent")
+	if x.Victim != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "victim")
+		protobuf_go_lite.TextWriteUint(&sb, x.Victim)
+	}
+	if x.VictimPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "victim_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.VictimPlayer)
+	}
+	if x.Attacker != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker")
+		protobuf_go_lite.TextWriteUint(&sb, x.Attacker)
+	}
+	if x.AttackerPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.AttackerPlayer)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *KillEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3183,6 +3728,36 @@ func (x *TraceHit) MarshalProtoText() string {
 }
 
 func (x *TraceHit) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ModifierFiredEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModifierFiredEvent")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Caster != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "caster")
+		protobuf_go_lite.TextWriteUint(&sb, x.Caster)
+	}
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Target != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "target")
+		protobuf_go_lite.TextWriteUint(&sb, x.Target)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ModifierFiredEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3433,6 +4008,94 @@ func (m *DamagedEvent) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Dealt = 0
 			m.Dealt, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *KillEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: KillEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: KillEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Victim", wireType)
+			}
+			m.Victim = 0
+			m.Victim, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VictimPlayer", wireType)
+			}
+			m.VictimPlayer = 0
+			m.VictimPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attacker", wireType)
+			}
+			m.Attacker = 0
+			m.Attacker, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttackerPlayer", wireType)
+			}
+			m.AttackerPlayer = 0
+			m.AttackerPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
@@ -4185,6 +4848,95 @@ func (m *TraceHit) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Entity = 0
 			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ModifierFiredEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ModifierFiredEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ModifierFiredEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Caster", wireType)
+			}
+			m.Caster = 0
+			m.Caster, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Target", wireType)
+			}
+			m.Target = 0
+			m.Target, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

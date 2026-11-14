@@ -24,6 +24,7 @@ package mod
 
 import (
 	"errors"
+	"maps"
 	"slices"
 	"strings"
 
@@ -56,6 +57,9 @@ type handlers struct {
 	npcsRestoreds []func(err error)
 	damages       []func(*DamageEvent) *DamageResult
 	damageds      []func(*DamagedEvent)
+	kills         []func(*KillEvent)
+	casts         []func(*AbilityCastEvent)
+	modifiers     map[string][]func(*ModifierFiredEvent)
 	launches      []func(*LaunchEvent)
 	impacts       []func(*ImpactEvent)
 	landeds       []func(*LandedEvent)
@@ -161,6 +165,31 @@ func OnDamaged(handler func(hit *DamagedEvent)) {
 	registered.damageds = append(registered.damageds, handler)
 }
 
+// OnKill calls handler after each hit that kills a hero or a unit, before the
+// next frame. The kill names both entities and the player of each: a slot of
+// -1 is a unit's, or a hazard's for the attacker.
+func OnKill(handler func(kill *KillEvent)) {
+	registered.kills = append(registered.kills, handler)
+}
+
+// OnAbilityCast calls handler after each ability the game executes, before
+// the next frame: a hero's abilities and the items a player activates, at
+// the moment the cast takes effect.
+func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
+	registered.casts = append(registered.casts, handler)
+}
+
+// OnModifierEvent calls handler each time the game fires the modifier event
+// with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
+// or PLAYER_RESPAWNED, before the next frame. Register before the mod
+// starts. A name the running game lacks is logged once and never fires.
+func OnModifierEvent(name string, handler func(event *ModifierFiredEvent)) {
+	if registered.modifiers == nil {
+		registered.modifiers = map[string][]func(*ModifierFiredEvent){}
+	}
+	registered.modifiers[name] = append(registered.modifiers[name], handler)
+}
+
 // OnLaunch calls handler with each watched projectile's first frame, before
 // the next frame. WatchProjectiles names the projectiles.
 func OnLaunch(handler func(projectile *LaunchEvent)) {
@@ -219,6 +248,10 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Damaged: len(h.damageds) != 0,
 		Chat:    len(h.chats) != 0,
 		Joins:   len(h.joins) != 0 || len(h.leaves) != 0,
+		Casts:   len(h.casts) != 0,
+		Kills:   len(h.kills) != 0,
+
+		ModifierEvents: slices.Sorted(maps.Keys(h.modifiers)),
 	}, nil
 }
 
@@ -328,6 +361,30 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 // Damaged runs the damaged handlers.
 func (h *handlers) Damaged(event *DamagedEvent) error {
 	for _, handler := range h.damageds {
+		handler(event)
+	}
+	return nil
+}
+
+// Killed runs the kill handlers.
+func (h *handlers) Killed(event *KillEvent) error {
+	for _, handler := range h.kills {
+		handler(event)
+	}
+	return nil
+}
+
+// AbilityCast runs the cast handlers.
+func (h *handlers) AbilityCast(event *AbilityCastEvent) error {
+	for _, handler := range h.casts {
+		handler(event)
+	}
+	return nil
+}
+
+// ModifierFired runs the handlers of the event's name.
+func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
+	for _, handler := range h.modifiers[event.GetName()] {
 		handler(event)
 	}
 	return nil

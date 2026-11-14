@@ -286,6 +286,98 @@ export const DamagedEvent: MessageType<DamagedEvent> =
   )
 
 /**
+ * KillEvent reports one hero or unit that a hit killed.
+ *
+ * @generated from message modlock.wasm.combat.KillEvent
+ */
+export interface KillEvent {
+  /**
+   * Victim is the entity that died.
+   */
+  victim?: number
+  /**
+   * VictimPlayer is the slot of the player whose hero died, or -1 for a unit.
+   */
+  victimPlayer?: number
+  /**
+   * Attacker is the entity credited with the killing hit, or zero for a
+   * hazard.
+   */
+  attacker?: number
+  /**
+   * AttackerPlayer is the slot of the player whose hero is the attacker, or
+   * -1. It is the victim's own slot when a hero killed itself.
+   */
+  attackerPlayer?: number
+  /**
+   * Ability is the ability that dealt the killing hit, or zero.
+   */
+  ability?: number
+}
+
+export const KillEvent: MessageType<KillEvent> =
+  /* @__PURE__ */ createMessageType<KillEvent>(
+    'modlock.wasm.combat.KillEvent',
+    () => [
+      [1, 'victim', 13],
+      [2, 'victim_player', 5],
+      [3, 'attacker', 13],
+      [4, 'attacker_player', 5],
+      [5, 'ability', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: KillEvent): KillEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.victim = r.uint32()
+              break
+            case 2:
+              m.victimPlayer = r.int32()
+              break
+            case 3:
+              m.attacker = r.uint32()
+              break
+            case 4:
+              m.attackerPlayer = r.int32()
+              break
+            case 5:
+              m.ability = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: KillEvent, w: Writer): void => {
+        {
+          const v = m.victim
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.victimPlayer
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.attacker
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.attackerPlayer
+          if (v) w.uint32(32).int32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(40).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
  * LaunchEvent is a watched projectile's first frame.
  *
  * @generated from message modlock.wasm.combat.LaunchEvent
@@ -958,6 +1050,105 @@ export const TraceHit: MessageType<TraceHit> =
         {
           const v = m.entity
           if (v) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ModifierFiredEvent reports one of the game's modifier events the mod
+ * watches, with the entities the game fired it with. Which of them an event
+ * fills depends on the event.
+ *
+ * @generated from message modlock.wasm.combat.ModifierFiredEvent
+ */
+export interface ModifierFiredEvent {
+  /**
+   * Name is the event as the mod named it in StartResult.modifier_events.
+   */
+  name?: string
+  /**
+   * Caster is the entity the event is about, such as the hero that parried
+   * or respawned, or zero.
+   */
+  caster?: number
+  /**
+   * Player is the slot of the player whose hero the caster is, or -1.
+   */
+  player?: number
+  /**
+   * Target is the other entity of the event, such as the victim of a kill,
+   * or zero.
+   */
+  target?: number
+  /**
+   * Ability is the ability or other entity the event names as its source, or
+   * zero.
+   */
+  ability?: number
+}
+
+export const ModifierFiredEvent: MessageType<ModifierFiredEvent> =
+  /* @__PURE__ */ createMessageType<ModifierFiredEvent>(
+    'modlock.wasm.combat.ModifierFiredEvent',
+    () => [
+      [1, 'name', 9],
+      [2, 'caster', 13],
+      [3, 'player', 5],
+      [4, 'target', 13],
+      [5, 'ability', 13],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ModifierFiredEvent,
+      ): ModifierFiredEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.caster = r.uint32()
+              break
+            case 3:
+              m.player = r.int32()
+              break
+            case 4:
+              m.target = r.uint32()
+              break
+            case 5:
+              m.ability = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModifierFiredEvent, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.caster
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.player
+          if (v) w.uint32(24).int32(v)
+        }
+        {
+          const v = m.target
+          if (v) w.uint32(32).uint32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(40).uint32(v)
         }
       },
     },

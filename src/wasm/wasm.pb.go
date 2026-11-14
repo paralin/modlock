@@ -142,6 +142,17 @@ type StartResult struct {
 	// Joins asks for a PlayerJoined event as each player the mod serves joins,
 	// and a PlayerLeft event as each leaves.
 	Joins bool `protobuf:"varint,5,opt,name=joins,proto3" json:"joins,omitempty"`
+	// Casts asks for an AbilityCast event after each ability the game
+	// executes.
+	Casts bool `protobuf:"varint,6,opt,name=casts,proto3" json:"casts,omitempty"`
+	// ModifierEvents asks for a ModifierFired event for each of the game's
+	// modifier events with these EModifierEvent names, such as
+	// MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+	// ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+	// fires.
+	ModifierEvents []string `protobuf:"bytes,7,rep,name=modifier_events,json=modifierEvents,proto3" json:"modifierEvents,omitempty"`
+	// Kills asks for a Killed event after each hit that kills a hero or unit.
+	Kills bool `protobuf:"varint,8,opt,name=kills,proto3" json:"kills,omitempty"`
 }
 
 func (x *StartResult) Reset() {
@@ -181,6 +192,27 @@ func (x *StartResult) GetChat() bool {
 func (x *StartResult) GetJoins() bool {
 	if x != nil {
 		return x.Joins
+	}
+	return false
+}
+
+func (x *StartResult) GetCasts() bool {
+	if x != nil {
+		return x.Casts
+	}
+	return false
+}
+
+func (x *StartResult) GetModifierEvents() []string {
+	if x != nil {
+		return x.ModifierEvents
+	}
+	return nil
+}
+
+func (x *StartResult) GetKills() bool {
+	if x != nil {
+		return x.Kills
 	}
 	return false
 }
@@ -565,6 +597,9 @@ func (m *StartResult) CloneVT() *StartResult {
 	r.Damaged = m.Damaged
 	r.Chat = m.Chat
 	r.Joins = m.Joins
+	r.Casts = m.Casts
+	r.Kills = m.Kills
+	r.ModifierEvents = protobuf_go_lite.CloneSlice(m.ModifierEvents)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -853,6 +888,15 @@ func (this *StartResult) EqualVT(that *StartResult) bool {
 		return false
 	}
 	if this.Joins != that.Joins {
+		return false
+	}
+	if this.Casts != that.Casts {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.ModifierEvents, that.ModifierEvents) {
+		return false
+	}
+	if this.Kills != that.Kills {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1321,6 +1365,21 @@ func (x *StartResult) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("joins")
 		s.WriteBool(x.Joins)
 	}
+	if x.Casts || s.HasField("casts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("casts")
+		s.WriteBool(x.Casts)
+	}
+	if len(x.ModifierEvents) > 0 || s.HasField("modifierEvents") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("modifierEvents")
+		s.WriteStringArray(x.ModifierEvents)
+	}
+	if x.Kills || s.HasField("kills") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kills")
+		s.WriteBool(x.Kills)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1353,6 +1412,19 @@ func (x *StartResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "joins":
 			s.AddField("joins")
 			x.Joins = s.ReadBool()
+		case "casts":
+			s.AddField("casts")
+			x.Casts = s.ReadBool()
+		case "modifier_events", "modifierEvents":
+			s.AddField("modifier_events")
+			if s.ReadNil() {
+				x.ModifierEvents = nil
+				return
+			}
+			x.ModifierEvents = s.ReadStringArray()
+		case "kills":
+			s.AddField("kills")
+			x.Kills = s.ReadBool()
 		}
 	})
 }
@@ -2099,6 +2171,23 @@ func (m *StartResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Kills {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Kills)
+		i--
+		dAtA[i] = 0x40
+	}
+	if len(m.ModifierEvents) > 0 {
+		for iNdEx := len(m.ModifierEvents) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.ModifierEvents[iNdEx])
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if m.Casts {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Casts)
+		i--
+		dAtA[i] = 0x30
+	}
 	if m.Joins {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Joins)
 		i--
@@ -2616,6 +2705,9 @@ func (m *StartResult) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damaged)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Chat)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Joins)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Casts)
+	n += protobuf_go_lite.SizeStringSlice(1, m.ModifierEvents)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Kills)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2837,6 +2929,22 @@ func (x *StartResult) MarshalProtoText() string {
 	if x.Joins != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "joins")
 		protobuf_go_lite.TextWriteBool(&sb, x.Joins)
+	}
+	if x.Casts != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "casts")
+		protobuf_go_lite.TextWriteBool(&sb, x.Casts)
+	}
+	if len(x.ModifierEvents) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "modifier_events")
+		for i, v := range x.ModifierEvents {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Kills != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kills")
+		protobuf_go_lite.TextWriteBool(&sb, x.Kills)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3351,6 +3459,36 @@ func (m *StartResult) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Joins = bool(v)
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Casts", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Casts = bool(v)
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ModifierEvents", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ModifierEvents = append(m.ModifierEvents, v)
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kills", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Kills = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

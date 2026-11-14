@@ -785,6 +785,18 @@ service Mod {
   // damage reports. Hits arrive before the next frame.
   rpc Damaged(modlock.wasm.combat.DamagedEvent) returns (Empty);
 
+  // Killed reports one hero or unit a hit killed, while the mod asked for
+  // kills, after the hit's Damaged event and before the next frame.
+  rpc Killed(modlock.wasm.combat.KillEvent) returns (Empty);
+
+  // AbilityCast reports one ability the game executed, while the mod asked
+  // for casts, before the next frame.
+  rpc AbilityCast(modlock.wasm.abilities.AbilityCastEvent) returns (Empty);
+
+  // ModifierFired reports one modifier event the mod watches, before the
+  // next frame.
+  rpc ModifierFired(modlock.wasm.combat.ModifierFiredEvent) returns (Empty);
+
   // Input reports one player's presses of watched buttons, before the next
   // frame. A block in place still withholds them from the hero.
   rpc Input(modlock.wasm.InputEvent) returns (Empty);
@@ -863,6 +875,20 @@ message StartResult {
   // Joins asks for a PlayerJoined event as each player the mod serves joins,
   // and a PlayerLeft event as each leaves.
   bool joins = 5;
+
+  // Casts asks for an AbilityCast event after each ability the game
+  // executes.
+  bool casts = 6;
+
+  // ModifierEvents asks for a ModifierFired event for each of the game's
+  // modifier events with these EModifierEvent names, such as
+  // MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+  // ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+  // fires.
+  repeated string modifier_events = 7;
+
+  // Kills asks for a Killed event after each hit that kills a hero or unit.
+  bool kills = 8;
 }
 
 // FrameEvent identifies one server frame.

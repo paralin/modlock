@@ -502,7 +502,9 @@ inline constexpr AbilityOptions::Impl_::Impl_(
         charges_{0},
         cooldown_end_{0},
         recharge_end_{0},
-        max_charges_{0} {}
+        max_charges_{0},
+        cooldown_{0},
+        charge_delay_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR AbilityOptions::AbilityOptions(::_pbi::ConstantInitialized)
@@ -523,6 +525,38 @@ struct AbilityOptionsDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityOptionsDefaultTypeInternal _AbilityOptions_default_instance_;
+
+inline constexpr AbilityCastEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        caster_{0u},
+        player_{0},
+        ability_{0u},
+        slot_{0},
+        target_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR AbilityCastEvent::AbilityCastEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(AbilityCastEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct AbilityCastEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR AbilityCastEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~AbilityCastEventDefaultTypeInternal() {}
+  union {
+    AbilityCastEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityCastEventDefaultTypeInternal _AbilityCastEvent_default_instance_;
 
 inline constexpr Ability::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -723,7 +757,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_._has_bits_),
-        10, // hasbit index offset
+        12, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.ability_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.upgrades_),
@@ -731,6 +765,8 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.cooldown_end_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.recharge_end_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.max_charges_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.cooldown_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.charge_delay_),
         1,
         0,
         2,
@@ -738,6 +774,8 @@ const ::uint32_t
         4,
         5,
         6,
+        7,
+        8,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveItemRequest, _impl_._has_bits_),
         6, // hasbit index offset
@@ -887,6 +925,21 @@ const ::uint32_t
         1,
         0,
         2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_._has_bits_),
+        9, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.caster_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.ability_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.slot_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityCastEvent, _impl_.target_),
+        1,
+        2,
+        3,
+        0,
+        4,
+        5,
 };
 
 static const ::_pbi::MigrationSchema
@@ -896,23 +949,24 @@ static const ::_pbi::MigrationSchema
         {12, sizeof(::modlock::wasm::abilities::AbilitiesResponse)},
         {17, sizeof(::modlock::wasm::abilities::Ability)},
         {44, sizeof(::modlock::wasm::abilities::AbilityOptions)},
-        {61, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
-        {70, sizeof(::modlock::wasm::abilities::BuyItemRequest)},
-        {81, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
-        {88, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
-        {99, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
-        {108, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
-        {117, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
-        {124, sizeof(::modlock::wasm::abilities::ActiveResponse)},
-        {129, sizeof(::modlock::wasm::abilities::ModifiersResponse)},
-        {134, sizeof(::modlock::wasm::abilities::Modifier)},
-        {157, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
-        {166, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
-        {171, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
-        {176, sizeof(::modlock::wasm::abilities::BuildCategory)},
-        {185, sizeof(::modlock::wasm::abilities::BuildItem)},
-        {192, sizeof(::modlock::wasm::abilities::HoldEntityModifierRequest)},
-        {201, sizeof(::modlock::wasm::abilities::GiveEntityModifierRequest)},
+        {65, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
+        {74, sizeof(::modlock::wasm::abilities::BuyItemRequest)},
+        {85, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
+        {92, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
+        {103, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
+        {112, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
+        {121, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
+        {128, sizeof(::modlock::wasm::abilities::ActiveResponse)},
+        {133, sizeof(::modlock::wasm::abilities::ModifiersResponse)},
+        {138, sizeof(::modlock::wasm::abilities::Modifier)},
+        {161, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
+        {170, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
+        {175, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
+        {180, sizeof(::modlock::wasm::abilities::BuildCategory)},
+        {189, sizeof(::modlock::wasm::abilities::BuildItem)},
+        {196, sizeof(::modlock::wasm::abilities::HoldEntityModifierRequest)},
+        {205, sizeof(::modlock::wasm::abilities::GiveEntityModifierRequest)},
+        {214, sizeof(::modlock::wasm::abilities::AbilityCastEvent)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HoldReloadRequest_default_instance_._instance,
@@ -937,6 +991,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_BuildItem_default_instance_._instance,
     &::modlock::wasm::abilities::_HoldEntityModifierRequest_default_instance_._instance,
     &::modlock::wasm::abilities::_GiveEntityModifierRequest_default_instance_._instance,
+    &::modlock::wasm::abilities::_AbilityCastEvent_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -952,13 +1007,15 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\030\006 \001(\002\022\n\n\002id\030\007 \001(\r\022\r\n\005state\030\010 \001(\r\022\026\n\016coo"
     "ldown_start\030\t \001(\002\022\026\n\016recharge_start\030\n \001("
     "\002\022\024\n\014recharge_end\030\013 \001(\002\022\016\n\006imbues\030\014 \003(\t\""
-    "\371\001\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017\n\007ab"
+    "\311\002\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017\n\007ab"
     "ility\030\002 \001(\t\022\025\n\010upgrades\030\003 \001(\rH\000\210\001\001\022\024\n\007ch"
     "arges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown_end\030\005 \001(\002H\002"
     "\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001\022\030\n\013max_ch"
-    "arges\030\007 \001(\005H\004\210\001\001B\013\n\t_upgradesB\n\n\010_charge"
-    "sB\017\n\r_cooldown_endB\017\n\r_recharge_endB\016\n\014_"
-    "max_charges\"M\n\017GiveItemRequest\022\016\n\006player"
+    "arges\030\007 \001(\005H\004\210\001\001\022\025\n\010cooldown\030\010 \001(\002H\005\210\001\001\022"
+    "\031\n\014charge_delay\030\t \001(\002H\006\210\001\001B\013\n\t_upgradesB"
+    "\n\n\010_chargesB\017\n\r_cooldown_endB\017\n\r_recharg"
+    "e_endB\016\n\014_max_chargesB\013\n\t_cooldownB\017\n\r_c"
+    "harge_delay\"M\n\017GiveItemRequest\022\016\n\006player"
     "\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001"
     "B\010\n\006_imbue\"l\n\016BuyItemRequest\022\016\n\006player\030\001"
     " \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001\022\023"
@@ -993,20 +1050,23 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\n\010modifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n"
     "\007_active\"N\n\031GiveEntityModifierRequest\022\016\n"
     "\006entity\030\001 \001(\r\022\020\n\010modifier\030\002 \001(\t\022\017\n\007secon"
-    "ds\030\003 \001(\002B9Z7github.com/paralin/modlock/s"
-    "rc/wasm/abilities;abilitiesb\006proto3"
+    "ds\030\003 \001(\002\"o\n\020AbilityCastEvent\022\016\n\006caster\030\001"
+    " \001(\r\022\016\n\006player\030\002 \001(\005\022\017\n\007ability\030\003 \001(\r\022\014\n"
+    "\004name\030\004 \001(\t\022\014\n\004slot\030\005 \001(\005\022\016\n\006target\030\006 \001("
+    "\rB9Z7github.com/paralin/modlock/src/wasm"
+    "/abilities;abilitiesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto = {
     false,
     false,
-    2195,
+    2388,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
     "github.com/paralin/modlock/src/wasm/abilities/abilities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once,
     nullptr,
     0,
-    22,
+    23,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto::offsets,
@@ -2533,9 +2593,9 @@ AbilityOptions::AbilityOptions(
                offsetof(Impl_, player_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, player_),
-           offsetof(Impl_, max_charges_) -
+           offsetof(Impl_, charge_delay_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::max_charges_));
+               sizeof(Impl_::charge_delay_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.AbilityOptions)
 }
@@ -2550,9 +2610,9 @@ inline void AbilityOptions::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, player_),
            0,
-           offsetof(Impl_, max_charges_) -
+           offsetof(Impl_, charge_delay_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::max_charges_));
+               sizeof(Impl_::charge_delay_));
 }
 AbilityOptions::~AbilityOptions() {
   // @@protoc_insertion_point(destructor:modlock.wasm.abilities.AbilityOptions)
@@ -2612,16 +2672,16 @@ AbilityOptions::GetClassData() const {
   return AbilityOptions_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 7, 0, 53, 2>
+const ::_pbi::TcParseTable<4, 9, 0, 61, 2>
 AbilityOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_._has_bits_),
     0, // no _extensions_
-    7, 56,  // max_field_number, fast_idx_mask
+    9, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967168,  // skipmap
+    4294966784,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    7,  // num_field_entries
+    9,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     AbilityOptions_class_data_.base(),
@@ -2660,6 +2720,20 @@ AbilityOptions::_table_ = {
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityOptions, _impl_.max_charges_), 6>(),
      {56, 6, 0,
       PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.max_charges_)}},
+    // optional float cooldown = 8;
+    {::_pbi::TcParser::FastF32S1,
+     {69, 7, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_)}},
+    // optional float charge_delay = 9;
+    {::_pbi::TcParser::FastF32S1,
+     {77, 8, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -2677,10 +2751,14 @@ AbilityOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.recharge_end_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // optional int32 max_charges = 7;
     {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.max_charges_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // optional float cooldown = 8;
+    {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // optional float charge_delay = 9;
+    {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
   }},
   // no aux_entries
   {{
-    "\45\0\7\0\0\0\0\0"
+    "\45\0\7\0\0\0\0\0\0\0\0\0\0\0\0\0"
     "modlock.wasm.abilities.AbilityOptions"
     "ability"
   }},
@@ -2696,11 +2774,12 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     _impl_.ability_.ClearNonDefaultToEmpty();
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007eU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000feU)) {
     ::memset(&_impl_.player_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.max_charges_) -
-        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.max_charges_));
+        reinterpret_cast<char*>(&_impl_.cooldown_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.cooldown_));
   }
+  _impl_.charge_delay_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -2778,6 +2857,20 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
             stream, this_._internal_max_charges(), target);
   }
 
+  // optional float cooldown = 8;
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        8, this_._internal_cooldown(), target);
+  }
+
+  // optional float charge_delay = 9;
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        9, this_._internal_charge_delay(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2803,7 +2896,7 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  total_size += ::absl::popcount(0x00000030U & cached_has_bits) * 5;
+  total_size += ::absl::popcount(0x000001b0U & cached_has_bits) * 5;
   if (BatchCheckHasBit(cached_has_bits, 0x0000004fU)) {
     // string ability = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
@@ -2853,7 +2946,7 @@ void AbilityOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_ability().empty()) {
         _this->_internal_set_ability(from._internal_ability());
@@ -2883,6 +2976,12 @@ void AbilityOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       _this->_impl_.max_charges_ = from._impl_.max_charges_;
     }
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      _this->_impl_.cooldown_ = from._impl_.cooldown_;
+    }
+  }
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    _this->_impl_.charge_delay_ = from._impl_.charge_delay_;
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -2905,8 +3004,8 @@ void AbilityOptions::InternalSwap(AbilityOptions* PROTOBUF_RESTRICT PROTOBUF_NON
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.ability_, &other->_impl_.ability_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.max_charges_)
-      + sizeof(AbilityOptions::_impl_.max_charges_)
+      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_)
+      + sizeof(AbilityOptions::_impl_.charge_delay_)
       - PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.player_)>(
           reinterpret_cast<char*>(&_impl_.player_),
           reinterpret_cast<char*>(&other->_impl_.player_));
@@ -8709,6 +8808,445 @@ void GiveEntityModifierRequest::InternalSwap(GiveEntityModifierRequest* PROTOBUF
 }
 
 ::google::protobuf::Metadata GiveEntityModifierRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class AbilityCastEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<AbilityCastEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_._has_bits_);
+};
+
+AbilityCastEvent::AbilityCastEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, AbilityCastEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.abilities.AbilityCastEvent)
+}
+PROTOBUF_NDEBUG_INLINE AbilityCastEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::abilities::AbilityCastEvent& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        name_(arena, from.name_) {}
+
+AbilityCastEvent::AbilityCastEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const AbilityCastEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, AbilityCastEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  AbilityCastEvent* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, caster_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, caster_),
+           offsetof(Impl_, target_) -
+               offsetof(Impl_, caster_) +
+               sizeof(Impl_::target_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.AbilityCastEvent)
+}
+PROTOBUF_NDEBUG_INLINE AbilityCastEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        name_(arena) {}
+
+inline void AbilityCastEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, caster_),
+           0,
+           offsetof(Impl_, target_) -
+               offsetof(Impl_, caster_) +
+               sizeof(Impl_::target_));
+}
+AbilityCastEvent::~AbilityCastEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.abilities.AbilityCastEvent)
+  SharedDtor(*this);
+}
+inline void AbilityCastEvent::SharedDtor(MessageLite& self) {
+  AbilityCastEvent& this_ = static_cast<AbilityCastEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL AbilityCastEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) AbilityCastEvent(arena);
+}
+constexpr auto AbilityCastEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AbilityCastEvent),
+                                            alignof(AbilityCastEvent));
+}
+constexpr auto AbilityCastEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_AbilityCastEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &AbilityCastEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<AbilityCastEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &AbilityCastEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<AbilityCastEvent>(), &AbilityCastEvent::ByteSizeLong,
+              &AbilityCastEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_._cached_size_),
+          false,
+      },
+      &AbilityCastEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull AbilityCastEvent_class_data_ =
+        AbilityCastEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+AbilityCastEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&AbilityCastEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(AbilityCastEvent_class_data_.tc_table);
+  return AbilityCastEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 6, 0, 52, 2>
+AbilityCastEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    6, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967232,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    6,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    AbilityCastEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::AbilityCastEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 caster = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityCastEvent, _impl_.caster_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.caster_)}},
+    // int32 player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityCastEvent, _impl_.player_), 2>(),
+     {16, 2, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.player_)}},
+    // uint32 ability = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityCastEvent, _impl_.ability_), 3>(),
+     {24, 3, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.ability_)}},
+    // string name = 4;
+    {::_pbi::TcParser::FastUS1,
+     {34, 0, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.name_)}},
+    // int32 slot = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityCastEvent, _impl_.slot_), 4>(),
+     {40, 4, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.slot_)}},
+    // uint32 target = 6;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityCastEvent, _impl_.target_), 5>(),
+     {48, 5, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.target_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 caster = 1;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.caster_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 player = 2;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 ability = 3;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.ability_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string name = 4;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int32 slot = 5;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.slot_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 target = 6;
+    {PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.target_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+    "\47\0\0\0\4\0\0\0"
+    "modlock.wasm.abilities.AbilityCastEvent"
+    "name"
+  }},
+};
+PROTOBUF_NOINLINE void AbilityCastEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.abilities.AbilityCastEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.name_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003eU)) {
+    ::memset(&_impl_.caster_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.target_) -
+        reinterpret_cast<char*>(&_impl_.caster_)) + sizeof(_impl_.target_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL AbilityCastEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const AbilityCastEvent& this_ = static_cast<const AbilityCastEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL AbilityCastEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const AbilityCastEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.abilities.AbilityCastEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 caster = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_caster() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_caster(), target);
+    }
+  }
+
+  // int32 player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // uint32 ability = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_ability() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_ability(), target);
+    }
+  }
+
+  // string name = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_name().empty()) {
+      const ::std::string& _s = this_._internal_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.abilities.AbilityCastEvent.name");
+      target = stream->WriteStringMaybeAliased(4, _s, target);
+    }
+  }
+
+  // int32 slot = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_slot() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<5>(
+              stream, this_._internal_slot(), target);
+    }
+  }
+
+  // uint32 target = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (this_._internal_target() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          6, this_._internal_target(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.abilities.AbilityCastEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t AbilityCastEvent::ByteSizeLong(const MessageLite& base) {
+  const AbilityCastEvent& this_ = static_cast<const AbilityCastEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t AbilityCastEvent::ByteSizeLong() const {
+  const AbilityCastEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.abilities.AbilityCastEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+    // string name = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_name());
+      }
+    }
+    // uint32 caster = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_caster() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_caster());
+      }
+    }
+    // int32 player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // uint32 ability = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_ability() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_ability());
+      }
+    }
+    // int32 slot = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_slot() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_slot());
+      }
+    }
+    // uint32 target = 6;
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (this_._internal_target() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_target());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void AbilityCastEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<AbilityCastEvent*>(&to_msg);
+  auto& from = static_cast<const AbilityCastEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.abilities.AbilityCastEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_name().empty()) {
+        _this->_internal_set_name(from._internal_name());
+      } else {
+        if (_this->_impl_.name_.IsDefault()) {
+          _this->_internal_set_name("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_caster() != 0) {
+        _this->_impl_.caster_ = from._impl_.caster_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_ability() != 0) {
+        _this->_impl_.ability_ = from._impl_.ability_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_slot() != 0) {
+        _this->_impl_.slot_ = from._impl_.slot_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (from._internal_target() != 0) {
+        _this->_impl_.target_ = from._impl_.target_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void AbilityCastEvent::CopyFrom(const AbilityCastEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.abilities.AbilityCastEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void AbilityCastEvent::InternalSwap(AbilityCastEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.target_)
+      + sizeof(AbilityCastEvent::_impl_.target_)
+      - PROTOBUF_FIELD_OFFSET(AbilityCastEvent, _impl_.caster_)>(
+          reinterpret_cast<char*>(&_impl_.caster_),
+          reinterpret_cast<char*>(&other->_impl_.caster_));
+}
+
+::google::protobuf::Metadata AbilityCastEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

@@ -278,6 +278,27 @@ std::expected<Subscription, std::string> EngineHost::OnCombat(
   return subscription;
 }
 
+std::expected<uint32_t, std::string> EngineHost::WatchModifierEvent(std::string_view name) {
+  // The hook must be installed.
+  if (!impl_->combat_hook) {
+    return std::unexpected("combat events are not installed");
+  }
+
+  // Read the event's value from the running game by name, and watch it.
+  auto image = gameinterop::MappedModuleImage::ForModule(L"server.dll");
+  if (!image) {
+    return std::unexpected(image.error());
+  }
+  auto id = gameinterop::ModifierEventIndex(*image, name);
+  if (!id) {
+    return std::unexpected(id.error());
+  }
+  if (auto watched = impl_->combat_hook->Watch(*id); !watched) {
+    return std::unexpected(watched.error());
+  }
+  return *id;
+}
+
 gameinterop::ObservedInteractions EngineHost::ObservedInteractions() const {
   return impl_->combat_hook ? impl_->combat_hook->Observed() : gameinterop::ObservedInteractions{};
 }

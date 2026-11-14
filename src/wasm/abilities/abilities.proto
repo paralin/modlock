@@ -91,6 +91,20 @@ message AbilityOptions {
   // screen can still show the game's maximum. Charges above the new maximum
   // are not removed; set them with charges.
   optional int32 max_charges = 7;
+
+  // Cooldown makes every cooldown the ability starts from now on last this
+  // many seconds, in place of the game's own length. For an ability with
+  // charges it is the time each charge takes to return. 0 leaves the ability
+  // always ready, and a negative value returns it to the game's own. The game
+  // asks for the length as it starts each cooldown, so it holds for every
+  // later cast and the hero's screen shows it; a cooldown already running
+  // keeps its end, which cooldown_end moves. It holds for this ability of
+  // this hero, so set it again after a hero change or a replaced ability.
+  optional float cooldown = 8;
+  // ChargeDelay makes the wait after the ability spends a charge, before it
+  // can spend the next, last this many seconds, as cooldown does for its
+  // cooldowns.
+  optional float charge_delay = 9;
 }
 
 // GiveItemRequest gives one player's hero an item.
@@ -301,4 +315,29 @@ message GiveEntityModifierRequest {
 
   // Seconds is how long the modifier lasts.
   float seconds = 3;
+}
+
+// AbilityCastEvent reports one ability the game executed: the moment the
+// cast takes effect, after any cast time, for a hero's abilities and the
+// items a player activates.
+message AbilityCastEvent {
+  // Caster is the entity that cast it, a hero for a player's cast.
+  uint32 caster = 1;
+
+  // Player is the slot of the player whose hero cast it, or -1.
+  int32 player = 2;
+
+  // Ability is the ability's entity handle, as Ability.entity reports it.
+  uint32 ability = 3;
+
+  // Name is the ability's name, such as citadel_ability_hornet_snipe, when
+  // a player's hero cast it.
+  string name = 4;
+
+  // Slot is the ability's place on the hero, as Ability.slot reports it, or
+  // -1 when the caster is not a player's hero.
+  int32 slot = 5;
+
+  // Target is the entity the cast was aimed at, or zero without one.
+  uint32 target = 6;
 }

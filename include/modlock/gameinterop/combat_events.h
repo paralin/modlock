@@ -101,6 +101,20 @@ struct AbilityExecutedEvent {
   uint32_t target_handle = 0;
 };
 
+// ModifierFiredEvent is one watched modifier event with the handles of the
+// three entities the game fired it with. Which of them an event fills depends
+// on the event; one the event leaves out, or that is not a live entity, reads
+// kInvalidEHandleIndex.
+struct ModifierFiredEvent {
+  // id is the running game's EModifierEvent value.
+  uint32_t id = 0;
+  uint32_t caster_handle = 0;
+  uint32_t target_handle = 0;
+  // ability_handle is the entity the event names as its source, an ability
+  // for the events an ability causes.
+  uint32_t ability_handle = 0;
+};
+
 // Native movement executions from FireModifierEvent. The caster is copied
 // while the engine owns its entity; consumers must match the full pawn handle.
 // The enumerators name movement facts with their modifier event ids in game
@@ -191,6 +205,7 @@ struct CombatEvent {
     kAbilityExecuted,
     kMovementExecuted,
     kInteraction,
+    kModifierFired,
     kDecodeFailed,
   };
   Kind kind = Kind::kDecodeFailed;
@@ -203,6 +218,7 @@ struct CombatEvent {
   std::optional<AbilityExecutedEvent> ability;
   std::optional<MovementExecutedEvent> movement;
   std::optional<InteractionEvent> interaction;
+  std::optional<ModifierFiredEvent> modifier;
 };
 
 // ObservedInteractions reports which interactions the installed hook can
@@ -294,6 +310,11 @@ class MODLOCK_API CombatEventsHook {
 
   CombatEventsHook(const CombatEventsHook&) = delete;
   CombatEventsHook& operator=(const CombatEventsHook&) = delete;
+
+  // Watch reports every later modifier event with this EModifierEvent value
+  // to the handler as kModifierFired, until the hook is destroyed. The value
+  // comes from ModifierEventIndex.
+  std::expected<void, std::string> Watch(uint32_t id);
 
   // Observed reports which interaction kinds this hook delivers.
   [[nodiscard]] ObservedInteractions Observed() const;

@@ -223,6 +223,27 @@ func (w *luauWriter) oneofType(o *oneof) string {
 	return strings.Join(types, " | ")
 }
 
+// writeNew writes a class's constructor. An interned class keeps one frozen
+// object for each number, so == tells whether two values are the same thing
+// and an object works as a table key.
+func (w *luauWriter) writeNew(c *class) {
+	if !c.interned {
+		fmt.Fprintf(&w.out, "-- new returns the %s with %s.\n", c.name, c.key)
+		fmt.Fprintf(&w.out, "function %s.new(%s: number): %s\n", c.name, c.key, c.name)
+		fmt.Fprintf(&w.out, "\treturn setmetatable({ %s = %s }, %s) :: any\nend\n\n", c.key, c.key, c.name)
+		return
+	}
+	table := lowerCamel(c.name) + "Objects"
+	fmt.Fprintf(&w.out, "-- %s holds the %s of each %s that %s.new made.\n", table, c.name, c.key, c.name)
+	fmt.Fprintf(&w.out, "local %s: { [number]: %s } = {}\n\n", table, c.name)
+	fmt.Fprintf(&w.out, "-- new returns the %s with %s, the same object each time, so == tells\n", c.name, c.key)
+	fmt.Fprintf(&w.out, "-- whether two values are the same %s and a %s works as a table key.\n", lowerCamel(c.noun), c.name)
+	fmt.Fprintf(&w.out, "function %s.new(%s: number): %s\n", c.name, c.key, c.name)
+	fmt.Fprintf(&w.out, "\tlocal object = %s[%s]\n\tif object == nil then\n", table, c.key)
+	fmt.Fprintf(&w.out, "\t\tobject = table.freeze(setmetatable({ %s = %s }, %s)) :: any\n", c.key, c.key, c.name)
+	fmt.Fprintf(&w.out, "\t\t%s[%s] = object\n\tend\n\treturn object\nend\n\n", table, c.key)
+}
+
 // writeClass writes one class: its type, which lists its methods, its
 // constructor and its calls as methods.
 func (w *luauWriter) writeClass(c *class) {
@@ -241,9 +262,7 @@ func (w *luauWriter) writeClass(c *class) {
 	w.writeMethods(c)
 	w.out.WriteString("}\n")
 	fmt.Fprintf(&w.out, "local %s = {}\n%s.__index = %s\n\n", c.name, c.name, c.name)
-	fmt.Fprintf(&w.out, "-- new returns the %s with %s.\n", c.name, c.key)
-	fmt.Fprintf(&w.out, "function %s.new(%s: number): %s\n", c.name, c.key, c.name)
-	fmt.Fprintf(&w.out, "\treturn setmetatable({ %s = %s }, %s) :: any\nend\n\n", c.key, c.key, c.name)
+	w.writeNew(c)
 	for _, call := range w.calls {
 		if call.class == c {
 			w.writeCall(call)

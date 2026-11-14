@@ -900,6 +900,19 @@ class AbilityOptions:
     # screen can still show the game's maximum. charges above the new maximum
     # are not removed; set them with charges.
     max_charges: int | None = None
+    # cooldown makes every cooldown the ability starts from now on last this
+    # many seconds, in place of the game's own length. For an ability with
+    # charges it is the time each charge takes to return. 0 leaves the ability
+    # always ready, and a negative value returns it to the game's own. The game
+    # asks for the length as it starts each cooldown, so it holds for every
+    # later cast and the hero's screen shows it; a cooldown already running
+    # keeps its end, which cooldown_end moves. It holds for this ability of
+    # this hero, so set it again after a hero change or a replaced ability.
+    cooldown: float | None = None
+    # charge_delay makes the wait after the ability spends a charge, before it
+    # can spend the next, last this many seconds, as cooldown does for its
+    # cooldowns.
+    charge_delay: float | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -957,6 +970,29 @@ class BuildItem:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class AbilityCastEvent:
+    """AbilityCastEvent reports one ability the game executed: the moment the
+    cast takes effect, after any cast time, for a hero's abilities and the
+    items a player activates.
+    """
+
+    # caster is the entity that cast it, a hero for a player's cast.
+    caster: int = 0
+    # player is the slot of the player whose hero cast it, or -1.
+    player: Player
+    # ability is the ability's entity handle, as ability.entity reports it.
+    ability: int = 0
+    # name is the ability's name, such as citadel_ability_hornet_snipe, when
+    # a player's hero cast it.
+    name: str = ""
+    # slot is the ability's place on the hero, as ability.slot reports it, or
+    # -1 when the caster is not a player's hero.
+    slot: int = 0
+    # target is the entity the cast was aimed at, or zero without one.
+    target: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class DamageEvent:
     """DamageEvent is one hit before the game applies it. Handles are zero when
     the game names no such entity.
@@ -1008,6 +1044,24 @@ class DamagedEvent:
     # dealt is the hit's damage after resistances, before the victim's health
     # capped it.
     dealt: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class KillEvent:
+    """KillEvent reports one hero or unit that a hit killed."""
+
+    # victim is the entity that died.
+    victim: int = 0
+    # victim_player is the slot of the player whose hero died, or -1 for a unit.
+    victim_player: Player
+    # attacker is the entity credited with the killing hit, or zero for a
+    # hazard.
+    attacker: int = 0
+    # attacker_player is the slot of the player whose hero is the attacker, or
+    # -1. It is the victim's own slot when a hero killed itself.
+    attacker_player: Player
+    # ability is the ability that dealt the killing hit, or zero.
+    ability: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1131,6 +1185,28 @@ class TraceHit:
     start_solid: bool = False
     # entity is the entity hit, or zero for the world.
     entity: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ModifierFiredEvent:
+    """ModifierFiredEvent reports one of the game's modifier events the mod
+    watches, with the entities the game fired it with. Which of them an event
+    fills depends on the event.
+    """
+
+    # name is the event as the mod named it in StartResult.modifier_events.
+    name: str = ""
+    # caster is the entity the event is about, such as the hero that parried
+    # or respawned, or zero.
+    caster: int = 0
+    # player is the slot of the player whose hero the caster is, or -1.
+    player: Player
+    # target is the other entity of the event, such as the victim of a kill,
+    # or zero.
+    target: int = 0
+    # ability is the ability or other entity the event names as its source, or
+    # zero.
+    ability: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2071,6 +2147,17 @@ class StartResult:
     # joins asks for a PlayerJoined event as each player the mod serves joins,
     # and a PlayerLeft event as each leaves.
     joins: bool = False
+    # casts asks for an AbilityCast event after each ability the game
+    # executes.
+    casts: bool = False
+    # modifier_events asks for a ModifierFired event for each of the game's
+    # modifier events with these EModifierEvent names, such as
+    # MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+    # ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+    # fires.
+    modifier_events: list[str] = dataclasses.field(default_factory=lambda: list[str]())
+    # kills asks for a Killed event after each hit that kills a hero or unit.
+    kills: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2780,6 +2867,8 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "cooldown_end", "float", optional=True),
             wire.Field(6, "recharge_end", "float", optional=True),
             wire.Field(7, "max_charges", "int32", optional=True),
+            wire.Field(8, "cooldown", "float", optional=True),
+            wire.Field(9, "charge_delay", "float", optional=True),
         ],
     ),
     "GiveItemRequest": (
@@ -2916,6 +3005,17 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "seconds", "float"),
         ],
     ),
+    "AbilityCastEvent": (
+        AbilityCastEvent,
+        [
+            wire.Field(1, "caster", "uint32"),
+            wire.Field(2, "player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "ability", "uint32"),
+            wire.Field(4, "name", "string"),
+            wire.Field(5, "slot", "int32"),
+            wire.Field(6, "target", "uint32"),
+        ],
+    ),
     "Vec3": (
         Vector,
         [
@@ -2960,6 +3060,16 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "health_lost", "int32"),
             wire.Field(5, "health_before", "int32"),
             wire.Field(6, "dealt", "int32"),
+        ],
+    ),
+    "KillEvent": (
+        KillEvent,
+        [
+            wire.Field(1, "victim", "uint32"),
+            wire.Field(2, "victim_player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "attacker", "uint32"),
+            wire.Field(4, "attacker_player", "int32", cls=Player, key="slot"),
+            wire.Field(5, "ability", "uint32"),
         ],
     ),
     "LaunchEvent": (
@@ -3035,6 +3145,16 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "normal", "message", message="Vec3"),
             wire.Field(3, "start_solid", "bool"),
             wire.Field(4, "entity", "uint32"),
+        ],
+    ),
+    "ModifierFiredEvent": (
+        ModifierFiredEvent,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "caster", "uint32"),
+            wire.Field(3, "player", "int32", cls=Player, key="slot"),
+            wire.Field(4, "target", "uint32"),
+            wire.Field(5, "ability", "uint32"),
         ],
     ),
     "ChatRequest": (
@@ -4489,6 +4609,9 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "damaged", "bool"),
             wire.Field(4, "chat", "bool"),
             wire.Field(5, "joins", "bool"),
+            wire.Field(6, "casts", "bool"),
+            wire.Field(7, "modifier_events", "string", repeated=True),
+            wire.Field(8, "kills", "bool"),
         ],
     ),
     "FrameEvent": (
@@ -5254,6 +5377,9 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
     "Damaged": ("DamagedEvent", "Empty", "damaged"),
+    "Killed": ("KillEvent", "Empty", "killed"),
+    "AbilityCast": ("AbilityCastEvent", "Empty", "ability_cast"),
+    "ModifierFired": ("ModifierFiredEvent", "Empty", "modifier_fired"),
     "Input": ("InputEvent", "Empty", "input"),
     "Restored": ("RestoredEvent", "Empty", "restored"),
     "NpcsRestored": ("NpcsRestoredEvent", "Empty", "npcs_restored"),
@@ -5391,6 +5517,9 @@ _restoreds: list[Callable[[Player, str | None], object]] = []
 _npcs_restoreds: list[Callable[[str | None], object]] = []
 _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
+_kills: list[Callable[[KillEvent], object]] = []
+_ability_casts: list[Callable[[AbilityCastEvent], object]] = []
+_modifier_events: dict[str, list[Callable[[ModifierFiredEvent], object]]] = {}
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
@@ -6302,6 +6431,50 @@ def _watch_spawns() -> None:
     _spawned.update(present)
 
 
+def on_kill[F: Callable[[KillEvent], object]](handler: F) -> F:
+    """on_kill calls handler after each hit that kills a hero or a unit, before
+    the next frame. The kill names both entities and the player of each: a
+    slot of -1 is a unit's, or a hazard's for the attacker.
+
+        @modlock.on_kill
+        def killed(kill: modlock.KillEvent) -> None: ...
+    """
+    _kills.append(handler)
+    return handler
+
+
+def on_ability_cast[F: Callable[[AbilityCastEvent], object]](handler: F) -> F:
+    """on_ability_cast calls handler after each ability the game executes,
+    before the next frame: a hero's abilities and the items a player
+    activates, at the moment the cast takes effect.
+
+        @modlock.on_ability_cast
+        def cast(event: modlock.AbilityCastEvent) -> None: ...
+    """
+    _ability_casts.append(handler)
+    return handler
+
+
+def on_modifier_event[F: Callable[[ModifierFiredEvent], object]](
+    name: str,
+) -> Callable[[F], F]:
+    """on_modifier_event calls the decorated handler each time the game fires
+    the modifier event with this EModifierEvent name, such as
+    ABILITY_CAST_STARTED, PARRY_SUCCESS or PLAYER_RESPAWNED, before the next
+    frame. Register before the mod starts. A name the running game lacks is
+    logged once and never fires.
+
+        @modlock.on_modifier_event("PARRY_SUCCESS")
+        def parried(event: modlock.ModifierFiredEvent) -> None: ...
+    """
+
+    def register(handler: F) -> F:
+        _modifier_events.setdefault(name, []).append(handler)
+        return handler
+
+    return register
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands.
 
@@ -6382,6 +6555,9 @@ def _start(event: StartEvent) -> StartResult:
         damaged=bool(_damageds),
         chat=bool(_chats),
         joins=bool(_joins or _leaves),
+        casts=bool(_ability_casts),
+        kills=bool(_kills),
+        modifier_events=list(_modifier_events),
     )
 
 
@@ -6527,6 +6703,21 @@ def _damaged(event: DamagedEvent) -> None:
         handler(event)
 
 
+def _killed(event: KillEvent) -> None:
+    for handler in _kills:
+        handler(event)
+
+
+def _ability_cast(event: AbilityCastEvent) -> None:
+    for handler in _ability_casts:
+        handler(event)
+
+
+def _modifier_fired(event: ModifierFiredEvent) -> None:
+    for handler in _modifier_events.get(event.name, ()):
+        handler(event)
+
+
 def _input(event: InputEvent) -> None:
     for handler in _inputs:
         handler(event.player, Buttons(event.pressed), Buttons(event.released))
@@ -6592,6 +6783,9 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "serve": _serve,
     "damage": _damage,
     "damaged": _damaged,
+    "killed": _killed,
+    "ability_cast": _ability_cast,
+    "modifier_fired": _modifier_fired,
     "input": _input,
     "restored": _restored,
     "npcs_restored": _npcs_restored,

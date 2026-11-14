@@ -78,6 +78,10 @@ class ImpactEvent;
 struct ImpactEventDefaultTypeInternal;
 MODLOCK_API extern ImpactEventDefaultTypeInternal _ImpactEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ImpactEvent_class_data_;
+class KillEvent;
+struct KillEventDefaultTypeInternal;
+MODLOCK_API extern KillEventDefaultTypeInternal _KillEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull KillEvent_class_data_;
 class KillOptions;
 struct KillOptionsDefaultTypeInternal;
 MODLOCK_API extern KillOptionsDefaultTypeInternal _KillOptions_default_instance_;
@@ -86,6 +90,10 @@ class LaunchEvent;
 struct LaunchEventDefaultTypeInternal;
 MODLOCK_API extern LaunchEventDefaultTypeInternal _LaunchEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LaunchEvent_class_data_;
+class ModifierFiredEvent;
+struct ModifierFiredEventDefaultTypeInternal;
+MODLOCK_API extern ModifierFiredEventDefaultTypeInternal _ModifierFiredEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierFiredEvent_class_data_;
 class ProjectileOptions;
 struct ProjectileOptionsDefaultTypeInternal;
 MODLOCK_API extern ProjectileOptionsDefaultTypeInternal _ProjectileOptions_default_instance_;
@@ -174,7 +182,7 @@ class MODLOCK_API ProjectileOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const ProjectileOptions*>(
         &_ProjectileOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(ProjectileOptions& a, ProjectileOptions& b) { a.Swap(&b); }
   inline void Swap(ProjectileOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -334,6 +342,249 @@ class MODLOCK_API ProjectileOptions final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ProjectileOptions_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ModifierFiredEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.ModifierFiredEvent) */ {
+ public:
+  inline ModifierFiredEvent() : ModifierFiredEvent(nullptr) {}
+  ~ModifierFiredEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ModifierFiredEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ModifierFiredEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ModifierFiredEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline ModifierFiredEvent(const ModifierFiredEvent& from) : ModifierFiredEvent(nullptr, from) {}
+  inline ModifierFiredEvent(ModifierFiredEvent&& from) noexcept
+      : ModifierFiredEvent(nullptr, ::std::move(from)) {}
+  inline ModifierFiredEvent& operator=(const ModifierFiredEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ModifierFiredEvent& operator=(ModifierFiredEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ModifierFiredEvent& default_instance() {
+    return *reinterpret_cast<const ModifierFiredEvent*>(
+        &_ModifierFiredEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 12;
+  friend void swap(ModifierFiredEvent& a, ModifierFiredEvent& b) { a.Swap(&b); }
+  inline void Swap(ModifierFiredEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ModifierFiredEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ModifierFiredEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ModifierFiredEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ModifierFiredEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ModifierFiredEvent& from) { ModifierFiredEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ModifierFiredEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.ModifierFiredEvent"; }
+
+  explicit ModifierFiredEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ModifierFiredEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ModifierFiredEvent& from);
+  ModifierFiredEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ModifierFiredEvent&& from) noexcept
+      : ModifierFiredEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNameFieldNumber = 1,
+    kCasterFieldNumber = 2,
+    kPlayerFieldNumber = 3,
+    kTargetFieldNumber = 4,
+    kAbilityFieldNumber = 5,
+  };
+  // string name = 1;
+  void clear_name() ;
+  const ::std::string& name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
+  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // uint32 caster = 2;
+  void clear_caster() ;
+  ::uint32_t caster() const;
+  void set_caster(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_caster() const;
+  void _internal_set_caster(::uint32_t value);
+
+  public:
+  // int32 player = 3;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // uint32 target = 4;
+  void clear_target() ;
+  ::uint32_t target() const;
+  void set_target(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_target() const;
+  void _internal_set_target(::uint32_t value);
+
+  public:
+  // uint32 ability = 5;
+  void clear_ability() ;
+  ::uint32_t ability() const;
+  void set_ability(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_ability() const;
+  void _internal_set_ability(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.ModifierFiredEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 51,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ModifierFiredEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::uint32_t caster_;
+    ::int32_t player_;
+    ::uint32_t target_;
+    ::uint32_t ability_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierFiredEvent_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API KillOptions final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.combat.KillOptions) */ {
  public:
@@ -389,7 +640,7 @@ class MODLOCK_API KillOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const KillOptions*>(
         &_KillOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(KillOptions& a, KillOptions& b) { a.Swap(&b); }
   inline void Swap(KillOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -563,6 +814,244 @@ class MODLOCK_API KillOptions final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull KillOptions_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API KillEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.KillEvent) */ {
+ public:
+  inline KillEvent() : KillEvent(nullptr) {}
+  ~KillEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(KillEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(KillEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR KillEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline KillEvent(const KillEvent& from) : KillEvent(nullptr, from) {}
+  inline KillEvent(KillEvent&& from) noexcept
+      : KillEvent(nullptr, ::std::move(from)) {}
+  inline KillEvent& operator=(const KillEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline KillEvent& operator=(KillEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const KillEvent& default_instance() {
+    return *reinterpret_cast<const KillEvent*>(
+        &_KillEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 3;
+  friend void swap(KillEvent& a, KillEvent& b) { a.Swap(&b); }
+  inline void Swap(KillEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(KillEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  KillEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<KillEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const KillEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const KillEvent& from) { KillEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(KillEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.KillEvent"; }
+
+  explicit KillEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  KillEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const KillEvent& from);
+  KillEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, KillEvent&& from) noexcept
+      : KillEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kVictimFieldNumber = 1,
+    kVictimPlayerFieldNumber = 2,
+    kAttackerFieldNumber = 3,
+    kAttackerPlayerFieldNumber = 4,
+    kAbilityFieldNumber = 5,
+  };
+  // uint32 victim = 1;
+  void clear_victim() ;
+  ::uint32_t victim() const;
+  void set_victim(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_victim() const;
+  void _internal_set_victim(::uint32_t value);
+
+  public:
+  // int32 victim_player = 2;
+  void clear_victim_player() ;
+  ::int32_t victim_player() const;
+  void set_victim_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_victim_player() const;
+  void _internal_set_victim_player(::int32_t value);
+
+  public:
+  // uint32 attacker = 3;
+  void clear_attacker() ;
+  ::uint32_t attacker() const;
+  void set_attacker(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_attacker() const;
+  void _internal_set_attacker(::uint32_t value);
+
+  public:
+  // int32 attacker_player = 4;
+  void clear_attacker_player() ;
+  ::int32_t attacker_player() const;
+  void set_attacker_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_attacker_player() const;
+  void _internal_set_attacker_player(::int32_t value);
+
+  public:
+  // uint32 ability = 5;
+  void clear_ability() ;
+  ::uint32_t ability() const;
+  void set_ability(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_ability() const;
+  void _internal_set_ability(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.KillEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const KillEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t victim_;
+    ::int32_t victim_player_;
+    ::uint32_t attacker_;
+    ::int32_t attacker_player_;
+    ::uint32_t ability_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull KillEvent_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API HitOptions final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.combat.HitOptions) */ {
  public:
@@ -618,7 +1107,7 @@ class MODLOCK_API HitOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const HitOptions*>(
         &_HitOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(HitOptions& a, HitOptions& b) { a.Swap(&b); }
   inline void Swap(HitOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1588,7 +2077,7 @@ class MODLOCK_API TraceOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceOptions*>(
         &_TraceOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(TraceOptions& a, TraceOptions& b) { a.Swap(&b); }
   inline void Swap(TraceOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1847,7 +2336,7 @@ class MODLOCK_API TraceHit final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceHit*>(
         &_TraceHit_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(TraceHit& a, TraceHit& b) { a.Swap(&b); }
   inline void Swap(TraceHit* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2083,7 +2572,7 @@ class MODLOCK_API LaunchEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const LaunchEvent*>(
         &_LaunchEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(LaunchEvent& a, LaunchEvent& b) { a.Swap(&b); }
   inline void Swap(LaunchEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2331,7 +2820,7 @@ class MODLOCK_API ImpactEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const ImpactEvent*>(
         &_ImpactEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(ImpactEvent& a, ImpactEvent& b) { a.Swap(&b); }
   inline void Swap(ImpactEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2625,7 +3114,7 @@ class MODLOCK_API TraceResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceResponse*>(
         &_TraceResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(TraceResponse& a, TraceResponse& b) { a.Swap(&b); }
   inline void Swap(TraceResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3169,6 +3658,135 @@ inline ::int32_t DamagedEvent::_internal_dealt() const {
 inline void DamagedEvent::_internal_set_dealt(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.dealt_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// KillEvent
+
+// uint32 victim = 1;
+inline void KillEvent::clear_victim() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t KillEvent::victim() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.KillEvent.victim)
+  return _internal_victim();
+}
+inline void KillEvent::set_victim(::uint32_t value) {
+  _internal_set_victim(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.KillEvent.victim)
+}
+inline ::uint32_t KillEvent::_internal_victim() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.victim_;
+}
+inline void KillEvent::_internal_set_victim(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_ = value;
+}
+
+// int32 victim_player = 2;
+inline void KillEvent::clear_victim_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t KillEvent::victim_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.KillEvent.victim_player)
+  return _internal_victim_player();
+}
+inline void KillEvent::set_victim_player(::int32_t value) {
+  _internal_set_victim_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.KillEvent.victim_player)
+}
+inline ::int32_t KillEvent::_internal_victim_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.victim_player_;
+}
+inline void KillEvent::_internal_set_victim_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_player_ = value;
+}
+
+// uint32 attacker = 3;
+inline void KillEvent::clear_attacker() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t KillEvent::attacker() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.KillEvent.attacker)
+  return _internal_attacker();
+}
+inline void KillEvent::set_attacker(::uint32_t value) {
+  _internal_set_attacker(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.KillEvent.attacker)
+}
+inline ::uint32_t KillEvent::_internal_attacker() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_;
+}
+inline void KillEvent::_internal_set_attacker(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = value;
+}
+
+// int32 attacker_player = 4;
+inline void KillEvent::clear_attacker_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::int32_t KillEvent::attacker_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.KillEvent.attacker_player)
+  return _internal_attacker_player();
+}
+inline void KillEvent::set_attacker_player(::int32_t value) {
+  _internal_set_attacker_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.KillEvent.attacker_player)
+}
+inline ::int32_t KillEvent::_internal_attacker_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_player_;
+}
+inline void KillEvent::_internal_set_attacker_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = value;
+}
+
+// uint32 ability = 5;
+inline void KillEvent::clear_ability() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline ::uint32_t KillEvent::ability() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.KillEvent.ability)
+  return _internal_ability();
+}
+inline void KillEvent::set_ability(::uint32_t value) {
+  _internal_set_ability(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.KillEvent.ability)
+}
+inline ::uint32_t KillEvent::_internal_ability() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_;
+}
+inline void KillEvent::_internal_set_ability(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -4886,6 +5504,175 @@ inline ::uint32_t TraceHit::_internal_entity() const {
 inline void TraceHit::_internal_set_entity(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entity_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ModifierFiredEvent
+
+// string name = 1;
+inline void ModifierFiredEvent::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ModifierFiredEvent::name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ModifierFiredEvent.name)
+  return _internal_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ModifierFiredEvent::set_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ModifierFiredEvent.name)
+}
+inline ::std::string* PROTOBUF_NONNULL ModifierFiredEvent::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.combat.ModifierFiredEvent.name)
+  return _s;
+}
+inline const ::std::string& ModifierFiredEvent::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.name_.Get();
+}
+inline void ModifierFiredEvent::_internal_set_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ModifierFiredEvent::_internal_mutable_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ModifierFiredEvent::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.combat.ModifierFiredEvent.name)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ModifierFiredEvent::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.combat.ModifierFiredEvent.name)
+}
+
+// uint32 caster = 2;
+inline void ModifierFiredEvent::clear_caster() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.caster_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t ModifierFiredEvent::caster() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ModifierFiredEvent.caster)
+  return _internal_caster();
+}
+inline void ModifierFiredEvent::set_caster(::uint32_t value) {
+  _internal_set_caster(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ModifierFiredEvent.caster)
+}
+inline ::uint32_t ModifierFiredEvent::_internal_caster() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.caster_;
+}
+inline void ModifierFiredEvent::_internal_set_caster(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.caster_ = value;
+}
+
+// int32 player = 3;
+inline void ModifierFiredEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::int32_t ModifierFiredEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ModifierFiredEvent.player)
+  return _internal_player();
+}
+inline void ModifierFiredEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ModifierFiredEvent.player)
+}
+inline ::int32_t ModifierFiredEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void ModifierFiredEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// uint32 target = 4;
+inline void ModifierFiredEvent::clear_target() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t ModifierFiredEvent::target() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ModifierFiredEvent.target)
+  return _internal_target();
+}
+inline void ModifierFiredEvent::set_target(::uint32_t value) {
+  _internal_set_target(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ModifierFiredEvent.target)
+}
+inline ::uint32_t ModifierFiredEvent::_internal_target() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.target_;
+}
+inline void ModifierFiredEvent::_internal_set_target(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_ = value;
+}
+
+// uint32 ability = 5;
+inline void ModifierFiredEvent::clear_ability() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline ::uint32_t ModifierFiredEvent::ability() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ModifierFiredEvent.ability)
+  return _internal_ability();
+}
+inline void ModifierFiredEvent::set_ability(::uint32_t value) {
+  _internal_set_ability(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ModifierFiredEvent.ability)
+}
+inline ::uint32_t ModifierFiredEvent::_internal_ability() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_;
+}
+inline void ModifierFiredEvent::_internal_set_ability(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = value;
 }
 
 #ifdef __GNUC__

@@ -224,6 +224,19 @@ type AbilityOptions struct {
 	// screen can still show the game's maximum. Charges above the new maximum
 	// are not removed; set them with charges.
 	MaxCharges *int32 `protobuf:"varint,7,opt,name=max_charges,json=maxCharges,proto3,oneof" json:"maxCharges,omitempty"`
+	// Cooldown makes every cooldown the ability starts from now on last this
+	// many seconds, in place of the game's own length. For an ability with
+	// charges it is the time each charge takes to return. 0 leaves the ability
+	// always ready, and a negative value returns it to the game's own. The game
+	// asks for the length as it starts each cooldown, so it holds for every
+	// later cast and the hero's screen shows it; a cooldown already running
+	// keeps its end, which cooldown_end moves. It holds for this ability of
+	// this hero, so set it again after a hero change or a replaced ability.
+	Cooldown *float32 `protobuf:"fixed32,8,opt,name=cooldown,proto3,oneof" json:"cooldown,omitempty"`
+	// ChargeDelay makes the wait after the ability spends a charge, before it
+	// can spend the next, last this many seconds, as cooldown does for its
+	// cooldowns.
+	ChargeDelay *float32 `protobuf:"fixed32,9,opt,name=charge_delay,json=chargeDelay,proto3,oneof" json:"chargeDelay,omitempty"`
 }
 
 func (x *AbilityOptions) Reset() {
@@ -277,6 +290,20 @@ func (x *AbilityOptions) GetRechargeEnd() float32 {
 func (x *AbilityOptions) GetMaxCharges() int32 {
 	if x != nil && x.MaxCharges != nil {
 		return *x.MaxCharges
+	}
+	return 0
+}
+
+func (x *AbilityOptions) GetCooldown() float32 {
+	if x != nil && x.Cooldown != nil {
+		return *x.Cooldown
+	}
+	return 0
+}
+
+func (x *AbilityOptions) GetChargeDelay() float32 {
+	if x != nil && x.ChargeDelay != nil {
+		return *x.ChargeDelay
 	}
 	return 0
 }
@@ -922,6 +949,75 @@ func (x *GiveEntityModifierRequest) GetSeconds() float32 {
 	return 0
 }
 
+// AbilityCastEvent reports one ability the game executed: the moment the
+// cast takes effect, after any cast time, for a hero's abilities and the
+// items a player activates.
+type AbilityCastEvent struct {
+	unknownFields []byte
+	// Caster is the entity that cast it, a hero for a player's cast.
+	Caster uint32 `protobuf:"varint,1,opt,name=caster,proto3" json:"caster,omitempty"`
+	// Player is the slot of the player whose hero cast it, or -1.
+	Player int32 `protobuf:"varint,2,opt,name=player,proto3" json:"player,omitempty"`
+	// Ability is the ability's entity handle, as Ability.entity reports it.
+	Ability uint32 `protobuf:"varint,3,opt,name=ability,proto3" json:"ability,omitempty"`
+	// Name is the ability's name, such as citadel_ability_hornet_snipe, when
+	// a player's hero cast it.
+	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	// Slot is the ability's place on the hero, as Ability.slot reports it, or
+	// -1 when the caster is not a player's hero.
+	Slot int32 `protobuf:"varint,5,opt,name=slot,proto3" json:"slot,omitempty"`
+	// Target is the entity the cast was aimed at, or zero without one.
+	Target uint32 `protobuf:"varint,6,opt,name=target,proto3" json:"target,omitempty"`
+}
+
+func (x *AbilityCastEvent) Reset() {
+	*x = AbilityCastEvent{}
+}
+
+func (*AbilityCastEvent) ProtoMessage() {}
+
+func (x *AbilityCastEvent) GetCaster() uint32 {
+	if x != nil {
+		return x.Caster
+	}
+	return 0
+}
+
+func (x *AbilityCastEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *AbilityCastEvent) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
+func (x *AbilityCastEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AbilityCastEvent) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *AbilityCastEvent) GetTarget() uint32 {
+	if x != nil {
+		return x.Target
+	}
+	return 0
+}
+
 func (m *HoldReloadRequest) CloneVT() *HoldReloadRequest {
 	if m == nil {
 		return (*HoldReloadRequest)(nil)
@@ -1010,6 +1106,8 @@ func (m *AbilityOptions) CloneVT() *AbilityOptions {
 	r.CooldownEnd = protobuf_go_lite.ClonePtr(m.CooldownEnd)
 	r.RechargeEnd = protobuf_go_lite.ClonePtr(m.RechargeEnd)
 	r.MaxCharges = protobuf_go_lite.ClonePtr(m.MaxCharges)
+	r.Cooldown = protobuf_go_lite.ClonePtr(m.Cooldown)
+	r.ChargeDelay = protobuf_go_lite.ClonePtr(m.ChargeDelay)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1324,6 +1422,27 @@ func (m *GiveEntityModifierRequest) CloneMessageVT() protobuf_go_lite.CloneMessa
 	return m.CloneVT()
 }
 
+func (m *AbilityCastEvent) CloneVT() *AbilityCastEvent {
+	if m == nil {
+		return (*AbilityCastEvent)(nil)
+	}
+	r := new(AbilityCastEvent)
+	r.Caster = m.Caster
+	r.Player = m.Player
+	r.Ability = m.Ability
+	r.Name = m.Name
+	r.Slot = m.Slot
+	r.Target = m.Target
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *AbilityCastEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (this *HoldReloadRequest) EqualVT(that *HoldReloadRequest) bool {
 	if this == that {
 		return true
@@ -1465,6 +1584,12 @@ func (this *AbilityOptions) EqualVT(that *AbilityOptions) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualPtr(this.MaxCharges, that.MaxCharges) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Cooldown, that.Cooldown) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.ChargeDelay, that.ChargeDelay) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1914,6 +2039,41 @@ func (this *GiveEntityModifierRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *AbilityCastEvent) EqualVT(that *AbilityCastEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Caster != that.Caster {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Slot != that.Slot {
+		return false
+	}
+	if this.Target != that.Target {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AbilityCastEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*AbilityCastEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 // MarshalProtoJSON marshals the HoldReloadRequest message to JSON.
 func (x *HoldReloadRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2246,6 +2406,16 @@ func (x *AbilityOptions) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("maxCharges")
 		s.WriteInt32(*x.MaxCharges)
 	}
+	if x.Cooldown != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("cooldown")
+		s.WriteFloat32(*x.Cooldown)
+	}
+	if x.ChargeDelay != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("chargeDelay")
+		s.WriteFloat32(*x.ChargeDelay)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2309,6 +2479,22 @@ func (x *AbilityOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadInt32()
 			x.MaxCharges = &t
+		case "cooldown":
+			s.AddField("cooldown")
+			if s.ReadNil() {
+				x.Cooldown = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Cooldown = &t
+		case "charge_delay", "chargeDelay":
+			s.AddField("charge_delay")
+			if s.ReadNil() {
+				x.ChargeDelay = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.ChargeDelay = &t
 		}
 	})
 }
@@ -3391,6 +3577,88 @@ func (x *GiveEntityModifierRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the AbilityCastEvent message to JSON.
+func (x *AbilityCastEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Caster != 0 || s.HasField("caster") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("caster")
+		s.WriteUint32(x.Caster)
+	}
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Slot != 0 || s.HasField("slot") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("slot")
+		s.WriteInt32(x.Slot)
+	}
+	if x.Target != 0 || s.HasField("target") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("target")
+		s.WriteUint32(x.Target)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the AbilityCastEvent to JSON.
+func (x *AbilityCastEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the AbilityCastEvent message from JSON.
+func (x *AbilityCastEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "caster":
+			s.AddField("caster")
+			x.Caster = s.ReadUint32()
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "slot":
+			s.AddField("slot")
+			x.Slot = s.ReadInt32()
+		case "target":
+			s.AddField("target")
+			x.Target = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the AbilityCastEvent from JSON.
+func (x *AbilityCastEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *HoldReloadRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3636,6 +3904,16 @@ func (m *AbilityOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.ChargeDelay != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.ChargeDelay))))
+		i--
+		dAtA[i] = 0x4d
+	}
+	if m.Cooldown != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Cooldown))))
+		i--
+		dAtA[i] = 0x45
 	}
 	if m.MaxCharges != nil {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.MaxCharges))
@@ -4485,6 +4763,68 @@ func (m *GiveEntityModifierRequest) MarshalToSizedBufferVT(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
+func (m *AbilityCastEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AbilityCastEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *AbilityCastEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Target != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Target))
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.Slot != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Slot))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Caster != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Caster))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *HoldReloadRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -4557,6 +4897,8 @@ func (m *AbilityOptions) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.CooldownEnd)
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.RechargeEnd)
 	n += protobuf_go_lite.SizeVarintPtr(1, m.MaxCharges)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Cooldown)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.ChargeDelay)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4789,6 +5131,22 @@ func (m *GiveEntityModifierRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *AbilityCastEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Caster)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Target)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (x *HoldReloadRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HoldReloadRequest")
@@ -4935,6 +5293,14 @@ func (x *AbilityOptions) MarshalProtoText() string {
 	if x.MaxCharges != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_charges")
 		protobuf_go_lite.TextWriteInt(&sb, *x.MaxCharges)
+	}
+	if x.Cooldown != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "cooldown")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Cooldown)
+	}
+	if x.ChargeDelay != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "charge_delay")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.ChargeDelay)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5330,6 +5696,40 @@ func (x *GiveEntityModifierRequest) MarshalProtoText() string {
 }
 
 func (x *GiveEntityModifierRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *AbilityCastEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AbilityCastEvent")
+	if x.Caster != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "caster")
+		protobuf_go_lite.TextWriteUint(&sb, x.Caster)
+	}
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Slot != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slot")
+		protobuf_go_lite.TextWriteInt(&sb, x.Slot)
+	}
+	if x.Target != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "target")
+		protobuf_go_lite.TextWriteUint(&sb, x.Target)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *AbilityCastEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -5764,6 +6164,32 @@ func (m *AbilityOptions) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.MaxCharges = &v
+		case 8:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cooldown", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Cooldown = &v2
+		case 9:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChargeDelay", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.ChargeDelay = &v2
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -6990,6 +7416,104 @@ func (m *GiveEntityModifierRequest) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Seconds = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *AbilityCastEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AbilityCastEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AbilityCastEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Caster", wireType)
+			}
+			m.Caster = 0
+			m.Caster, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slot", wireType)
+			}
+			m.Slot = 0
+			m.Slot, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Target", wireType)
+			}
+			m.Target = 0
+			m.Target, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

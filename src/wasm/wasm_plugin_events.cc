@@ -14,7 +14,11 @@ namespace modlock::wasm {
 
 namespace {
 
-// kMaxDamaged bounds the applied hits and the movement facts queued between
+// kModifierEventPrefix starts every EModifierEvent name; a mod may leave it
+// out.
+constexpr std::string_view kModifierEventPrefix = "MODIFIER_EVENT_";
+
+// kMaxDamaged bounds the applied hits, casts and the movement facts queued between
 // frames.
 constexpr size_t kMaxDamaged = 1024;
 
@@ -213,9 +217,11 @@ void WasmPlugin::ListenToPlayers() {
 }
 
 void WasmPlugin::ListenToCombat() {
-  // Listen once, while a mod wants damage, moves players or serves some.
+  // Listen once, while a mod wants damage, casts or modifier events, moves
+  // players or serves some.
   if (combat_.Active() || !instance_ || combat_unavailable_ ||
-      (!wants_.damage() && !wants_.damaged() && !game_.Moving() && !scope_.Limited())) {
+      (!wants_.damage() && !wants_.damaged() && !wants_.kills() && !wants_.casts() &&
+       wants_.modifier_events().empty() && !game_.Moving() && !scope_.Limited())) {
     return;
   }
 
@@ -238,8 +244,8 @@ void WasmPlugin::ListenToCombat() {
 
   // Subscribe to combat.
   auto combat =
-      engine_->OnCombat([this, damaged = wants_.damaged()](
-                            const gameinterop::CombatEvent& event) { Fought(event, damaged); },
+      engine_->OnCombat([this, hits = wants_.damaged() || wants_.kills(), casts = wants_.casts()](
+                            const gameinterop::CombatEvent& event) { Fought(event, hits, casts); },
                         std::move(suppress), std::move(adjust));
   if (!combat) {
     // The hook installs from the game's code, so it fails the same way until
@@ -249,6 +255,20 @@ void WasmPlugin::ListenToCombat() {
     return;
   }
   combat_ = std::move(*combat);
+
+  // Watch the modifier events the mod named. A name the game lacks disables
+  // only that event.
+  for (const auto& name : wants_.modifier_events()) {
+    const auto full =
+        name.starts_with(kModifierEventPrefix) ? name : std::string(kModifierEventPrefix) + name;
+    auto id = engine_->WatchModifierEvent(full);
+    if (!id) {
+      Log("modifier event " + name + " is unavailable: " + id.error());
+      continue;
+    }
+    std::lock_guard lock(damaged_lock_);
+    watched_.emplace(*id, name);
+  }
 }
 
 bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
@@ -301,11 +321,18 @@ PlayerScope::Contact WasmPlugin::Contact(uint32_t attacker, uint32_t victim) con
   return scope_.Hit(game_.SlotOfPawn(attacker), game_.SlotOfPawn(victim));
 }
 
-void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
-  // Queue damage and movement facts under the lock, up to a bound.
+void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool hits, bool casts) {
+  // Queue damage, casts, watched events and movement facts under the lock,
+  // up to a bound.
   std::lock_guard lock(damaged_lock_);
-  if (event.damage && damaged && damaged_.size() < kMaxDamaged) {
+  if (event.damage && hits && damaged_.size() < kMaxDamaged) {
     damaged_.push_back(*event.damage);
+  }
+  if (event.ability && casts && casts_.size() < kMaxDamaged) {
+    casts_.push_back(*event.ability);
+  }
+  if (event.modifier && fired_.size() < kMaxDamaged && watched_.contains(event.modifier->id)) {
+    fired_.push_back(*event.modifier);
   }
   if (facts_.size() >= kMaxDamaged) {
     return;
@@ -370,14 +397,88 @@ void WasmPlugin::DeliverDamaged() {
     if (Contact(hit.attacker_handle, hit.victim_handle) != PlayerScope::Contact::kHear) {
       continue;
     }
-    wasm::combat::DamagedEvent event;
-    event.set_victim(hit.victim_handle);
-    event.set_attacker(hit.attacker_handle);
-    event.set_ability(hit.ability_handle);
-    event.set_health_lost(hit.health_lost);
-    event.set_health_before(hit.health_before);
-    event.set_dealt(hit.damage_dealt);
-    static_cast<void>(mod_.Damaged(event));
+    if (wants_.damaged()) {
+      wasm::combat::DamagedEvent event;
+      event.set_victim(hit.victim_handle);
+      event.set_attacker(hit.attacker_handle);
+      event.set_ability(hit.ability_handle);
+      event.set_health_lost(hit.health_lost);
+      event.set_health_before(hit.health_before);
+      event.set_dealt(hit.damage_dealt);
+      static_cast<void>(mod_.Damaged(event));
+    }
+
+    // A hit that removed all the health its victim had left killed it.
+    if (!instance_ || !wants_.kills() || hit.health_before <= 0 ||
+        hit.health_lost < hit.health_before) {
+      continue;
+    }
+    const auto entity = [](uint32_t handle) {
+      return handle == gameinterop::kInvalidEHandleIndex ? 0 : handle;
+    };
+    wasm::combat::KillEvent kill;
+    kill.set_victim(hit.victim_handle);
+    kill.set_victim_player(game_.SlotOfPawn(hit.victim_handle).value_or(-1));
+    kill.set_attacker(entity(hit.attacker_handle));
+    kill.set_attacker_player(game_.SlotOfPawn(hit.attacker_handle).value_or(-1));
+    kill.set_ability(entity(hit.ability_handle));
+    static_cast<void>(mod_.Killed(kill));
+  }
+}
+
+bool WasmPlugin::Serves(uint32_t entity) const {
+  if (!scope_.Limited()) {
+    return true;
+  }
+  const auto slot = game_.SlotOfPawn(entity);
+  return slot && scope_.Serves(*slot);
+}
+
+void WasmPlugin::DeliverCasts() {
+  // Take what the game queued, and the names of the watched events.
+  std::vector<gameinterop::AbilityExecutedEvent> casts;
+  std::vector<gameinterop::ModifierFiredEvent> fired;
+  std::unordered_map<uint32_t, std::string> watched;
+  {
+    std::lock_guard lock(damaged_lock_);
+    casts.swap(casts_);
+    fired.swap(fired_);
+    if (!fired.empty()) {
+      watched = watched_;
+    }
+  }
+
+  // Tell the mod about each cast it hears.
+  for (const auto& cast : casts) {
+    if (!instance_) {
+      return;
+    }
+    if (Serves(cast.caster_handle)) {
+      static_cast<void>(mod_.AbilityCast(
+          game_.Cast(cast.caster_handle, cast.ability_handle, cast.target_handle)));
+    }
+  }
+
+  // Then about each watched event, naming it as the mod did. A limited mod
+  // hears the events of its own players' heroes.
+  const auto entity = [](uint32_t handle) {
+    return handle == gameinterop::kInvalidEHandleIndex ? 0 : handle;
+  };
+  for (const auto& fact : fired) {
+    if (!instance_) {
+      return;
+    }
+    const auto name = watched.find(fact.id);
+    if (name == watched.end() || (!Serves(fact.caster_handle) && !Serves(fact.target_handle))) {
+      continue;
+    }
+    wasm::combat::ModifierFiredEvent event;
+    event.set_name(name->second);
+    event.set_caster(entity(fact.caster_handle));
+    event.set_player(game_.SlotOfPawn(fact.caster_handle).value_or(-1));
+    event.set_target(entity(fact.target_handle));
+    event.set_ability(entity(fact.ability_handle));
+    static_cast<void>(mod_.ModifierFired(event));
   }
 }
 
@@ -428,6 +529,9 @@ void WasmPlugin::Unsubscribe() {
   std::lock_guard lock(damaged_lock_);
   damaged_.clear();
   facts_.clear();
+  casts_.clear();
+  fired_.clear();
+  watched_.clear();
 }
 
 }  // namespace modlock::wasm

@@ -1,6 +1,7 @@
 #include "modlock/gameinterop/combat_events.h"
 
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -81,6 +82,10 @@ struct EventIds {
 };
 
 EventIds g_ids;
+
+// g_watched marks the EModifierEvent values a consumer asked to hear whole.
+// The engine thread sets a mark and any thread that fires an event reads it.
+std::array<std::atomic<bool>, kMaxModifierEvent> g_watched{};
 
 CombatEventsHook::Handler* g_handler = nullptr;
 DamageResultOffsets g_damage_offsets;
@@ -170,6 +175,30 @@ void DecodeAndDispatch(uint32_t event, void* event_data) {
   (*g_handler)(decoded);
 }
 
+// GuardedHandleOf reads an entity's handle through guarded loads. A watched
+// event's arguments are not known to be entities for every event, so a null,
+// foreign or leaving one reads kInvalidEHandleIndex instead of faulting.
+uint32_t GuardedHandleOf(void* entity) {
+  // Read the identity, which must point back at the entity.
+  const uint8_t* identity = nullptr;
+  const void* owner = nullptr;
+  if (entity == nullptr ||
+      !ReadNative(static_cast<const uint8_t*>(entity) + kIdentityOffset, &identity,
+                  sizeof(identity)) ||
+      identity == nullptr || !ReadNative(identity, &owner, sizeof(owner)) || owner != entity) {
+    return kInvalidEHandleIndex;
+  }
+
+  // A deleted or deleting entity has no handle.
+  uint32_t stored = 0;
+  uint32_t flags = 0;
+  if (!ReadNative(identity + kIdentityEHandleOffset, &stored, sizeof(stored)) ||
+      !ReadNative(identity + kIdentityFlagsOffset, &flags, sizeof(flags))) {
+    return kInvalidEHandleIndex;
+  }
+  return LiveHandleOf(stored, flags).value_or(kInvalidEHandleIndex);
+}
+
 __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* target,
                                           void* cast_entity, void* event_data) {
   if (event == g_ids.pre_damage &&
@@ -211,6 +240,14 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
       }
     }
     break;
+  }
+  // Report a watched event with the handles of its three entities.
+  if (event < g_watched.size() && g_watched[event].load(std::memory_order_relaxed) && g_handler) {
+    CombatEvent decoded;
+    decoded.kind = CombatEvent::Kind::kModifierFired;
+    decoded.modifier = ModifierFiredEvent{event, GuardedHandleOf(caster), GuardedHandleOf(target),
+                                          GuardedHandleOf(cast_entity)};
+    (*g_handler)(decoded);
   }
   // The native returns the aggregated modifier response; every argument is
   // forwarded unconditionally so observation never suppresses native events.
@@ -524,6 +561,9 @@ struct CombatEventsHook::Impl {
       g_contact_offsets = DamageContactOffsets{};
       g_suppress_damage = nullptr;
       g_adjust_damage = nullptr;
+      for (auto& watched : g_watched) {
+        watched.store(false, std::memory_order_relaxed);
+      }
     }
   }
 #endif
@@ -534,6 +574,19 @@ CombatEventsHook::CombatEventsHook(std::unique_ptr<Impl> impl) : impl_(std::move
 CombatEventsHook::CombatEventsHook(CombatEventsHook&&) noexcept = default;
 CombatEventsHook& CombatEventsHook::operator=(CombatEventsHook&&) noexcept = default;
 CombatEventsHook::~CombatEventsHook() = default;
+
+std::expected<void, std::string> CombatEventsHook::Watch(uint32_t id) {
+#if defined(_WIN32)
+  if (id >= g_watched.size()) {
+    return std::unexpected("modifier event " + std::to_string(id) + " is out of range");
+  }
+  g_watched[id].store(true, std::memory_order_relaxed);
+  return {};
+#else
+  static_cast<void>(id);
+  return std::unexpected("modifier events require a Windows game server");
+#endif
+}
 
 ObservedInteractions CombatEventsHook::Observed() const {
 #if defined(_WIN32)

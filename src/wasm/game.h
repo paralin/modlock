@@ -17,6 +17,7 @@
 
 #include "modlock/engine_host.h"
 #include "modlock/gameinterop/ability_charge_limit.h"
+#include "modlock/gameinterop/ability_cooldown.h"
 #include "modlock/gameinterop/ability_input_hook.h"
 #include "modlock/gameinterop/ability_modifier.h"
 #include "modlock/gameinterop/ability_slots.h"
@@ -354,6 +355,10 @@ class Game : public HostService {
   // frozen heroes, held modifiers, input changes and match clock hold, resumes a game it
   // paused and stops watching projectiles.
   void Clear();
+
+  // Cast describes one executed ability for the mod: the caster's player,
+  // and the ability's name and slot when a player's hero cast it.
+  abilities::AbilityCastEvent Cast(uint32_t caster, uint32_t ability, uint32_t target);
 
   // SlotOfPawn returns the slot of the player whose hero the entity handle
   // names, or no value for any other entity.
@@ -717,6 +722,12 @@ class Game : public HostService {
   // time without the ticks the game spent paused.
   std::expected<float, std::string> LatchTime();
 
+  // SetCooldownLength makes seconds the length of one of the ability's
+  // timers, or returns it to the game's own when seconds is negative.
+  std::expected<void, std::string> SetCooldownLength(int32_t slot, uint32_t handle,
+                                                     gameinterop::AbilityCooldown::Timer timer,
+                                                     float seconds);
+
   // LimitCharges makes maximum the most charges the player's ability holds.
   std::expected<void, std::string> LimitCharges(int32_t slot, uint32_t handle, int32_t maximum);
 
@@ -940,6 +951,10 @@ class Game : public HostService {
   std::set<std::pair<uint32_t, std::string>> held_entity_modifiers_;
   std::map<std::string, gameinterop::AbilityModifier, std::less<>> modifiers_;
 
+  // cooldown_ holds the cooldown lengths the mod gave abilities, created the
+  // first time one is given; it puts the game's own lengths back when the
+  // game ends.
+  std::unique_ptr<gameinterop::AbilityCooldown> cooldown_;
   // charge_limit_ holds the most charges the mod gave abilities, created the
   // first time one is limited; it puts the game's own maximums back when the
   // game ends.

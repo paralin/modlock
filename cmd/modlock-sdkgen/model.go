@@ -415,6 +415,9 @@ type class struct {
 	goType string
 	// noun is the word a method name drops, such as Object in MoveObject.
 	noun string
+	// also are other field names that hold the class, such as the two players
+	// of a kill.
+	also []string
 	// interned keeps one object for each number in languages that compare
 	// objects by identity, so == tells whether two values are the same thing.
 	interned bool
@@ -431,6 +434,7 @@ var classes = []*class{
 		goType:   "int32",
 		keyDoc:   "slot identifies the player on the server.",
 		noun:     "Player",
+		also:     []string{"victim_player", "attacker_player"},
 		interned: true,
 	},
 	{
@@ -471,7 +475,7 @@ func classOf(f *field) *class {
 		return nil
 	}
 	for _, c := range classes {
-		if c.field == f.name {
+		if c.field == f.name || slices.Contains(c.also, f.name) {
 			return c
 		}
 	}

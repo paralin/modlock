@@ -65,6 +65,26 @@ message DamagedEvent {
   int32 dealt = 6;
 }
 
+// KillEvent reports one hero or unit that a hit killed.
+message KillEvent {
+  // Victim is the entity that died.
+  uint32 victim = 1;
+
+  // VictimPlayer is the slot of the player whose hero died, or -1 for a unit.
+  int32 victim_player = 2;
+
+  // Attacker is the entity credited with the killing hit, or zero for a
+  // hazard.
+  uint32 attacker = 3;
+
+  // AttackerPlayer is the slot of the player whose hero is the attacker, or
+  // -1. It is the victim's own slot when a hero killed itself.
+  int32 attacker_player = 4;
+
+  // Ability is the ability that dealt the killing hit, or zero.
+  uint32 ability = 5;
+}
+
 // LaunchEvent is a watched projectile's first frame.
 message LaunchEvent {
   // Entity is the projectile's entity handle.
@@ -202,4 +222,27 @@ message TraceHit {
 
   // Entity is the entity hit, or zero for the world.
   uint32 entity = 4;
+}
+
+// ModifierFiredEvent reports one of the game's modifier events the mod
+// watches, with the entities the game fired it with. Which of them an event
+// fills depends on the event.
+message ModifierFiredEvent {
+  // Name is the event as the mod named it in StartResult.modifier_events.
+  string name = 1;
+
+  // Caster is the entity the event is about, such as the hero that parried
+  // or respawned, or zero.
+  uint32 caster = 2;
+
+  // Player is the slot of the player whose hero the caster is, or -1.
+  int32 player = 3;
+
+  // Target is the other entity of the event, such as the victim of a kill,
+  // or zero.
+  uint32 target = 4;
+
+  // Ability is the ability or other entity the event names as its source, or
+  // zero.
+  uint32 ability = 5;
 }

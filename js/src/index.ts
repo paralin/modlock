@@ -17,6 +17,8 @@
 // stopping.
 
 import {
+  type AbilityCastEvent,
+  type KillEvent,
   type DamageEvent,
   type ChatEvent,
   type Connection,
@@ -28,6 +30,7 @@ import {
   type LaunchEvent,
   log as logLine,
   type ModHandlers,
+  type ModifierFiredEvent,
   type Pawn,
   Player,
   type PlayerJoinedEvent,
@@ -509,6 +512,39 @@ export function onDamaged(handler: (hit: DamagedEvent) => void): void {
 }
 
 /**
+ * onKill calls handler after each hit that kills a hero or a unit, before the
+ * next frame. The kill names both entities and the player of each: a slot of
+ * -1 is a unit's, or a hazard's for the attacker.
+ */
+export function onKill(handler: (kill: KillEvent) => void): void {
+  kills.push(handler)
+}
+
+/**
+ * onAbilityCast calls handler after each ability the game executes, before
+ * the next frame: a hero's abilities and the items a player activates, at
+ * the moment the cast takes effect.
+ */
+export function onAbilityCast(handler: (cast: AbilityCastEvent) => void): void {
+  abilityCasts.push(handler)
+}
+
+/**
+ * onModifierEvent calls handler each time the game fires the modifier event
+ * with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
+ * or PLAYER_RESPAWNED, before the next frame. Register before the mod starts.
+ * A name the running game lacks is logged once and never fires.
+ */
+export function onModifierEvent(
+  name: string,
+  handler: (event: ModifierFiredEvent) => void,
+): void {
+  const handlers = modifierEvents.get(name) ?? []
+  handlers.push(handler)
+  modifierEvents.set(name, handlers)
+}
+
+/**
  * onLaunch calls handler with each watched projectile's first frame, before
  * the next frame. watchProjectiles names the projectiles.
  */
@@ -587,6 +623,12 @@ const restoreds: ((player: Player, error: string | undefined) => void)[] = []
 const npcsRestoreds: ((error: string | undefined) => void)[] = []
 const damages: ((hit: DamageEvent) => DamageResult | void)[] = []
 const damageds: ((hit: DamagedEvent) => void)[] = []
+const kills: ((kill: KillEvent) => void)[] = []
+const abilityCasts: ((cast: AbilityCastEvent) => void)[] = []
+const modifierEvents = new Map<
+  string,
+  ((event: ModifierFiredEvent) => void)[]
+>()
 const launches: ((projectile: LaunchEvent) => void)[] = []
 const impacts: ((impact: ImpactEvent) => void)[] = []
 const landeds: ((landing: LandedEvent) => void)[] = []
@@ -606,6 +648,9 @@ const handlers: ModHandlers = {
       damaged: damageds.length !== 0,
       chat: chats.length !== 0,
       joins: joins.length !== 0 || leaves.length !== 0,
+      casts: abilityCasts.length !== 0,
+      kills: kills.length !== 0,
+      modifierEvents: [...modifierEvents.keys()],
     }
   },
 
@@ -692,6 +737,24 @@ const handlers: ModHandlers = {
 
   damaged(event) {
     for (const handler of damageds) {
+      handler(event)
+    }
+  },
+
+  killed(event) {
+    for (const handler of kills) {
+      handler(event)
+    }
+  },
+
+  abilityCast(event) {
+    for (const handler of abilityCasts) {
+      handler(event)
+    }
+  },
+
+  modifierFired(event) {
+    for (const handler of modifierEvents.get(event.name) ?? []) {
       handler(event)
     }
   },

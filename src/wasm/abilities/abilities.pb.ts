@@ -362,6 +362,23 @@ export interface AbilityOptions {
    * are not removed; set them with charges.
    */
   maxCharges?: number
+  /**
+   * Cooldown makes every cooldown the ability starts from now on last this
+   * many seconds, in place of the game's own length. For an ability with
+   * charges it is the time each charge takes to return. 0 leaves the ability
+   * always ready, and a negative value returns it to the game's own. The game
+   * asks for the length as it starts each cooldown, so it holds for every
+   * later cast and the hero's screen shows it; a cooldown already running
+   * keeps its end, which cooldown_end moves. It holds for this ability of
+   * this hero, so set it again after a hero change or a replaced ability.
+   */
+  cooldown?: number
+  /**
+   * ChargeDelay makes the wait after the ability spends a charge, before it
+   * can spend the next, last this many seconds, as cooldown does for its
+   * cooldowns.
+   */
+  chargeDelay?: number
 }
 
 export const AbilityOptions: MessageType<AbilityOptions> =
@@ -375,6 +392,8 @@ export const AbilityOptions: MessageType<AbilityOptions> =
       [5, 'cooldown_end', 2, 4],
       [6, 'recharge_end', 2, 4],
       [7, 'max_charges', 5, 4],
+      [8, 'cooldown', 2, 4],
+      [9, 'charge_delay', 2, 4],
     ],
     {
       decode: (
@@ -406,6 +425,12 @@ export const AbilityOptions: MessageType<AbilityOptions> =
               break
             case 7:
               m.maxCharges = r.int32()
+              break
+            case 8:
+              m.cooldown = r.float()
+              break
+            case 9:
+              m.chargeDelay = r.float()
               break
             default:
               r.skip(t)
@@ -441,6 +466,14 @@ export const AbilityOptions: MessageType<AbilityOptions> =
         {
           const v = m.maxCharges
           if (v != null) w.uint32(56).int32(v)
+        }
+        {
+          const v = m.cooldown
+          if (v != null) w.uint32(69).float(v)
+        }
+        {
+          const v = m.chargeDelay
+          if (v != null) w.uint32(77).float(v)
         }
       },
     },
@@ -1588,6 +1621,116 @@ export const GiveEntityModifierRequest: MessageType<GiveEntityModifierRequest> =
         {
           const v = m.seconds
           if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * AbilityCastEvent reports one ability the game executed: the moment the
+ * cast takes effect, after any cast time, for a hero's abilities and the
+ * items a player activates.
+ *
+ * @generated from message modlock.wasm.abilities.AbilityCastEvent
+ */
+export interface AbilityCastEvent {
+  /**
+   * Caster is the entity that cast it, a hero for a player's cast.
+   */
+  caster?: number
+  /**
+   * Player is the slot of the player whose hero cast it, or -1.
+   */
+  player?: number
+  /**
+   * Ability is the ability's entity handle, as Ability.entity reports it.
+   */
+  ability?: number
+  /**
+   * Name is the ability's name, such as citadel_ability_hornet_snipe, when
+   * a player's hero cast it.
+   */
+  name?: string
+  /**
+   * Slot is the ability's place on the hero, as Ability.slot reports it, or
+   * -1 when the caster is not a player's hero.
+   */
+  slot?: number
+  /**
+   * Target is the entity the cast was aimed at, or zero without one.
+   */
+  target?: number
+}
+
+export const AbilityCastEvent: MessageType<AbilityCastEvent> =
+  /* @__PURE__ */ createMessageType<AbilityCastEvent>(
+    'modlock.wasm.abilities.AbilityCastEvent',
+    () => [
+      [1, 'caster', 13],
+      [2, 'player', 5],
+      [3, 'ability', 13],
+      [4, 'name', 9],
+      [5, 'slot', 5],
+      [6, 'target', 13],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: AbilityCastEvent,
+      ): AbilityCastEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.caster = r.uint32()
+              break
+            case 2:
+              m.player = r.int32()
+              break
+            case 3:
+              m.ability = r.uint32()
+              break
+            case 4:
+              m.name = r.string()
+              break
+            case 5:
+              m.slot = r.int32()
+              break
+            case 6:
+              m.target = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: AbilityCastEvent, w: Writer): void => {
+        {
+          const v = m.caster
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.player
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.name
+          if (v) w.uint32(34).string(v)
+        }
+        {
+          const v = m.slot
+          if (v) w.uint32(40).int32(v)
+        }
+        {
+          const v = m.target
+          if (v) w.uint32(48).uint32(v)
         }
       },
     },

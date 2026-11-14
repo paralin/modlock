@@ -118,6 +118,7 @@ add_library(modlock_sdk SHARED
   src/engine_host.cc
   src/plugin_library.cc
   src/gameinterop/ability_charge_limit.cc
+  src/gameinterop/ability_cooldown.cc
   src/gameinterop/ability_definitions.cc
   src/gameinterop/ability_input_hook.cc
   src/gameinterop/ability_modifier.cc

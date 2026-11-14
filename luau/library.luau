@@ -279,6 +279,9 @@ local restoreds: { (player: Player, error: string?) -> () } = {}
 local npcsRestoreds: { (error: string?) -> () } = {}
 local damages: { (hit: DamageEvent) -> DamageResult? } = {}
 local damageds: { (hit: DamagedEvent) -> () } = {}
+local kills: { (kill: KillEvent) -> () } = {}
+local abilityCasts: { (cast: AbilityCastEvent) -> () } = {}
+local modifierEvents: { [string]: { (event: ModifierFiredEvent) -> () } } = {}
 local launches: { (projectile: LaunchEvent) -> () } = {}
 local impacts: { (impact: ImpactEvent) -> () } = {}
 local landeds: { (landing: LandedEvent) -> () } = {}
@@ -1193,6 +1196,30 @@ function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
 end
 
+-- onKill calls handler after each hit that kills a hero or a unit, before the
+-- next frame. The kill names both entities and the player of each: a slot of
+-- -1 is a unit's, or a hazard's for the attacker.
+function modlock.onKill(handler: (kill: KillEvent) -> ())
+	table.insert(kills, handler)
+end
+
+-- onAbilityCast calls handler after each ability the game executes, before
+-- the next frame: a hero's abilities and the items a player activates, at
+-- the moment the cast takes effect.
+function modlock.onAbilityCast(handler: (cast: AbilityCastEvent) -> ())
+	table.insert(abilityCasts, handler)
+end
+
+-- onModifierEvent calls handler each time the game fires the modifier event
+-- with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
+-- or PLAYER_RESPAWNED, before the next frame. Register before the mod
+-- starts. A name the running game lacks is logged once and never fires.
+function modlock.onModifierEvent(name: string, handler: (event: ModifierFiredEvent) -> ())
+	local named = modifierEvents[name] or {}
+	table.insert(named, handler)
+	modifierEvents[name] = named
+end
+
 -- onLaunch calls handler with each watched projectile's first frame, before
 -- the next frame. watchProjectiles names the projectiles.
 function modlock.onLaunch(handler: (projectile: LaunchEvent) -> ())
@@ -1224,6 +1251,12 @@ local handlers: ModHandlers = {
 		for _, handler in starts do
 			handler(event.args)
 		end
+		-- Name the modifier events the mod listens to.
+		local watched: { string } = {}
+		for name in modifierEvents do
+			table.insert(watched, name)
+		end
+
 		-- Timers run from frames, so the library always takes them.
 		return {
 			frames = true,
@@ -1231,6 +1264,9 @@ local handlers: ModHandlers = {
 			damaged = #damageds ~= 0,
 			chat = #chats ~= 0,
 			joins = #joins ~= 0 or #leaves ~= 0,
+			casts = #abilityCasts ~= 0,
+			kills = #kills ~= 0,
+			modifierEvents = watched,
 		}
 	end,
 
@@ -1328,6 +1364,24 @@ local handlers: ModHandlers = {
 
 	damaged = function(event)
 		for _, handler in damageds do
+			handler(event)
+		end
+	end,
+
+	killed = function(event)
+		for _, handler in kills do
+			handler(event)
+		end
+	end,
+
+	abilityCast = function(event)
+		for _, handler in abilityCasts do
+			handler(event)
+		end
+	end,
+
+	modifierFired = function(event)
+		for _, handler in modifierEvents[event.name] or {} do
 			handler(event)
 		end
 	end,

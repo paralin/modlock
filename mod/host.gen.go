@@ -328,6 +328,11 @@ type BuildCategory = abilitiespb.BuildCategory
 // BuildItem is one item of a build.
 type BuildItem = abilitiespb.BuildItem
 
+// AbilityCastEvent reports one ability the game executed: the moment the
+// cast takes effect, after any cast time, for a hero's abilities and the
+// items a player activates.
+type AbilityCastEvent = abilitiespb.AbilityCastEvent
+
 // DamageEvent is one hit before the game applies it. Handles are zero when
 // the game names no such entity.
 type DamageEvent = combatpb.DamageEvent
@@ -337,6 +342,9 @@ type DamageResult = combatpb.DamageResult
 
 // DamagedEvent reports one hit the game applied.
 type DamagedEvent = combatpb.DamagedEvent
+
+// KillEvent reports one hero or unit that a hit killed.
+type KillEvent = combatpb.KillEvent
 
 // LaunchEvent is a watched projectile's first frame.
 type LaunchEvent = combatpb.LaunchEvent
@@ -360,6 +368,11 @@ type TraceOptions = combatpb.TraceOptions
 
 // TraceHit is where a traced line first hit something.
 type TraceHit = combatpb.TraceHit
+
+// ModifierFiredEvent reports one of the game's modifier events the mod
+// watches, with the entities the game fired it with. Which of them an event
+// fills depends on the event.
+type ModifierFiredEvent = combatpb.ModifierFiredEvent
 
 // SoundOptions shape one sound; the zero value plays it to every player as
 // the game made it.
@@ -1884,6 +1897,15 @@ type modHandlers interface {
 	// Damaged reports one hit the game applied, while the mod asked for
 	// damage reports. Hits arrive before the next frame.
 	Damaged(event *DamagedEvent) error
+	// Killed reports one hero or unit a hit killed, while the mod asked for
+	// kills, after the hit's Damaged event and before the next frame.
+	Killed(event *KillEvent) error
+	// AbilityCast reports one ability the game executed, while the mod asked
+	// for casts, before the next frame.
+	AbilityCast(event *AbilityCastEvent) error
+	// ModifierFired reports one modifier event the mod watches, before the
+	// next frame.
+	ModifierFired(event *ModifierFiredEvent) error
 	// Input reports one player's presses of watched buttons, before the next
 	// frame. A block in place still withholds them from the hero.
 	Input(event *InputEvent) error
@@ -1983,6 +2005,24 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.Damaged(event))
+	case "Killed":
+		event := &KillEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Killed(event))
+	case "AbilityCast":
+		event := &AbilityCastEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.AbilityCast(event))
+	case "ModifierFired":
+		event := &ModifierFiredEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.ModifierFired(event))
 	case "Input":
 		event := &InputEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

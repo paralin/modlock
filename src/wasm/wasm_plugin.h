@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -314,10 +315,18 @@ class WasmPlugin final : public Plugin {
   // Contact returns what the mod does with a hit between the entities with
   // the handles attacker and victim.
   PlayerScope::Contact Contact(uint32_t attacker, uint32_t victim) const;
-  // Fought queues an applied hit for a mod that wants it, and a movement fact
-  // or completed interaction for the movement samples.
-  void Fought(const gameinterop::CombatEvent& event, bool damaged);
+  // Fought queues an applied hit, a cast or a watched modifier event for a
+  // mod that wants it, and a movement fact or completed interaction for the
+  // movement samples. hits is true for a mod that wants hits or kills.
+  void Fought(const gameinterop::CombatEvent& event, bool hits, bool casts);
   void DeliverDamaged();
+  // DeliverCasts tells the mod the casts and watched modifier events queued
+  // since the last frame.
+  void DeliverCasts();
+  // Serves reports whether the mod hears about the entity with this handle:
+  // any entity for a mod that serves everyone, and only its players' heroes
+  // for a limited one.
+  bool Serves(uint32_t entity) const;
   // Sample fills a frame that starts a new tick with the watched heroes'
   // movement and the facts queued since the last one.
   void Sample(wasm::FrameEvent& frame);
@@ -470,6 +479,12 @@ class WasmPlugin final : public Plugin {
   std::mutex damaged_lock_;
   std::vector<gameinterop::DamageTakenEvent> damaged_;
   std::vector<wasm::Game::MovementFact> facts_;
+  // casts_ and fired_ queue the casts and watched modifier events the same
+  // way. watched_ names each watched event by the running game's value for
+  // it, and changes only under the lock.
+  std::vector<gameinterop::AbilityExecutedEvent> casts_;
+  std::vector<gameinterop::ModifierFiredEvent> fired_;
+  std::unordered_map<uint32_t, std::string> watched_;
   // sampled_ is the last tick the movement samples went out on.
   std::optional<uint64_t> sampled_;
   // ui_ follows the interface the running instance shows each player.

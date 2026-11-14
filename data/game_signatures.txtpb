@@ -51,6 +51,22 @@ signatures {
   shape: "HeroRefresh loop calling HasCharges (+2) and GetMaxCharges (+18) virtual slots; callers read the slot displacements"
 }
 
+# The routine that starts an ability's cooldown asks the ability how long it
+# lasts through two virtual calls. Callers read each call's slot displacement.
+signatures {
+  id: "ability.cooldown-length"
+  modules: GAME_MODULE_SERVER
+  pattern: "FF 90 ?? ?? ?? ?? 48 8B 07 48 8B CF 0F 28 C8 FF 90 ?? ?? ?? ?? 48 8B 07 48 8B CF 0F 28"
+  shape: "StartCooldown calling the cooldown length virtual slot (+2), then scaling the answer; callers read the slot displacement"
+}
+
+signatures {
+  id: "ability.charge-delay"
+  modules: GAME_MODULE_SERVER
+  pattern: "85 C0 75 36 48 8B 07 48 8B CF FF 90 ?? ?? ?? ?? 48 8D 94 24 ?? ?? ?? ?? F3 0F 11 84 24"
+  shape: "StartCooldown calling the virtual slot for the wait between charges (+12); callers read the slot displacement"
+}
+
 # CCitadelPlayerPawn::RemoveItem, which finds and detaches the ability slot.
 signatures {
   id: "ability.remove-item"
