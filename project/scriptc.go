@@ -68,7 +68,9 @@ func (p *Project) writeScriptcConfig(dir, library string, own map[string][]strin
 		config.Extends = filepath.ToSlash(project)
 	}
 
-	// Map the library and the protobuf runtime to their source.
+	// Map the library and the protobuf runtime to their source. The runtime
+	// exports each well-known type as google/protobuf/<name>, from a source
+	// file named <name>.pb.ts, so those take their own, longer pattern.
 	source := filepath.Join(library, js.Scriptc)
 	index := filepath.Join(source, "js", "src", "index.ts")
 	protobuf := filepath.Join(source, js.ScriptcProtobuf)
@@ -78,13 +80,14 @@ func (p *Project) writeScriptcConfig(dir, library string, own map[string][]strin
 	}
 	_, ownLibrary := own["modlock"]
 	for name, targets := range map[string][]string{
-		"modlock":                   {index},
-		"modlock/jsx-runtime":       {index},
-		"modlock/entities":          {filepath.Join(source, "js", "src", "entities.ts")},
-		"modlock/console":           {filepath.Join(source, "js", "src", "console.ts")},
-		"modlock/scriptc":           {filepath.Join(source, "js", "src", "scriptc.ts")},
-		"@aptre/protobuf-es-lite":   {filepath.Join(protobuf, "index.ts")},
-		"@aptre/protobuf-es-lite/*": {filepath.Join(protobuf, "*.ts")},
+		"modlock":                                   {index},
+		"modlock/jsx-runtime":                       {index},
+		"modlock/entities":                          {filepath.Join(source, "js", "src", "entities.ts")},
+		"modlock/console":                           {filepath.Join(source, "js", "src", "console.ts")},
+		"modlock/scriptc":                           {filepath.Join(source, "js", "src", "scriptc.ts")},
+		"@aptre/protobuf-es-lite":                   {filepath.Join(protobuf, "index.ts")},
+		"@aptre/protobuf-es-lite/*":                 {filepath.Join(protobuf, "*.ts")},
+		"@aptre/protobuf-es-lite/google/protobuf/*": {filepath.Join(protobuf, "google", "protobuf", "*.pb.ts")},
 	} {
 		if ownLibrary && isLibrary(name) {
 			continue
