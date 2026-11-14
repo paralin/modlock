@@ -8,8 +8,10 @@
 #include <cstring>
 #include <map>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "gameinterop/utl_vector.h"
 #include "modlock/gameinterop/ability_definitions.h"
@@ -102,48 +104,127 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
   }
 }
 
-// ScriptValues is the layout of ModifierScriptValue_t when a path indexes a
-// modifier's script value list by EModifierValue.
+// Key is the key a path step selects in a map or script value list: an enum
+// value, matched by its bytes at the key's storage size, or a symbol's text,
+// matched against the characters a node's key points to.
+struct Key {
+  std::array<unsigned char, sizeof(int64_t)> bytes{};
+  size_t size = 0;
+  std::optional<std::string> text;
+
+  // Matches reports whether the key stored at storage is this key.
+  bool Matches(const unsigned char* storage) const {
+    if (!text) {
+      return std::memcmp(storage, bytes.data(), size) == 0;
+    }
+    const char* chars = nullptr;
+    std::memcpy(&chars, storage, sizeof(chars));
+    return chars != nullptr && *text == chars;
+  }
+};
+
+// Layout is a schema type's storage size and alignment.
+struct Layout {
+  size_t size;
+  size_t alignment;
+};
+
+// IsSymbol reports whether a type is a pointer to characters, the key type of
+// a map keyed by name, such as m_mapWeaponInfos.
+bool IsSymbol(std::string_view type) {
+  return type == "CGlobalSymbol" || type == "CUtlSymbolLarge" || type == "CUtlString";
+}
+
+// LayoutOf returns the storage of a map's key or value type: a builtin
+// number, a symbol, an enum or a declared class.
+std::expected<Layout, std::string> LayoutOf(void* schema, const char* module,
+                                            std::string_view type) {
+  static constexpr std::array<std::pair<std::string_view, size_t>, 11> kBuiltins{{
+      {"bool", 1},
+      {"int8", 1},
+      {"uint8", 1},
+      {"int16", 2},
+      {"uint16", 2},
+      {"int32", 4},
+      {"uint32", 4},
+      {"float32", 4},
+      {"int64", 8},
+      {"uint64", 8},
+      {"float64", 8},
+  }};
+  for (const auto& [name, size] : kBuiltins) {
+    if (type == name) {
+      return Layout{size, size};
+    }
+  }
+  if (IsSymbol(type)) {
+    return Layout{sizeof(char*), alignof(char*)};
+  }
+  const std::string name(type);
+  if (auto size = gameinterop::SchemaEnumSizeOf(schema, module, name.c_str())) {
+    return Layout{*size, *size};
+  }
+  auto size = gameinterop::SchemaClassSizeOf(schema, module, name.c_str());
+  auto alignment = gameinterop::SchemaClassAlignmentOf(schema, module, name.c_str());
+  if (!size || !alignment) {
+    return std::unexpected("type " + name + " has no known layout");
+  }
+  return Layout{*size, *alignment};
+}
+
+// AlignUp rounds offset up to a power-of-two alignment.
+size_t AlignUp(size_t offset, size_t alignment) {
+  return (offset + alignment - 1) & ~(alignment - 1);
+}
+
+// KeyOf resolves the text between a step's brackets for a key of key_type: a
+// symbol's text, or an enum value named Value or key_type.Value.
+std::expected<Key, std::string> KeyOf(void* schema, const char* module, std::string_view key_type,
+                                      std::string_view text) {
+  // A symbol key is its text.
+  if (IsSymbol(key_type)) {
+    return Key{.size = sizeof(char*), .text = std::string(text)};
+  }
+
+  // An enum key is its value, stored in the enum's size.
+  std::string_view value = text;
+  if (const auto dot = text.find('.'); dot != std::string_view::npos) {
+    if (text.substr(0, dot) != key_type) {
+      return std::unexpected("the key is a " + std::string(key_type));
+    }
+    value = text.substr(dot + 1);
+  }
+  const std::string type(key_type);
+  const std::string name(value);
+  auto size = gameinterop::SchemaEnumSizeOf(schema, module, type.c_str());
+  if (!size) {
+    return std::unexpected("cannot key by " + type);
+  }
+  if (*size != 1 && *size != 2 && *size != 4 && *size != 8) {
+    return std::unexpected(type + " has an invalid size");
+  }
+  auto resolved = gameinterop::SchemaEnumValueOf(schema, module, type.c_str(), name.c_str());
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
+  Key key{.size = *size};
+  std::memcpy(key.bytes.data(), &*resolved, *size);
+  return key;
+}
+
+// ScriptValues is the layout of ModifierScriptValue_t and the key a path
+// selects in a modifier's script value list.
 struct ScriptValues {
   size_t stride;
   size_t key_offset;
-  size_t key_size;
   size_t value_offset;
+  Key key;
 };
 
-// Place is where a field path leads in an entry's data: a field, or the value
-// of one key in an enum-keyed map or modifier script value list.
-struct Place {
-  size_t offset;
-  size_t size;
-  size_t floats = 0;
-  const char* type = nullptr;
-  std::string leaf;
-  std::optional<int32_t> key;
-  std::optional<ScriptValues> script_values;
-};
-
-// FloatCount returns how many floats a field's scalar, range or level-float
-// storage holds, or zero when a float change cannot write the field.
-size_t FloatCount(const gameinterop::SchemaField& field) {
-  if (field.type != nullptr) {
-    const std::string_view type(field.type);
-    if (type == "CModifierLevelFloat" || type == "CSkillFloat" || type == "float32[4]") {
-      return field.size >= 4 * sizeof(float) ? 4 : 0;
-    }
-    if (type == "CRangeFloat" || type == "float32[2]") {
-      return field.size >= 2 * sizeof(float) ? 2 : 0;
-    }
-    if (type == "float32") {
-      return field.size >= sizeof(float) ? 1 : 0;
-    }
-  }
-  return field.size == sizeof(float) ? 1 : 0;
-}
-
-// ResolveScriptValues resolves the layout of ModifierScriptValue_t for an
-// indexed CUtlVector< ModifierScriptValue_t > field.
-std::expected<ScriptValues, std::string> ResolveScriptValues(void* schema, const char* module) {
+// ResolveScriptValues resolves the layout of ModifierScriptValue_t and the
+// EModifierValue key a path names in an indexed CUtlVector< ModifierScriptValue_t >.
+std::expected<ScriptValues, std::string> ResolveScriptValues(void* schema, const char* module,
+                                                             std::string_view text) {
   auto stride = gameinterop::SchemaClassSizeOf(schema, module, "ModifierScriptValue_t");
   if (!stride) {
     return std::unexpected(stride.error());
@@ -156,152 +237,220 @@ std::expected<ScriptValues, std::string> ResolveScriptValues(void* schema, const
   if (!key->type) {
     return std::unexpected("modifier script value key has no type");
   }
-  auto key_size = gameinterop::SchemaEnumSizeOf(schema, module, key->type);
-  if (!key_size) {
-    return std::unexpected(key_size.error());
+  auto selected = KeyOf(schema, module, key->type, text);
+  if (!selected) {
+    return std::unexpected(selected.error());
   }
   auto value = gameinterop::SchemaFieldOf(schema, module, "ModifierScriptValue_t", "m_value");
   if (!value) {
     return std::unexpected(value.error());
   }
-  if ((*key_size != sizeof(uint8_t) && *key_size != sizeof(uint16_t) &&
-       *key_size != sizeof(int32_t)) ||
-      key->size < *key_size || value->size < 4 * sizeof(float) ||
-      key->offset + *key_size > *stride || value->offset + 4 * sizeof(float) > *stride) {
+  if (key->size < selected->size || value->size < 4 * sizeof(float) ||
+      key->offset + selected->size > *stride || value->offset + 4 * sizeof(float) > *stride) {
     return std::unexpected("modifier script value layout is invalid");
   }
   return ScriptValues{.stride = *stride,
                       .key_offset = key->offset,
-                      .key_size = *key_size,
-                      .value_offset = value->offset};
+                      .value_offset = value->offset,
+                      .key = std::move(*selected)};
 }
 
-// ResolvePath sums the offsets along a path of Class.field steps separated by
-// slashes, such as CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed.
-// A last step may end in [Enum.Value], naming one value of a map field or a
-// modifier's m_vecScriptValues list.
+// MapLookup is one map a path passes through: the map's offset from the
+// current base, the key it selects and its node layout. The selected value,
+// value_type spelled as the schema spells it, is the base of the rest of the
+// path.
+struct MapLookup {
+  size_t offset = 0;
+  Key key;
+  size_t value_offset;
+  size_t element_size;
+  std::string_view value_type;
+  size_t value_size;
+};
+
+// ResolveMapLookup resolves the key text for a field of map_type, a
+// CUtlOrderedMap< K, V > or CUtlMap< K, V >. A node's element is the key,
+// then the value at its own alignment.
+std::expected<MapLookup, std::string> ResolveMapLookup(void* schema, const char* module,
+                                                       std::string_view map_type,
+                                                       std::string_view text) {
+  // Split the map's key and value types.
+  std::string_view arguments;
+  for (const std::string_view map : {"CUtlOrderedMap< ", "CUtlMap< "}) {
+    if (map_type.starts_with(map) && map_type.ends_with(" >")) {
+      arguments = map_type.substr(map.size(), map_type.size() - map.size() - 2);
+    }
+  }
+  const auto comma = arguments.find(", ");
+  if (comma == std::string_view::npos) {
+    return std::unexpected("not a map");
+  }
+  const auto key_type = arguments.substr(0, comma);
+  const auto value_type = arguments.substr(comma + 2);
+
+  // Lay out the node's element.
+  auto key = KeyOf(schema, module, key_type, text);
+  if (!key) {
+    return std::unexpected(key.error());
+  }
+  auto key_layout = LayoutOf(schema, module, key_type);
+  auto value_layout = LayoutOf(schema, module, value_type);
+  if (!key_layout || !value_layout) {
+    return std::unexpected(!key_layout ? key_layout.error() : value_layout.error());
+  }
+  const size_t value_offset = AlignUp(key_layout->size, value_layout->alignment);
+  return MapLookup{
+      .key = std::move(*key),
+      .value_offset = value_offset,
+      .element_size = AlignUp(value_offset + value_layout->size,
+                              std::max(key_layout->alignment, value_layout->alignment)),
+      .value_type = value_type,
+      .value_size = value_layout->size,
+  };
+}
+
+// Place is where a field path leads in an entry's data: through each map in
+// maps, then offset from the last map's value or the entry's start, or one
+// entry of a modifier script value list there.
+struct Place {
+  std::vector<MapLookup> maps;
+  size_t offset = 0;
+  size_t size = 0;
+  size_t floats = 0;
+  std::string_view type;
+  std::string leaf;
+  std::optional<ScriptValues> script_values;
+};
+
+// FloatCount returns how many floats storage of a scalar, range or level-float
+// type holds, or zero when a float change cannot write it.
+size_t FloatCount(std::string_view type, size_t size) {
+  if (type == "CModifierLevelFloat" || type == "CSkillFloat" || type == "float32[4]") {
+    return size >= 4 * sizeof(float) ? 4 : 0;
+  }
+  if (type == "CRangeFloat" || type == "float32[2]") {
+    return size >= 2 * sizeof(float) ? 2 : 0;
+  }
+  if (type == "float32") {
+    return size >= sizeof(float) ? 1 : 0;
+  }
+  return type.empty() && size == sizeof(float) ? 1 : 0;
+}
+
+// ResolvePath resolves a path of Class.field steps separated by slashes, such
+// as CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A step
+// on a map may end in [key], an enum value such as [EStatsType.EMaxHealth] or
+// the name of a symbol key such as [primary], and the next step reads the
+// selected value. A last step on a modifier's m_vecScriptValues list may end
+// in [EModifierValue.Value].
 std::expected<Place, std::string> ResolvePath(void* schema, const char* module,
                                               std::string_view path) {
-  // Split off an enum key.
-  std::optional<int32_t> key;
-  if (path.ends_with(']')) {
-    const auto open = path.rfind('[');
-    const auto inner = path.substr(open + 1, path.size() - open - 2);
-    const auto dot = inner.find('.');
-    if (open == std::string_view::npos || dot == std::string_view::npos) {
-      return std::unexpected("a map key is Enum.Value");
-    }
-    const std::string type(inner.substr(0, dot));
-    const std::string value(inner.substr(dot + 1));
-    auto resolved = gameinterop::SchemaEnumValueOf(schema, module, type.c_str(), value.c_str());
-    if (!resolved) {
-      return std::unexpected(resolved.error());
-    }
-    key = static_cast<int32_t>(*resolved);
-    path = path.substr(0, open);
+  if (path.empty()) {
+    return std::unexpected("field path is empty");
   }
-
-  // Add up each step's offset; the last step names the field.
-  Place place{.offset = 0, .size = 0, .floats = 0, .key = key, .script_values = std::nullopt};
-  std::optional<gameinterop::SchemaField> last;
+  Place place;
   while (!path.empty()) {
-    // Split off the next step.
+    // Split off the next step and its key.
     const auto slash = path.find('/');
-    const auto step = path.substr(0, slash);
+    auto step = path.substr(0, slash);
     path = slash == std::string_view::npos ? std::string_view{} : path.substr(slash + 1);
+    std::optional<std::string_view> key;
+    if (step.ends_with(']')) {
+      const auto open = step.rfind('[');
+      if (open == std::string_view::npos) {
+        return std::unexpected("a map key lacks its [");
+      }
+      key = step.substr(open + 1, step.size() - open - 2);
+      step = step.substr(0, open);
+    }
 
-    // Each step is Class.field.
+    // Each step is Class.field; add its offset.
     const auto dot = step.find('.');
     if (dot == std::string_view::npos) {
       return std::unexpected("field path step lacks a class");
     }
     const std::string type(step.substr(0, dot));
     const std::string name(step.substr(dot + 1));
-
-    // Add its offset.
     auto field = gameinterop::SchemaFieldOf(schema, module, type.c_str(), name.c_str());
     if (!field) {
       return std::unexpected(field.error());
     }
     place.offset += field->offset;
     place.size = field->size;
-    place.floats = FloatCount(*field);
-    place.type = field->type;
+    place.type = field->type ? field->type : "";
+    place.floats = FloatCount(place.type, place.size);
     const auto last_dot = name.rfind('.');
     place.leaf = last_dot == std::string::npos ? name : name.substr(last_dot + 1);
-    last = *field;
-  }
-  if (!last) {
-    return std::unexpected("field path is empty");
-  }
+    if (!key) {
+      continue;
+    }
 
-  // An indexed step selects one value in a modifier script value list or an
-  // enum-keyed float map.
-  if (place.key) {
-    place.type = nullptr;
-    if (last->list && last->type != nullptr &&
-        std::string_view(last->type) == "CUtlVector< ModifierScriptValue_t >") {
-      auto layout = ResolveScriptValues(schema, module);
+    // A key on a script value list selects one entry's level float, which
+    // ends the path.
+    if (field->list && place.type == "CUtlVector< ModifierScriptValue_t >") {
+      if (!path.empty()) {
+        return std::unexpected("a script value has no fields");
+      }
+      auto layout = ResolveScriptValues(schema, module, *key);
       if (!layout) {
         return std::unexpected(layout.error());
       }
-      place.script_values = *layout;
+      place.script_values = std::move(*layout);
+      place.type = {};
       place.floats = 4;
       place.size = 4 * sizeof(float);
-    } else {
-      place.floats = 1;
-      place.size = sizeof(float);
+      break;
     }
+
+    // A key on a map selects one value, the base of the rest of the path.
+    auto lookup = ResolveMapLookup(schema, module, place.type, *key);
+    if (!lookup) {
+      return std::unexpected(name + "[" + std::string(*key) + "]: " + lookup.error());
+    }
+    lookup->offset = place.offset;
+    place.offset = 0;
+    place.size = lookup->value_size;
+    place.type = lookup->value_type;
+    place.floats = FloatCount(place.type, place.size);
+    place.maps.push_back(std::move(*lookup));
   }
   return place;
 }
 
 // Locate returns the storage a place names in one entry's data, or null when
-// its map or list holds no such key.
+// a map or list on its path holds no such key.
 unsigned char* Locate(unsigned char* definition, const Place& place) {
-  // A field lies at its offset.
-  if (!place.key) {
-    return definition + place.offset;
+  // Enter each map's selected value.
+  unsigned char* base = definition;
+  for (const auto& map : place.maps) {
+    unsigned char* found = nullptr;
+    ForEachMapNode(base + map.offset, map.element_size, [&](unsigned char* element) {
+      if (!found && map.key.Matches(element)) {
+        found = element + map.value_offset;
+      }
+    });
+    if (!found) {
+      return nullptr;
+    }
+    base = found;
+  }
+  if (!place.script_values) {
+    return base + place.offset;
   }
 
   // A modifier script value sits in a CUtlVector of ModifierScriptValue_t.
-  if (place.script_values) {
-    const auto list = gameinterop::ReadUtlVector<unsigned char>(definition + place.offset, 256);
-    if (!list) {
-      return nullptr;
-    }
-    for (int32_t i = 0; i < list->count; ++i) {
-      auto* element = list->data + static_cast<size_t>(i) * place.script_values->stride;
-      int32_t key = 0;
-      if (place.script_values->key_size == sizeof(uint8_t)) {
-        uint8_t raw = 0;
-        std::memcpy(&raw, element + place.script_values->key_offset, sizeof(raw));
-        key = raw;
-      } else if (place.script_values->key_size == sizeof(uint16_t)) {
-        uint16_t raw = 0;
-        std::memcpy(&raw, element + place.script_values->key_offset, sizeof(raw));
-        key = raw;
-      } else {
-        std::memcpy(&key, element + place.script_values->key_offset, sizeof(key));
-      }
-      if (key == *place.key) {
-        return element + place.script_values->value_offset;
-      }
-    }
+  const auto& values = *place.script_values;
+  const auto list = gameinterop::ReadUtlVector<unsigned char>(base + place.offset, 256);
+  if (!list) {
     return nullptr;
   }
-
-  // A map value follows its key.
-  unsigned char* found = nullptr;
-  ForEachMapNode(definition + place.offset, sizeof(int32_t) + sizeof(float),
-                 [&](unsigned char* element) {
-                   int32_t key = 0;
-                   std::memcpy(&key, element, sizeof(key));
-                   if (key == *place.key) {
-                     found = element + sizeof(key);
-                   }
-                 });
-  return found;
+  for (int32_t i = 0; i < list->count; ++i) {
+    auto* element = list->data + static_cast<size_t>(i) * values.stride;
+    if (values.key.Matches(element + values.key_offset)) {
+      return element + values.value_offset;
+    }
+  }
+  return nullptr;
 }
 
 // kBufferStringInlineEmpty is the allocated word of an empty CBufferString.
@@ -331,16 +480,19 @@ static_assert(sizeof(BufferString) == 16);
 // problem it hits.
 std::string WriteTextField(unsigned char* definition, const Place& place, std::string_view value,
                            const DefinitionText& text, bool world, DefinitionUndo& undo) {
-  // Refuse map keys, console/script fields, and non-text schema types.
-  if (place.key || place.type == nullptr) {
+  // Refuse console/script fields and non-text schema types.
+  if (place.type.empty()) {
     return "not a text field";
   }
   if (auto refused = RefuseField(place.leaf); !refused.empty()) {
     return refused;
   }
   auto* storage = Locate(definition, place);
+  if (storage == nullptr) {
+    return "no such map key";
+  }
   std::string expanded = WithAddon(std::string(value), text.addon);
-  const std::string_view type(place.type);
+  const std::string_view type = place.type;
 
   // Write an 8-byte symbol or CUtlString pointer. The game frees a CUtlString
   // and compares a CGlobalSymbol by pointer, so each takes the game's own

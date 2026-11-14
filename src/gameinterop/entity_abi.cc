@@ -647,6 +647,20 @@ std::expected<size_t, std::string> SchemaClassSizeOf(void* schema_system, const 
   return static_cast<size_t>((*info)->size);
 }
 
+std::expected<size_t, std::string> SchemaClassAlignmentOf(void* schema_system,
+                                                          const char* module_name,
+                                                          const char* class_name) {
+  auto info = SchemaClassInfoOf(schema_system, module_name, class_name);
+  if (!info) {
+    return std::unexpected(info.error());
+  }
+  const size_t alignment = (*info)->alignment;
+  if (alignment == 0 || (alignment & (alignment - 1)) != 0) {
+    return std::unexpected("schema class alignment is invalid");
+  }
+  return alignment;
+}
+
 std::expected<size_t, std::string> SchemaEnumSizeOf(void* schema_system, const char* module_name,
                                                     const char* enum_name) {
   auto scope = FindTypeScopeOf(schema_system, module_name);

@@ -171,9 +171,12 @@ message Definition {
   // Fields writes float schema fields, including CModifierLevelFloat,
   // CSkillFloat and CRangeFloat, named as a path of Class.field steps from the
   // entry's data, such as
-  // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
-  // step may name one value of an enum-keyed map or modifier script value list,
-  // such as CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth] or
+  // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A step on
+  // a map may select one value by its key, an enum value or a name, and the
+  // next step reads inside it, such as
+  // CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth] or
+  // CitadelAbilityVData.m_mapWeaponInfos[primary]/CCitadelWeaponInfo.m_flBulletSpeed.
+  // A last step may select one modifier script value, such as
   // CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_MODEL_SCALE].
   // One value fills every level of a level float or script value and both
   // bounds of a range.

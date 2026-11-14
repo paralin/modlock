@@ -94,7 +94,10 @@ player and anyone they landed on.
   {
     "entry": "gunslinger_rocket_launcher",
     "properties": { "AbilityCooldown": 0.8, "Damage": 120 },
-    "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
+    "fields": {
+      "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250,
+      "CitadelAbilityVData.m_mapWeaponInfos[primary]/CCitadelWeaponInfo.m_flBulletSpeed": 4000
+    },
     "copyFields": {
       "CAbilityRocketLauncherVData.m_ExplosionParticle": "CitadelAbilityVData.m_skillshotMissParticle"
     },
@@ -118,9 +121,11 @@ the stock values while play uses the changed ones.
 | `copyFields` | Copy the field at each value's path over the field at its key's path.                                                                                                                                          |
 | `textFields` | Text, symbol, sound event and Panorama image schema fields by `Class.m_field/Class.m_field` path, with `{addon}` replaced by the mod's content addon.                                                          |
 
-A path's last step can end in `[Enum.Value]` to select one value of a map keyed
-by an enum, such as a hero's starting stats. On a modifier's `m_vecScriptValues`
-list, the same suffix selects one entry by its `EModifierValue`. A single value
+A step on a map can end in `[key]` to select one value: `[Enum.Value]` for a
+map keyed by an enum, such as a hero's starting stats, or the key's name for a
+map keyed by name, such as an ability's `m_mapWeaponInfos[primary]`. The next
+step then reads a field inside that value. On a modifier's `m_vecScriptValues`
+list, a last step ending in `[EModifierValue.Value]` selects one entry. A single value
 you give fills every level of a level float or script value, and both bounds of
 a range. The server writes the changes when it loads the definitions, and again
 on each new map.

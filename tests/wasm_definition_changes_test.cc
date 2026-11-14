@@ -32,7 +32,8 @@ struct FakeSchema : modlock::test::FakeSchemaSystem {
     range_float_type.name = "CRangeFloat";
     script_list_type.name = "CUtlVector< ModifierScriptValue_t >";
     modifier_value_type.name = "EModifierValue";
-    map_type.name = "CUtlMap< EStatsType, float32 >";
+    map_type.name = "CUtlOrderedMap< EStatsType, float32 >";
+    weapon_map_type.name = "CUtlOrderedMap< CGlobalSymbol, CCitadelWeaponInfo >";
     particle_type.name =
         "CResourceNameTyped< CWeakHandle< InfoForResourceTypeIParticleSystemDefinition > >";
 
@@ -77,6 +78,31 @@ struct FakeSchema : modlock::test::FakeSchemaSystem {
         .fields = hero_fields.data(),
     });
 
+    // Declare CitadelAbilityVData with weapon infos keyed by name, and a
+    // 24-byte CCitadelWeaponInfo with three bullet floats.
+    ability_fields = {
+        MakeSchemaField("m_mapWeaponInfos", weapon_map_type, 0),
+    };
+    classes.push_back(schema::ClassInfo{
+        .name = "CitadelAbilityVData",
+        .size = 40,
+        .field_count = static_cast<uint16_t>(ability_fields.size()),
+        .alignment = 8,
+        .fields = ability_fields.data(),
+    });
+    weapon_fields = {
+        MakeSchemaField("m_flBulletSpeed", float_type, 8),
+        MakeSchemaField("m_flBulletGravityScale", float_type, 12),
+        MakeSchemaField("m_flBulletLifetime", float_type, 16),
+    };
+    classes.push_back(schema::ClassInfo{
+        .name = "CCitadelWeaponInfo",
+        .size = 24,
+        .field_count = static_cast<uint16_t>(weapon_fields.size()),
+        .alignment = 8,
+        .fields = weapon_fields.data(),
+    });
+
     // Declare EModifierValue and EStatsType.
     modifier_values = {
         schema::Enumerator{.name = "MODIFIER_VALUE_MODEL_SCALE", .value = 42},
@@ -106,10 +132,13 @@ struct FakeSchema : modlock::test::FakeSchemaSystem {
   schema::DeclaredType script_list_type{};
   schema::DeclaredType modifier_value_type{};
   schema::DeclaredType map_type{};
+  schema::DeclaredType weapon_map_type{};
   schema::DeclaredType particle_type{};
   std::array<schema::Field, 2> script_fields{};
   std::array<schema::Field, 6> modifier_fields{};
   std::array<schema::Field, 1> hero_fields{};
+  std::array<schema::Field, 1> ability_fields{};
+  std::array<schema::Field, 3> weapon_fields{};
   std::array<schema::Enumerator, 2> modifier_values{};
   std::array<schema::Enumerator, 1> stat_values{};
 };
@@ -219,6 +248,57 @@ TEST(DefinitionChanges, WritesModifierFloatsScriptValuesCopiesAndRestoresUndo) {
   EXPECT_FLOAT_EQ(window, initial_window);
   EXPECT_EQ(script_scale, initial_script_scale);
   EXPECT_EQ(copied_particle, particle_a);
+}
+
+TEST(DefinitionChanges, WritesFieldsInsideAMapValueSelectedByName) {
+  // Lay out m_mapWeaponInfos with secondary and primary nodes. A node is 16
+  // bytes of links, the 8-byte symbol key and the 24-byte weapon info. The
+  // keys' characters are copies, so the key matches by text, not by pointer.
+  FakeSchema schema;
+  const std::string secondary = "secondary";
+  const std::string primary = "primary";
+  constexpr size_t kNode = 16 + 8 + 24;
+  std::array<unsigned char, 2 * kNode> nodes{};
+  const std::array<const char*, 2> keys{secondary.c_str(), primary.c_str()};
+  const std::array<float, 3> stock{8000.0f, 0.3f, 5.0f};
+  for (size_t i = 0; i < keys.size(); ++i) {
+    auto* node = nodes.data() + i * kNode;
+    const int32_t left = -1;
+    std::memcpy(node, &left, sizeof(left));
+    std::memcpy(node + 16, &keys[i], sizeof(keys[i]));
+    std::memcpy(node + 24 + 8, stock.data(), sizeof(stock));
+  }
+  std::array<unsigned char, 40> storage{};
+  const int32_t count = 2;
+  unsigned char* first = nodes.data();
+  std::memcpy(storage.data() + 8, &count, sizeof(count));
+  std::memcpy(storage.data() + 16, &first, sizeof(first));
+
+  // Slow the primary weapon's bullets.
+  Definition change;
+  change.set_entry("ability_charged_shot");
+  const std::string weapon = "CitadelAbilityVData.m_mapWeaponInfos[primary]/CCitadelWeaponInfo.";
+  (*change.mutable_fields())[weapon + "m_flBulletSpeed"] = 40.0f;
+  (*change.mutable_fields())[weapon + "m_flBulletGravityScale"] = 0.0f;
+  (*change.mutable_fields())[weapon + "m_flBulletLifetime"] = 30.0f;
+  const std::string missing =
+      "CitadelAbilityVData.m_mapWeaponInfos[tertiary]/CCitadelWeaponInfo.m_flBulletSpeed";
+  (*change.mutable_fields())[missing] = 1.0f;
+  DefinitionUndo undo;
+  const auto problems =
+      ChangeDefinition(change, storage.data(), &schema.system, "server.dll", undo);
+  EXPECT_EQ(problems, std::vector<std::string>{missing + ": no such map key"});
+
+  // Only the primary weapon changed, and Restore puts it back.
+  std::array<float, 3> secondary_values{};
+  std::array<float, 3> primary_values{};
+  std::memcpy(secondary_values.data(), nodes.data() + 24 + 8, sizeof(secondary_values));
+  std::memcpy(primary_values.data(), nodes.data() + kNode + 24 + 8, sizeof(primary_values));
+  EXPECT_EQ(secondary_values, stock);
+  EXPECT_EQ(primary_values, (std::array<float, 3>{40.0f, 0.0f, 30.0f}));
+  undo.Restore();
+  std::memcpy(primary_values.data(), nodes.data() + kNode + 24 + 8, sizeof(primary_values));
+  EXPECT_EQ(primary_values, stock);
 }
 
 TEST(DefinitionChanges, ReportsNonFloatAndMissingScriptValueKeys) {
