@@ -468,6 +468,7 @@ modlock.call_service_later("example.drills.v1", "List", b"map", ended(7), 2.5)
 modlock.call_service_later("example.drills.v1", "Get", b"", ended(8))
 )"},
       {"modlock/__init__.py", Text(library + "/__init__.py")},
+      {"modlock/heroes.py", Text(library + "/heroes.py")},
       {"modlock/wire.py", Text(library + "/wire.py")},
   }));
   auto started = (*instance)->Deliver(Event("Start", start));
