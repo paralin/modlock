@@ -86,13 +86,13 @@ const ball = create('citadel_hideout_ball', { position })
 ball?.inputSetScale(9)
 ```
 
-The spawn keys `scale` and `ModelScale` set the same scale before spawn, but
-an entity whose game data sets its own model scale replaces them while
-spawning. The hideout ball shows both: its model spans ±7 units and its game
-data sets a model scale of 3, a radius of 21. With either key its collision
-stayed at 21 units, but after `inputSetScale(9)` a trace meets it at 63, and at 7
-times the scale for every value from 0.5 to 9. Use the input for a scale that
-must hold.
+The sample sends the input instead of passing the spawn keys `scale` or
+`ModelScale`. Those keys set the same scale before spawn, but an entity whose
+game data sets its own model scale replaces them while spawning. The hideout
+ball shows both: its model spans ±7 units, and its game data sets a model scale
+of 3, which gives it a radius of 21. With either key its collision stayed at 21
+units, but after `inputSetScale(9)` a trace meets it at 63, and at 7 times the
+scale for every value from 0.5 to 9. Use the input for a scale that must hold.
 
 ## Fields
 
@@ -114,12 +114,15 @@ const hero = new CCitadelPlayerPawn(pawn.entity)
 hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
+The typed `hero.m_iHealth` calls `readField` and `writeField` with the class
+that declares the field, `CBaseEntity`, so both samples make the same calls.
+
 The first time any mod on the server uses a field, the host looks up its offset
-in the schema and caches it until the server exits. Before it touches memory,
-it checks that the entity is of the class the call gives or derives from it. A
-call that passes a trooper's handle with the class `CCitadelPlayerPawn` fails
-with a message giving both classes, and nothing is written.
-A write marks the field changed so the server sends it to the players.
+in the schema and caches it until the server exits. Before it touches memory, it
+checks that the entity is of the class the call gives or derives from it. A
+`writeField` call that passes a trooper's handle with the class
+`CCitadelPlayerPawn` fails with a message giving both classes, and nothing is
+written. A write marks the field changed so the server sends it to the players.
 
 A dotted field name reaches a field inside an embedded structure, such as the
 collision group of a model entity's collision property:
@@ -135,9 +138,10 @@ writeField(
 )
 ```
 
-Each segment is a field of the structure that the segment before it holds, and
-the host refuses a path through a field that holds a number, a pointer or a
-handle.
+In the first call, `m_Collision` holds the collision property, and
+`m_CollisionGroup` is a field inside it. Each segment of a path is a field of
+the structure that the segment before it holds, and the host refuses a path
+through a field that holds a number, a pointer or a handle.
 
 Field types cover booleans, signed and unsigned integers of 8 to 64 bits, 32
 and 64-bit floats, vectors, entity handles and strings. Angles travel as
@@ -176,9 +180,9 @@ const rules = new CCitadelGameRules(proxy)
 rules.m_nAmberGold = 10000
 ```
 
-A write sends the whole rules to the players, so players already in the match
-see the change at once. A field the game's clients derive from other state may
-be set again by the game on its next update.
+Setting `m_nAmberGold` sends the whole rules to the players, so players already
+in the match see the change at once. A field the game's clients derive from
+other state may be set again by the game on its next update.
 
 A field that holds a list of numbers, handles, booleans, vectors or text, such
 as the banned heroes or the neutral camp spawn times, reads as an array and
@@ -194,11 +198,11 @@ const times = rules.m_vecNeutralCampNextSpawnTimes // number[]
 ## Inputs
 
 `fireInput(handle, input, value)` sends an entity an input, as a map's output
-would: `Kill`, `Color`, `Alpha`, `Skin`, `SetScale`, `StartShake`, `Explode`
-and the thousand others in `entities.json`. An input reads its value as the
-type it takes and does not convert text, so `Alpha` takes an integer and
-`Color` a color as `0xRRGGBBAA`. A typed class sends each input as a method
-whose parameter has that type:
+would: `Kill`, `Color`, `Alpha`, `Skin`, `SetScale`, `StartShake`, `Explode` and
+the thousand others in `entities.json`. An input reads its value as the type it
+takes and does not convert text. `Alpha` takes an integer, and `Color` takes a
+color written as `0xRRGGBBAA`. A typed class sends each input as a method whose
+parameter has that type:
 
 ```ts
 const shake = create('env_shake', {
@@ -214,8 +218,11 @@ const boom = create('env_explosion', {
 boom?.inputExplode()
 ```
 
-An input the entity lacks fails that call alone with the entity's designer
-name and the input's.
+Each `input` method calls `fireInput` with its input's name, so
+`shake?.inputStartShake()` fires `StartShake`. A `fireInput` call with an input
+the entity does not have returns `false`, and the host logs the entity's
+designer name and the input's. Only that call fails: the rest of the handler
+runs, and the mod keeps running.
 
 ## Damage and deaths
 

@@ -41,8 +41,9 @@ err = mod.WriteField(pawn.GetEntity(), "CBaseEntity", "m_iHealth", mod.FieldType
 
 </Samples>
 
-Go passes a value as a `bool`, `float64`, `int64`, `string` or `*mod.Vector`,
-whatever the field's type. A plain `500` must be written as `int64(500)`.
+The Go sample writes `int64(500)` because Go's `WriteField` takes a `bool`,
+`float64`, `int64`, `string` or `*mod.Vector`, whatever the field's type. A
+plain `500` is an `int`, and `WriteField` returns an error for it.
 
 For an animated prop, the host finds `CBaseAnimGraphController` fields through
 the prop's body component. This sample sets a sequence that does not use the
@@ -83,9 +84,12 @@ _ = mod.WriteField(prop, "CBaseAnimGraphController", "m_flSeqFixedCycle", mod.Fi
 
 </Samples>
 
-Choose the sequence and cycle for that model. Writing the cycle changes the pose
-and leaves the model where it stands. The host refuses an entity that is not
-animated.
+The sequence `hand_pose_aligned` and the cycle `1 / 6` suit the sample's model,
+so choose a sequence and cycle from your own prop's model.
+
+Writing `m_flSeqFixedCycle` changes the pose and leaves the model where it
+stands. The host refuses the field on an entity that has no animation
+controller.
 
 A write changes the field on the server and sends it to the players. The host
 refuses an entity that is not of the class you pass or one derived from it,
@@ -284,12 +288,28 @@ if err == nil {
 
 </Samples>
 
-An NPC needs its subclass, the game data entry it reads while it spawns.
-An input reads its value as the type it takes and does not convert text:
-`Alpha` takes an integer and `Color` a color as `0xRRGGBBAA`. In Go an `int32`
-is an integer, a `float32` a number and a `uint32` a color. `entities.json`
-lists each input's value type. When the server does not know a designer name, or
-the entity has no such input, only that call fails.
+The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
+while it spawns, and `subclass` names that entry. Without a subclass, the host
+looks for an entry named after the class. The game has no entry named
+`npc_trooper_boss`, and the class crashes the server without one, so the host
+refuses the call and its message names an entry to pass.
+
+The values passed to `fireInput` already have the type each input takes, because
+an input does not convert text. `Alpha` takes an integer, and `Color` takes a
+color written as `0xRRGGBBAA`. `entities.json` lists the type each input takes.
+In Go, the type of the value you pass sets its kind:
+
+| Go type   | Kind    |
+| --------- | ------- |
+| `int32`   | integer |
+| `float32` | number  |
+| `uint32`  | color   |
+
+The Luau, Python and Go samples check the created entity before they send
+inputs. `createEntity` returns no entity for a designer name the server does not
+know, and `fireInput` returns false for an input the entity does not have. The
+host logs why, and in Go both calls return an error. Only that call fails: the
+rest of your mod keeps running.
 
 The host resolves the designer name's class before it creates anything.
 Because only a hero can hold an ability, item or weapon, the host refuses to
@@ -366,7 +386,7 @@ if err == nil {
 
 </Samples>
 
-`create` offers only the designer names that spawned and stayed alive on a
+`create` takes only the designer names that spawned and stayed alive on a
 dedicated server, 578 of the 1,191 surveyed. Each name that needs a subclass gets
 the subclass it spawned with, so `create('npc_trooper_boss', ...)` makes a Guardian without asking
 for `npc_boss_tier1`. A name that never stayed alive, such as an abstract base or

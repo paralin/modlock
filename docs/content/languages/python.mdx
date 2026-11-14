@@ -90,7 +90,8 @@ console.set_number("citadel_trooper_gold_reward", 40)
 console.run("changelevel", "street_test")
 ```
 
-When the server cannot read or write a field, the field reads as `None`, the
+When the server cannot read or write a field, such as `hero.m_iHealth` in the
+sample, the attribute reads as `None`, the
 server ignores writes to it, and the server log gives the reason.
 
 ## Run a line in the running mod

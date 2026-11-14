@@ -64,6 +64,10 @@ player again replaces the seat, and the seat ends when they leave. `seat`
 returns false when nobody holds the player's slot. To give players different
 teams, pick the team in the handler.
 
+Seating runs on a [`Cast`](#keep-the-players-with-cast) of the library's own.
+Use a Cast directly when the mod keeps its own state for each player or
+changes what a player wants during the game.
+
 The respawn delay is a separate call and applies to every hero, seated or not.
 A fallen hero keeps its hero and team:
 
@@ -88,10 +92,6 @@ mod.SetRespawnDelay(3 * time.Second)
 ```
 
 </Samples>
-
-Seating runs on a [`Cast`](#keep-the-players-with-cast) of the library's own.
-Use a Cast directly when the mod keeps its own state for each player or
-changes what a player wants during the game.
 
 ## Play free-for-all
 
@@ -310,6 +310,6 @@ onFrame((frame) => {
 })
 ```
 
-Once a minute it logs the median and slowest frame, each part's mean and
+Once a minute `frameClock` logs the median and slowest frame, each part's mean and
 slowest milliseconds, and the parts that cost most in the minute's slowest
 frame. That last figure shows a part that spikes only once a minute.

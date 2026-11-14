@@ -57,11 +57,13 @@ Modlock.route('scores', (scores) => drawScores(scores))
 ```
 
 Each handler runs at once with the current value and again after each change,
-with `undefined` while the mod sends none. The library reads the panel's
-`modlock_data` and `modlock_route_<name>` attributes. It rereads them on
-`modlock_data_changed`, an unhandled `PlaySoundEffect` event that the renderer
-sends once per draw that changes any of them. The layout answers the mod with its own
-console commands.
+with `undefined` while the mod sends none.
+
+The library reads the values from the panel's `modlock_data` and
+`modlock_route_<name>` attributes, and rereads them on `modlock_data_changed`.
+That event is an unhandled `PlaySoundEffect` event, which the renderer sends
+once per draw that changes any of the attributes. The layout answers the mod
+with its own console commands.
 
 ## The renderer
 

@@ -41,7 +41,8 @@ const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
 `modlock-host --dump DIRECTORY` starts a dedicated server, writes the game's
 description of itself and quits. Each document follows
 [`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto)
-and is sorted by name, so two builds' dumps diff cleanly.
+and is sorted by name, so a diff of two builds' dumps lists only the entries
+that changed.
 [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) contains
 the current set:
 

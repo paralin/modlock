@@ -509,7 +509,7 @@ Redraw every player's HUD from your state on each frame. `show` compares the tre
 
 ## 6. Place things in the world
 
-Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each world loads.
+Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each world loads. When the mod starts, precache the heroes and models your mode uses, so the game loads them with the world. [The world](/guides/world) explains models, effects and fog.
 
 <Samples>
 
@@ -624,8 +624,6 @@ func init() {
 ```
 
 </Samples>
-
-When the mod starts, precache the heroes and models your mode uses, so the game loads them with the world. [The world](/guides/world) explains models, effects and fog.
 
 ## 7. Let players choose, and keep score
 

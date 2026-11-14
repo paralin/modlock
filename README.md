@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>⚙️ Modlock</h1>
+<h1>Modlock</h1>
 
 <p><b>Custom game modes for Deadlock, in a language you already know.</b></p>
 
@@ -45,14 +45,13 @@ command('hello', (player) => {
 
 ## Why WebAssembly
 
-- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server,
-  where it can reach only the calls the schema offers.
-  Those calls let it read and write its own files, but it has no network
-  access and no environment variables. When a mod
-  crashes, loops forever or allocates past its limit, the server stops that
-  mod, logs why and keeps the match running. A slow event still finishes, and
-  the players see a warning in chat. Any player can restart a stopped or slow
-  mod with `/restartmod`.
+- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server, where
+  it can reach only the calls the schema declares. Those calls let it read and
+  write its own files, but it has no network access and no environment
+  variables. When a mod crashes, loops forever or allocates past its limit, the
+  server stops that mod, logs why and keeps the match running. A slow event
+  still finishes, and the players see a warning in chat. Any player can restart
+  a stopped or slow mod with `/restartmod`.
 - **Any language.** You can write a mod in any language that compiles to
   WebAssembly, using a small library for that language.
 - **Built once.** The server looks up each field and input a mod uses by name,
