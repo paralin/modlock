@@ -130,11 +130,8 @@ The site's source is in [`docs`](docs), and running `bun install` and
 
 ## Acknowledgments
 
-Thanks to the Deadlock modding community, whose research made this possible, and
-to [Deadworks], whose signatures, calling conventions and startup sequence
-taught Modlock. See [ATTRIBUTION.md](ATTRIBUTION.md).
-
-[Deadworks]: https://github.com/Deadworks-net/deadworks
+Thanks to the Deadlock modding community, whose research made this possible. See
+[ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## License
 
