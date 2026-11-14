@@ -7,11 +7,8 @@ A rotation mode runs a lobby through one fight at a time, such as a duel ring
 or a two against two pit, and the TypeScript library has a call for each part
 of one.
 
-When a player arrives, they join the back of the line, with a record and a
-rating for the session. While they wait, they watch the fight from the stands. Once they are among those who have fought least, the next
-match seats them, on a side picked to keep the ratings even. When the fight
-ends, the result moves their rating, and they go to the back of the line again.
-Each part of that has its calls:
+A player joins the line, waits in the stands, fights when their turn comes and
+goes to the back again, and each part of that has its calls:
 
 | Piece                                | Call                                        |
 | ------------------------------------ | ------------------------------------------- |

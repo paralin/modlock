@@ -5,7 +5,7 @@ description: Hold the round until every player is ready, then count it in.
 
 Most modes open a round the same way, and this page shows you how to build it: the round waits until every player is ready, then counts them in.
 
-Each player types `/ready`, and while anyone is missing, every player sees how many, such as `Waiting for 2 more`, in the middle of the screen. Bots are not counted. When the last player is ready, your mod freezes each player's hero and shows 3, 2 and 1, one second apart. Then it releases the heroes, and every player sees the announcement "Fight!" with "The round is live." The round is a state machine with three phases, and each handler checks the phase before it acts:
+The round is a state machine with three phases, and each handler checks the phase before it acts:
 
 | Phase       | Players can     | Moves on when             |
 | ----------- | --------------- | ------------------------- |
@@ -284,6 +284,11 @@ func main() {}
 
 To try it, save while `modlock dev` runs and type `/ready` in chat. When you
 play alone, nobody else is missing, so the count starts at once.
+
+While anyone is missing, every player sees how many, such as `Waiting for 2
+more`, in the middle of the screen. When the last one is ready, their heroes
+freeze and they see 3, 2 and 1, one second apart. Then the heroes are released,
+and everyone sees the announcement "Fight!" with "The round is live."
 
 ## Variations
 

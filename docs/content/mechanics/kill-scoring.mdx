@@ -5,7 +5,7 @@ description: Score each kill, bring the fallen back and end the round at a goal.
 
 In a deathmatch, the first player to ten kills wins, and everyone who falls comes back into the fight.
 
-Your mod hears every hit through the damaged event, which gives the attacker and the victim as entity numbers. A hit that removes all of the victim's health is lethal. The mod matches each entity to the player whose hero it is, and revives the victim's hero three seconds later. The attacker's player scores a point, and every player sees the name and total, such as `Ana: 4 / 10`, in the middle of the screen. At ten, every player sees the announcement "_name_ wins", and the count starts over. A death from a hazard, which has no attacker, or from a hero's own hit scores nothing, and the hero still comes back.
+Your mod scores each lethal hit it hears in the damaged event, and brings the fallen hero back:
 
 <Samples>
 
@@ -216,6 +216,12 @@ func main() {}
 </Samples>
 
 Bring a second player or a bot into the game and defeat them.
+
+A hit is lethal when it removes all of the health the victim had. Each point
+shows every player the scorer's name and total, such as `Ana: 4 / 10`, in the
+middle of the screen, and at ten every player sees the announcement "_name_
+wins". A hazard has no attacker, so a death from one scores nothing, and neither
+does a hero's own hit; the hero comes back either way.
 
 ## Variations
 

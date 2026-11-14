@@ -5,7 +5,8 @@ description: Score a point each second a hero holds a spot alone.
 
 In king of the hill, heroes fight over one spot, and a hero who holds it alone scores. Here you build it with a once-a-second timer and a hill that is a point with a radius of 400 units.
 
-When the world loads, your mod starts the score over and puts the word HILL above the spot, turned toward each viewer. Once a second, the timer counts the living heroes inside the radius. While one hero stands there alone, each count gives them a point, and they see their total, such as `3 / 30`, in the middle of the screen. An empty or contested hill scores nothing. When the hero reaches 30, every player sees the announcement "_name_ holds the hill", and the score starts over. Because the timer runs on the game's clock, the score does not depend on the frame rate.
+Your mod marks the hill each time a world loads, then scores the hero who
+stands on it alone:
 
 <Samples>
 
@@ -221,6 +222,11 @@ func main() {}
 
 Put the hill where your hero stands, as the first variation below shows, and
 stand there alone.
+
+Each point shows the hero their total, such as `3 / 30`, in the middle of the
+screen. At 30, every player sees the announcement "_name_ holds the hill", and
+the score starts over. The timer runs on the game's clock, so the score does not
+depend on the frame rate.
 
 ## Variations
 
