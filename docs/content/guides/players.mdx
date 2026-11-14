@@ -119,6 +119,82 @@ check that guards saved data runs where the data is stored, not on a role.
 `modlock dev` and `modlock play` give every local player both. A platform that
 hosts the mod sends its own roles over the control link, one table per mod.
 
+## Keep a value for each player
+
+A Player works as a key in a map, table or dict, so your mod can keep a value
+for each player:
+
+<Samples>
+
+```ts
+import { command, onPlayerLeave, type Player } from 'modlock'
+
+const greetings = new Map<Player, number>()
+
+command('hi', (player) => {
+  const count = (greetings.get(player) ?? 0) + 1
+  greetings.set(player, count)
+  player.chat(`Hello ${count} times`)
+})
+
+onPlayerLeave(({ connection }) => {
+  greetings.delete(connection.player)
+})
+```
+
+```luau
+local greetings: { [modlock.Player]: number } = {}
+
+modlock.command("hi", function(player)
+	local count = (greetings[player] or 0) + 1
+	greetings[player] = count
+	player:chat(`Hello {count} times`)
+end)
+
+modlock.onPlayerLeave(function(left)
+	greetings[left.connection.player] = nil
+end)
+```
+
+```python
+greetings: dict[modlock.Player, int] = {}
+
+
+@modlock.command("hi")
+def hi(player: modlock.Player, args: str) -> None:
+    count = greetings.get(player, 0) + 1
+    greetings[player] = count
+    player.chat(f"Hello {count} times")
+
+
+@modlock.on_player_leave
+def left(event: modlock.PlayerLeftEvent) -> None:
+    greetings.pop(event.connection.player, None)
+```
+
+```go
+var greetings = map[mod.Player]int{}
+
+func init() {
+	mod.Command("hi", func(p mod.Player, args string) {
+		greetings[p]++
+		_ = p.Chat(fmt.Sprintf("Hello %d times", greetings[p]))
+	})
+	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
+		delete(greetings, mod.Player{Slot: left.GetConnection().GetPlayer()})
+	})
+}
+```
+
+</Samples>
+
+The leave handler keys by `connection.player`, because a connection does not
+work as a key: Python cannot hash one, and in the other languages the same
+player's connection can be a new value in each list. In Luau, Python and Go a Player is its slot, so the
+next player to take the slot would inherit the entry; clearing it on leave
+prevents that. TypeScript gives the next player a new Player, so there the
+clear only frees the entry.
+
 ## Read the hero
 
 A pawn has the hero's health, team, position, aim and souls. No pawn

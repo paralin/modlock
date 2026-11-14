@@ -20,10 +20,12 @@ language server finds the library and completes its calls. A module requires ano
 
 The library has the TypeScript library's calls under the same names, which you
 call as methods, such as `player:chat(text)`. Because a Luau number cannot hold
-every 64-bit integer, a 64-bit id such as a Steam ID is a decimal string. Build
-interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`. Choose Luau
-with the switch in the sidebar, and the [guides](/guides/events) show every
-call in it.
+every 64-bit integer, a 64-bit id such as a Steam ID is a decimal string. Each
+slot has one `Player` object, so `==` tells whether two values are the same
+player, and a `Player` works as a table key. The next player to take a slot gets
+the same object, so clear a player's entries when they leave. Build interfaces
+with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`. Choose Luau with the
+switch in the sidebar, and the [guides](/guides/events) show every call in it.
 
 ## Typed entities
 

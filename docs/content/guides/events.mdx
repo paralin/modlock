@@ -100,22 +100,26 @@ func main() {}
 
 Python spells each as a `snake_case` decorator, such as
 `@modlock.on_player_join`, and Go as an exported function, such as
-`mod.OnPlayerJoin`.
+`mod.OnPlayerJoin`. A call that takes a name takes it in the decorator, as
+`@modlock.on_modifier_event("PLAYER_RESPAWNED")` does.
 
-| Call                                                | Runs the handler                                                              |
-| --------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `command(name, handler)`                            | On the frame after a player types `/name` in chat.                            |
-| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                   |
-| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                      |
-| `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.        |
-| `onFrame(handler)`                                  | Once per server frame.                                                        |
-| `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined. |
-| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.                         |
-| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero can still be read.        |
-| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                 |
-| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                        |
-| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                              |
-| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.                     |
+| Call                                                | Runs the handler                                                                          |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                        |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                               |
+| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                  |
+| `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                    |
+| `onFrame(handler)`                                  | Once per server frame.                                                                    |
+| `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined.             |
+| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.                                     |
+| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero can still be read.                    |
+| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                             |
+| `onKill(handler)`                                   | After each hit that kills a hero or a unit; see [Damage](/guides/damage#react-to-a-kill). |
+| `onAbilityCast(handler)`                            | After each ability or item the game executes.                                             |
+| `onModifierEvent(name, handler)`                    | Each time the game fires the named modifier event.                                        |
+| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                                    |
+| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                                          |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.                                 |
 
 ## A player's stages
 
@@ -216,6 +220,99 @@ mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
 ```
 
 </Samples>
+
+## Casts and modifier events
+
+Your mod can hear each ability as it takes effect, and any of the game's
+modifier events by name:
+
+<Samples>
+
+```ts
+import { log, onAbilityCast, onModifierEvent } from 'modlock'
+
+onAbilityCast((cast) => {
+  if (cast.slot >= 0) {
+    log(`slot ${cast.player.slot} cast ${cast.name}`)
+  }
+})
+
+onModifierEvent('PLAYER_RESPAWNED', (event) => {
+  log(`slot ${event.player.slot} respawned`)
+})
+```
+
+```luau
+modlock.onAbilityCast(function(cast)
+	if cast.slot >= 0 then
+		modlock.log(`slot {cast.player.slot} cast {cast.name}`)
+	end
+end)
+
+modlock.onModifierEvent("PLAYER_RESPAWNED", function(event)
+	modlock.log(`slot {event.player.slot} respawned`)
+end)
+```
+
+```python
+@modlock.on_ability_cast
+def cast(event: modlock.AbilityCastEvent) -> None:
+    if event.slot >= 0:
+        modlock.log(f"slot {event.player.slot} cast {event.name}")
+
+
+@modlock.on_modifier_event("PLAYER_RESPAWNED")
+def respawned(event: modlock.ModifierFiredEvent) -> None:
+    modlock.log(f"slot {event.player.slot} respawned")
+```
+
+```go
+mod.OnAbilityCast(func(cast *mod.AbilityCastEvent) {
+	if cast.GetSlot() >= 0 {
+		mod.Log("slot", cast.GetPlayer(), "cast", cast.GetName())
+	}
+})
+
+mod.OnModifierEvent("PLAYER_RESPAWNED", func(event *mod.ModifierFiredEvent) {
+	mod.Log("slot", event.GetPlayer(), "respawned")
+})
+```
+
+</Samples>
+
+A cast arrives once it takes effect, after any cast time, for a hero's
+abilities and for the items a player activates. The sample checks `slot`
+because only a player's hero casts from a slot, and only then does the cast
+carry a name.
+
+| Cast field | Holds                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| `caster`   | The entity that cast it, a hero for a player's cast.                                      |
+| `player`   | The player whose hero cast it, or slot -1.                                                |
+| `ability`  | The ability's entity, as the hero's `abilities()` reports it.                             |
+| `name`     | The ability's name, such as `citadel_ability_hornet_snipe`, when a player's hero cast it. |
+| `slot`     | The ability's place on the hero, or -1 when the caster is not a player's hero.            |
+| `target`   | The entity the cast was aimed at, or 0.                                                   |
+
+`onModifierEvent` takes any of the game's `EModifierEvent` names, with or
+without the `MODIFIER_EVENT_` prefix. The event's `name` is the spelling your
+handler registered with. A name the running game lacks is logged once and never
+fires. Register the handler as the mod loads, since the server asks for the
+events when it starts the mod.
+
+Every modifier event has the same fields, but which ones the game fills depends
+on the event: `caster`, the entity the event is about; `player`, the player
+whose hero the caster is, or slot -1; `target`, the other entity, such as the
+victim of a kill; and `ability`, the entity the event names as its source. An
+unfilled entity is 0. These events have been seen in a running game:
+
+| Event                | Fills                                           |
+| -------------------- | ----------------------------------------------- |
+| `PLAYER_RESPAWNED`   | `caster`, the hero that respawned.              |
+| `PLAYER_KILLED`      | `caster`, the killer, and `target`, the victim. |
+| `KILLED`             | `caster`, the unit that died.                   |
+| `HERO_LEVEL_CHANGED` | `caster`, the hero.                             |
+| `UNIT_HEALED`        | Fires very often, so keep its handler short.    |
 
 ## Where next
 

@@ -120,45 +120,58 @@ func init() {
 
 ## React to a kill
 
-In your `onDamaged` handler, a hit killed the victim when the health it took
-is at least the health the victim had.
+`onKill` runs your handler after each hit that kills a hero or a unit, with the
+player on each side:
 
 <Samples>
 
 ```ts
-import { log, onDamaged } from 'modlock'
+import { log, onKill } from 'modlock'
 
-onDamaged((hit) => {
-  if (hit.healthLost >= hit.healthBefore) {
-    log(`entity ${hit.attacker} defeated entity ${hit.victim}`)
+onKill(({ attackerPlayer, victimPlayer }) => {
+  if (attackerPlayer.slot >= 0 && victimPlayer.slot >= 0) {
+    log(`slot ${attackerPlayer.slot} defeated slot ${victimPlayer.slot}`)
   }
 })
 ```
 
 ```luau
-modlock.onDamaged(function(hit)
-	if hit.healthLost >= hit.healthBefore then
-		modlock.log(`entity {hit.attacker} defeated entity {hit.victim}`)
+modlock.onKill(function(kill)
+	if kill.attackerPlayer.slot >= 0 and kill.victimPlayer.slot >= 0 then
+		modlock.log(`slot {kill.attackerPlayer.slot} defeated slot {kill.victimPlayer.slot}`)
 	end
 end)
 ```
 
 ```python
-@modlock.on_damaged
-def defeated(hit: modlock.DamagedEvent) -> None:
-    if hit.health_lost >= hit.health_before:
-        modlock.log(f"entity {hit.attacker} defeated entity {hit.victim}")
+@modlock.on_kill
+def defeated(kill: modlock.KillEvent) -> None:
+    if kill.attacker_player.slot >= 0 and kill.victim_player.slot >= 0:
+        modlock.log(f"slot {kill.attacker_player.slot} defeated slot {kill.victim_player.slot}")
 ```
 
 ```go
-mod.OnDamaged(func(hit *mod.DamagedEvent) {
-	if hit.GetHealthLost() >= hit.GetHealthBefore() {
-		mod.Log("entity", hit.GetAttacker(), "defeated entity", hit.GetVictim())
+mod.OnKill(func(kill *mod.KillEvent) {
+	if kill.GetAttackerPlayer() >= 0 && kill.GetVictimPlayer() >= 0 {
+		mod.Log("slot", kill.GetAttackerPlayer(), "defeated slot", kill.GetVictimPlayer())
 	}
 })
 ```
 
 </Samples>
 
-To turn a kill into a score, use [Kill scoring](/mechanics/kill-scoring),
-which finds the player whose hero has the attacker's entity number.
+The sample logs only kills between two players' heroes, since a slot of -1
+means no player's hero is on that side. The kill comes from the same hit
+`onDamaged` reports, one that took all the health the victim had left. Python
+spells the fields in `snake_case`, and Go reads each player as a slot, such as
+`kill.GetVictimPlayer()`.
+
+| Field            | Holds                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `victim`         | The entity that died.                                                                             |
+| `victimPlayer`   | The player whose hero died, or slot -1 for a unit.                                                |
+| `attacker`       | The entity credited with the killing hit, or 0 for a hazard.                                      |
+| `attackerPlayer` | The player whose hero is the attacker, or slot -1. A hero that killed itself is its own attacker. |
+| `ability`        | The ability that dealt the killing hit, or 0.                                                     |
+
+To turn a kill into a score, use [Kill scoring](/mechanics/kill-scoring).

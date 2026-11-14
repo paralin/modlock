@@ -17,7 +17,7 @@ them.
 | `adjustAbilityPoints(points, unlocks)` | Gives or takes ability points and unlocks. The hero's `abilityPoints` and `abilityUnlocks` then show what is left.                                                                                               |
 | `abilityBarPresses(player, handler)`   | Reports each click on a slot's icon or pips as `(player, slot)`.                                                                                                                                                 |
 | `abilityDisplay(viewer, rows)`         | Shows the viewer each row's abilities on the Tab screen and the ability bar, in place of the game's.                                                                                                             |
-| `setAbility`                           | Changes the first ability with a matching name.                                                                                                                                                                  |
+| `setAbility`                           | Changes the first ability with a matching name: its upgrades, charges, timers and [cooldown length](#cooldown-length).                                                                                           |
 | `restoreHero`                          | Gives a live hero a saved build, health and cooldowns over a few seconds. Each ability in the target gives its definition ID and slot, so each copy of a repeated ability is trained on its own.                 |
 
 ## Swapped abilities
@@ -32,6 +32,26 @@ them.
 - `imbue` makes the item strengthen whatever ability the hero holds in that
   slot, including one `replaceAbility` put there. When that ability does not
   accept the item, the call fails before it spends anything.
+
+## Cooldown length
+
+`setAbility`'s `cooldown` option sets, in seconds, how long every later
+cooldown of the ability lasts, in place of the game's own length. An ability
+that holds charges waits that long between casts. 0 leaves the ability always
+ready, and a negative value returns it to the game's own. A cooldown already
+running keeps its end; `cooldownEnd` moves that one. The length holds for that
+ability of that hero until the mod stops or reloads, so set it again after a
+hero change or a `replaceAbility`.
+
+| Language   | Three-second cooldown                                                          |
+| ---------- | ------------------------------------------------------------------------------ |
+| TypeScript | `player.setAbility({ ability: name, cooldown: 3 })`                            |
+| Luau       | `player:setAbility({ ability = name, cooldown = 3 })`                          |
+| Python     | `player.set_ability(modlock.AbilityOptions(ability=name, cooldown=3))`         |
+| Go         | `p.SetAbility(&mod.AbilityOptions{Ability: name, Cooldown: proto.Float32(3)})` |
+
+Go's `Cooldown` is a `*float32`, so an unset option stays nil; `proto.Float32`
+comes from `google.golang.org/protobuf/proto`.
 
 ## Game commands a mod claims
 

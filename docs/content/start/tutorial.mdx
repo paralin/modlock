@@ -235,40 +235,26 @@ The round has a start now, and `live` says whether it has begun. Use it to block
 <Samples>
 
 ```ts
-import { onDamage, onDamaged, type Player } from 'modlock'
+import { onDamage, onKill } from 'modlock'
 
 const defeats = new Map<number, number>()
 
 // Nobody gets hurt until the round is live.
 onDamage(() => (live ? undefined : { block: true }))
 
-// A lethal hit scores for the player who landed it.
-onDamaged((hit) => {
-  const scorer = playerOf(hit.attacker)
-  if (hit.healthLost < hit.healthBefore || scorer === undefined) {
+// A hero's defeat scores for the player who landed the killing hit.
+onKill((kill) => {
+  const scorer = kill.attackerPlayer
+  const victim = kill.victimPlayer
+  if (victim.slot < 0 || scorer.slot < 0 || scorer.slot === victim.slot) {
     return
   }
   defeats.set(scorer.slot, (defeats.get(scorer.slot) ?? 0) + 1)
 })
-
-function playerOf(entity: number): Player | undefined {
-  return players().find(({ player }) => player.pawn()?.entity === entity)
-    ?.player
-}
 ```
 
 ```luau
 local defeats: { [number]: number } = {}
-
-local function playerOf(entity: number): modlock.Player?
-	for _, connection in modlock.players() do
-		local pawn = connection.player:pawn()
-		if pawn and pawn.entity == entity then
-			return connection.player
-		end
-	end
-	return nil
-end
 
 -- Nobody gets hurt until the round is live.
 modlock.onDamage(function(hit)
@@ -278,10 +264,10 @@ modlock.onDamage(function(hit)
 	return { block = true }
 end)
 
--- A lethal hit scores for the player who landed it.
-modlock.onDamaged(function(hit)
-	local scorer = playerOf(hit.attacker)
-	if hit.healthLost < hit.healthBefore or scorer == nil then
+-- A hero's defeat scores for the player who landed the killing hit.
+modlock.onKill(function(kill)
+	local scorer, victim = kill.attackerPlayer, kill.victimPlayer
+	if victim.slot < 0 or scorer.slot < 0 or scorer.slot == victim.slot then
 		return
 	end
 	defeats[scorer.slot] = (defeats[scorer.slot] or 0) + 1
@@ -292,25 +278,17 @@ end)
 defeats: dict[int, int] = {}
 
 
-def player_of(entity: int) -> modlock.Player | None:
-    for connection in modlock.players():
-        pawn = connection.player.pawn()
-        if pawn is not None and pawn.entity == entity:
-            return connection.player
-    return None
-
-
 # Nobody gets hurt until the round is live.
 @modlock.on_damage
 def guard(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
     return None if live else modlock.DamageResult(block=True)
 
 
-# A lethal hit scores for the player who landed it.
-@modlock.on_damaged
-def scored(hit: modlock.DamagedEvent) -> None:
-    scorer = player_of(hit.attacker)
-    if hit.health_lost < hit.health_before or scorer is None:
+# A hero's defeat scores for the player who landed the killing hit.
+@modlock.on_kill
+def scored(kill: modlock.KillEvent) -> None:
+    scorer, victim = kill.attacker_player, kill.victim_player
+    if victim.slot < 0 or scorer.slot < 0 or scorer.slot == victim.slot:
         return
     defeats[scorer.slot] = defeats.get(scorer.slot, 0) + 1
 ```
@@ -328,35 +306,24 @@ func init() {
 		return &mod.DamageResult{Block: &block}
 	})
 
-	// A lethal hit scores for the player who landed it.
-	mod.OnDamaged(func(hit *mod.DamagedEvent) {
-		scorer, ok := playerOf(hit.GetAttacker())
-		if hit.GetHealthLost() < hit.GetHealthBefore() || !ok {
+	// A hero's defeat scores for the player who landed the killing hit.
+	mod.OnKill(func(kill *mod.KillEvent) {
+		scorer, victim := mod.Player{Slot: kill.GetAttackerPlayer()}, kill.GetVictimPlayer()
+		if victim < 0 || scorer.Slot < 0 || scorer.Slot == victim {
 			return
 		}
 		defeats[scorer.Slot]++
 	})
 }
-
-func playerOf(entity uint32) (mod.Player, bool) {
-	connections, _ := mod.Players()
-	for _, c := range connections {
-		p := mod.Player{Slot: c.GetPlayer()}
-		if pawn, err := p.Pawn(); err == nil && pawn != nil && pawn.GetEntity() == entity {
-			return p, true
-		}
-	}
-	return mod.Player{}, false
-}
 ```
 
 </Samples>
 
-To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do no damage. Once the announcement shows, they land, and each hit that defeats a hero adds one to its attacker's count in `defeats`. Nothing shows that count yet; the next step draws it.
+To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do no damage. Once the announcement shows, they land, and each hero you defeat adds one to your count in `defeats`. Nothing shows that count yet; the next step draws it.
 
-The mod gets two events for each hit. The damage event comes before the game applies the hit, so the sample can block it while `live` is false. The damaged event comes on the frame after the hit lands, with the victim's health before the hit and the health it lost. A hit that took all of that health was lethal. In a hit, each hero is an entity number, the same as the pawn's `entity`, and `playerOf` finds the player whose pawn has that number.
+The damage event comes before the game applies each hit, so the sample can block it while `live` is false. The kill event comes after each hit that kills a hero or a unit, before the next frame. It names the player whose hero died and the player whose hero landed the hit. A slot of -1 means a unit, or a hazard for the attacker. A hero that killed itself is its own attacker, so the sample scores only a kill where both slots are players' and differ.
 
-This map keys scores by slot. A slot is reused when one player leaves and another joins. In a mode where players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
+This map keys scores by slot. A slot is reused when one player leaves and another joins. In a mode where players come and go, clear a player's score when they leave. Or key scores by slot and `generation`, which changes each time someone new takes the slot.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
@@ -660,7 +627,7 @@ The score sits in the top right for everyone. Next, let each player choose its c
 "metrics": [{ "name": "brawl.defeats", "kind": "KIND_COUNT" }]
 ```
 
-Read the player's setting in `drawScore` and align the panel with it. Add to the metric in the damaged handler once the hit scores:
+Read the player's setting in `drawScore` and align the panel with it. Add to the metric in the kill handler once the kill scores:
 
 <Samples>
 
