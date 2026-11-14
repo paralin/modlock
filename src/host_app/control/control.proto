@@ -27,9 +27,41 @@ message ControlRequest {
     // Service installs a cached service answer and reloads its mod to adopt it.
     ServiceReply service = 3;
 
+    // Call calls a service a running mod serves; the host answers with a
+    // Called event.
+    ModCall call = 4;
+
     // Answer ends one ServiceCall the host forwarded.
-    ServiceAnswer answer = 4;
+    ServiceAnswer answer = 5;
   }
+}
+
+// ModCall calls one method of a service a running mod serves, on the game's
+// thread between frames. Only the controller can send it; no player can.
+message ModCall {
+  // Mod is the running mod's slug.
+  string mod = 1;
+  // Service and Method select the call, such as the library's "console"
+  // service and its "run" method.
+  string service = 2;
+  string method = 3;
+  // Payload is the call's encoded request, opaque to the host.
+  bytes payload = 4;
+  // Id identifies this call in its result, opaque to the host.
+  string id = 5;
+}
+
+// ModCallResult answers one ModCall.
+message ModCallResult {
+  // Id matches the ModCall this result answers.
+  string id = 1;
+  // Mod is the mod that was called.
+  string mod = 2;
+  // Payload is the mod's encoded answer.
+  bytes payload = 3;
+  // Error says why the call failed: no such mod is running, the mod serves
+  // no such service, or its handler failed. It is empty on success.
+  string error = 4;
 }
 
 // ReloadRequest replaces one mod in place. The mod keeps its place among the
@@ -84,9 +116,12 @@ message HostEvent {
     // ServiceApplied confirms whether a controller configuration started.
     ServiceResult service_applied = 12;
 
+    // Called answers a ModCall.
+    ModCallResult called = 13;
+
     // ServiceCall asks the controller to answer a mod's started call to a
     // service the fixtures forward; an Answer with its id ends it.
-    ServiceCall service_call = 13;
+    ServiceCall service_call = 14;
   }
 }
 

@@ -1,0 +1,258 @@
+---
+title: Checkpoint race
+description: Time each runner through a course of checkpoints.
+---
+
+Checkpoints time a run. A course is a list of points. Each runner tracks the
+next checkpoint and a start time. A runner close enough to the next checkpoint
+advances; the last checkpoint stops the clock.
+
+<Samples>
+
+```ts
+import {
+  command,
+  onFrame,
+  onPlayerLeave,
+  type Player,
+  type Vector,
+} from 'modlock'
+
+// The first point is the start line and the last is the finish.
+const course: Vector[] = [
+  { x: 0, y: 0, z: 64 },
+  { x: 1200, y: 0, z: 64 },
+  { x: 1200, y: 1600, z: 64 },
+]
+const reach = 150
+
+interface Run {
+  player: Player
+  next: number
+  started: number
+}
+const runs = new Map<number, Run>()
+let now = 0
+
+command('race', (player) => {
+  const start = course[0]
+  if (start === undefined) {
+    return
+  }
+  player.teleport(start, { pitch: 0, yaw: 0, roll: 0 })
+  runs.set(player.slot, { player, next: 1, started: now })
+  player.centerText('Go!')
+})
+
+onFrame((frame) => {
+  now = frame.timeSeconds
+  for (const [slot, run] of runs) {
+    const at = run.player.pawn()?.position
+    const gate = course[run.next]
+    if (at === undefined || gate === undefined) {
+      continue
+    }
+    if (Math.hypot(at.x - gate.x, at.y - gate.y, at.z - gate.z) > reach) {
+      continue
+    }
+    run.next += 1
+    if (run.next < course.length) {
+      run.player.centerText(
+        `Checkpoint ${run.next - 1} of ${course.length - 2}`,
+      )
+      continue
+    }
+    run.player.announce('Finished', `${(now - run.started).toFixed(2)} seconds`)
+    runs.delete(slot)
+  }
+})
+
+onPlayerLeave(({ connection }) => {
+  runs.delete(connection.player.slot)
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+-- The first point is the start line and the last is the finish.
+local course = {
+	{ x = 0, y = 0, z = 64 },
+	{ x = 1200, y = 0, z = 64 },
+	{ x = 1200, y = 1600, z = 64 },
+}
+local reach = 150
+
+type Run = { player: modlock.Player, next: number, started: number }
+local runs: { [number]: Run } = {}
+local now = 0
+
+modlock.command("race", function(player)
+	player:teleport(course[1], { pitch = 0, yaw = 0, roll = 0 })
+	runs[player.slot] = { player = player, next = 2, started = now }
+	player:centerText("Go!")
+end)
+
+modlock.onFrame(function(frame)
+	now = frame.timeSeconds
+	for slot, run in runs do
+		local pawn = run.player:pawn()
+		local gate = course[run.next]
+		if pawn and gate then
+			local at = pawn.position
+			local dx, dy, dz = at.x - gate.x, at.y - gate.y, at.z - gate.z
+			if math.sqrt(dx * dx + dy * dy + dz * dz) <= reach then
+				run.next += 1
+				if run.next <= #course then
+					run.player:centerText(`Checkpoint {run.next - 2} of {#course - 2}`)
+				else
+					run.player:announce("Finished", string.format("%.2f seconds", now - run.started))
+					runs[slot] = nil
+				end
+			end
+		end
+	end
+end)
+
+modlock.onPlayerLeave(function(left)
+	runs[left.connection.player.slot] = nil
+end)
+```
+
+```python
+import dataclasses
+import math
+
+import modlock
+
+# The first point is the start line and the last is the finish.
+COURSE = [
+    modlock.Vector(0, 0, 64),
+    modlock.Vector(1200, 0, 64),
+    modlock.Vector(1200, 1600, 64),
+]
+REACH = 150
+
+
+@dataclasses.dataclass
+class Run:
+    player: modlock.Player
+    next: int
+    started: float
+
+
+runs: dict[int, Run] = {}
+now = 0.0
+
+
+@modlock.command("race")
+def race(player: modlock.Player, args: str) -> None:
+    player.teleport(COURSE[0], modlock.Angles(0, 0, 0))
+    runs[player.slot] = Run(player, 1, now)
+    player.center_text("Go!")
+
+
+@modlock.on_frame
+def frame(frame: modlock.FrameEvent) -> None:
+    global now
+    now = frame.time_seconds
+    for slot, run in list(runs.items()):
+        pawn = run.player.pawn()
+        if pawn is None:
+            continue
+        at, gate = pawn.position, COURSE[run.next]
+        if math.dist((at.x, at.y, at.z), (gate.x, gate.y, gate.z)) > REACH:
+            continue
+        run.next += 1
+        if run.next < len(COURSE):
+            run.player.center_text(f"Checkpoint {run.next - 1} of {len(COURSE) - 2}")
+            continue
+        run.player.announce("Finished", f"{now - run.started:.2f} seconds")
+        del runs[slot]
+
+
+@modlock.on_player_leave
+def left(event: modlock.PlayerLeftEvent) -> None:
+    runs.pop(event.connection.player.slot, None)
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"math"
+
+	"github.com/paralin/modlock/mod"
+)
+
+// The first point is the start line and the last is the finish.
+var course = []*mod.Vector{
+	{X: 0, Y: 0, Z: 64},
+	{X: 1200, Y: 0, Z: 64},
+	{X: 1200, Y: 1600, Z: 64},
+}
+
+const reach = 150
+
+type run struct {
+	next    int
+	started float64
+}
+
+var (
+	runs = map[int32]*run{}
+	now  float64
+)
+
+func init() {
+	mod.Command("race", func(p mod.Player, args string) {
+		_ = p.Teleport(course[0], &mod.Angles{}, nil)
+		runs[p.Slot] = &run{next: 1, started: now}
+		_ = p.CenterText("Go!")
+	})
+
+	mod.OnFrame(func(frame *mod.FrameEvent) {
+		now = frame.GetTimeSeconds()
+		for slot, r := range runs {
+			p := mod.Player{Slot: slot}
+			pawn, err := p.Pawn()
+			if err != nil || pawn == nil {
+				continue
+			}
+			at, gate := pawn.GetPosition(), course[r.next]
+			dx, dy, dz := at.GetX()-gate.GetX(), at.GetY()-gate.GetY(), at.GetZ()-gate.GetZ()
+			if math.Sqrt(float64(dx*dx+dy*dy+dz*dz)) > reach {
+				continue
+			}
+			r.next++
+			if r.next < len(course) {
+				_ = p.CenterText(fmt.Sprintf("Checkpoint %d of %d", r.next-1, len(course)-2))
+				continue
+			}
+			_ = p.Announce("Finished", fmt.Sprintf("%.2f seconds", now-r.started))
+			delete(runs, slot)
+		}
+	})
+
+	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
+		delete(runs, left.GetConnection().GetPlayer())
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+## Make it yours
+
+- Show each checkpoint with [text in the world](/guides/world#place-text).
+  In TypeScript, use [`RaceGate`](/guides/toolkit#stand-a-race-gate) for a
+  glowing gate to run through.
+- A reload loses a run in progress.
+  [Hold the reload](/guides/reloads#hold-a-reload) while anyone is racing.
+- Rank the times with a [board](/guides/data#boards) in milliseconds,
+  ordered ascending.
+- The [`race`](https://github.com/paralin/modlock/tree/master/examples/race)
+  example is a complete race in Go, with its rules tested by plain `go test`.

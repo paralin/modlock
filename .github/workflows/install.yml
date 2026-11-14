@@ -1,0 +1,37 @@
+name: Install
+on:
+  push:
+    branches: [master]
+    paths: ['install.sh', 'install.ps1', '.github/workflows/install.yml']
+  pull_request:
+    paths: ['install.sh', 'install.ps1', '.github/workflows/install.yml']
+permissions:
+  contents: read
+jobs:
+  unix:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install modlock
+        run: sh install.sh
+      - name: Run the installed modlock
+        run: |
+          "$HOME/.local/bin/modlock" --version
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Windows PowerShell 5.1 is what a new Windows PC has.
+      - name: Install modlock
+        shell: powershell
+        run: Get-Content -Raw install.ps1 | Invoke-Expression
+      # A new step is a new terminal, which finds modlock through the PATH the
+      # installer saved for the user.
+      - name: Run the installed modlock
+        shell: powershell
+        run: |
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'User')
+          modlock --version

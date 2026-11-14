@@ -61,6 +61,16 @@ local function with(options: any, name: string, value: any): any
 	return request
 end
 
+-- heroNamed is modlock.heroNamed, which the library defines below.
+local heroNamed: (name: string) -> { name: string }?
+
+-- heroName returns the game's name of the hero name names, as heroNamed
+-- matches it, or name itself when it names no released hero.
+local function heroName(name: string): string
+	local hero = heroNamed(name)
+	return if hero then hero.name else name
+end
+
 `
 
 // luauWriter writes the Luau library's module.
@@ -91,6 +101,7 @@ func writeLuau(s *schema) ([]byte, error) {
 			w.absent[f] = true
 		}
 	}
+	s.serviceAbsent(w.absent)
 	w.out.WriteString(luauPreamble)
 	if err := w.writeTypes(); err != nil {
 		return nil, err
@@ -122,7 +133,7 @@ func (w *luauWriter) writeTypes() error {
 		var names, entries []string
 		for _, v := range e.named() {
 			names = append(names, fmt.Sprintf("%q", e.valueName(v)))
-			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), e.valueName(v), v.number))
+			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), luauKey(e.valueName(v)), v.number))
 		}
 		fmt.Fprintf(&w.out, "export type %s = %s\n", e.name, strings.Join(names, " | "))
 		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
@@ -294,7 +305,9 @@ func (w *luauWriter) writeCall(c *call) {
 }
 
 // writeSchema writes the descriptor of every message the library encodes or
-// decodes.
+// decodes, which includes the interface tree the Ui call sends and the
+// messages of the services outside Modlock, and the wire names of the enums
+// only those reach.
 func (w *luauWriter) writeSchema() error {
 	var r reach
 	for _, m := range w.s.messageOrder {
@@ -306,9 +319,33 @@ func (w *luauWriter) writeSchema() error {
 		r.add(c.method.request)
 		r.add(c.method.response)
 	}
+	for _, m := range w.s.host.methods {
+		if m.name == "Ui" {
+			r.add(m.request)
+			r.add(m.response)
+		}
+	}
 	for _, m := range w.s.mod.methods {
 		r.add(m.request)
 		r.add(m.response)
+	}
+	for _, m := range w.s.services {
+		r.add(m)
+	}
+	for _, e := range r.enums {
+		if w.enumsIn[e] || w.enumsOut[e] {
+			continue
+		}
+		var entries []string
+		for _, v := range e.named() {
+			entries = append(entries, fmt.Sprintf("\t[%d] = %q,\n\t%s = %d,\n", v.number, e.valueName(v), luauKey(e.valueName(v)), v.number))
+		}
+		what := "interface enum"
+		if e.file.isService() {
+			what = "service enum"
+		}
+		fmt.Fprintf(&w.out, "-- %s holds the wire names of the %s %s.\n", e.name, what, e.name)
+		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
 	}
 	for _, m := range w.s.messageOrder {
 		if !r.seen[m] {
@@ -340,6 +377,7 @@ var luauKinds = map[descriptorpb.FieldDescriptorProto_Type]string{
 	descriptorpb.FieldDescriptorProto_TYPE_UINT64:  "uint64",
 	descriptorpb.FieldDescriptorProto_TYPE_INT32:   "int32",
 	descriptorpb.FieldDescriptorProto_TYPE_FIXED32: "fixed32",
+	descriptorpb.FieldDescriptorProto_TYPE_FIXED64: "fixed64",
 	descriptorpb.FieldDescriptorProto_TYPE_BOOL:    "bool",
 	descriptorpb.FieldDescriptorProto_TYPE_STRING:  "string",
 	descriptorpb.FieldDescriptorProto_TYPE_MESSAGE: "message",
@@ -360,6 +398,8 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 		fmt.Sprintf("kind = %q", kind),
 	}
 	switch {
+	case f.isMap():
+		members = append(members, "repeated = true", "map = true")
 	case f.repeated:
 		members = append(members, "repeated = true")
 	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:
@@ -382,6 +422,9 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 	}
 	if isID(f) {
 		members = append(members, "id = true")
+	}
+	if f.hero {
+		members = append(members, "resolve = heroName")
 	}
 	return strings.Join(members, ", "), nil
 }

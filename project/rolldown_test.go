@@ -153,7 +153,12 @@ func locateGreeting(t *testing.T, p *Project, main, script string) {
 	source, _ := os.ReadFile(main)
 	before, _, _ = strings.Cut(string(source), greeting)
 	want := strings.Count(before, "\n") + 1
-	if !ok || filepath.Join(p.Output(), filepath.FromSlash(at.Source)) != main || at.Line != want {
+
+	// The bundler names the source by its real path, which differs from the
+	// project's when a temporary directory sits behind a symbolic link.
+	mapped, _ := filepath.EvalSymlinks(filepath.Join(p.Output(), filepath.FromSlash(at.Source)))
+	real, _ := filepath.EvalSymlinks(main)
+	if !ok || mapped != real || at.Line != want {
 		t.Errorf("the greeting at bundle line %d maps to %+v %v, want %s:%d", line, at, ok, main, want)
 	}
 }

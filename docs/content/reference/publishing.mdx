@@ -1,0 +1,52 @@
+---
+title: Publishing
+description: Release a mod for others to play.
+---
+
+`modlock publish` builds the mod and runs the check each host runs. The module
+may import only Modlock and WASI functions, and must start and answer its first
+event within the limits. It then goes where `--to` says:
+
+| `--to`      | Effect                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| `hyperline` | The default. Upload the mod to [hyperline.gg](https://hyperline.gg).                             |
+| `archive`   | Write `SLUG-VERSION.zip` to `--out`: the mod, `modlock.exe` and `Play.cmd` to run it on Windows. |
+| `github`    | Attach that zip to the GitHub release `SLUG-vVERSION`, creating the release if needed.           |
+
+The first upload opens the browser to sign in to hyperline.gg, as
+`modlock login` does, and saves the sign-in for later commands.
+
+Publishing to hyperline.gg needs access during the alpha. Ask for access in the
+[Hyperline Discord](https://discord.gg/DCErWrCFvh).
+
+`--origin` points `modlock publish` at another service with the same API.
+
+The `github` destination uses the [`gh`](https://cli.github.com) command line and
+its sign-in.
+
+The built `mod.json` keeps every field of yours that Modlock does not read,
+such as a store's description. The destination reads them.
+
+Hyperline publishes each version once. Raise `version` in `mod.json` before
+publishing again.
+
+`--notes` says what changed. hyperline.gg shows it on the game's page, and the
+`github` destination uses it for a new release.
+
+`--prerelease` publishes to hyperline.gg for the mod's testers only, with a
+version such as `0.2.0-pre.1`. Every game keeps its release.
+
+Each of the mod's games gains a Draft copy, such as "Zombie Tag Prerelease",
+that plays the prerelease. Anyone a tester invites may join it.
+
+A later prerelease replaces it. Choosing that copy as current on hyperline.gg
+makes that same build the release, without publishing again.
+
+After the upload, `modlock publish` says where the release plays.
+
+A mod with code plays on hyperline.gg's game servers at once. It plays on
+players' own PCs once a reviewer approves it. If the creator is trusted, the
+creator's releases play everywhere when published.
+
+A mod that ships its own layouts, models or sounds publishes them with it. See
+[client content](/guides/client-content).

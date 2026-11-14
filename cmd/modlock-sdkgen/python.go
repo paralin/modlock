@@ -27,6 +27,7 @@ from typing import Any, Literal
 
 import _modlock
 
+from . import heroes as _heroes
 from . import wire
 
 
@@ -68,6 +69,13 @@ def _with(options: Any, name: str, value: Any) -> dict[str, Any]:
     return request
 
 
+def _hero_name(name: str) -> str:
+    """_hero_name returns the game's name of the hero name names, as
+    hero_named matches it, or name itself when it names no released hero."""
+    hero = _heroes.hero_named(name)
+    return name if hero is None else hero.name
+
+
 `
 
 // pythonWriter writes the Python library's module.
@@ -79,6 +87,10 @@ type pythonWriter struct {
 	// absent holds the result field of each call that answers None when the
 	// host leaves it out.
 	absent map[*field]bool
+	// library reaches the messages and enums of the Host methods the
+	// handwritten library calls itself, such as Ui, and of the services
+	// outside Modlock, which it encodes as dicts.
+	library reach
 }
 
 // writePython returns python/modlock/__init__.py, which ends with the
@@ -98,6 +110,16 @@ func writePython(s *schema) ([]byte, error) {
 			w.absent[f] = true
 		}
 	}
+	for _, m := range s.host.methods {
+		if skipped[m.name] {
+			w.library.add(m.request)
+			w.library.add(m.response)
+		}
+	}
+	for _, m := range s.services {
+		w.library.add(m)
+	}
+	s.serviceAbsent(w.absent)
 	w.out.WriteString(pythonPreamble)
 	w.writeTypes()
 	for _, c := range classes {
@@ -124,10 +146,14 @@ func (w *pythonWriter) hasClass(m *message) bool {
 }
 
 // writeTypes writes the enums, with their tables, and the message types in
-// schema order.
+// schema order. An enum only the handwritten library encodes gets its table
+// alone, since a mod never names its values.
 func (w *pythonWriter) writeTypes() {
 	for _, e := range w.s.enumOrder {
 		if !w.enumsIn[e] && !w.enumsOut[e] {
+			if w.library.seen[e] {
+				w.writeEnumTable(e)
+			}
 			continue
 		}
 		writeComment(&w.out, "", "#", e.doc)
@@ -177,6 +203,18 @@ func (w *pythonWriter) writeTypes() {
 		}
 		w.out.WriteString("\n\n")
 	}
+}
+
+// writeEnumTable writes the table that maps each of e's numbers to its name
+// and back, for an enum the module declares no type for.
+func (w *pythonWriter) writeEnumTable(e *enum) {
+	fmt.Fprintf(&w.out, "# _%s maps each %s to its number and back.\n", e.name, e.name)
+	fmt.Fprintf(&w.out, "_%s: dict[Any, Any] = {\n", e.name)
+	for _, v := range e.named() {
+		name := pythonValue(e, v)
+		fmt.Fprintf(&w.out, "    %d: %q,\n    %q: %d,\n", v.number, name, name, v.number)
+	}
+	w.out.WriteString("}\n\n\n")
 }
 
 // member returns the annotation and default of field f of message m. A mod
@@ -297,8 +335,17 @@ func (w *pythonWriter) writeCall(c *call, indent string) {
 		fmt.Fprintf(&w.out, "%s    return %s) is not None\n", indent, send)
 		return
 	}
+
+	// Call the method and return the failure value when it fails.
 	fmt.Fprintf(&w.out, "%s    response = %s, %q)\n", indent, send, c.method.response.name)
 	fmt.Fprintf(&w.out, "%s    if response is None:\n%s        return %s\n", indent, indent, failure)
+
+	// A response the library also hands a mod, such as ServiceReply, decodes
+	// to its dataclass; the others decode to dicts.
+	if w.hasClass(c.method.response) {
+		fmt.Fprintf(&w.out, "%s    return response.%s\n", indent, pythonName(c.result.name))
+		return
+	}
 	fmt.Fprintf(&w.out, "%s    return response[%q]\n", indent, pythonName(c.result.name))
 }
 
@@ -318,6 +365,9 @@ func (w *pythonWriter) writeSchema() error {
 	for _, m := range w.s.mod.methods {
 		r.add(m.request)
 		r.add(m.response)
+	}
+	for _, m := range w.library.messages {
+		r.add(m)
 	}
 	w.out.WriteString("# _SCHEMA describes every message the library encodes or decodes.\n")
 	w.out.WriteString("_SCHEMA: wire.Schema = {\n")
@@ -353,11 +403,16 @@ func (w *pythonWriter) writeSchema() error {
 // descriptor returns the arguments of f's descriptor.
 func (w *pythonWriter) descriptor(f *field) (string, error) {
 	kind, ok := luauKinds[f.kind]
+	if f.kind == descriptorpb.FieldDescriptorProto_TYPE_FIXED64 {
+		kind, ok = "fixed64", true
+	}
 	if !ok {
 		return "", fmt.Errorf("the Python codec has no %s for %s", f.kind, f.name)
 	}
 	args := []string{fmt.Sprintf("%d", f.number), fmt.Sprintf("%q", pythonName(f.name)), fmt.Sprintf("%q", kind)}
 	switch {
+	case f.isMap():
+		args = append(args, "repeated=True", "map=True")
 	case f.repeated:
 		args = append(args, "repeated=True")
 	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:
@@ -377,6 +432,9 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 	}
 	if c := classOf(f); c != nil {
 		args = append(args, "cls="+c.name, fmt.Sprintf("key=%q", c.key))
+	}
+	if f.hero {
+		args = append(args, "resolve=_hero_name")
 	}
 	return strings.Join(args, ", "), nil
 }

@@ -64,9 +64,15 @@ type handlers struct {
 	impacts       []func(*ImpactEvent)
 	landeds       []func(*LandedEvent)
 	settings      []func(p Player, key, value string)
+	presses       []func(p Player, node string)
+	changes       []func(*UiInputEvent)
+	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
 	roster []*Connection
+	// rosters counts the player lists the host reported, so a Cast settles
+	// joins and leaves only after a new one.
+	rosters uint64
 
 	// result holds the last encoded Reply until the host has copied it.
 	result []byte
@@ -217,6 +223,27 @@ func OnSettingChanged(handler func(p Player, key, value string)) {
 	registered.settings = append(registered.settings, handler)
 }
 
+// OnUiPress calls handler with the node id of each button a player presses in
+// the mod's interface, with the next server frame. Package ui registers it to
+// run the buttons' handlers.
+func OnUiPress(handler func(p Player, node string)) {
+	registered.presses = append(registered.presses, handler)
+}
+
+// OnUiInput calls handler with each change a player makes to an input in the
+// mod's interface, with the next server frame. Package ui registers it to run
+// the inputs' handlers.
+func OnUiInput(handler func(event *UiInputEvent)) {
+	registered.changes = append(registered.changes, handler)
+}
+
+// OnPlayers calls handler with each player list the host reports, before the
+// event it arrives with. A slot whose generation changed holds a new
+// connection.
+func OnPlayers(handler func(players []*Connection)) {
+	registered.rosterWatches = append(registered.rosterWatches, handler)
+}
+
 // Start runs the start handlers and asks for the events the mod handles.
 func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 	for _, handler := range h.starts {
@@ -235,6 +262,9 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 // Frame runs the timers that came due and the frame handlers.
 func (h *handlers) Frame(event *FrameEvent) error {
 	advanceTimers(event.GetTimeSeconds())
+	if len(spawns.handlers) != 0 {
+		watchSpawns()
+	}
 	for _, handler := range h.frames {
 		handler(event)
 	}
@@ -278,13 +308,25 @@ func (h *handlers) World(event *WorldEvent) error {
 	return nil
 }
 
-// UiPress ignores presses; Go mods build no interface.
-func (h *handlers) UiPress(*UiPressEvent) error {
+// UiPress runs the press handlers with the next frame, since a press arrives
+// under the same CPU budget as a command.
+func (h *handlers) UiPress(event *UiPressEvent) error {
+	player, node := Player{Slot: event.GetPlayer()}, event.GetNode()
+	After(0, func() {
+		for _, handler := range h.presses {
+			handler(player, node)
+		}
+	})
 	return nil
 }
 
-// UiInput ignores changes to inputs; Go mods build no interface.
-func (h *handlers) UiInput(*UiInputEvent) error {
+// UiInput runs the input handlers with the next frame, as a press does.
+func (h *handlers) UiInput(event *UiInputEvent) error {
+	After(0, func() {
+		for _, handler := range h.changes {
+			handler(event)
+		}
+	})
 	return nil
 }
 
@@ -407,6 +449,10 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 	if h.roster == nil {
 		h.roster = []*Connection{}
 	}
+	h.rosters++
+	for _, handler := range h.rosterWatches {
+		handler(h.roster)
+	}
 	return nil
 }
 
@@ -423,6 +469,25 @@ func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error {
 func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
 	for _, handler := range h.leaves {
 		handler(event)
+	}
+	return nil
+}
+
+// ConnectionOf returns the connection of player: their name, Steam ID,
+// whether they are a bot and whether they finished joining. It returns nil
+// when nobody holds the slot.
+func ConnectionOf(player Player) *Connection {
+	// Read the roster the host reported, or ask for it.
+	held := registered.roster
+	if held == nil {
+		held, _ = Players()
+	}
+
+	// Find the slot.
+	for _, connection := range held {
+		if connection.GetPlayer() == player.Slot {
+			return connection
+		}
 	}
 	return nil
 }

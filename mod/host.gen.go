@@ -335,6 +335,9 @@ type Ability = abilitiespb.Ability
 // AbilityOptions changes one ability of a player's hero.
 type AbilityOptions = abilitiespb.AbilityOptions
 
+// Modifier is one modifier an entity holds, as the game keeps it.
+type Modifier = abilitiespb.Modifier
+
 // BuildCategory is one named group of a build's items.
 type BuildCategory = abilitiespb.BuildCategory
 
@@ -730,7 +733,14 @@ func (p Player) Announce(title, text string) error {
 // reload, prepares only the world after the next map change. Name every
 // hero whose abilities ReplaceAbility gives, with their particles.
 func Precache(options *PrecacheOptions) error {
-	return invoke("Precache", options, nil)
+	request := options.CloneVT()
+	if request == nil {
+		request = &PrecacheOptions{}
+	}
+	for i, hero := range request.Heroes {
+		request.Heroes[i] = heroName(hero)
+	}
+	return invoke("Precache", request, nil)
 }
 
 // Pawn returns the player's pawn this frame: the hero, or the game's
@@ -849,7 +859,7 @@ func (p Player) SelectHero(hero any, team int32) (uint32, error) {
 	request := &playerspb.SelectHeroRequest{Player: p.Slot, Team: team}
 	switch hero := hero.(type) {
 	case string:
-		request.Hero = &playerspb.SelectHeroRequest_HeroName{HeroName: hero}
+		request.Hero = &playerspb.SelectHeroRequest_HeroName{HeroName: heroName(hero)}
 	case uint32:
 		request.Hero = &playerspb.SelectHeroRequest_HeroId{HeroId: hero}
 	default:
@@ -1012,7 +1022,7 @@ func (p Player) TrainAbility(slot uint32) error {
 // without a build answers with no categories. The call needs a loaded
 // world.
 func HeroBuild(hero string) ([]*BuildCategory, error) {
-	request := &abilitiespb.HeroBuildRequest{Hero: hero}
+	request := &abilitiespb.HeroBuildRequest{Hero: heroName(hero)}
 	response := &abilitiespb.HeroBuildResponse{}
 	if err := invoke("HeroBuild", request, response); err != nil {
 		return nil, err
@@ -1311,6 +1321,19 @@ func ModifierState(entity uint32, state string) (bool, error) {
 	return response.GetActive(), nil
 }
 
+// Modifiers lists every modifier an entity holds, such as the stun a
+// hero's ultimate keeps on its target, with its name, class, caster,
+// ability, age, time left and stacks. An entity that holds none answers an
+// empty list.
+func Modifiers(entity uint32) ([]*Modifier, error) {
+	request := &entitiespb.EntityRequest{Entity: entity}
+	response := &abilitiespb.ModifiersResponse{}
+	if err := invoke("Modifiers", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetModifiers(), nil
+}
+
 // HoldModifierState holds a modifier state, such as
 // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
 // releases the hold. The hold ends with the entity.
@@ -1439,8 +1462,15 @@ func (w WorldObject) Entity() (uint32, error) {
 // AddBot adds a bot player and returns it. The bot leaves when the world
 // ends or the mod stops.
 func AddBot(options *BotOptions) (Player, error) {
+	request := options.CloneVT()
+	if request == nil {
+		request = &BotOptions{}
+	}
+	if hero, ok := request.Hero.(*playerspb.BotOptions_HeroName); ok {
+		hero.HeroName = heroName(hero.HeroName)
+	}
 	response := &playerspb.BotResponse{}
-	if err := invoke("AddBot", options, response); err != nil {
+	if err := invoke("AddBot", request, response); err != nil {
 		return Player{}, err
 	}
 	return Player{Slot: response.GetPlayer()}, nil
@@ -1847,6 +1877,22 @@ func (p Player) WatchMovement(watch bool) error {
 // call replaces the list; an empty list stops watching.
 func WatchProjectiles(options *ProjectileOptions) error {
 	return invoke("WatchProjectiles", options, nil)
+}
+
+// HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+// live entity with no expiry, giving it back whenever the game removes it
+// while the entity lives. The hold ends with the entity or when active is
+// false.
+func HoldEntityModifier(entity uint32, modifier string, active *bool) error {
+	return invoke("HoldEntityModifier", &abilitiespb.HoldEntityModifierRequest{Entity: entity, Modifier: modifier, Active: active}, nil)
+}
+
+// GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+// a modifier for seconds. An ability's modifier, named
+// "<ability>/<modifier>", resolves its parent ability subclass even when the
+// entity owns no abilities.
+func GiveEntityModifier(entity uint32, modifier string, seconds float32) error {
+	return invoke("GiveEntityModifier", &abilitiespb.GiveEntityModifierRequest{Entity: entity, Modifier: modifier, Seconds: seconds}, nil)
 }
 
 // modHandlers handles the events the game delivers to the mod.

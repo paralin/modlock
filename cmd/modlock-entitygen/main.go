@@ -1,9 +1,9 @@
 // Command modlock-entitygen generates the typed entity classes and console
-// of the TypeScript, Go and Luau mod libraries from a game dump, the directory
+// of the TypeScript, Go, Luau and Python mod libraries from a game dump, the directory
 // modlock-host --dump writes. Each output flag names a library's source
 // directory:
 //
-//	modlock-entitygen -dump data/dump -ts js/src -go mod -luau luau/modlock
+//	modlock-entitygen -dump data/dump -ts js/src -go mod -luau luau/modlock -python python/modlock
 //
 // Every server class that derives from CEntityInstance becomes a class with
 // an accessor per field the host can read: scalars, vectors, angles, entity
@@ -37,21 +37,22 @@ func main() {
 	ts := flag.String("ts", "", "TypeScript library source directory to write into")
 	golang := flag.String("go", "", "Go library directory to write into")
 	luau := flag.String("luau", "", "Luau library directory to write into")
+	python := flag.String("python", "", "Python library package directory to write into")
 	flag.Parse()
-	if *dir == "" || (*ts == "" && *golang == "" && *luau == "") {
+	if *dir == "" || (*ts == "" && *golang == "" && *luau == "" && *python == "") {
 		flag.Usage()
 		os.Exit(2)
 	}
 
 	// Generate, reporting a failure.
-	if err := run(*dir, *ts, *golang, *luau); err != nil {
+	if err := run(*dir, *ts, *golang, *luau, *python); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 // run reads the dump and writes each requested output.
-func run(dir, ts, golang, luau string) error {
+func run(dir, ts, golang, luau, python string) error {
 	// Read the schema's entity classes and what the entity dump adds to them.
 	s, err := readSchema(dir)
 	if err != nil {
@@ -75,7 +76,7 @@ func run(dir, ts, golang, luau string) error {
 	outputs := []struct {
 		dir   string
 		write func(*schema, []*class, *entities, *console) map[string][]byte
-	}{{ts, writeTypeScript}, {golang, writeGo}, {luau, writeLuau}}
+	}{{ts, writeTypeScript}, {golang, writeGo}, {luau, writeLuau}, {python, writePython}}
 	for _, output := range outputs {
 		if output.dir == "" {
 			continue

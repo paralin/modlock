@@ -83,6 +83,24 @@ struct MovementDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovementDefaultTypeInternal _Movement_default_instance_;
 template <typename>
+PROTOBUF_CONSTEXPR Definition_TextFieldsEntry_DoNotUse::Definition_TextFieldsEntry_DoNotUse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Definition_TextFieldsEntry_DoNotUse::MapEntry(Definition_TextFieldsEntry_DoNotUse_class_data_.base()){}
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Definition_TextFieldsEntry_DoNotUse::MapEntry() {
+}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+struct Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    Definition_TextFieldsEntry_DoNotUse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal _Definition_TextFieldsEntry_DoNotUse_default_instance_;
+template <typename>
 PROTOBUF_CONSTEXPR Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : Definition_PropertiesEntry_DoNotUse::MapEntry(Definition_PropertiesEntry_DoNotUse_class_data_.base()){}
@@ -146,7 +164,8 @@ inline constexpr Definition::Impl_::Impl_(
         file_{static_cast< ::modlock::wasm::Definition_File >(0)},
         properties_{},
         fields_{},
-        copy_fields_{} {}
+        copy_fields_{},
+        text_fields_{} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Definition::Definition(::_pbi::ConstantInitialized)
@@ -296,18 +315,27 @@ const ::uint32_t
         0,
         1,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse, _impl_.value_),
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_._has_bits_),
-        8, // hasbit index offset
+        9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.file_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.entry_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.properties_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.fields_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.copy_fields_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Definition, _impl_.text_fields_),
         1,
         0,
         2,
         3,
         4,
+        5,
 };
 
 static const ::_pbi::MigrationSchema
@@ -318,7 +346,8 @@ static const ::_pbi::MigrationSchema
         {47, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
         {54, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
         {61, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
-        {68, sizeof(::modlock::wasm::Definition)},
+        {68, sizeof(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse)},
+        {75, sizeof(::modlock::wasm::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Manifest_default_instance_._instance,
@@ -327,6 +356,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Definition_PropertiesEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::_Definition_FieldsEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::_Definition_CopyFieldsEntry_DoNotUse_default_instance_._instance,
+    &::modlock::wasm::_Definition_TextFieldsEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::_Definition_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
@@ -360,21 +390,24 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\222\001\n\010Movement\022+\n\005model\030\001 \001(\0162\034.modlock.wa"
     "sm.Movement.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Mode"
     "l\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020"
-    "\001J\004\010\003\020\004R\023unpredicted_buttons\"\352\003\n\nDefinit"
+    "\001J\004\010\003\020\004R\023unpredicted_buttons\"\360\004\n\nDefinit"
     "ion\022+\n\004file\030\001 \001(\0162\035.modlock.wasm.Definit"
     "ion.File\022\r\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 "
     "\003(\0132(.modlock.wasm.Definition.Properties"
     "Entry\0224\n\006fields\030\004 \003(\0132$.modlock.wasm.Def"
     "inition.FieldsEntry\022=\n\013copy_fields\030\005 \003(\013"
     "2(.modlock.wasm.Definition.CopyFieldsEnt"
-    "ry\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va"
-    "lue\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001("
-    "\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022"
-    "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\004File\022"
-    "\022\n\016FILE_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023"
-    "FILE_BOT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020"
-    "\003B*Z(github.com/paralin/modlock/src/wasm"
-    ";wasmb\006proto3"
+    "ry\022=\n\013text_fields\030\006 \003(\0132(.modlock.wasm.D"
+    "efinition.TextFieldsEntry\0321\n\017PropertiesE"
+    "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013"
+    "FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:"
+    "\0028\001\0321\n\017CopyFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v"
+    "alue\030\002 \001(\t:\0028\001\0321\n\017TextFieldsEntry\022\013\n\003key"
+    "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"l\n\004File\022\022\n\016FIL"
+    "E_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE_B"
+    "OT_DIFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003\022\022\n\016F"
+    "ILE_MODIFIERS\020\004B*Z(github.com/paralin/mo"
+    "dlock/src/wasm;wasmb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps[3] = {
@@ -386,13 +419,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto = {
     false,
     false,
-    1733,
+    1867,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps,
     3,
-    7,
+    8,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto::offsets,
@@ -424,7 +457,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descr
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto[3];
 }
 PROTOBUF_CONSTINIT const uint32_t Definition_File_internal_data_[] = {
-    262144u, 0u, };
+    327680u, 0u, };
 // ===================================================================
 
 class Manifest::_Internal {
@@ -2184,6 +2217,104 @@ Definition_CopyFieldsEntry_DoNotUse::_table_ = {
 };
 // ===================================================================
 
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+Definition_TextFieldsEntry_DoNotUse::Definition_TextFieldsEntry_DoNotUse()
+    : SuperType(Definition_TextFieldsEntry_DoNotUse_class_data_.base()) {}
+Definition_TextFieldsEntry_DoNotUse::Definition_TextFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+    : SuperType(arena, Definition_TextFieldsEntry_DoNotUse_class_data_.base()) {}
+#else   // PROTOBUF_CUSTOM_VTABLE
+Definition_TextFieldsEntry_DoNotUse::Definition_TextFieldsEntry_DoNotUse() : SuperType() {}
+Definition_TextFieldsEntry_DoNotUse::Definition_TextFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+inline void* PROTOBUF_NONNULL Definition_TextFieldsEntry_DoNotUse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Definition_TextFieldsEntry_DoNotUse(arena);
+}
+constexpr auto Definition_TextFieldsEntry_DoNotUse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Definition_TextFieldsEntry_DoNotUse),
+                                            alignof(Definition_TextFieldsEntry_DoNotUse));
+}
+constexpr auto Definition_TextFieldsEntry_DoNotUse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Definition_TextFieldsEntry_DoNotUse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Definition_TextFieldsEntry_DoNotUse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Definition_TextFieldsEntry_DoNotUse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Definition_TextFieldsEntry_DoNotUse::SharedDtor,
+          static_cast<void (::google::protobuf::MessageLite::*)()>(&Definition_TextFieldsEntry_DoNotUse::ClearImpl),
+              ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
+              ,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_._cached_size_),
+          false,
+      },
+      &Definition_TextFieldsEntry_DoNotUse::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Definition_TextFieldsEntry_DoNotUse_class_data_ =
+        Definition_TextFieldsEntry_DoNotUse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Definition_TextFieldsEntry_DoNotUse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Definition_TextFieldsEntry_DoNotUse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Definition_TextFieldsEntry_DoNotUse_class_data_.tc_table);
+  return Definition_TextFieldsEntry_DoNotUse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 56, 2>
+Definition_TextFieldsEntry_DoNotUse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    Definition_TextFieldsEntry_DoNotUse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::Definition_TextFieldsEntry_DoNotUse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string value = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 1, 0,
+      PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_.value_)}},
+    // string key = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_.key_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string key = 1;
+    {PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string value = 2;
+    {PROTOBUF_FIELD_OFFSET(Definition_TextFieldsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\47\3\5\0\0\0\0\0"
+    "modlock.wasm.Definition.TextFieldsEntry"
+    "key"
+    "value"
+  }},
+};
+// ===================================================================
+
 class Definition::_Internal {
  public:
   using HasBits =
@@ -2210,7 +2341,8 @@ PROTOBUF_NDEBUG_INLINE Definition::Impl_::Impl_(
         entry_(arena, from.entry_),
         properties_{visibility, arena, from.properties_},
         fields_{visibility, arena, from.fields_},
-        copy_fields_{visibility, arena, from.copy_fields_} {}
+        copy_fields_{visibility, arena, from.copy_fields_},
+        text_fields_{visibility, arena, from.text_fields_} {}
 
 Definition::Definition(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -2236,7 +2368,8 @@ PROTOBUF_NDEBUG_INLINE Definition::Impl_::Impl_(
         entry_(arena),
         properties_{visibility, arena},
         fields_{visibility, arena},
-        copy_fields_{visibility, arena} {}
+        copy_fields_{visibility, arena},
+        text_fields_{visibility, arena} {}
 
 inline void Definition::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -2274,6 +2407,10 @@ constexpr auto Definition::InternalNewImpl_() {
                   ::google::protobuf::Message::internal_visibility()),
       PROTOBUF_FIELD_OFFSET(Definition, _impl_.copy_fields_) +
           decltype(Definition::_impl_.copy_fields_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.text_fields_) +
+          decltype(Definition::_impl_.text_fields_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -2320,17 +2457,17 @@ Definition::GetClassData() const {
   return Definition_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 5, 3, 64, 2>
+const ::_pbi::TcParseTable<1, 6, 4, 75, 2>
 Definition::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Definition, _impl_._has_bits_),
     0, // no _extensions_
-    5, 8,  // max_field_number, fast_idx_mask
+    6, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
-    3,  // num_aux_entries
+    6,  // num_field_entries
+    4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Definition_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -2360,6 +2497,8 @@ Definition::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Definition, _impl_.fields_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
     // map<string, string> copy_fields = 5;
     {PROTOBUF_FIELD_OFFSET(Definition, _impl_.copy_fields_), _Internal::kHasBitsOffset + 4, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    // map<string, string> text_fields = 6;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.text_fields_), _Internal::kHasBitsOffset + 5, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
   }},
   {{
       {::_pbi::TcParser::GetMapAuxInfo(
@@ -2368,14 +2507,17 @@ Definition::_table_ = {
           1, 0, 9, 2, 0)},
       {::_pbi::TcParser::GetMapAuxInfo(
           1, 0, 9, 9, 0)},
+      {::_pbi::TcParser::GetMapAuxInfo(
+          1, 0, 9, 9, 0)},
   }},
   {{
-    "\27\0\5\12\6\13\0\0"
+    "\27\0\5\12\6\13\13\0"
     "modlock.wasm.Definition"
     "entry"
     "properties"
     "fields"
     "copy_fields"
+    "text_fields"
   }},
 };
 PROTOBUF_NOINLINE void Definition::Clear() {
@@ -2389,7 +2531,7 @@ PROTOBUF_NOINLINE void Definition::Clear() {
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     _impl_.entry_.ClearNonDefaultToEmpty();
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001eU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003eU)) {
     _impl_.file_ = 0;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
       _impl_.properties_.Clear();
@@ -2399,6 +2541,9 @@ PROTOBUF_NOINLINE void Definition::Clear() {
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
       _impl_.copy_fields_.Clear();
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000020U)) {
+      _impl_.text_fields_.Clear();
     }
   }
   _impl_._has_bits_.Clear();
@@ -2536,6 +2681,41 @@ PROTOBUF_NOINLINE void Definition::Clear() {
     }
   }
 
+  // map<string, string> text_fields = 6;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000020U)) {
+    if (!this_._internal_text_fields().empty()) {
+      using MapType = ::google::protobuf::Map<::std::string, ::std::string>;
+      using WireHelper = _pbi::MapEntryFuncs<::std::string, ::std::string,
+                                     _pbi::WireFormatLite::TYPE_STRING,
+                                     _pbi::WireFormatLite::TYPE_STRING>;
+      const auto& field = this_._internal_text_fields();
+
+      if (stream->IsSerializationDeterministic() && field.size() > 1) {
+        for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
+          target = WireHelper::InternalSerialize(
+              6, entry.first, entry.second, target, stream);
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.Definition.text_fields");
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.Definition.text_fields");
+        }
+      } else {
+        for (const auto& entry : field) {
+          target = WireHelper::InternalSerialize(
+              6, entry.first, entry.second, target, stream);
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.Definition.text_fields");
+          ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.Definition.text_fields");
+        }
+      }
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2561,7 +2741,7 @@ PROTOBUF_NOINLINE void Definition::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     // string entry = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_entry().empty()) {
@@ -2606,6 +2786,16 @@ PROTOBUF_NOINLINE void Definition::Clear() {
                                        _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
       }
     }
+    // map<string, string> text_fields = 6;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000020U)) {
+      total_size +=
+          1 * ::google::protobuf::internal::FromIntSize(this_._internal_text_fields_size());
+      for (const auto& entry : this_._internal_text_fields()) {
+        total_size += _pbi::MapEntryFuncs<::std::string, ::std::string,
+                                       _pbi::WireFormatLite::TYPE_STRING,
+                                       _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
@@ -2625,7 +2815,7 @@ void Definition::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_entry().empty()) {
         _this->_internal_set_entry(from._internal_entry());
@@ -2648,6 +2838,9 @@ void Definition::MergeImpl(::google::protobuf::MessageLite& to_msg,
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
       _this->_impl_.copy_fields_.MergeFrom(from._impl_.copy_fields_);
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000020U)) {
+      _this->_impl_.text_fields_.MergeFrom(from._impl_.text_fields_);
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -2674,6 +2867,7 @@ void Definition::InternalSwap(Definition* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
   _impl_.properties_.InternalSwap(&other->_impl_.properties_);
   _impl_.fields_.InternalSwap(&other->_impl_.fields_);
   _impl_.copy_fields_.InternalSwap(&other->_impl_.copy_fields_);
+  _impl_.text_fields_.InternalSwap(&other->_impl_.text_fields_);
 }
 
 ::google::protobuf::Metadata Definition::GetMetadata() const {

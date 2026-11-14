@@ -1,0 +1,84 @@
+---
+title: Timers
+description: Run code later, on a beat or as a sequence of steps.
+---
+
+A timer runs on the game's clock, so you never count frames.
+
+| Call                 | Runs the callback                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `after(seconds, fn)` | Once, `seconds` of game time from now.                                                          |
+| `every(seconds, fn)` | Each `seconds`, keeping its cadence through a late frame.                                       |
+| `sequence(fn)`       | On the next frame. Its callback receives the run count and returns the wait, or nothing to end. |
+
+<Samples>
+
+```ts
+import { after, every, log, sequence } from 'modlock'
+
+const heartbeat = every(1, () => log('tick'))
+after(10, () => heartbeat.cancel())
+
+// Three steps, two seconds apart.
+sequence((run) => {
+  log(`Step ${run}`)
+  return run < 3 ? 2 : undefined
+})
+```
+
+```luau
+local heartbeat = modlock.every(1, function()
+	modlock.log("tick")
+end)
+modlock.after(10, function()
+	heartbeat:cancel()
+end)
+
+-- Three steps, two seconds apart.
+modlock.sequence(function(run)
+	modlock.log(`Step {run}`)
+	return if run < 3 then 2 else nil
+end)
+```
+
+```python
+heartbeat = modlock.every(1, lambda: modlock.log("tick"))
+modlock.after(10, heartbeat.cancel)
+
+
+# Three steps, two seconds apart.
+def step(run: int) -> float | None:
+    modlock.log(f"Step {run}")
+    return 2 if run < 3 else None
+
+
+modlock.sequence(step)
+```
+
+```go
+heartbeat := mod.Every(time.Second, func() { mod.Log("tick") })
+mod.After(10*time.Second, heartbeat.Cancel)
+
+// Three steps, two seconds apart.
+mod.Sequence(func(run int) (time.Duration, bool) {
+	mod.Log("Step", run)
+	return 2 * time.Second, run < 3
+})
+```
+
+</Samples>
+
+## How timers behave
+
+Each call returns a timer with `finished` and `cancel()`.
+
+- Time is the game's clock. A paused game holds its timers, and they survive a map change.
+- The frame rate sets the precision. A timer runs on the first frame at or after its time, at most once per frame. A repeat that stalls skips the runs it missed.
+- Timers due on one frame run in the order they came due.
+- A timer made inside a callback first runs on the next frame.
+- A callback that throws ends only its own timer and logs `timer failed`.
+
+<Only lang="go">
+  In Go, the timers take a `time.Duration`, and a sequence callback returns the
+  wait and whether to run again.
+</Only>

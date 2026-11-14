@@ -598,6 +598,15 @@ class HostService {
     return std::unexpected("this host does not support ModifierState");
   }
 
+  // Modifiers lists every modifier an entity holds, such as the stun a
+  // hero's ultimate keeps on its target, with its name, class, caster,
+  // ability, age, time left and stacks. An entity that holds none answers an
+  // empty list.
+  virtual std::expected<abilities::ModifiersResponse, std::string> Modifiers(
+      const entities::EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support Modifiers");
+  }
+
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.
@@ -1048,6 +1057,24 @@ class HostService {
   virtual std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& /*request*/) {
     return std::unexpected("this host does not support WatchProjectiles");
+  }
+
+  // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+  // live entity with no expiry, giving it back whenever the game removes it
+  // while the entity lives. The hold ends with the entity or when active is
+  // false.
+  virtual std::expected<void, std::string> HoldEntityModifier(
+      const abilities::HoldEntityModifierRequest& /*request*/) {
+    return std::unexpected("this host does not support HoldEntityModifier");
+  }
+
+  // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+  // a modifier for seconds. An ability's modifier, named
+  // "<ability>/<modifier>", resolves its parent ability subclass even when the
+  // entity owns no abilities.
+  virtual std::expected<void, std::string> GiveEntityModifier(
+      const abilities::GiveEntityModifierRequest& /*request*/) {
+    return std::unexpected("this host does not support GiveEntityModifier");
   }
 
   // Dispatch runs call on the method it names and returns the reply.
@@ -1576,6 +1603,14 @@ class HostService {
            }
            return detail::Answer(host.ModifierState(request));
          }},
+        {"Modifiers",
+         [](HostService& host, const std::string& bytes) {
+           entities::EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Modifiers request is malformed");
+           }
+           return detail::Answer(host.Modifiers(request));
+         }},
         {"HoldModifierState",
          [](HostService& host, const std::string& bytes) {
            abilities::HoldModifierStateRequest request;
@@ -2046,6 +2081,22 @@ class HostService {
              return detail::Fail("the WatchProjectiles request is malformed");
            }
            return detail::Answer(host.WatchProjectiles(request));
+         }},
+        {"HoldEntityModifier",
+         [](HostService& host, const std::string& bytes) {
+           abilities::HoldEntityModifierRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the HoldEntityModifier request is malformed");
+           }
+           return detail::Answer(host.HoldEntityModifier(request));
+         }},
+        {"GiveEntityModifier",
+         [](HostService& host, const std::string& bytes) {
+           abilities::GiveEntityModifierRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the GiveEntityModifier request is malformed");
+           }
+           return detail::Answer(host.GiveEntityModifier(request));
          }},
     };
     const auto handler = handlers.find(call.method());

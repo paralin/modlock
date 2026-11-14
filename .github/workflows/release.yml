@@ -39,13 +39,67 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Modlock $GITHUB_REF_NAME" --generate-notes
+        # Each file carries the label the release page shows in place of its
+        # name, so a reader picks by computer. Downloads still go by name.
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Modlock $GITHUB_REF_NAME" \
+            --notes-file .github/release-notes.md --generate-notes \
+            'dist/modlock-windows-amd64.exe#modlock for Windows' \
+            'dist/modlock-darwin-arm64#modlock for Mac (Apple silicon)' \
+            'dist/modlock-darwin-amd64#modlock for Mac (Intel)' \
+            'dist/modlock-linux-amd64#modlock for Linux (x86-64)' \
+            'dist/modlock-linux-arm64#modlock for Linux (ARM64)' \
+            'dist/modlock-host-windows-x64.zip#Game server: modlock downloads this itself'
       - uses: actions/upload-artifact@v4
         with:
           name: release
           path: |
             dist/modlock-*
             js/built
+  # The extension carries the tag's version and downloads that release's
+  # command line. Each store publishes once its token is a repository secret;
+  # Open VSX also needs the modlock namespace made once by hand.
+  vscode:
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Bun dependencies
+        run: |
+          bun install --frozen-lockfile --ignore-scripts
+          bun install --frozen-lockfile --ignore-scripts --cwd vscode
+      - name: Package the extension
+        run: bun run --cwd vscode package --version "$GITHUB_REF_NAME"
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            'vscode/modlock.vsix#VS Code extension'
+      - name: Publish to the VS Code Marketplace
+        working-directory: vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::VSCE_PAT is not set; the extension is not on the VS Code Marketplace"
+            exit 0
+          fi
+          bunx vsce publish --packagePath modlock.vsix --skip-duplicate
+      - name: Publish to Open VSX
+        working-directory: vscode
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT is not set; the extension is not on Open VSX"
+            exit 0
+          fi
+          bunx ovsx publish --packagePath modlock.vsix --skip-duplicate
   npm:
     needs: release
     runs-on: ubuntu-24.04
@@ -69,6 +123,39 @@ jobs:
         run: |
           go run ./cmd/modlock-npm -version "$GITHUB_REF_NAME"
           for dir in dist/npm/*/; do
-            if [ "$dir" != dist/npm/modlock/ ]; then npm publish --access public "$dir"; fi
+            case "$dir" in
+              dist/npm/modlock/ | dist/npm/create/) ;;
+              *) npm publish --access public "$dir" ;;
+            esac
           done
           npm publish --access public dist/npm/modlock
+          # Trusted publishing cannot make a package, only release one that
+          # exists, so @modlock/create waits for its first release by hand.
+          if npm view @modlock/create name >/dev/null 2>&1; then
+            npm publish --access public dist/npm/create
+          else
+            echo "::warning::@modlock/create is not on npm yet; publish dist/npm/create once by hand and add this workflow as its trusted publisher"
+          fi
+  # PyPI makes the project on its first release from a publisher registered
+  # there, so this runs once the PYPI_PUBLISH repository variable says one is.
+  pypi:
+    needs: release
+    if: vars.PYPI_PUBLISH == 'true'
+    runs-on: ubuntu-24.04
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+      - name: Build the wheels
+        run: go run ./cmd/modlock-pypi -version "$GITHUB_REF_NAME"
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/pypi

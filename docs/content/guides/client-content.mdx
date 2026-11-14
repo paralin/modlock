@@ -1,0 +1,200 @@
+---
+title: Client content
+description: Ship layouts, style sheets, models and sounds to every player.
+---
+
+Files under `content/` ship to every player's game in the mod's own addon,
+named `SLUG-DIGEST` after the slug and a digest of the content. Write
+`{addon}` where the addon's name goes, and the build or the host fills it in:
+
+```xml
+<include src="file://{resources}/scripts/{addon}/scoreboard.js" />
+```
+
+| Kind                                  | Put it in                                                                 | Refer to it as                                     |
+| ------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
+| Layouts, scripts                      | `content/layout/`, `content/scripts/`, shaped like the game's `panorama/` | `file://{resources}/layout/{addon}/board.xml`      |
+| Style sheets                          | `content/styles/`                                                         | `file://{resources}/styles/{addon}/scoreboard.css` |
+| Images, compiled as `.vtex_c`         | `content/images/`                                                         | `file://{images}/{addon}/mark.png`                 |
+| Compiled models, materials, particles | `content/models/`, `content/materials/`, `content/particles/`             | `models/{addon}/pawn.vmdl`                         |
+
+- `content/layout/scoreboard.xml` builds to
+  `build/panorama/layout/SLUG-DIGEST/scoreboard.vxml_c`, and models to
+  `models/SLUG-DIGEST/` and so on.
+- A release that changes only code keeps the addon and every path in it, so a
+  game that mounted the previous release still finds the new one's resources.
+- The build refuses a source the game cannot load, such as a `.vmdl` or a
+  Hammer map's `.vmap`; keep sources outside `content/`. The publishing check
+  refuses client files outside the addon's directories.
+- A path inside a compiled resource is not rewritten. Point it at the game's
+  own resources, or at the addon's name for the version you build.
+
+## Draw a layout in the world
+
+Entity key values take `{addon}` too, so a world panel can draw the mod's own layout:
+
+<Samples>
+
+```ts
+create('point_clientui_world_panel', {
+  position,
+  keys: {
+    enabled: true,
+    width: 48,
+    height: 24,
+    panel_dpi: 32,
+    opaque: false,
+    orientation: 1,
+    dialog_layout_name: 'file://{resources}/layout/{addon}/board.xml',
+  },
+})
+```
+
+```luau
+local keys: entities.CPointClientUIWorldPanelKeys = {
+	enabled = true,
+	width = 48,
+	height = 24,
+	panel_dpi = 32,
+	opaque = false,
+	orientation = 1,
+	dialog_layout_name = "file://{resources}/layout/{addon}/board.xml",
+}
+entities.create("point_clientui_world_panel", { position = position, keys = keys })
+```
+
+```python
+keys: entities.CPointClientUIWorldPanelKeys = {
+    "enabled": True,
+    "width": 48,
+    "height": 24,
+    "panel_dpi": 32,
+    "opaque": False,
+    "orientation": 1,
+    "dialog_layout_name": "file://{resources}/layout/{addon}/board.xml",
+}
+entities.create("point_clientui_world_panel", position, keys=keys)
+```
+
+```go
+keys := entity.CPointClientUIWorldPanelKeys{
+	Width:       new(float32(48)),
+	Height:      new(float32(24)),
+	PanelDpi:    new(float32(32)),
+	Opaque:      new(false),
+	Orientation: new(int32(1)),
+}
+keys.Enabled = new(true)
+keys.DialogLayoutName = new("file://{resources}/layout/{addon}/board.xml")
+_, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: position}, &keys)
+```
+
+</Samples>
+
+A panel the map placed has its layout path fixed before the addon's name is
+known. Point it at the mod's layout with `writeField`, which fills `{addon}`
+the same way, as each world loads, since mods start before the map's entities
+exist. Connected players then get a full update that stalls their game for a
+moment, so write a layout only when it changes:
+
+<Samples>
+
+```ts
+onWorld(() => {
+  for (const panel of findEntities('point_clientui_world_panel')) {
+    writeField(
+      panel,
+      'CBaseClientUIEntity',
+      'm_DialogXMLName',
+      'string',
+      'file://{resources}/layout/{addon}/board.xml',
+    )
+  }
+})
+```
+
+```luau
+modlock.onWorld(function()
+	for _, panel in modlock.findEntities("point_clientui_world_panel") do
+		modlock.writeField(
+			panel,
+			"CBaseClientUIEntity",
+			"m_DialogXMLName",
+			"string",
+			"file://{resources}/layout/{addon}/board.xml"
+		)
+	end
+end)
+```
+
+```python
+@modlock.on_world
+def point_panels(map_name: str) -> None:
+    for panel in modlock.find_entities("point_clientui_world_panel"):
+        modlock.write_field(
+            panel,
+            "CBaseClientUIEntity",
+            "m_DialogXMLName",
+            "string",
+            "file://{resources}/layout/{addon}/board.xml",
+        )
+```
+
+```go
+mod.OnWorld(func(mapName string) {
+	panels, _ := mod.FindEntities("point_clientui_world_panel")
+	for _, panel := range panels {
+		_ = mod.WriteField(panel, "CBaseClientUIEntity", "m_DialogXMLName", mod.FieldTypeString,
+			"file://{resources}/layout/{addon}/board.xml")
+	}
+})
+```
+
+</Samples>
+
+[`world-panel`](https://github.com/paralin/modlock/tree/master/examples/world-panel)
+is the whole mod, and
+[`inventory`](https://github.com/paralin/modlock/tree/master/examples/inventory)
+draws a scripted bag through the [layout element](/guides/layouts): the
+player drags items with the freed cursor, the script sends each move as a
+console command, and the mod answers with the new slots. Its style sheet
+styles the frame and slots, and a class the mod adds fades the bag in.
+
+A layout that loads a script or handles an event runs code in each player's
+game, so a publishing service may hold it for creators it trusts. A layout that
+only draws is safe to publish.
+
+## Models and particles
+
+Put `{addon}` in every path you pass to `precache`, `createModel`, `createParticle` and entity key values:
+
+<Samples>
+
+```ts
+precache({ resources: ['models/{addon}/pawn.vmdl'] })
+createModel({ resource: 'models/{addon}/pawn.vmdl', position })
+```
+
+```luau
+modlock.precache({ resources = { "models/{addon}/pawn.vmdl" } })
+modlock.createModel({ resource = "models/{addon}/pawn.vmdl", position = position })
+```
+
+```python
+modlock.precache(modlock.PrecacheOptions(resources=["models/{addon}/pawn.vmdl"]))
+modlock.create_model(modlock.ModelOptions(resource="models/{addon}/pawn.vmdl", position=position))
+```
+
+```go
+_ = mod.Precache(&mod.PrecacheOptions{Resources: []string{"models/{addon}/pawn.vmdl"}})
+_, _ = mod.CreateModel(&mod.ModelOptions{Resource: "models/{addon}/pawn.vmdl", Position: position})
+```
+
+</Samples>
+
+## Mounting
+
+| Command                       | Mounts                                                                                                                                                                                                                                    |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock dev`, `modlock play` | Each mod's content, before the server starts; the server and the player's game both load it. Each rebuild adds changed content under the addon's new name, and the server and game load it the next time the mod asks, without a restart. |
+| `modlock join`                | The host's content, before the guest's game starts. A guest keeps the content it joined with.                                                                                                                                             |

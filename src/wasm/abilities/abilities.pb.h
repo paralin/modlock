@@ -85,6 +85,10 @@ class BuyItemRequest;
 struct BuyItemRequestDefaultTypeInternal;
 MODLOCK_API extern BuyItemRequestDefaultTypeInternal _BuyItemRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull BuyItemRequest_class_data_;
+class GiveEntityModifierRequest;
+struct GiveEntityModifierRequestDefaultTypeInternal;
+MODLOCK_API extern GiveEntityModifierRequestDefaultTypeInternal _GiveEntityModifierRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull GiveEntityModifierRequest_class_data_;
 class GiveItemRequest;
 struct GiveItemRequestDefaultTypeInternal;
 MODLOCK_API extern GiveItemRequestDefaultTypeInternal _GiveItemRequest_default_instance_;
@@ -101,6 +105,10 @@ class HeroBuildResponse;
 struct HeroBuildResponseDefaultTypeInternal;
 MODLOCK_API extern HeroBuildResponseDefaultTypeInternal _HeroBuildResponse_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HeroBuildResponse_class_data_;
+class HoldEntityModifierRequest;
+struct HoldEntityModifierRequestDefaultTypeInternal;
+MODLOCK_API extern HoldEntityModifierRequestDefaultTypeInternal _HoldEntityModifierRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HoldEntityModifierRequest_class_data_;
 class HoldModifierRequest;
 struct HoldModifierRequestDefaultTypeInternal;
 MODLOCK_API extern HoldModifierRequestDefaultTypeInternal _HoldModifierRequest_default_instance_;
@@ -113,10 +121,18 @@ class HoldReloadRequest;
 struct HoldReloadRequestDefaultTypeInternal;
 MODLOCK_API extern HoldReloadRequestDefaultTypeInternal _HoldReloadRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HoldReloadRequest_class_data_;
+class Modifier;
+struct ModifierDefaultTypeInternal;
+MODLOCK_API extern ModifierDefaultTypeInternal _Modifier_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Modifier_class_data_;
 class ModifierStateRequest;
 struct ModifierStateRequestDefaultTypeInternal;
 MODLOCK_API extern ModifierStateRequestDefaultTypeInternal _ModifierStateRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierStateRequest_class_data_;
+class ModifiersResponse;
+struct ModifiersResponseDefaultTypeInternal;
+MODLOCK_API extern ModifiersResponseDefaultTypeInternal _ModifiersResponse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifiersResponse_class_data_;
 class RefreshAbilityRequest;
 struct RefreshAbilityRequestDefaultTypeInternal;
 MODLOCK_API extern RefreshAbilityRequestDefaultTypeInternal _RefreshAbilityRequest_default_instance_;
@@ -994,6 +1010,315 @@ class MODLOCK_API ModifierStateRequest final : public ::google::protobuf::Messag
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierStateRequest_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API Modifier final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.Modifier) */ {
+ public:
+  inline Modifier() : Modifier(nullptr) {}
+  ~Modifier() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Modifier* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Modifier));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Modifier(::google::protobuf::internal::ConstantInitialized);
+
+  inline Modifier(const Modifier& from) : Modifier(nullptr, from) {}
+  inline Modifier(Modifier&& from) noexcept
+      : Modifier(nullptr, ::std::move(from)) {}
+  inline Modifier& operator=(const Modifier& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Modifier& operator=(Modifier&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Modifier& default_instance() {
+    return *reinterpret_cast<const Modifier*>(
+        &_Modifier_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 14;
+  friend void swap(Modifier& a, Modifier& b) { a.Swap(&b); }
+  inline void Swap(Modifier* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Modifier* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Modifier* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Modifier>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Modifier& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Modifier& from) { Modifier::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Modifier* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.abilities.Modifier"; }
+
+  explicit Modifier(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Modifier(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Modifier& from);
+  Modifier(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Modifier&& from) noexcept
+      : Modifier(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNameFieldNumber = 1,
+    kClassNameFieldNumber = 2,
+    kCasterFieldNumber = 3,
+    kAbilityFieldNumber = 4,
+    kAgeFieldNumber = 5,
+    kRemainingFieldNumber = 6,
+    kStacksFieldNumber = 7,
+    kMaxStacksFieldNumber = 8,
+    kTeamFieldNumber = 9,
+    kDisabledFieldNumber = 10,
+  };
+  // string name = 1;
+  void clear_name() ;
+  const ::std::string& name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
+  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // string class_name = 2;
+  void clear_class_name() ;
+  const ::std::string& class_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_class_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_class_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_class_name();
+  void set_allocated_class_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_class_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_class_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_class_name();
+
+  public:
+  // uint32 caster = 3;
+  void clear_caster() ;
+  ::uint32_t caster() const;
+  void set_caster(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_caster() const;
+  void _internal_set_caster(::uint32_t value);
+
+  public:
+  // uint32 ability = 4;
+  void clear_ability() ;
+  ::uint32_t ability() const;
+  void set_ability(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_ability() const;
+  void _internal_set_ability(::uint32_t value);
+
+  public:
+  // float age = 5;
+  void clear_age() ;
+  float age() const;
+  void set_age(float value);
+
+  private:
+  float _internal_age() const;
+  void _internal_set_age(float value);
+
+  public:
+  // optional float remaining = 6;
+  bool has_remaining() const;
+  void clear_remaining() ;
+  float remaining() const;
+  void set_remaining(float value);
+
+  private:
+  float _internal_remaining() const;
+  void _internal_set_remaining(float value);
+
+  public:
+  // int32 stacks = 7;
+  void clear_stacks() ;
+  ::int32_t stacks() const;
+  void set_stacks(::int32_t value);
+
+  private:
+  ::int32_t _internal_stacks() const;
+  void _internal_set_stacks(::int32_t value);
+
+  public:
+  // int32 max_stacks = 8;
+  void clear_max_stacks() ;
+  ::int32_t max_stacks() const;
+  void set_max_stacks(::int32_t value);
+
+  private:
+  ::int32_t _internal_max_stacks() const;
+  void _internal_set_max_stacks(::int32_t value);
+
+  public:
+  // uint32 team = 9;
+  void clear_team() ;
+  ::uint32_t team() const;
+  void set_team(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_team() const;
+  void _internal_set_team(::uint32_t value);
+
+  public:
+  // bool disabled = 10;
+  void clear_disabled() ;
+  bool disabled() const;
+  void set_disabled(bool value);
+
+  private:
+  bool _internal_disabled() const;
+  void _internal_set_disabled(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.Modifier)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<4, 10,
+                                   0, 62,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const Modifier& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr class_name_;
+    ::uint32_t caster_;
+    ::uint32_t ability_;
+    float age_;
+    float remaining_;
+    ::int32_t stacks_;
+    ::int32_t max_stacks_;
+    ::uint32_t team_;
+    bool disabled_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Modifier_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API HoldReloadRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.HoldReloadRequest) */ {
  public:
@@ -1239,7 +1564,7 @@ class MODLOCK_API HoldModifierStateRequest final : public ::google::protobuf::Me
     return *reinterpret_cast<const HoldModifierStateRequest*>(
         &_HoldModifierStateRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(HoldModifierStateRequest& a, HoldModifierStateRequest& b) { a.Swap(&b); }
   inline void Swap(HoldModifierStateRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1624,6 +1949,226 @@ class MODLOCK_API HoldModifierRequest final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HoldModifierRequest_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API HoldEntityModifierRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.HoldEntityModifierRequest) */ {
+ public:
+  inline HoldEntityModifierRequest() : HoldEntityModifierRequest(nullptr) {}
+  ~HoldEntityModifierRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(HoldEntityModifierRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(HoldEntityModifierRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR HoldEntityModifierRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline HoldEntityModifierRequest(const HoldEntityModifierRequest& from) : HoldEntityModifierRequest(nullptr, from) {}
+  inline HoldEntityModifierRequest(HoldEntityModifierRequest&& from) noexcept
+      : HoldEntityModifierRequest(nullptr, ::std::move(from)) {}
+  inline HoldEntityModifierRequest& operator=(const HoldEntityModifierRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline HoldEntityModifierRequest& operator=(HoldEntityModifierRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const HoldEntityModifierRequest& default_instance() {
+    return *reinterpret_cast<const HoldEntityModifierRequest*>(
+        &_HoldEntityModifierRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 20;
+  friend void swap(HoldEntityModifierRequest& a, HoldEntityModifierRequest& b) { a.Swap(&b); }
+  inline void Swap(HoldEntityModifierRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(HoldEntityModifierRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  HoldEntityModifierRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<HoldEntityModifierRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const HoldEntityModifierRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const HoldEntityModifierRequest& from) { HoldEntityModifierRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(HoldEntityModifierRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.abilities.HoldEntityModifierRequest"; }
+
+  explicit HoldEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  HoldEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const HoldEntityModifierRequest& from);
+  HoldEntityModifierRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, HoldEntityModifierRequest&& from) noexcept
+      : HoldEntityModifierRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModifierFieldNumber = 2,
+    kEntityFieldNumber = 1,
+    kActiveFieldNumber = 3,
+  };
+  // string modifier = 2;
+  void clear_modifier() ;
+  const ::std::string& modifier() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_modifier(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_modifier();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_modifier();
+  void set_allocated_modifier(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_modifier() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_modifier(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_modifier();
+
+  public:
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // optional bool active = 3;
+  bool has_active() const;
+  void clear_active() ;
+  bool active() const;
+  void set_active(bool value);
+
+  private:
+  bool _internal_active() const;
+  void _internal_set_active(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.HoldEntityModifierRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 65,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const HoldEntityModifierRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr modifier_;
+    ::uint32_t entity_;
+    bool active_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HoldEntityModifierRequest_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API HeroBuildRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.HeroBuildRequest) */ {
  public:
@@ -1679,7 +2224,7 @@ class MODLOCK_API HeroBuildRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroBuildRequest*>(
         &_HeroBuildRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(HeroBuildRequest& a, HeroBuildRequest& b) { a.Swap(&b); }
   inline void Swap(HeroBuildRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2258,6 +2803,225 @@ class MODLOCK_API GiveItemRequest final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull GiveItemRequest_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API GiveEntityModifierRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.GiveEntityModifierRequest) */ {
+ public:
+  inline GiveEntityModifierRequest() : GiveEntityModifierRequest(nullptr) {}
+  ~GiveEntityModifierRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(GiveEntityModifierRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(GiveEntityModifierRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR GiveEntityModifierRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline GiveEntityModifierRequest(const GiveEntityModifierRequest& from) : GiveEntityModifierRequest(nullptr, from) {}
+  inline GiveEntityModifierRequest(GiveEntityModifierRequest&& from) noexcept
+      : GiveEntityModifierRequest(nullptr, ::std::move(from)) {}
+  inline GiveEntityModifierRequest& operator=(const GiveEntityModifierRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline GiveEntityModifierRequest& operator=(GiveEntityModifierRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const GiveEntityModifierRequest& default_instance() {
+    return *reinterpret_cast<const GiveEntityModifierRequest*>(
+        &_GiveEntityModifierRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 21;
+  friend void swap(GiveEntityModifierRequest& a, GiveEntityModifierRequest& b) { a.Swap(&b); }
+  inline void Swap(GiveEntityModifierRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(GiveEntityModifierRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  GiveEntityModifierRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<GiveEntityModifierRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const GiveEntityModifierRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const GiveEntityModifierRequest& from) { GiveEntityModifierRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(GiveEntityModifierRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.abilities.GiveEntityModifierRequest"; }
+
+  explicit GiveEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  GiveEntityModifierRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const GiveEntityModifierRequest& from);
+  GiveEntityModifierRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, GiveEntityModifierRequest&& from) noexcept
+      : GiveEntityModifierRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModifierFieldNumber = 2,
+    kEntityFieldNumber = 1,
+    kSecondsFieldNumber = 3,
+  };
+  // string modifier = 2;
+  void clear_modifier() ;
+  const ::std::string& modifier() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_modifier(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_modifier();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_modifier();
+  void set_allocated_modifier(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_modifier() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_modifier(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_modifier();
+
+  public:
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // float seconds = 3;
+  void clear_seconds() ;
+  float seconds() const;
+  void set_seconds(float value);
+
+  private:
+  float _internal_seconds() const;
+  void _internal_set_seconds(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.GiveEntityModifierRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 65,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const GiveEntityModifierRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr modifier_;
+    ::uint32_t entity_;
+    float seconds_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull GiveEntityModifierRequest_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API BuyItemRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.BuyItemRequest) */ {
  public:
@@ -2546,7 +3310,7 @@ class MODLOCK_API BuildItem final : public ::google::protobuf::Message
     return *reinterpret_cast<const BuildItem*>(
         &_BuildItem_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(BuildItem& a, BuildItem& b) { a.Swap(&b); }
   inline void Swap(BuildItem* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3504,6 +4268,203 @@ class MODLOCK_API Ability final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Ability_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ModifiersResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.ModifiersResponse) */ {
+ public:
+  inline ModifiersResponse() : ModifiersResponse(nullptr) {}
+  ~ModifiersResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ModifiersResponse* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ModifiersResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ModifiersResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline ModifiersResponse(const ModifiersResponse& from) : ModifiersResponse(nullptr, from) {}
+  inline ModifiersResponse(ModifiersResponse&& from) noexcept
+      : ModifiersResponse(nullptr, ::std::move(from)) {}
+  inline ModifiersResponse& operator=(const ModifiersResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ModifiersResponse& operator=(ModifiersResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ModifiersResponse& default_instance() {
+    return *reinterpret_cast<const ModifiersResponse*>(
+        &_ModifiersResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 13;
+  friend void swap(ModifiersResponse& a, ModifiersResponse& b) { a.Swap(&b); }
+  inline void Swap(ModifiersResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ModifiersResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ModifiersResponse* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ModifiersResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ModifiersResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ModifiersResponse& from) { ModifiersResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ModifiersResponse* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.abilities.ModifiersResponse"; }
+
+  explicit ModifiersResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ModifiersResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ModifiersResponse& from);
+  ModifiersResponse(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ModifiersResponse&& from) noexcept
+      : ModifiersResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModifiersFieldNumber = 1,
+  };
+  // repeated .modlock.wasm.abilities.Modifier modifiers = 1;
+  int modifiers_size() const;
+  private:
+  int _internal_modifiers_size() const;
+
+  public:
+  void clear_modifiers() ;
+  ::modlock::wasm::abilities::Modifier* PROTOBUF_NONNULL mutable_modifiers(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>* PROTOBUF_NONNULL mutable_modifiers();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>& _internal_modifiers() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>* PROTOBUF_NONNULL _internal_mutable_modifiers();
+  public:
+  const ::modlock::wasm::abilities::Modifier& modifiers(int index) const;
+  ::modlock::wasm::abilities::Modifier* PROTOBUF_NONNULL add_modifiers();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>& modifiers() const;
+  // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.ModifiersResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ModifiersResponse& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::abilities::Modifier > modifiers_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifiersResponse_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API BuildCategory final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.BuildCategory) */ {
  public:
@@ -3559,7 +4520,7 @@ class MODLOCK_API BuildCategory final : public ::google::protobuf::Message
     return *reinterpret_cast<const BuildCategory*>(
         &_BuildCategory_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(BuildCategory& a, BuildCategory& b) { a.Swap(&b); }
   inline void Swap(BuildCategory* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3987,7 +4948,7 @@ class MODLOCK_API HeroBuildResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroBuildResponse*>(
         &_HeroBuildResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(HeroBuildResponse& a, HeroBuildResponse& b) { a.Swap(&b); }
   inline void Swap(HeroBuildResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5797,6 +6758,404 @@ inline void ActiveResponse::_internal_set_active(bool value) {
 
 // -------------------------------------------------------------------
 
+// ModifiersResponse
+
+// repeated .modlock.wasm.abilities.Modifier modifiers = 1;
+inline int ModifiersResponse::_internal_modifiers_size() const {
+  return _internal_modifiers().size();
+}
+inline int ModifiersResponse::modifiers_size() const {
+  return _internal_modifiers_size();
+}
+inline void ModifiersResponse::clear_modifiers() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifiers_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::abilities::Modifier* PROTOBUF_NONNULL ModifiersResponse::mutable_modifiers(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.ModifiersResponse.modifiers)
+  return _internal_mutable_modifiers()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>* PROTOBUF_NONNULL ModifiersResponse::mutable_modifiers()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.abilities.ModifiersResponse.modifiers)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_modifiers();
+}
+inline const ::modlock::wasm::abilities::Modifier& ModifiersResponse::modifiers(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.ModifiersResponse.modifiers)
+  return _internal_modifiers().Get(index);
+}
+inline ::modlock::wasm::abilities::Modifier* PROTOBUF_NONNULL ModifiersResponse::add_modifiers()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::abilities::Modifier* _add =
+      _internal_mutable_modifiers()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.abilities.ModifiersResponse.modifiers)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>& ModifiersResponse::modifiers() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.abilities.ModifiersResponse.modifiers)
+  return _internal_modifiers();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>&
+ModifiersResponse::_internal_modifiers() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.modifiers_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::abilities::Modifier>* PROTOBUF_NONNULL
+ModifiersResponse::_internal_mutable_modifiers() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.modifiers_;
+}
+
+// -------------------------------------------------------------------
+
+// Modifier
+
+// string name = 1;
+inline void Modifier::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& Modifier::name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.name)
+  return _internal_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Modifier::set_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.name)
+}
+inline ::std::string* PROTOBUF_NONNULL Modifier::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.Modifier.name)
+  return _s;
+}
+inline const ::std::string& Modifier::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.name_.Get();
+}
+inline void Modifier::_internal_set_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Modifier::_internal_mutable_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Modifier::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.abilities.Modifier.name)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Modifier::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.Modifier.name)
+}
+
+// string class_name = 2;
+inline void Modifier::clear_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.class_name_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& Modifier::class_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.class_name)
+  return _internal_class_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Modifier::set_class_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.class_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.class_name)
+}
+inline ::std::string* PROTOBUF_NONNULL Modifier::mutable_class_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_class_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.Modifier.class_name)
+  return _s;
+}
+inline const ::std::string& Modifier::_internal_class_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.class_name_.Get();
+}
+inline void Modifier::_internal_set_class_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.class_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Modifier::_internal_mutable_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.class_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Modifier::release_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.abilities.Modifier.class_name)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.class_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.class_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Modifier::set_allocated_class_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.class_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.class_name_.IsDefault()) {
+    _impl_.class_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.Modifier.class_name)
+}
+
+// uint32 caster = 3;
+inline void Modifier::clear_caster() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.caster_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t Modifier::caster() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.caster)
+  return _internal_caster();
+}
+inline void Modifier::set_caster(::uint32_t value) {
+  _internal_set_caster(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.caster)
+}
+inline ::uint32_t Modifier::_internal_caster() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.caster_;
+}
+inline void Modifier::_internal_set_caster(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.caster_ = value;
+}
+
+// uint32 ability = 4;
+inline void Modifier::clear_ability() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t Modifier::ability() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.ability)
+  return _internal_ability();
+}
+inline void Modifier::set_ability(::uint32_t value) {
+  _internal_set_ability(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.ability)
+}
+inline ::uint32_t Modifier::_internal_ability() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_;
+}
+inline void Modifier::_internal_set_ability(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = value;
+}
+
+// float age = 5;
+inline void Modifier::clear_age() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.age_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline float Modifier::age() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.age)
+  return _internal_age();
+}
+inline void Modifier::set_age(float value) {
+  _internal_set_age(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.age)
+}
+inline float Modifier::_internal_age() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.age_;
+}
+inline void Modifier::_internal_set_age(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.age_ = value;
+}
+
+// optional float remaining = 6;
+inline bool Modifier::has_remaining() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
+  return value;
+}
+inline void Modifier::clear_remaining() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.remaining_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline float Modifier::remaining() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.remaining)
+  return _internal_remaining();
+}
+inline void Modifier::set_remaining(float value) {
+  _internal_set_remaining(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.remaining)
+}
+inline float Modifier::_internal_remaining() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.remaining_;
+}
+inline void Modifier::_internal_set_remaining(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.remaining_ = value;
+}
+
+// int32 stacks = 7;
+inline void Modifier::clear_stacks() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stacks_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000040U);
+}
+inline ::int32_t Modifier::stacks() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.stacks)
+  return _internal_stacks();
+}
+inline void Modifier::set_stacks(::int32_t value) {
+  _internal_set_stacks(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.stacks)
+}
+inline ::int32_t Modifier::_internal_stacks() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.stacks_;
+}
+inline void Modifier::_internal_set_stacks(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stacks_ = value;
+}
+
+// int32 max_stacks = 8;
+inline void Modifier::clear_max_stacks() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_stacks_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000080U);
+}
+inline ::int32_t Modifier::max_stacks() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.max_stacks)
+  return _internal_max_stacks();
+}
+inline void Modifier::set_max_stacks(::int32_t value) {
+  _internal_set_max_stacks(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.max_stacks)
+}
+inline ::int32_t Modifier::_internal_max_stacks() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.max_stacks_;
+}
+inline void Modifier::_internal_set_max_stacks(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_stacks_ = value;
+}
+
+// uint32 team = 9;
+inline void Modifier::clear_team() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.team_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000100U);
+}
+inline ::uint32_t Modifier::team() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.team)
+  return _internal_team();
+}
+inline void Modifier::set_team(::uint32_t value) {
+  _internal_set_team(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.team)
+}
+inline ::uint32_t Modifier::_internal_team() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.team_;
+}
+inline void Modifier::_internal_set_team(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.team_ = value;
+}
+
+// bool disabled = 10;
+inline void Modifier::clear_disabled() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.disabled_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000200U);
+}
+inline bool Modifier::disabled() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Modifier.disabled)
+  return _internal_disabled();
+}
+inline void Modifier::set_disabled(bool value) {
+  _internal_set_disabled(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Modifier.disabled)
+}
+inline bool Modifier::_internal_disabled() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.disabled_;
+}
+inline void Modifier::_internal_set_disabled(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.disabled_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // HoldModifierStateRequest
 
 // uint32 entity = 1;
@@ -6369,6 +7728,248 @@ inline void BuildItem::set_allocated_annotation(::std::string* PROTOBUF_NULLABLE
     _impl_.annotation_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.BuildItem.annotation)
+}
+
+// -------------------------------------------------------------------
+
+// HoldEntityModifierRequest
+
+// uint32 entity = 1;
+inline void HoldEntityModifierRequest::clear_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t HoldEntityModifierRequest::entity() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.HoldEntityModifierRequest.entity)
+  return _internal_entity();
+}
+inline void HoldEntityModifierRequest::set_entity(::uint32_t value) {
+  _internal_set_entity(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.HoldEntityModifierRequest.entity)
+}
+inline ::uint32_t HoldEntityModifierRequest::_internal_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.entity_;
+}
+inline void HoldEntityModifierRequest::_internal_set_entity(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = value;
+}
+
+// string modifier = 2;
+inline void HoldEntityModifierRequest::clear_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifier_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& HoldEntityModifierRequest::modifier() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.HoldEntityModifierRequest.modifier)
+  return _internal_modifier();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void HoldEntityModifierRequest::set_modifier(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.modifier_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.HoldEntityModifierRequest.modifier)
+}
+inline ::std::string* PROTOBUF_NONNULL HoldEntityModifierRequest::mutable_modifier()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_modifier();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.HoldEntityModifierRequest.modifier)
+  return _s;
+}
+inline const ::std::string& HoldEntityModifierRequest::_internal_modifier() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.modifier_.Get();
+}
+inline void HoldEntityModifierRequest::_internal_set_modifier(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifier_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL HoldEntityModifierRequest::_internal_mutable_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.modifier_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE HoldEntityModifierRequest::release_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.abilities.HoldEntityModifierRequest.modifier)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.modifier_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.modifier_.Set("", GetArena());
+  }
+  return released;
+}
+inline void HoldEntityModifierRequest::set_allocated_modifier(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.modifier_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.modifier_.IsDefault()) {
+    _impl_.modifier_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.HoldEntityModifierRequest.modifier)
+}
+
+// optional bool active = 3;
+inline bool HoldEntityModifierRequest::has_active() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void HoldEntityModifierRequest::clear_active() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline bool HoldEntityModifierRequest::active() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.HoldEntityModifierRequest.active)
+  return _internal_active();
+}
+inline void HoldEntityModifierRequest::set_active(bool value) {
+  _internal_set_active(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.HoldEntityModifierRequest.active)
+}
+inline bool HoldEntityModifierRequest::_internal_active() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.active_;
+}
+inline void HoldEntityModifierRequest::_internal_set_active(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// GiveEntityModifierRequest
+
+// uint32 entity = 1;
+inline void GiveEntityModifierRequest::clear_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t GiveEntityModifierRequest::entity() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.GiveEntityModifierRequest.entity)
+  return _internal_entity();
+}
+inline void GiveEntityModifierRequest::set_entity(::uint32_t value) {
+  _internal_set_entity(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.GiveEntityModifierRequest.entity)
+}
+inline ::uint32_t GiveEntityModifierRequest::_internal_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.entity_;
+}
+inline void GiveEntityModifierRequest::_internal_set_entity(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = value;
+}
+
+// string modifier = 2;
+inline void GiveEntityModifierRequest::clear_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifier_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& GiveEntityModifierRequest::modifier() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.GiveEntityModifierRequest.modifier)
+  return _internal_modifier();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void GiveEntityModifierRequest::set_modifier(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.modifier_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.GiveEntityModifierRequest.modifier)
+}
+inline ::std::string* PROTOBUF_NONNULL GiveEntityModifierRequest::mutable_modifier()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_modifier();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.GiveEntityModifierRequest.modifier)
+  return _s;
+}
+inline const ::std::string& GiveEntityModifierRequest::_internal_modifier() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.modifier_.Get();
+}
+inline void GiveEntityModifierRequest::_internal_set_modifier(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifier_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL GiveEntityModifierRequest::_internal_mutable_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.modifier_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE GiveEntityModifierRequest::release_modifier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.abilities.GiveEntityModifierRequest.modifier)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.modifier_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.modifier_.Set("", GetArena());
+  }
+  return released;
+}
+inline void GiveEntityModifierRequest::set_allocated_modifier(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.modifier_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.modifier_.IsDefault()) {
+    _impl_.modifier_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.GiveEntityModifierRequest.modifier)
+}
+
+// float seconds = 3;
+inline void GiveEntityModifierRequest::clear_seconds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.seconds_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline float GiveEntityModifierRequest::seconds() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.GiveEntityModifierRequest.seconds)
+  return _internal_seconds();
+}
+inline void GiveEntityModifierRequest::set_seconds(float value) {
+  _internal_set_seconds(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.GiveEntityModifierRequest.seconds)
+}
+inline float GiveEntityModifierRequest::_internal_seconds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.seconds_;
+}
+inline void GiveEntityModifierRequest::_internal_set_seconds(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.seconds_ = value;
 }
 
 #ifdef __GNUC__

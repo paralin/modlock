@@ -18,7 +18,7 @@
 // A frame costs one pawn read per member, which the mode reads back with
 // pawn instead of asking the game again.
 
-import { heroes } from './heroes.js'
+import { heroes, heroNamed } from './heroes.js'
 import {
   type Connection,
   type Pawn,
@@ -30,8 +30,9 @@ import { watchPlayers } from './players.js'
 /** Want is what a member's hero should be; each field it leaves out is free. */
 export interface Want {
   /**
-   * hero seats the member on a hero: its name, such as 'hero_atlas', its id,
-   * or 'any' for the hero they have or else a random one.
+   * hero seats the member on a hero: its name as players know it or as the
+   * game does, such as 'Calico' or 'hero_nano', its id, or 'any' for the
+   * hero they have or else a random one.
    */
   readonly hero?: string | number
   /**
@@ -258,10 +259,7 @@ export class Cast<M> {
 
     // A name outside the released heroes, such as one the game added since,
     // is met by whatever hero the game gave for it.
-    const id =
-      typeof hero === 'number'
-        ? hero
-        : heroes.find((known) => known.name === hero)?.id
+    const id = typeof hero === 'number' ? hero : heroNamed(hero)?.id
     return id === undefined || pawn.hero === id
   }
 

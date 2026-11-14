@@ -1,0 +1,223 @@
+---
+title: Events
+description: The moments a mod hears about, and how to register a handler for each.
+---
+
+A mod registers handlers as it loads, and the server calls each at its moment:
+a chat command, a frame, a player joining, a hit about to land.
+
+<Samples>
+
+```ts
+import { command, log, onFrame, onPlayerJoin, onStart, onWorld } from 'modlock'
+
+onStart((args) => log(`started with ${args.join(' ')}`))
+onWorld((map) => log(`world ${map} loaded`))
+onPlayerJoin(({ connection }) => log(`${connection.name} joined`))
+onFrame((frame) => {
+  // Runs once per server frame, at frame.timeSeconds.
+})
+command('hello', (player, args) => {
+  player.chat(`You said ${args}`)
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+modlock.onStart(function(args)
+	modlock.log(`started with {table.concat(args, " ")}`)
+end)
+modlock.onWorld(function(map)
+	modlock.log(`world {map} loaded`)
+end)
+modlock.onPlayerJoin(function(joined)
+	modlock.log(`{joined.connection.name} joined`)
+end)
+modlock.onFrame(function(frame)
+	-- Runs once per server frame, at frame.timeSeconds.
+end)
+modlock.command("hello", function(player, args)
+	player:chat(`You said {args}`)
+end)
+```
+
+```python
+import modlock
+
+
+@modlock.on_start
+def started(args: list[str]) -> None:
+    modlock.log(f"started with {' '.join(args)}")
+
+
+@modlock.on_world
+def loaded(map_name: str) -> None:
+    modlock.log(f"world {map_name} loaded")
+
+
+@modlock.on_player_join
+def joined(event: modlock.PlayerJoinedEvent) -> None:
+    modlock.log(f"{event.connection.name} joined")
+
+
+@modlock.on_frame
+def frame(frame: modlock.FrameEvent) -> None:
+    pass  # Runs once per server frame, at frame.time_seconds.
+
+
+@modlock.command("hello")
+def hello(player: modlock.Player, args: str) -> None:
+    player.chat(f"You said {args}")
+```
+
+```go
+package main
+
+import "github.com/paralin/modlock/mod"
+
+func init() {
+	mod.OnStart(func(args []string) { mod.Log("started with", args) })
+	mod.OnWorld(func(mapName string) { mod.Log("world", mapName, "loaded") })
+	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
+		mod.Log(joined.GetConnection().GetName(), "joined")
+	})
+	mod.OnFrame(func(frame *mod.FrameEvent) {
+		// Runs once per server frame, at frame.GetTimeSeconds().
+	})
+	mod.Command("hello", func(p mod.Player, args string) {
+		_ = p.Chat("You said " + args)
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+## Every event
+
+Python spells each as a `snake_case` decorator, such as
+`@modlock.on_player_join`, and Go as an exported function, such as
+`mod.OnPlayerJoin`.
+
+| Call                                                | Runs the handler                                               |
+| --------------------------------------------------- | -------------------------------------------------------------- |
+| `command(name, handler)`                            | On the frame after a player types `/name` in chat.             |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.    |
+| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.       |
+| `onWorld(handler)`                                  | As each world loads, with its map; at start if one has loaded. |
+| `onFrame(handler)`                                  | Once per server frame.                                         |
+| `onPlayerJoin(handler)`                             | As each player finishes joining; at start for each.            |
+| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.          |
+| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.     |
+| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.  |
+| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.         |
+| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.               |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.      |
+
+## A player's stages
+
+Most mods need only the join, to greet the player, and the spawn, to act on
+the hero.
+
+| Stage      | What is true                                                                                           | How the mod sees it                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Connecting | The player holds a slot and is still loading the map. Nothing sent to them shows yet.                  | In the [player list](/guides/players#list-the-players) with `ready` false. |
+| Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may have no hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
+| In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn and each new hero.                        |
+| Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
+
+Between joined and in play, the player picks a team or hero, or the game has
+not placed the hero yet; [`seatPlayers`](/guides/toolkit#seat-the-players)
+skips those screens. A call that needs a hero, such as a teleport, fails
+before the spawn, so make it in `onSpawn`, which fires for the first hero,
+each respawn and each new hero. A bot joins as soon as it is added.
+
+## Joins and leaves
+
+Each joined player leaves exactly once, before the server removes them, so
+the hero still reads:
+
+<Samples>
+
+```ts
+import { log, onPlayerLeave } from 'modlock'
+
+onPlayerLeave(({ connection, disconnected, reason }) => {
+  if (disconnected) {
+    log(`${connection.name} left (${reason ?? 'no reason'})`)
+  }
+})
+```
+
+```luau
+modlock.onPlayerLeave(function(left)
+	if left.disconnected then
+		modlock.log(`{left.connection.name} left`)
+	end
+end)
+```
+
+```python
+@modlock.on_player_leave
+def left(event: modlock.PlayerLeftEvent) -> None:
+    if event.disconnected:
+        modlock.log(f"{event.connection.name} left")
+```
+
+```go
+mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
+	if left.GetDisconnected() {
+		mod.Log(left.GetConnection().GetName(), "left:", left.GetReason())
+	}
+})
+```
+
+</Samples>
+
+| Field          | On             | Holds                                                                                    |
+| -------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `connection`   | join and leave | The slot, SteamID64 and name.                                                            |
+| `disconnected` | leave          | Whether the player left the server; false when they stay but the mod stops serving them. |
+| `reason`       | leave          | The server's reason, such as `'kicked'` or `'disconnectByUser'`, when it gave one.       |
+
+## Spawns
+
+`onSpawn` hands over the player and the hero now in play:
+
+<Samples>
+
+```ts
+import { log, onSpawn } from 'modlock'
+
+onSpawn((player, pawn) => {
+  log(`slot ${player.slot} spawned with ${pawn.health} health`)
+})
+```
+
+```luau
+modlock.onSpawn(function(player, pawn)
+	modlock.log(`slot {player.slot} spawned with {pawn.health} health`)
+end)
+```
+
+```python
+@modlock.on_spawn
+def spawned(player: modlock.Player, pawn: modlock.Pawn) -> None:
+    modlock.log(f"slot {player.slot} spawned with {pawn.health} health")
+```
+
+```go
+mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
+	mod.Log("slot", player.Slot, "spawned with", pawn.GetHealth(), "health")
+})
+```
+
+</Samples>
+
+## Where next
+
+- [Timers](/guides/timers) run code later, without counting frames.
+- [Damage](/guides/damage) covers the two hit events.
+- [Input](/guides/input) covers buttons.

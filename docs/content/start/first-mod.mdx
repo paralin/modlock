@@ -1,0 +1,62 @@
+---
+title: Your first mod
+description: Make a project, run it in the game and change it while it runs.
+---
+
+## Make a project
+
+Run each line in a terminal:
+
+```sh
+modlock new
+cd my-mod
+modlock dev
+```
+
+`modlock new` asks for the mod's name and language. A name like "Zombie Tag"
+becomes the directory `zombie-tag`.
+
+## What the project holds
+
+| Language   | Files                                                    | Notes                                             |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- |
+| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`, `node_modules/`  | `node_modules/modlock` holds the library's types. |
+| JavaScript | `mod.json`, `main.js`, `tsconfig.json`, `node_modules/`  | Checked from JSDoc.                               |
+| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` holds the library's types.            |
+| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | `.modlock/` holds the library's types.            |
+| Go         | `mod.json`, `main.go`, `go.mod`, `go.sum`                | You need [Go](https://go.dev/dl/) installed.      |
+
+Every project also has a `.gitignore` and `.vscode/extensions.json`.
+
+`mod.json` is the [manifest](/reference/manifest): the mod's slug, name and
+version. The entry file is the mod. It starts as what most game modes begin
+from: no lane troopers or jungle creeps, any number of players on the same hero,
+each player [seated](/guides/toolkit#seat-the-players) on a team with a hero
+and brought back 3 seconds after falling, a welcome, and an answer to `/hello`
+in chat. Delete what your mode does not want.
+
+## Run it
+
+`modlock dev` builds the mod, starts a local server and launches Deadlock
+through Steam to join it. The terminal shows the mod's log.
+
+Type `/hello` in the game's chat. Change the reply in the entry file, save, and
+type it again: the new build is already running. A failed build prints its
+errors and keeps the last good build running.
+
+Without the game, such as on a Mac, `modlock dev` runs the mod in the
+[sandbox](/guides/testing#in-the-sandbox). Type `/hello` in the terminal.
+
+## If something goes wrong
+
+| You see                                                  | Do this                                                                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `modlock` is not recognized                              | See [Install](/start/install).                                                                                      |
+| `Import "modlock" could not be resolved` in a Python mod | Open the mod's own folder in the editor. Pyright reads `pyrightconfig.json` only from the folder the editor opened. |
+| `modlock new` stops before writing a Go project          | Install [Go](https://go.dev/dl/), then run it again.                                                                |
+
+## Next
+
+The [tutorial](/start/tutorial) grows the project into a small game mode, a few
+lines at a time. To play it with friends, see
+[Playing together](/reference/play-together).

@@ -1,0 +1,213 @@
+---
+title: A rotation mode
+description: Run a lobby through one fight at a time, with a fair line and balanced sides.
+---
+
+A rotation mode runs a lobby through one fight at a time, such as a duel ring
+or a two against two pit. Everyone waits in one line, each match seats those
+who have fought least, a session rating splits the sides evenly, and the rest
+watch from the stands:
+
+| Piece                                | Call                                        |
+| ------------------------------------ | ------------------------------------------- |
+| Who is here                          | `Cast`                                      |
+| Each player's record for the session | `Standings`, `Standing`                     |
+| Who fights next, and on which side   | `nextMatch`, `afterMatch`                   |
+| The result                           | `settle`, `ratingChange`                    |
+| An even share of heroes              | `leastUsed`                                 |
+| The leaderboard                      | `leaderboard`, `Roster`, `rosterRows`       |
+| Waiting in the stands                | `holdBystander`, `playCamera`, `curve.hold` |
+| Heroes left behind by a swap         | `Strays`                                    |
+
+The rotation calls are TypeScript only. Each is pure: the mod keeps the line
+and the standings, and the call reads what it is given. `js/test/rotation.test.ts` runs a whole session without the game.
+
+## The line and the standings
+
+Keep the line as an array of your own players, in arrival order, and a
+`Standings`, which holds one `Standing` per Steam ID for the session:
+
+- A player who leaves and rejoins keeps their record and place.
+- `join` creates the standing at `startingRating`, then raises matches played
+  to the fewest anyone present has played, so arriving late or leaving to skip
+  a turn never jumps the line.
+- A function passed to `Standings` adds your own fields to each new standing,
+  such as matches played as each hero:
+
+```ts
+import { Cast, Standings } from 'modlock'
+
+const standings = new Standings(() => ({ heroes: [0, 0] }))
+let line: Entrant[] = []
+
+const cast = new Cast({
+  join: ({ player, name, steamId }) => {
+    const standing = standings.join(
+      steamId,
+      line.map((each) => each.standing),
+    )
+    const entrant = { player, name, standing }
+    line.push(entrant)
+    return entrant
+  },
+  leave: (entrant) => {
+    line = line.filter((each) => each !== entrant)
+  },
+})
+```
+
+## The next match
+
+`nextMatch(line, size, standing)` takes the `2 * size` players who have played
+fewest, earlier in line first among equals, and deals them by rating in a
+snake (first, second, second, first) so the sides' ratings stay close: with
+two per side, the best pairs with the worst against the middle two. While too
+few wait it returns nothing, which the HUD shows as waiting for players.
+
+```ts
+const sides = nextMatch(line, size, (each) => each.standing)
+if (sides) {
+  for (const fighter of sides.flat()) {
+    fighter.standing.played++
+  }
+}
+```
+
+Count the match as played when it is seated, not when it ends, so a fighter
+who leaves mid-match still goes to the back of the order.
+
+## The result
+
+| Call                       | Does                                                                                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `settle(winners, losers)`  | Moves both sides' ratings by the Elo step between their averages, larger for an upset; counts wins, losses and streaks; returns the change, for a banner such as `+16`. |
+| `ratingChange`             | The same step alone.                                                                                                                                                    |
+| `step` option              | Replaces `ratingStep` (32) for matches that should count more or less.                                                                                                  |
+| `afterMatch(line, fought)` | Sends the fighters to the back of the line, everyone else keeping their order.                                                                                          |
+
+```ts
+const change = settle(
+  winners.map((each) => each.standing),
+  losers.map((each) => each.standing),
+)
+line = afterMatch(line, [...winners, ...losers])
+```
+
+## An even share of heroes
+
+When the mode picks each fighter's hero from a short list, count each
+player's matches per hero. `leastUsed(counts, prefer)` returns the one played
+least, or `prefer` on a tie, so everyone plays every hero about equally and
+two fighters can start on different heroes by preferring different ones.
+
+```ts
+const choice = leastUsed(fighter.standing.heroes, side === 0 ? 0 : 1)
+fighter.standing.heroes[choice]++
+```
+
+## The leaderboard
+
+`leaderboard(players, standing, rows, viewer)` ranks by wins, then rating,
+and returns the first `rows`, keeping the viewer on the last row if they would
+fall off. `Roster` draws each row's hero, avatar and a line of activity:
+
+```ts
+const rows = leaderboard(line, (each) => each.standing, 8, viewer)
+show(
+  viewer.player,
+  Roster({
+    rows: rows.map((each) => ({
+      name: each.name,
+      self: each === viewer,
+      hero: each.hero,
+      steamId: each.steamId,
+      activity: `${each.standing.wins}-${each.standing.losses} · ${each.standing.rating}`,
+    })),
+  }),
+)
+```
+
+## The stands
+
+A waiting player can keep a hero seated in the stands, on a hero the fight
+does not use. `holdBystander(entity)` keeps it out of play, and
+`holdBystander(entity, false)` gives it back before the player fights. A held
+hero:
+
+- cannot move, shoot, cast or zoom;
+- cannot be targeted by either team's abilities, and bullets and melee pass
+  over it;
+- cannot be pulled from its seat by displacement.
+
+Teleport the hero to its seat facing the ring, then aim `playCamera`'s
+`target`, the point the camera turns around, at the ring's center with a long
+`distance`, for a view the player circles with the mouse. Each param snaps
+back when its curve ends, so hold each curve longer than any wait, and clear
+the context when the player leaves the stands:
+
+```ts
+import {
+  type Angles,
+  curve,
+  holdBystander,
+  playCamera,
+  type Player,
+  type Vector,
+} from 'modlock'
+
+const context = 'arena.stands'
+
+function seat(
+  player: Player,
+  pawn: number,
+  position: Vector,
+  facing: Angles,
+): boolean {
+  player.teleport(position, facing)
+  holdBystander(pawn)
+  player.clearCamera(context)
+  const move = playCamera(player, {
+    context,
+    priority: 4,
+    tracks: {
+      target: curve.hold({ x: 0, y: 0, z: 60 }, 3600),
+      distance: curve.hold(1400, 3600),
+      verticalOffset: curve.hold(0, 3600),
+      horizontalOffset: curve.hold(0, 3600),
+    },
+  })
+  return move !== undefined
+}
+
+function unseat(player: Player, pawn: number): void {
+  holdBystander(pawn, false)
+  player.clearCamera(context)
+}
+```
+
+`playCamera` returns nothing while the player has no hero, so mark the seat
+taken only once `seat` returns true, and try again each frame. A bystander
+still dies to falls and world damage; respawn and seat it again.
+
+## Heroes left behind
+
+Swapping a player's hero, or moving them to the spectators and back, can
+leave the old hero driverless, and the game revives it on its own timer. Keep
+one `Strays` and call `sweep(now)` each frame:
+
+- A hero belongs to a player while its controller points to it, so a player
+  joining or spectating keeps theirs.
+- One that has belonged to nobody for `strayGraceSeconds` is killed once,
+  with its respawn held off for good.
+- The sweep looks once a second, at one entity listing and two field reads per
+  hero.
+
+```ts
+import { onFrame, Strays } from 'modlock'
+
+const strays = new Strays()
+onFrame(({ timeSeconds }) => strays.sweep(timeSeconds))
+```
+
+The sweep leaves a stray's abilities in place. Killing the ability entities
+of a live hero pawn has ended the server process.

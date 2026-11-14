@@ -1,0 +1,221 @@
+---
+title: Kill scoring and respawn
+description: Score each kill, bring the fallen back and end the round at a goal.
+---
+
+A deathmatch scores the player who made the lethal hit and puts the victim back in the fight. The damaged event reports the attacker and victim by entity. Match each entity to its player.
+
+<Samples>
+
+```ts
+import { after, onDamaged, onPlayerLeave, players } from 'modlock'
+
+const goal = 10
+const kills = new Map<number, number>()
+
+// The connection whose hero is this entity.
+function connectionOf(entity: number) {
+  return players().find(({ player }) => player.pawn()?.entity === entity)
+}
+
+onDamaged((hit) => {
+  if (hit.healthLost < hit.healthBefore) {
+    return // not lethal
+  }
+  const victim = connectionOf(hit.victim)
+  const scorer = connectionOf(hit.attacker)
+  if (victim !== undefined) {
+    after(3, () => victim.player.respawn())
+  }
+  if (scorer === undefined || scorer === victim) {
+    return
+  }
+  const total = (kills.get(scorer.player.slot) ?? 0) + 1
+  kills.set(scorer.player.slot, total)
+  const won = total >= goal
+  for (const { player } of players()) {
+    if (won) {
+      player.announce(`${scorer.name} wins`, 'A new round starts now.')
+    } else {
+      player.centerText(`${scorer.name}: ${total} / ${goal}`)
+    }
+  }
+  if (won) {
+    kills.clear()
+  }
+})
+
+onPlayerLeave(({ connection }) => {
+  kills.delete(connection.player.slot)
+})
+```
+
+```luau
+local modlock = require("@modlock")
+
+local goal = 10
+local kills: { [number]: number } = {}
+
+-- The connection whose hero is this entity.
+local function connectionOf(entity: number): modlock.Connection?
+	for _, connection in modlock.players() do
+		local pawn = connection.player:pawn()
+		if pawn and pawn.entity == entity then
+			return connection
+		end
+	end
+	return nil
+end
+
+modlock.onDamaged(function(hit)
+	if hit.healthLost < hit.healthBefore then
+		return -- not lethal
+	end
+	local victim = connectionOf(hit.victim)
+	local scorer = connectionOf(hit.attacker)
+	if victim then
+		modlock.after(3, function()
+			victim.player:respawn()
+		end)
+	end
+	if scorer == nil or scorer == victim then
+		return
+	end
+	local slot = scorer.player.slot
+	local total = (kills[slot] or 0) + 1
+	kills[slot] = total
+	local won = total >= goal
+	for _, connection in modlock.players() do
+		if won then
+			connection.player:announce(`{scorer.name} wins`, "A new round starts now.")
+		else
+			connection.player:centerText(`{scorer.name}: {total} / {goal}`)
+		end
+	end
+	if won then
+		kills = {}
+	end
+end)
+
+modlock.onPlayerLeave(function(left)
+	kills[left.connection.player.slot] = nil
+end)
+```
+
+```python
+import modlock
+
+GOAL = 10
+kills: dict[int, int] = {}
+
+
+def connection_of(entity: int) -> modlock.Connection | None:
+    """The connection whose hero is this entity."""
+    for connection in modlock.players():
+        pawn = connection.player.pawn()
+        if pawn is not None and pawn.entity == entity:
+            return connection
+    return None
+
+
+@modlock.on_damaged
+def scored(hit: modlock.DamagedEvent) -> None:
+    if hit.health_lost < hit.health_before:
+        return  # not lethal
+    victim = connection_of(hit.victim)
+    scorer = connection_of(hit.attacker)
+    if victim is not None:
+        modlock.after(3, victim.player.respawn)
+    if scorer is None or scorer is victim:
+        return
+    slot = scorer.player.slot
+    total = kills.get(slot, 0) + 1
+    kills[slot] = total
+    won = total >= GOAL
+    for connection in modlock.players():
+        if won:
+            connection.player.announce(f"{scorer.name} wins", "A new round starts now.")
+        else:
+            connection.player.center_text(f"{scorer.name}: {total} / {GOAL}")
+    if won:
+        kills.clear()
+
+
+@modlock.on_player_leave
+def left(event: modlock.PlayerLeftEvent) -> None:
+    kills.pop(event.connection.player.slot, None)
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/paralin/modlock/mod"
+)
+
+const goal = 10
+
+var kills = map[int32]int{}
+
+// connectionOf returns the connection whose hero is this entity.
+func connectionOf(entity uint32) *mod.Connection {
+	connections, _ := mod.Players()
+	for _, c := range connections {
+		pawn, err := mod.Player{Slot: c.GetPlayer()}.Pawn()
+		if err == nil && pawn != nil && pawn.GetEntity() == entity {
+			return c
+		}
+	}
+	return nil
+}
+
+func init() {
+	mod.OnDamaged(func(hit *mod.DamagedEvent) {
+		if hit.GetHealthLost() < hit.GetHealthBefore() {
+			return // not lethal
+		}
+		victim := connectionOf(hit.GetVictim())
+		scorer := connectionOf(hit.GetAttacker())
+		if victim != nil {
+			fallen := mod.Player{Slot: victim.GetPlayer()}
+			mod.After(3*time.Second, func() { _ = fallen.Respawn() })
+		}
+		if scorer == nil || (victim != nil && scorer.GetPlayer() == victim.GetPlayer()) {
+			return
+		}
+		kills[scorer.GetPlayer()]++
+		total := kills[scorer.GetPlayer()]
+		won := total >= goal
+		connections, _ := mod.Players()
+		for _, c := range connections {
+			p := mod.Player{Slot: c.GetPlayer()}
+			if won {
+				_ = p.Announce(scorer.GetName()+" wins", "A new round starts now.")
+			} else {
+				_ = p.CenterText(fmt.Sprintf("%s: %d / %d", scorer.GetName(), total, goal))
+			}
+		}
+		if won {
+			clear(kills)
+		}
+	})
+
+	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
+		delete(kills, left.GetConnection().GetPlayer())
+	})
+}
+
+func main() {}
+```
+
+</Samples>
+
+## Make it yours
+
+- Keep a score through a reconnect by keying it by Steam ID instead of slot. The sample keys scores by slot and drops them when the player leaves.
+- Pay the scorer with `adjustSouls` or heal them to reward a streak.
+- Count kills across sessions with a [metric](/guides/data#metrics), or rank players with a [board](/guides/data#boards).
+- The [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example builds on this. The leader carries a marker, and whoever defeats them takes it.

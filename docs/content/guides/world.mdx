@@ -1,0 +1,144 @@
+---
+title: The world
+description: Place text, models and effects, and load what they need.
+---
+
+A mod places text, models, effects and fog in the world. Each placed thing is
+an object you can move, change or remove later. A new map, stopping the mod, or
+reloading the mod removes every placed object.
+
+## Place text
+
+<Samples>
+
+```ts
+import { createText } from 'modlock'
+
+const label = createText({
+  text: 'START',
+  position: { x: 0, y: 0, z: 200 },
+  fontSize: 96,
+  faceCamera: true,
+})
+label?.setText('GO!')
+label?.move({ x: 0, y: 0, z: 260 })
+label?.remove()
+```
+
+```luau
+local label = modlock.createText({
+	text = "START",
+	position = { x = 0, y = 0, z = 200 },
+	fontSize = 96,
+	faceCamera = true,
+})
+if label then
+	label:setText("GO!")
+	label:move({ x = 0, y = 0, z = 260 })
+	label:remove()
+end
+```
+
+```python
+label = modlock.create_text(
+    modlock.TextOptions(
+        text="START",
+        position=modlock.Vector(0, 0, 200),
+        font_size=96,
+        face_camera=True,
+    )
+)
+if label is not None:
+    label.set_text("GO!")
+    label.move(modlock.Vector(0, 0, 260))
+    label.remove()
+```
+
+```go
+size, faceCamera := float32(96), true
+label, err := mod.CreateText(&mod.TextOptions{
+	Text:       "START",
+	Position:   &mod.Vector{Z: 200},
+	FontSize:   &size,
+	FaceCamera: &faceCamera,
+})
+if err == nil {
+	_ = label.SetText("GO!")
+	_ = label.Move(&mod.Vector{Z: 260}, nil)
+	_ = label.Remove()
+}
+```
+
+</Samples>
+
+## Load heroes and resources
+
+Precache the heroes, models and effects your mode uses when the mod starts.
+Otherwise the first use shows nothing. The game loads each one with the world.
+
+<Samples>
+
+```ts
+import { onStart, precache } from 'modlock'
+
+onStart(() => {
+  precache({ heroes: ['hero_atlas', 'hero_haze'] })
+})
+```
+
+```luau
+modlock.onStart(function()
+	modlock.precache({ heroes = { "hero_atlas", "hero_haze" } })
+end)
+```
+
+```python
+@modlock.on_start
+def load(args: list[str]) -> None:
+    modlock.precache(modlock.PrecacheOptions(heroes=["hero_atlas", "hero_haze"]))
+```
+
+```go
+mod.OnStart(func([]string) {
+	_ = mod.Precache(&mod.PrecacheOptions{Heroes: []string{"hero_atlas", "hero_haze"}})
+})
+```
+
+</Samples>
+
+## Forget objects when the world changes
+
+A new world removes everything the mod placed. In the world event, drop your
+references and place the objects again.
+
+## Every call
+
+Python spells each call in `snake_case` and Go with exported names. `Dropper`
+is TypeScript only.
+
+| Call                                                   | Effect                                                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `createText`, `createModel`, `createParticle`          | Place text, a model or an effect to move, change or remove later.                                     |
+| `createFog({ position, mins, maxs, strength, color })` | Fill a box with tinted fog. Tile boxes to darken all but one area.                                    |
+| `precache({ heroes, resources })`                      | Load heroes and resources with the next world.                                                        |
+| `serverCommand(line)`                                  | Run a line at the server console, within [its limits](/guides/console#limits).                        |
+| `moveEntity`                                           | Move an entity.                                                                                       |
+| `pushEntity`                                           | Set or add to an entity's velocity.                                                                   |
+| `emitSound`                                            | Play a sound on an entity.                                                                            |
+| `modifierState(entity, state)`, `holdModifierState`    | Test or hold a modifier state on an entity.                                                           |
+| `silenceVoice(concepts)`, `player.silenceVoice`        | Keep every hero, or one, from speaking the listed voice concepts.                                     |
+| `giveEntityModifier`, `holdEntityModifier`             | Give or hold a modifier on a live entity, such as an NPC.                                             |
+| `readField`, `writeField`, `entityClass`               | Read or write any schema field of a live entity, or read its class; see [Entities](/guides/entities). |
+| `loadSpot(spot)`                                       | Place a [spot](/guides/world#spots) on the running map.                                               |
+| `encodeSpot`, `decodeSpot`                             | Save a spot, or restore a saved one.                                                                  |
+| `new Dropper(catalog, spot)`                           | Let players build a spot while they play.                                                             |
+
+## Spots
+
+A spot is a base map plus the solid objects players placed on it.
+[`examples/dropper`](https://github.com/paralin/modlock/tree/master/examples/dropper) builds a
+spot on Midtown. `/build` opens the catalog, and every player drops into the
+same spot. The document at
+[`mod/spot/spot.proto`](https://github.com/paralin/modlock/blob/master/mod/spot/spot.proto)
+stores each model path and builder once. A few hundred objects fit in a few
+kilobytes.

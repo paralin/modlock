@@ -1,0 +1,53 @@
+---
+title: Luau
+description: 'Luau mods: strict types, modules, typed entities and the console.'
+---
+
+A [Luau](https://luau.org) mod requires `@modlock` and registers its handlers
+in `main.luau`:
+
+```luau
+local modlock = require("@modlock")
+
+modlock.command("hello", function(player)
+	player:chat("Hello from Luau!")
+end)
+```
+
+The types check in strict mode. Editors with the Luau language server resolve
+the library. A module requires another by its relative path, such as
+`require("./round")`, as the [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example does.
+
+The library offers the calls of the TypeScript one under the same names. Call
+methods as `player:chat(text)`. A 64-bit id, such as a Steam ID, is a decimal
+string. Build interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`.
+
+The [guides](/guides/events) show every call in the language. Choose the
+language with the switch in the sidebar.
+
+## Typed entities
+
+`@modlock/entities` reads and writes fields and creates entities. Give each
+entity a type so the analyzer checks it:
+
+```luau
+local entities = require("@modlock/entities")
+
+local hero: entities.CCitadelPlayerPawn = entities.new("CCitadelPlayerPawn", pawn.entity)
+hero.m_iHealth = (hero.m_iHealth or 0) + 50
+
+local keys: entities.CNPC_TrooperBossKeys = { LaneNum = 2 }
+local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { position = position, keys = keys })
+```
+
+## The console
+
+`@modlock/console` sets variables with `setBoolean`, `setNumber` and
+`setString`, and runs commands with `run`:
+
+```luau
+local console = require("@modlock/console")
+
+console.setBoolean("citadel_allow_purchasing_anywhere", true)
+console.run("changelevel", "street_test")
+```

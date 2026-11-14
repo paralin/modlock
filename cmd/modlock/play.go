@@ -131,6 +131,9 @@ func playCommand(out *printer) *cli.Command {
 type server interface {
 	// Reload replaces the running mod with the build at path.
 	Reload(ctx context.Context, path string) error
+	// Call calls a service a running mod serves; the answer arrives as a
+	// called event.
+	Call(ctx context.Context, call *control.ModCall) error
 	// Wait waits for the session to end.
 	Wait() error
 	// Stop ends the session.
@@ -269,6 +272,7 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 	// console line that joins.
 	out.field("host", running.Executable)
 	out.field("console", logPath)
+	out.field("run", runHint)
 	out.field("join", "connect 127.0.0.1:"+strconv.Itoa(int(c.Uint("port")))+" in a running game's console")
 	out.mark("…", dim, "starting the server")
 	return running, nil
@@ -384,28 +388,31 @@ func configPath(name string) string {
 	return filepath.Join(config, "modlock", name)
 }
 
-// waitSession waits for the session to end, or ends it on Ctrl-C. In the
-// sandbox each line of standard input is the player's input: a command, or
-// with --json a cli.Input. With --json the session also ends when standard
-// input closes, because a program cannot send Ctrl-C to a Windows process.
+// consoleService is the service a library serves to run a line of code in
+// its mod, with the method "run": the code as text in, what a console shows
+// for it as text out.
+const consoleService = "console"
+
+// waitSession waits for the session to end, or ends it on Ctrl-C. Each line
+// of standard input that starts with > runs in the mod that started last, as
+// a line at its language's console. In the sandbox every other line is the
+// player's command. With --json each line is a cli.Input, and the session
+// also ends when standard input closes, because a program cannot send Ctrl-C
+// to a Windows process.
 func waitSession(c *cli.Context, out *printer, running server) error {
-	// Read the player's input, and stop on closed input for a program.
+	// Read the lines, and stop on closed input for a program.
 	ctx, cancel := context.WithCancel(c.Context)
 	defer cancel()
-	box, sandboxed := running.(*sandbox.Sandbox)
-	if out.json || sandboxed {
-		go func() {
-			lines := bufio.NewScanner(os.Stdin)
-			for lines.Scan() {
-				if sandboxed {
-					input(ctx, out, box, lines.Text())
-				}
-			}
-			if out.json {
-				cancel()
-			}
-		}()
-	}
+	box, _ := running.(*sandbox.Sandbox)
+	go func() {
+		lines := bufio.NewScanner(os.Stdin)
+		for lines.Scan() {
+			input(ctx, out, running, box, lines.Text())
+		}
+		if out.json {
+			cancel()
+		}
+	}()
 
 	// A stop the user asked for is not an error.
 	stop := context.AfterFunc(ctx, running.Stop)
@@ -417,18 +424,51 @@ func waitSession(c *cli.Context, out *printer, running server) error {
 	return errors.Wrap(err, "the server stopped")
 }
 
-// input passes one line of the player's input to the sandbox's mods and
-// notes input no mod received. A person types commands; a program sends a
-// cli.Input as JSON.
-func input(ctx context.Context, out *printer, box *sandbox.Sandbox, line string) {
-	// Read a program's input; a person's line is a command.
+// input takes one line of standard input: a console line for a mod, or the
+// player's input for the sandbox's mods, box, which is nil in the game. A
+// person types the line; a program sends a cli.Input as JSON.
+func input(ctx context.Context, out *printer, running server, box *sandbox.Sandbox, line string) {
+	// Read a program's input; a person's line is a console line or a command.
 	in := &modcli.Input{Body: &modcli.Input_Command{Command: line}}
+	if code, console := strings.CutPrefix(strings.TrimSpace(line), ">"); console {
+		in = &modcli.Input{Body: &modcli.Input_Console{Console: &modcli.ConsoleLine{Code: code}}}
+	}
 	if out.json {
 		in = &modcli.Input{}
 		if err := in.UnmarshalJSON([]byte(line)); err != nil {
 			out.note("the input is not a cli.Input:", err)
 			return
 		}
+	}
+
+	// Run a console line in its mod, or in the one that started last.
+	if console := in.GetConsole(); console != nil {
+		call := &control.ModCall{
+			Mod:     console.GetMod(),
+			Service: consoleService,
+			Method:  "run",
+			Payload: []byte(strings.TrimSpace(console.GetCode())),
+			Id:      console.GetId(),
+		}
+		if call.Mod == "" {
+			call.Mod = out.started()
+		}
+		switch {
+		case call.Mod == "":
+			out.note("no mod is running yet to take the line")
+		case len(call.Payload) != 0:
+			_ = running.Call(ctx, call)
+		}
+		return
+	}
+
+	// The rest is the player's input, which only the sandbox takes: in the
+	// game the player is at the game's own keyboard.
+	if box == nil {
+		if strings.TrimSpace(line) != "" && !out.json {
+			out.note("type commands in the game's chat; a line that starts with > runs in the mod")
+		}
+		return
 	}
 	if note := deliver(ctx, box, in); note != "" {
 		out.note(note)

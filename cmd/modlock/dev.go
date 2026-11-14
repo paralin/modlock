@@ -23,8 +23,8 @@ import (
 // desktop holds 4321 while it runs, so a creator can run both.
 const previewPort = 4322
 
-// devCommand runs a mod in a local server and, with --watch, reloads it on
-// each save. It serves the preview page, which draws the mod's interface.
+// devCommand runs a mod in a local server and reloads it on each save,
+// unless --watch=false. It serves the preview page, which draws the mod's interface.
 func devCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:      "dev",
@@ -34,7 +34,8 @@ func devCommand(out *printer) *cli.Command {
 			slices.Clone(sessionFlags),
 			&cli.BoolFlag{
 				Name:  "watch",
-				Usage: "rebuild the mod and reload it on each save",
+				Value: true,
+				Usage: "rebuild the mod and reload it on each save; --watch=false builds it once",
 			},
 			releaseFlag,
 			&cli.UintFlag{
@@ -59,6 +60,12 @@ func runDev(c *cli.Context, out *printer, command string) error {
 	}
 	out.header(command, opened.Manifest.GetSlug())
 
+	// Offer the Modlock extension, once, to the editor whose terminal this
+	// is, before the build's output starts.
+	if err := offerExtensionOnce(c.Context, out); err != nil {
+		return cancelled(err)
+	}
+
 	// Serve the preview page, which takes the player's input once
 	// the mods run in the sandbox.
 	watch := c.Bool("watch")
@@ -75,9 +82,9 @@ func runDev(c *cli.Context, out *printer, command string) error {
 	// Keep every player's interface from the first event, for guests.
 	feed := observeHosting(c, out)
 
-	// Build now and, with --watch, after each save. The first good
+	// Build now and, when watching, after each save. The first good
 	// build starts the server and each later one reloads the mod; a
-	// failed build keeps the running one, and without --watch ends the
+	// failed build keeps the running one, and with --watch=false ends the
 	// command. A build that made the same mod as the running one, after a
 	// save outside its inputs such as a note, leaves the game alone. Watch
 	// calls rebuild on one goroutine.
@@ -88,7 +95,7 @@ func runDev(c *cli.Context, out *printer, command string) error {
 		// Keep the running mod when the build fails.
 		if err := out.build(c.Context, opened, buildMode(c)); err != nil {
 			if !watch {
-				started <- errors.Wrap(err, "the build failed; fix it and run again, or pass --watch to rebuild on each save")
+				started <- errors.Wrap(err, "the build failed; fix it and run again")
 				return
 			}
 			out.mark("✗", red, "the build failed; fix it and save to try again")

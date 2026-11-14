@@ -4,16 +4,18 @@
 #include <array>
 #include <cstring>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "modlock/gameinterop/native_memory.h"
+#include "modlock/gameinterop/virtual_slots.h"
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
+#include "wasm/text_values.h"
 
 namespace modlock::wasm {
 
@@ -154,15 +156,6 @@ std::expected<fields::FieldValue, std::string> Decode(fields::FieldType type,
       return std::unexpected("the field type is unknown");
   }
   return value;
-}
-
-// Interned returns a copy of text that lives for the life of the process, one
-// copy per distinct text. A symbol field points to it: the entity keeps the
-// pointer past the mod that wrote it and never frees it, as it never frees the
-// game's own interned symbols.
-const char* Interned(std::string text) {
-  static auto* texts = new std::unordered_set<std::string>();
-  return texts->insert(std::move(text)).first->c_str();
 }
 
 // Encode converts a value to the bytes of one field of type. The value must
@@ -508,6 +501,35 @@ std::expected<fields::FieldResponse, std::string> Game::ReadField(
   return ReadValue(*address, request.type(), request.class_name() + "." + request.field());
 }
 
+std::expected<std::vector<unsigned char*>, std::string> Game::EntityModifiers(void* entity) {
+  // Find the entity's modifier property; an entity without one holds none.
+  auto layout = services_.Modifiers();
+  if (!layout) {
+    return std::unexpected(layout.error());
+  }
+  const unsigned char* property = nullptr;
+  if (!gameinterop::ReadNative(static_cast<unsigned char*>(entity) + layout->property, &property,
+                               sizeof(property))) {
+    return std::unexpected("cannot read the entity's modifiers");
+  }
+  if (!property) {
+    return std::vector<unsigned char*>{};
+  }
+
+  // Copy the list's pointers and drop the empty slots.
+  auto list = ReadList(property + layout->list);
+  if (!list) {
+    return std::unexpected(list.error());
+  }
+  std::vector<unsigned char*> modifiers(static_cast<size_t>(list->size));
+  if (!modifiers.empty() && !gameinterop::ReadNative(list->elements, modifiers.data(),
+                                                     modifiers.size() * sizeof(unsigned char*))) {
+    return std::unexpected("cannot read the entity's modifiers");
+  }
+  std::erase(modifiers, nullptr);
+  return modifiers;
+}
+
 std::expected<fields::FieldResponse, std::string> Game::ReadModifierField(
     const fields::ReadModifierFieldRequest& request) {
   // Find the entity, the field and the entity's modifier list.
@@ -526,32 +548,15 @@ std::expected<fields::FieldResponse, std::string> Game::ReadModifierField(
       !holds) {
     return std::unexpected(holds.error());
   }
-  auto layout = services_.Modifiers();
-  if (!layout) {
-    return std::unexpected(layout.error());
-  }
-  const unsigned char* property = nullptr;
-  if (!gameinterop::ReadNative(static_cast<unsigned char*>(*entity) + layout->property, &property,
-                               sizeof(property))) {
-    return std::unexpected("cannot read the entity's modifiers");
-  }
-  if (!property) {
-    return fields::FieldResponse{};
-  }
-  auto list = ReadList(property + layout->list);
-  if (!list) {
-    return std::unexpected(list.error());
+  auto modifiers = EntityModifiers(*entity);
+  if (!modifiers) {
+    return std::unexpected(modifiers.error());
   }
 
   // Read the field of the first modifier with the name; without one, answer
   // no value.
-  std::vector<unsigned char*> modifiers(static_cast<size_t>(list->size));
-  if (!modifiers.empty() && !gameinterop::ReadNative(list->elements, modifiers.data(),
-                                                     modifiers.size() * sizeof(unsigned char*))) {
-    return std::unexpected("cannot read the entity's modifiers");
-  }
-  for (auto* modifier : modifiers) {
-    if (modifier && ModifierName(modifier) == request.modifier()) {
+  for (auto* modifier : *modifiers) {
+    if (ModifierName(modifier) == request.modifier()) {
       return ReadValue(modifier + found->offset, request.type(),
                        request.modifier() + "." + request.field());
     }
@@ -780,6 +785,83 @@ std::expected<abilities::ActiveResponse, std::string> Game::ModifierState(
     return std::unexpected("cannot read the entity's modifier states");
   }
   response.set_active(((ordinary | predicted) & (*word)->bit) != 0);
+  return response;
+}
+
+std::expected<abilities::ModifiersResponse, std::string> Game::Modifiers(
+    const entities::EntityRequest& request) {
+  // Find the entity, its modifiers and the clock their times count on.
+  auto entity = Entity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  auto modifiers = EntityModifiers(*entity);
+  if (!modifiers) {
+    return std::unexpected(modifiers.error());
+  }
+  std::optional<float> now;
+  if (auto server = services_.Server()) {
+    if (auto clock = (*server)->ReadClock()) {
+      now = clock->current_time;
+    }
+  }
+
+  // Find each CBaseModifier field the answer reads once.
+  struct Read {
+    const char* field;
+    size_t offset = 0;
+    bool found = false;
+  };
+
+  std::array<Read, 9> reads{{{"m_hCaster"},
+                             {"m_hAbility"},
+                             {"m_flCreationTime"},
+                             {"m_flLastAppliedTime"},
+                             {"m_flDuration"},
+                             {"m_iStackCount"},
+                             {"m_iMaxStackCount"},
+                             {"m_iTeam"},
+                             {"m_bDisabled"}}};
+  for (auto& read : reads) {
+    if (auto found = services_.Field("CBaseModifier", read.field)) {
+      read.offset = found->offset;
+      read.found = true;
+    }
+  }
+  auto [caster, ability, created, applied, duration, stacks, max_stacks, team, disabled] = reads;
+
+  // Read what each modifier keeps; a field the schema or memory denies stays
+  // at its default, so one unreadable field still lists the modifier.
+  abilities::ModifiersResponse response;
+  for (auto* modifier : *modifiers) {
+    auto field = [&]<typename T>(const Read& read, T fallback) {
+      T value = fallback;
+      if (read.found && !gameinterop::ReadNative(modifier + read.offset, &value, sizeof(value))) {
+        value = fallback;
+      }
+      return value;
+    };
+    auto* entry = response.add_modifiers();
+    entry->set_name(ModifierName(modifier));
+    entry->set_class_name(gameinterop::ObjectClassName(modifier));
+    const auto caster_handle = field(caster, uint32_t{0xFFFFFFFFu});
+    const auto ability_handle = field(ability, uint32_t{0xFFFFFFFFu});
+    entry->set_caster(caster_handle == 0xFFFFFFFFu ? 0 : caster_handle);
+    entry->set_ability(ability_handle == 0xFFFFFFFFu ? 0 : ability_handle);
+    entry->set_stacks(field(stacks, int16_t{0}));
+    entry->set_max_stacks(field(max_stacks, int16_t{0}));
+    entry->set_team(field(team, uint8_t{0}));
+    entry->set_disabled(field(disabled, uint8_t{0}) != 0);
+
+    // Times count on the server's simulation clock: a duration runs from the
+    // last application, and a negative one lasts until removed.
+    if (now) {
+      entry->set_age(*now - field(created, *now));
+      if (const auto seconds = field(duration, -1.0f); seconds >= 0) {
+        entry->set_remaining(std::max(0.0f, field(applied, *now) + seconds - *now));
+      }
+    }
+  }
   return response;
 }
 

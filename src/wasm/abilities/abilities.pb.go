@@ -570,6 +570,131 @@ func (x *ActiveResponse) GetActive() bool {
 	return false
 }
 
+// ModifiersResponse lists the modifiers an entity holds, in the game's order.
+type ModifiersResponse struct {
+	unknownFields []byte
+	Modifiers     []*Modifier `protobuf:"bytes,1,rep,name=modifiers,proto3" json:"modifiers,omitempty"`
+}
+
+func (x *ModifiersResponse) Reset() {
+	*x = ModifiersResponse{}
+}
+
+func (*ModifiersResponse) ProtoMessage() {}
+
+func (x *ModifiersResponse) GetModifiers() []*Modifier {
+	if x != nil {
+		return x.Modifiers
+	}
+	return nil
+}
+
+// Modifier is one modifier an entity holds, as the game keeps it.
+type Modifier struct {
+	unknownFields []byte
+	// Name is the modifier's name, such as modifier_citadel_knockdown, as
+	// GiveModifier and ReadModifierField name it. It is empty when the game
+	// keeps no readable name.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// ClassName is the modifier's server class, such as
+	// CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+	// names can share a class.
+	ClassName string `protobuf:"bytes,2,opt,name=class_name,json=className,proto3" json:"className,omitempty"`
+	// Caster is the handle of the entity that applied it, such as the hero
+	// whose ability did, or 0 when none did.
+	Caster uint32 `protobuf:"varint,3,opt,name=caster,proto3" json:"caster,omitempty"`
+	// Ability is the handle of the ability that applied it, or 0 when none did.
+	Ability uint32 `protobuf:"varint,4,opt,name=ability,proto3" json:"ability,omitempty"`
+	// Age is how many seconds ago the game created it.
+	Age float32 `protobuf:"fixed32,5,opt,name=age,proto3" json:"age,omitempty"`
+	// Remaining is how many seconds it has left since it was last applied. It
+	// is absent for a modifier that lasts until something removes it.
+	Remaining *float32 `protobuf:"fixed32,6,opt,name=remaining,proto3,oneof" json:"remaining,omitempty"`
+	// Stacks and MaxStacks count its stacks, for a modifier that stacks.
+	Stacks    int32 `protobuf:"varint,7,opt,name=stacks,proto3" json:"stacks,omitempty"`
+	MaxStacks int32 `protobuf:"varint,8,opt,name=max_stacks,json=maxStacks,proto3" json:"maxStacks,omitempty"`
+	// Team is the team number it belongs to.
+	Team uint32 `protobuf:"varint,9,opt,name=team,proto3" json:"team,omitempty"`
+	// Disabled is true while the game keeps it without its effects.
+	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
+}
+
+func (x *Modifier) Reset() {
+	*x = Modifier{}
+}
+
+func (*Modifier) ProtoMessage() {}
+
+func (x *Modifier) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Modifier) GetClassName() string {
+	if x != nil {
+		return x.ClassName
+	}
+	return ""
+}
+
+func (x *Modifier) GetCaster() uint32 {
+	if x != nil {
+		return x.Caster
+	}
+	return 0
+}
+
+func (x *Modifier) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
+func (x *Modifier) GetAge() float32 {
+	if x != nil {
+		return x.Age
+	}
+	return 0
+}
+
+func (x *Modifier) GetRemaining() float32 {
+	if x != nil && x.Remaining != nil {
+		return *x.Remaining
+	}
+	return 0
+}
+
+func (x *Modifier) GetStacks() int32 {
+	if x != nil {
+		return x.Stacks
+	}
+	return 0
+}
+
+func (x *Modifier) GetMaxStacks() int32 {
+	if x != nil {
+		return x.MaxStacks
+	}
+	return 0
+}
+
+func (x *Modifier) GetTeam() uint32 {
+	if x != nil {
+		return x.Team
+	}
+	return 0
+}
+
+func (x *Modifier) GetDisabled() bool {
+	if x != nil {
+		return x.Disabled
+	}
+	return false
+}
+
 // HoldModifierStateRequest holds one modifier state on an entity, or
 // releases it.
 type HoldModifierStateRequest struct {
@@ -717,6 +842,84 @@ func (x *BuildItem) GetAnnotation() string {
 		return x.Annotation
 	}
 	return ""
+}
+
+// HoldEntityModifierRequest holds or releases a modifier on an entity.
+type HoldEntityModifierRequest struct {
+	unknownFields []byte
+	// Entity is the entity handle, such as Npc.entity or Pawn.entity.
+	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	// Modifier names the modifier as GiveModifierRequest.modifier does, such
+	// as upgrade_colossus/modifier_colossus_active.
+	Modifier string `protobuf:"bytes,2,opt,name=modifier,proto3" json:"modifier,omitempty"`
+	// Active holds the modifier when true or omitted; false releases the hold.
+	Active *bool `protobuf:"varint,3,opt,name=active,proto3,oneof" json:"active,omitempty"`
+}
+
+func (x *HoldEntityModifierRequest) Reset() {
+	*x = HoldEntityModifierRequest{}
+}
+
+func (*HoldEntityModifierRequest) ProtoMessage() {}
+
+func (x *HoldEntityModifierRequest) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+func (x *HoldEntityModifierRequest) GetModifier() string {
+	if x != nil {
+		return x.Modifier
+	}
+	return ""
+}
+
+func (x *HoldEntityModifierRequest) GetActive() bool {
+	if x != nil && x.Active != nil {
+		return *x.Active
+	}
+	return false
+}
+
+// GiveEntityModifierRequest gives a live entity a modifier.
+type GiveEntityModifierRequest struct {
+	unknownFields []byte
+	// Entity is the entity handle, such as Npc.entity or Pawn.entity.
+	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	// Modifier names an ability's modifier as "<ability>/<modifier>", or a
+	// standalone modifier by its name, such as modifier_citadel_idol_glow.
+	Modifier string `protobuf:"bytes,2,opt,name=modifier,proto3" json:"modifier,omitempty"`
+	// Seconds is how long the modifier lasts.
+	Seconds float32 `protobuf:"fixed32,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *GiveEntityModifierRequest) Reset() {
+	*x = GiveEntityModifierRequest{}
+}
+
+func (*GiveEntityModifierRequest) ProtoMessage() {}
+
+func (x *GiveEntityModifierRequest) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+func (x *GiveEntityModifierRequest) GetModifier() string {
+	if x != nil {
+		return x.Modifier
+	}
+	return ""
+}
+
+func (x *GiveEntityModifierRequest) GetSeconds() float32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
 }
 
 func (m *HoldReloadRequest) CloneVT() *HoldReloadRequest {
@@ -959,6 +1162,47 @@ func (m *ActiveResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ModifiersResponse) CloneVT() *ModifiersResponse {
+	if m == nil {
+		return (*ModifiersResponse)(nil)
+	}
+	r := new(ModifiersResponse)
+	r.Modifiers = protobuf_go_lite.CloneVTSlice(m.Modifiers)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ModifiersResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Modifier) CloneVT() *Modifier {
+	if m == nil {
+		return (*Modifier)(nil)
+	}
+	r := new(Modifier)
+	r.Name = m.Name
+	r.ClassName = m.ClassName
+	r.Caster = m.Caster
+	r.Ability = m.Ability
+	r.Age = m.Age
+	r.Stacks = m.Stacks
+	r.MaxStacks = m.MaxStacks
+	r.Team = m.Team
+	r.Disabled = m.Disabled
+	r.Remaining = protobuf_go_lite.ClonePtr(m.Remaining)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Modifier) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *HoldModifierStateRequest) CloneVT() *HoldModifierStateRequest {
 	if m == nil {
 		return (*HoldModifierStateRequest)(nil)
@@ -1041,6 +1285,42 @@ func (m *BuildItem) CloneVT() *BuildItem {
 }
 
 func (m *BuildItem) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HoldEntityModifierRequest) CloneVT() *HoldEntityModifierRequest {
+	if m == nil {
+		return (*HoldEntityModifierRequest)(nil)
+	}
+	r := new(HoldEntityModifierRequest)
+	r.Entity = m.Entity
+	r.Modifier = m.Modifier
+	r.Active = protobuf_go_lite.ClonePtr(m.Active)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HoldEntityModifierRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *GiveEntityModifierRequest) CloneVT() *GiveEntityModifierRequest {
+	if m == nil {
+		return (*GiveEntityModifierRequest)(nil)
+	}
+	r := new(GiveEntityModifierRequest)
+	r.Entity = m.Entity
+	r.Modifier = m.Modifier
+	r.Seconds = m.Seconds
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *GiveEntityModifierRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1400,6 +1680,73 @@ func (this *ActiveResponse) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *ModifiersResponse) EqualVT(that *ModifiersResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Modifiers, that.Modifiers, func() *Modifier { return &Modifier{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ModifiersResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ModifiersResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Modifier) EqualVT(that *Modifier) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.ClassName != that.ClassName {
+		return false
+	}
+	if this.Caster != that.Caster {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	if this.Age != that.Age {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Remaining, that.Remaining) {
+		return false
+	}
+	if this.Stacks != that.Stacks {
+		return false
+	}
+	if this.MaxStacks != that.MaxStacks {
+		return false
+	}
+	if this.Team != that.Team {
+		return false
+	}
+	if this.Disabled != that.Disabled {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Modifier) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Modifier)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *HoldModifierStateRequest) EqualVT(that *HoldModifierStateRequest) bool {
 	if this == that {
 		return true
@@ -1509,6 +1856,58 @@ func (this *BuildItem) EqualVT(that *BuildItem) bool {
 
 func (this *BuildItem) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*BuildItem)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HoldEntityModifierRequest) EqualVT(that *HoldEntityModifierRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	if this.Modifier != that.Modifier {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Active, that.Active) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HoldEntityModifierRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HoldEntityModifierRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *GiveEntityModifierRequest) EqualVT(that *GiveEntityModifierRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	if this.Modifier != that.Modifier {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GiveEntityModifierRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*GiveEntityModifierRequest)
 	if !ok {
 		return false
 	}
@@ -2392,6 +2791,188 @@ func (x *ActiveResponse) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ModifiersResponse message to JSON.
+func (x *ModifiersResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Modifiers) > 0 || s.HasField("modifiers") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("modifiers")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Modifiers {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("modifiers"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ModifiersResponse to JSON.
+func (x *ModifiersResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModifiersResponse message from JSON.
+func (x *ModifiersResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "modifiers":
+			s.AddField("modifiers")
+			if s.ReadNil() {
+				x.Modifiers = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Modifiers = append(x.Modifiers, nil)
+					return
+				}
+				v := &Modifier{}
+				v.UnmarshalProtoJSON(s.WithField("modifiers", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Modifiers = append(x.Modifiers, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ModifiersResponse from JSON.
+func (x *ModifiersResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Modifier message to JSON.
+func (x *Modifier) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.ClassName != "" || s.HasField("className") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("className")
+		s.WriteString(x.ClassName)
+	}
+	if x.Caster != 0 || s.HasField("caster") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("caster")
+		s.WriteUint32(x.Caster)
+	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	if x.Age != 0 || s.HasField("age") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("age")
+		s.WriteFloat32(x.Age)
+	}
+	if x.Remaining != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("remaining")
+		s.WriteFloat32(*x.Remaining)
+	}
+	if x.Stacks != 0 || s.HasField("stacks") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("stacks")
+		s.WriteInt32(x.Stacks)
+	}
+	if x.MaxStacks != 0 || s.HasField("maxStacks") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("maxStacks")
+		s.WriteInt32(x.MaxStacks)
+	}
+	if x.Team != 0 || s.HasField("team") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("team")
+		s.WriteUint32(x.Team)
+	}
+	if x.Disabled || s.HasField("disabled") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("disabled")
+		s.WriteBool(x.Disabled)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Modifier to JSON.
+func (x *Modifier) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Modifier message from JSON.
+func (x *Modifier) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "class_name", "className":
+			s.AddField("class_name")
+			x.ClassName = s.ReadString()
+		case "caster":
+			s.AddField("caster")
+			x.Caster = s.ReadUint32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		case "age":
+			s.AddField("age")
+			x.Age = s.ReadFloat32()
+		case "remaining":
+			s.AddField("remaining")
+			if s.ReadNil() {
+				x.Remaining = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Remaining = &t
+		case "stacks":
+			s.AddField("stacks")
+			x.Stacks = s.ReadInt32()
+		case "max_stacks", "maxStacks":
+			s.AddField("max_stacks")
+			x.MaxStacks = s.ReadInt32()
+		case "team":
+			s.AddField("team")
+			x.Team = s.ReadUint32()
+		case "disabled":
+			s.AddField("disabled")
+			x.Disabled = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Modifier from JSON.
+func (x *Modifier) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the HoldModifierStateRequest message to JSON.
 func (x *HoldModifierStateRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2686,6 +3267,127 @@ func (x *BuildItem) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the BuildItem from JSON.
 func (x *BuildItem) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HoldEntityModifierRequest message to JSON.
+func (x *HoldEntityModifierRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	if x.Modifier != "" || s.HasField("modifier") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("modifier")
+		s.WriteString(x.Modifier)
+	}
+	if x.Active != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("active")
+		s.WriteBool(*x.Active)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HoldEntityModifierRequest to JSON.
+func (x *HoldEntityModifierRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HoldEntityModifierRequest message from JSON.
+func (x *HoldEntityModifierRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		case "modifier":
+			s.AddField("modifier")
+			x.Modifier = s.ReadString()
+		case "active":
+			s.AddField("active")
+			if s.ReadNil() {
+				x.Active = nil
+				return
+			}
+			t := s.ReadBool()
+			x.Active = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HoldEntityModifierRequest from JSON.
+func (x *HoldEntityModifierRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the GiveEntityModifierRequest message to JSON.
+func (x *GiveEntityModifierRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	if x.Modifier != "" || s.HasField("modifier") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("modifier")
+		s.WriteString(x.Modifier)
+	}
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat32(x.Seconds)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the GiveEntityModifierRequest to JSON.
+func (x *GiveEntityModifierRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the GiveEntityModifierRequest message from JSON.
+func (x *GiveEntityModifierRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		case "modifier":
+			s.AddField("modifier")
+			x.Modifier = s.ReadString()
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the GiveEntityModifierRequest from JSON.
+func (x *GiveEntityModifierRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3339,6 +4041,132 @@ func (m *ActiveResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ModifiersResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ModifiersResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ModifiersResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Modifiers) > 0 {
+		for iNdEx := len(m.Modifiers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Modifiers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Modifier) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Modifier) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Modifier) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Disabled {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Disabled)
+		i--
+		dAtA[i] = 0x50
+	}
+	if m.Team != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Team))
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.MaxStacks != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.MaxStacks))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.Stacks != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Stacks))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.Remaining != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Remaining))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.Age != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Age))))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Caster != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Caster))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.ClassName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.ClassName)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *HoldModifierStateRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3563,6 +4391,100 @@ func (m *BuildItem) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HoldEntityModifierRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HoldEntityModifierRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HoldEntityModifierRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Active != nil {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.Active)
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Modifier) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Modifier)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GiveEntityModifierRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GiveEntityModifierRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *GiveEntityModifierRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if len(m.Modifier) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Modifier)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *HoldReloadRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3741,6 +4663,40 @@ func (m *ActiveResponse) SizeVT() (n int) {
 	return n
 }
 
+func (m *ModifiersResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Modifiers {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Modifier) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ClassName)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Caster)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Age)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Remaining)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Stacks)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.MaxStacks)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Team)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Disabled)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *HoldModifierStateRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3803,6 +4759,32 @@ func (m *BuildItem) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Item)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Annotation)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HoldEntityModifierRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Modifier)
+	n += protobuf_go_lite.SizeBoolPtr(1, m.Active)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *GiveEntityModifierRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Modifier)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4129,6 +5111,78 @@ func (x *ActiveResponse) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *ModifiersResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModifiersResponse")
+	if len(x.Modifiers) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "modifiers")
+		for i, v := range x.Modifiers {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Modifier{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ModifiersResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Modifier) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Modifier")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.ClassName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "class_name")
+		protobuf_go_lite.TextWriteString(&sb, x.ClassName)
+	}
+	if x.Caster != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "caster")
+		protobuf_go_lite.TextWriteUint(&sb, x.Caster)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	if x.Age != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "age")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Age)
+	}
+	if x.Remaining != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "remaining")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Remaining)
+	}
+	if x.Stacks != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "stacks")
+		protobuf_go_lite.TextWriteInt(&sb, x.Stacks)
+	}
+	if x.MaxStacks != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_stacks")
+		protobuf_go_lite.TextWriteInt(&sb, x.MaxStacks)
+	}
+	if x.Team != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "team")
+		protobuf_go_lite.TextWriteUint(&sb, x.Team)
+	}
+	if x.Disabled != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "disabled")
+		protobuf_go_lite.TextWriteBool(&sb, x.Disabled)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Modifier) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *HoldModifierStateRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HoldModifierStateRequest")
@@ -4232,6 +5286,50 @@ func (x *BuildItem) MarshalProtoText() string {
 }
 
 func (x *BuildItem) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HoldEntityModifierRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HoldEntityModifierRequest")
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	if x.Modifier != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "modifier")
+		protobuf_go_lite.TextWriteString(&sb, x.Modifier)
+	}
+	if x.Active != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "active")
+		protobuf_go_lite.TextWriteBool(&sb, *x.Active)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HoldEntityModifierRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *GiveEntityModifierRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "GiveEntityModifierRequest")
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	if x.Modifier != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "modifier")
+		protobuf_go_lite.TextWriteString(&sb, x.Modifier)
+	}
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *GiveEntityModifierRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -5248,6 +6346,205 @@ func (m *ActiveResponse) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
+func (m *ModifiersResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ModifiersResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ModifiersResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Modifiers", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Modifiers = append(m.Modifiers, &Modifier{})
+			if err := m.Modifiers[len(m.Modifiers)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Modifier) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Modifier: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Modifier: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClassName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ClassName = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Caster", wireType)
+			}
+			m.Caster = 0
+			m.Caster, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Age", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Age = float32(math.Float32frombits(v))
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Remaining", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Remaining = &v2
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stacks", wireType)
+			}
+			m.Stacks = 0
+			m.Stacks, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxStacks", wireType)
+			}
+			m.MaxStacks = 0
+			m.MaxStacks, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Team", wireType)
+			}
+			m.Team = 0
+			m.Team, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Disabled", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Disabled = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
 func (m *HoldModifierStateRequest) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -5546,6 +6843,153 @@ func (m *BuildItem) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Annotation = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HoldEntityModifierRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HoldEntityModifierRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HoldEntityModifierRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Modifier", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Modifier = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Active", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Active = &b
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *GiveEntityModifierRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GiveEntityModifierRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GiveEntityModifierRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Modifier", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Modifier = v
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Seconds = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

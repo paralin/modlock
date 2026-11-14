@@ -19,6 +19,9 @@ export type Field = {
 	kind: string,
 	-- repeated marks a list of values.
 	repeated: boolean?,
+	-- map marks a repeated field of map entries, which the message holds as a
+	-- table from each entry's key to its value.
+	map: boolean?,
 	-- optional marks a field whose presence the receiver sees, so the encoder
 	-- sends even its zero value.
 	optional: boolean?,
@@ -37,6 +40,9 @@ export type Field = {
 	key: string?,
 	-- id marks a 64-bit integer held as a decimal string.
 	id: boolean?,
+	-- resolve maps a string field's value to the one the game reads, such as
+	-- a hero's title to its game name, before it is encoded.
+	resolve: ((string) -> string)?,
 }
 
 -- Schema holds each message's fields by the message's name.
@@ -47,6 +53,7 @@ local wireTypes: { [string]: number } = {
 	double = 1,
 	float = 5,
 	fixed32 = 5,
+	fixed64 = 1,
 	string = 2,
 	bytes = 2,
 	message = 2,
@@ -238,6 +245,9 @@ local function read(schema: Schema, field: Field, s: string, i: number, kind: nu
 			value = field.class.new(value)
 		end
 		return value, after
+	elseif kind == 1 and field.kind == "fixed64" then
+		local lo: any, hi: any, after: any = string.unpack("<I4I4", s, i)
+		return if field.id then decimal(lo, hi) else join(lo, hi, false), after
 	elseif kind == 1 then
 		return string.unpack("<d", s, i)
 	end
@@ -296,6 +306,12 @@ function decode(schema: Schema, name: string, s: string): any
 		local field = byNumber[bit32.rshift(key, 3)]
 		if field == nil then
 			i = skip(s, i, kind)
+		elseif field.map then
+			local entry
+			entry, i = read(schema, field, s, i, kind)
+			local entries = out[field.name] or {}
+			out[field.name] = entries
+			entries[entry.key] = entry.value
 		elseif field.repeated then
 			local list = out[field.name] or {}
 			out[field.name] = list
@@ -348,6 +364,9 @@ local function bytes(schema: Schema, field: Field, value: any): string
 		local body = encode(schema, field.message :: string, value)
 		return varint(#body, 0) .. body
 	elseif field.kind == "string" or field.kind == "bytes" then
+		if field.resolve then
+			value = field.resolve(value)
+		end
 		return varint(#value, 0) .. value
 	elseif field.kind == "float" then
 		return string.pack("<f", value)
@@ -355,6 +374,14 @@ local function bytes(schema: Schema, field: Field, value: any): string
 		return string.pack("<I4", value)
 	elseif field.kind == "double" then
 		return string.pack("<d", value)
+	elseif field.kind == "fixed64" then
+		local lo, hi
+		if field.id then
+			lo, hi = parse(tostring(value))
+		else
+			lo, hi = split(value)
+		end
+		return string.pack("<I4I4", lo, hi)
 	elseif field.kind == "bool" then
 		return if value then "\1" else "\0"
 	elseif field.id then
@@ -378,17 +405,21 @@ local function tag(field: Field, kind: number): string
 end
 
 -- encode returns the message name holding value. It leaves out fields that
--- are nil, and the zero values the receiver assumes. A oneof's value takes
--- the first case of its Luau type.
+-- are nil, and the zero values the receiver assumes. A map's entries go in
+-- no set order, as the protobuf wire allows. A oneof's value is
+-- either under a case's own name, which picks that case, or under the
+-- oneof's name, which takes the first case of its Luau type.
 function encode(schema: Schema, name: string, value: any): string
 	local parts = {}
 	local cases: { [string]: boolean } = {}
 	for _, field in schema[name] do
-		-- Encode the first case of a oneof whose type matches its value.
+		-- Encode the case named by its own field, else the first case of a
+		-- oneof whose type matches its value.
 		local kind = wireTypes[field.kind] or 0
 		if field.oneof then
-			local case = value[field.oneof]
-			if case ~= nil and not cases[field.oneof] and typeof(case) == luauType(field) then
+			local named = field.name ~= field.oneof and value[field.name] ~= nil
+			local case = if named then value[field.name] else value[field.oneof]
+			if case ~= nil and not cases[field.oneof] and (named or typeof(case) == luauType(field)) then
 				cases[field.oneof] = true
 				table.insert(parts, tag(field, kind) .. bytes(schema, field, case))
 			end
@@ -401,7 +432,11 @@ function encode(schema: Schema, name: string, value: any): string
 		if v == nil then
 			continue
 		end
-		if field.repeated and packable(field.kind) then
+		if field.map then
+			for key, item in v do
+				table.insert(parts, tag(field, kind) .. bytes(schema, field, { key = key, value = item }))
+			end
+		elseif field.repeated and packable(field.kind) then
 			if #v > 0 then
 				local packed = {}
 				for _, item in v do

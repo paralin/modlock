@@ -1,0 +1,58 @@
+---
+title: Abilities and items
+description: Swap, train and upgrade abilities, buy items, and redraw the ability bar.
+---
+
+A mod swaps a hero's abilities and buys their items through the game's own
+rules. The table spells each call as TypeScript and Luau do; Python uses
+`snake_case` and Go exported names.
+
+| Call                                   | Effect                                                                                                                                                                                 |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `replaceAbility(index, name, keep?)`   | Puts an ability in a main slot, 0 to 3, including an ultimate placed on another key. It starts untrained; with `keep` it takes the old one's training, upgrades, cooldown and charges. |
+| `trainAbility(slot)`                   | Trains or upgrades whatever the hero holds in a main slot, through the game's path. It charges the unlock or the points, and returns false, spending nothing, when the game refuses.   |
+| `buyItem(item, imbue?, source?)`       | Buys through the game's shop, which applies its rules and charges the souls. Returns false when the shop refuses.                                                                      |
+| `giveItem(item, imbue?)`               | Gives an item, enabled and free; a hero that owns it keeps its one copy.                                                                                                               |
+| `adjustAbilityPoints(points, unlocks)` | Gives or takes ability points and unlocks. The hero's `abilityPoints` and `abilityUnlocks` read what is left.                                                                          |
+| `abilityBarPresses(player, handler)`   | Reports each click on a slot's icon or pips as `(player, slot)`.                                                                                                                       |
+| `abilityDisplay(viewer, rows)`         | Shows the viewer each row's abilities on the Tab screen and the ability bar, in place of the game's.                                                                                   |
+| `setAbility`                           | Changes the first ability with a matching name.                                                                                                                                        |
+| `restoreHero`                          | Restores a hero; its ability targets, by definition ID and slot, train each copy.                                                                                                      |
+
+## Swapped abilities
+
+- The same definition can fill several main slots, each a separate ability
+  entity.
+- The game trains and upgrades main slots by slot: a player holds the
+  upgrade key and presses the slot's ability key. Training an untrained
+  replacement costs an ability unlock.
+- A hero change or `resetHero` restores the hero's own abilities, so reapply
+  a swap after either.
+- `imbue` makes the item strengthen whatever ability the hero holds in that
+  slot. The check runs before anything is spent.
+
+## Game commands a mod claims
+
+The game's own commands look up the hero's own ability for a slot, so a mod
+that swaps abilities claims them and answers with its own call:
+
+| Game command                               | Answer with    |
+| ------------------------------------------ | -------------- |
+| `upgrade_ability`, `trainorupgradeability` | `trainAbility` |
+| `buydependentitem`                         | `buyItem`      |
+
+## The ability bar
+
+A click on the game's ability bar sends nothing for an ability
+`replaceAbility` gave, so `abilityBarPresses` reports it and the mod answers
+with `trainAbility`. A click the game answers itself, with `upgrade_ability`,
+reaches the mod both ways. Clicks arrive only while the mod's screen holds the
+player's HUD, so a player who left sends none.
+
+The Tab screen and ability bar draw each hero's standard abilities by slot,
+so a replaced ability shows as the one it replaced. `abilityDisplay(viewer,
+[{ player, abilities: [{ name, image, upgrades }] }])` draws the rows in the
+game's frame and pips, with the ability window over them, and the viewer's
+own row on the bar too. A row finds its Tab row by the player's name, else by
+the hero's, which a bot's row shows. Modlock gives the game's display back as
+the player leaves.

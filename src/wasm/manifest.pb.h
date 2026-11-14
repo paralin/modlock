@@ -88,6 +88,10 @@ class Definition_PropertiesEntry_DoNotUse;
 struct Definition_PropertiesEntry_DoNotUseDefaultTypeInternal;
 MODLOCK_API extern Definition_PropertiesEntry_DoNotUseDefaultTypeInternal _Definition_PropertiesEntry_DoNotUse_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_PropertiesEntry_DoNotUse_class_data_;
+class Definition_TextFieldsEntry_DoNotUse;
+struct Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern Definition_TextFieldsEntry_DoNotUseDefaultTypeInternal _Definition_TextFieldsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_TextFieldsEntry_DoNotUse_class_data_;
 class Manifest;
 struct ManifestDefaultTypeInternal;
 MODLOCK_API extern ManifestDefaultTypeInternal _Manifest_default_instance_;
@@ -241,6 +245,7 @@ enum Definition_File : int {
   Definition_File_FILE_HEROES = 1,
   Definition_File_FILE_BOT_DIFFICULTY = 2,
   Definition_File_FILE_NPC_UNITS = 3,
+  Definition_File_FILE_MODIFIERS = 4,
   Definition_File_Definition_File_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   Definition_File_Definition_File_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -251,11 +256,11 @@ extern const uint32_t Definition_File_internal_data_[];
 inline constexpr Definition_File Definition_File_File_MIN =
     static_cast<Definition_File>(0);
 inline constexpr Definition_File Definition_File_File_MAX =
-    static_cast<Definition_File>(3);
+    static_cast<Definition_File>(4);
 inline bool Definition_File_IsValid(int value) {
-  return 0 <= value && value <= 3;
+  return 0 <= value && value <= 4;
 }
-inline constexpr int Definition_File_File_ARRAYSIZE = 3 + 1;
+inline constexpr int Definition_File_File_ARRAYSIZE = 4 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descriptor();
 template <typename T>
 const ::std::string& Definition_File_Name(T value) {
@@ -266,7 +271,7 @@ const ::std::string& Definition_File_Name(T value) {
 }
 template <>
 inline const ::std::string& Definition_File_Name(Definition_File value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<Definition_File_descriptor, 0, 3>(
+  return ::google::protobuf::internal::NameOfDenseEnum<Definition_File_descriptor, 0, 4>(
       static_cast<int>(value));
 }
 inline bool Definition_File_Parse(
@@ -709,6 +714,45 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Movement_class_data_;
 // -------------------------------------------------------------------
 
+class Definition_TextFieldsEntry_DoNotUse final
+    : public ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_STRING> {
+ public:
+  using SuperType =
+      ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING>;
+  Definition_TextFieldsEntry_DoNotUse();
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Definition_TextFieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit Definition_TextFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
+    return &_Definition_TextFieldsEntry_DoNotUse_default_instance_;
+  }
+
+
+  static constexpr auto InternalGenerateClassData_();
+
+ private:
+  friend class ::google::protobuf::MessageLite;
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 56,
+                                   2>
+      _table_;
+
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+};
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_TextFieldsEntry_DoNotUse_class_data_;
+// -------------------------------------------------------------------
+
 class Definition_PropertiesEntry_DoNotUse final
     : public ::google::protobuf::internal::MapEntry<::std::string, float,
                              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
@@ -881,7 +925,7 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
     return *reinterpret_cast<const Definition*>(
         &_Definition_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(Definition& a, Definition& b) { a.Swap(&b); }
   inline void Swap(Definition* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -970,6 +1014,7 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
   static constexpr File FILE_HEROES = Definition_File_FILE_HEROES;
   static constexpr File FILE_BOT_DIFFICULTY = Definition_File_FILE_BOT_DIFFICULTY;
   static constexpr File FILE_NPC_UNITS = Definition_File_FILE_NPC_UNITS;
+  static constexpr File FILE_MODIFIERS = Definition_File_FILE_MODIFIERS;
   static inline bool File_IsValid(int value) {
     return Definition_File_IsValid(value);
   }
@@ -995,6 +1040,7 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
     kPropertiesFieldNumber = 3,
     kFieldsFieldNumber = 4,
     kCopyFieldsFieldNumber = 5,
+    kTextFieldsFieldNumber = 6,
   };
   // string entry = 2;
   void clear_entry() ;
@@ -1066,12 +1112,27 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
   ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL _internal_mutable_copy_fields();
 
   public:
+  // map<string, string> text_fields = 6;
+  int text_fields_size() const;
+  private:
+  int _internal_text_fields_size() const;
+
+  public:
+  void clear_text_fields() ;
+  const ::google::protobuf::Map<::std::string, ::std::string>& text_fields() const;
+  ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL mutable_text_fields();
+
+  private:
+  const ::google::protobuf::Map<::std::string, ::std::string>& _internal_text_fields() const;
+  ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL _internal_mutable_text_fields();
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.Definition)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 5,
-                                   3, 64,
+  static const ::google::protobuf::internal::TcParseTable<1, 6,
+                                   4, 75,
                                    2>
       _table_;
 
@@ -1106,6 +1167,10 @@ class MODLOCK_API Definition final : public ::google::protobuf::Message
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING>
         copy_fields_;
+    ::google::protobuf::internal::MapField<Definition_TextFieldsEntry_DoNotUse, ::std::string, ::std::string,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING>
+        text_fields_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2587,6 +2652,8 @@ inline void Movement::_internal_set_scale(float value) {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 // Definition
 
 // .modlock.wasm.Definition.File file = 1;
@@ -2773,6 +2840,38 @@ inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL D
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_mutable_map:modlock.wasm.Definition.copy_fields)
   return _internal_mutable_copy_fields();
+}
+
+// map<string, string> text_fields = 6;
+inline int Definition::_internal_text_fields_size() const {
+  return _internal_text_fields().size();
+}
+inline int Definition::text_fields_size() const {
+  return _internal_text_fields_size();
+}
+inline void Definition::clear_text_fields() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.text_fields_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Definition::_internal_text_fields() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.text_fields_.GetMap();
+}
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Definition::text_fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.Definition.text_fields)
+  return _internal_text_fields();
+}
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Definition::_internal_mutable_text_fields() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.text_fields_.MutableMap();
+}
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Definition::mutable_text_fields()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.Definition.text_fields)
+  return _internal_mutable_text_fields();
 }
 
 #ifdef __GNUC__

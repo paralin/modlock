@@ -1,0 +1,138 @@
+---
+title: The entity system
+description: How the typed entity libraries are generated from the game's own description of its entities.
+---
+
+Everything a player sees in a Deadlock match is an entity: heroes, troopers,
+Guardians, pickups, zip lines, lights, sounds, the shop. A mod creates any
+entity the server can create, reads and writes any field the game's schema
+declares, and sends any input a map's output could send, from TypeScript, Go or
+Luau, with types generated from the game itself. This page covers how those
+types are made; [Entity calls](/internals/entity-calls) covers what the host
+does and checks when a mod uses them.
+
+## Four names for one entity
+
+An entity has four names, and each part of the system uses one:
+
+| Name          | Example            | Where it comes from                | What uses it                         |
+| ------------- | ------------------ | ---------------------------------- | ------------------------------------ |
+| Designer name | `npc_trooper_boss` | The name a map places              | `createEntity`, `create`, inputs     |
+| Schema class  | `CNPC_TrooperBoss` | The C++ class the schema describes | Fields: `readField`, typed classes   |
+| Subclass      | `npc_boss_tier1`   | A game data entry the entity reads | `EntityOptions.subclass`, `spawnNpc` |
+| Entity name   | `arena_spawn_red`  | The targetname a map gives it      | `findEntitiesByName`, `entityName`   |
+
+`entityClass(handle)` returns the first two for a live entity. The subclass is
+the data an entity reads while it spawns: a lane Guardian and a base Guardian
+share a class and differ in their subclass, which gives their health, model
+and weapons. The entity name is the one a map's author chose, often shared by
+a group of entities, and an entity without one has an empty name. A mod names
+the entities it creates with the `targetname` key value, and finds a map's
+markers with `findEntitiesByName` instead of hardcoding their positions:
+
+```ts
+import { entityPosition, findEntitiesByName } from 'modlock'
+
+const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
+```
+
+## The game dump
+
+`modlock-host --dump DIRECTORY` starts a dedicated server, writes the game's
+description of itself and quits. Each document follows
+[`src/host_app/dump/dump.proto`](https://github.com/paralin/modlock/blob/master/src/host_app/dump/dump.proto)
+and is sorted by name, so two builds' dumps diff cleanly.
+[`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) holds
+the current set:
+
+| File            | Contents                                                    | Count                                                                         |
+| --------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `schemas.json`  | Every schema class with its base and fields, and every enum | 6,008 classes, 835 enums (build 6839)                                         |
+| `entities.json` | Designer names, their classes, key values, inputs, outputs  | 1,238 designer names, 472 data descriptions, 1,072 inputs, 433 outputs (6839) |
+| `console.json`  | Console variables and commands with their types             | 3,162 variables, 947 commands (6839)                                          |
+| `survey.json`   | What creating each designer name did on a dedicated server  | 1,236 constructions of 1,191 names (build 6774)                               |
+
+The first three come from the game's own registries: the schema system, the
+entity factories with their data descriptions, and the console. Nothing in them
+is written by hand, so a game update is a new dump.
+
+- **Schema classes.** `schemas.json` lists each class by module; the `server`
+  module holds the entity classes. A field has its name, its type as the game
+  spells it, and its offset. Modlock keeps the name and type and finds the
+  offset at run time, so a game update that moves a field needs no new build
+  of a mod.
+- **Data descriptions.** A designer name points at its data description, the
+  table a map reads when it places the entity. It adds key values and inputs to
+  its base and may embed others. A key value has a name, such as `rendercolor`,
+  and a type, such as a 32-bit color. An input has a name, such as `Color`, and
+  the Pulse type of its one parameter, if it takes one.
+- **Component keys.** An entity also takes the key values of the components its
+  class holds: the body component's scene node takes `origin`, `angles`,
+  `scale` and `ModelScale` on every entity, so `CBaseEntity`'s table carries
+  them. Keys the scene node parses itself, such as `scale`, have a type but no
+  field to read back.
+
+### The survey
+
+`survey.json` records what happens when a mod creates each designer name on a
+dedicated server with nothing else around it. A survey mod created each name,
+waited a frame and recorded the result; a runner split the names over twelve
+servers and resumed from the next name after each crash or hang. Each name is
+tried twice: first with the subclass the game's own data suggests, when there
+is one, then, for each name that lived, without it, to learn whether it needs
+one.
+
+| Result                | Names | Meaning                                                                                                                           |
+| --------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------- |
+| Lived                 |   578 | 543 alone; 35 only with their subclass: troopers, Guardians, Walkers, neutrals and the soul urn                                   |
+| Refused as an ability |   527 | Abilities, items and weapons, which only a hero holds                                                                             |
+| Failed                |    57 | Abstract bases the server cannot create, entities that removed themselves during spawn, nodes with no identity                    |
+| Crashed the server    |    26 | Player pawns, bot brains, path nodes, capture points and others; 25 are now [refused](/internals/entity-calls#what-fails-and-how) |
+| Vanished              |     3 | Created, then gone by the next frame                                                                                              |
+
+The survey checks only that an entity lives one frame with default key values,
+not that it looks or behaves right.
+
+## Generated libraries
+
+`scripts/gen-entities.sh` runs `modlock-entitygen` over the dump and writes the
+typed libraries:
+
+| Language   | Classes and constructors                                                                                                                   | Console                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| TypeScript | [`js/src/entities.ts`](https://github.com/paralin/modlock/blob/master/js/src/entities.ts), imported as `modlock/entities`                  | `modlock/console`                                                           |
+| Go         | [`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity)                                                                  | [`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) |
+| Luau       | [`luau/modlock/entities.luau`](https://github.com/paralin/modlock/blob/master/luau/modlock/entities.luau), required as `@modlock/entities` | `@modlock/console`                                                          |
+
+Each library has three parts.
+
+**A class per server schema class.** Each field is a property in TypeScript
+and Luau, and a method returning a getter and setter in Go. Each input the
+class's designer names accept is a method. A class extends its base, so a
+player pawn has `CBaseEntity`'s health.
+
+**A constructor per designer name that lived.** It takes only that entity's
+spawn keys, each as the type the entity reads, and returns the entity as its
+class. It gives the subclass the survey found by default, so
+`create('npc_trooper_boss', ...)` makes a lane Guardian without naming
+`npc_boss_tier1`. A designer name that never lived has no constructor: the
+type checker rejects `create('path_node', ...)` before the mod runs.
+
+**Typed console values.** Each variable takes the type the game declares;
+each command runs one line.
+
+A bundle keeps only what it uses. The generator writes output that is stable
+across runs, so a game update shows up as a readable diff of what the game
+changed.
+
+## Updating for a new game build
+
+After a game update:
+
+1. Run `modlock-host --dump data/dump` on a Windows server, or under Proton.
+2. Run the survey and replace `data/dump/survey.json`.
+3. Run `scripts/gen-entities.sh` and review the diff of the generated
+   libraries, which shows what the update changed.
+
+A mod built against an earlier dump keeps working when its fields and inputs
+survive the update, because the host resolves them by name at run time.

@@ -17,6 +17,7 @@ import * as playersPb from '../../src/wasm/players/players.pb.js'
 import * as settingsPb from '../../src/wasm/settings/settings.pb.js'
 import * as uiPb from '../../src/wasm/ui/ui.pb.js'
 import * as wasmPb from '../../src/wasm/wasm.pb.js'
+import { heroNamed } from './heroes.js'
 import { call } from './host.js'
 
 /** Vector is a position or direction in the world, in game units. */
@@ -45,6 +46,15 @@ function vector(value: { x?: number; y?: number; z?: number } | undefined): Vect
  */
 function int32(value: number): number {
   return Math.trunc(Math.min(Math.max(value, -0x80000000), 0x7fffffff))
+}
+
+/**
+ * heroName returns the game's name for the hero name names, as heroNamed
+ * finds it, or name itself when it names no released hero, so the host's
+ * error still reports it.
+ */
+function heroName(name: string): string {
+  return heroNamed(name)?.name ?? name
 }
 
 /** angles reads wire angles, taking absent components as zero. */
@@ -606,6 +616,61 @@ function toAbilityOptions(value: AbilityOptions): abilitiesPb.AbilityOptions {
     cooldownEnd: value.cooldownEnd,
     rechargeEnd: value.rechargeEnd,
     maxCharges: value.maxCharges === undefined ? undefined : int32(value.maxCharges),
+  }
+}
+
+/** Modifier is one modifier an entity holds, as the game keeps it. */
+export interface Modifier {
+  /**
+   * name is the modifier's name, such as modifier_citadel_knockdown, as
+   * GiveModifier and ReadModifierField name it. It is empty when the game
+   * keeps no readable name.
+   */
+  readonly name: string
+  /**
+   * className is the modifier's server class, such as
+   * CCitadel_Modifier_Knockdown, which ReadModifierField takes. Several
+   * names can share a class.
+   */
+  readonly className: string
+  /**
+   * caster is the handle of the entity that applied it, such as the hero
+   * whose ability did, or 0 when none did.
+   */
+  readonly caster: number
+  /**
+   * ability is the handle of the ability that applied it, or 0 when none did.
+   */
+  readonly ability: number
+  /** age is how many seconds ago the game created it. */
+  readonly age: number
+  /**
+   * remaining is how many seconds it has left since it was last applied. It
+   * is absent for a modifier that lasts until something removes it.
+   */
+  readonly remaining?: number
+  /** stacks and maxStacks count its stacks, for a modifier that stacks. */
+  readonly stacks: number
+  readonly maxStacks: number
+  /** team is the team number it belongs to. */
+  readonly team: number
+  /** disabled is true while the game keeps it without its effects. */
+  readonly disabled: boolean
+}
+
+/** fromModifier decodes a Modifier. */
+function fromModifier(message: abilitiesPb.Modifier): Modifier {
+  return {
+    name: message.name ?? '',
+    className: message.className ?? '',
+    caster: message.caster ?? 0,
+    ability: message.ability ?? 0,
+    age: message.age ?? 0,
+    remaining: message.remaining,
+    stacks: message.stacks ?? 0,
+    maxStacks: message.maxStacks ?? 0,
+    team: message.team ?? 0,
+    disabled: message.disabled ?? false,
   }
 }
 
@@ -2303,7 +2368,7 @@ function toBotOptions(value: BotOptions): playersPb.BotOptions {
   return {
     name: value.name,
     team: int32(value.team),
-    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: (value.hero as string) } : typeof value.hero === 'number' ? { case: 'heroId' as const, value: (value.hero as number) } : undefined,
+    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: heroName((value.hero as string)) } : typeof value.hero === 'number' ? { case: 'heroId' as const, value: (value.hero as number) } : undefined,
     position: value.position,
   }
 }
@@ -2615,7 +2680,7 @@ export interface PrecacheOptions {
 /** toPrecacheOptions encodes a PrecacheOptions. */
 function toPrecacheOptions(value: PrecacheOptions): wasmPb.PrecacheOptions {
   return {
-    heroes: value.heroes?.slice(),
+    heroes: value.heroes?.map((v) => heroName(v)),
     resources: value.resources?.slice(),
   }
 }
@@ -2739,7 +2804,7 @@ export class Player {
    * gap, up to 5 seconds, fails and leaves the pick to land.
    */
   selectHero(hero: string | number, team: number): number | undefined {
-    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: (hero as string) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))
+    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: heroName((hero as string)) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))
     if (reply === undefined) return undefined
     const response = playersPb.HeroResponse.fromBinary(reply)
     return response.hero ?? 0
@@ -3385,7 +3450,7 @@ export function handedOff(): string | undefined {
  * world.
  */
 export function heroBuild(hero: string): BuildCategory[] {
-  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero }))
+  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero: heroName(hero) }))
   if (reply === undefined) return []
   const response = abilitiesPb.HeroBuildResponse.fromBinary(reply)
   return (response.categories ?? []).map((v) => fromBuildCategory(v))
@@ -3518,6 +3583,19 @@ export function modifierState(entity: number, state: string): boolean {
   if (reply === undefined) return false
   const response = abilitiesPb.ActiveResponse.fromBinary(reply)
   return response.active ?? false
+}
+
+/**
+ * modifiers lists every modifier an entity holds, such as the stun a
+ * hero's ultimate keeps on its target, with its name, class, caster,
+ * ability, age, time left and stacks. An entity that holds none answers an
+ * empty list.
+ */
+export function modifiers(entity: number): Modifier[] {
+  const reply = call('Modifiers', entitiesPb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return []
+  const response = abilitiesPb.ModifiersResponse.fromBinary(reply)
+  return (response.modifiers ?? []).map((v) => fromModifier(v))
 }
 
 /**
@@ -3927,6 +4005,26 @@ export function stopSound(id: number): boolean {
  */
 export function watchProjectiles(options: ProjectileOptions): boolean {
   return call('WatchProjectiles', combatPb.ProjectileOptions.toBinary(toProjectileOptions(options))) !== undefined
+}
+
+/**
+ * holdEntityModifier keeps a modifier, named as GiveModifier names it, on a
+ * live entity with no expiry, giving it back whenever the game removes it
+ * while the entity lives. The hold ends with the entity or when active is
+ * false.
+ */
+export function holdEntityModifier(entity: number, modifier: string, active?: boolean): boolean {
+  return call('HoldEntityModifier', abilitiesPb.HoldEntityModifierRequest.toBinary({ entity, modifier, active })) !== undefined
+}
+
+/**
+ * giveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+ * a modifier for seconds. An ability's modifier, named
+ * "<ability>/<modifier>", resolves its parent ability subclass even when the
+ * entity owns no abilities.
+ */
+export function giveEntityModifier(entity: number, modifier: string, seconds: number): boolean {
+  return call('GiveEntityModifier', abilitiesPb.GiveEntityModifierRequest.toBinary({ entity, modifier, seconds })) !== undefined
 }
 
 /** ModHandlers handles the events the game delivers to the mod. */

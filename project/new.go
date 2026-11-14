@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"os"
 	"os/exec"
@@ -20,14 +21,73 @@ import (
 // Module is the Go module of the Modlock library mods import.
 const Module = "github.com/paralin/modlock"
 
-// goMain is a new Go mod's main.go.
+// Extension is the identifier of the Modlock extension for VS Code and the
+// editors built on it, in the Visual Studio Marketplace and Open VSX.
+const Extension = "modlock.modlock"
+
+// LanguageExtension returns the identifier of the editor extension that reads
+// language's sources, or "" when VS Code reads them itself, as it does
+// TypeScript and JavaScript.
+func LanguageExtension(language wasm.Manifest_Language) string {
+	switch language {
+	case wasm.Manifest_LANGUAGE_PYTHON:
+		return "ms-python.python"
+	case wasm.Manifest_LANGUAGE_LUAU:
+		return "johnnymorganz.luau-lsp"
+	case wasm.Manifest_LANGUAGE_GO:
+		return "golang.go"
+	default:
+		return ""
+	}
+}
+
+// editorRecommendations returns a project's .vscode/extensions.json, which
+// asks the editor to offer the Modlock extension and language's own.
+func editorRecommendations(language wasm.Manifest_Language) string {
+	recommended := []string{Extension}
+	if id := LanguageExtension(language); id != "" {
+		recommended = append(recommended, id)
+	}
+	data, _ := json.MarshalIndent(map[string][]string{"recommendations": recommended}, "", "  ")
+	return string(data) + "\n"
+}
+
+// goMain is a new Go mod's main.go. Like every starter it sets the server
+// up, seats each player on a team with a hero, welcomes them
+// and answers /hello.
 const goMain = `// Command {{slug}} is a Modlock mod.
 package main
 
-import "github.com/paralin/modlock/mod"
+import (
+	"time"
+
+	"github.com/paralin/modlock/mod"
+	"github.com/paralin/modlock/mod/console"
+)
 
 // init registers the mod's handlers before the server starts it.
 func init() {
+	// Set the server up when the mod starts: no troopers in the lanes or
+	// creeps in the jungle, and any number of players on the same hero.
+	mod.OnStart(func(args []string) {
+		_ = console.CitadelTrooperSpawnEnabled.Set(false)
+		_ = console.CitadelNeutralSpawnEnabled.Set(false)
+		_ = console.CitadelAllowDuplicateHeroes.Set(true)
+	})
+
+	// Give each player who joins a hero on the smaller team, skipping the
+	// game's team and hero screens, and bring a fallen hero back after 3
+	// seconds. Team: 2 puts everyone on one team, and TeamOf picks a team
+	// for each player.
+	mod.SeatPlayers(mod.Seating{Hero: mod.AnyHero, Respawn: 3 * time.Second})
+
+	// Welcome each player as they join.
+	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
+		connection := joined.GetConnection()
+		player := mod.Player{Slot: connection.GetPlayer()}
+		_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
+	})
+
 	// Greet each player who types /hello in chat.
 	mod.Command("hello", func(p mod.Player, args string) {
 		_ = p.Chat({{greeting}})
@@ -39,7 +99,29 @@ func main() {}
 `
 
 // scriptMainSource is a new TypeScript or JavaScript mod's entry.
-const scriptMainSource = `import { command } from 'modlock'
+const scriptMainSource = `import { command, onPlayerJoin, onStart, seatPlayers } from 'modlock'
+import { apply } from 'modlock/console'
+
+// Set the server up when the mod starts: no troopers in the lanes or creeps
+// in the jungle, and any number of players on the same hero.
+onStart(() => {
+  apply({
+    citadel_trooper_spawn_enabled: false,
+    citadel_neutral_spawn_enabled: false,
+    citadel_allow_duplicate_heroes: true,
+  })
+})
+
+// Give each player who joins a hero on the smaller team, skipping the game's
+// team and hero screens, and bring a fallen hero back after 3 seconds. Add
+// team: 2 to put everyone on one team, or a function that picks a team for
+// each player.
+seatPlayers({ hero: 'any', respawn: 3 })
+
+// Welcome each player as they join.
+onPlayerJoin(({ connection }) => {
+  connection.player.announce({{name}}, 'Welcome, ' + connection.name + '.')
+})
 
 // Greet each player who types /hello in chat.
 command('hello', (player) => {
@@ -67,6 +149,29 @@ const scriptConfig = `{
 
 // luauMain is a new Luau mod's entry.
 const luauMain = `local modlock = require("@modlock")
+local console = require("@modlock/console")
+
+-- Set the server up when the mod starts: no troopers in the lanes or creeps
+-- in the jungle, and any number of players on the same hero.
+modlock.onStart(function()
+	console.apply({
+		citadel_trooper_spawn_enabled = false,
+		citadel_neutral_spawn_enabled = false,
+		citadel_allow_duplicate_heroes = true,
+	})
+end)
+
+-- Give each player who joins a hero on the smaller team, skipping the game's
+-- team and hero screens, and bring a fallen hero back after 3 seconds. Add
+-- team = 2 to put everyone on one team, or a function that picks a team for
+-- each player.
+modlock.seatPlayers({ hero = "any", respawn = 3 })
+
+-- Welcome each player as they join.
+modlock.onPlayerJoin(function(joined)
+	local connection = joined.connection
+	connection.player:announce({{name}}, "Welcome, " .. connection.name .. ".")
+end)
 
 -- Greet each player who types /hello in chat.
 modlock.command("hello", function(player)
@@ -76,6 +181,34 @@ end)
 
 // pythonMain is a new Python mod's entry.
 const pythonMain = `import modlock
+from modlock import console
+
+
+# Set the server up when the mod starts: no troopers in the lanes or creeps
+# in the jungle, and any number of players on the same hero.
+@modlock.on_start
+def start(args: list[str]) -> None:
+    console.apply(
+        {
+            "citadel_trooper_spawn_enabled": False,
+            "citadel_neutral_spawn_enabled": False,
+            "citadel_allow_duplicate_heroes": True,
+        }
+    )
+
+
+# Give each player who joins a hero on the smaller team, skipping the game's
+# team and hero screens, and bring a fallen hero back after 3 seconds. Add
+# team=2 to put everyone on one team, or a function that picks a team for
+# each player.
+modlock.seat_players(hero="any", respawn=3)
+
+
+# Welcome each player as they join.
+@modlock.on_player_join
+def joined(event: modlock.PlayerJoinedEvent) -> None:
+    connection = event.connection
+    connection.player.announce({{name}}, f"Welcome, {connection.name}.")
 
 
 # Greet each player who types /hello in chat.
@@ -94,26 +227,32 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 	if err != nil {
 		return nil, errors.Wrap(err, "create the project")
 	}
-	slug := filepath.Base(dir)
-	if err := check.Slug(slug); err != nil {
-		return nil, errors.Wrap(err, "name the directory as the mod's slug")
+	if err := Vacant(dir); err != nil {
+		return nil, err
 	}
+	slug := filepath.Base(dir)
 	if name == "" {
 		name = title(slug)
 	}
-	if entries, err := os.ReadDir(dir); err == nil && len(entries) > 0 {
-		return nil, errors.Errorf("%s is not empty", dir)
+
+	// A Go project fetches its library with Go, so find Go before writing
+	// anything: a project left half made would block the next attempt.
+	if language == wasm.Manifest_LANGUAGE_GO {
+		if _, err := exec.LookPath("go"); err != nil {
+			return nil, errors.New("a Go mod needs Go: install it from https://go.dev/dl/, open a new terminal and run this again")
+		}
 	}
 
 	// Choose the language's sources.
 	greeting := "Hello from " + name + "!"
+	quoted := strings.NewReplacer("{{slug}}", slug, "{{name}}", strconv.Quote(name), "{{greeting}}", strconv.Quote(greeting))
+	script := strings.NewReplacer("{{name}}", scriptString(name), "{{greeting}}", scriptString(greeting))
 	var files map[string]string
 	switch language {
 	case wasm.Manifest_LANGUAGE_GO:
-		expand := strings.NewReplacer("{{slug}}", slug, "{{greeting}}", strconv.Quote(greeting))
 		files = map[string]string{
-			"go.mod":     "module " + slug + "\n\ngo 1.25.0\n",
-			"main.go":    expand.Replace(goMain),
+			"go.mod":     "module " + goModule(slug) + "\n\ngo 1.25.0\n",
+			"main.go":    quoted.Replace(goMain),
 			".gitignore": "/" + BuildDir + "/\n",
 		}
 	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
@@ -122,25 +261,26 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 			scripts = "\n    \"allowJs\": true,\n    \"checkJs\": true,"
 		}
 		files = map[string]string{
-			scriptMain(language): strings.ReplaceAll(scriptMainSource, "{{greeting}}", scriptString(greeting)),
+			scriptMain(language): script.Replace(scriptMainSource),
 			"tsconfig.json":      strings.ReplaceAll(scriptConfig, "{{scripts}}", scripts),
 			".gitignore":         "/" + BuildDir + "/\n/node_modules/\n",
 		}
 	case wasm.Manifest_LANGUAGE_LUAU:
 		files = map[string]string{
-			"main.luau":  strings.ReplaceAll(luauMain, "{{greeting}}", strconv.Quote(greeting)),
+			"main.luau":  quoted.Replace(luauMain),
 			".luaurc":    luauConfig,
 			".gitignore": "/" + BuildDir + "/\n/.modlock/\n",
 		}
 	case wasm.Manifest_LANGUAGE_PYTHON:
 		files = map[string]string{
-			"main.py":            strings.ReplaceAll(pythonMain, "{{greeting}}", strconv.Quote(greeting)),
+			"main.py":            quoted.Replace(pythonMain),
 			"pyrightconfig.json": pythonConfig,
 			".gitignore":         "/" + BuildDir + "/\n/.modlock/\n",
 		}
 	default:
 		return nil, errors.Errorf("modlock cannot create %s mods yet", language)
 	}
+	files[".vscode/extensions.json"] = editorRecommendations(language)
 
 	// Write the manifest and sources.
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -151,7 +291,11 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		return nil, err
 	}
 	for name, content := range files {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+		path := filepath.Join(dir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, errors.Wrap(err, "create the project")
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return nil, errors.Wrap(err, "create the project")
 		}
 	}
@@ -181,6 +325,36 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		}
 	}
 	return created, nil
+}
+
+// Vacant reports whether a project can be created in dir: its last element
+// is a valid slug, and it does not exist or is empty. The error says what to
+// change.
+func Vacant(dir string) error {
+	if err := check.Slug(filepath.Base(dir)); err != nil {
+		return errors.Wrap(err, "name the directory as the mod's slug")
+	}
+	if entries, err := os.ReadDir(dir); err == nil && len(entries) > 0 {
+		return errors.Errorf("%s already has files in it; choose another name", dir)
+	}
+	return nil
+}
+
+// goModule returns the module path of a new Go mod named slug. Go keeps
+// paths without a dot for its standard library and refuses a module named
+// after one of its packages, such as go or net, so the path gets a prefix no
+// standard package has.
+func goModule(slug string) string {
+	return "mods/" + slug
+}
+
+// SlugFor turns a display name into a slug, such as "Zombie Tag!" into
+// "zombie-tag". It returns "" for a name with no ASCII letter or digit.
+func SlugFor(name string) string {
+	words := strings.FieldsFunc(strings.ToLower(name), func(r rune) bool {
+		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
+	})
+	return strings.Join(words, "-")
 }
 
 // scriptString quotes text as a single-quoted JavaScript string.

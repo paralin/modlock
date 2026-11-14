@@ -1,0 +1,225 @@
+---
+title: Interfaces
+description: Draw a HUD, a menu or a notice on a player's screen.
+---
+
+Every language draws interfaces: TypeScript in JSX, Luau with `@modlock/ui`,
+Python with `modlock.ui` and Go with `mod/ui`, each with a HUD kit (`hud`) and
+tokens (`theme`). A screen the player clicks frees the cursor and blocks the
+buttons a click would fire:
+
+<Samples>
+
+```tsx
+import { Buttons, freeCursor, hide, type Player, show } from 'modlock'
+
+function openPicks(player: Player): void {
+  show(
+    player,
+    <panel style={{ flow: 'down', padding: 24, background: '#101820e0' }}>
+      <label style={{ fontSize: 28 }}>Pick a hero</label>
+      <button onPress={closePicks}>Ready</button>
+    </panel>,
+  )
+  freeCursor(player, true)
+  player.blockInput(Buttons.attack | Buttons.altFire | Buttons.melee)
+}
+
+function closePicks(player: Player): void {
+  player.blockInput(0n)
+  hide(player)
+}
+```
+
+```luau
+local modlock = require("@modlock")
+local ui = require("@modlock/ui")
+
+local function closePicks(player: modlock.Player)
+	player:blockInput(0)
+	ui.hide(player)
+end
+
+local function openPicks(player: modlock.Player)
+	ui.show(player, ui.panel {
+		style = { flow = "down", padding = 24, background = "#101820e0" },
+		ui.label { style = { fontSize = 28 }, "Pick a hero" },
+		ui.button { onPress = closePicks, "Ready" },
+	})
+	ui.freeCursor(player, true)
+	-- Buttons are bits; their sum blocks each of them.
+	player:blockInput(modlock.Buttons.attack + modlock.Buttons.altFire + modlock.Buttons.melee)
+end
+```
+
+```python
+import modlock
+from modlock.ui import button, free_cursor, hide, label, panel, show
+
+
+def open_picks(player: modlock.Player) -> None:
+    show(player, panel(style={"flow": "down", "padding": 24, "background": "#101820e0"})[
+        label(style={"font_size": 28})["Pick a hero"],
+        button(on_press=close_picks)["Ready"],
+    ])
+    free_cursor(player, True)
+    player.block_input(modlock.Buttons.ATTACK | modlock.Buttons.ALT_FIRE | modlock.Buttons.MELEE)
+
+
+def close_picks(player: modlock.Player) -> None:
+    player.block_input(0)
+    hide(player)
+```
+
+```go
+// import "github.com/paralin/modlock/mod/ui"
+func openPicks(p mod.Player) {
+	ui.Show(p, ui.Panel{
+		Style: ui.Style{Flow: ui.Down, Padding: ui.Edges{24}, Background: "#101820e0"},
+		Children: ui.Nodes{
+			ui.Label{Style: ui.Style{FontSize: 28}, Text: "Pick a hero"},
+			ui.Button{OnPress: closePicks, Children: ui.Text("Ready")},
+		},
+	})
+	ui.FreeCursor(p, true)
+	_ = p.BlockInput(mod.ButtonAttack | mod.ButtonAltFire | mod.ButtonMelee)
+}
+
+func closePicks(p mod.Player) {
+	_ = p.BlockInput(0)
+	ui.Hide(p)
+}
+```
+
+</Samples>
+
+## Calls
+
+Luau spells each call as TypeScript does, Python in `snake_case` and Go with
+exported names; Go's `toast` with seconds is `ToastFor` and `uiSound` is
+`Sound`.
+
+| Call                                    | Effect                                                                                 |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                               |
+| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
+| `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` cuts it short.      |
+| `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
+| `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
+| `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).     |
+| `abilityDisplay(viewer, rows?)`         | Show players' replaced abilities on Tab and the ability bar; no rows restores.         |
+| `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |
+| `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.             |
+| `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
+| `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
+| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`; see [Layouts](/guides/layouts).     |
+
+## The cursor
+
+- The game keeps shooting, turning and moving while the cursor is up, so the
+  mod blocks the buttons itself and releases them when the screen closes.
+  `hide` gives the mouse back to aiming.
+- The player can put the cursor away with the game's own keys, and that
+  holds while the screen changes. Each `freeCursor(player, true)` shows it
+  again.
+- `cursorFree(player)` reports whether the cursor is up, and nothing while the
+  player has no hero. A mod that wants it back calls `freeCursor` again when
+  it reports false, on a press or a timer.
+
+## Style it
+
+Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
+
+| Group  | Properties                                                                                                                                                                                                                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout | `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`, `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`), `overflow`, `overflowX`, `overflowY` (`'squish'`, `'clip'`, `'scroll'`, `'show'`) |
+| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`                                                                                                               |
+| Text   | `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`, `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`, `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`, `textShadow`      |
+| Motion | `translate`, `scale`, `rotate`, `origin`, `transition` (seconds or `{ seconds, delay, easing }`); a change to a property the game animates eases instead of jumping                                                                                                                            |
+
+## Elements and props
+
+| Prop or element         | On       | Does                                                                                                                                |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `hover`                 | any      | A style laid over the element's own while the pointer is on it.                                                                     |
+| `tooltip`               | any      | Text the game shows beside it.                                                                                                      |
+| `item`                  | any      | An item's class name; its shop card shows instead.                                                                                  |
+| `ability`               | any      | `{ name, player }`; the game's window for that ability shows instead, in the player's language with the numbers of `player`'s hero. |
+| `hoverSound`            | any      | A game sound event, such as `'UI.MainMenu.Hover'`.                                                                                  |
+| `enter`, `exit`         | any      | Styles it eases from as it appears and to before it goes, with its `transition`.                                                    |
+| `cycle`                 | any      | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                       |
+| `sound`, `disabled`     | `button` | A sound played on a press; `disabled` stops presses.                                                                                |
+| `scaling`               | `image`  | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                             |
+| `<hero hero={15} look>` |          | The game's picture of a hero: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                           |
+| `token`, `variables`    | `label`  | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                    |
+| `<avatar steamId>`      |          | A player's Steam picture, from an entry of `players()`.                                                                             |
+
+Interfaces load no pages, styles or scripts from outside the game.
+
+## Inputs
+
+Each input hands each change to `onChange(player, value)`:
+
+| Input        | Props                               | Value                                    |
+| ------------ | ----------------------------------- | ---------------------------------------- |
+| `<entry>`    | `value`, `placeholder`, `maxLength` | Text, cut to `maxLength` characters.     |
+| `<slider>`   | `value`, `min`, `max`, `step`       | A number, clamped to the range and step. |
+| `<toggle>`   | `on`, label as children             | On or off.                               |
+| `<dropdown>` | `options`, `selected`               | The chosen option's index.               |
+
+The host drops a change to a disabled input or one the player no longer sees.
+The player's edit shows until the mod draws a new value, so keep the value
+you are handed.
+
+## The HUD kit
+
+The HUD kit draws in the stock HUD's look. A round's score across the top:
+
+<Samples>
+
+```tsx
+import { Score, show, TopStrip } from 'modlock'
+
+show(
+  player,
+  <TopStrip heading="Round 2">
+    <Score points={[1, 0]} />
+  </TopStrip>,
+)
+```
+
+```luau
+local hud = require("@modlock/hud")
+
+ui.show(player, hud.TopStrip { heading = "Round 2", hud.Score { points = { 1, 0 } } })
+```
+
+```python
+from modlock.hud import score, top_strip
+
+show(player, top_strip(heading="Round 2")[score(points=(1, 0))])
+```
+
+```go
+// import "github.com/paralin/modlock/mod/hud"
+ui.Show(p, hud.TopStrip{Heading: "Round 2", Children: hud.Score{Points: [2]int{1, 0}}})
+```
+
+</Samples>
+
+| Component               | Draws                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `<Text role>`           | Text in one of the kit's type roles.                                         |
+| `<Plate>`, `<Pill>`     | Text held over a bright sky.                                                 |
+| `<Pips>`                | A count, as the round counter shows it.                                      |
+| `<Tag>`                 | A status label.                                                              |
+| `<Banner>`              | An announcement of a moment.                                                 |
+| `<TopStrip>`, `<Score>` | The top of the screen, with a score in it.                                   |
+| `<Roster>`              | The players down the top right corner, with hero portraits.                  |
+| `<Action kind>`         | A button in the game's menu look, with its hover, sounds and disabled state. |
+| `<Meter value>`         | A bar that eases to each new value.                                          |
+
+`theme` holds the tokens, such as `theme.tones` and `theme.sizes`, for a mod's
+own panels, and each entry in `heroes` carries its small `portrait`.
+[Layouts](/guides/layouts) covers layouts from the mod's content, style
+sheets and how the game draws an interface.

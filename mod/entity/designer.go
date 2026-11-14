@@ -2,7 +2,6 @@ package entity
 
 import (
 	"reflect"
-	"slices"
 
 	"github.com/paralin/modlock/mod"
 	"github.com/paralin/modlock/src/wasm/entities"
@@ -20,21 +19,22 @@ type Designer[E Class, K any] struct {
 
 // Create creates an entity of the designer name from options, adding the key
 // values keys sets, whose nil fields leave their keys unset. A nil keys sets
-// none.
+// none, and nil options take every default.
 func (d Designer[E, K]) Create(options *mod.EntityOptions, keys *K) (E, error) {
-	subclass := options.GetSubclass()
-	if subclass == "" {
-		subclass = d.Subclass
+	// Pass every option through, as the mod set it, under the designer name.
+	request := options.CloneVT()
+	if request == nil {
+		request = &mod.EntityOptions{}
 	}
-	handle, err := mod.CreateEntity(&mod.EntityOptions{
-		DesignerName: d.Name,
-		Subclass:     subclass,
-		Team:         options.GetTeam(),
-		Position:     options.GetPosition(),
-		Facing:       options.GetFacing(),
-		KeyValues:    slices.Concat(options.GetKeyValues(), keyValues(keys)),
-		Fields:       options.GetFields(),
-	})
+	request.DesignerName = d.Name
+
+	// Give the designer's subclass to an entity whose options name none, and
+	// add the typed key values after the mod's own.
+	if request.Subclass == "" {
+		request.Subclass = d.Subclass
+	}
+	request.KeyValues = append(request.KeyValues, keyValues(keys)...)
+	handle, err := mod.CreateEntity(request)
 	return E(CEntityInstance{Handle: handle}), err
 }
 

@@ -447,6 +447,12 @@ service Host {
   // MODIFIER_STATE_PARRY_ACTIVE.
   rpc ModifierState(modlock.wasm.abilities.ModifierStateRequest) returns (modlock.wasm.abilities.ActiveResponse);
 
+  // Modifiers lists every modifier an entity holds, such as the stun a
+  // hero's ultimate keeps on its target, with its name, class, caster,
+  // ability, age, time left and stacks. An entity that holds none answers an
+  // empty list.
+  rpc Modifiers(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.abilities.ModifiersResponse);
+
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.
@@ -738,6 +744,18 @@ service Host {
   // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
   // call replaces the list; an empty list stops watching.
   rpc WatchProjectiles(modlock.wasm.combat.ProjectileOptions) returns (Empty);
+
+  // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+  // live entity with no expiry, giving it back whenever the game removes it
+  // while the entity lives. The hold ends with the entity or when active is
+  // false.
+  rpc HoldEntityModifier(modlock.wasm.abilities.HoldEntityModifierRequest) returns (Empty);
+
+  // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+  // a modifier for seconds. An ability's modifier, named
+  // "<ability>/<modifier>", resolves its parent ability subclass even when the
+  // entity owns no abilities.
+  rpc GiveEntityModifier(modlock.wasm.abilities.GiveEntityModifierRequest) returns (Empty);
 }
 
 // Mod is the mod the game delivers events to, one at a time on the server's

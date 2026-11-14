@@ -1,0 +1,45 @@
+---
+title: How mods reach the game
+description: The protocol between a mod and the server that runs it.
+---
+
+A mod is a WASI preview 1 reactor module. It imports two functions and exports
+one:
+
+| Name                                 | Direction   | Meaning                                                                                                                                                                                         |
+| ------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock.host_call(ptr, len) -> len` | mod to host | Hand the host an encoded `Call`; returns the length of the encoded `Reply`.                                                                                                                     |
+| `modlock.host_read(ptr, len)`        | mod to host | Copy the host's pending message, a `Call` or a `Reply`, into mod memory.                                                                                                                        |
+| `modlock_event(len) -> i64`          | host to mod | Deliver a `Call` of `len` bytes, which the mod copies with `host_read`. Returns the address and length of the encoded `Reply`, packed as `address << 32 \| length`, or zero for an empty reply. |
+
+The calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto). A
+`Call` selects one method of the `Host` service, when a mod calls the game, or
+of the `Mod` service, when the host delivers an event, and carries its encoded
+request. The `Reply` carries the encoded response or an error. A new capability
+is a new method; the functions never change. Each event runs within a time
+budget, which stops a runaway loop, and each mod has a memory limit.
+
+A program that embeds the host can offer mods more than the game, such as a game
+mode's match rules. The program provides a service with `WasmHost::Provide`, and
+mods call it with the host's `CallService` method, `callService(service,
+method, payload)` in a mod's library. It calls a service a mod serves with
+`WasmHost::Call`, which delivers the mod's `Serve` event to the handler the mod
+registered with `serve(service, handler)`. Each
+service defines its methods and the encoding of their payloads. A mod cannot be
+called while it is calling the host.
+
+An interpreted mod's built `mod.json` sets its runtime, such as
+`RUNTIME_QUICKJS`, in place of a module. The host runs the interpreter module
+beside `modlock-host` and hands it the mod's source in the start event.
+
+## Protocols
+
+Each concern's messages live in a `.proto` beside the code that implements it,
+in its own package named for its directory: `src/wasm/players/players.proto`
+declares `modlock.wasm.players`, the C++ namespace `modlock::wasm::players`
+and the Go package `github.com/paralin/modlock/src/wasm/players`. The mod
+boundary's calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto) and the
+messages they carry in the packages beside it. `bun run gen` regenerates all of the Go, TypeScript, Luau, Python, and
+C++ code with the protobuf toolchain the repository pins.
+[Building Modlock](/internals/building#run-the-command-from-a-clone) says where
+`modlock build` gets the TypeScript library.

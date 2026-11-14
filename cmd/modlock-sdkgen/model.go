@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -24,6 +25,9 @@ type schema struct {
 	host *service
 	// mod is the service a mod serves to the game.
 	mod *service
+	// services are the requests and responses of the services a host
+	// provides outside Modlock, which serviceMessages names.
+	services []*message
 	// file is the file that declares the services, Call and Reply.
 	file *protoFile
 }
@@ -50,6 +54,9 @@ type message struct {
 	doc    string
 	fields []*field
 	oneofs []*oneof
+	// mapEntry marks the entry message of a map field, which holds its key
+	// and value.
+	mapEntry bool
 }
 
 // field is one field of a message.
@@ -67,6 +74,28 @@ type field struct {
 	// message and enum are the field's type when it has one.
 	message *message
 	enum    *enum
+	// hero marks a string field that names a hero by the game's name, such
+	// as hero_nano. The libraries take any name heroNamed accepts there, such
+	// as Calico, and send the game's name.
+	hero bool
+}
+
+// heroFields are the fields, by message and field name, that name a hero by
+// the game's name and are arguments a mod writes.
+var heroFields = []string{
+	".modlock.wasm.PrecacheOptions.heroes",
+	".modlock.wasm.abilities.HeroBuildRequest.hero",
+	".modlock.wasm.players.BotOptions.hero_name",
+	".modlock.wasm.players.SelectHeroRequest.hero_name",
+}
+
+// serviceMessages are the requests and responses of the services a host
+// provides outside Modlock that the handwritten libraries call, by full name.
+var serviceMessages = []string{
+	".modlock.wasm.scores.ScoreReport",
+	".modlock.wasm.scores.MatchReport",
+	".modlock.wasm.scores.BoardQuery",
+	".modlock.wasm.scores.BoardPage",
 }
 
 // oneof is one oneof of a message, which a field outside the oneof never
@@ -147,7 +176,7 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 		}
 		var addMessage func(m *descriptorpb.DescriptorProto, name, full, path string)
 		addMessage = func(m *descriptorpb.DescriptorProto, name, full, path string) {
-			msg := &message{name: name, full: full, file: pf, doc: docs[path]}
+			msg := &message{name: name, full: full, file: pf, doc: docs[path], mapEntry: m.GetOptions().GetMapEntry()}
 			for j, o := range m.GetOneofDecl() {
 				msg.oneofs = append(msg.oneofs, &oneof{name: o.GetName(), doc: docs[fmt.Sprint(path, ".8.", j)]})
 			}
@@ -220,6 +249,29 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 		}
 	}
 
+	// Mark the fields that name a hero.
+	for _, name := range heroFields {
+		dot := strings.LastIndex(name, ".")
+		m := s.messages[name[:dot]]
+		if m == nil {
+			return nil, fmt.Errorf("hero field %s: no such message", name)
+		}
+		i := slices.IndexFunc(m.fields, func(f *field) bool { return f.name == name[dot+1:] })
+		if i < 0 || m.fields[i].kind != descriptorpb.FieldDescriptorProto_TYPE_STRING {
+			return nil, fmt.Errorf("hero field %s: no such string field", name)
+		}
+		m.fields[i].hero = true
+	}
+
+	// Find the messages of the services outside Modlock.
+	for _, name := range serviceMessages {
+		m := s.messages[name]
+		if m == nil {
+			return nil, fmt.Errorf("service message %s: no such message", name)
+		}
+		s.services = append(s.services, m)
+	}
+
 	// Read the services.
 	prefix := "." + serviceFile.GetPackage() + "."
 	for i, sd := range services {
@@ -283,6 +335,37 @@ func comments(f *descriptorpb.FileDescriptorProto) map[string]string {
 		docs[strings.Join(parts, ".")] = strings.Join(lines, "\n")
 	}
 	return docs
+}
+
+// isMap reports whether f is a map field of a service outside Modlock, which
+// the Luau and Python libraries hold as a table or dict. Other map fields,
+// such as an interface node's variables, travel as the list of entries the
+// interface modules build.
+func (f *field) isMap() bool {
+	return f.repeated && f.message != nil && f.message.mapEntry && f.message.file.isService()
+}
+
+// serviceAbsent adds to absent each singular message field the messages of
+// the services outside Modlock reach, so one a reply leaves out decodes as
+// nil, as protobuf's presence has it, rather than as an empty message.
+func (s *schema) serviceAbsent(absent map[*field]bool) {
+	var r reach
+	for _, m := range s.services {
+		r.add(m)
+	}
+	for _, m := range r.messages {
+		for _, f := range m.fields {
+			if f.message != nil && !f.repeated {
+				absent[f] = true
+			}
+		}
+	}
+}
+
+// isService reports whether p declares the messages of a service outside
+// Modlock.
+func (p *protoFile) isService() bool {
+	return slices.Contains(serviceFiles, modulePath+"/"+p.path)
 }
 
 // isEmpty reports whether m has no fields.

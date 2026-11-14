@@ -442,6 +442,10 @@ type Config struct {
 	unknownFields []byte
 	// SkipUpdateCheck stops commands from looking for a newer release.
 	SkipUpdateCheck bool `protobuf:"varint,1,opt,name=skip_update_check,json=skipUpdateCheck,proto3" json:"skipUpdateCheck,omitempty"`
+	// EditorOffered records that modlock dev or play offered, once, to install
+	// the Modlock extension into the editor whose terminal it ran in, so it
+	// never asks again. Setting it before any offer turns the offer off.
+	EditorOffered bool `protobuf:"varint,2,opt,name=editor_offered,json=editorOffered,proto3" json:"editorOffered,omitempty"`
 }
 
 func (x *Config) Reset() {
@@ -457,7 +461,15 @@ func (x *Config) GetSkipUpdateCheck() bool {
 	return false
 }
 
-// Input is one thing the stand-in player does in the sandbox.
+func (x *Config) GetEditorOffered() bool {
+	if x != nil {
+		return x.EditorOffered
+	}
+	return false
+}
+
+// Input is one line a program sends a session: something the stand-in player
+// does in the sandbox, or a line for a mod's console in any session.
 type Input struct {
 	unknownFields []byte
 	// Body selects the input.
@@ -466,6 +478,7 @@ type Input struct {
 	//	*Input_Command
 	//	*Input_Press
 	//	*Input_Change
+	//	*Input_Console
 	Body isInput_Body `protobuf_oneof:"body"`
 }
 
@@ -503,6 +516,13 @@ func (x *Input) GetChange() *Change {
 	return nil
 }
 
+func (x *Input) GetConsole() *ConsoleLine {
+	if x, ok := x.GetBody().(*Input_Console); ok {
+		return x.Console
+	}
+	return nil
+}
+
 type isInput_Body interface {
 	isInput_Body()
 }
@@ -522,11 +542,58 @@ type Input_Change struct {
 	Change *Change `protobuf:"bytes,3,opt,name=change,proto3,oneof"`
 }
 
+type Input_Console struct {
+	// Console runs a line of code in a mod, at its language's console.
+	Console *ConsoleLine `protobuf:"bytes,4,opt,name=console,proto3,oneof"`
+}
+
 func (*Input_Command) isInput_Body() {}
 
 func (*Input_Press) isInput_Body() {}
 
 func (*Input_Change) isInput_Body() {}
+
+func (*Input_Console) isInput_Body() {}
+
+// ConsoleLine is a line of code for a running mod to run, as typed at its
+// language's console. The answer is the host's called event with the same
+// id: what the console shows for the line, or why the line did not run.
+type ConsoleLine struct {
+	unknownFields []byte
+	// Mod is the mod's name. Empty is the mod that started or reloaded last.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Code is the line.
+	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	// Id is returned with the answer, to match it to this line.
+	Id string `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *ConsoleLine) Reset() {
+	*x = ConsoleLine{}
+}
+
+func (*ConsoleLine) ProtoMessage() {}
+
+func (x *ConsoleLine) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *ConsoleLine) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *ConsoleLine) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
 
 // Change sets an input in the interface a mod shows a player.
 type Change struct {
@@ -1088,6 +1155,7 @@ func (m *Config) CloneVT() *Config {
 	}
 	r := new(Config)
 	r.SkipUpdateCheck = m.SkipUpdateCheck
+	r.EditorOffered = m.EditorOffered
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1152,6 +1220,37 @@ func (m *Input_Change) CloneVT() *Input_Change {
 }
 
 func (m *Input_Change) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *Input_Console) CloneVT() *Input_Console {
+	if m == nil {
+		return (*Input_Console)(nil)
+	}
+	r := new(Input_Console)
+	r.Console = protobuf_go_lite.CloneVTValue(m.Console)
+	return r
+}
+
+func (m *Input_Console) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *ConsoleLine) CloneVT() *ConsoleLine {
+	if m == nil {
+		return (*ConsoleLine)(nil)
+	}
+	r := new(ConsoleLine)
+	r.Mod = m.Mod
+	r.Code = m.Code
+	r.Id = m.Id
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ConsoleLine) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1695,6 +1794,9 @@ func (this *Config) EqualVT(that *Config) bool {
 	if this.SkipUpdateCheck != that.SkipUpdateCheck {
 		return false
 	}
+	if this.EditorOffered != that.EditorOffered {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1782,6 +1884,49 @@ func (this *Input_Change) EqualVT(thatIface isInput_Body) bool {
 		return false
 	}
 	return true
+}
+
+func (this *Input_Console) EqualVT(thatIface isInput_Body) bool {
+	that, ok := thatIface.(*Input_Console)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Console, that.Console, func() *ConsoleLine { return &ConsoleLine{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *ConsoleLine) EqualVT(that *ConsoleLine) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.Code != that.Code {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ConsoleLine) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ConsoleLine)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Change) EqualVT(that *Change) bool {
@@ -2536,6 +2681,11 @@ func (x *Config) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("skipUpdateCheck")
 		s.WriteBool(x.SkipUpdateCheck)
 	}
+	if x.EditorOffered || s.HasField("editorOffered") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("editorOffered")
+		s.WriteBool(x.EditorOffered)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2556,6 +2706,9 @@ func (x *Config) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "skip_update_check", "skipUpdateCheck":
 			s.AddField("skip_update_check")
 			x.SkipUpdateCheck = s.ReadBool()
+		case "editor_offered", "editorOffered":
+			s.AddField("editor_offered")
+			x.EditorOffered = s.ReadBool()
 		}
 	})
 }
@@ -2587,6 +2740,10 @@ func (x *Input) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("change")
 			ov.Change.MarshalProtoJSON(s.WithField("change"))
+		case *Input_Console:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("console")
+			ov.Console.MarshalProtoJSON(s.WithField("console"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2629,12 +2786,79 @@ func (x *Input) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Change = &Change{}
 			ov.Change.UnmarshalProtoJSON(s.WithField("change", true))
+		case "console":
+			ov := &Input_Console{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Console = nil
+				return
+			}
+			ov.Console = &ConsoleLine{}
+			ov.Console.UnmarshalProtoJSON(s.WithField("console", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Input from JSON.
 func (x *Input) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ConsoleLine message to JSON.
+func (x *ConsoleLine) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Code != "" || s.HasField("code") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("code")
+		s.WriteString(x.Code)
+	}
+	if x.Id != "" || s.HasField("id") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("id")
+		s.WriteString(x.Id)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ConsoleLine to JSON.
+func (x *ConsoleLine) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ConsoleLine message from JSON.
+func (x *ConsoleLine) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "code":
+			s.AddField("code")
+			x.Code = s.ReadString()
+		case "id":
+			s.AddField("id")
+			x.Id = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ConsoleLine from JSON.
+func (x *ConsoleLine) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3607,6 +3831,11 @@ func (m *Config) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.EditorOffered {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.EditorOffered)
+		i--
+		dAtA[i] = 0x10
+	}
 	if m.SkipUpdateCheck {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.SkipUpdateCheck)
 		i--
@@ -3713,6 +3942,77 @@ func (m *Input_Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
 		i--
 		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Input_Console) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input_Console) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Console != nil {
+		size, err := m.Console.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x22
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ConsoleLine) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConsoleLine) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ConsoleLine) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Id) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Id)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Code) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Code)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -4357,6 +4657,7 @@ func (m *Config) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.SkipUpdateCheck)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.EditorOffered)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4411,6 +4712,34 @@ func (m *Input_Change) SizeVT() (n int) {
 	} else {
 		n += 2
 	}
+	return n
+}
+
+func (m *Input_Console) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Console != nil {
+		l = m.Console.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *ConsoleLine) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Code)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Id)
+	n += len(m.unknownFields)
 	return n
 }
 
@@ -4774,6 +5103,10 @@ func (x *Config) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "skip_update_check")
 		protobuf_go_lite.TextWriteBool(&sb, x.SkipUpdateCheck)
 	}
+	if x.EditorOffered != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "editor_offered")
+		protobuf_go_lite.TextWriteBool(&sb, x.EditorOffered)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -4802,11 +5135,40 @@ func (x *Input) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Change)
 		}
+	case *Input_Console:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "console")
+		if body.Console == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ConsoleLine{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Console)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Input) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ConsoleLine) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ConsoleLine")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Code != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "code")
+		protobuf_go_lite.TextWriteString(&sb, x.Code)
+	}
+	if x.Id != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "id")
+		protobuf_go_lite.TextWriteString(&sb, x.Id)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ConsoleLine) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -5627,6 +5989,16 @@ func (m *Config) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.SkipUpdateCheck = bool(v)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EditorOffered", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.EditorOffered = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -5720,6 +6092,99 @@ func (m *Input) UnmarshalVT(dAtA []byte) error {
 				m.Body = &Input_Change{Change: v}
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Console", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Input_Console); ok {
+				if err := oneof.Console.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ConsoleLine{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Input_Console{Console: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ConsoleLine) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConsoleLine: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConsoleLine: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Code", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Code = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Id = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

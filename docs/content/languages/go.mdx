@@ -1,0 +1,47 @@
+---
+title: Go
+description: 'Go mods: a main package, errors you may ignore and typed entities.'
+---
+
+A Go mod is a `main` package. It imports
+[`github.com/paralin/modlock/mod`](https://github.com/paralin/modlock/tree/master/mod) and registers its handlers in `init`:
+
+```go
+package main
+
+import "github.com/paralin/modlock/mod"
+
+func init() {
+	mod.Command("hello", func(p mod.Player, args string) {
+		_ = p.Chat("Hello from Go!")
+	})
+}
+
+func main() {}
+```
+
+The [guides](/guides/events) show every call in Go. Choose Go with the switch
+in the sidebar. Interfaces are built from the `mod/ui`, `mod/hud` and
+`mod/theme` packages.
+
+## Errors and tests
+
+Each call into the game returns an error. A mod may ignore the error to keep
+playing. Game rules that make no calls, such as the
+[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example,
+test with plain `go test`.
+
+## Typed entities and the console
+
+[`mod/entity`](https://github.com/paralin/modlock/tree/master/mod/entity) types every entity field and input.
+[`mod/console`](https://github.com/paralin/modlock/tree/master/mod/console) types every console variable and command:
+
+```go
+// Set a hero's health.
+hero := entity.CBaseEntity(entity.CCitadelPlayerPawn{Handle: pawn.GetEntity()})
+_ = hero.IHealth().Set(500)
+
+// Raise the trooper bounty and change the map.
+_ = console.CitadelTrooperGoldReward.Set(40)
+_ = console.Changelevel.Run("street_test")
+```

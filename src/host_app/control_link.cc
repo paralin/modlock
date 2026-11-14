@@ -283,6 +283,21 @@ void ControlLink::RunRequests(WasmHost& mods) {
         }
         break;
       }
+      case control::ControlRequest::kCall: {
+        // Call the mod's service and answer with its reply or its error.
+        const auto& call = request.call();
+        control::HostEvent event;
+        auto* result = event.mutable_called();
+        result->set_id(call.id());
+        result->set_mod(call.mod());
+        if (auto reply = mods.Call(call.mod(), call.service(), call.method(), call.payload())) {
+          result->set_payload(std::move(*reply));
+        } else {
+          result->set_error(reply.error());
+        }
+        Push(std::move(event));
+        break;
+      }
       default:
         break;
     }

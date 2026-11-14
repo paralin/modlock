@@ -1,6 +1,7 @@
 #include "modlock/gameinterop/virtual_slots.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <functional>
@@ -9,6 +10,7 @@
 #include <optional>
 
 #include "modlock/gameinterop/mapped_module_image.h"
+#include "modlock/gameinterop/native_memory.h"
 #include "modlock/gameinterop/pe_layout.h"
 #include "modlock/gameinterop/signature.h"
 
@@ -118,6 +120,47 @@ std::expected<size_t, std::string> FindVtable(const ModuleImage& image,
     return std::unexpected(table.error());
   }
   return *table + sizeof(uint64_t);
+}
+
+std::string ObjectClassName(const void* object) {
+  // The table's slot before its first function points to the object locator.
+  const unsigned char* table = nullptr;
+  const unsigned char* locator = nullptr;
+  if (!object || !ReadNative(object, &table, sizeof(table)) || !table ||
+      !ReadNative(table - sizeof(void*), &locator, sizeof(locator)) || !locator) {
+    return {};
+  }
+
+  // The locator holds image offsets: its type descriptor's at +0x0c and its
+  // own at +0x14, which gives the image's base.
+  uint32_t descriptor = 0;
+  uint32_t self = 0;
+  if (!ReadNative(locator + 0x0c, &descriptor, sizeof(descriptor)) ||
+      !ReadNative(locator + 0x14, &self, sizeof(self))) {
+    return {};
+  }
+  const unsigned char* name = locator - self + descriptor + 16;
+
+  // Copy the decorated name, such as .?AVCBaseModifier@@, 16 bytes at a time,
+  // so a short name reads little past its end.
+  std::string decorated;
+  for (std::array<char, 16> word{}; decorated.size() < 512; name += word.size()) {
+    if (!ReadNative(name, word.data(), word.size())) {
+      return {};
+    }
+    const auto* end = static_cast<const char*>(std::memchr(word.data(), '\0', word.size()));
+    decorated.append(word.data(), end ? end - word.data() : word.size());
+    if (end) {
+      break;
+    }
+  }
+
+  // Strip the class or struct prefix and the closing @@.
+  if (decorated.size() < 6 || !(decorated.starts_with(".?AV") || decorated.starts_with(".?AU")) ||
+      !decorated.ends_with("@@")) {
+    return {};
+  }
+  return decorated.substr(4, decorated.size() - 6);
 }
 
 std::vector<size_t> VtableEntries(const ModuleImage& image, size_t table) {

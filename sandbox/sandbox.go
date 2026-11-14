@@ -191,6 +191,38 @@ func (s *Sandbox) Input(ctx context.Context, mod string, event *ui.UiInputEvent)
 	return changed, err
 }
 
+// Call calls one method of a service a running mod serves and reports the
+// answer as a called event, as the host does.
+func (s *Sandbox) Call(ctx context.Context, call *control.ModCall) error {
+	return s.do(ctx, func(ctx context.Context) {
+		// Find the mod; one that stopped waits for its next build.
+		result := &control.ModCallResult{Id: call.GetId(), Mod: call.GetMod()}
+		defer func() { s.event(&control.HostEvent{Body: &control.HostEvent_Called{Called: result}}) }()
+		var mod *running
+		for _, candidate := range s.mods {
+			if candidate.name == call.GetMod() && candidate.mod != nil {
+				mod = candidate
+			}
+		}
+		if mod == nil {
+			result.Error = "no running mod is named " + call.GetMod()
+			return
+		}
+
+		// Call the service. A mod that trapped also reports its failure.
+		request := &wasm.ServiceCall{Service: call.GetService(), Method: call.GetMethod(), Payload: call.GetPayload()}
+		reply := &wasm.ServiceReply{}
+		if err := s.attempt(ctx, mod, "Serve", request, reply); err != nil {
+			result.Error = err.Error()
+			if mod.mod == nil {
+				s.failed(mod.name, err)
+			}
+			return
+		}
+		result.Payload = reply.GetPayload()
+	})
+}
+
 // Wait waits for the session to end.
 func (s *Sandbox) Wait() error {
 	<-s.done
@@ -393,33 +425,47 @@ func (s *Sandbox) frame(ctx context.Context, elapsed time.Duration) {
 }
 
 // deliver passes one event to a running mod and reports whether it handled
-// the event. A slow event is logged, as the host warns of it. A mod that traps
-// or runs out of time stops and waits for its next build, as the host's waits
-// for a player's restart.
+// the event, reporting a failure as the host does.
 func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, request, response message) bool {
 	// Skip a mod that stopped.
 	if mod.mod == nil {
 		return false
 	}
 
-	// Deliver the event; an error from a closed instance stops the mod.
+	// Deliver the event; a session that is ending reports nothing.
+	err := s.attempt(ctx, mod, method, request, response)
+	if err == nil {
+		return true
+	}
+	if ctx.Err() == nil {
+		s.failed(mod.name, err)
+	}
+	return false
+}
+
+// attempt passes one event to a running mod and returns the mod's error. A
+// slow event is logged, as the host warns of it. A mod that traps or runs out
+// of time stops and waits for its next build, as the host's waits for a
+// player's restart.
+func (s *Sandbox) attempt(ctx context.Context, mod *running, method string, request, response message) error {
+	// Deliver the event and log a slow one.
 	began := time.Now()
 	err := mod.mod.Deliver(ctx, method, request, response)
 	if took := time.Since(began); took >= slowEvent {
 		s.log(mod.name, "slow: "+method+" took "+strconv.FormatInt(took.Milliseconds(), 10)+" ms")
 	}
-	if err == nil {
-		return true
-	}
-	if ctx.Err() != nil {
-		return false
-	}
-	s.event(&control.HostEvent{Body: &control.HostEvent_Failed{Failed: &control.ModFailed{Mod: mod.name, Error: err.Error()}}})
-	if mod.mod.Stopped() {
+
+	// An error from a closed instance stops the mod.
+	if err != nil && ctx.Err() == nil && mod.mod.Stopped() {
 		_ = mod.mod.Close(ctx)
 		mod.mod = nil
 	}
-	return false
+	return err
+}
+
+// failed reports that mod failed with err.
+func (s *Sandbox) failed(mod string, err error) {
+	s.event(&control.HostEvent{Body: &control.HostEvent_Failed{Failed: &control.ModFailed{Mod: mod, Error: err.Error()}}})
 }
 
 // answer answers a host call from the mod manifest describes. It reports

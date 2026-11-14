@@ -202,6 +202,10 @@ export type Spawn<Keys> = {
 	subclass: string?,
 	-- team is the entity's team number; 4 is neutral.
 	team: number?,
+	-- transmitAlways sends the entity to every client, past the game's own
+	-- rule, which never sends one without a model, such as a
+	-- point_clientui_dialog.
+	transmitAlways: boolean?,
 	-- position is the entity's origin.
 	position: modlock.Vector,
 	-- facing is where the entity faces.
@@ -264,6 +268,7 @@ function entities.create(designerName: DesignerName, options: Spawn<any>): any
 		designerName = designerName,
 		subclass = options.subclass or subclass or "",
 		team = options.team or 0,
+		transmitAlways = options.transmitAlways or false,
 		position = options.position,
 		facing = options.facing,
 		keyValues = keyValues,
@@ -452,6 +457,44 @@ end
 function console.run(name: CommandName, ...: string): boolean
 	return modlock.serverCommand(table.concat({ name, ... }, " "))
 end
+
+-- Settings holds values for some console variables by name. Its names are
+-- plain strings, since a table typed by every variable's name is too complex
+-- for the analyzer.
+export type Settings = { [string]: boolean | number | string }
+
+-- apply sets each variable of each table in settings, a table after the
+-- ones before it, so a later table's value wins, and returns the names the
+-- host refused, so a mod can log them and play on. A table's own variables
+-- go in no set order. Each variable is one host call: apply settings when the
+-- mod starts or a world loads, not every frame.
+function console.apply(...: Settings): { string }
+	local refused = {}
+	for _, settings in { ... } do
+		for name, value in settings do
+			if not set(name, value) then
+				table.insert(refused, name)
+			end
+		end
+	end
+	return refused
+end
+
+-- arena empties a map for a mode of its own: the server runs frames with no
+-- one connected, which it otherwise skips, and no solo bot match, King of
+-- the Hill, troopers, jungle camps or practice bots start, nor does a player
+-- start on a zipline. A mode applies it with its own settings after it:
+--
+--   console.apply(console.arena, { citadel_allow_duplicate_heroes = true })
+console.arena = table.freeze({
+	sv_hibernate_when_empty = false,
+	citadel_solo_bot_match = false,
+	citadel_koth_enabled = false,
+	citadel_trooper_spawn_enabled = false,
+	citadel_neutral_spawn_enabled = false,
+	citadel_spawn_practice_bots = false,
+	citadel_start_players_on_zipline = false,
+}) :: Settings
 
 return console
 `

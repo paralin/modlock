@@ -1,0 +1,18 @@
+{
+  "title": "Modlock",
+  "pages": [
+    "index",
+    "---Start---",
+    "...start",
+    "---Languages---",
+    "...languages",
+    "---Guides---",
+    "...guides",
+    "---Mechanics---",
+    "...mechanics",
+    "---Reference---",
+    "...reference",
+    "---Internals---",
+    "...internals"
+  ]
+}

@@ -37,6 +37,17 @@ var settings = []setting{{
 		config.SkipUpdateCheck = !on
 		return err
 	},
+}, {
+	name:  "editor-offer",
+	usage: "on to offer the editor extension once, off to never ask",
+	get: func(config *modcli.Config) string {
+		return onOff(!config.GetEditorOffered())
+	},
+	set: func(config *modcli.Config, value string) error {
+		on, err := parseOnOff(value)
+		config.EditorOffered = !on
+		return err
+	},
 }}
 
 // configCommand lists and changes the command line's settings.

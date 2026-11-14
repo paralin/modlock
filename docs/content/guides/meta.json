@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "events",
+    "players",
+    "abilities",
+    "timers",
+    "damage",
+    "input",
+    "world",
+    "entities",
+    "console",
+    "camera",
+    "interfaces",
+    "layouts",
+    "client-content",
+    "data",
+    "files",
+    "reloads",
+    "toolkit",
+    "testing"
+  ]
+}

@@ -15,6 +15,7 @@
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "wasm/definition_changes.h"
+#include "wasm/text_values.h"
 
 namespace modlock::wasm {
 
@@ -81,8 +82,8 @@ bool Tune(const wasm::Manifest& manifest, wasm::DefinitionUndo& undo,
 
   // Change the definitions, log each problem, and report the result once, so
   // a log shows whether the changes reached the game.
-  auto problems =
-      wasm::ChangeDefinitions(*image, *schema, "server.dll", manifest.definitions(), undo);
+  auto problems = wasm::ChangeDefinitions(*image, *schema, "server.dll", manifest.definitions(),
+                                          undo, {.addon = ContentAddon(manifest)});
   if (!problems) {
     return false;
   }
@@ -287,9 +288,7 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   attendance_.Clear();
   deferred_leaves_.clear();
   game_.StartFreeForAll(manifest_.free_for_all());
-  game_.StartContentAddon(manifest_.content_addon().empty()
-                              ? manifest_.slug() + "-" + manifest_.version()
-                              : manifest_.content_addon());
+  game_.StartContentAddon(ContentAddon(manifest_));
 
   // Start it and keep the events it wants.
   auto started = mod_.Start(event);

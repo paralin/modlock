@@ -1,0 +1,323 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/*
+ * The look. Fumadocs draws everything from these colors: a warm neutral ground
+ * and one ember accent, which marks links, the page a reader is on and the
+ * chosen language.
+ */
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --color-fd-background: hsl(30, 20%, 98.5%);
+  --color-fd-foreground: hsl(24, 10%, 10%);
+  --color-fd-muted: hsl(30, 14%, 94.5%);
+  --color-fd-muted-foreground: hsl(24, 6%, 40%);
+  --color-fd-popover: hsl(30, 20%, 99%);
+  --color-fd-popover-foreground: hsl(24, 10%, 14%);
+  --color-fd-card: hsl(30, 18%, 96.5%);
+  --color-fd-card-foreground: hsl(24, 10%, 10%);
+  --color-fd-border: hsla(24, 12%, 50%, 0.22);
+  --color-fd-primary: hsl(18, 88%, 44%);
+  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --color-fd-secondary: hsl(30, 14%, 93%);
+  --color-fd-secondary-foreground: hsl(24, 10%, 12%);
+  --color-fd-accent: hsla(22, 60%, 50%, 0.12);
+  --color-fd-accent-foreground: hsl(24, 10%, 10%);
+  --color-fd-ring: hsl(18, 88%, 54%);
+}
+
+.dark {
+  --color-fd-background: hsl(24, 8%, 6.5%);
+  --color-fd-foreground: hsl(30, 12%, 92%);
+  --color-fd-muted: hsl(24, 6%, 12.5%);
+  --color-fd-muted-foreground: hsl(28, 8%, 66%);
+  --color-fd-popover: hsl(24, 7%, 10.5%);
+  --color-fd-popover-foreground: hsl(30, 12%, 88%);
+  --color-fd-card: hsl(24, 7%, 9.5%);
+  --color-fd-card-foreground: hsl(30, 12%, 96%);
+  --color-fd-border: hsla(28, 14%, 62%, 0.16);
+  --color-fd-primary: hsl(22, 96%, 61%);
+  --color-fd-primary-foreground: hsl(24, 30%, 8%);
+  --color-fd-secondary: hsl(24, 6%, 13%);
+  --color-fd-secondary-foreground: hsl(30, 12%, 92%);
+  --color-fd-accent: hsla(24, 60%, 60%, 0.13);
+  --color-fd-accent-foreground: hsl(30, 12%, 94%);
+  --color-fd-ring: hsl(22, 96%, 61%);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: hsl(24, 6%, 14%);
+  --color-fd-secondary: hsl(24, 6%, 16%);
+  --color-fd-muted-foreground: hsl(28, 8%, 70%);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-fd-primary) 30%, transparent);
+}
+
+/* Code reads character by character, so => stays two characters. */
+code,
+pre {
+  font-variant-ligatures: none;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+.prose :where(h2) {
+  @apply mt-14 border-b pb-2;
+}
+
+.prose :where(th) {
+  @apply bg-fd-muted/60 text-left;
+}
+
+/* A card's icon tile takes the accent. */
+[data-card] > div:first-child:has(> svg) {
+  @apply text-fd-primary shadow-none;
+  background: color-mix(in oklab, var(--color-fd-primary) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-fd-primary) 30%, transparent);
+}
+
+/* The home page's opening. */
+
+.hero {
+  @apply relative mb-10 overflow-hidden rounded-2xl border px-6 py-10 md:px-10 md:py-14;
+  background:
+    radial-gradient(
+      80% 120% at 100% 0%,
+      color-mix(in oklab, var(--color-fd-primary) 22%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 90% at 0% 100%,
+      color-mix(in oklab, var(--color-fd-primary) 9%, transparent),
+      transparent 70%
+    ),
+    var(--color-fd-card);
+}
+
+.hero::before {
+  content: '';
+  @apply pointer-events-none absolute inset-0;
+  background-image:
+    linear-gradient(var(--color-fd-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-fd-border) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(90% 90% at 100% 0%, #000 0%, transparent 70%);
+}
+
+.hero > * {
+  @apply relative;
+}
+
+.hero-eyebrow {
+  @apply text-fd-primary mb-4 text-xs font-semibold tracking-wider uppercase;
+}
+
+.hero-title {
+  @apply text-fd-foreground max-w-2xl text-3xl leading-tight font-bold text-balance md:text-5xl md:leading-[1.08];
+}
+
+.hero-accent {
+  background: linear-gradient(
+    100deg,
+    var(--color-fd-primary),
+    color-mix(in oklab, var(--color-fd-primary) 55%, #f5b301)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-lead {
+  @apply text-fd-muted-foreground mt-5 max-w-xl text-base leading-relaxed md:text-lg;
+}
+
+.hero-actions {
+  @apply mt-8 flex flex-wrap gap-3;
+}
+
+.hero-primary,
+.hero-secondary {
+  @apply inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors;
+}
+
+.hero-primary {
+  @apply bg-fd-primary text-fd-primary-foreground shadow-sm hover:opacity-90;
+}
+
+.hero-secondary {
+  @apply bg-fd-background/70 text-fd-foreground hover:bg-fd-accent border backdrop-blur;
+}
+
+.hero-language {
+  @apply text-fd-muted-foreground mt-8 flex flex-wrap items-center gap-3 text-sm;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/*
+ * The language switch. The root element carries the reader's language as
+ * data-lang, and these rules show the matching sample of each block, mark the
+ * chosen button and reveal language-specific notes. Everything follows from
+ * that one attribute, so the first paint is already in the right language.
+ */
+
+[data-sample],
+[data-missing],
+[data-only] {
+  display: none;
+}
+
+html[data-lang='ts'] [data-sample='ts'],
+html[data-lang='luau'] [data-sample='luau'],
+html[data-lang='python'] [data-sample='python'],
+html[data-lang='go'] [data-sample='go'],
+html[data-lang='ts'] [data-missing='ts'],
+html[data-lang='luau'] [data-missing='luau'],
+html[data-lang='python'] [data-missing='python'],
+html[data-lang='go'] [data-missing='go'],
+html[data-lang='ts'] [data-only~='ts'],
+html[data-lang='luau'] [data-only~='luau'],
+html[data-lang='python'] [data-only~='python'],
+html[data-lang='go'] [data-only~='go'],
+/* A block without the reader's language shows its first sample. */
+html[data-lang='ts'] [data-samples]:not([data-langs~='ts']) > [data-sample]:first-of-type,
+html[data-lang='luau'] [data-samples]:not([data-langs~='luau']) > [data-sample]:first-of-type,
+html[data-lang='python'] [data-samples]:not([data-langs~='python']) > [data-sample]:first-of-type,
+html[data-lang='go'] [data-samples]:not([data-langs~='go']) > [data-sample]:first-of-type {
+  display: revert;
+}
+
+/*
+ * A sample block is one card: a bar with a tab per language over the code. The
+ * sidebar's switch draws the same buttons as a pill.
+ */
+
+[data-samples] {
+  @apply bg-fd-card my-6 overflow-hidden rounded-xl border;
+}
+
+[data-samples-bar] {
+  @apply bg-fd-muted/50 text-fd-muted-foreground flex items-center justify-between gap-3 border-b px-2 text-sm;
+}
+
+[data-samples-name] {
+  @apply px-2 py-2 font-medium;
+}
+
+[data-samples-bar] > [data-missing] {
+  @apply ms-auto px-2 py-2 text-xs;
+}
+
+[data-samples] > [data-sample] > figure {
+  @apply my-0 rounded-none border-0 bg-transparent;
+}
+
+[data-language-buttons] {
+  @apply inline-flex gap-0.5;
+}
+
+[data-language-buttons] > button {
+  @apply font-medium transition-colors;
+}
+
+[data-language-buttons] > button:hover {
+  @apply text-fd-foreground;
+}
+
+[data-samples-bar] > [data-language-buttons] > button {
+  @apply -mb-px border-b-2 border-transparent px-2.5 py-2;
+}
+
+.language-select > [data-language-buttons],
+.hero-language > [data-language-buttons] {
+  @apply bg-fd-muted text-fd-muted-foreground rounded-lg p-0.5;
+}
+
+.language-select > [data-language-buttons] > button,
+.hero-language > [data-language-buttons] > button {
+  @apply rounded-md px-2.5 py-1;
+}
+
+/* The chosen language's button, or the fallback sample's when a block lacks it. */
+html[data-lang='ts']
+  [data-samples-bar]
+  > [data-language-buttons]
+  > [data-language='ts'],
+html[data-lang='luau']
+  [data-samples-bar]
+  > [data-language-buttons]
+  > [data-language='luau'],
+html[data-lang='python']
+  [data-samples-bar]
+  > [data-language-buttons]
+  > [data-language='python'],
+html[data-lang='go']
+  [data-samples-bar]
+  > [data-language-buttons]
+  > [data-language='go'],
+html[data-lang='ts']
+  [data-samples]:not([data-langs~='ts'])
+  [data-language-buttons]
+  > button:first-child,
+html[data-lang='luau']
+  [data-samples]:not([data-langs~='luau'])
+  [data-language-buttons]
+  > button:first-child,
+html[data-lang='python']
+  [data-samples]:not([data-langs~='python'])
+  [data-language-buttons]
+  > button:first-child,
+html[data-lang='go']
+  [data-samples]:not([data-langs~='go'])
+  [data-language-buttons]
+  > button:first-child {
+  @apply border-fd-primary text-fd-foreground;
+}
+
+html[data-lang='ts'] :is(.language-select, .hero-language) [data-language='ts'],
+html[data-lang='luau']
+  :is(.language-select, .hero-language)
+  [data-language='luau'],
+html[data-lang='python']
+  :is(.language-select, .hero-language)
+  [data-language='python'],
+html[data-lang='go']
+  :is(.language-select, .hero-language)
+  [data-language='go'] {
+  @apply bg-fd-background text-fd-foreground shadow-sm;
+}
+
+.language-select {
+  @apply flex flex-col gap-1.5;
+}
+
+.language-select-label {
+  @apply text-fd-muted-foreground text-xs font-medium;
+}
+
+.language-select > [data-language-buttons] {
+  @apply flex text-xs;
+}
+
+.language-select > [data-language-buttons] > button {
+  @apply flex-1 px-1;
+}

@@ -1,9 +1,11 @@
 // Package python holds the modlock library that Python mods import as
 // modlock, and downloads the Pyright checker and the Node.js that runs it.
 //
-// modlock-sdkgen writes modlock/__init__.py from the schema and library.py;
-// modlock/wire.py and the runtime bridge's stub _modlock.pyi are
-// handwritten.
+// modlock-sdkgen writes modlock/__init__.py from the schema and library.py,
+// and modlock-entitygen writes modlock/console.py and modlock/entities.py
+// from the game dump, which a mod imports only when it asks for them;
+// modlock/wire.py, the hero table modlock/heroes.py and the runtime
+// bridge's stub _modlock.pyi are handwritten.
 package python
 
 import (

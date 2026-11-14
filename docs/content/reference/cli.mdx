@@ -1,0 +1,86 @@
+---
+title: Command line
+description: Every modlock command, its options and where it finds the game.
+---
+
+| Command                 | Effect                                                                                                                                                                                                                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock new [DIR]`     | Create a mod project, asking for its name and language, then offering the editor extension and to open the project in VS Code. `--name` and `--language` answer up front. A script or `--json` gets no questions: it needs `DIR`, and takes TypeScript without `--language`.            |
+| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                                                                                                                                                                      |
+| `modlock dev [DIR]`     | Build the mod, run it in a local server, join it, and reload it on each save.                                                                                                                                                                                                           |
+| `modlock play [MOD...]` | Play locally. Each `MOD` is a project or a built mod's directory, by default the current one. Only one project can be watched.                                                                                                                                                          |
+| `modlock join CODE`     | Join a session another PC hosts, by its join code or its lobby's link, and launch Deadlock into it. `--no-game` only serves it.                                                                                                                                                         |
+| `modlock publish [DIR]` | Build and check the mod, then [publish it](/reference/publishing).                                                                                                                                                                                                                      |
+| `modlock editor`        | Install the Modlock extension, and in a mod project its language's extension, into VS Code, VS Code Insiders, Cursor, Windsurf or VSCodium: the editor whose terminal this is, or every one installed. `--editor` names one: `code`, `code-insiders`, `cursor`, `windsurf` or `codium`. |
+| `modlock login`         | Sign in to hyperline.gg in the browser. `--host`, `join` and `publish` then go through the site.                                                                                                                                                                                        |
+| `modlock logout`        | Remove the saved sign-in. `--host` and `join` then link the PCs directly.                                                                                                                                                                                                               |
+| `modlock update`        | Install the newest release over this `modlock`. `--check` only says whether one is out. `--release v0.1.9` installs that one.                                                                                                                                                           |
+| `modlock config`        | List the settings. `modlock config set update-check off` stops the check for releases, and `editor-offer off` stops `new`, `dev` and `play` offering the editor extension.                                                                                                              |
+| `modlock daemon`        | `status` shows the background process that holds this PC's mod store and peer. `probe PEER` measures the link to another PC. `stop` ends it.                                                                                                                                            |
+| `modlock lfs setup`     | Keep this Git repository's LFS files in this PC's mod store. `git push` then sends the remote only their pointers.                                                                                                                                                                      |
+
+`dev` and `play` fall back to the sandbox when the game is missing. They also take these options:
+
+| Option                | Effect                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| `--no-game`           | Run the server without launching Deadlock.                                                               |
+| `--port PORT`         | Serve on a UDP port other than 27067.                                                                    |
+| `--arg VALUE`         | Pass `VALUE` to the mods' `onStart` handlers. Repeatable.                                                |
+| `--sandbox`           | Run in the sandbox even when the game is installed.                                                      |
+| `--watch=false`       | Build once instead of reloading on each save. `play` then runs existing builds and can run several mods. |
+| `--release`           | Build as `publish` does.                                                                                 |
+| `--host`, `--lobby`   | `play` only. Let friends join with a join code, or through a Hyperline lobby.                            |
+| `--ui-port PORT`      | Serve the mods' interfaces to the game on a port other than 4320. `0` turns them off.                    |
+| `--ui-relay ORIGIN`   | Reach the interfaces through a site other than `https://hyperline.gg`.                                   |
+| `--preview-port PORT` | Serve the browser preview of the interface on a port other than 4322. `0` turns it off.                  |
+
+While `dev` or `play` watches a project, each save rebuilds the mod and swaps it in. The watch skips `build/`, `node_modules`, hidden files and `*.log`. The terminal shows the mod's log, reloads and joins, and the server console goes to `build/server.log`. In the sandbox, a line typed in the terminal is chat from the stand-in player.
+
+In a Python mod, a terminal line that starts with `>` runs in the mod, as at Python's own console, in `main.py`'s module: `> modlock.players()` prints the players. An error prints its traceback and the mod keeps running. Other languages have no console yet.
+
+[Playing together](/reference/play-together) covers `--lobby`, `--host` and `join`. `join` also takes `--ui-port` and `--ui-relay`. `login`, `join` and `publish` take `--origin` to use a site other than `https://hyperline.gg`.
+
+| Variable                  | Use it when                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| `DEADLOCK_DIR`            | Deadlock is installed outside the Steam libraries.                                   |
+| `MODLOCK_HOST`            | You built `modlock-host.exe` yourself. The sandbox reads the interpreters beside it. |
+| `MODLOCK_PROTON`          | You want a particular Proton installation.                                           |
+| `MODLOCK_NO_UPDATE_CHECK` | You want to turn off the check for a newer release in this environment.              |
+
+## Where it lives and how it updates
+
+The installers put `modlock` in `%LOCALAPPDATA%\Programs\modlock` on Windows and add that directory to your `PATH`. Elsewhere they put it in `~/.local/bin`. On Windows, `modlock` runs the game server directly. On Linux, it runs the server through Steam's Proton.
+
+`modlock` checks for a newer release at most once a day, in the background, and reports when one is out. The check is off in CI, when `MODLOCK_NO_UPDATE_CHECK` is set, or after `modlock config set update-check off`.
+
+## Game files
+
+These commands work on the game's own file formats. They run without the game or Valve tools installed.
+
+| Command                                    | Effect                                                                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`), scripts (`.js`) and style sheets (`.css`) under `DIR/panorama/` into `DIR.vpk`. |
+| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, a script (`.vjs_c`) as its source, or a style sheet (`.vcss_c`) as CSS.    |
+| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                                               |
+| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                                                     |
+| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive. Equal directories pack to equal bytes.                                               |
+| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON. `--blocks` lists its blocks.                                      |
+| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                          |
+
+`panorama compile` keeps every other file in `DIR` as it is. Compiled resources such as images then ship beside the layouts. `-o` writes to another archive, or to a directory. A style sheet's `url()` points to an image or another sheet in the game's files, given as `s2r://`, `file://{images}/` or `file://{resources}/`. The URL compiles to the resource the game loads. `file://{images}/icons/mark.png` becomes `s2r://panorama/images/icons/mark_png.vtex`. Any other URL is refused, with its line. `decompile` and `kv3` take `--archive` to read `FILE` from inside an archive, including the game's split `game/citadel/pak01_dir.vpk`:
+
+```sh
+modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c
+```
+
+`modlock studio` prints a local address to open in a browser. Modlock Studio:
+
+- lists every file in the installed game's archive,
+- draws models with their levels of detail, mesh groups and materials,
+- shows textures as the GPU stores them,
+- plays and downloads MP3 and PCM sounds,
+- shows other resources' KeyValues3.
+
+It reads each file from your own install as you open it. Modlock ships none of the game's files. `--port` moves it, and `DEADLOCK_DIR` points it at a game outside the Steam libraries.
+
+A mod that tracks large files, such as VPKs, with Git LFS can keep them out of its Git remote. After `git lfs track`, run `modlock lfs setup` in the repository once. Git LFS then hands each file to modlock, which stores it in this PC's mod store. A fresh clone runs the same setup before `git lfs pull`. Files are stored by content, so repositories that share a file keep it once. They stay on this PC: another PC's clone can pull them only from its own store.

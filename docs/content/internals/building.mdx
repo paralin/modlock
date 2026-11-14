@@ -1,0 +1,92 @@
+---
+title: Building Modlock
+description: Build the command line, the host and the libraries from source.
+---
+
+Requirements: Go, CMake 3.24+ and a C++23 compiler. CMake downloads
+[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) for QuickJS and Luau.
+
+```sh
+git submodule update --init --recursive
+go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp
+
+jobs=$(( $(getconf _NPROCESSORS_ONLN) / 2 ))
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel "$jobs"
+ctest --test-dir build --output-on-failure
+cmake --install build --prefix "$PWD/build/sdk"
+```
+
+Protobuf and abseil take a long time to build. Use half the cores, as shown, so
+the build leaves the machine usable.
+
+CMake downloads the [Wasmtime C API](https://docs.wasmtime.dev/c-api/) release
+for the target platform. Pass `-DMODLOCK_WASMTIME_DIR=<extracted release>` to
+build offline. Install puts the Wasmtime library next to `modlock-host`, where
+the host loads it.
+
+- **Windows:** run `scripts/win-build.ps1` from a Visual Studio developer shell.
+- **macOS or Linux, targeting Windows:** `scripts/proton-build.sh` cross-builds
+  the Windows SDK with Zig.
+
+To build from a source archive without `.git`, pass its commit with
+`-DMODLOCK_REVISION=<40-character SHA>`.
+
+After a game update, regenerate the entity and console libraries as
+[The entity system](/internals/entity-schema#updating-for-a-new-game-build)
+describes.
+
+## Checks
+
+`bun install` installs a pre-commit hook that formats the staged files with
+oxfmt and restages them, checks the staged TypeScript for commented code
+paragraphs with `scripts/tsstyle.ts`, and lints it with type-aware oxlint.
+These scripts run the same tools across the repository:
+
+| Script                       | Does                                                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run format`             | Formats with oxfmt                                                                                                                                         |
+| `bun run lint`               | Lints with oxlint; lint the example mods after `go run ./cmd/modlock build examples/<mod>` installs their typings                                          |
+| `bun run typecheck`          | Type checks the TypeScript                                                                                                                                 |
+| `bun run test`               | Runs the tests                                                                                                                                             |
+| `bun run lint:cc [--fix]`    | Reports, or removes, the includes a C++ source does not use; it reads the compile databases of `build` and `scripts/proton-build.sh`, so build both first |
+
+## Run the command from a clone
+
+To run Modlock from a clone, such as for a fix that is not in a release yet or
+to change Modlock itself, build the command from the checkout with
+[Go](https://go.dev/dl/):
+
+```sh
+git clone https://github.com/paralin/modlock.git
+cd modlock
+go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
+```
+
+Build without `-trimpath`: the command finds the checkout through the paths
+compiled into it, and builds the TypeScript library in
+[`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and
+the preview page from the checkout, so your mods use the checkout's library.
+`modlock build` does the same from Modlock source in the Go module cache, and
+caches the result; a release build downloads the library its release
+publishes. After a `git pull`, build the command again.
+
+A build from source has no release to download the host from, so set
+`MODLOCK_HOST` to a `modlock-host.exe`; the sandbox needs it too, since it runs
+the interpreters beside the host. For a checkout of a release, or close to one,
+unpack that release's host:
+
+```sh
+curl -LO https://github.com/paralin/modlock/releases/latest/download/modlock-host-windows-x64.zip
+unzip modlock-host-windows-x64.zip -d ~/modlock-host
+export MODLOCK_HOST=~/modlock-host/modlock-host.exe
+modlock new my-mod
+cd my-mod
+modlock dev
+```
+
+On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
+change to the host itself, the C++ under `src/`, needs a host built from the
+same checkout: `scripts/win-build.ps1` installs it in `build-win/sdk/bin`, and
+`scripts/proton-build.sh` in `build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
+library makes.

@@ -188,6 +188,10 @@ export type Spawn<Keys> = {
 	subclass: string?,
 	-- team is the entity's team number; 4 is neutral.
 	team: number?,
+	-- transmitAlways sends the entity to every client, past the game's own
+	-- rule, which never sends one without a model, such as a
+	-- point_clientui_dialog.
+	transmitAlways: boolean?,
 	-- position is the entity's origin.
 	position: modlock.Vector,
 	-- facing is where the entity faces.
@@ -22294,6 +22298,7 @@ function entities.create(designerName: DesignerName, options: Spawn<any>): any
 		designerName = designerName,
 		subclass = options.subclass or subclass or "",
 		team = options.team or 0,
+		transmitAlways = options.transmitAlways or false,
 		position = options.position,
 		facing = options.facing,
 		keyValues = keyValues,

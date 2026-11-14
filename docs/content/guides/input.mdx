@@ -1,0 +1,109 @@
+---
+title: Input
+description: Hear button presses, press buttons for a hero and withhold them.
+---
+
+A mod hears only the buttons it watches. Watch them once; the input event
+reports each press and release as button bits.
+
+<Samples>
+
+```ts
+import { Buttons, onInput, onStart, watchInput } from 'modlock'
+
+onStart(() => {
+  watchInput(Buttons.reload | Buttons.use)
+})
+
+onInput((player, pressed) => {
+  if (pressed & Buttons.reload) {
+    player.centerText('Reloading!')
+  }
+})
+```
+
+```luau
+modlock.onStart(function()
+	modlock.watchInput(modlock.Buttons.reload + modlock.Buttons.use)
+end)
+
+modlock.onInput(function(player, pressed)
+	if modlock.has(pressed, modlock.Buttons.reload) then
+		player:centerText("Reloading!")
+	end
+end)
+```
+
+```python
+@modlock.on_start
+def watch(args: list[str]) -> None:
+    modlock.watch_input(modlock.Buttons.RELOAD | modlock.Buttons.USE)
+
+
+@modlock.on_input
+def pressed(player: modlock.Player, pressed: modlock.Buttons, released: modlock.Buttons) -> None:
+    if pressed & modlock.Buttons.RELOAD:
+        player.center_text("Reloading!")
+```
+
+```go
+mod.OnStart(func([]string) {
+	_ = mod.WatchInput(mod.ButtonReload | mod.ButtonUse)
+})
+
+mod.OnInput(func(p mod.Player, pressed, released uint64) {
+	if pressed&mod.ButtonReload != 0 {
+		_ = p.CenterText("Reloading!")
+	}
+})
+```
+
+</Samples>
+
+A button is held from its press until its release.
+
+## Block and press
+
+Withhold buttons to remove an action, such as shooting during a countdown.
+Press buttons to act for a hero.
+
+| Call                           | Effect                                         |
+| ------------------------------ | ---------------------------------------------- |
+| `blockInput(buttons)`          | Withhold buttons from every hero.              |
+| `player.blockInput(buttons)`   | Withhold buttons from one hero.                |
+| `player.press(buttons)`        | Press buttons for a hero.                      |
+| `player.buttons()`             | Read the buttons a hero holds.                 |
+| `remapInput(from, to, repeat)` | Make one button act as another for every hero. |
+
+<Samples>
+
+```ts
+// Nobody shoots until the round starts.
+blockInput(Buttons.attack)
+after(5, () => blockInput(0n))
+```
+
+```luau
+-- Nobody shoots until the round starts.
+modlock.blockInput(modlock.Buttons.attack)
+modlock.after(5, function()
+	modlock.blockInput(0)
+end)
+```
+
+```python
+# Nobody shoots until the round starts.
+modlock.block_input(modlock.Buttons.ATTACK)
+modlock.after(5, lambda: modlock.block_input(modlock.Buttons(0)))
+```
+
+```go
+// Nobody shoots until the round starts.
+_ = mod.BlockInput(mod.ButtonAttack)
+mod.After(5*time.Second, func() { _ = mod.BlockInput(0) })
+```
+
+</Samples>
+
+Each call replaces the set of blocked buttons. A call with no buttons releases
+every blocked button.

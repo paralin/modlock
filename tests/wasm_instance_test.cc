@@ -315,6 +315,7 @@ TEST(WasmInstance, PythonModAnswersEvents) {
   start.set_source(Zip({
       {"main.py", Text(HELLO_PYTHON_MAIN)},
       {"modlock/__init__.py", Text(library + "/__init__.py")},
+      {"modlock/heroes.py", Text(library + "/heroes.py")},
       {"modlock/wire.py", Text(library + "/wire.py")},
   }));
   auto started = (*instance)->Deliver(Event("Start", start));

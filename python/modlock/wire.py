@@ -4,7 +4,7 @@ instance of its generated class, whose attributes are the fields' names in
 the schema; the schema's rules for each field are on its descriptor."""
 
 import struct
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -20,6 +20,9 @@ class Field:
     # kind is the field's protobuf type, such as "uint32" or "message".
     kind: str
     repeated: bool = False
+    # map marks a repeated field of map entries, which the message holds as a
+    # dict from each entry's key to its value.
+    map: bool = False
     optional: bool = False
     # oneof names the oneof the field is a case of; the message holds the
     # case's value under that name.
@@ -34,6 +37,9 @@ class Field:
     # cls is the class the field's number addresses, which key holds.
     cls: type[Any] | None = None
     key: str | None = None
+    # resolve maps a string field's value to the one the game reads, such as
+    # a hero's title to its game name, before it is encoded.
+    resolve: Callable[[str], str] | None = None
 
 
 # Schema holds each message's class and fields by the message's name. A
@@ -41,7 +47,7 @@ class Field:
 type Schema = Mapping[str, tuple[type[Any] | None, list[Field]]]
 
 # WIRE_TYPES holds the wire type of each kind that is not a varint.
-WIRE_TYPES = {"double": 1, "float": 5, "fixed32": 5, "string": 2, "bytes": 2, "message": 2}
+WIRE_TYPES = {"double": 1, "fixed64": 1, "float": 5, "fixed32": 5, "string": 2, "bytes": 2, "message": 2}
 
 # SIGNED holds the kinds whose varints are two's complement.
 SIGNED = {"int32", "int64", "enum"}
@@ -143,7 +149,7 @@ def _read(schema: Schema, field: Field, data: bytes, i: int, kind: int) -> tuple
             value = field.cls(value)
         return value, i + 4
     if kind == 1:
-        return struct.unpack_from("<d", data, i)[0], i + 8
+        return struct.unpack_from("<Q" if field.kind == "fixed64" else "<d", data, i)[0], i + 8
     size, start = _read_varint(data, i)
     after = start + size
     if after > len(data):
@@ -161,6 +167,8 @@ def _read(schema: Schema, field: Field, data: bytes, i: int, kind: int) -> tuple
 
 def _default(schema: Schema, field: Field) -> Any:
     """_default returns the value of field when a message leaves it out."""
+    if field.map:
+        return {}
     if field.repeated:
         return []
     if field.optional or field.enum is not None or field.union is not None:
@@ -193,6 +201,10 @@ def decode(schema: Schema, name: str, data: bytes) -> Any:
         field = by_number.get(key >> 3)
         if field is None:
             i = _skip(data, i, kind)
+        elif field.map:
+            entry, i = _read(schema, field, data, i, kind)
+            entries: dict[Any, Any] = out.setdefault(field.name, {})
+            entries[_get(entry, "key")] = _get(entry, "value")
         elif field.repeated:
             items: list[Any] = out.setdefault(field.name, [])
             if kind == 2 and _packable(field.kind):
@@ -224,7 +236,8 @@ def _bytes(schema: Schema, field: Field, value: Any) -> bytes:
         body = encode(schema, field.message or "", value)
         return _varint(len(body)) + body
     if field.kind == "string":
-        body = str(value).encode()
+        text = str(value)
+        body = (field.resolve(text) if field.resolve is not None else text).encode()
         return _varint(len(body)) + body
     if field.kind == "bytes":
         return _varint(len(value)) + bytes(value)
@@ -232,6 +245,8 @@ def _bytes(schema: Schema, field: Field, value: Any) -> bytes:
         return struct.pack("<f", value)
     if field.kind == "fixed32":
         return struct.pack("<I", value)
+    if field.kind == "fixed64":
+        return struct.pack("<Q", value)
     if field.kind == "double":
         return struct.pack("<d", value)
     if field.kind == "bool":
@@ -252,8 +267,11 @@ def _tag(field: Field, kind: int) -> bytes:
     return _varint(field.number << 3 | kind)
 
 
-def _zero(value: Any) -> bool:
-    """_zero reports whether value is the zero value the receiver assumes."""
+def _zero(field: Field, value: Any) -> bool:
+    """_zero reports whether value is the zero value of field the receiver
+    assumes: an enum's is the name of its number 0."""
+    if field.enum is not None:
+        return field.enum.get(value) == 0
     return value is False or (not isinstance(value, bool) and value in (0, "", b""))
 
 
@@ -261,7 +279,8 @@ def encode(schema: Schema, name: str, value: Any) -> bytes:
     """encode returns the message name holding value, which may be None for
     an empty message. It leaves out fields that are None, and the zero values
     the receiver assumes. A oneof's value takes the first case its type
-    matches."""
+    matches, unless the message holds the value under the case's own name,
+    as it must when two cases share a type."""
     if value is None:
         return b""
     parts: list[bytes] = []
@@ -269,21 +288,27 @@ def encode(schema: Schema, name: str, value: Any) -> bytes:
     for field in schema[name][1]:
         kind = WIRE_TYPES.get(field.kind, 0)
         if field.oneof is not None:
-            case = _get(value, field.oneof)
-            if case is not None and field.oneof not in cases and _matches(schema, field, case):
+            case = _get(value, field.name)
+            named = case is not None
+            if not named:
+                case = _get(value, field.oneof)
+            if case is not None and field.oneof not in cases and (named or _matches(schema, field, case)):
                 cases.add(field.oneof)
                 parts.append(_tag(field, kind) + _bytes(schema, field, case))
             continue
         v = _get(value, field.name)
         if v is None:
             continue
-        if field.repeated and _packable(field.kind):
+        if field.map:
+            for key, item in cast(Mapping[Any, Any], v).items():
+                parts.append(_tag(field, kind) + _bytes(schema, field, {"key": key, "value": item}))
+        elif field.repeated and _packable(field.kind):
             if v:
                 body = b"".join(_bytes(schema, field, item) for item in v)
                 parts.append(_tag(field, 2) + _varint(len(body)) + body)
         elif field.repeated:
             for item in v:
                 parts.append(_tag(field, kind) + _bytes(schema, field, item))
-        elif field.optional or not _zero(v):
+        elif field.optional or not _zero(field, v):
             parts.append(_tag(field, kind) + _bytes(schema, field, v))
     return b"".join(parts)

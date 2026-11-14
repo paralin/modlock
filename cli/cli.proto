@@ -136,9 +136,15 @@ message Hosting {
 message Config {
   // SkipUpdateCheck stops commands from looking for a newer release.
   bool skip_update_check = 1;
+
+  // EditorOffered records that modlock dev or play offered, once, to install
+  // the Modlock extension into the editor whose terminal it ran in, so it
+  // never asks again. Setting it before any offer turns the offer off.
+  bool editor_offered = 2;
 }
 
-// Input is one thing the stand-in player does in the sandbox.
+// Input is one line a program sends a session: something the stand-in player
+// does in the sandbox, or a line for a mod's console in any session.
 message Input {
   // Body selects the input.
   oneof body {
@@ -150,7 +156,24 @@ message Input {
 
     // Change changes an input in a mod's interface.
     Change change = 3;
+
+    // Console runs a line of code in a mod, at its language's console.
+    ConsoleLine console = 4;
   }
+}
+
+// ConsoleLine is a line of code for a running mod to run, as typed at its
+// language's console. The answer is the host's called event with the same
+// id: what the console shows for the line, or why the line did not run.
+message ConsoleLine {
+  // Mod is the mod's name. Empty is the mod that started or reloaded last.
+  string mod = 1;
+
+  // Code is the line.
+  string code = 2;
+
+  // Id is returned with the answer, to match it to this line.
+  string id = 3;
 }
 
 // Change sets an input in the interface a mod shows a player.

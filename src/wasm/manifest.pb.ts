@@ -491,11 +491,15 @@ export interface Definition {
    */
   properties?: { [key: string]: number }
   /**
-   * Fields writes float schema fields, named as a path of Class.field steps
-   * from the entry's data, such as
+   * Fields writes float schema fields, including CModifierLevelFloat,
+   * CSkillFloat and CRangeFloat, named as a path of Class.field steps from the
+   * entry's data, such as
    * CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
-   * step may name one value of an enum-keyed map, such as
-   * CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
+   * step may name one value of an enum-keyed map or modifier script value list,
+   * such as CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth] or
+   * CModifierVData.m_vecScriptValues[EModifierValue.MODIFIER_VALUE_MODEL_SCALE].
+   * One value fills every level of a level float or script value and both
+   * bounds of a range.
    */
   fields?: { [key: string]: number }
   /**
@@ -503,6 +507,12 @@ export interface Definition {
    * key's path; both must be the same size.
    */
   copyFields?: { [key: string]: string }
+  /**
+   * TextFields writes text, symbol, sound event and Panorama image schema
+   * fields, named as a path of Class.field steps from the entry's data. Each
+   * {addon} in a value becomes the mod's content addon.
+   */
+  textFields?: { [key: string]: string }
 }
 
 export const Definition: MessageType<Definition> =
@@ -514,6 +524,7 @@ export const Definition: MessageType<Definition> =
       [3, 'properties', 2, 584],
       [4, 'fields', 2, 584],
       [5, 'copy_fields', 9, 584],
+      [6, 'text_fields', 9, 584],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Definition): Definition => {
@@ -558,6 +569,17 @@ export const Definition: MessageType<Definition> =
               )
               m.copyFields ??= newMap()
               m.copyFields[k] = v
+              break
+            }
+            case 6: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.string(),
+                '',
+                '',
+              )
+              m.textFields ??= newMap()
+              m.textFields[k] = v
               break
             }
             default:
@@ -605,6 +627,16 @@ export const Definition: MessageType<Definition> =
               w.join(s)
             }
         }
+        {
+          const o = m.textFields
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(50).fork()
+              w.uint32(10).string(k)
+              w.uint32(18).string(v)
+              w.join(s)
+            }
+        }
       },
     },
   )
@@ -637,6 +669,12 @@ export enum Definition_File {
    * other units, and the bot brain (npc_player_bot_brain) every bot shares.
    */
   NPC_UNITS = 3,
+
+  /**
+   * FILE_MODIFIERS is scripts/modifiers.vdata, the standalone modifiers, and
+   * the modifiers embedded in abilities, named as <ability>/<modifier>.
+   */
+  MODIFIERS = 4,
 }
 
 export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
@@ -646,5 +684,6 @@ export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
     [1, 'FILE_HEROES'],
     [2, 'FILE_BOT_DIFFICULTY'],
     [3, 'FILE_NPC_UNITS'],
+    [4, 'FILE_MODIFIERS'],
   ],
 )
