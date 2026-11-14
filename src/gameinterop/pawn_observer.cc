@@ -392,6 +392,12 @@ PawnObserver::Seams PawnObserver::LiveSeams(bool movement_enabled) {
   seams.prepare = [] {
     static_cast<void>(ResolveVirtualSlot("entity.max-health"));
     PrepareUpgradeBonuses();
+
+    // Find the charge queries' call site, so the first charge read takes the
+    // remembered address instead of scanning the server image.
+    if (const auto image = MappedModuleImage::ForModule(L"server.dll")) {
+      static_cast<void>(ResolveAbilityChargeSlots(*image));
+    }
   };
   return seams;
 }
@@ -428,6 +434,14 @@ std::expected<void, std::string> PawnObserver::ResolveLayout() {
 
 void PawnObserver::Prepare() {
   static_cast<void>(ResolveLayout());
+
+  // Resolve the ability layout the first pawn's abilities read; a failure is
+  // left for that read to report.
+  if (!ability_layout_ && seams_.ability_layout) {
+    if (auto layout = seams_.ability_layout()) {
+      ability_layout_ = *layout;
+    }
+  }
   if (seams_.prepare) {
     seams_.prepare();
   }

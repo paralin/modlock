@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "modlock/gameinterop/connection_tracker.h"
+#include "modlock/gameinterop/game_symbols.h"
 #include "wasm/game_internal.h"
 
 namespace modlock::wasm {
@@ -178,7 +179,31 @@ void Game::WorldReady() {
   static_cast<void>(services_.Selection());
   static_cast<void>(services_.Modifiers());
   static_cast<void>(services_.ModifierState("MODIFIER_STATE_HOLDING_IDOL"));
+
+  // Find the text and effect factories, the match clock and the bot and
+  // modifier calls now, so the first call that needs one does not scan the
+  // server image mid-frame. The bot hero guard is still installed by the first
+  // bot request; only its call is found here.
+  const auto started = std::chrono::steady_clock::now();
+  static_cast<void>(services_.Text());
+  static_cast<void>(services_.Effects());
+  static_cast<void>(services_.Clock());
+  if (auto image = services_.Image()) {
+    for (const auto id :
+         {"bot.create", "bot.duplicate-hero-check", "vdata.lookup-by-hash", "modifier.add"}) {
+      static_cast<void>(gameinterop::ResolveSignature(**image, id));
+    }
+  }
+  const auto services_done = std::chrono::steady_clock::now();
   observer_.Prepare();
+
+  // Report the cost, so a host start shows what moved out of the first calls.
+  const auto milliseconds = [](auto duration) {
+    return std::chrono::duration<double, std::milli>(duration).count();
+  };
+  std::cerr << "[modlock] world lookups prepared: services "
+            << milliseconds(services_done - started) << " ms, pawn observer "
+            << milliseconds(std::chrono::steady_clock::now() - services_done) << " ms\n";
 }
 
 void Game::WorldEnding() {

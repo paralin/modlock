@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
 #include <wasmtime.hh>
@@ -174,6 +175,9 @@ class Instance {
   // pending_ holds the encoded message host_read copies next.
   std::string pending_;
   Budget budget_;
+  // timed_methods_ names the host methods whose first call was logged, so a
+  // host start shows what each first call cost.
+  std::set<std::string, std::less<>> timed_methods_;
   // busy_ is true while a call into the mod is running.
   bool busy_ = false;
   std::optional<std::string> failure_;

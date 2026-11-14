@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <cstring>
+#include <mutex>
 #include <optional>
+#include <vector>
 
+#include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/signature.h"
 
 namespace modlock::gameinterop {
@@ -42,6 +45,35 @@ bool IsRipRelativeLoad(std::span<const uint8_t> bytes, size_t site) {
   const uint8_t modrm = bytes[site + 2];
   return (rex & 0xF8) == 0x48 && (opcode == 0x8D || opcode == 0x8B) && (modrm & 0xC7) == 0x05;
 }
+
+// ResolvedSignature is one successful resolve, keyed by the image it was
+// scanned in and every signature field that decides the address. The pattern
+// is copied because LoadGameSignatures may replace the table it points into.
+struct ResolvedSignature {
+  std::uintptr_t base = 0;
+  const uint8_t* bytes = nullptr;
+  size_t size = 0;
+  std::string id;
+  std::string pattern;
+  SignatureTarget target = SignatureTarget::kMatch;
+  size_t delta = 0;
+  void* address = nullptr;
+
+  bool Matches(const ModuleImage& image, std::span<const uint8_t> view,
+               const GameSignature& signature) const {
+    return base == image.base() && bytes == view.data() && size == view.size() &&
+           id == signature.id && pattern == signature.pattern && target == signature.target &&
+           delta == signature.delta;
+  }
+};
+
+// The process-wide record of resolved signatures. Only a loaded module's
+// image is remembered: it stays mapped for the life of the host process, so an
+// address found once in it holds until the process ends. Any other image may
+// change under the same address, and is scanned on every call. Failures are
+// never recorded.
+std::mutex resolved_mutex;
+std::vector<ResolvedSignature> resolved;
 
 }  // namespace
 
@@ -112,7 +144,37 @@ std::expected<void*, std::string> ResolveSignature(const ModuleImage& image, std
   if (signature == nullptr) {
     return std::unexpected("signature '" + std::string(id) + "' is not recorded");
   }
-  return ResolveSignature(image, *signature);
+
+  // Reuse an earlier resolve of the same pattern in the same loaded image.
+  if (dynamic_cast<const MappedModuleImage*>(&image) == nullptr) {
+    return ResolveSignature(image, *signature);
+  }
+  const auto view = image.image_bytes();
+  {
+    std::lock_guard lock(resolved_mutex);
+    const auto found = std::ranges::find_if(resolved, [&](const ResolvedSignature& entry) {
+      return entry.Matches(image, view, *signature);
+    });
+    if (found != resolved.end()) {
+      return found->address;
+    }
+  }
+
+  // Scan outside the lock, then record only a success; a failure scans again
+  // and returns the same error on the next call.
+  auto address = ResolveSignature(image, *signature);
+  if (address) {
+    std::lock_guard lock(resolved_mutex);
+    resolved.push_back({.base = image.base(),
+                        .bytes = view.data(),
+                        .size = view.size(),
+                        .id = std::string(signature->id),
+                        .pattern = std::string(signature->pattern),
+                        .target = signature->target,
+                        .delta = signature->delta,
+                        .address = *address});
+  }
+  return address;
 }
 
 std::expected<void, std::string> ResolveSignatures(const ModuleImage& image,

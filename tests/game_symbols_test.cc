@@ -10,6 +10,7 @@
 #include <limits>
 #include <string>
 
+#include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/signature.h"
 #include "modlock/gameinterop/virtual_slots.h"
 
@@ -235,6 +236,95 @@ TEST(GameSignatureLoad, UnreadableFilesKeepTheSignatures) {
   EXPECT_FALSE(
       LoadGameSignatures(std::filesystem::temp_directory_path() / "modlock-missing.txtpb"));
   EXPECT_NE(FindGameSignature("kept"), nullptr);
+}
+
+// PlacedImage stands in for a loaded image at a chosen base, so each cache
+// test owns its entries in the process-wide record. It outlives the process's
+// use of it, as a loaded image does.
+struct PlacedImage {
+  explicit PlacedImage(std::uintptr_t base)
+      : bytes(new std::array<uint8_t, 32>{}),
+        image(modlock::gameinterop::MappedModuleImage::ForTesting(base, *bytes)) {}
+
+  std::array<uint8_t, 32>* bytes;
+  modlock::gameinterop::MappedModuleImage image;
+};
+
+TEST(GameSignatureCache, SecondResolveDoesNotScanAgain) {
+  ASSERT_TRUE(LoadGameSignatures(GameDataFile(
+      R"(signatures { id: "cache.hit" modules: GAME_MODULE_SERVER pattern: "CC" shape: "s" })")));
+
+  // The first resolve scans and finds the match.
+  PlacedImage image(0x10000);
+  (*image.bytes)[4] = 0xcc;
+  auto first = ResolveSignature(image.image, "cache.hit");
+  ASSERT_TRUE(first) << first.error();
+  EXPECT_EQ(*first, reinterpret_cast<void*>(0x10004));
+
+  // With the match erased a scan would fail, so a success proves the hit.
+  (*image.bytes)[4] = 0;
+  ASSERT_FALSE(ResolveSignature(image.image, *FindGameSignature("cache.hit")));
+  auto second = ResolveSignature(image.image, "cache.hit");
+  ASSERT_TRUE(second) << second.error();
+  EXPECT_EQ(*second, *first);
+  ASSERT_TRUE(LoadGameSignatures(MODLOCK_GAME_SIGNATURES_FILE));
+}
+
+TEST(GameSignatureCache, OtherImagesAndPatternsScanAfresh) {
+  ASSERT_TRUE(LoadGameSignatures(GameDataFile(
+      R"(signatures { id: "cache.miss" modules: GAME_MODULE_SERVER pattern: "CC" shape: "s" })")));
+  PlacedImage image(0x20000);
+  (*image.bytes)[4] = 0xcc;
+  (*image.bytes)[9] = 0xdd;
+  ASSERT_TRUE(ResolveSignature(image.image, "cache.miss"));
+
+  // Another image at another base scans its own bytes.
+  PlacedImage other(0x30000);
+  (*other.bytes)[6] = 0xcc;
+  auto moved = ResolveSignature(other.image, "cache.miss");
+  ASSERT_TRUE(moved) << moved.error();
+  EXPECT_EQ(*moved, reinterpret_cast<void*>(0x30006));
+
+  // An image that is not a loaded module is scanned on every call.
+  Image scratch;
+  scratch.bytes[4] = 0xcc;
+  ASSERT_TRUE(ResolveSignature(scratch, "cache.miss"));
+  scratch.bytes[4] = 0;
+  EXPECT_FALSE(ResolveSignature(scratch, "cache.miss"));
+
+  // A reloaded pattern under the same id scans again.
+  ASSERT_TRUE(LoadGameSignatures(GameDataFile(
+      R"(signatures { id: "cache.miss" modules: GAME_MODULE_SERVER pattern: "DD" shape: "s" })")));
+  auto reloaded = ResolveSignature(image.image, "cache.miss");
+  ASSERT_TRUE(reloaded) << reloaded.error();
+  EXPECT_EQ(*reloaded, reinterpret_cast<void*>(0x20009));
+  ASSERT_TRUE(LoadGameSignatures(MODLOCK_GAME_SIGNATURES_FILE));
+}
+
+TEST(GameSignatureCache, FailuresAreNotRemembered) {
+  ASSERT_TRUE(LoadGameSignatures(GameDataFile(
+      R"(signatures { id: "cache.fail" modules: GAME_MODULE_SERVER pattern: "CC" shape: "s" })")));
+
+  // A missing pattern fails the same way on every call.
+  PlacedImage image(0x40000);
+  const auto first = ResolveSignature(image.image, "cache.fail");
+  ASSERT_FALSE(first);
+  const auto again = ResolveSignature(image.image, "cache.fail");
+  ASSERT_FALSE(again);
+  EXPECT_EQ(again.error(), first.error());
+
+  // A doubled match fails too and is not recorded as an address.
+  (*image.bytes)[4] = 0xcc;
+  (*image.bytes)[8] = 0xcc;
+  ASSERT_FALSE(ResolveSignature(image.image, "cache.fail"));
+  ASSERT_FALSE(ResolveSignature(image.image, "cache.fail"));
+
+  // Once the image holds one match, the next call scans and resolves it.
+  (*image.bytes)[8] = 0;
+  auto resolved = ResolveSignature(image.image, "cache.fail");
+  ASSERT_TRUE(resolved) << resolved.error();
+  EXPECT_EQ(*resolved, reinterpret_cast<void*>(0x40004));
+  ASSERT_TRUE(LoadGameSignatures(MODLOCK_GAME_SIGNATURES_FILE));
 }
 
 TEST(GameSignatureLoad, ShippedFileLoadsWhole) {

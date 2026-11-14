@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <format>
 #include <utility>
@@ -267,6 +268,13 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
   if (spent > budget_.slowest_time) {
     budget_.slowest = call.method();
     budget_.slowest_time = spent;
+  }
+
+  // Log each method's first call, which pays for any lookup not yet made.
+  if (timed_methods_.insert(call.method()).second) {
+    std::fprintf(stderr, "[modlock] first host call %s took %.3f ms\n", call.method().c_str(),
+                 std::chrono::duration<double, std::milli>(spent).count());
+    std::fflush(stderr);
   }
   ArmDeadline();
   return static_cast<uint32_t>(pending_.size());

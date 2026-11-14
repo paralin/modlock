@@ -17,6 +17,13 @@ class MODLOCK_API MappedModuleImage final : public ModuleImage {
   // Unsupported hosts return an error without accessing process memory.
   static std::expected<MappedModuleImage, std::string> ForModule(std::wstring_view name);
 
+  // ForTesting borrows bytes standing in for a loaded image at base. Like a
+  // loaded image, they must stay in place and unchanged until the process
+  // ends, since ResolveSignature remembers what it found in them.
+  static MappedModuleImage ForTesting(std::uintptr_t base, std::span<const uint8_t> bytes) {
+    return MappedModuleImage(base, bytes);
+  }
+
   std::uintptr_t base() const override { return base_; }
 
   std::span<const uint8_t> image_bytes() const override { return bytes_; }

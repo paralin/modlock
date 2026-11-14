@@ -119,7 +119,11 @@ struct GameSignatureLoad {
     const ModuleImage& image, const GameSignature& signature);
 
 // ResolveSignature resolves the recorded signature with id. An unknown id is
-// an error.
+// an error. In a MappedModuleImage, a success is remembered for the life of
+// the process, keyed by the image's base and bytes and the signature's
+// pattern, target and delta, so each recorded pattern is scanned at most once
+// per loaded module; a failure is not remembered and scans again on the next
+// call. Any other image is scanned on every call.
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> ResolveSignature(
     const ModuleImage& image, std::string_view id);
 
