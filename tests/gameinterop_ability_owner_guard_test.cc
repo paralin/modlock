@@ -1,6 +1,7 @@
 // Contract tests for the ability owner guard: finding abilities and their
-// owners in the entity list, and withholding an ability from a player whose
-// update does not send its live owner.
+// owners in the entity list, withholding an ability from a player whose update
+// does not send its live owner, and never withholding one that player's client
+// may already hold.
 #include <gtest/gtest.h>
 
 #include <array>
@@ -17,6 +18,8 @@ namespace {
 
 using modlock::gameinterop::AbilityClasses;
 using modlock::gameinterop::FindOwnedAbilities;
+using modlock::gameinterop::GuardedAbilities;
+using modlock::gameinterop::HeldAbilities;
 using modlock::gameinterop::kIdentitySize;
 using modlock::gameinterop::kInvalidEHandleIndex;
 using modlock::gameinterop::kMaxEntitiesInList;
@@ -155,6 +158,14 @@ struct World {
   }
 };
 
+// Withheld runs one pass for a client that holds nothing yet, as a joining
+// client does, and returns what it withheld.
+std::vector<OwnedAbility> Withheld(TransmitSet& set, const std::vector<OwnedAbility>& abilities) {
+  HeldAbilities held;
+  held.Track(set.Slot(), true, 1);
+  return WithholdOwnerless(set, abilities, held).withheld;
+}
+
 TEST(FindOwnedAbilities, ListsAbilitiesWithTheirLiveOwner) {
   // A pawn owns a slide and an item; the pawn itself is not an ability.
   World world;
@@ -235,7 +246,7 @@ TEST(WithholdOwnerless, SendsAnAbilityWhoseOwnerIsSent) {
 
   FakeInfo info(0);
   TransmitSet set(info.bytes.data());
-  EXPECT_TRUE(WithholdOwnerless(set, abilities).empty());
+  EXPECT_TRUE(Withheld(set, abilities).empty());
   EXPECT_TRUE(info.Sends(600));
   EXPECT_TRUE(info.Sends(3));
 }
@@ -251,7 +262,7 @@ TEST(WithholdOwnerless, WithholdsAnAbilityWhoseOwnerIsNotSent) {
   FakeInfo info(4);
   info.Clear(3);
   TransmitSet set(info.bytes.data());
-  const auto withheld = WithholdOwnerless(set, abilities);
+  const auto withheld = Withheld(set, abilities);
   ASSERT_EQ(withheld.size(), 2u);
   EXPECT_FALSE(info.Sends(600));
   EXPECT_FALSE(info.Sends(601));
@@ -261,7 +272,7 @@ TEST(WithholdOwnerless, WithholdsAnAbilityWhoseOwnerIsNotSent) {
   // Another player who receives the pawn keeps its abilities.
   FakeInfo other(5);
   TransmitSet other_set(other.bytes.data());
-  EXPECT_TRUE(WithholdOwnerless(other_set, abilities).empty());
+  EXPECT_TRUE(Withheld(other_set, abilities).empty());
   EXPECT_TRUE(other.Sends(600));
 }
 
@@ -278,7 +289,7 @@ TEST(WithholdOwnerless, WithholdsAnAbilityWhoseOwnerDoesNotResolve) {
 
   FakeInfo info(0);
   TransmitSet set(info.bytes.data());
-  const auto withheld = WithholdOwnerless(set, abilities);
+  const auto withheld = Withheld(set, abilities);
   EXPECT_EQ(withheld.size(), 4u);
   for (uint32_t index : {10u, 11u, 12u, 13u}) {
     EXPECT_FALSE(info.Sends(index)) << index;
@@ -298,11 +309,207 @@ TEST(WithholdOwnerless, LeavesAnythingElseAlone) {
   FakeInfo info(0);
   info.Clear(600);
   TransmitSet set(info.bytes.data());
-  EXPECT_TRUE(WithholdOwnerless(set, abilities).empty());
+  EXPECT_TRUE(Withheld(set, abilities).empty());
   EXPECT_TRUE(info.Sends(3));
   for (uint32_t index = 0; index < TransmitSet::kEntityCount; ++index) {
     EXPECT_EQ(info.Sends(index), index != 600) << index;
   }
+}
+
+TEST(FindOwnedAbilities, ReadsEachAbilitysOwnHandle) {
+  // The handle carries the serial, even while the game deletes the ability.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  const uint32_t slide = world.entities.Place(600, world.slide, 2, pawn);
+  const uint32_t item = world.entities.Place(601, world.item, 9, pawn, 0x10);
+
+  const auto abilities = world.Find();
+  ASSERT_EQ(abilities.size(), 2u);
+  EXPECT_EQ(abilities[0].handle, slide);
+  EXPECT_EQ(abilities[1].handle, item);
+}
+
+TEST(WithholdOwnerless, KeepsAnAbilityTheClientMayHold) {
+  // The client received the slide with its pawn, then the pawn left its set.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  const auto abilities = world.Find();
+  HeldAbilities held;
+  held.Track(4, true, 1);
+
+  FakeInfo first(4);
+  TransmitSet first_set(first.bytes.data());
+  const GuardedAbilities sent = WithholdOwnerless(first_set, abilities, held);
+  EXPECT_TRUE(sent.withheld.empty());
+  EXPECT_TRUE(sent.kept.empty());
+  EXPECT_EQ(held.Count(4), 1u);
+
+  FakeInfo next(4);
+  next.Clear(3);
+  TransmitSet next_set(next.bytes.data());
+  held.Track(4, true, 1);
+  const GuardedAbilities kept = WithholdOwnerless(next_set, abilities, held);
+  EXPECT_TRUE(kept.withheld.empty());
+  ASSERT_EQ(kept.kept.size(), 1u);
+  EXPECT_EQ(kept.kept[0].index, 600u);
+  EXPECT_TRUE(next.Sends(600));
+}
+
+TEST(WithholdOwnerless, KeepsAnAbilityWhoseOwnerLeavesTheWorld) {
+  // The client holds the slide; then its pawn is deleted, then gone.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  HeldAbilities held;
+  held.Track(0, true, 1);
+  FakeInfo first(0);
+  TransmitSet first_set(first.bytes.data());
+  static_cast<void>(WithholdOwnerless(first_set, world.Find(), held));
+
+  world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex, 0x10);
+  FakeInfo deleting(0);
+  TransmitSet deleting_set(deleting.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(deleting_set, world.Find(), held).kept.size(), 1u);
+  EXPECT_TRUE(deleting.Sends(600));
+
+  world.entities.Detach(3);
+  FakeInfo gone(0);
+  TransmitSet gone_set(gone.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(gone_set, world.Find(), held).kept.size(), 1u);
+  EXPECT_TRUE(gone.Sends(600));
+}
+
+TEST(WithholdOwnerless, NeverRecordsAnAbilityItWithheld) {
+  // An ability first sent without its owner stays withheld on every pass.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  const auto abilities = world.Find();
+  HeldAbilities held;
+  for (int pass = 0; pass < 3; ++pass) {
+    held.Track(4, true, 1);
+    FakeInfo info(4);
+    info.Clear(3);
+    TransmitSet set(info.bytes.data());
+    EXPECT_EQ(WithholdOwnerless(set, abilities, held).withheld.size(), 1u) << pass;
+    EXPECT_FALSE(info.Sends(600)) << pass;
+  }
+  EXPECT_EQ(held.Count(4), 0u);
+}
+
+TEST(WithholdOwnerless, KeepsRecordsForEachPlayerApart) {
+  // Slot 4 received the slide with its pawn; slot 5 never did.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  const auto abilities = world.Find();
+  HeldAbilities held;
+  held.Track(4, true, 1);
+  FakeInfo first(4);
+  TransmitSet first_set(first.bytes.data());
+  static_cast<void>(WithholdOwnerless(first_set, abilities, held));
+
+  held.Track(5, true, 1);
+  FakeInfo other(5);
+  other.Clear(3);
+  TransmitSet other_set(other.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(other_set, abilities, held).withheld.size(), 1u);
+  EXPECT_FALSE(other.Sends(600));
+}
+
+// HeldSlide sets up a slot 4 client that received the slide at 600 with its
+// pawn at 3, and returns the abilities of that pass.
+std::vector<OwnedAbility> HeldSlide(World& world, HeldAbilities& held) {
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  auto abilities = world.Find();
+  held.Track(4, true, 1);
+  FakeInfo info(4);
+  TransmitSet set(info.bytes.data());
+  static_cast<void>(WithholdOwnerless(set, abilities, held));
+  return abilities;
+}
+
+// WithheldWithoutPawn runs a pass for slot 4 with the pawn at 3 not sent, and
+// reports whether it withheld the ability at 600.
+bool WithheldWithoutPawn(const std::vector<OwnedAbility>& abilities, HeldAbilities& held,
+                         uint32_t generation) {
+  held.Track(4, true, generation);
+  FakeInfo info(4);
+  info.Clear(3);
+  TransmitSet set(info.bytes.data());
+  static_cast<void>(WithholdOwnerless(set, abilities, held));
+  return !info.Sends(600);
+}
+
+TEST(HeldAbilities, ANewConnectionInTheSlotHoldsNothing) {
+  // A player who joins into the slot never received what the last one did:
+  // the guard withholds the ownerless slide from them, as on any join.
+  World world;
+  HeldAbilities held;
+  const auto abilities = HeldSlide(world, held);
+  EXPECT_TRUE(WithheldWithoutPawn(abilities, held, 2));
+  EXPECT_EQ(held.Count(4), 0u);
+}
+
+TEST(HeldAbilities, ADisconnectForgetsTheSlot) {
+  World world;
+  HeldAbilities held;
+  const auto abilities = HeldSlide(world, held);
+  held.Track(4, false, 1);
+  EXPECT_EQ(held.Count(4), 0u);
+  EXPECT_TRUE(WithheldWithoutPawn(abilities, held, 1));
+}
+
+TEST(HeldAbilities, AnUntrackedSlotHoldsNothing) {
+  // Without a connection record the guard withholds as it always did.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  const auto abilities = world.Find();
+  HeldAbilities held;
+  FakeInfo first(4);
+  TransmitSet first_set(first.bytes.data());
+  static_cast<void>(WithholdOwnerless(first_set, abilities, held));
+  EXPECT_EQ(held.Count(4), 0u);
+
+  FakeInfo next(4);
+  next.Clear(3);
+  TransmitSet next_set(next.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(next_set, abilities, held).withheld.size(), 1u);
+}
+
+TEST(HeldAbilities, ForgetsAnAbilityThatLeftTheWorld) {
+  World world;
+  HeldAbilities held;
+  HeldSlide(world, held);
+  world.entities.Detach(600);
+  held.Prune(world.Find());
+  EXPECT_EQ(held.Count(4), 0u);
+}
+
+TEST(HeldAbilities, ForgetsAnIndexAnotherAbilityTook) {
+  // A new item at the slide's index is a new entity on the client: the guard
+  // withholds it while its owner is not sent.
+  World world;
+  HeldAbilities held;
+  HeldSlide(world, held);
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.item, 3, pawn);
+  const auto abilities = world.Find();
+  EXPECT_TRUE(WithheldWithoutPawn(abilities, held, 1));
+  held.Prune(abilities);
+  EXPECT_EQ(held.Count(4), 0u);
+}
+
+TEST(HeldAbilities, KeepsAnAbilityStillInTheWorld) {
+  World world;
+  HeldAbilities held;
+  const auto abilities = HeldSlide(world, held);
+  held.Prune(abilities);
+  EXPECT_EQ(held.Count(4), 1u);
+  EXPECT_FALSE(WithheldWithoutPawn(abilities, held, 1));
 }
 
 }  // namespace
