@@ -59,11 +59,15 @@ Modlock.route('scores', (scores) => drawScores(scores))
 Each handler runs at once with the current value and again after each change,
 with `undefined` while the mod sends none.
 
-The library reads the values from the panel's `modlock_data` and
-`modlock_route_<name>` attributes, and rereads them on `modlock_data_changed`.
-That event is an unhandled `PlaySoundEffect` event, which the renderer sends
-once per draw that changes any of the attributes. The layout answers the mod
-with its own console commands.
+When your mod sends a new value, the renderer writes it as JSON text the next
+time it draws the screen. It writes to an attribute of the layout's panel: `modlock_data` for the element's `data`, or `modlock_route_<name>` for a
+route. After a draw that changed any of these, the renderer plays the sound
+event `modlock_data_changed`. The game delivers no custom event to a script, but
+it delivers `PlaySoundEffect` to every script, and no sound has that name, so
+none plays. The library hears it, rereads each attribute, and calls the handler
+of each value that changed.
+
+The layout answers the mod with its own console commands.
 
 ## The renderer
 

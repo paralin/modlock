@@ -3,13 +3,13 @@ title: Tutorial
 description: Build a small brawl with a countdown, a score, a HUD and a sign.
 ---
 
-Each step adds a few lines to the project that `modlock new` made. When you save, `modlock dev` reloads the mod, and you can try the step right away. By the last step you have a small brawl with a countdown, a score, a HUD and a sign. The [examples](/start/examples) build the same ideas into complete game modes you can play.
+This tutorial will start with the template created by `modlock new` and show you how to build a small brawl with a countdown, score, HUD, and a sign. You can run `modlock dev` to start the server and the game, and it will hot reload as you make changes, no restart required. The [examples](/start/examples) build the same ideas into complete game modes you can play.
 
 Put a step's import lines at the top of the main file and the rest of its code at the end. A step imports only the names it adds, so keep the imports from earlier steps.
 
 ## 1. Answer a command
 
-`command` registers a handler, and the server calls it whenever a player types `/` and the command's name in chat.
+Start by making the mod answer `/roll` with a roll of the dice.
 
 <Samples>
 
@@ -67,13 +67,13 @@ func init() {
 
 </Samples>
 
-Type `/roll 20` in the game's chat to try it.
+Save, then type `/roll 20` in the game's chat. A notice slides in at the lower left with your roll, and it fades after four seconds.
 
-`toast` shows a notice that fades, one of the [interface](/guides/interfaces) calls.
+`command` registers the handler, and the server calls it whenever a player types `/roll`. The handler gets that player and the text after the name, here `20`. When that text is not a number, the sample rolls six sides. `toast` shows the notice, and is one of the [interface](/guides/interfaces) calls.
 
 ## 2. Read the hero
 
-A player's pawn is their hero as it is in the current frame: its health, team, position, aim direction and souls. `pawn()` returns nothing until the hero has spawned, and a hero whose health is zero is dead.
+Now add a second command, `/where`, that tells you where your hero is standing and how much health it has.
 
 <Samples>
 
@@ -134,9 +134,13 @@ func init() {
 
 </Samples>
 
+Type `/where` once your hero has spawned. The TypeScript sample answers in a notice, as `/roll` does; the Luau, Python and Go samples answer with a line in your chat. Before your hero spawns, or while it is dead, the answer is "You have no living hero."
+
+A player's pawn is their hero as it is in the current frame: its health, team, position, aim direction and souls. `pawn()` returns nothing until the hero has spawned, and a hero whose health is zero is dead. The sample checks both before it reads the position.
+
 ## 3. Count down with a timer
 
-`after` calls a function once, a number of seconds of game time from now. The game clock stops while the game is paused, so a paused round also holds its timers. `players()` lists everyone connected, bots included, and `live` records that the round has started so that the next step can read it.
+With commands working, you can give the brawl a start: `/start` will freeze every hero for five seconds and then let them fight.
 
 <Samples>
 
@@ -220,11 +224,13 @@ func init() {
 
 </Samples>
 
-Type `/start`: every hero freezes for five seconds, and then the mod announces the round. [Timers](/guides/timers) explains repeating timers and sequences.
+Type `/start`. Your hero is held for five seconds and takes no input. Then it is released, and the game shows an announcement titled "Fight!" that says "The round is live."
+
+`players()` lists everyone connected, bots included, and `freeze` holds each one's hero. `after` calls its function once, five seconds of game time later. The game clock stops while the game is paused, so a paused round also holds its timers. When the timer fires, the sample releases every hero, announces the round and sets `live`, which the next step reads. [Timers](/guides/timers) explains repeating timers and sequences.
 
 ## 4. Decide the fights
 
-Your mod can handle two events for each hit. The damage event fires before the game applies the hit, and your handler can block it or change its amount. The damaged event fires afterwards with the victim's health before the hit and the health it lost. A hit that lost all of that health was lethal. In a hit, each hero is an entity number, the same number as the pawn's `entity`, and `playerOf` finds the player by that number.
+The round has a start now, and `live` says whether it has begun. Use it to block every hit before `/start` and to count each defeat after.
 
 <Samples>
 
@@ -346,13 +352,17 @@ func playerOf(entity uint32) (mod.Player, bool) {
 
 </Samples>
 
+To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do no damage. Once the announcement shows, they land, and each hit that defeats a hero adds one to its attacker's count in `defeats`. Nothing shows that count yet; the next step draws it.
+
+The mod gets two events for each hit. The damage event comes before the game applies the hit, so the sample can block it while `live` is false. The damaged event comes on the frame after the hit lands, with the victim's health before the hit and the health it lost. A hit that took all of that health was lethal. In a hit, each hero is an entity number, the same as the pawn's `entity`, and `playerOf` finds the player whose pawn has that number.
+
 This map keys scores by slot. A slot is reused when one player leaves and another joins. In a mode where players come and go, key scores by slot and `generation`, which changes each time someone new takes the slot.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
 ## 5. Show a HUD
 
-An interface is a tree of elements. In TypeScript you write it as JSX in a `.tsx` module, and in the other languages you build it with calls to the `ui` library. Put this HUD in its own module beside the main one: `hud.tsx`, `hud.luau` or `hud.py`, or in Go a `hud.go` in the same package:
+The mod counts defeats now but keeps them to itself, so next you'll put each player's count in the top right corner of their screen. Write the HUD in its own module beside the main one: `hud.tsx`, `hud.luau` or `hud.py`, or in Go a `hud.go` in the same package:
 
 <Samples>
 
@@ -503,13 +513,15 @@ func init() {
 
 </Samples>
 
-Redraw every player's HUD from your state on each frame. `show` compares the tree with the one it sent last and sends the player only what changed, so a redraw on every frame costs little. When a player presses a button, the mod calls its `onPress` with that player.
+Each player now sees a panel in the top right corner that reads "0 defeats". The number goes up each time they defeat a hero after `/start`.
+
+An interface is a tree of elements. In TypeScript you write it as JSX in a `.tsx` module, and in the other languages you build it with calls to the `ui` library. `drawScore` builds a panel with one label and passes it to `show`. The frame handler redraws every player's HUD from `defeats` on each frame. `show` compares the tree with the one it sent that player last and sends only what changed, so a redraw on every frame costs little. When a player presses a button in a tree, the mod calls its `onPress` with that player.
 
 [Interfaces](/guides/interfaces) lists every element and style.
 
 ## 6. Place things in the world
 
-Your mod can place text, props and effects in the world, and each call returns an object you can move, change or remove. Loading a new map removes all of them. Drop your references in the world event, which fires as each world loads. When the mod starts, precache the heroes and models your mode uses, so the game loads them with the world. [The world](/guides/world) explains models, effects and fog.
+So far everything the mod shows is on the player's screen. Now you'll put something in the arena itself: `/sign` places a line of text above your hero.
 
 <Samples>
 
@@ -625,9 +637,13 @@ func init() {
 
 </Samples>
 
+Type `/sign Meet here` once your hero has spawned. The words float in white 120 units above where you stood and turn to face whoever looks at them. Type `/sign` again somewhere else, and the old sign goes as the new one appears.
+
+`createText` places the text and returns an object you can move, change or remove; the sample keeps it in `sign` so that the next `/sign` can remove it. The mod can place props and effects the same way, and loading a new map removes all of them. The world event fires as each world loads, so the sample drops its reference there. Models and effects need one more step: precache them when the mod starts, so the game loads them with the world. [The world](/guides/world) explains models, effects and fog.
+
 ## 7. Let players choose, and keep score
 
-A setting is a choice each player makes once and keeps between matches, such as where the score sits on screen. A metric is a running total for each player that the mod adds to, such as their defeats. Declare both in `mod.json`, under `settings` and `metrics`:
+The score sits in the top right for everyone. Next, let each player choose its corner, and keep each player's defeats as a running total. A setting is a choice each player makes once and keeps between matches. A metric is a total for each player that the mod adds to. Declare both in `mod.json`, under `settings` and `metrics`:
 
 ```json
 "settings": [
@@ -673,11 +689,13 @@ _ = scorer.AddMetric("brawl.defeats", 1, nil)
 
 </Samples>
 
+A player who chose "Top left" now sees the score in the top left corner; everyone else keeps it in the top right, since the sample moves it only for `left`. `setting` returns the player's choice, or the setting's default before they choose. Each defeat now also adds one to the player's `brawl.defeats` total.
+
 A board ranks players against each other, such as by their fastest clear of each course. [Settings, metrics and boards](/guides/data) shows how to declare a board and report scores to it.
 
 ## 8. Split it into modules
 
-As the mode grows, give each concern its own module. Keep `main.ts` a short list that registers the handlers, and keep the game's state in one object that the handlers call into. `modlock build` bundles and type-checks every module that `main.ts` imports.
+The main file now holds commands, events and the round's state side by side. As the mode grows, give each concern its own module. Keep `main.ts` a short list that registers the handlers, and keep the game's state in one object that the handlers call into. `modlock build` bundles and type-checks every module that `main.ts` imports.
 
 ```ts
 import { command, onDamage, onFrame, onStart, onWorld } from 'modlock'
@@ -703,6 +721,6 @@ Keep each handler quick. An event that takes more than 500 ms of processor time 
 
 ## 9. Test a whole round
 
-To test a whole round in the game, your mod can add bots, play the round
-against them and log PASS or FAIL, as [Testing](/guides/testing#in-the-game)
+Last, test a whole round without a second person: your mod can add bots,
+play the round against them and log PASS or FAIL, as [Testing](/guides/testing#in-the-game)
 shows. When the mode plays well, [publish it](/reference/publishing).

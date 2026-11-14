@@ -3,7 +3,9 @@ title: Kill scoring and respawn
 description: Score each kill, bring the fallen back and end the round at a goal.
 ---
 
-A deathmatch gives a point to the player who made the lethal hit and puts the victim back in the fight. The damaged event gives the attacker and the victim as entity numbers, so your mod matches each entity to the player whose hero it is.
+In a deathmatch, the first player to ten kills wins, and everyone who falls comes back into the fight.
+
+Your mod hears every hit through the damaged event, which gives the attacker and the victim as entity numbers. A hit that removes all of the victim's health is lethal. The mod matches each entity to the player whose hero it is, and revives the victim's hero three seconds later. The attacker's player scores a point, and every player sees the name and total, such as `Ana: 4 / 10`, in the middle of the screen. At ten, every player sees the announcement "_name_ wins", and the count starts over. A death from a hazard, which has no attacker, or from a hero's own hit scores nothing, and the hero still comes back.
 
 <Samples>
 
@@ -212,6 +214,8 @@ func main() {}
 ```
 
 </Samples>
+
+Bring a second player or a bot into the game and defeat them.
 
 ## Variations
 

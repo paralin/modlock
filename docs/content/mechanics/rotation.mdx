@@ -4,19 +4,24 @@ description: Run a lobby through one fight at a time, with a fair line and balan
 ---
 
 A rotation mode runs a lobby through one fight at a time, such as a duel ring
-or a two against two pit. Everyone waits in one line, each match seats the
-players who have fought least, a rating kept for the session balances the sides,
-and the rest watch from the stands. Each piece has its calls:
+or a two against two pit, and the TypeScript library has a call for each part
+of one.
+
+When a player arrives, they join the back of the line, with a record and a
+rating for the session. While they wait, they watch the fight from the stands. Once they are among those who have fought least, the next
+match seats them, on a side picked to keep the ratings even. When the fight
+ends, the result moves their rating, and they go to the back of the line again.
+Each part of that has its calls:
 
 | Piece                                | Call                                        |
 | ------------------------------------ | ------------------------------------------- |
 | Who is here                          | `Cast`                                      |
 | Each player's record for the session | `Standings`, `Standing`                     |
-| Who fights next, and on which side   | `nextMatch`, `afterMatch`                   |
-| The result                           | `settle`, `ratingChange`                    |
-| An even share of heroes              | `leastUsed`                                 |
-| The leaderboard                      | `leaderboard`, `Roster`, `rosterRows`       |
 | Waiting in the stands                | `holdBystander`, `playCamera`, `curve.hold` |
+| Who fights next, and on which side   | `nextMatch`, `afterMatch`                   |
+| An even share of heroes              | `leastUsed`                                 |
+| The result                           | `settle`, `ratingChange`                    |
+| The leaderboard                      | `leaderboard`, `Roster`, `rosterRows`       |
 | Heroes left behind by a swap         | `Strays`                                    |
 
 The rotation calls are TypeScript only. Each is pure: your mod keeps the line
@@ -57,80 +62,6 @@ const cast = new Cast({
     line = line.filter((each) => each !== entrant)
   },
 })
-```
-
-## The next match
-
-`nextMatch(line, size, standing)` picks the next match in two steps:
-
-1. It takes the `2 * size` players who have played fewest. Among equals, the
-   one earlier in line goes first.
-2. It deals them to the sides by rating in a snake (first, second, second,
-   first), which keeps the sides' ratings close. With two per side, the best
-   pairs with the worst against the middle two.
-
-While too few players wait, `nextMatch` returns nothing, and your HUD can show
-that as waiting for players.
-
-```ts
-const sides = nextMatch(line, size, (each) => each.standing)
-if (sides) {
-  for (const fighter of sides.flat()) {
-    fighter.standing.played++
-  }
-}
-```
-
-Count the match as played when it is seated, not when it ends, so a fighter who leaves mid-match still goes to the back of the order.
-
-## The result
-
-| Call                       | Does                                                                                                                                                                    |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `settle(winners, losers)`  | Moves both sides' ratings by the Elo step between their averages, larger for an upset; counts wins, losses and streaks; returns the change, for a banner such as `+16`. |
-| `ratingChange`             | The same step alone.                                                                                                                                                    |
-| `step` option              | Replaces `ratingStep` (32) for matches that should count more or less.                                                                                                  |
-| `afterMatch(line, fought)` | Sends the fighters to the back of the line, everyone else keeping their order.                                                                                          |
-
-```ts
-const change = settle(
-  winners.map((each) => each.standing),
-  losers.map((each) => each.standing),
-)
-line = afterMatch(line, [...winners, ...losers])
-```
-
-## An even share of heroes
-
-When the mode picks each fighter's hero from a short list, count each
-player's matches per hero. `leastUsed(counts, prefer)` returns the one played
-least, or `prefer` on a tie, so everyone plays every hero about equally and two fighters can start on different heroes by preferring different ones.
-
-```ts
-const choice = leastUsed(fighter.standing.heroes, side === 0 ? 0 : 1)
-fighter.standing.heroes[choice]++
-```
-
-## The leaderboard
-
-`leaderboard(players, standing, rows, viewer)` ranks by wins, then rating,
-and returns the first `rows`, keeping the viewer on the last row if they would
-fall off. `Roster` draws each row's hero, avatar and a line of activity:
-
-```ts
-const rows = leaderboard(line, (each) => each.standing, 8, viewer)
-show(
-  viewer.player,
-  Roster({
-    rows: rows.map((each) => ({
-      name: each.name,
-      self: each === viewer,
-      hero: each.hero,
-      steamId: each.steamId,
-      activity: `${each.standing.wins}-${each.standing.losses} · ${each.standing.rating}`,
-    })),
-  }),
-)
 ```
 
 ## The stands
@@ -194,6 +125,83 @@ function unseat(player: Player, pawn: number): void {
 `playCamera` returns nothing while the player has no hero. Mark the seat taken
 only once `seat` returns true, and try again each frame. A bystander
 can still die from a fall or world damage, so respawn it and seat it again.
+
+## The next match
+
+When it is time for the next fight, `nextMatch(line, size, standing)` picks
+who fights, in two steps:
+
+1. It takes the `2 * size` players who have played fewest. Among equals, the
+   one earlier in line goes first.
+2. It deals them to the sides by rating in a snake (first, second, second,
+   first), which keeps the sides' ratings close. With two per side, the best
+   pairs with the worst against the middle two.
+
+While too few players wait, `nextMatch` returns nothing, and your HUD can show
+that as waiting for players.
+
+```ts
+const sides = nextMatch(line, size, (each) => each.standing)
+if (sides) {
+  for (const fighter of sides.flat()) {
+    fighter.standing.played++
+  }
+}
+```
+
+Count the match as played when it is seated, not when it ends, so a fighter who leaves mid-match still goes to the back of the order.
+
+## An even share of heroes
+
+When the mode picks each fighter's hero from a short list, count each
+player's matches per hero. `leastUsed(counts, prefer)` returns the one played
+least, or `prefer` on a tie, so everyone plays every hero about equally and two fighters can start on different heroes by preferring different ones.
+
+```ts
+const choice = leastUsed(fighter.standing.heroes, side === 0 ? 0 : 1)
+fighter.standing.heroes[choice]++
+```
+
+## The result
+
+When the fight ends, these calls record it and move the line on:
+
+| Call                       | Does                                                                                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `settle(winners, losers)`  | Moves both sides' ratings by the Elo step between their averages, larger for an upset; counts wins, losses and streaks; returns the change, for a banner such as `+16`. |
+| `ratingChange`             | The same step alone.                                                                                                                                                    |
+| `step` option              | Replaces `ratingStep` (32) for matches that should count more or less.                                                                                                  |
+| `afterMatch(line, fought)` | Sends the fighters to the back of the line, everyone else keeping their order.                                                                                          |
+
+```ts
+const change = settle(
+  winners.map((each) => each.standing),
+  losers.map((each) => each.standing),
+)
+line = afterMatch(line, [...winners, ...losers])
+```
+
+## The leaderboard
+
+`leaderboard(players, standing, rows, viewer)` ranks by wins, then rating,
+and returns the first `rows`, keeping the viewer on the last row if they would
+fall off. `Roster` draws each row's hero, avatar and a line of activity:
+
+```ts
+const rows = leaderboard(line, (each) => each.standing, 8, viewer)
+show(
+  viewer.player,
+  Roster({
+    rows: rows.map((each) => ({
+      name: each.name,
+      self: each === viewer,
+      hero: each.hero,
+      steamId: each.steamId,
+      activity: `${each.standing.wins}-${each.standing.losses} · ${each.standing.rating}`,
+    })),
+  }),
+)
+```
 
 ## Heroes left behind
 

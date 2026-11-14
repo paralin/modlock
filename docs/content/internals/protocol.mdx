@@ -12,6 +12,16 @@ one:
 | `modlock.host_read(ptr, len)`        | mod to host | Copy the host's pending message, a `Call` or a `Reply`, into mod memory.                                                                                                                        |
 | `modlock_event(len) -> i64`          | host to mod | Deliver a `Call` of `len` bytes, which the mod copies with `host_read`. Returns the address and length of the encoded `Reply`, packed as `address << 32 \| length`, or zero for an empty reply. |
 
+Take one server frame in which the mod sends a player a chat line. The host encodes a `Call` for the frame event, holds it and calls
+`modlock_event` with its length. The mod passes a buffer of exactly that length
+to `host_read`, which copies the call into it. The mod's frame handler runs and
+sends the chat line: the mod encodes that request as a `Call` and passes it to
+`host_call`. The host answers it at once, holds the encoded `Reply` and returns
+its length, and the mod copies it out with `host_read` as before. The host's
+time on that call counts against the frame's budget. When the handler returns,
+`modlock_event` returns where the mod left its own `Reply`, and the host decodes
+it from mod memory.
+
 The calls are in [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto). A
 `Call` contains an encoded request for one method. The method is on the `Host`
 service when a mod calls the game, and on the `Mod` service when the host
