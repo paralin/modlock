@@ -101,7 +101,7 @@ func main() {}
 Python spells each as a `snake_case` decorator, such as
 `@modlock.on_player_join`, and Go as an exported function, such as
 `mod.OnPlayerJoin`. A call that takes a name takes it in the decorator, as
-`@modlock.on_modifier_event("STUNNED")` does.
+`@modlock.on_modifier_event("PRE_UNIT_HEALED")` does.
 
 | Call                                                | Runs the handler                                                                          |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -245,8 +245,8 @@ onAbilityCast((cast) => {
   }
 })
 
-onModifierEvent('STUNNED', (event) => {
-  log(`${event.name} for entity ${event.caster}`)
+onModifierEvent('PRE_UNIT_HEALED', (event) => {
+  log(`entity ${event.caster} is about to heal entity ${event.target}`)
 })
 ```
 
@@ -257,8 +257,8 @@ modlock.onAbilityCast(function(cast)
 	end
 end)
 
-modlock.onModifierEvent("STUNNED", function(event)
-	modlock.log(`{event.name} for entity {event.caster}`)
+modlock.onModifierEvent("PRE_UNIT_HEALED", function(event)
+	modlock.log(`entity {event.caster} is about to heal entity {event.target}`)
 end)
 ```
 
@@ -269,9 +269,9 @@ def cast(event: modlock.AbilityCastEvent) -> None:
         modlock.log(f"slot {event.player.slot} cast {event.name}")
 
 
-@modlock.on_modifier_event("STUNNED")
-def stunned(event: modlock.ModifierFiredEvent) -> None:
-    modlock.log(f"{event.name} for entity {event.caster}")
+@modlock.on_modifier_event("PRE_UNIT_HEALED")
+def healing(event: modlock.ModifierFiredEvent) -> None:
+    modlock.log(f"entity {event.caster} is about to heal entity {event.target}")
 ```
 
 ```go
@@ -281,8 +281,8 @@ mod.OnAbilityCast(func(cast *mod.AbilityCastEvent) {
 	}
 })
 
-mod.OnModifierEvent("STUNNED", func(event *mod.ModifierFiredEvent) {
-	mod.Log(event.GetName(), "for entity", event.GetCaster())
+mod.OnModifierEvent("PRE_UNIT_HEALED", func(event *mod.ModifierFiredEvent) {
+	mod.Log("entity", event.GetCaster(), "is about to heal entity", event.GetTarget())
 })
 ```
 
@@ -291,7 +291,8 @@ mod.OnModifierEvent("STUNNED", func(event *mod.ModifierFiredEvent) {
 A cast arrives once it takes effect, after any cast time, for a hero's
 abilities and for the items a player activates. The sample checks `slot`
 because only a player's hero casts from a slot, and only then does the cast
-carry a name.
+carry a name. The game fires `PRE_UNIT_HEALED` before every heal and every tick
+of regeneration, so a real handler for it should do less than log.
 
 | Cast field | Holds                                                                                     |
 | ---------- | ----------------------------------------------------------------------------------------- |
@@ -312,8 +313,8 @@ Every modifier event has the same fields, but which ones the game fills depends
 on the event: `caster`, the entity the event is about; `player`, the player
 whose hero the caster is, or slot -1; `target`, the other entity, such as the
 victim of a kill; and `ability`, the entity the event names as its source. An
-unfilled entity is 0. These events have been seen in a running game, and
-each has a typed call for the same moment, which names its fields:
+unfilled entity is 0. These events have been seen in a running game. Where one
+has a typed call for the same moment, use the call, which names its fields:
 
 | Event                | Fills                                           | Typed call      |
 | -------------------- | ----------------------------------------------- | --------------- |
@@ -322,6 +323,7 @@ each has a typed call for the same moment, which names its fields:
 | `KILLED`             | `caster`, the unit that died.                   | `onKill`        |
 | `HERO_LEVEL_CHANGED` | `caster`, the hero.                             | `onLevelChange` |
 | `UNIT_HEALED`        | Fires very often, so keep its handler short.    | `onHeal`        |
+| `PRE_UNIT_HEALED`    | `caster`, the healer, and `target`, the healed. | None            |
 
 ## Heals, levels and melee
 
@@ -385,7 +387,10 @@ The sample logs heals to players' heroes, since a slot of -1 means a unit. A
 heal is health a hero or unit regains at once from an ability, an item or
 lifesteal. Regeneration reports nothing, including what Siphon Life restores
 as regeneration, and neither does the mod's own heal or a heal that finds the
-target at full health. Each of the four events arrives before the next frame.
+target at full health. To hear regeneration, listen for the `PRE_UNIT_HEALED`
+[modifier event](#casts-and-modifier-events), which the game fires before every
+heal and every tick of regeneration, with no amount. Each of the four events
+arrives before the next frame.
 Python spells the fields in `snake_case`, and Go reads each player as a slot,
 such as `heal.GetTargetPlayer()`.
 
