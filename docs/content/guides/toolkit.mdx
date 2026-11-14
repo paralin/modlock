@@ -3,11 +3,12 @@ title: Toolkit
 description: 'Helpers built on the library: seating, a player roster, free-for-all, vectors, number formats, the floor, race gates and a frame clock.'
 ---
 
-Helpers built on the library calls, for the work most modes repeat:
+The toolkit's helpers are built on the library calls and do the work most modes
+repeat:
 
 | Helper                                | Does                                                                                | Languages  |
 | ------------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
-| [`seatPlayers`](#seat-the-players)    | Gives every player a hero on a team and keeps them seated.                          | All        |
+| [`seat`](#seat-the-players)           | Gives a player a hero on a team, with no team or hero screen.                       | All        |
 | [`setFreeForAll`](#play-free-for-all) | Makes every hero an enemy of every other.                                           | All        |
 | [`Cast`](#keep-the-players-with-cast) | Keeps one member per human, with the hero each wants.                               | All        |
 | [`vector`](#vectors-and-hud-text)     | Places points and turns heroes to face them.                                        | TypeScript |
@@ -18,98 +19,103 @@ Helpers built on the library calls, for the work most modes repeat:
 
 ## Seat the players
 
-`seatPlayers` gives every player who joins a hero on a team, with no team or
-hero screen. It brings a fallen hero back after the respawn delay and seats a
-player again after a hero change:
+A seat is the hero and team a player gets without the game's team and hero
+screens. Seat each player from your join handler:
 
 <Samples>
 
 ```ts
-import { seatPlayers } from 'modlock'
+import { onPlayerJoin } from 'modlock'
 
-seatPlayers({ hero: 'any', respawn: 3 })
-```
-
-```luau
-modlock.seatPlayers({ hero = "any", respawn = 3 })
-```
-
-```python
-modlock.seat_players(hero="any", respawn=3)
-```
-
-```go
-mod.SeatPlayers(mod.Seating{Hero: mod.AnyHero, Respawn: 3 * time.Second})
-```
-
-</Samples>
-
-| Option    | Takes                                                                                                                                     |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `hero`    | A [hero name](/guides/players#heroes), an id, or `any`: the player's own hero, else a random one.                                         |
-| `team`    | 2 or 3 for everyone, or a function that picks each player's team as they join. Without one, each player joins the side with fewer heroes. |
-| `respawn` | The delay before a fallen hero comes back.                                                                                                |
-
-<Samples>
-
-```ts
-seatPlayers({
-  hero: 'haze',
-  team: ({ player }) => (player.slot % 2 === 0 ? 2 : 3),
+onPlayerJoin(({ connection }) => {
+  connection.player.seat({ hero: 'haze', team: 2 })
 })
 ```
 
 ```luau
-modlock.seatPlayers({
-	hero = "haze",
-	team = function(connection)
-		return if connection.player.slot % 2 == 0 then 2 else 3
-	end,
-})
+modlock.onPlayerJoin(function(joined)
+	joined.connection.player:seat({ hero = "haze", team = 2 })
+end)
 ```
 
 ```python
-def team_for(connection: modlock.Connection) -> int:
-    return 2 if connection.player.slot % 2 == 0 else 3
-
-
-modlock.seat_players(hero="haze", team=team_for)
+@modlock.on_player_join
+def joined(event: modlock.PlayerJoinedEvent) -> None:
+    event.connection.player.seat(hero="haze", team=2)
 ```
 
 ```go
-mod.SeatPlayers(mod.Seating{
-	Hero: "haze",
-	TeamOf: func(connection *mod.Connection) int32 {
-		return 2 + connection.GetPlayer()%2
-	},
+mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
+	player := mod.PlayerOf(joined.GetConnection().GetPlayer())
+	player.Seat(mod.Seating{Hero: "haze", Team: 2})
 })
 ```
 
 </Samples>
 
-`seatPlayers` is a [`Cast`](#keep-the-players-with-cast) that runs itself, and
-returns it. Use a Cast directly when the mod keeps its own state for each
-player or changes what a player wants during the game.
+| Option | Takes                                                                                                                   |
+| ------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `hero` | A [hero name](/guides/players#heroes), an id, or `any`: the player's own hero, else a random one. `any` is the default. |
+| `team` | 2 or 3. Without one, the player keeps their hero's team or joins the side with fewer heroes.                            |
+
+The hero appears on a later frame. The library asks the game again until the
+player has the seat, and once more after the player changes hero. Seating a
+player again replaces the seat, and the seat ends when they leave. `seat`
+returns false when nobody holds the player's slot. To give players different
+teams, pick the team in the handler.
+
+Seating runs on a [`Cast`](#keep-the-players-with-cast) of the library's own.
+Use a Cast directly when the mod keeps its own state for each player or
+changes what a player wants during the game.
+
+The respawn delay is a separate call and applies to every hero, seated or not.
+A fallen hero keeps its hero and team:
+
+<Samples>
+
+```ts
+import { setRespawnDelay } from 'modlock'
+
+setRespawnDelay(3)
+```
+
+```luau
+modlock.setRespawnDelay(3)
+```
+
+```python
+modlock.set_respawn_delay(3)
+```
+
+```go
+mod.SetRespawnDelay(3 * time.Second)
+```
+
+</Samples>
 
 ## Play free-for-all
 
 `setFreeForAll(true)` makes every hero an enemy of every other. New players
-get no hero picker, so seat them with `seatPlayers`:
+get no hero picker, so seat them from the join handler:
 
 <Samples>
 
 ```ts
-import { onStart, seatPlayers, setFreeForAll } from 'modlock'
+import { onPlayerJoin, onStart, setFreeForAll } from 'modlock'
 
 onStart(() => setFreeForAll(true))
-seatPlayers({ hero: 'any', respawn: 3 })
+onPlayerJoin(({ connection }) => {
+  connection.player.seat()
+})
 ```
 
 ```luau
 modlock.onStart(function()
 	modlock.setFreeForAll(true)
 end)
-modlock.seatPlayers({ hero = "any", respawn = 3 })
+modlock.onPlayerJoin(function(joined)
+	joined.connection.player:seat()
+end)
 ```
 
 ```python
@@ -118,27 +124,32 @@ def start(args: list[str]) -> None:
     modlock.set_free_for_all(True)
 
 
-modlock.seat_players(hero="any", respawn=3)
+@modlock.on_player_join
+def joined(event: modlock.PlayerJoinedEvent) -> None:
+    event.connection.player.seat()
 ```
 
 ```go
 mod.OnStart(func(args []string) { _ = mod.SetFreeForAll(true) })
-mod.SeatPlayers(mod.Seating{Hero: mod.AnyHero, Respawn: 3 * time.Second})
+mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
+	mod.PlayerOf(joined.GetConnection().GetPlayer()).Seat(mod.Seating{})
+})
 ```
 
 </Samples>
 
 | While free-for-all is on |                                                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Friendly fire            | Holds on every hero.                                                                                         |
+| Friendly fire            | Is on for every hero.                                                                                        |
 | Abilities, projectiles   | Treat teammates as enemies.                                                                                  |
 | Teams                    | Players still sit on 2 and 3, and their games draw teammates as allies. Requests to change team are ignored. |
 | New players              | Join the smaller team, with no team screen and no hero picker.                                               |
 | `setFreeForAll(false)`   | Restores the stock teams; players keep the team they are on.                                                 |
 
 `"freeForAll": true` in [`mod.json`](/reference/manifest) starts the mod in
-free-for-all. `setTeamSeating(true)` seats new players the same way but leaves
-friendly fire and team changes as the game has them.
+free-for-all. `setTeamSeating(true)` also seats new players on the smaller team with no team
+screen or hero picker, but leaves friendly fire and team changes as the game has
+them.
 
 ## Keep the players with Cast
 
@@ -194,7 +205,7 @@ def frame(event: modlock.FrameEvent) -> None:
 // import "time"
 cast := mod.NewCast(mod.CastOptions[mod.Player]{
 	Join: func(connection *mod.Connection) mod.Player {
-		player := mod.Player{Slot: connection.GetPlayer()}
+		player := mod.PlayerOf(connection.GetPlayer())
 		_ = player.Announce("My Mod", "Welcome, "+connection.GetName()+".")
 		return player
 	},
@@ -208,14 +219,15 @@ mod.OnFrame(func(frame *mod.FrameEvent) { cast.Frame(frame.GetTimeSeconds()) })
 
 | Option  | Does                                                                                                                                                                             |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `join`  | Makes a member when a player arrives. A reconnect is a leave and a join, so a member never carries the last player's state.                                                      |
-| `leave` | Runs when the member's player goes.                                                                                                                                              |
+| `join`  | Makes a member when a player arrives. A reconnect is a leave and a join, so a member never has the last player's state.                                                          |
+| `leave` | Runs when the member's player leaves.                                                                                                                                            |
 | `bots`  | Makes bots members or kicks them; without it bots are left out.                                                                                                                  |
 | `want`  | A hero, team and respawn delay for everyone, or a function of the member read each frame. Without a team, a member keeps their hero's team or joins the side with fewer members. |
 
-Each frame Cast reads each member's hero once and asks the game, at most once
-a second, for whatever it does not show yet. It learns of joins from the
-host's player reports, so a frame where nobody came or went walks no list.
+On each frame, Cast reads each member's hero once. At most once a second, it
+asks the game again for the hero, team or respawn delay a member wants but does
+not have yet. Cast learns of joins from the host's player reports, so on a
+frame where nobody joined or left it does not walk the player list.
 Read the hero back from the cast rather than asking the game again:
 
 | TypeScript and Luau | Python      | Go        | Returns                                   |
@@ -232,7 +244,7 @@ pitch positive looking down.
 
 | Call                                                            | Does                                                 |
 | --------------------------------------------------------------- | ---------------------------------------------------- |
-| `vector.distance`, `flatDistance`, `toward`, `lerp`, arithmetic | Place things.                                        |
+| `vector.distance`, `flatDistance`, `toward`, `lerp`, arithmetic | Measure and combine points.                          |
 | `yawToward`, `level`, `aimAt`, `forward`                        | Turn a hero to face a point, or read where it looks. |
 
 `format` writes numbers the way players read them, since the game's scripts
@@ -298,6 +310,6 @@ onFrame((frame) => {
 })
 ```
 
-Once a minute it logs the median and slowest frame, each part's mean and
+Once a minute `frameClock` logs the median and slowest frame, each part's mean and
 slowest milliseconds, and the parts that cost most in the minute's slowest
-frame, so a part that spikes once a minute still shows.
+frame. That last figure shows a part that spikes only once a minute.

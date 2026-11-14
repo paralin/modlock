@@ -17,7 +17,8 @@ local keys: { [string]: number } = {
 	use = modlock.Buttons.use,
 }
 
--- reach is how far a flare can land, and lifetime how long it shows.
+-- reach is how far a flare can land, and lifetime is how many seconds it
+-- shows.
 local reach = 6000
 local lifetime = 4
 
@@ -32,7 +33,7 @@ type Sign = {
 	expires: number,
 }
 
--- signs holds the flares in the world, oldest first.
+-- signs is the list of flares in the world, oldest first.
 local signs: { Sign } = {}
 
 -- ready maps each slot to the game time its next flare is allowed.
@@ -101,7 +102,9 @@ function flare.expire(now: number)
 	end
 end
 
--- forget drops every sign; a new world has already removed them.
+-- forget clears the mod's record of its signs and cooldowns. The signs
+-- themselves are already gone from the game, which removed them with the old
+-- map.
 function flare.forget()
 	table.clear(signs)
 	table.clear(ready)

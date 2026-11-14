@@ -415,8 +415,15 @@ type class struct {
 	goType string
 	// noun is the word a method name drops, such as Object in MoveObject.
 	noun string
-	// interned keeps one object for each number in languages that compare
-	// objects by identity, so == tells whether two values are the same thing.
+	// also are other field names that hold the class, such as the two players
+	// of a kill.
+	also []string
+	// interned gives each connection that holds the number its own value, so
+	// == tells whether two values are the same thing and a value that comes
+	// back for a new holder never finds the old one's entry in a table.
+	// Languages that compare objects by identity keep one object per holder
+	// and release it when the holder changes; Go's value carries a count of
+	// the holders, kept by hand beside the library's player list.
 	interned bool
 }
 
@@ -431,6 +438,7 @@ var classes = []*class{
 		goType:   "int32",
 		keyDoc:   "slot identifies the player on the server.",
 		noun:     "Player",
+		also:     []string{"victim_player", "attacker_player", "target_player", "healer_player"},
 		interned: true,
 	},
 	{
@@ -471,7 +479,7 @@ func classOf(f *field) *class {
 		return nil
 	}
 	for _, c := range classes {
-		if c.field == f.name {
+		if c.field == f.name || slices.Contains(c.also, f.name) {
 			return c
 		}
 	}

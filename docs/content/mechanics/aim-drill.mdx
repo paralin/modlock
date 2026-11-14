@@ -3,10 +3,11 @@ title: Aim drill
 description: Give one player a target and score thirty seconds of hits.
 ---
 
-A drill gives one player a timed score. The target is a bot on the other team.
-Count the hits the player lands on the target, and report the score when the
-time is up. After each hit, heal the target by the damage that hit dealt, so it
-stays standing for the whole drill.
+An aim drill gives one player thirty seconds to land as many hits on a target
+as they can, and counts them.
+
+A player starts the drill with `/drill`, and your mod adds a bot named Target
+for them to shoot:
 
 <Samples>
 
@@ -71,7 +72,7 @@ onDamaged((hit) => {
   drill.target.heal(hit.healthLost)
 })
 
-// A new world has removed the target.
+// A new world has already removed the target, so forget the drill.
 onWorld(() => {
   drill = undefined
 })
@@ -127,7 +128,7 @@ modlock.onDamaged(function(hit)
 	drill.target:heal(hit.healthLost)
 end)
 
--- A new world has removed the target.
+-- A new world has already removed the target, so forget the drill.
 modlock.onWorld(function()
 	drill = nil
 end)
@@ -194,7 +195,7 @@ def hit(hit: modlock.DamagedEvent) -> None:
     drill.target.heal(hit.health_lost)
 
 
-# A new world has removed the target.
+# A new world has already removed the target, so forget the drill.
 @modlock.on_world
 def forget(map_name: str) -> None:
     global drill
@@ -268,7 +269,7 @@ func init() {
 		_ = drill.target.Heal(int32(hit.GetHealthLost()))
 	})
 
-	// A new world has removed the target.
+	// A new world has already removed the target, so forget the drill.
 	mod.OnWorld(func(string) { drill = nil })
 }
 
@@ -277,13 +278,20 @@ func main() {}
 
 </Samples>
 
+Save, then type `/drill` in chat.
+
+The player sees the announcement "Aim drill" with "Hit the target for 30
+seconds." After each hit, the mod heals Target by the damage that hit dealt, so
+Target stays standing for the whole drill. When the time is up, the player sees
+"Time!" with their hits and damage.
+
 The mod declares the metric in `mod.json`:
 
 ```json
 "metrics": [{ "name": "drill.damage", "kind": "KIND_MAX" }]
 ```
 
-## Make it yours
+## Variations
 
 - Move the target between hits with `teleport` so the player tracks it.
 - Freeze the target so it stands still, or leave it free to fight back.

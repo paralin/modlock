@@ -2,56 +2,122 @@ package mod
 
 import "time"
 
-// Seating is where SeatPlayers puts each player who joins.
+// Seating is the hero and team Seat gives one player.
 type Seating struct {
-	// Hero is each player's hero: its name as players know it or as the game
-	// does, such as "haze" or "hero_haze", its id as an int or uint32, or
-	// AnyHero for the hero they have or else a random one. Nil is AnyHero.
+	// Hero is the hero's name as players know it or as the game does, such as
+	// "haze" or "hero_haze", its id as an int or uint32, or AnyHero for the
+	// hero the player has or else a random one. Nil is AnyHero.
 	Hero any
-	// Team is the team, 2 or 3, every player joins. Zero puts each on the
-	// side with fewer heroes. TeamOf replaces it when set.
+	// Team is the team, 2 or 3. Zero keeps the player's hero's team or joins
+	// the side with fewer heroes.
 	Team int32
-	// TeamOf picks the team, 2 or 3, for one player as they join, or nil.
-	TeamOf func(connection *Connection) int32
-	// Respawn is how long a fallen hero waits before it comes back. Zero
-	// leaves a fallen hero to the game.
-	Respawn time.Duration
 }
 
-// SeatPlayers gives every player who joins a hero on a team, skipping the
-// game's team and hero screens, and keeps them seated for the rest of the
-// game: it brings a fallen hero back after Respawn and seats a player again
-// after a hero change. It returns the Cast that does the seating, whose
-// members are the players' connections, and runs it each frame itself.
-func SeatPlayers(seating Seating) *Cast[*Connection] {
+// wish is what one seated player wants, with the generation of the
+// connection it was asked for, so a wish never passes to the next player in
+// the slot.
+type wish struct {
+	// generation is the connection's generation when the mod seated it.
+	generation uint32
+	// want is the seat with the respawn delay.
+	want Want
+}
+
+// seats keeps each player the mod seats on the hero and team it asked for,
+// and brings fallen heroes back after the respawn delay, through one Cast it
+// runs with the mod's frames.
+type seats struct {
+	// wishes holds each seated player's wish by slot.
+	wishes map[int32]*wish
+	// respawn is how long a fallen hero waits, or zero for the game's own
+	// time.
+	respawn time.Duration
+	// cast seats the players, once the mod uses seating.
+	cast *Cast[*Connection]
+}
+
+// seating is the mod's seats.
+var seating = &seats{wishes: map[int32]*wish{}}
+
+// held returns the wish of the cast's member, or nil when the mod did not
+// seat them.
+func (s *seats) held(member *Connection) *wish {
+	if held := s.wishes[member.GetPlayer()]; held != nil && held.generation == member.GetGeneration() {
+		return held
+	}
+	return nil
+}
+
+// start makes the Cast and runs it with the mod's frames. Bots are members,
+// so the mod can seat one and the respawn delay brings theirs back too. It
+// starts with the first seat or respawn delay, so a mod that uses neither
+// pays nothing.
+func (s *seats) start() {
+	if s.cast != nil {
+		return
+	}
+	s.cast = NewCast(CastOptions[*Connection]{
+		Join: func(connection *Connection) *Connection { return connection },
+		Leave: func(member *Connection, _ *Connection) {
+			if s.held(member) != nil {
+				delete(s.wishes, member.GetPlayer())
+			}
+		},
+		WantOf: func(member *Connection) Want {
+			if held := s.held(member); held != nil {
+				return held.want
+			}
+			return Want{Respawn: s.respawn}
+		},
+		Bots: BotsJoin,
+	})
+	OnFrame(func(frame *FrameEvent) {
+		s.cast.Frame(frame.GetTimeSeconds())
+	})
+}
+
+// seat records what the player behind held wants and starts the Cast.
+func (s *seats) seat(held *Connection, want Want) {
+	want.Respawn = s.respawn
+	s.wishes[held.GetPlayer()] = &wish{generation: held.GetGeneration(), want: want}
+	s.start()
+}
+
+// delay sets how long every fallen hero waits and starts the Cast.
+func (s *seats) delay(delay time.Duration) {
+	s.respawn = delay
+	for _, held := range s.wishes {
+		held.want.Respawn = delay
+	}
+	s.start()
+}
+
+// Seat gives the player a hero on a team, skipping the game's team and hero
+// screens. Call it as the player joins, in an OnPlayerJoin handler.
+//
+// The hero appears on a later frame, and OnSpawn hears of it. The library
+// asks the game again until the player has the seat, and once more after the
+// player changes hero, so a call before the game is ready is not lost.
+// Seating the player again replaces the seat, and it ends when they leave.
+// It returns false when nobody holds the player's slot.
+func (p Player) Seat(seat Seating) bool {
+	// Find the connection the seat is for.
+	held := p.Connection()
+	if held == nil {
+		return false
+	}
+
 	// Without a hero, any hero does.
-	hero := seating.Hero
+	hero := seat.Hero
 	if hero == nil {
 		hero = AnyHero
 	}
+	seating.seat(held, Want{Hero: hero, Team: seat.Team})
+	return true
+}
 
-	// Decide each player's seat once, as they join, and keep it by slot.
-	wants := map[int32]Want{}
-	cast := NewCast(CastOptions[*Connection]{
-		Join: func(connection *Connection) *Connection {
-			team := seating.Team
-			if seating.TeamOf != nil {
-				team = seating.TeamOf(connection)
-			}
-			wants[connection.GetPlayer()] = Want{Hero: hero, Team: team, Respawn: seating.Respawn}
-			return connection
-		},
-		Leave: func(_ *Connection, connection *Connection) {
-			delete(wants, connection.GetPlayer())
-		},
-		WantOf: func(member *Connection) Want {
-			return wants[member.GetPlayer()]
-		},
-	})
-
-	// Run the cast with the mod's frames.
-	OnFrame(func(frame *FrameEvent) {
-		cast.Frame(frame.GetTimeSeconds())
-	})
-	return cast
+// SetRespawnDelay brings every fallen hero back after delay, in place of the
+// game's own respawn time. Zero leaves fallen heroes to the game again.
+func SetRespawnDelay(delay time.Duration) {
+	seating.delay(delay)
 }

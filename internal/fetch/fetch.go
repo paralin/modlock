@@ -12,11 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Release returns the address of asset in the Modlock release tagged version.
-func Release(version, asset string) string {
-	return "https://github.com/paralin/modlock/releases/download/" + version + "/" + asset
-}
-
 // Cache returns the directory under the user cache that holds name.
 func Cache(name ...string) (string, error) {
 	cache, err := os.UserCacheDir()

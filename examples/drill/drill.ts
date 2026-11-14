@@ -25,8 +25,9 @@ const near = 500
 const far = 900
 
 /**
- * serverConfig keeps the server running frames while empty and keeps every
- * target hero still and harmless.
+ * serverConfig keeps the server running frames while nobody is connected, and
+ * turns off every bot's movement and attacks so the targets stand still and
+ * never shoot back.
  */
 export const serverConfig = [
   'sv_hibernate_when_empty 0',
@@ -56,7 +57,10 @@ export class Drill {
     private readonly yaw: number,
   ) {}
 
-  /** start adds the targets to the team against team, and reports whether they joined. */
+  /**
+   * start adds the targets to the team opposing team, and returns whether
+   * they all joined.
+   */
   start(team: number): boolean {
     for (let index = 0; index < targetCount; index++) {
       const spot = this.spot()
@@ -86,7 +90,8 @@ export class Drill {
 
   /**
    * hit scores the shooter's shot on one of the drill's targets and moves
-   * that target. It reports whether the victim is one of the targets.
+   * that target. It returns whether the victim is one of the targets, so the
+   * caller can block the hit.
    */
   hit(hit: DamageEvent): boolean {
     // Only the shooter's own shots on a target score.
@@ -138,7 +143,7 @@ export class Drill {
     }
   }
 
-  /** facing turns a target back toward where the drill started. */
+  /** facing returns angles that turn a target toward where the drill started. */
   private facing(): Angles {
     return { pitch: 0, yaw: this.yaw + 180, roll: 0 }
   }

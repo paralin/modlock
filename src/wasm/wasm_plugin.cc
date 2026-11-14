@@ -487,6 +487,7 @@ void WasmPlugin::Play() {
   game_.Frame();
   Steer();
   DeliverDamaged();
+  DeliverCombat();
   DeliverGameEvents();
 }
 

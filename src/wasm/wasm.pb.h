@@ -782,12 +782,41 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kModifierEventsFieldNumber = 7,
     kFramesFieldNumber = 1,
     kDamageFieldNumber = 2,
     kDamagedFieldNumber = 3,
     kChatFieldNumber = 4,
     kJoinsFieldNumber = 5,
+    kCastsFieldNumber = 6,
+    kKillsFieldNumber = 8,
+    kHealsFieldNumber = 9,
+    kLevelsFieldNumber = 10,
+    kMeleesFieldNumber = 11,
+    kParriesFieldNumber = 12,
   };
+  // repeated string modifier_events = 7;
+  int modifier_events_size() const;
+  private:
+  int _internal_modifier_events_size() const;
+
+  public:
+  void clear_modifier_events() ;
+  const ::std::string& modifier_events(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_modifier_events(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_modifier_events(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_modifier_events();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_modifier_events(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& modifier_events() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_modifier_events();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_modifier_events() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_modifier_events();
+
+  public:
   // bool frames = 1;
   void clear_frames() ;
   bool frames() const;
@@ -838,12 +867,72 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
   void _internal_set_joins(bool value);
 
   public:
+  // bool casts = 6;
+  void clear_casts() ;
+  bool casts() const;
+  void set_casts(bool value);
+
+  private:
+  bool _internal_casts() const;
+  void _internal_set_casts(bool value);
+
+  public:
+  // bool kills = 8;
+  void clear_kills() ;
+  bool kills() const;
+  void set_kills(bool value);
+
+  private:
+  bool _internal_kills() const;
+  void _internal_set_kills(bool value);
+
+  public:
+  // bool heals = 9;
+  void clear_heals() ;
+  bool heals() const;
+  void set_heals(bool value);
+
+  private:
+  bool _internal_heals() const;
+  void _internal_set_heals(bool value);
+
+  public:
+  // bool levels = 10;
+  void clear_levels() ;
+  bool levels() const;
+  void set_levels(bool value);
+
+  private:
+  bool _internal_levels() const;
+  void _internal_set_levels(bool value);
+
+  public:
+  // bool melees = 11;
+  void clear_melees() ;
+  bool melees() const;
+  void set_melees(bool value);
+
+  private:
+  bool _internal_melees() const;
+  void _internal_set_melees(bool value);
+
+  public:
+  // bool parries = 12;
+  void clear_parries() ;
+  bool parries() const;
+  void set_parries(bool value);
+
+  private:
+  bool _internal_parries() const;
+  void _internal_set_parries(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.StartResult)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
-                                   0, 0,
+  static const ::google::protobuf::internal::TcParseTable<4, 12,
+                                   0, 56,
                                    2>
       _table_;
 
@@ -864,11 +953,18 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
         const StartResult& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField<::std::string> modifier_events_;
     bool frames_;
     bool damage_;
     bool damaged_;
     bool chat_;
     bool joins_;
+    bool casts_;
+    bool kills_;
+    bool heals_;
+    bool levels_;
+    bool melees_;
+    bool parries_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4462,7 +4558,7 @@ inline void StartResult::clear_frames() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.frames_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000001U);
+                  0x00000002U);
 }
 inline bool StartResult::frames() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.frames)
@@ -4470,7 +4566,7 @@ inline bool StartResult::frames() const {
 }
 inline void StartResult::set_frames(bool value) {
   _internal_set_frames(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.frames)
 }
 inline bool StartResult::_internal_frames() const {
@@ -4487,7 +4583,7 @@ inline void StartResult::clear_damage() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.damage_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline bool StartResult::damage() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.damage)
@@ -4495,7 +4591,7 @@ inline bool StartResult::damage() const {
 }
 inline void StartResult::set_damage(bool value) {
   _internal_set_damage(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.damage)
 }
 inline bool StartResult::_internal_damage() const {
@@ -4512,7 +4608,7 @@ inline void StartResult::clear_damaged() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.damaged_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline bool StartResult::damaged() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.damaged)
@@ -4520,7 +4616,7 @@ inline bool StartResult::damaged() const {
 }
 inline void StartResult::set_damaged(bool value) {
   _internal_set_damaged(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.damaged)
 }
 inline bool StartResult::_internal_damaged() const {
@@ -4537,7 +4633,7 @@ inline void StartResult::clear_chat() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.chat_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline bool StartResult::chat() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.chat)
@@ -4545,7 +4641,7 @@ inline bool StartResult::chat() const {
 }
 inline void StartResult::set_chat(bool value) {
   _internal_set_chat(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.chat)
 }
 inline bool StartResult::_internal_chat() const {
@@ -4562,7 +4658,7 @@ inline void StartResult::clear_joins() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.joins_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 inline bool StartResult::joins() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.joins)
@@ -4570,7 +4666,7 @@ inline bool StartResult::joins() const {
 }
 inline void StartResult::set_joins(bool value) {
   _internal_set_joins(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.joins)
 }
 inline bool StartResult::_internal_joins() const {
@@ -4580,6 +4676,228 @@ inline bool StartResult::_internal_joins() const {
 inline void StartResult::_internal_set_joins(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.joins_ = value;
+}
+
+// bool casts = 6;
+inline void StartResult::clear_casts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.casts_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000040U);
+}
+inline bool StartResult::casts() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.casts)
+  return _internal_casts();
+}
+inline void StartResult::set_casts(bool value) {
+  _internal_set_casts(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.casts)
+}
+inline bool StartResult::_internal_casts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.casts_;
+}
+inline void StartResult::_internal_set_casts(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.casts_ = value;
+}
+
+// repeated string modifier_events = 7;
+inline int StartResult::_internal_modifier_events_size() const {
+  return _internal_modifier_events().size();
+}
+inline int StartResult::modifier_events_size() const {
+  return _internal_modifier_events_size();
+}
+inline void StartResult::clear_modifier_events() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.modifier_events_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::std::string* PROTOBUF_NONNULL StartResult::add_modifier_events()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_modifier_events()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.StartResult.modifier_events)
+  return _s;
+}
+inline const ::std::string& StartResult::modifier_events(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.modifier_events)
+  return _internal_modifier_events().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL StartResult::mutable_modifier_events(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.StartResult.modifier_events)
+  return _internal_mutable_modifier_events()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void StartResult::set_modifier_events(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_modifier_events()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.modifier_events)
+}
+template <typename Arg_, typename... Args_>
+inline void StartResult::add_modifier_events(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_modifier_events(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.StartResult.modifier_events)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& StartResult::modifier_events()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.StartResult.modifier_events)
+  return _internal_modifier_events();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+StartResult::mutable_modifier_events() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.StartResult.modifier_events)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_modifier_events();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+StartResult::_internal_modifier_events() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.modifier_events_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+StartResult::_internal_mutable_modifier_events() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.modifier_events_;
+}
+
+// bool kills = 8;
+inline void StartResult::clear_kills() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.kills_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000080U);
+}
+inline bool StartResult::kills() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.kills)
+  return _internal_kills();
+}
+inline void StartResult::set_kills(bool value) {
+  _internal_set_kills(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.kills)
+}
+inline bool StartResult::_internal_kills() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.kills_;
+}
+inline void StartResult::_internal_set_kills(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.kills_ = value;
+}
+
+// bool heals = 9;
+inline void StartResult::clear_heals() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heals_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000100U);
+}
+inline bool StartResult::heals() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.heals)
+  return _internal_heals();
+}
+inline void StartResult::set_heals(bool value) {
+  _internal_set_heals(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.heals)
+}
+inline bool StartResult::_internal_heals() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.heals_;
+}
+inline void StartResult::_internal_set_heals(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heals_ = value;
+}
+
+// bool levels = 10;
+inline void StartResult::clear_levels() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.levels_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000200U);
+}
+inline bool StartResult::levels() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.levels)
+  return _internal_levels();
+}
+inline void StartResult::set_levels(bool value) {
+  _internal_set_levels(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.levels)
+}
+inline bool StartResult::_internal_levels() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.levels_;
+}
+inline void StartResult::_internal_set_levels(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.levels_ = value;
+}
+
+// bool melees = 11;
+inline void StartResult::clear_melees() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.melees_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000400U);
+}
+inline bool StartResult::melees() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.melees)
+  return _internal_melees();
+}
+inline void StartResult::set_melees(bool value) {
+  _internal_set_melees(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.melees)
+}
+inline bool StartResult::_internal_melees() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.melees_;
+}
+inline void StartResult::_internal_set_melees(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.melees_ = value;
+}
+
+// bool parries = 12;
+inline void StartResult::clear_parries() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parries_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000800U);
+}
+inline bool StartResult::parries() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.parries)
+  return _internal_parries();
+}
+inline void StartResult::set_parries(bool value) {
+  _internal_set_parries(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.parries)
+}
+inline bool StartResult::_internal_parries() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.parries_;
+}
+inline void StartResult::_internal_set_parries(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parries_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -15,12 +15,12 @@ export function Hero() {
       <p className="hero-eyebrow">Open source · MIT · WebAssembly</p>
       <h1 className="hero-title">
         Custom game modes for Deadlock,{' '}
-        <span className="hero-accent">in the language you like.</span>
+        <span className="hero-accent">in a language you already know.</span>
       </h1>
       <p className="hero-lead">
-        Write a mod in TypeScript, Luau, Python or Go. Modlock builds it for
-        WebAssembly, and the game server runs it in a sandbox, reloading on
-        every save.
+        Write a mod in TypeScript, Luau, Python or Go, and the game server runs
+        it in a WebAssembly sandbox. While you work, <code>modlock dev</code>{' '}
+        reloads the mod each time you save.
       </p>
       <div className="hero-actions">
         <Link href="/start/install" className="hero-primary">

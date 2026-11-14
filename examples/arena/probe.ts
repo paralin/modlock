@@ -1,6 +1,6 @@
-// The arena's self-check: started with the argument probe, the mod seats two
-// bots, waits for their match to go live, defeats one, and checks that it
-// returns. It then quits the server with PASS or FAIL.
+// The arena's self-check. When the server starts the mod with the argument
+// probe, the mod adds two bots, waits for their match to go live, kills one,
+// and checks that it comes back, then quits the server with PASS or FAIL.
 import { log, ProbeRun } from 'modlock'
 
 import type { Match } from './match'
@@ -8,7 +8,7 @@ import type { Match } from './match'
 /** Step is where the check stands. */
 type Step = 'seat' | 'live' | 'fall' | 'return'
 
-/** waits names what the check waits on at each step, for the server log. */
+/** waits says what the check waits for at each step, for the server log. */
 const waits: Record<Step, string> = {
   seat: 'two bots',
   live: 'the match to go live',

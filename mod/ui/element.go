@@ -47,7 +47,7 @@ func (s *shared) fill(n *uipb.Node) {
 	}
 	if s.ability != nil && s.ability.Name != "" {
 		n.Ability = mod.ItemID(s.ability.Name)
-		n.AbilityPlayer = uint32(s.ability.Player.Slot)
+		n.AbilityPlayer = uint32(s.ability.Player.Slot())
 	}
 
 	// The sound, the motion in and out, and the classes.

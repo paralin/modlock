@@ -3,7 +3,7 @@ export const siteName = 'Modlock'
 
 /** siteDescription is the one-line summary search engines show. */
 export const siteDescription =
-  'Custom game modes for Deadlock, in the language you like.'
+  'Custom game modes for Deadlock, in a language you already know.'
 
 /** basePath is the path the site is served under, without a trailing slash. */
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? ''

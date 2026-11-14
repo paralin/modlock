@@ -3,17 +3,27 @@ title: King of the hill
 description: Score a point each second a hero holds a spot alone.
 ---
 
-A hill is a point with a radius. Once a second, a timer counts the living heroes inside the radius. One hero alone scores. Nobody or a crowd scores nothing. The score does not depend on frame rate.
+In king of the hill, heroes fight over one spot, and a hero who holds it alone scores. Here you build it with a once-a-second timer and a hill that is a point with a radius of 400 units.
+
+Your mod marks the hill each time a world loads, then scores the hero who
+stands on it alone:
 
 <Samples>
 
 ```ts
-import { createText, every, onWorld, players, type Vector } from 'modlock'
+import {
+  createText,
+  every,
+  onWorld,
+  players,
+  type Player,
+  type Vector,
+} from 'modlock'
 
 const hill: Vector = { x: 0, y: 0, z: 0 }
 const radius = 400
 const goal = 30
-const points = new Map<number, number>()
+const points = new Map<Player, number>()
 
 // Mark the hill each time a world loads, and start the score over.
 onWorld(() => {
@@ -38,8 +48,8 @@ every(1, () => {
   if (holder === undefined || holders.length > 1) {
     return // empty or contested
   }
-  const total = (points.get(holder.player.slot) ?? 0) + 1
-  points.set(holder.player.slot, total)
+  const total = (points.get(holder.player) ?? 0) + 1
+  points.set(holder.player, total)
   holder.player.centerText(`${total} / ${goal}`)
   if (total >= goal) {
     for (const { player } of players()) {
@@ -59,7 +69,7 @@ local modlock = require("@modlock")
 local hill = { x = 0, y = 0, z = 0 }
 local radius = 400
 local goal = 30
-local points: { [number]: number } = {}
+local points: { [modlock.Player]: number } = {}
 
 -- Mark the hill each time a world loads, and start the score over.
 modlock.onWorld(function()
@@ -86,8 +96,8 @@ modlock.every(1, function()
 		return -- empty or contested
 	end
 	local holder = holders[1]
-	local total = (points[holder.player.slot] or 0) + 1
-	points[holder.player.slot] = total
+	local total = (points[holder.player] or 0) + 1
+	points[holder.player] = total
 	holder.player:centerText(`{total} / {goal}`)
 	if total >= goal then
 		for _, connection in modlock.players() do
@@ -106,7 +116,7 @@ import modlock
 HILL = modlock.Vector(0, 0, 0)
 RADIUS = 400
 GOAL = 30
-points: dict[int, int] = {}
+points: dict[modlock.Player, int] = {}
 
 
 # Mark the hill each time a world loads, and start the score over.
@@ -134,8 +144,8 @@ def score() -> None:
     if len(holders) != 1:
         return  # empty or contested
     holder = holders[0]
-    total = points.get(holder.player.slot, 0) + 1
-    points[holder.player.slot] = total
+    total = points.get(holder.player, 0) + 1
+    points[holder.player] = total
     holder.player.center_text(f"{total} / {GOAL}")
     if total >= GOAL:
         for connection in modlock.players():
@@ -164,11 +174,11 @@ const (
 
 var (
 	hill   = &mod.Vector{}
-	points = map[int32]int{}
+	points = map[mod.Player]int{}
 )
 
 func onHill(c *mod.Connection) bool {
-	pawn, err := mod.Player{Slot: c.GetPlayer()}.Pawn()
+	pawn, err := mod.PlayerOf(c.GetPlayer()).Pawn()
 	if err != nil || pawn == nil || pawn.GetHealth() <= 0 {
 		return false
 	}
@@ -200,12 +210,13 @@ func init() {
 			return // empty or contested
 		}
 		holder := holders[0]
-		points[holder.GetPlayer()]++
-		total := points[holder.GetPlayer()]
-		_ = mod.Player{Slot: holder.GetPlayer()}.CenterText(fmt.Sprintf("%d / %d", total, goal))
+		p := mod.PlayerOf(holder.GetPlayer())
+		points[p]++
+		total := points[p]
+		_ = p.CenterText(fmt.Sprintf("%d / %d", total, goal))
 		if total >= goal {
 			for _, c := range connections {
-				_ = mod.Player{Slot: c.GetPlayer()}.Announce(holder.GetName()+" holds the hill", "A new round starts now.")
+				_ = mod.PlayerOf(c.GetPlayer()).Announce(holder.GetName()+" holds the hill", "A new round starts now.")
 			}
 			clear(points)
 		}
@@ -217,7 +228,15 @@ func main() {}
 
 </Samples>
 
-## Make it yours
+Put the hill where your hero stands, as the first variation below shows, and
+stand there alone.
+
+Each point shows the hero their total, such as `3 / 30`, in the middle of the
+screen. At 30, every player sees the announcement "_name_ holds the hill", and
+the score starts over. The timer runs on the game's clock, so the score does not
+depend on the frame rate.
+
+## Variations
 
 - Put the hill where you stand: read your position with a command, as [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
 - Move the hill every minute with a second timer, and move its text with it.

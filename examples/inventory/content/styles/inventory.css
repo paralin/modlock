@@ -1,5 +1,5 @@
 /* The bag's frame, which the mod draws, and its slots and drag ghost, which
-   the layout draws. The bag fades in once it wears Bag-open. */
+   the layout draws. The bag fades in when the mod adds the Bag-open class. */
 
 .Bag {
   flow-children: down;

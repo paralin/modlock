@@ -288,6 +288,11 @@ void Game::Clear() {
   ReleaseFreeForAll();
   ReleaseModifiers();
 
+  // Return every ability's cooldown lengths and most charges to the game's
+  // own.
+  cooldown_.reset();
+  charge_limit_.reset();
+
   // Release the input the mod blocked, remapped or watched, and the voices
   // it silenced.
   input_.Clear();

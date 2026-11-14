@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -330,10 +331,25 @@ class WasmPlugin final : public Plugin {
   // Contact returns what the mod does with a hit between the entities with
   // the handles attacker and victim.
   PlayerScope::Contact Contact(uint32_t attacker, uint32_t victim) const;
-  // Fought queues an applied hit for a mod that wants it, and a movement fact
-  // or completed interaction for the movement samples.
-  void Fought(const gameinterop::CombatEvent& event, bool damaged);
+  // Fought queues an applied hit, a cast, a heal, a level, a swing, a parry
+  // or a watched modifier event for a mod whose wants ask for it, and a
+  // movement fact or completed interaction for the movement samples.
+  void Fought(const gameinterop::CombatEvent& event, const wasm::StartResult& wants);
   void DeliverDamaged();
+  // DeliverCombat tells the mod the casts, heals, levels, swings, parries and
+  // watched modifier events queued since the last frame.
+  void DeliverCombat();
+  // DeliverTyped tells the mod one queued heal, level, swing or parry it
+  // hears.
+  void DeliverTyped(const gameinterop::CombatEvent& fact);
+  // EntityOf reads a game handle as the wire's entity, zero for none.
+  static uint32_t EntityOf(uint32_t handle);
+  // SlotOf returns the slot of the player whose hero has this handle, or -1.
+  int32_t SlotOf(uint32_t handle) const;
+  // Serves reports whether the mod hears about the entity with this handle:
+  // any entity for a mod that serves everyone, and only its players' heroes
+  // for a limited one.
+  bool Serves(uint32_t entity) const;
   // Sample fills a frame that starts a new tick with the watched heroes'
   // movement and the facts queued since the last one.
   void Sample(wasm::FrameEvent& frame);
@@ -489,6 +505,15 @@ class WasmPlugin final : public Plugin {
   std::mutex damaged_lock_;
   std::vector<gameinterop::DamageTakenEvent> damaged_;
   std::vector<wasm::Game::MovementFact> facts_;
+  // casts_ and fired_ queue the casts and watched modifier events the same
+  // way. watched_ holds, by the running game's value for each watched event,
+  // the names the mod gave it, and changes only under the lock.
+  std::vector<gameinterop::AbilityExecutedEvent> casts_;
+  std::vector<gameinterop::ModifierFiredEvent> fired_;
+  // typed_ queues heals, levels, swings and parries the same way, in the
+  // order the game fired them.
+  std::vector<gameinterop::CombatEvent> typed_;
+  std::unordered_map<uint32_t, std::vector<std::string>> watched_;
   // sampled_ is the last tick the movement samples went out on.
   std::optional<uint64_t> sampled_;
   // ui_ follows the interface the running instance shows each player.

@@ -188,6 +188,25 @@ type StartResult struct {
 	// Joins asks for a PlayerJoined event as each player the mod serves joins,
 	// and a PlayerLeft event as each leaves.
 	Joins bool `protobuf:"varint,5,opt,name=joins,proto3" json:"joins,omitempty"`
+	// Casts asks for an AbilityCast event after each ability the game
+	// executes.
+	Casts bool `protobuf:"varint,6,opt,name=casts,proto3" json:"casts,omitempty"`
+	// ModifierEvents asks for a ModifierFired event for each of the game's
+	// modifier events with these EModifierEvent names, such as
+	// MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+	// ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+	// fires.
+	ModifierEvents []string `protobuf:"bytes,7,rep,name=modifier_events,json=modifierEvents,proto3" json:"modifierEvents,omitempty"`
+	// Kills asks for a Killed event after each hit that kills a hero or unit.
+	Kills bool `protobuf:"varint,8,opt,name=kills,proto3" json:"kills,omitempty"`
+	// Heals asks for a Healed event after each heal.
+	Heals bool `protobuf:"varint,9,opt,name=heals,proto3" json:"heals,omitempty"`
+	// Levels asks for a LevelChanged event as each hero reaches a new level.
+	Levels bool `protobuf:"varint,10,opt,name=levels,proto3" json:"levels,omitempty"`
+	// Melees asks for a Melee event after each melee swing.
+	Melees bool `protobuf:"varint,11,opt,name=melees,proto3" json:"melees,omitempty"`
+	// Parries asks for a Parried event after each parry that catches a swing.
+	Parries bool `protobuf:"varint,12,opt,name=parries,proto3" json:"parries,omitempty"`
 }
 
 func (x *StartResult) Reset() {
@@ -227,6 +246,55 @@ func (x *StartResult) GetChat() bool {
 func (x *StartResult) GetJoins() bool {
 	if x != nil {
 		return x.Joins
+	}
+	return false
+}
+
+func (x *StartResult) GetCasts() bool {
+	if x != nil {
+		return x.Casts
+	}
+	return false
+}
+
+func (x *StartResult) GetModifierEvents() []string {
+	if x != nil {
+		return x.ModifierEvents
+	}
+	return nil
+}
+
+func (x *StartResult) GetKills() bool {
+	if x != nil {
+		return x.Kills
+	}
+	return false
+}
+
+func (x *StartResult) GetHeals() bool {
+	if x != nil {
+		return x.Heals
+	}
+	return false
+}
+
+func (x *StartResult) GetLevels() bool {
+	if x != nil {
+		return x.Levels
+	}
+	return false
+}
+
+func (x *StartResult) GetMelees() bool {
+	if x != nil {
+		return x.Melees
+	}
+	return false
+}
+
+func (x *StartResult) GetParries() bool {
+	if x != nil {
+		return x.Parries
 	}
 	return false
 }
@@ -728,6 +796,13 @@ func (m *StartResult) CloneVT() *StartResult {
 	r.Damaged = m.Damaged
 	r.Chat = m.Chat
 	r.Joins = m.Joins
+	r.Casts = m.Casts
+	r.Kills = m.Kills
+	r.Heals = m.Heals
+	r.Levels = m.Levels
+	r.Melees = m.Melees
+	r.Parries = m.Parries
+	r.ModifierEvents = protobuf_go_lite.CloneSlice(m.ModifierEvents)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1070,6 +1145,27 @@ func (this *StartResult) EqualVT(that *StartResult) bool {
 		return false
 	}
 	if this.Joins != that.Joins {
+		return false
+	}
+	if this.Casts != that.Casts {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.ModifierEvents, that.ModifierEvents) {
+		return false
+	}
+	if this.Kills != that.Kills {
+		return false
+	}
+	if this.Heals != that.Heals {
+		return false
+	}
+	if this.Levels != that.Levels {
+		return false
+	}
+	if this.Melees != that.Melees {
+		return false
+	}
+	if this.Parries != that.Parries {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1656,6 +1752,41 @@ func (x *StartResult) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("joins")
 		s.WriteBool(x.Joins)
 	}
+	if x.Casts || s.HasField("casts") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("casts")
+		s.WriteBool(x.Casts)
+	}
+	if len(x.ModifierEvents) > 0 || s.HasField("modifierEvents") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("modifierEvents")
+		s.WriteStringArray(x.ModifierEvents)
+	}
+	if x.Kills || s.HasField("kills") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kills")
+		s.WriteBool(x.Kills)
+	}
+	if x.Heals || s.HasField("heals") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("heals")
+		s.WriteBool(x.Heals)
+	}
+	if x.Levels || s.HasField("levels") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("levels")
+		s.WriteBool(x.Levels)
+	}
+	if x.Melees || s.HasField("melees") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("melees")
+		s.WriteBool(x.Melees)
+	}
+	if x.Parries || s.HasField("parries") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("parries")
+		s.WriteBool(x.Parries)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1688,6 +1819,31 @@ func (x *StartResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "joins":
 			s.AddField("joins")
 			x.Joins = s.ReadBool()
+		case "casts":
+			s.AddField("casts")
+			x.Casts = s.ReadBool()
+		case "modifier_events", "modifierEvents":
+			s.AddField("modifier_events")
+			if s.ReadNil() {
+				x.ModifierEvents = nil
+				return
+			}
+			x.ModifierEvents = s.ReadStringArray()
+		case "kills":
+			s.AddField("kills")
+			x.Kills = s.ReadBool()
+		case "heals":
+			s.AddField("heals")
+			x.Heals = s.ReadBool()
+		case "levels":
+			s.AddField("levels")
+			x.Levels = s.ReadBool()
+		case "melees":
+			s.AddField("melees")
+			x.Melees = s.ReadBool()
+		case "parries":
+			s.AddField("parries")
+			x.Parries = s.ReadBool()
 		}
 	})
 }
@@ -2608,6 +2764,43 @@ func (m *StartResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Parries {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Parries)
+		i--
+		dAtA[i] = 0x60
+	}
+	if m.Melees {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Melees)
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.Levels {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Levels)
+		i--
+		dAtA[i] = 0x50
+	}
+	if m.Heals {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Heals)
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.Kills {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Kills)
+		i--
+		dAtA[i] = 0x40
+	}
+	if len(m.ModifierEvents) > 0 {
+		for iNdEx := len(m.ModifierEvents) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.ModifierEvents[iNdEx])
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if m.Casts {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Casts)
+		i--
+		dAtA[i] = 0x30
+	}
 	if m.Joins {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Joins)
 		i--
@@ -3266,6 +3459,13 @@ func (m *StartResult) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damaged)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Chat)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Joins)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Casts)
+	n += protobuf_go_lite.SizeStringSlice(1, m.ModifierEvents)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Kills)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Heals)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Levels)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Melees)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Parries)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3530,6 +3730,38 @@ func (x *StartResult) MarshalProtoText() string {
 	if x.Joins != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "joins")
 		protobuf_go_lite.TextWriteBool(&sb, x.Joins)
+	}
+	if x.Casts != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "casts")
+		protobuf_go_lite.TextWriteBool(&sb, x.Casts)
+	}
+	if len(x.ModifierEvents) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "modifier_events")
+		for i, v := range x.ModifierEvents {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Kills != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kills")
+		protobuf_go_lite.TextWriteBool(&sb, x.Kills)
+	}
+	if x.Heals != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "heals")
+		protobuf_go_lite.TextWriteBool(&sb, x.Heals)
+	}
+	if x.Levels != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "levels")
+		protobuf_go_lite.TextWriteBool(&sb, x.Levels)
+	}
+	if x.Melees != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "melees")
+		protobuf_go_lite.TextWriteBool(&sb, x.Melees)
+	}
+	if x.Parries != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "parries")
+		protobuf_go_lite.TextWriteBool(&sb, x.Parries)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -4110,6 +4342,76 @@ func (m *StartResult) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Joins = bool(v)
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Casts", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Casts = bool(v)
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ModifierEvents", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ModifierEvents = append(m.ModifierEvents, v)
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kills", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Kills = bool(v)
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Heals", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Heals = bool(v)
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Levels", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Levels = bool(v)
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Melees", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Melees = bool(v)
+		case 12:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Parries", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Parries = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

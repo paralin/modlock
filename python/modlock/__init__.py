@@ -914,6 +914,16 @@ class AbilityOptions:
     # screen can still show the game's maximum. charges above the new maximum
     # are not removed; set them with charges.
     max_charges: int | None = None
+    # cooldown makes every cooldown the ability starts from now on last this
+    # many seconds, in place of the game's own length. An ability that holds
+    # charges waits this long between casts. 0 leaves the ability always
+    # ready, and a negative value returns it to the game's own. The game asks
+    # for the length as it starts each cooldown and applies the hero's cooldown
+    # reduction to it, so it holds for every later cast and the hero's screen
+    # shows it; a cooldown already running keeps its end, which cooldown_end
+    # moves. It holds for this ability of this hero until the mod stops, so
+    # set it again after a hero change or a replaced ability.
+    cooldown: float | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -971,6 +981,29 @@ class BuildItem:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class AbilityCastEvent:
+    """AbilityCastEvent reports one ability the game executed: the moment the
+    cast takes effect, after any cast time, for a hero's abilities and the
+    items a player activates.
+    """
+
+    # caster is the entity that cast it, a hero for a player's cast.
+    caster: int = 0
+    # player is the slot of the player whose hero cast it, or -1.
+    player: Player
+    # ability is the ability's entity handle, as ability.entity reports it.
+    ability: int = 0
+    # name is the ability's name, such as citadel_ability_hornet_snipe, when
+    # a player's hero cast it.
+    name: str = ""
+    # slot is the ability's place on the hero, as ability.slot reports it, or
+    # -1 when the caster is not a player's hero.
+    slot: int = 0
+    # target is the entity the cast was aimed at, or zero without one.
+    target: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class DamageEvent:
     """DamageEvent is one hit before the game applies it. Handles are zero when
     the game names no such entity.
@@ -1022,6 +1055,24 @@ class DamagedEvent:
     # dealt is the hit's damage after resistances, before the victim's health
     # capped it.
     dealt: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class KillEvent:
+    """KillEvent reports one hero or unit that a hit killed."""
+
+    # victim is the entity that died.
+    victim: int = 0
+    # victim_player is the slot of the player whose hero died, or -1 for a unit.
+    victim_player: Player
+    # attacker is the entity credited with the killing hit, or zero for a
+    # hazard.
+    attacker: int = 0
+    # attacker_player is the slot of the player whose hero is the attacker, or
+    # -1. It is the victim's own slot when a hero killed itself.
+    attacker_player: Player
+    # ability is the ability that dealt the killing hit, or zero.
+    ability: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1145,6 +1196,95 @@ class TraceHit:
     start_solid: bool = False
     # entity is the entity hit, or zero for the world.
     entity: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ModifierFiredEvent:
+    """ModifierFiredEvent reports one of the game's modifier events the mod
+    watches, with the entities the game fired it with. Which of them an event
+    fills depends on the event.
+    """
+
+    # name is the event as the mod named it in StartResult.modifier_events.
+    name: str = ""
+    # caster is the entity the event is about, such as the hero that parried
+    # or respawned, or zero.
+    caster: int = 0
+    # player is the slot of the player whose hero the caster is, or -1.
+    player: Player
+    # target is the other entity of the event, such as the victim of a kill,
+    # or zero.
+    target: int = 0
+    # ability is the ability or other entity the event names as its source, or
+    # zero.
+    ability: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class HealEvent:
+    """HealEvent reports health an ability, item or lifesteal restored at once to
+    a hero or unit. Regeneration reports none, including what abilities such as
+    Siphon Life restore as regeneration, and neither do Modlock's own heal and
+    a heal at full health.
+    """
+
+    # target is the entity healed.
+    target: int = 0
+    # target_player is the slot of the player whose hero was healed, or -1 for
+    # a unit.
+    target_player: Player
+    # healer is the entity the heal came from, or zero when the game names
+    # none.
+    healer: int = 0
+    # healer_player is the slot of the player whose hero the healer is, or -1.
+    healer_player: Player
+    # ability is the ability or item that healed, or zero.
+    ability: int = 0
+    # applied is the health the heal restored.
+    applied: int = 0
+    # requested is the heal's whole amount; it exceeds applied when the target
+    # reached full health.
+    requested: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class LevelEvent:
+    """LevelEvent reports a hero reaching a new level."""
+
+    # hero is the hero's entity.
+    hero: int = 0
+    # player is the slot of the player whose hero it is, or -1.
+    player: Player
+    # level is the hero's new level.
+    level: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class MeleeEvent:
+    """MeleeEvent reports one melee swing as the game resolves it."""
+
+    # attacker is the hero or unit that swung.
+    attacker: int = 0
+    # attacker_player is the slot of the player whose hero swung, or -1.
+    attacker_player: Player
+    # heavy is true for a charged swing and false for a light one.
+    heavy: bool = False
+    # hits are the entities the swing struck, empty for a miss.
+    hits: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ParryEvent:
+    """ParryEvent reports a parry that caught a melee swing."""
+
+    # parrier is the hero that parried.
+    parrier: int = 0
+    # player is the slot of the player whose hero parried, or -1.
+    player: Player
+    # attacker is the hero or unit whose swing was caught.
+    attacker: int = 0
+    # attacker_player is the slot of the player whose hero swung, or -1.
+    attacker_player: Player
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2094,6 +2234,25 @@ class StartResult:
     # joins asks for a PlayerJoined event as each player the mod serves joins,
     # and a PlayerLeft event as each leaves.
     joins: bool = False
+    # casts asks for an AbilityCast event after each ability the game
+    # executes.
+    casts: bool = False
+    # modifier_events asks for a ModifierFired event for each of the game's
+    # modifier events with these EModifierEvent names, such as
+    # MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+    # ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+    # fires.
+    modifier_events: list[str] = dataclasses.field(default_factory=lambda: list[str]())
+    # kills asks for a Killed event after each hit that kills a hero or unit.
+    kills: bool = False
+    # heals asks for a Healed event after each heal.
+    heals: bool = False
+    # levels asks for a LevelChanged event as each hero reaches a new level.
+    levels: bool = False
+    # melees asks for a Melee event after each melee swing.
+    melees: bool = False
+    # parries asks for a Parried event after each parry that catches a swing.
+    parries: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2210,12 +2369,36 @@ class PrecacheOptions:
     resources: list[str] = dataclasses.field(default_factory=lambda: list[str]())
 
 
-@dataclasses.dataclass(frozen=True, slots=True)
+# _player_objects holds the Player of each slot that Player(slot) made.
+_player_objects: dict[int, "Player"] = {}
+
+
+@dataclasses.dataclass(frozen=True, slots=True, eq=False)
 class Player:
     """Player addresses one connected player by their server slot."""
 
     # slot identifies the player on the server.
     slot: int
+
+    def __new__(cls, slot: int) -> "Player":
+        """__new__ returns the Player for slot, the same object each time until
+        release forgets it, so == and dictionary keys tell whether two values
+        are the same player.
+        """
+        held = _player_objects.get(slot)
+        if held is None:
+            held = object.__new__(cls)
+            _player_objects[slot] = held
+        return held
+
+    def __reduce__(self) -> tuple[type["Player"], tuple[int]]:
+        """__reduce__ makes a copy of a Player the same object."""
+        return (Player, (self.slot,))
+
+    @staticmethod
+    def release(slot: int) -> None:
+        """release forgets the Player for slot, so the next Player(slot) makes a new one."""
+        _player_objects.pop(slot, None)
 
     def chat(self, text: str) -> bool:
         """chat sends a server chat line to the player."""
@@ -2608,6 +2791,39 @@ class Player:
         """
         return _call("WatchMovement", "WatchMovementRequest", {"player": self, "watch": watch}) is not None
 
+    def connection(self: Player) -> Connection | None:
+        """connection returns the player's connection: their name, Steam ID,
+        whether they are a bot and whether they finished joining. It returns
+        None when nobody holds the slot."""
+        return connection(self)
+
+    def seat(self: Player, *, hero: str | int = "any", team: int | None = None) -> bool:
+        """seat gives the player a hero on a team, skipping the game's team
+        and hero screens. Call it as the player joins:
+
+            @modlock.on_player_join
+            def joined(event: modlock.PlayerJoinedEvent) -> None:
+                event.connection.player.seat(hero="haze", team=2)
+
+        hero is the hero's name as players know it or as the game does, such
+        as "Calico" or "hero_nano", its id, or "any" for the hero the player
+        has or else a random one. team is 2 or 3; without one the player
+        keeps their hero's team or joins the side with fewer heroes.
+
+        The hero appears on a later frame, and on_spawn hears of it. The
+        library asks the game again until the player has the seat, and once
+        more after the player changes hero, so a call before the game is
+        ready is not lost. Seating the player again replaces the seat, and it
+        ends when they leave. It returns False when nobody holds the player's
+        slot."""
+        held = connection(self)
+        if held is None:
+            return False
+        respawn = None if _unseated is None else _unseated.respawn
+        _seated[self.slot] = (held.generation, Want(hero=hero, team=team, respawn=respawn))
+        _start_seating()
+        return True
+
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class WorldObject:
@@ -2784,6 +3000,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "cooldown_end", "float", optional=True),
             wire.Field(6, "recharge_end", "float", optional=True),
             wire.Field(7, "max_charges", "int32", optional=True),
+            wire.Field(8, "cooldown", "float", optional=True),
         ],
     ),
     "GiveItemRequest": (
@@ -2920,6 +3137,17 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "seconds", "float"),
         ],
     ),
+    "AbilityCastEvent": (
+        AbilityCastEvent,
+        [
+            wire.Field(1, "caster", "uint32"),
+            wire.Field(2, "player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "ability", "uint32"),
+            wire.Field(4, "name", "string"),
+            wire.Field(5, "slot", "int32"),
+            wire.Field(6, "target", "uint32"),
+        ],
+    ),
     "Vec3": (
         Vector,
         [
@@ -2964,6 +3192,16 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "health_lost", "int32"),
             wire.Field(5, "health_before", "int32"),
             wire.Field(6, "dealt", "int32"),
+        ],
+    ),
+    "KillEvent": (
+        KillEvent,
+        [
+            wire.Field(1, "victim", "uint32"),
+            wire.Field(2, "victim_player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "attacker", "uint32"),
+            wire.Field(4, "attacker_player", "int32", cls=Player, key="slot"),
+            wire.Field(5, "ability", "uint32"),
         ],
     ),
     "LaunchEvent": (
@@ -3039,6 +3277,54 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "normal", "message", message="Vec3"),
             wire.Field(3, "start_solid", "bool"),
             wire.Field(4, "entity", "uint32"),
+        ],
+    ),
+    "ModifierFiredEvent": (
+        ModifierFiredEvent,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "caster", "uint32"),
+            wire.Field(3, "player", "int32", cls=Player, key="slot"),
+            wire.Field(4, "target", "uint32"),
+            wire.Field(5, "ability", "uint32"),
+        ],
+    ),
+    "HealEvent": (
+        HealEvent,
+        [
+            wire.Field(1, "target", "uint32"),
+            wire.Field(2, "target_player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "healer", "uint32"),
+            wire.Field(4, "healer_player", "int32", cls=Player, key="slot"),
+            wire.Field(5, "ability", "uint32"),
+            wire.Field(6, "applied", "int32"),
+            wire.Field(7, "requested", "int32"),
+        ],
+    ),
+    "LevelEvent": (
+        LevelEvent,
+        [
+            wire.Field(1, "hero", "uint32"),
+            wire.Field(2, "player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "level", "int32"),
+        ],
+    ),
+    "MeleeEvent": (
+        MeleeEvent,
+        [
+            wire.Field(1, "attacker", "uint32"),
+            wire.Field(2, "attacker_player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "heavy", "bool"),
+            wire.Field(4, "hits", "uint32", repeated=True),
+        ],
+    ),
+    "ParryEvent": (
+        ParryEvent,
+        [
+            wire.Field(1, "parrier", "uint32"),
+            wire.Field(2, "player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "attacker", "uint32"),
+            wire.Field(4, "attacker_player", "int32", cls=Player, key="slot"),
         ],
     ),
     "ChatRequest": (
@@ -4495,6 +4781,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "damaged", "bool"),
             wire.Field(4, "chat", "bool"),
             wire.Field(5, "joins", "bool"),
+            wire.Field(6, "casts", "bool"),
+            wire.Field(7, "modifier_events", "string", repeated=True),
+            wire.Field(8, "kills", "bool"),
+            wire.Field(9, "heals", "bool"),
+            wire.Field(10, "levels", "bool"),
+            wire.Field(11, "melees", "bool"),
+            wire.Field(12, "parries", "bool"),
         ],
     ),
     "FrameEvent": (
@@ -5301,6 +5594,13 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
     "Damaged": ("DamagedEvent", "Empty", "damaged"),
+    "Killed": ("KillEvent", "Empty", "killed"),
+    "AbilityCast": ("AbilityCastEvent", "Empty", "ability_cast"),
+    "ModifierFired": ("ModifierFiredEvent", "Empty", "modifier_fired"),
+    "Healed": ("HealEvent", "Empty", "healed"),
+    "LevelChanged": ("LevelEvent", "Empty", "level_changed"),
+    "Melee": ("MeleeEvent", "Empty", "melee"),
+    "Parried": ("ParryEvent", "Empty", "parried"),
     "Input": ("InputEvent", "Empty", "input"),
     "Restored": ("RestoredEvent", "Empty", "restored"),
     "NpcsRestored": ("NpcsRestoredEvent", "Empty", "npcs_restored"),
@@ -5438,69 +5738,49 @@ _restoreds: list[Callable[[Player, str | None], object]] = []
 _npcs_restoreds: list[Callable[[str | None], object]] = []
 _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
+_kills: list[Callable[[KillEvent], object]] = []
+_ability_casts: list[Callable[[AbilityCastEvent], object]] = []
+_heals: list[Callable[[HealEvent], object]] = []
+_levels: list[Callable[[LevelEvent], object]] = []
+_melees: list[Callable[[MeleeEvent], object]] = []
+_parries: list[Callable[[ParryEvent], object]] = []
+_modifier_events: dict[str, list[Callable[[ModifierFiredEvent], object]]] = {}
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
 _setting_changes: list[Callable[[Player, str, str], object]] = []
 
-def seat_players(
-    *,
-    hero: str | int = "any",
-    team: int | Callable[[Connection], int] | None = None,
-    respawn: float | None = None,
-) -> Cast[Connection]:
-    """seat_players gives every player who joins a hero on a team, skipping
-    the game's team and hero screens, and keeps them seated for the rest of
-    the game: it brings a fallen hero back after respawn seconds and seats a
-    player again after a hero change.
-
-        modlock.seat_players(hero="any", respawn=3)
-
-    hero is each player's hero: its name as players know it or as the game
-    does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
-    have or else a random one. team is the team, 2 or 3, every player joins,
-    or a function that picks the team for one player as they join; without
-    one each player joins the side with fewer heroes. Without respawn a fallen hero is left to the game.
-
-    It returns the Cast that does the seating, whose members are the players'
-    connections, and runs it each frame itself."""
-    # Decide each player's seat once, as they join, and keep it by slot.
-    wants: dict[int, Want] = {}
-
-    def join(connection: Connection) -> Connection:
-        side = team(connection) if callable(team) else team
-        wants[connection.player.slot] = Want(hero=hero, team=side, respawn=respawn)
-        return connection
-
-    def leave(member: Connection, connection: Connection) -> None:
-        wants.pop(connection.player.slot, None)
-
-    cast = Cast(join, leave=leave, want=lambda member: wants[member.player.slot])
-
-    # Run the cast with the mod's frames.
-    _frames.append(lambda event: cast.frame(event.time_seconds))
-    return cast
-
-
 _spawns: list[Callable[[Player, Pawn], object]] = []
 
-# _spawned maps each slot whose hero is in play to that hero's entity, as the
-# spawn handlers last heard of it.
-_spawned: dict[int, int] = {}
+# _RESPAWNED is the game's modifier event for a hero entering play.
+_RESPAWNED = "PLAYER_RESPAWNED"
+
+# _frame_count counts frames, so _spawned_at can tell one frame's events apart.
+_frame_count = 0
+
+# _spawned_at maps each slot to the frame the spawn handlers last heard of its
+# hero; the game repeats the event as a player's hero is built.
+_spawned_at: dict[int, int] = {}
 
 # _roster is the player list the host last reported, or None before one.
 _roster: list[Connection] | None = None
 
 
+# _MAX_SLOT is above every player slot and below every Steam ID.
+_MAX_SLOT = 0xFFFF
+
+
 def connection(player: Player | int) -> Connection | None:
-    """connection returns the connection of one player, given the player or
-    their slot: their name, Steam ID, whether they are a bot and whether they
-    finished joining. It returns None when nobody holds the slot."""
+    """connection returns the connection of one player, given the player,
+    their slot or their Steam ID: their name, Steam ID, whether they are a bot
+    and whether they finished joining. A number above 65535 is a Steam ID. It
+    returns None when nobody holds the slot or the account is not connected.
+    Its player field is the Player to call."""
+    held = _roster if _roster is not None else players()
+    if isinstance(player, int) and player > _MAX_SLOT:
+        return next((c for c in held if c.steam_id == player), None)
     slot = player if isinstance(player, int) else player.slot
-    for held in _roster if _roster is not None else players():
-        if held.player.slot == slot:
-            return held
-    return None
+    return next((c for c in held if c.player.slot == slot), None)
 
 
 def players() -> list[Connection]:
@@ -5794,6 +6074,64 @@ class Cast[M]:
                 sapphire += 1
         return 3 if sapphire < amber else 2
 
+
+
+# Seating keeps each player the mod seats on the hero and team it asked for.
+# seat records what one player should have, and one Cast the library runs
+# itself asks the game until the player's hero shows it, and again after a
+# hero change. The same Cast brings fallen heroes back after the respawn
+# delay. It starts with the first seat or respawn delay, so a mod that uses
+# neither pays nothing.
+
+# _seated holds what each seated player wants by slot, with the generation of
+# the connection it was asked for, so a wish never passes to the next player
+# in the slot.
+_seated: dict[int, tuple[int, Want]] = {}
+
+# _unseated is the want of a player the mod did not seat: only the respawn
+# delay.
+_unseated: Want | None = None
+
+# _seating is the Cast that seats players, once the mod uses seating.
+_seating: Cast[Connection] | None = None
+
+
+def _seat_want(member: Connection) -> Want:
+    """_seat_want returns what the seating Cast's member wants now."""
+    held = _seated.get(member.player.slot)
+    if held is not None and held[0] == member.generation:
+        return held[1]
+    return _unseated if _unseated is not None else _NO_WANT
+
+
+def _seat_left(member: Connection, connection: Connection) -> None:
+    """_seat_left forgets the wish of a seated player who left."""
+    held = _seated.get(member.player.slot)
+    if held is not None and held[0] == member.generation:
+        del _seated[member.player.slot]
+
+
+def _start_seating() -> None:
+    """_start_seating makes the seating Cast and runs it with the mod's
+    frames. Bots are members, so the mod can seat one and the respawn delay
+    brings theirs back too."""
+    global _seating
+    if _seating is not None:
+        return
+    cast = Cast[Connection](lambda connection: connection, leave=_seat_left, want=_seat_want, bots="join")
+    _seating = cast
+    _frames.append(lambda event: cast.frame(event.time_seconds))
+
+
+def set_respawn_delay(seconds: float | None) -> None:
+    """set_respawn_delay brings every fallen hero back after seconds, in
+    place of the game's own respawn time. None leaves fallen heroes to the
+    game again."""
+    global _unseated
+    _unseated = None if seconds is None else Want(respawn=seconds)
+    for slot, (generation, want) in _seated.items():
+        _seated[slot] = (generation, dataclasses.replace(want, respawn=seconds))
+    _start_seating()
 
 
 def set_orbit_camera(player: Player, enabled: bool) -> bool:
@@ -6314,10 +6652,10 @@ def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
 
 def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
     """on_spawn calls handler each time a player's hero enters play: their
-    first hero after joining, each respawn, and each new hero after a change.
+    first hero after joining, and each respawn.
     The player has a hero to move, equip and read from then on, which
-    on_player_join does not promise. The library reads each player's pawn
-    once a frame while a handler is registered.
+    on_player_join does not promise. The library hears it from the game's
+    PLAYER_RESPAWNED event, before the frame handlers run.
 
     Annotate the handler's parameters, since a checker and an editor's
     completion read their types from there:
@@ -6329,26 +6667,112 @@ def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
     return handler
 
 
-def _watch_spawns() -> None:
-    """_watch_spawns tells the spawn handlers of each hero that entered play
-    since the last frame."""
-    # A hero is in play while it lives; a placeholder pawn has hero 0.
-    present: dict[int, int] = {}
-    for connection in players():
-        player = connection.player
-        pawn = player.pawn()
-        if pawn is None or pawn.hero == 0 or pawn.health <= 0:
-            continue
-        present[player.slot] = pawn.entity
+def _respawned(player: Player) -> None:
+    """_respawned tells the spawn handlers that the player's hero entered
+    play."""
+    # Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+    pawn = None if player.slot < 0 else player.pawn()
+    if pawn is None or pawn.hero == 0 or pawn.health <= 0:
+        return
+    if _spawned_at.get(player.slot) == _frame_count:
+        return
+    _spawned_at[player.slot] = _frame_count
+    for handler in _spawns:
+        handler(player, pawn)
 
-        # A respawn follows a death, and a new hero has a new entity.
-        if _spawned.get(player.slot) != pawn.entity:
-            for handler in _spawns:
-                handler(player, pawn)
 
-    # Forget the fallen and the gone, so their next hero is a spawn.
-    _spawned.clear()
-    _spawned.update(present)
+def on_kill[F: Callable[[KillEvent], object]](handler: F) -> F:
+    """on_kill calls handler after each hit that kills a hero or a unit, before
+    the next frame. The kill names both entities and the player of each: a
+    slot of -1 is a unit's, or a hazard's for the attacker.
+
+        @modlock.on_kill
+        def killed(kill: modlock.KillEvent) -> None: ...
+    """
+    _kills.append(handler)
+    return handler
+
+
+def on_heal[F: Callable[[HealEvent], object]](handler: F) -> F:
+    """on_heal calls handler after each heal, before the next frame: health a
+    hero or unit regained at once from an ability, an item or lifesteal.
+    Regeneration calls nothing, including what abilities such as Siphon Life
+    restore as regeneration, and neither do the mod's own heal and a heal at
+    full health. The heal names the entity healed, the healer and ability when
+    the game names them, and the player of each: a slot of -1 is a unit's, or
+    no one's.
+
+        @modlock.on_heal
+        def healed(heal: modlock.HealEvent) -> None: ...
+    """
+    _heals.append(handler)
+    return handler
+
+
+def on_level_change[F: Callable[[LevelEvent], object]](handler: F) -> F:
+    """on_level_change calls handler as each hero reaches a new level, before
+    the next frame.
+
+        @modlock.on_level_change
+        def leveled(change: modlock.LevelEvent) -> None: ...
+    """
+    _levels.append(handler)
+    return handler
+
+
+def on_melee[F: Callable[[MeleeEvent], object]](handler: F) -> F:
+    """on_melee calls handler after each melee swing, before the next frame,
+    with whether it was heavy and the entities it struck, none for a miss.
+
+        @modlock.on_melee
+        def swung(swing: modlock.MeleeEvent) -> None: ...
+    """
+    _melees.append(handler)
+    return handler
+
+
+def on_parry[F: Callable[[ParryEvent], object]](handler: F) -> F:
+    """on_parry calls handler after each parry that catches a melee swing,
+    before the next frame, naming the hero that parried and the attacker it
+    caught.
+
+        @modlock.on_parry
+        def parried(parry: modlock.ParryEvent) -> None: ...
+    """
+    _parries.append(handler)
+    return handler
+
+
+def on_ability_cast[F: Callable[[AbilityCastEvent], object]](handler: F) -> F:
+    """on_ability_cast calls handler after each ability the game executes,
+    before the next frame: a hero's abilities and the items a player
+    activates, at the moment the cast takes effect.
+
+        @modlock.on_ability_cast
+        def cast(event: modlock.AbilityCastEvent) -> None: ...
+    """
+    _ability_casts.append(handler)
+    return handler
+
+
+def on_modifier_event[F: Callable[[ModifierFiredEvent], object]](
+    name: str,
+) -> Callable[[F], F]:
+    """on_modifier_event calls the decorated handler each time the game fires
+    the modifier event with this EModifierEvent name, such as
+    ABILITY_CAST_STARTED, PARRY_SUCCESS or PLAYER_RESPAWNED, before the next
+    frame. Register before the mod starts. A name the running game lacks is
+    logged once and never fires.
+
+        @modlock.on_modifier_event("PARRY_SUCCESS")
+        def parried(event: modlock.ModifierFiredEvent) -> None: ...
+    """
+
+    def register(handler: F) -> F:
+        _modifier_events.setdefault(name, []).append(handler)
+        return handler
+
+    return register
 
 
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
@@ -6431,6 +6855,15 @@ def _start(event: StartEvent) -> StartResult:
         damaged=bool(_damageds),
         chat=bool(_chats),
         joins=bool(_joins or _leaves),
+        casts=bool(_ability_casts),
+        kills=bool(_kills),
+        heals=bool(_heals),
+        levels=bool(_levels),
+        melees=bool(_melees),
+        parries=bool(_parries),
+        modifier_events=list(
+            _modifier_events.keys() | ({_RESPAWNED} if _spawns else set())
+        ),
     )
 
 
@@ -6463,11 +6896,11 @@ def _serve_ui(handlers: _UiHandlers) -> None:
 
 
 def _frame(event: FrameEvent) -> None:
+    global _frame_count
+    _frame_count += 1
     if _ui is not None:
         _ui.tick(event.time_seconds)
     _advance_timers(event.time_seconds)
-    if _spawns:
-        _watch_spawns()
     for handler in _frames:
         handler(event)
 
@@ -6576,6 +7009,43 @@ def _damaged(event: DamagedEvent) -> None:
         handler(event)
 
 
+def _killed(event: KillEvent) -> None:
+    for handler in _kills:
+        handler(event)
+
+
+def _ability_cast(event: AbilityCastEvent) -> None:
+    for handler in _ability_casts:
+        handler(event)
+
+
+def _healed(event: HealEvent) -> None:
+    for handler in _heals:
+        handler(event)
+
+
+def _level_changed(event: LevelEvent) -> None:
+    for handler in _levels:
+        handler(event)
+
+
+def _melee(event: MeleeEvent) -> None:
+    for handler in _melees:
+        handler(event)
+
+
+def _parried(event: ParryEvent) -> None:
+    for handler in _parries:
+        handler(event)
+
+
+def _modifier_fired(event: ModifierFiredEvent) -> None:
+    if event.name == _RESPAWNED and _spawns:
+        _respawned(event.player)
+    for handler in _modifier_events.get(event.name, ()):
+        handler(event)
+
+
 def _input(event: InputEvent) -> None:
     for handler in _inputs:
         handler(event.player, Buttons(event.pressed), Buttons(event.released))
@@ -6621,9 +7091,37 @@ def _setting_changed(event: SettingChangedEvent) -> None:
         handler(event.player, event.key, event.value)
 
 
+# _generations holds each slot's connection generation in the last player
+# list, so a new connection in a slot gets a new Player.
+_generations: dict[int, int] = {}
+
+
+def _adopt(players: list[Connection]) -> list[Connection]:
+    """_adopt gives each connection in a player list its slot's Player. A slot
+    whose connection changed since the last list gets a new Player, so a player
+    who takes a slot another left is never == the one who left and never finds
+    their dictionary entry. Its contract rests on the host reporting the list
+    before any event once it changed.
+    """
+    # Forget the Player of each slot whose connection left or was replaced.
+    global _generations
+    current = {c.player.slot: c.generation for c in players}
+    for slot, generation in _generations.items():
+        if current.get(slot) != generation:
+            Player.release(slot)
+    _generations = current
+
+    # Hand each connection its slot's Player, made anew where it was released.
+    adopted: list[Connection] = []
+    for c in players:
+        player = Player(c.player.slot)
+        adopted.append(c if player is c.player else dataclasses.replace(c, player=player))
+    return adopted
+
+
 def _players_changed(event: PlayersChangedEvent) -> None:
     global _roster
-    _roster = event.players
+    _roster = _adopt(event.players)
     for watcher in _player_watchers:
         watcher(_roster)
 
@@ -6652,6 +7150,13 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "service_replied": _service_replied,
     "damage": _damage,
     "damaged": _damaged,
+    "killed": _killed,
+    "ability_cast": _ability_cast,
+    "healed": _healed,
+    "level_changed": _level_changed,
+    "melee": _melee,
+    "parried": _parried,
+    "modifier_fired": _modifier_fired,
     "input": _input,
     "restored": _restored,
     "npcs_restored": _npcs_restored,

@@ -1,8 +1,9 @@
 // Arena is a free-for-all on any map. Players type /ready to fight and
-// /leave to watch; /bot adds a practice bot and /nobots removes them. Two
-// ready fighters start a countdown, the first to ten defeats wins, and the
-// arena waits for the next match. Started with the argument probe, the mod
-// checks itself with two bots and quits with PASS or FAIL.
+// /leave to watch, and any player can type /bot to add a practice bot or
+// /nobots to remove them all. When two fighters are ready a countdown starts,
+// the first to ten defeats wins, and the arena then waits for the next match.
+// When the server starts the mod with the argument probe, the mod checks
+// itself with two bots and quits with PASS or FAIL.
 import {
   command,
   onDamage,

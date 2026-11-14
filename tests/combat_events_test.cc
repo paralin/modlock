@@ -21,7 +21,7 @@ using modlock::gameinterop::BoundedReader;
 using modlock::gameinterop::DamageResultOffsets;
 using modlock::gameinterop::DecodeAbilityExecuted;
 using modlock::gameinterop::DecodeDamageTaken;
-using modlock::gameinterop::DecodeHealthTaken;
+using modlock::gameinterop::DecodeHealed;
 using modlock::gameinterop::DecodePropBroken;
 using modlock::gameinterop::DescribeInteractionObject;
 using modlock::gameinterop::InteractionEvent;
@@ -172,50 +172,41 @@ TEST(DecodeDamageTaken, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
   EXPECT_NE(unreadable.error().find("cannot read"), std::string::npos) << unreadable.error();
 }
 
-TEST(DecodeHealthTaken, PreservesRequestedVersusAppliedForOverhealDiagnostics) {
-  // The payload holds the entity, the requested heal and the applied heal.
-  unsigned char payload[12] = {};
-  const uint32_t entity = 0x0123'4567;
-  const float requested = 150.0f;
-  const int32_t applied = 40;  // the game clamped the rest away
-  std::memcpy(payload + 0, &entity, sizeof(entity));
-  std::memcpy(payload + 4, &requested, sizeof(requested));
-  std::memcpy(payload + 8, &applied, sizeof(applied));
+TEST(DecodeHealed, ReadsTheHealersAndAddsTheLeftoverToTheRequest) {
+  // The payload holds the healer, target and ability, the applied heal and
+  // the leftover full health refused.
+  unsigned char payload[0x18] = {};
+  const uint32_t handles[] = {0x0001'0011, 0x0002'0022, 0x0003'0033};
+  const int32_t applied = 40;
+  const uint32_t leftover = 110;
+  std::memcpy(payload, handles, sizeof(handles));
+  std::memcpy(payload + 0xC, &applied, sizeof(applied));
+  std::memcpy(payload + 0x10, &leftover, sizeof(leftover));
 
-  // Both amounts decode as written.
-  auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
+  // Every field decodes, and the request is the whole heal.
+  auto event = DecodeHealed(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_TRUE(event.has_value()) << event.error();
-  EXPECT_EQ(event->entity_handle, entity);
-  EXPECT_FLOAT_EQ(event->requested, requested);
+  EXPECT_EQ(event->healer_handle, handles[0]);
+  EXPECT_EQ(event->target_handle, handles[1]);
+  EXPECT_EQ(event->ability_handle, handles[2]);
   EXPECT_EQ(event->applied, applied);
+  EXPECT_EQ(event->requested, 150);
 }
 
-TEST(DecodeHealthTaken, RejectsANonfiniteRequest) {
-  // The payload requests an infinite heal.
-  unsigned char payload[12] = {};
-  const float requested = 3.4e38f * 2.0f;  // overflow to infinity
-  std::memcpy(payload + 4, &requested, sizeof(requested));
-
-  // Decoding refuses it.
-  auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
-  ASSERT_FALSE(event.has_value());
-  EXPECT_NE(event.error().find("nonfinite"), std::string::npos) << event.error();
-}
-
-TEST(DecodeHealthTaken, RejectsANegativeAppliedValue) {
+TEST(DecodeHealed, RejectsANegativeAppliedValue) {
   // The payload applies a negative heal.
-  unsigned char payload[12] = {};
+  unsigned char payload[0x18] = {};
   const int32_t applied = -5;
-  std::memcpy(payload + 8, &applied, sizeof(applied));
+  std::memcpy(payload + 0xC, &applied, sizeof(applied));
 
   // Decoding refuses it.
-  auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
+  auto event = DecodeHealed(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("negative"), std::string::npos) << event.error();
 }
 
-TEST(DecodeHealthTaken, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
-  auto event = DecodeHealthTaken(nullptr, FailReader());
+TEST(DecodeHealed, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
+  auto event = DecodeHealed(nullptr, FailReader());
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("null"), std::string::npos) << event.error();
 }

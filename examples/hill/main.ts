@@ -1,7 +1,8 @@
 // King of the Hill: a player types /hill to raise the hill where their hero
-// stands. Each second, a team alone on the hill scores a point; heroes from
-// both teams contest it. The first team to sixty points wins the round, and
-// the next round starts on the same hill.
+// stands. Each second, a team scores a point when only its heroes stand on
+// the hill, and nobody scores while heroes from both teams stand there. The
+// first team to sixty points wins the round, and the next round starts on the
+// same hill.
 import {
   command,
   onFrame,
@@ -16,12 +17,12 @@ import { drawBars } from './hud'
 
 const hill = new Hill()
 
-// A server that hibernates when empty runs no frames, so the hill would stop.
+// An empty server hibernates and skips frames, which would stop the hill.
 onStart(() => {
   serverCommand('sv_hibernate_when_empty 0')
 })
 
-// A new world has removed the markers.
+// Loading a new map removes the markers, so the hill forgets them.
 onWorld(() => hill.forget())
 
 onFrame((frame) => {

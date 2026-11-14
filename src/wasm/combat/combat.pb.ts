@@ -286,6 +286,98 @@ export const DamagedEvent: MessageType<DamagedEvent> =
   )
 
 /**
+ * KillEvent reports one hero or unit that a hit killed.
+ *
+ * @generated from message modlock.wasm.combat.KillEvent
+ */
+export interface KillEvent {
+  /**
+   * Victim is the entity that died.
+   */
+  victim?: number
+  /**
+   * VictimPlayer is the slot of the player whose hero died, or -1 for a unit.
+   */
+  victimPlayer?: number
+  /**
+   * Attacker is the entity credited with the killing hit, or zero for a
+   * hazard.
+   */
+  attacker?: number
+  /**
+   * AttackerPlayer is the slot of the player whose hero is the attacker, or
+   * -1. It is the victim's own slot when a hero killed itself.
+   */
+  attackerPlayer?: number
+  /**
+   * Ability is the ability that dealt the killing hit, or zero.
+   */
+  ability?: number
+}
+
+export const KillEvent: MessageType<KillEvent> =
+  /* @__PURE__ */ createMessageType<KillEvent>(
+    'modlock.wasm.combat.KillEvent',
+    () => [
+      [1, 'victim', 13],
+      [2, 'victim_player', 5],
+      [3, 'attacker', 13],
+      [4, 'attacker_player', 5],
+      [5, 'ability', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: KillEvent): KillEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.victim = r.uint32()
+              break
+            case 2:
+              m.victimPlayer = r.int32()
+              break
+            case 3:
+              m.attacker = r.uint32()
+              break
+            case 4:
+              m.attackerPlayer = r.int32()
+              break
+            case 5:
+              m.ability = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: KillEvent, w: Writer): void => {
+        {
+          const v = m.victim
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.victimPlayer
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.attacker
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.attackerPlayer
+          if (v) w.uint32(32).int32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(40).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
  * LaunchEvent is a watched projectile's first frame.
  *
  * @generated from message modlock.wasm.combat.LaunchEvent
@@ -958,6 +1050,452 @@ export const TraceHit: MessageType<TraceHit> =
         {
           const v = m.entity
           if (v) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ModifierFiredEvent reports one of the game's modifier events the mod
+ * watches, with the entities the game fired it with. Which of them an event
+ * fills depends on the event.
+ *
+ * @generated from message modlock.wasm.combat.ModifierFiredEvent
+ */
+export interface ModifierFiredEvent {
+  /**
+   * Name is the event as the mod named it in StartResult.modifier_events.
+   */
+  name?: string
+  /**
+   * Caster is the entity the event is about, such as the hero that parried
+   * or respawned, or zero.
+   */
+  caster?: number
+  /**
+   * Player is the slot of the player whose hero the caster is, or -1.
+   */
+  player?: number
+  /**
+   * Target is the other entity of the event, such as the victim of a kill,
+   * or zero.
+   */
+  target?: number
+  /**
+   * Ability is the ability or other entity the event names as its source, or
+   * zero.
+   */
+  ability?: number
+}
+
+export const ModifierFiredEvent: MessageType<ModifierFiredEvent> =
+  /* @__PURE__ */ createMessageType<ModifierFiredEvent>(
+    'modlock.wasm.combat.ModifierFiredEvent',
+    () => [
+      [1, 'name', 9],
+      [2, 'caster', 13],
+      [3, 'player', 5],
+      [4, 'target', 13],
+      [5, 'ability', 13],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ModifierFiredEvent,
+      ): ModifierFiredEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.caster = r.uint32()
+              break
+            case 3:
+              m.player = r.int32()
+              break
+            case 4:
+              m.target = r.uint32()
+              break
+            case 5:
+              m.ability = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModifierFiredEvent, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.caster
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.player
+          if (v) w.uint32(24).int32(v)
+        }
+        {
+          const v = m.target
+          if (v) w.uint32(32).uint32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(40).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * HealEvent reports health an ability, item or lifesteal restored at once to
+ * a hero or unit. Regeneration reports none, including what abilities such as
+ * Siphon Life restore as regeneration, and neither do Modlock's own heal and
+ * a heal at full health.
+ *
+ * @generated from message modlock.wasm.combat.HealEvent
+ */
+export interface HealEvent {
+  /**
+   * Target is the entity healed.
+   */
+  target?: number
+  /**
+   * TargetPlayer is the slot of the player whose hero was healed, or -1 for
+   * a unit.
+   */
+  targetPlayer?: number
+  /**
+   * Healer is the entity the heal came from, or zero when the game names
+   * none.
+   */
+  healer?: number
+  /**
+   * HealerPlayer is the slot of the player whose hero the healer is, or -1.
+   */
+  healerPlayer?: number
+  /**
+   * Ability is the ability or item that healed, or zero.
+   */
+  ability?: number
+  /**
+   * Applied is the health the heal restored.
+   */
+  applied?: number
+  /**
+   * Requested is the heal's whole amount; it exceeds applied when the target
+   * reached full health.
+   */
+  requested?: number
+}
+
+export const HealEvent: MessageType<HealEvent> =
+  /* @__PURE__ */ createMessageType<HealEvent>(
+    'modlock.wasm.combat.HealEvent',
+    () => [
+      [1, 'target', 13],
+      [2, 'target_player', 5],
+      [3, 'healer', 13],
+      [4, 'healer_player', 5],
+      [5, 'ability', 13],
+      [6, 'applied', 5],
+      [7, 'requested', 5],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: HealEvent): HealEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.target = r.uint32()
+              break
+            case 2:
+              m.targetPlayer = r.int32()
+              break
+            case 3:
+              m.healer = r.uint32()
+              break
+            case 4:
+              m.healerPlayer = r.int32()
+              break
+            case 5:
+              m.ability = r.uint32()
+              break
+            case 6:
+              m.applied = r.int32()
+              break
+            case 7:
+              m.requested = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HealEvent, w: Writer): void => {
+        {
+          const v = m.target
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.targetPlayer
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.healer
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.healerPlayer
+          if (v) w.uint32(32).int32(v)
+        }
+        {
+          const v = m.ability
+          if (v) w.uint32(40).uint32(v)
+        }
+        {
+          const v = m.applied
+          if (v) w.uint32(48).int32(v)
+        }
+        {
+          const v = m.requested
+          if (v) w.uint32(56).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * LevelEvent reports a hero reaching a new level.
+ *
+ * @generated from message modlock.wasm.combat.LevelEvent
+ */
+export interface LevelEvent {
+  /**
+   * Hero is the hero's entity.
+   */
+  hero?: number
+  /**
+   * Player is the slot of the player whose hero it is, or -1.
+   */
+  player?: number
+  /**
+   * Level is the hero's new level.
+   */
+  level?: number
+}
+
+export const LevelEvent: MessageType<LevelEvent> =
+  /* @__PURE__ */ createMessageType<LevelEvent>(
+    'modlock.wasm.combat.LevelEvent',
+    () => [
+      [1, 'hero', 13],
+      [2, 'player', 5],
+      [3, 'level', 5],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: LevelEvent): LevelEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.hero = r.uint32()
+              break
+            case 2:
+              m.player = r.int32()
+              break
+            case 3:
+              m.level = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: LevelEvent, w: Writer): void => {
+        {
+          const v = m.hero
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.player
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.level
+          if (v) w.uint32(24).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * MeleeEvent reports one melee swing as the game resolves it.
+ *
+ * @generated from message modlock.wasm.combat.MeleeEvent
+ */
+export interface MeleeEvent {
+  /**
+   * Attacker is the hero or unit that swung.
+   */
+  attacker?: number
+  /**
+   * AttackerPlayer is the slot of the player whose hero swung, or -1.
+   */
+  attackerPlayer?: number
+  /**
+   * Heavy is true for a charged swing and false for a light one.
+   */
+  heavy?: boolean
+  /**
+   * Hits are the entities the swing struck, empty for a miss.
+   */
+  hits?: number[]
+}
+
+export const MeleeEvent: MessageType<MeleeEvent> =
+  /* @__PURE__ */ createMessageType<MeleeEvent>(
+    'modlock.wasm.combat.MeleeEvent',
+    () => [
+      [1, 'attacker', 13],
+      [2, 'attacker_player', 5],
+      [3, 'heavy', 8],
+      [4, 'hits', 13, 3],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: MeleeEvent): MeleeEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.attacker = r.uint32()
+              break
+            case 2:
+              m.attackerPlayer = r.int32()
+              break
+            case 3:
+              m.heavy = r.bool()
+              break
+            case 4:
+              for (const e = r.run(t), a = (m.hits ??= []); r.pos < e;)
+                a.push(r.uint32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: MeleeEvent, w: Writer): void => {
+        {
+          const v = m.attacker
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.attackerPlayer
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.heavy
+          if (v) w.uint32(24).bool(v)
+        }
+        {
+          const a = m.hits
+          if (a != null && a.length > 0) {
+            const s = w.uint32(34).fork()
+            for (const e of a) w.uint32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
+ * ParryEvent reports a parry that caught a melee swing.
+ *
+ * @generated from message modlock.wasm.combat.ParryEvent
+ */
+export interface ParryEvent {
+  /**
+   * Parrier is the hero that parried.
+   */
+  parrier?: number
+  /**
+   * Player is the slot of the player whose hero parried, or -1.
+   */
+  player?: number
+  /**
+   * Attacker is the hero or unit whose swing was caught.
+   */
+  attacker?: number
+  /**
+   * AttackerPlayer is the slot of the player whose hero swung, or -1.
+   */
+  attackerPlayer?: number
+}
+
+export const ParryEvent: MessageType<ParryEvent> =
+  /* @__PURE__ */ createMessageType<ParryEvent>(
+    'modlock.wasm.combat.ParryEvent',
+    () => [
+      [1, 'parrier', 13],
+      [2, 'player', 5],
+      [3, 'attacker', 13],
+      [4, 'attacker_player', 5],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ParryEvent): ParryEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.parrier = r.uint32()
+              break
+            case 2:
+              m.player = r.int32()
+              break
+            case 3:
+              m.attacker = r.uint32()
+              break
+            case 4:
+              m.attackerPlayer = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ParryEvent, w: Writer): void => {
+        {
+          const v = m.parrier
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.player
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.attacker
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.attackerPlayer
+          if (v) w.uint32(32).int32(v)
         }
       },
     },

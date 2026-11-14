@@ -22,8 +22,8 @@ let bag = []
 /** dragged is the slot a drag started from, or -1 between drags. */
 let dragged = -1
 
-/** draw paints each slot with the item the mod put there; an empty slot
- * takes the sheet's color. */
+/** draw paints each slot in the color of the item the mod put there, and
+ * clears the color of an empty slot so the style sheet's color shows. */
 function draw(value) {
   bag = Array.isArray(value) ? value : []
   slots.forEach(({ panel, name }, i) => {
@@ -34,8 +34,8 @@ function draw(value) {
 }
 
 slots.forEach(({ panel }, i) => {
-  // A drag starts only from a slot that holds an item, and carries a copy of
-  // its name under the cursor.
+  // A drag starts only from a slot that holds an item, and shows a label with
+  // the item's name under the cursor.
   $.RegisterEventHandler('DragStart', panel, (_id, drag) => {
     const item = bag[i]
     if (!item) return false

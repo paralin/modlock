@@ -18,7 +18,7 @@ const HostArchive = "modlock-host-windows-x64.zip"
 // DownloadHost returns modlock-host.exe from the release tagged version,
 // downloading and extracting it into the user cache the first time.
 func DownloadHost(ctx context.Context, version string) (string, error) {
-	if !strings.HasPrefix(version, "v") {
+	if !fetch.Published(version) {
 		return "", errors.New("this modlock build has no release; set MODLOCK_HOST to modlock-host.exe")
 	}
 	dir, err := fetch.Cache("host", version)
@@ -28,7 +28,7 @@ func DownloadHost(ctx context.Context, version string) (string, error) {
 	err = fetch.Install(dir, func(staging string) error {
 		// Download the archive beside the staging directory, then unpack it.
 		archive := staging + ".zip"
-		if err := fetch.File(ctx, fetch.Release(version, HostArchive), archive); err != nil {
+		if err := fetch.ReleaseFile(ctx, version, HostArchive, archive); err != nil {
 			return err
 		}
 		return extract(archive, staging)

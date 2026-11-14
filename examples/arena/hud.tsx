@@ -4,7 +4,7 @@ import { show } from 'modlock'
 
 import { type Fighter, killTarget, type Match } from './match'
 
-/** gold marks the player's own row and the titles. */
+/** gold is the color of the player's own row and of the titles. */
 const gold = '#ffd34d'
 
 /** drawScoreboards shows each player the scoreboard as the match stands. */

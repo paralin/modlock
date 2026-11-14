@@ -1,7 +1,8 @@
-// Puppet shows the playback primitives. /puppet adds a ghost bot that walks a
-// square around the player; /puppet pause, play, seek <tick> and rate <n>
-// steer it, /puppet restore puts the player's hero back at the square's
-// start, and /puppet hit has the puppet hurt the player for 50.
+// Puppet shows the playback primitives. The first /puppet adds a ghost bot
+// that walks a square starting where the player stands. After that, /puppet
+// pause, play, seek <tick> and rate <n> control its playback, /puppet restore
+// sets the player's hero to 700 health, level 5 and 1000 souls where it
+// stands, and /puppet hit has the puppet hurt the player for 50.
 import {
   command,
   log,
@@ -15,7 +16,10 @@ import {
 /** puppet is the live puppet, absent until /puppet adds one. */
 let puppet: Puppet | undefined
 
-/** square is a track around origin: 4 corners, one second apart, back to the start. */
+/**
+ * square is a track from origin around a square and back to origin, reaching
+ * one corner each second.
+ */
 function square(origin: { x: number; y: number; z: number }): Track {
   const side = 300
   const offsets = [
@@ -52,7 +56,7 @@ command('puppet', (player: Player, args: string) => {
     return
   }
 
-  // Each verb is one playback control.
+  // Each other verb controls the puppet's playback or the player's hero.
   switch (verb) {
     case 'pause':
       puppet.pause()

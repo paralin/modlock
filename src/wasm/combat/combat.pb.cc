@@ -56,6 +56,121 @@ struct ProjectileOptionsDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ProjectileOptionsDefaultTypeInternal _ProjectileOptions_default_instance_;
 
+inline constexpr ParryEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        parrier_{0u},
+        player_{0},
+        attacker_{0u},
+        attacker_player_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ParryEvent::ParryEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ParryEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ParryEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParryEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParryEventDefaultTypeInternal() {}
+  union {
+    ParryEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParryEventDefaultTypeInternal _ParryEvent_default_instance_;
+
+inline constexpr ModifierFiredEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        caster_{0u},
+        player_{0},
+        target_{0u},
+        ability_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ModifierFiredEvent::ModifierFiredEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ModifierFiredEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ModifierFiredEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ModifierFiredEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ModifierFiredEventDefaultTypeInternal() {}
+  union {
+    ModifierFiredEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ModifierFiredEventDefaultTypeInternal _ModifierFiredEvent_default_instance_;
+
+inline constexpr MeleeEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        hits_{},
+        _hits_cached_byte_size_{0},
+        attacker_{0u},
+        attacker_player_{0},
+        heavy_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR MeleeEvent::MeleeEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(MeleeEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct MeleeEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MeleeEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~MeleeEventDefaultTypeInternal() {}
+  union {
+    MeleeEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MeleeEventDefaultTypeInternal _MeleeEvent_default_instance_;
+
+inline constexpr LevelEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        hero_{0u},
+        player_{0},
+        level_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR LevelEvent::LevelEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(LevelEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct LevelEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR LevelEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~LevelEventDefaultTypeInternal() {}
+  union {
+    LevelEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 LevelEventDefaultTypeInternal _LevelEvent_default_instance_;
+
 inline constexpr KillOptions::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -83,6 +198,35 @@ struct KillOptionsDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 KillOptionsDefaultTypeInternal _KillOptions_default_instance_;
+
+inline constexpr KillEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        victim_{0u},
+        victim_player_{0},
+        attacker_{0u},
+        attacker_player_{0},
+        ability_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR KillEvent::KillEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(KillEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct KillEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR KillEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~KillEventDefaultTypeInternal() {}
+  union {
+    KillEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 KillEventDefaultTypeInternal _KillEvent_default_instance_;
 
 inline constexpr HitOptions::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -113,6 +257,37 @@ struct HitOptionsDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HitOptionsDefaultTypeInternal _HitOptions_default_instance_;
+
+inline constexpr HealEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        target_{0u},
+        target_player_{0},
+        healer_{0u},
+        healer_player_{0},
+        ability_{0u},
+        applied_{0},
+        requested_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR HealEvent::HealEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(HealEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct HealEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR HealEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~HealEventDefaultTypeInternal() {}
+  union {
+    HealEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HealEventDefaultTypeInternal _HealEvent_default_instance_;
 
 inline constexpr DamagedEvent::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -398,6 +573,19 @@ const ::uint32_t
         4,
         5,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_.victim_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_.victim_player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_.attacker_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_.attacker_player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::KillEvent, _impl_.ability_),
+        0,
+        1,
+        2,
+        3,
+        4,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LaunchEvent, _impl_._has_bits_),
         8, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LaunchEvent, _impl_.entity_),
@@ -491,6 +679,67 @@ const ::uint32_t
         1,
         2,
         3,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_.caster_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_.target_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ModifierFiredEvent, _impl_.ability_),
+        0,
+        1,
+        2,
+        3,
+        4,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_._has_bits_),
+        10, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.target_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.target_player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.healer_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.healer_player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.ability_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.applied_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::HealEvent, _impl_.requested_),
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LevelEvent, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LevelEvent, _impl_.hero_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LevelEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::LevelEvent, _impl_.level_),
+        0,
+        1,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::MeleeEvent, _impl_._has_bits_),
+        7, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::MeleeEvent, _impl_.attacker_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::MeleeEvent, _impl_.attacker_player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::MeleeEvent, _impl_.heavy_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::MeleeEvent, _impl_.hits_),
+        1,
+        2,
+        3,
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ParryEvent, _impl_._has_bits_),
+        7, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ParryEvent, _impl_.parrier_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ParryEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ParryEvent, _impl_.attacker_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::combat::ParryEvent, _impl_.attacker_player_),
+        0,
+        1,
+        2,
+        3,
 };
 
 static const ::_pbi::MigrationSchema
@@ -498,19 +747,26 @@ static const ::_pbi::MigrationSchema
         {0, sizeof(::modlock::wasm::combat::DamageEvent)},
         {17, sizeof(::modlock::wasm::combat::DamageResult)},
         {24, sizeof(::modlock::wasm::combat::DamagedEvent)},
-        {39, sizeof(::modlock::wasm::combat::LaunchEvent)},
-        {52, sizeof(::modlock::wasm::combat::ImpactEvent)},
-        {71, sizeof(::modlock::wasm::combat::ProjectileOptions)},
-        {78, sizeof(::modlock::wasm::combat::HitOptions)},
-        {93, sizeof(::modlock::wasm::combat::KillOptions)},
-        {104, sizeof(::modlock::wasm::combat::TraceOptions)},
-        {117, sizeof(::modlock::wasm::combat::TraceResponse)},
-        {122, sizeof(::modlock::wasm::combat::TraceHit)},
+        {39, sizeof(::modlock::wasm::combat::KillEvent)},
+        {52, sizeof(::modlock::wasm::combat::LaunchEvent)},
+        {65, sizeof(::modlock::wasm::combat::ImpactEvent)},
+        {84, sizeof(::modlock::wasm::combat::ProjectileOptions)},
+        {91, sizeof(::modlock::wasm::combat::HitOptions)},
+        {106, sizeof(::modlock::wasm::combat::KillOptions)},
+        {117, sizeof(::modlock::wasm::combat::TraceOptions)},
+        {130, sizeof(::modlock::wasm::combat::TraceResponse)},
+        {135, sizeof(::modlock::wasm::combat::TraceHit)},
+        {146, sizeof(::modlock::wasm::combat::ModifierFiredEvent)},
+        {159, sizeof(::modlock::wasm::combat::HealEvent)},
+        {176, sizeof(::modlock::wasm::combat::LevelEvent)},
+        {185, sizeof(::modlock::wasm::combat::MeleeEvent)},
+        {196, sizeof(::modlock::wasm::combat::ParryEvent)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::combat::_DamageEvent_default_instance_._instance,
     &::modlock::wasm::combat::_DamageResult_default_instance_._instance,
     &::modlock::wasm::combat::_DamagedEvent_default_instance_._instance,
+    &::modlock::wasm::combat::_KillEvent_default_instance_._instance,
     &::modlock::wasm::combat::_LaunchEvent_default_instance_._instance,
     &::modlock::wasm::combat::_ImpactEvent_default_instance_._instance,
     &::modlock::wasm::combat::_ProjectileOptions_default_instance_._instance,
@@ -519,6 +775,11 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::combat::_TraceOptions_default_instance_._instance,
     &::modlock::wasm::combat::_TraceResponse_default_instance_._instance,
     &::modlock::wasm::combat::_TraceHit_default_instance_._instance,
+    &::modlock::wasm::combat::_ModifierFiredEvent_default_instance_._instance,
+    &::modlock::wasm::combat::_HealEvent_default_instance_._instance,
+    &::modlock::wasm::combat::_LevelEvent_default_instance_._instance,
+    &::modlock::wasm::combat::_MeleeEvent_default_instance_._instance,
+    &::modlock::wasm::combat::_ParryEvent_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -533,37 +794,51 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "(\002H\001\210\001\001B\010\n\006_blockB\t\n\007_amount\"|\n\014DamagedE"
     "vent\022\016\n\006victim\030\001 \001(\r\022\020\n\010attacker\030\002 \001(\r\022\017"
     "\n\007ability\030\003 \001(\r\022\023\n\013health_lost\030\004 \001(\005\022\025\n\r"
-    "health_before\030\005 \001(\005\022\r\n\005dealt\030\006 \001(\005\"t\n\013La"
-    "unchEvent\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022"
-    "\r\n\005owner\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022(\n\010positi"
-    "on\030\005 \001(\0132\026.modlock.geometry.Vec3\"\315\001\n\013Imp"
-    "actEvent\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\r"
-    "\n\005owner\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022%\n\005start\030\005"
-    " \001(\0132\026.modlock.geometry.Vec3\022#\n\003end\030\006 \001("
-    "\0132\026.modlock.geometry.Vec3\022(\n\010position\030\007 "
-    "\001(\0132\026.modlock.geometry.Vec3\022\013\n\003hit\030\010 \001(\r"
-    "\"P\n\021ProjectileOptions\022\r\n\005names\030\001 \003(\t\022\032\n\r"
-    "keep_momentum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep_moment"
-    "um\"\276\001\n\nHitOptions\022\016\n\006victim\030\001 \001(\r\022\025\n\010att"
-    "acker\030\002 \001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210\001\001"
-    "\022\016\n\006amount\030\004 \001(\002\022\026\n\thit_group\030\005 \001(\005H\002\210\001\001"
-    "\022\024\n\007ability\030\006 \001(\rH\003\210\001\001B\013\n\t_attackerB\014\n\n_"
-    "inflictorB\014\n\n_hit_groupB\n\n\010_ability\"\211\001\n\013"
-    "KillOptions\022\016\n\006victim\030\001 \001(\r\022\025\n\010attacker\030"
-    "\002 \001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210\001\001\022\024\n\007ab"
-    "ility\030\004 \001(\rH\002\210\001\001B\013\n\t_attackerB\014\n\n_inflic"
-    "torB\n\n\010_ability\"\254\001\n\014TraceOptions\022%\n\005star"
-    "t\030\001 \001(\0132\026.modlock.geometry.Vec3\022#\n\003end\030\002"
-    " \001(\0132\026.modlock.geometry.Vec3\022\023\n\006layers\030\003"
-    " \001(\004H\000\210\001\001\022\024\n\007exclude\030\004 \001(\004H\001\210\001\001\022\016\n\006ignor"
-    "e\030\005 \003(\rB\t\n\007_layersB\n\n\010_exclude\";\n\rTraceR"
-    "esponse\022*\n\003hit\030\001 \001(\0132\035.modlock.wasm.comb"
-    "at.TraceHit\"\201\001\n\010TraceHit\022(\n\010position\030\001 \001"
-    "(\0132\026.modlock.geometry.Vec3\022&\n\006normal\030\002 \001"
-    "(\0132\026.modlock.geometry.Vec3\022\023\n\013start_soli"
-    "d\030\003 \001(\010\022\016\n\006entity\030\004 \001(\rB3Z1github.com/pa"
-    "ralin/modlock/src/wasm/combat;combatb\006pr"
-    "oto3"
+    "health_before\030\005 \001(\005\022\r\n\005dealt\030\006 \001(\005\"n\n\tKi"
+    "llEvent\022\016\n\006victim\030\001 \001(\r\022\025\n\rvictim_player"
+    "\030\002 \001(\005\022\020\n\010attacker\030\003 \001(\r\022\027\n\017attacker_pla"
+    "yer\030\004 \001(\005\022\017\n\007ability\030\005 \001(\r\"t\n\013LaunchEven"
+    "t\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\r\n\005owner"
+    "\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022(\n\010position\030\005 \001(\013"
+    "2\026.modlock.geometry.Vec3\"\315\001\n\013ImpactEvent"
+    "\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\r\n\005owner\030"
+    "\003 \001(\r\022\016\n\006player\030\004 \001(\005\022%\n\005start\030\005 \001(\0132\026.m"
+    "odlock.geometry.Vec3\022#\n\003end\030\006 \001(\0132\026.modl"
+    "ock.geometry.Vec3\022(\n\010position\030\007 \001(\0132\026.mo"
+    "dlock.geometry.Vec3\022\013\n\003hit\030\010 \001(\r\"P\n\021Proj"
+    "ectileOptions\022\r\n\005names\030\001 \003(\t\022\032\n\rkeep_mom"
+    "entum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep_momentum\"\276\001\n\nH"
+    "itOptions\022\016\n\006victim\030\001 \001(\r\022\025\n\010attacker\030\002 "
+    "\001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210\001\001\022\016\n\006amou"
+    "nt\030\004 \001(\002\022\026\n\thit_group\030\005 \001(\005H\002\210\001\001\022\024\n\007abil"
+    "ity\030\006 \001(\rH\003\210\001\001B\013\n\t_attackerB\014\n\n_inflicto"
+    "rB\014\n\n_hit_groupB\n\n\010_ability\"\211\001\n\013KillOpti"
+    "ons\022\016\n\006victim\030\001 \001(\r\022\025\n\010attacker\030\002 \001(\rH\000\210"
+    "\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210\001\001\022\024\n\007ability\030\004 "
+    "\001(\rH\002\210\001\001B\013\n\t_attackerB\014\n\n_inflictorB\n\n\010_"
+    "ability\"\254\001\n\014TraceOptions\022%\n\005start\030\001 \001(\0132"
+    "\026.modlock.geometry.Vec3\022#\n\003end\030\002 \001(\0132\026.m"
+    "odlock.geometry.Vec3\022\023\n\006layers\030\003 \001(\004H\000\210\001"
+    "\001\022\024\n\007exclude\030\004 \001(\004H\001\210\001\001\022\016\n\006ignore\030\005 \003(\rB"
+    "\t\n\007_layersB\n\n\010_exclude\";\n\rTraceResponse\022"
+    "*\n\003hit\030\001 \001(\0132\035.modlock.wasm.combat.Trace"
+    "Hit\"\201\001\n\010TraceHit\022(\n\010position\030\001 \001(\0132\026.mod"
+    "lock.geometry.Vec3\022&\n\006normal\030\002 \001(\0132\026.mod"
+    "lock.geometry.Vec3\022\023\n\013start_solid\030\003 \001(\010\022"
+    "\016\n\006entity\030\004 \001(\r\"c\n\022ModifierFiredEvent\022\014\n"
+    "\004name\030\001 \001(\t\022\016\n\006caster\030\002 \001(\r\022\016\n\006player\030\003 "
+    "\001(\005\022\016\n\006target\030\004 \001(\r\022\017\n\007ability\030\005 \001(\r\"\216\001\n"
+    "\tHealEvent\022\016\n\006target\030\001 \001(\r\022\025\n\rtarget_pla"
+    "yer\030\002 \001(\005\022\016\n\006healer\030\003 \001(\r\022\025\n\rhealer_play"
+    "er\030\004 \001(\005\022\017\n\007ability\030\005 \001(\r\022\017\n\007applied\030\006 \001"
+    "(\005\022\021\n\trequested\030\007 \001(\005\"9\n\nLevelEvent\022\014\n\004h"
+    "ero\030\001 \001(\r\022\016\n\006player\030\002 \001(\005\022\r\n\005level\030\003 \001(\005"
+    "\"T\n\nMeleeEvent\022\020\n\010attacker\030\001 \001(\r\022\027\n\017atta"
+    "cker_player\030\002 \001(\005\022\r\n\005heavy\030\003 \001(\010\022\014\n\004hits"
+    "\030\004 \003(\r\"X\n\nParryEvent\022\017\n\007parrier\030\001 \001(\r\022\016\n"
+    "\006player\030\002 \001(\005\022\020\n\010attacker\030\003 \001(\r\022\027\n\017attac"
+    "ker_player\030\004 \001(\005B3Z1github.com/paralin/m"
+    "odlock/src/wasm/combat;combatb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto_deps[1] = {
@@ -573,13 +848,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto = {
     false,
     false,
-    1644,
+    2237,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
     "github.com/paralin/modlock/src/wasm/combat/combat.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto_deps,
     1,
-    11,
+    17,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto::offsets,
@@ -1689,6 +1964,383 @@ void DamagedEvent::InternalSwap(DamagedEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL
 }
 
 ::google::protobuf::Metadata DamagedEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class KillEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<KillEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(KillEvent, _impl_._has_bits_);
+};
+
+KillEvent::KillEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, KillEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.KillEvent)
+}
+KillEvent::KillEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const KillEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, KillEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE KillEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void KillEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, victim_),
+           0,
+           offsetof(Impl_, ability_) -
+               offsetof(Impl_, victim_) +
+               sizeof(Impl_::ability_));
+}
+KillEvent::~KillEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.KillEvent)
+  SharedDtor(*this);
+}
+inline void KillEvent::SharedDtor(MessageLite& self) {
+  KillEvent& this_ = static_cast<KillEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL KillEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) KillEvent(arena);
+}
+constexpr auto KillEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(KillEvent),
+                                            alignof(KillEvent));
+}
+constexpr auto KillEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_KillEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &KillEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<KillEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &KillEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<KillEvent>(), &KillEvent::ByteSizeLong,
+              &KillEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(KillEvent, _impl_._cached_size_),
+          false,
+      },
+      &KillEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull KillEvent_class_data_ =
+        KillEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+KillEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&KillEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(KillEvent_class_data_.tc_table);
+  return KillEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 5, 0, 0, 2>
+KillEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(KillEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    5, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967264,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    5,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    KillEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::KillEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 victim = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(KillEvent, _impl_.victim_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.victim_)}},
+    // int32 victim_player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(KillEvent, _impl_.victim_player_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.victim_player_)}},
+    // uint32 attacker = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(KillEvent, _impl_.attacker_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.attacker_)}},
+    // int32 attacker_player = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(KillEvent, _impl_.attacker_player_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.attacker_player_)}},
+    // uint32 ability = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(KillEvent, _impl_.ability_), 4>(),
+     {40, 4, 0,
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.ability_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 victim = 1;
+    {PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.victim_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 victim_player = 2;
+    {PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.victim_player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 attacker = 3;
+    {PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.attacker_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 attacker_player = 4;
+    {PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.attacker_player_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 ability = 5;
+    {PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.ability_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void KillEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.KillEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    ::memset(&_impl_.victim_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.ability_) -
+        reinterpret_cast<char*>(&_impl_.victim_)) + sizeof(_impl_.ability_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL KillEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const KillEvent& this_ = static_cast<const KillEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL KillEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const KillEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.KillEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 victim = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_victim() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_victim(), target);
+    }
+  }
+
+  // int32 victim_player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_victim_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_victim_player(), target);
+    }
+  }
+
+  // uint32 attacker = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_attacker() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_attacker(), target);
+    }
+  }
+
+  // int32 attacker_player = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_attacker_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
+              stream, this_._internal_attacker_player(), target);
+    }
+  }
+
+  // uint32 ability = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_ability() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          5, this_._internal_ability(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.KillEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t KillEvent::ByteSizeLong(const MessageLite& base) {
+  const KillEvent& this_ = static_cast<const KillEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t KillEvent::ByteSizeLong() const {
+  const KillEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.KillEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // uint32 victim = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_victim() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_victim());
+      }
+    }
+    // int32 victim_player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_victim_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_victim_player());
+      }
+    }
+    // uint32 attacker = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_attacker() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_attacker());
+      }
+    }
+    // int32 attacker_player = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_attacker_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_attacker_player());
+      }
+    }
+    // uint32 ability = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_ability() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_ability());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void KillEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<KillEvent*>(&to_msg);
+  auto& from = static_cast<const KillEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.KillEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_victim() != 0) {
+        _this->_impl_.victim_ = from._impl_.victim_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_victim_player() != 0) {
+        _this->_impl_.victim_player_ = from._impl_.victim_player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_attacker() != 0) {
+        _this->_impl_.attacker_ = from._impl_.attacker_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_attacker_player() != 0) {
+        _this->_impl_.attacker_player_ = from._impl_.attacker_player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_ability() != 0) {
+        _this->_impl_.ability_ = from._impl_.ability_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void KillEvent::CopyFrom(const KillEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.KillEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void KillEvent::InternalSwap(KillEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.ability_)
+      + sizeof(KillEvent::_impl_.ability_)
+      - PROTOBUF_FIELD_OFFSET(KillEvent, _impl_.victim_)>(
+          reinterpret_cast<char*>(&_impl_.victim_),
+          reinterpret_cast<char*>(&other->_impl_.victim_));
+}
+
+::google::protobuf::Metadata KillEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
@@ -4779,6 +5431,1901 @@ void TraceHit::InternalSwap(TraceHit* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
 }
 
 ::google::protobuf::Metadata TraceHit::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ModifierFiredEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ModifierFiredEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_._has_bits_);
+};
+
+ModifierFiredEvent::ModifierFiredEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ModifierFiredEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.ModifierFiredEvent)
+}
+PROTOBUF_NDEBUG_INLINE ModifierFiredEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::combat::ModifierFiredEvent& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        name_(arena, from.name_) {}
+
+ModifierFiredEvent::ModifierFiredEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ModifierFiredEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ModifierFiredEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ModifierFiredEvent* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, caster_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, caster_),
+           offsetof(Impl_, ability_) -
+               offsetof(Impl_, caster_) +
+               sizeof(Impl_::ability_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.combat.ModifierFiredEvent)
+}
+PROTOBUF_NDEBUG_INLINE ModifierFiredEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        name_(arena) {}
+
+inline void ModifierFiredEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, caster_),
+           0,
+           offsetof(Impl_, ability_) -
+               offsetof(Impl_, caster_) +
+               sizeof(Impl_::ability_));
+}
+ModifierFiredEvent::~ModifierFiredEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.ModifierFiredEvent)
+  SharedDtor(*this);
+}
+inline void ModifierFiredEvent::SharedDtor(MessageLite& self) {
+  ModifierFiredEvent& this_ = static_cast<ModifierFiredEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ModifierFiredEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ModifierFiredEvent(arena);
+}
+constexpr auto ModifierFiredEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ModifierFiredEvent),
+                                            alignof(ModifierFiredEvent));
+}
+constexpr auto ModifierFiredEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ModifierFiredEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ModifierFiredEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ModifierFiredEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ModifierFiredEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ModifierFiredEvent>(), &ModifierFiredEvent::ByteSizeLong,
+              &ModifierFiredEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_._cached_size_),
+          false,
+      },
+      &ModifierFiredEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ModifierFiredEvent_class_data_ =
+        ModifierFiredEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ModifierFiredEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ModifierFiredEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ModifierFiredEvent_class_data_.tc_table);
+  return ModifierFiredEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 5, 0, 51, 2>
+ModifierFiredEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    5, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967264,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    5,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ModifierFiredEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::ModifierFiredEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // string name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.name_)}},
+    // uint32 caster = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ModifierFiredEvent, _impl_.caster_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.caster_)}},
+    // int32 player = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ModifierFiredEvent, _impl_.player_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.player_)}},
+    // uint32 target = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ModifierFiredEvent, _impl_.target_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.target_)}},
+    // uint32 ability = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ModifierFiredEvent, _impl_.ability_), 4>(),
+     {40, 4, 0,
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.ability_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string name = 1;
+    {PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 caster = 2;
+    {PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.caster_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 player = 3;
+    {PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 target = 4;
+    {PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.target_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // uint32 ability = 5;
+    {PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.ability_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+    "\46\4\0\0\0\0\0\0"
+    "modlock.wasm.combat.ModifierFiredEvent"
+    "name"
+  }},
+};
+PROTOBUF_NOINLINE void ModifierFiredEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.ModifierFiredEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.name_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001eU)) {
+    ::memset(&_impl_.caster_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.ability_) -
+        reinterpret_cast<char*>(&_impl_.caster_)) + sizeof(_impl_.ability_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ModifierFiredEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ModifierFiredEvent& this_ = static_cast<const ModifierFiredEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ModifierFiredEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ModifierFiredEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.ModifierFiredEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string name = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_name().empty()) {
+      const ::std::string& _s = this_._internal_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.combat.ModifierFiredEvent.name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // uint32 caster = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_caster() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          2, this_._internal_caster(), target);
+    }
+  }
+
+  // int32 player = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<3>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // uint32 target = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_target() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          4, this_._internal_target(), target);
+    }
+  }
+
+  // uint32 ability = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_ability() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          5, this_._internal_ability(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.ModifierFiredEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ModifierFiredEvent::ByteSizeLong(const MessageLite& base) {
+  const ModifierFiredEvent& this_ = static_cast<const ModifierFiredEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ModifierFiredEvent::ByteSizeLong() const {
+  const ModifierFiredEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.ModifierFiredEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // string name = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_name());
+      }
+    }
+    // uint32 caster = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_caster() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_caster());
+      }
+    }
+    // int32 player = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // uint32 target = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_target() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_target());
+      }
+    }
+    // uint32 ability = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_ability() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_ability());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ModifierFiredEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<ModifierFiredEvent*>(&to_msg);
+  auto& from = static_cast<const ModifierFiredEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.ModifierFiredEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_name().empty()) {
+        _this->_internal_set_name(from._internal_name());
+      } else {
+        if (_this->_impl_.name_.IsDefault()) {
+          _this->_internal_set_name("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_caster() != 0) {
+        _this->_impl_.caster_ = from._impl_.caster_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_target() != 0) {
+        _this->_impl_.target_ = from._impl_.target_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_ability() != 0) {
+        _this->_impl_.ability_ = from._impl_.ability_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void ModifierFiredEvent::CopyFrom(const ModifierFiredEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.ModifierFiredEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ModifierFiredEvent::InternalSwap(ModifierFiredEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.ability_)
+      + sizeof(ModifierFiredEvent::_impl_.ability_)
+      - PROTOBUF_FIELD_OFFSET(ModifierFiredEvent, _impl_.caster_)>(
+          reinterpret_cast<char*>(&_impl_.caster_),
+          reinterpret_cast<char*>(&other->_impl_.caster_));
+}
+
+::google::protobuf::Metadata ModifierFiredEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class HealEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<HealEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(HealEvent, _impl_._has_bits_);
+};
+
+HealEvent::HealEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, HealEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.HealEvent)
+}
+HealEvent::HealEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const HealEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, HealEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE HealEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void HealEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, target_),
+           0,
+           offsetof(Impl_, requested_) -
+               offsetof(Impl_, target_) +
+               sizeof(Impl_::requested_));
+}
+HealEvent::~HealEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.HealEvent)
+  SharedDtor(*this);
+}
+inline void HealEvent::SharedDtor(MessageLite& self) {
+  HealEvent& this_ = static_cast<HealEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL HealEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) HealEvent(arena);
+}
+constexpr auto HealEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(HealEvent),
+                                            alignof(HealEvent));
+}
+constexpr auto HealEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_HealEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &HealEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<HealEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &HealEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<HealEvent>(), &HealEvent::ByteSizeLong,
+              &HealEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(HealEvent, _impl_._cached_size_),
+          false,
+      },
+      &HealEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull HealEvent_class_data_ =
+        HealEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+HealEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&HealEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(HealEvent_class_data_.tc_table);
+  return HealEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 7, 0, 0, 2>
+HealEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(HealEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    7, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967168,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    7,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    HealEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::HealEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 target = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.target_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.target_)}},
+    // int32 target_player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.target_player_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.target_player_)}},
+    // uint32 healer = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.healer_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.healer_)}},
+    // int32 healer_player = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.healer_player_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.healer_player_)}},
+    // uint32 ability = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.ability_), 4>(),
+     {40, 4, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.ability_)}},
+    // int32 applied = 6;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.applied_), 5>(),
+     {48, 5, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.applied_)}},
+    // int32 requested = 7;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(HealEvent, _impl_.requested_), 6>(),
+     {56, 6, 0,
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.requested_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 target = 1;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.target_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 target_player = 2;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.target_player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 healer = 3;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.healer_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 healer_player = 4;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.healer_player_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 ability = 5;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.ability_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 applied = 6;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.applied_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // int32 requested = 7;
+    {PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.requested_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void HealEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.HealEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    ::memset(&_impl_.target_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.requested_) -
+        reinterpret_cast<char*>(&_impl_.target_)) + sizeof(_impl_.requested_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL HealEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const HealEvent& this_ = static_cast<const HealEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL HealEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const HealEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.HealEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 target = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_target() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_target(), target);
+    }
+  }
+
+  // int32 target_player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_target_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_target_player(), target);
+    }
+  }
+
+  // uint32 healer = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_healer() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_healer(), target);
+    }
+  }
+
+  // int32 healer_player = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_healer_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
+              stream, this_._internal_healer_player(), target);
+    }
+  }
+
+  // uint32 ability = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_ability() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          5, this_._internal_ability(), target);
+    }
+  }
+
+  // int32 applied = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (this_._internal_applied() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<6>(
+              stream, this_._internal_applied(), target);
+    }
+  }
+
+  // int32 requested = 7;
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (this_._internal_requested() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<7>(
+              stream, this_._internal_requested(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.HealEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t HealEvent::ByteSizeLong(const MessageLite& base) {
+  const HealEvent& this_ = static_cast<const HealEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t HealEvent::ByteSizeLong() const {
+  const HealEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.HealEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    // uint32 target = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_target() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_target());
+      }
+    }
+    // int32 target_player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_target_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_target_player());
+      }
+    }
+    // uint32 healer = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_healer() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_healer());
+      }
+    }
+    // int32 healer_player = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_healer_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_healer_player());
+      }
+    }
+    // uint32 ability = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_ability() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_ability());
+      }
+    }
+    // int32 applied = 6;
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (this_._internal_applied() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_applied());
+      }
+    }
+    // int32 requested = 7;
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (this_._internal_requested() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_requested());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void HealEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<HealEvent*>(&to_msg);
+  auto& from = static_cast<const HealEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.HealEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_target() != 0) {
+        _this->_impl_.target_ = from._impl_.target_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_target_player() != 0) {
+        _this->_impl_.target_player_ = from._impl_.target_player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_healer() != 0) {
+        _this->_impl_.healer_ = from._impl_.healer_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_healer_player() != 0) {
+        _this->_impl_.healer_player_ = from._impl_.healer_player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_ability() != 0) {
+        _this->_impl_.ability_ = from._impl_.ability_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (from._internal_applied() != 0) {
+        _this->_impl_.applied_ = from._impl_.applied_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (from._internal_requested() != 0) {
+        _this->_impl_.requested_ = from._impl_.requested_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void HealEvent::CopyFrom(const HealEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.HealEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void HealEvent::InternalSwap(HealEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.requested_)
+      + sizeof(HealEvent::_impl_.requested_)
+      - PROTOBUF_FIELD_OFFSET(HealEvent, _impl_.target_)>(
+          reinterpret_cast<char*>(&_impl_.target_),
+          reinterpret_cast<char*>(&other->_impl_.target_));
+}
+
+::google::protobuf::Metadata HealEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class LevelEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<LevelEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_._has_bits_);
+};
+
+LevelEvent::LevelEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, LevelEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.LevelEvent)
+}
+LevelEvent::LevelEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const LevelEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, LevelEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE LevelEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void LevelEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, hero_),
+           0,
+           offsetof(Impl_, level_) -
+               offsetof(Impl_, hero_) +
+               sizeof(Impl_::level_));
+}
+LevelEvent::~LevelEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.LevelEvent)
+  SharedDtor(*this);
+}
+inline void LevelEvent::SharedDtor(MessageLite& self) {
+  LevelEvent& this_ = static_cast<LevelEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL LevelEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) LevelEvent(arena);
+}
+constexpr auto LevelEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(LevelEvent),
+                                            alignof(LevelEvent));
+}
+constexpr auto LevelEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_LevelEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &LevelEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<LevelEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &LevelEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<LevelEvent>(), &LevelEvent::ByteSizeLong,
+              &LevelEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_._cached_size_),
+          false,
+      },
+      &LevelEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull LevelEvent_class_data_ =
+        LevelEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+LevelEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&LevelEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(LevelEvent_class_data_.tc_table);
+  return LevelEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+LevelEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    LevelEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::LevelEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 hero = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(LevelEvent, _impl_.hero_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.hero_)}},
+    // int32 player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(LevelEvent, _impl_.player_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.player_)}},
+    // int32 level = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(LevelEvent, _impl_.level_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.level_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 hero = 1;
+    {PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.hero_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 player = 2;
+    {PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // int32 level = 3;
+    {PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.level_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void LevelEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.LevelEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    ::memset(&_impl_.hero_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.level_) -
+        reinterpret_cast<char*>(&_impl_.hero_)) + sizeof(_impl_.level_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL LevelEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const LevelEvent& this_ = static_cast<const LevelEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL LevelEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const LevelEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.LevelEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 hero = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_hero() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_hero(), target);
+    }
+  }
+
+  // int32 player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // int32 level = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_level() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<3>(
+              stream, this_._internal_level(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.LevelEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t LevelEvent::ByteSizeLong(const MessageLite& base) {
+  const LevelEvent& this_ = static_cast<const LevelEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t LevelEvent::ByteSizeLong() const {
+  const LevelEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.LevelEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // uint32 hero = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_hero() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_hero());
+      }
+    }
+    // int32 player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // int32 level = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_level() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_level());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void LevelEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<LevelEvent*>(&to_msg);
+  auto& from = static_cast<const LevelEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.LevelEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_hero() != 0) {
+        _this->_impl_.hero_ = from._impl_.hero_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_level() != 0) {
+        _this->_impl_.level_ = from._impl_.level_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void LevelEvent::CopyFrom(const LevelEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.LevelEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void LevelEvent::InternalSwap(LevelEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.level_)
+      + sizeof(LevelEvent::_impl_.level_)
+      - PROTOBUF_FIELD_OFFSET(LevelEvent, _impl_.hero_)>(
+          reinterpret_cast<char*>(&_impl_.hero_),
+          reinterpret_cast<char*>(&other->_impl_.hero_));
+}
+
+::google::protobuf::Metadata LevelEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class MeleeEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<MeleeEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_._has_bits_);
+};
+
+MeleeEvent::MeleeEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, MeleeEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.MeleeEvent)
+}
+PROTOBUF_NDEBUG_INLINE MeleeEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::combat::MeleeEvent& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        hits_{visibility, arena, from.hits_},
+        _hits_cached_byte_size_{0} {}
+
+MeleeEvent::MeleeEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const MeleeEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, MeleeEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  MeleeEvent* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, attacker_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, attacker_),
+           offsetof(Impl_, heavy_) -
+               offsetof(Impl_, attacker_) +
+               sizeof(Impl_::heavy_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.combat.MeleeEvent)
+}
+PROTOBUF_NDEBUG_INLINE MeleeEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        hits_{visibility, arena},
+        _hits_cached_byte_size_{0} {}
+
+inline void MeleeEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, attacker_),
+           0,
+           offsetof(Impl_, heavy_) -
+               offsetof(Impl_, attacker_) +
+               sizeof(Impl_::heavy_));
+}
+MeleeEvent::~MeleeEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.MeleeEvent)
+  SharedDtor(*this);
+}
+inline void MeleeEvent::SharedDtor(MessageLite& self) {
+  MeleeEvent& this_ = static_cast<MeleeEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL MeleeEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) MeleeEvent(arena);
+}
+constexpr auto MeleeEvent::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.hits_) +
+          decltype(MeleeEvent::_impl_.hits_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(MeleeEvent), alignof(MeleeEvent), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&MeleeEvent::PlacementNew_,
+                                 sizeof(MeleeEvent),
+                                 alignof(MeleeEvent));
+  }
+}
+constexpr auto MeleeEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_MeleeEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &MeleeEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<MeleeEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &MeleeEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<MeleeEvent>(), &MeleeEvent::ByteSizeLong,
+              &MeleeEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_._cached_size_),
+          false,
+      },
+      &MeleeEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull MeleeEvent_class_data_ =
+        MeleeEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+MeleeEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&MeleeEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(MeleeEvent_class_data_.tc_table);
+  return MeleeEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 4, 0, 0, 2>
+MeleeEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    4, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    MeleeEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::MeleeEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated uint32 hits = 4;
+    {::_pbi::TcParser::FastV32P1,
+     {34, 0, 0,
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.hits_)}},
+    // uint32 attacker = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MeleeEvent, _impl_.attacker_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.attacker_)}},
+    // int32 attacker_player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MeleeEvent, _impl_.attacker_player_), 2>(),
+     {16, 2, 0,
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.attacker_player_)}},
+    // bool heavy = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MeleeEvent, _impl_.heavy_), 3>(),
+     {24, 3, 0,
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.heavy_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 attacker = 1;
+    {PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.attacker_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 attacker_player = 2;
+    {PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.attacker_player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // bool heavy = 3;
+    {PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.heavy_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // repeated uint32 hits = 4;
+    {PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.hits_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void MeleeEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.MeleeEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.hits_.Clear();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000eU)) {
+    ::memset(&_impl_.attacker_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.heavy_) -
+        reinterpret_cast<char*>(&_impl_.attacker_)) + sizeof(_impl_.heavy_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL MeleeEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const MeleeEvent& this_ = static_cast<const MeleeEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL MeleeEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const MeleeEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.MeleeEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 attacker = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_attacker() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_attacker(), target);
+    }
+  }
+
+  // int32 attacker_player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_attacker_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_attacker_player(), target);
+    }
+  }
+
+  // bool heavy = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_heavy() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          3, this_._internal_heavy(), target);
+    }
+  }
+
+  // repeated uint32 hits = 4;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    {
+      int byte_size = this_._impl_._hits_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteUInt32Packed(
+            4, this_._internal_hits(), byte_size, target);
+      }
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.MeleeEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t MeleeEvent::ByteSizeLong(const MessageLite& base) {
+  const MeleeEvent& this_ = static_cast<const MeleeEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t MeleeEvent::ByteSizeLong() const {
+  const MeleeEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.MeleeEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    // repeated uint32 hits = 4;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          ::_pbi::WireFormatLite::UInt32SizeWithPackedTagSize(
+              this_._internal_hits(), 1,
+              this_._impl_._hits_cached_byte_size_);
+    }
+    // uint32 attacker = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_attacker() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_attacker());
+      }
+    }
+    // int32 attacker_player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_attacker_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_attacker_player());
+      }
+    }
+    // bool heavy = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_heavy() != 0) {
+        total_size += 2;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void MeleeEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<MeleeEvent*>(&to_msg);
+  auto& from = static_cast<const MeleeEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.MeleeEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_hits()->MergeFrom(from._internal_hits());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_attacker() != 0) {
+        _this->_impl_.attacker_ = from._impl_.attacker_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_attacker_player() != 0) {
+        _this->_impl_.attacker_player_ = from._impl_.attacker_player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_heavy() != 0) {
+        _this->_impl_.heavy_ = from._impl_.heavy_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void MeleeEvent::CopyFrom(const MeleeEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.MeleeEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void MeleeEvent::InternalSwap(MeleeEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.hits_.InternalSwap(&other->_impl_.hits_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.heavy_)
+      + sizeof(MeleeEvent::_impl_.heavy_)
+      - PROTOBUF_FIELD_OFFSET(MeleeEvent, _impl_.attacker_)>(
+          reinterpret_cast<char*>(&_impl_.attacker_),
+          reinterpret_cast<char*>(&other->_impl_.attacker_));
+}
+
+::google::protobuf::Metadata MeleeEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ParryEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ParryEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_._has_bits_);
+};
+
+ParryEvent::ParryEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ParryEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.combat.ParryEvent)
+}
+ParryEvent::ParryEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ParryEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ParryEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ParryEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ParryEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, parrier_),
+           0,
+           offsetof(Impl_, attacker_player_) -
+               offsetof(Impl_, parrier_) +
+               sizeof(Impl_::attacker_player_));
+}
+ParryEvent::~ParryEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.combat.ParryEvent)
+  SharedDtor(*this);
+}
+inline void ParryEvent::SharedDtor(MessageLite& self) {
+  ParryEvent& this_ = static_cast<ParryEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ParryEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ParryEvent(arena);
+}
+constexpr auto ParryEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ParryEvent),
+                                            alignof(ParryEvent));
+}
+constexpr auto ParryEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ParryEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ParryEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ParryEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ParryEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ParryEvent>(), &ParryEvent::ByteSizeLong,
+              &ParryEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_._cached_size_),
+          false,
+      },
+      &ParryEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ParryEvent_class_data_ =
+        ParryEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ParryEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ParryEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ParryEvent_class_data_.tc_table);
+  return ParryEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 4, 0, 0, 2>
+ParryEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    4, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ParryEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::combat::ParryEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int32 attacker_player = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ParryEvent, _impl_.attacker_player_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.attacker_player_)}},
+    // uint32 parrier = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ParryEvent, _impl_.parrier_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.parrier_)}},
+    // int32 player = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ParryEvent, _impl_.player_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.player_)}},
+    // uint32 attacker = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ParryEvent, _impl_.attacker_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.attacker_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 parrier = 1;
+    {PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.parrier_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 player = 2;
+    {PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // uint32 attacker = 3;
+    {PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.attacker_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 attacker_player = 4;
+    {PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.attacker_player_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ParryEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.combat.ParryEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    ::memset(&_impl_.parrier_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.attacker_player_) -
+        reinterpret_cast<char*>(&_impl_.parrier_)) + sizeof(_impl_.attacker_player_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ParryEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ParryEvent& this_ = static_cast<const ParryEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ParryEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ParryEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.combat.ParryEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint32 parrier = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_parrier() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_parrier(), target);
+    }
+  }
+
+  // int32 player = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // uint32 attacker = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_attacker() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_attacker(), target);
+    }
+  }
+
+  // int32 attacker_player = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_attacker_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
+              stream, this_._internal_attacker_player(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.combat.ParryEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ParryEvent::ByteSizeLong(const MessageLite& base) {
+  const ParryEvent& this_ = static_cast<const ParryEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ParryEvent::ByteSizeLong() const {
+  const ParryEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.combat.ParryEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    // uint32 parrier = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_parrier() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_parrier());
+      }
+    }
+    // int32 player = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // uint32 attacker = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_attacker() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_attacker());
+      }
+    }
+    // int32 attacker_player = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_attacker_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_attacker_player());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ParryEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<ParryEvent*>(&to_msg);
+  auto& from = static_cast<const ParryEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.combat.ParryEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_parrier() != 0) {
+        _this->_impl_.parrier_ = from._impl_.parrier_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_attacker() != 0) {
+        _this->_impl_.attacker_ = from._impl_.attacker_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_attacker_player() != 0) {
+        _this->_impl_.attacker_player_ = from._impl_.attacker_player_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void ParryEvent::CopyFrom(const ParryEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.combat.ParryEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ParryEvent::InternalSwap(ParryEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.attacker_player_)
+      + sizeof(ParryEvent::_impl_.attacker_player_)
+      - PROTOBUF_FIELD_OFFSET(ParryEvent, _impl_.parrier_)>(
+          reinterpret_cast<char*>(&_impl_.parrier_),
+          reinterpret_cast<char*>(&other->_impl_.parrier_));
+}
+
+::google::protobuf::Metadata ParryEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

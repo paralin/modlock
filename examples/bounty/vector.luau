@@ -7,7 +7,7 @@ type Angles = modlock.Angles
 
 local vector = {}
 
--- add returns a + b * scale; scale defaults to 1.
+-- add returns a + b * scale, with a scale of 1 when scale is nil.
 function vector.add(a: Vector, b: Vector, scale: number?): Vector
 	local s = scale or 1
 	return { x = a.x + b.x * s, y = a.y + b.y * s, z = a.z + b.z * s }

@@ -24,6 +24,7 @@ package mod
 
 import (
 	"errors"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -60,6 +61,13 @@ type handlers struct {
 	npcsRestoreds []func(err error)
 	damages       []func(*DamageEvent) *DamageResult
 	damageds      []func(*DamagedEvent)
+	kills         []func(*KillEvent)
+	casts         []func(*AbilityCastEvent)
+	heals         []func(*HealEvent)
+	levels        []func(*LevelEvent)
+	melees        []func(*MeleeEvent)
+	parries       []func(*ParryEvent)
+	modifiers     map[string][]func(*ModifierFiredEvent)
 	launches      []func(*LaunchEvent)
 	impacts       []func(*ImpactEvent)
 	landeds       []func(*LandedEvent)
@@ -73,6 +81,11 @@ type handlers struct {
 	// rosters counts the player lists the host reported, so a Cast settles
 	// joins and leaves only after a new one.
 	rosters uint64
+	// generations holds each slot's connection generation in the last player
+	// list, and tenures counts the connections each slot has lost since the
+	// mod started, so PlayerOf tells a newcomer from the one who left.
+	generations map[int32]uint32
+	tenures     map[int32]uint32
 
 	// result holds the last encoded Reply until the host has copied it.
 	result []byte
@@ -80,9 +93,11 @@ type handlers struct {
 
 // registered is the mod's single set of handlers.
 var registered = &handlers{
-	commands: map[string]func(Player, string){},
-	services: map[string]Service{},
-	waiting:  map[uint64]func(reply []byte, err error){},
+	commands:    map[string]func(Player, string){},
+	services:    map[string]Service{},
+	waiting:     map[uint64]func(reply []byte, err error){},
+	generations: map[int32]uint32{},
+	tenures:     map[int32]uint32{},
 }
 
 // Command calls handler when a player types /name in chat. The handler runs
@@ -198,6 +213,59 @@ func OnDamaged(handler func(hit *DamagedEvent)) {
 	registered.damageds = append(registered.damageds, handler)
 }
 
+// OnKill calls handler after each hit that kills a hero or a unit, before the
+// next frame. The kill names both entities and the player of each: a slot of
+// -1 is a unit's, or a hazard's for the attacker.
+func OnKill(handler func(kill *KillEvent)) {
+	registered.kills = append(registered.kills, handler)
+}
+
+// OnAbilityCast calls handler after each ability the game executes, before
+// the next frame: a hero's abilities and the items a player activates, at
+// the moment the cast takes effect.
+func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
+	registered.casts = append(registered.casts, handler)
+}
+
+// OnHeal calls handler after each heal, before the next frame: health a hero
+// or unit regained at once from an ability, an item or lifesteal. Regeneration
+// calls nothing, including what abilities such as Siphon Life restore as
+// regeneration, and neither do the mod's own heal and a heal at full health.
+// The heal names the entity healed, the healer and ability when the game
+// names them, and the player of each: a slot of -1 is a unit's, or no one's.
+func OnHeal(handler func(heal *HealEvent)) {
+	registered.heals = append(registered.heals, handler)
+}
+
+// OnLevelChange calls handler as each hero reaches a new level, before the
+// next frame.
+func OnLevelChange(handler func(change *LevelEvent)) {
+	registered.levels = append(registered.levels, handler)
+}
+
+// OnMelee calls handler after each melee swing, before the next frame, with
+// whether it was heavy and the entities it struck, none for a miss.
+func OnMelee(handler func(swing *MeleeEvent)) {
+	registered.melees = append(registered.melees, handler)
+}
+
+// OnParry calls handler after each parry that catches a melee swing, before
+// the next frame, naming the hero that parried and the attacker it caught.
+func OnParry(handler func(parry *ParryEvent)) {
+	registered.parries = append(registered.parries, handler)
+}
+
+// OnModifierEvent calls handler each time the game fires the modifier event
+// with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
+// or PLAYER_RESPAWNED, before the next frame. Register before the mod
+// starts. A name the running game lacks is logged once and never fires.
+func OnModifierEvent(name string, handler func(event *ModifierFiredEvent)) {
+	if registered.modifiers == nil {
+		registered.modifiers = map[string][]func(*ModifierFiredEvent){}
+	}
+	registered.modifiers[name] = append(registered.modifiers[name], handler)
+}
+
 // OnLaunch calls handler with each watched projectile's first frame, before
 // the next frame. WatchProjectiles names the projectiles.
 func OnLaunch(handler func(projectile *LaunchEvent)) {
@@ -256,15 +324,31 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Damaged: len(h.damageds) != 0,
 		Chat:    len(h.chats) != 0,
 		Joins:   len(h.joins) != 0 || len(h.leaves) != 0,
+		Casts:   len(h.casts) != 0,
+		Kills:   len(h.kills) != 0,
+		Heals:   len(h.heals) != 0,
+		Levels:  len(h.levels) != 0,
+		Melees:  len(h.melees) != 0,
+		Parries: len(h.parries) != 0,
+
+		ModifierEvents: h.modifierEvents(),
 	}, nil
+}
+
+// modifierEvents names the modifier events the mod's handlers watch.
+func (h *handlers) modifierEvents() []string {
+	names := slices.Collect(maps.Keys(h.modifiers))
+	if _, ok := h.modifiers[respawnedEvent]; !ok && len(spawns.handlers) != 0 {
+		names = append(names, respawnedEvent)
+	}
+	slices.Sort(names)
+	return names
 }
 
 // Frame runs the timers that came due and the frame handlers.
 func (h *handlers) Frame(event *FrameEvent) error {
 	advanceTimers(event.GetTimeSeconds())
-	if len(spawns.handlers) != 0 {
-		watchSpawns()
-	}
+	spawns.frame++
 	for _, handler := range h.frames {
 		handler(event)
 	}
@@ -284,7 +368,7 @@ func (h *handlers) Command(event *CommandEvent) (*CommandResult, error) {
 	// Claim the command and run its handler with the next frame. The server
 	// reads a client's commands under a CPU budget and drops the client when
 	// one handler spends it; slow work in a frame only delays that frame.
-	player, args := Player{Slot: event.GetPlayer()}, strings.TrimSpace(args)
+	player, args := PlayerOf(event.GetPlayer()), strings.TrimSpace(args)
 	After(0, func() { handler(player, args) })
 	return &CommandResult{Claimed: true}, nil
 }
@@ -311,7 +395,7 @@ func (h *handlers) World(event *WorldEvent) error {
 // UiPress runs the press handlers with the next frame, since a press arrives
 // under the same CPU budget as a command.
 func (h *handlers) UiPress(event *UiPressEvent) error {
-	player, node := Player{Slot: event.GetPlayer()}, event.GetNode()
+	player, node := PlayerOf(event.GetPlayer()), event.GetNode()
 	After(0, func() {
 		for _, handler := range h.presses {
 			handler(player, node)
@@ -363,8 +447,41 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 }
 
 // Damaged runs the damaged handlers.
-func (h *handlers) Damaged(event *DamagedEvent) error {
-	for _, handler := range h.damageds {
+func (h *handlers) Damaged(event *DamagedEvent) error { return each(h.damageds, event) }
+
+// Killed runs the kill handlers.
+func (h *handlers) Killed(event *KillEvent) error { return each(h.kills, event) }
+
+// AbilityCast runs the cast handlers.
+func (h *handlers) AbilityCast(event *AbilityCastEvent) error { return each(h.casts, event) }
+
+// Healed runs the heal handlers.
+func (h *handlers) Healed(event *HealEvent) error { return each(h.heals, event) }
+
+// LevelChanged runs the level handlers.
+func (h *handlers) LevelChanged(event *LevelEvent) error { return each(h.levels, event) }
+
+// Melee runs the melee handlers.
+func (h *handlers) Melee(event *MeleeEvent) error { return each(h.melees, event) }
+
+// Parried runs the parry handlers.
+func (h *handlers) Parried(event *ParryEvent) error { return each(h.parries, event) }
+
+// each calls every handler with the event.
+func each[E any](handlers []func(E), event E) error {
+	for _, handler := range handlers {
+		handler(event)
+	}
+	return nil
+}
+
+// ModifierFired tells the spawn handlers of a respawn, then runs the
+// handlers of the event's name.
+func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
+	if event.GetName() == respawnedEvent && len(spawns.handlers) != 0 {
+		respawned(PlayerOf(event.GetPlayer()))
+	}
+	for _, handler := range h.modifiers[event.GetName()] {
 		handler(event)
 	}
 	return nil
@@ -373,7 +490,7 @@ func (h *handlers) Damaged(event *DamagedEvent) error {
 // Input runs the input handlers.
 func (h *handlers) Input(event *InputEvent) error {
 	for _, handler := range h.inputs {
-		handler(Player{Slot: event.GetPlayer()}, event.GetPressed(), event.GetReleased())
+		handler(PlayerOf(event.GetPlayer()), event.GetPressed(), event.GetReleased())
 	}
 	return nil
 }
@@ -382,7 +499,7 @@ func (h *handlers) Input(event *InputEvent) error {
 func (h *handlers) Restored(event *RestoredEvent) error {
 	err := errorOf(event.GetError())
 	for _, handler := range h.restoreds {
-		handler(Player{Slot: event.GetPlayer()}, err)
+		handler(PlayerOf(event.GetPlayer()), err)
 	}
 	return nil
 }
@@ -412,44 +529,47 @@ func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
 }
 
 // Launch runs the launch handlers.
-func (h *handlers) Launch(event *LaunchEvent) error {
-	for _, handler := range h.launches {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Launch(event *LaunchEvent) error { return each(h.launches, event) }
 
 // Impact runs the impact handlers.
-func (h *handlers) Impact(event *ImpactEvent) error {
-	for _, handler := range h.impacts {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Impact(event *ImpactEvent) error { return each(h.impacts, event) }
 
 // Landed runs the landing handlers.
-func (h *handlers) Landed(event *LandedEvent) error {
-	for _, handler := range h.landeds {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Landed(event *LandedEvent) error { return each(h.landeds, event) }
 
 // SettingChanged runs the setting handlers.
 func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
 	for _, handler := range h.settings {
-		handler(Player{Slot: event.GetPlayer()}, event.GetKey(), event.GetValue())
+		handler(PlayerOf(event.GetPlayer()), event.GetKey(), event.GetValue())
 	}
 	return nil
 }
 
-// PlayersChanged keeps the reported player list for Players.
+// PlayersChanged keeps the reported player list for Players, and ends the
+// tenure of each slot whose connection left or was replaced, so PlayerOf
+// gives the next holder a different Player. The host reports the list before
+// any event once it changed, so every event's Player names its connection.
 func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
+	// Keep the list.
 	h.roster = event.GetPlayers()
 	if h.roster == nil {
 		h.roster = []*Connection{}
 	}
 	h.rosters++
+
+	// End each tenure whose connection is gone, then note the new list's.
+	current := make(map[int32]uint32, len(h.roster))
+	for _, connection := range h.roster {
+		current[connection.GetPlayer()] = connection.GetGeneration()
+	}
+	for slot, generation := range h.generations {
+		if held, ok := current[slot]; !ok || held != generation {
+			h.tenures[slot]++
+		}
+	}
+	h.generations = current
+
+	// Tell the watchers.
 	for _, handler := range h.rosterWatches {
 		handler(h.roster)
 	}
@@ -457,12 +577,7 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 }
 
 // PlayerJoined runs the join handlers.
-func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error {
-	for _, handler := range h.joins {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error { return each(h.joins, event) }
 
 // PlayerLeft runs the leave handlers at once, so the leaving player's hero
 // still reads.
@@ -473,19 +588,57 @@ func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
 	return nil
 }
 
-// ConnectionOf returns the connection of player: their name, Steam ID,
-// whether they are a bot and whether they finished joining. It returns nil
-// when nobody holds the slot.
-func ConnectionOf(player Player) *Connection {
-	// Read the roster the host reported, or ask for it.
-	held := registered.roster
-	if held == nil {
-		held, _ = Players()
+// roster returns the player list the host last reported, or asks for it.
+func roster() []*Connection {
+	if held := registered.roster; held != nil {
+		return held
 	}
+	held, _ := Players()
+	return held
+}
 
-	// Find the slot.
-	for _, connection := range held {
-		if connection.GetPlayer() == player.Slot {
+// Player addresses one connected player by their server slot. Two Players
+// are equal only when they name the same connection: a person who takes a
+// slot another left gets a different Player, so a map keyed by Player never
+// hands the newcomer the entry of the one who left. PlayerOf makes one; the
+// zero Player names nobody.
+type Player struct {
+	// slot identifies the player on the server.
+	slot int32
+	// tenure is one more than the number of connections the slot had lost
+	// when the Player was made, so it is zero only in the zero Player.
+	tenure uint32
+}
+
+// PlayerOf returns the Player of the connection that holds slot now, equal
+// to every other Player made for that connection.
+func PlayerOf(slot int32) Player {
+	return Player{slot: slot, tenure: registered.tenures[slot] + 1}
+}
+
+// Slot returns the server slot the player holds.
+func (p Player) Slot() int32 {
+	return p.slot
+}
+
+// Connection returns the player's connection: their name, Steam ID, whether
+// they are a bot and whether they finished joining. It returns nil when
+// nobody holds the slot.
+func (p Player) Connection() *Connection {
+	for _, connection := range roster() {
+		if connection.GetPlayer() == p.slot {
+			return connection
+		}
+	}
+	return nil
+}
+
+// ConnectionOfSteamID returns the connection of the account with a Steam ID,
+// or nil when it is not connected. Its GetPlayer is the slot of the Player to
+// call.
+func ConnectionOfSteamID(steamID uint64) *Connection {
+	for _, connection := range roster() {
+		if connection.GetSteamId() == steamID {
 			return connection
 		}
 	}

@@ -28,7 +28,7 @@ const (
 
 // Race is one run of a course: its racers, the start and the finish. A lap
 // runs through every checkpoint in order and back to the start line. Race
-// makes no calls into the game, so its rules test anywhere.
+// never calls into the game, so its tests run without a server.
 type Race struct {
 	// checkpoints are the course's positions; the first is the start line.
 	checkpoints []*mod.Vector

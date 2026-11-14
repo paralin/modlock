@@ -279,6 +279,39 @@ export interface StartResult {
    * and a PlayerLeft event as each leaves.
    */
   joins?: boolean
+  /**
+   * Casts asks for an AbilityCast event after each ability the game
+   * executes.
+   */
+  casts?: boolean
+  /**
+   * ModifierEvents asks for a ModifierFired event for each of the game's
+   * modifier events with these EModifierEvent names, such as
+   * MODIFIER_EVENT_ABILITY_CAST_STARTED or, without the prefix,
+   * ABILITY_CAST_STARTED. A name the running game lacks is logged and never
+   * fires.
+   */
+  modifierEvents?: string[]
+  /**
+   * Kills asks for a Killed event after each hit that kills a hero or unit.
+   */
+  kills?: boolean
+  /**
+   * Heals asks for a Healed event after each heal.
+   */
+  heals?: boolean
+  /**
+   * Levels asks for a LevelChanged event as each hero reaches a new level.
+   */
+  levels?: boolean
+  /**
+   * Melees asks for a Melee event after each melee swing.
+   */
+  melees?: boolean
+  /**
+   * Parries asks for a Parried event after each parry that catches a swing.
+   */
+  parries?: boolean
 }
 
 export const StartResult: MessageType<StartResult> =
@@ -290,6 +323,13 @@ export const StartResult: MessageType<StartResult> =
       [3, 'damaged', 8],
       [4, 'chat', 8],
       [5, 'joins', 8],
+      [6, 'casts', 8],
+      [7, 'modifier_events', 9, 1],
+      [8, 'kills', 8],
+      [9, 'heals', 8],
+      [10, 'levels', 8],
+      [11, 'melees', 8],
+      [12, 'parries', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: StartResult): StartResult => {
@@ -311,6 +351,27 @@ export const StartResult: MessageType<StartResult> =
               break
             case 5:
               m.joins = r.bool()
+              break
+            case 6:
+              m.casts = r.bool()
+              break
+            case 7:
+              ;(m.modifierEvents ??= []).push(r.string())
+              break
+            case 8:
+              m.kills = r.bool()
+              break
+            case 9:
+              m.heals = r.bool()
+              break
+            case 10:
+              m.levels = r.bool()
+              break
+            case 11:
+              m.melees = r.bool()
+              break
+            case 12:
+              m.parries = r.bool()
               break
             default:
               r.skip(t)
@@ -338,6 +399,34 @@ export const StartResult: MessageType<StartResult> =
         {
           const v = m.joins
           if (v) w.uint32(40).bool(v)
+        }
+        {
+          const v = m.casts
+          if (v) w.uint32(48).bool(v)
+        }
+        {
+          const a = m.modifierEvents
+          if (a != null) for (const e of a) w.uint32(58).string(e)
+        }
+        {
+          const v = m.kills
+          if (v) w.uint32(64).bool(v)
+        }
+        {
+          const v = m.heals
+          if (v) w.uint32(72).bool(v)
+        }
+        {
+          const v = m.levels
+          if (v) w.uint32(80).bool(v)
+        }
+        {
+          const v = m.melees
+          if (v) w.uint32(88).bool(v)
+        }
+        {
+          const v = m.parries
+          if (v) w.uint32(96).bool(v)
         }
       },
     },

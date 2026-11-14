@@ -287,6 +287,13 @@ local restoreds: { (player: Player, error: string?) -> () } = {}
 local npcsRestoreds: { (error: string?) -> () } = {}
 local damages: { (hit: DamageEvent) -> DamageResult? } = {}
 local damageds: { (hit: DamagedEvent) -> () } = {}
+local kills: { (kill: KillEvent) -> () } = {}
+local abilityCasts: { (cast: AbilityCastEvent) -> () } = {}
+local heals: { (heal: HealEvent) -> () } = {}
+local levels: { (change: LevelEvent) -> () } = {}
+local melees: { (swing: MeleeEvent) -> () } = {}
+local parries: { (parry: ParryEvent) -> () } = {}
+local modifierEvents: { [string]: { (event: ModifierFiredEvent) -> () } } = {}
 local launches: { (projectile: LaunchEvent) -> () } = {}
 local impacts: { (impact: ImpactEvent) -> () } = {}
 local landeds: { (landing: LandedEvent) -> () } = {}
@@ -297,6 +304,41 @@ local roster: { Connection }? = nil
 
 -- rosterWatchers hear each player list the host reports.
 local rosterWatchers: { (players: { Connection }) -> () } = {}
+
+-- generations holds each slot's connection generation in the last player
+-- list, so a new connection in a slot gets a new Player.
+local generations: { [number]: number } = {}
+
+-- adopt gives each connection in a player list its slot's Player. A slot
+-- whose connection changed since the last list gets a new Player, so a
+-- player who takes a slot another left is never == the one who left and
+-- never finds their table entry. Its contract rests on the host reporting
+-- the list before any event once it changed.
+local function adopt(players: { Connection }): { Connection }
+	-- Forget the Player of each slot whose connection left or was replaced.
+	local current: { [number]: number } = {}
+	for _, connection in players do
+		current[connection.player.slot] = connection.generation
+	end
+	for slot, generation in generations do
+		if current[slot] ~= generation then
+			Player.release(slot)
+		end
+	end
+	generations = current
+
+	-- Hand each connection its slot's Player, made anew where it was released.
+	local adopted: { Connection } = {}
+	for _, connection in players do
+		local player = Player.new(connection.player.slot)
+		if player ~= connection.player then
+			connection = table.clone(connection)
+			connection.player = player
+		end
+		table.insert(adopted, connection)
+	end
+	return adopted
+end
 
 -- Interface takes the events of the players' interfaces: the module that
 -- draws them, @modlock/ui, serves them with serveInterface, so the library
@@ -353,13 +395,18 @@ function modlock.players(): { Connection }
 	return response.players
 end
 
--- connection returns the connection of one player, given the player or their
--- slot: their name, Steam ID, whether they are a bot and whether they
--- finished joining. It returns nil when nobody holds the slot.
-function modlock.connection(player: Player | number): Connection?
-	local slot = if type(player) == "number" then player else player.slot
+-- connection returns the connection of one player, given the player, their
+-- slot as a number or their Steam ID as a string: their name, Steam ID,
+-- whether they are a bot and whether they finished joining. It returns nil
+-- when nobody holds the slot or the account is not connected. Its player
+-- field is the Player to call.
+function modlock.connection(player: Player | number | string): Connection?
 	for _, held in roster or modlock.players() do
-		if held.player.slot == slot then
+		if type(player) == "string" then
+			if held.steamId == player then
+				return held
+			end
+		elseif held.player.slot == (if type(player) == "number" then player else player.slot) then
 			return held
 		end
 	end
@@ -1070,100 +1117,199 @@ function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
 
--- Seating is where seatPlayers puts each player who joins.
+-- Seating is the hero and team seat gives one player.
 export type Seating = {
-	-- hero is each player's hero: its name as players know it or as the game
-	-- does, such as "Calico" or "hero_nano", its id, or "any" for the hero they
-	-- have or else a random one. "any" is the default.
+	-- hero is the hero's name as players know it or as the game does, such as
+	-- "Calico" or "hero_nano", its id, or "any" for the hero the player has or
+	-- else a random one. "any" is the default.
 	hero: (string | number)?,
-	-- team is the team, 2 or 3, every player joins, or a function that picks
-	-- the team for one player as they join. Without one each player joins the
-	-- side with fewer heroes.
-	team: (number | (connection: Connection) -> number)?,
-	-- respawn is the seconds a fallen hero waits before it comes back. Without
-	-- one a fallen hero is left to the game.
-	respawn: number?,
+	-- team is the team, 2 or 3. Without one the player keeps their hero's team
+	-- or joins the side with fewer heroes.
+	team: number?,
 }
 
--- seatPlayers gives every player who joins a hero on a team, skipping the
--- game's team and hero screens, and keeps them seated for the rest of the
--- game: it brings a fallen hero back after the respawn delay and seats a
--- player again after a hero change. It returns the Cast that does the
--- seating, whose members are the players' connections, and runs it each frame
--- itself.
-function modlock.seatPlayers(seating: Seating?): Cast<Connection>
-	-- Decide each player's seat once, as they join.
-	local options: Seating = seating or {}
-	local hero: string | number = options.hero or "any"
-	local team = options.team
-	local wants: { [Connection]: Want } = {}
+-- wishes holds what each seated player wants by slot, with the generation of
+-- the connection it was asked for, so a wish never passes to the next player
+-- in the slot.
+local wishes: { [number]: { generation: number, want: Want } } = {}
+
+-- unseated is the want of a player the mod did not seat: only the respawn
+-- delay.
+local unseated: Want = {}
+
+-- seating is the Cast that seats players, once the mod uses seating.
+local seating: Cast<Connection>? = nil
+
+-- startSeating makes the seating Cast and runs it with the mod's frames. Bots
+-- are members, so the mod can seat one and the respawn delay brings theirs
+-- back too. It starts with the first seat or respawn delay, so a mod that uses
+-- neither pays nothing.
+local function startSeating()
+	if seating then
+		return
+	end
 	local cast: Cast<Connection> = Cast.new({
 		join = function(connection: Connection): Connection
-			wants[connection] = {
-				hero = hero,
-				team = if type(team) == "function" then team(connection) else team,
-				respawn = options.respawn,
-			}
 			return connection
 		end,
 		leave = function(member: Connection)
-			wants[member] = nil
+			local held = wishes[member.player.slot]
+			if held and held.generation == member.generation then
+				wishes[member.player.slot] = nil
+			end
 		end,
 		want = function(member: Connection): Want
-			return wants[member]
+			local held = wishes[member.player.slot]
+			if held and held.generation == member.generation then
+				return held.want
+			end
+			return unseated
 		end,
+		bots = "join",
 	})
-
-	-- Run the cast with the mod's frames.
+	seating = cast
 	table.insert(frames, function(frame: FrameEvent)
 		cast:frame(frame.timeSeconds)
 	end)
-	return cast
+end
+
+-- connection returns the player's connection: their name, Steam ID, whether
+-- they are a bot and whether they finished joining. It returns nil when
+-- nobody holds the slot.
+function Player.connection(self: Player): Connection?
+	return modlock.connection(self)
+end
+
+-- seat gives the player a hero on a team, skipping the game's team and hero
+-- screens. Call it as the player joins:
+--
+--     modlock.onPlayerJoin(function(joined)
+--         joined.connection.player:seat({ hero = "haze", team = 2 })
+--     end)
+--
+-- The hero appears on a later frame, and onSpawn hears of it. The library asks
+-- the game again until the player has the seat, and once more after the player
+-- changes hero, so a call before the game is ready is not lost. Seating the
+-- player again replaces the seat, and it ends when they leave. It returns
+-- false when nobody holds the player's slot.
+function Player.seat(self: Player, options: Seating?): boolean
+	local held = modlock.connection(self)
+	if not held then
+		return false
+	end
+	local chosen: Seating = options or {}
+	wishes[self.slot] = {
+		generation = held.generation,
+		want = { hero = chosen.hero or "any", team = chosen.team, respawn = unseated.respawn },
+	}
+	startSeating()
+	return true
+end
+
+-- setRespawnDelay brings every fallen hero back after seconds, in place of the
+-- game's own respawn time. Without seconds it leaves fallen heroes to the game
+-- again.
+function modlock.setRespawnDelay(seconds: number?)
+	unseated = { respawn = seconds }
+	for _, held in wishes do
+		held.want = { hero = held.want.hero, team = held.want.team, respawn = seconds }
+	end
+	startSeating()
 end
 
 -- spawns holds the spawn handlers, which run in registration order.
 local spawns: { (player: Player, pawn: Pawn) -> () } = {}
 
--- spawned maps each slot whose hero is in play to that hero's entity, as the
--- spawn handlers last heard of it.
-local spawned: { [number]: number } = {}
+-- respawnedEvent is the game's modifier event for a hero entering play.
+local respawnedEvent = "PLAYER_RESPAWNED"
+
+-- frameCount counts frames, so spawnedAt can tell one frame's events apart.
+local frameCount = 0
+
+-- spawnedAt maps each slot to the frame the spawn handlers last heard of its
+-- hero; the game repeats the event as a player's hero is built.
+local spawnedAt: { [number]: number } = {}
 
 -- onSpawn calls handler each time a player's hero enters play: their first
--- hero after joining, each respawn, and each new hero after a change. The
+-- hero after joining, and each respawn. The
 -- player has a hero to move, equip and read from then on, which onPlayerJoin
--- does not promise. The library reads each player's pawn once a frame while a
--- handler is registered.
+-- does not promise. The library hears it from the game's PLAYER_RESPAWNED
+-- event, before the frame handlers run.
 function modlock.onSpawn(handler: (player: Player, pawn: Pawn) -> ())
 	table.insert(spawns, handler)
 end
 
--- watchSpawns tells the spawn handlers of each hero that entered play since
--- the last frame.
-local function watchSpawns()
-	-- A hero is in play while it lives; a placeholder pawn has hero 0.
-	local present: { [number]: number } = {}
-	for _, connection in modlock.players() do
-		local player = connection.player
-		local pawn = player:pawn()
-		if pawn and pawn.hero ~= 0 and pawn.health > 0 then
-			present[player.slot] = pawn.entity
-
-			-- A respawn follows a death, and a new hero has a new entity.
-			if spawned[player.slot] ~= pawn.entity then
-				for _, handler in spawns do
-					handler(player, pawn)
-				end
-			end
-		end
+-- respawned tells the spawn handlers that the player's hero entered play.
+local function respawned(player: Player)
+	-- Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+	local pawn = if player.slot < 0 then nil else player:pawn()
+	if not pawn or pawn.hero == 0 or pawn.health <= 0 then
+		return
 	end
-
-	-- Forget the fallen and the gone, so their next hero is a spawn.
-	spawned = present
+	if spawnedAt[player.slot] == frameCount then
+		return
+	end
+	spawnedAt[player.slot] = frameCount
+	for _, handler in spawns do
+		handler(player, pawn)
+	end
 end
 
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
+end
+
+-- onKill calls handler after each hit that kills a hero or a unit, before the
+-- next frame. The kill names both entities and the player of each: a slot of
+-- -1 is a unit's, or a hazard's for the attacker.
+function modlock.onKill(handler: (kill: KillEvent) -> ())
+	table.insert(kills, handler)
+end
+
+-- onHeal calls handler after each heal, before the next frame: health a hero
+-- or unit regained at once from an ability, an item or lifesteal. Regeneration
+-- calls nothing, including what abilities such as Siphon Life restore as
+-- regeneration, and neither do the mod's own heal and a heal at full health.
+-- The heal names the entity healed, the healer and ability when the game
+-- names them, and the player of each: a slot of -1 is a unit's, or no one's.
+function modlock.onHeal(handler: (heal: HealEvent) -> ())
+	table.insert(heals, handler)
+end
+
+-- onLevelChange calls handler as each hero reaches a new level, before the
+-- next frame.
+function modlock.onLevelChange(handler: (change: LevelEvent) -> ())
+	table.insert(levels, handler)
+end
+
+-- onMelee calls handler after each melee swing, before the next frame, with
+-- whether it was heavy and the entities it struck, none for a miss.
+function modlock.onMelee(handler: (swing: MeleeEvent) -> ())
+	table.insert(melees, handler)
+end
+
+-- onParry calls handler after each parry that catches a melee swing, before
+-- the next frame, naming the hero that parried and the attacker it caught.
+function modlock.onParry(handler: (parry: ParryEvent) -> ())
+	table.insert(parries, handler)
+end
+
+-- onAbilityCast calls handler after each ability the game executes, before
+-- the next frame: a hero's abilities and the items a player activates, at
+-- the moment the cast takes effect.
+function modlock.onAbilityCast(handler: (cast: AbilityCastEvent) -> ())
+	table.insert(abilityCasts, handler)
+end
+
+-- onModifierEvent calls handler each time the game fires the modifier event
+-- with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
+-- or PLAYER_RESPAWNED, before the next frame. Register before the mod
+-- starts. A name the running game lacks is logged once and never fires.
+function modlock.onModifierEvent(name: string, handler: (event: ModifierFiredEvent) -> ())
+	local named = modifierEvents[name] or {}
+	table.insert(named, handler)
+	modifierEvents[name] = named
 end
 
 -- onLaunch calls handler with each watched projectile's first frame, before
@@ -1197,6 +1343,15 @@ local handlers: ModHandlers = {
 		for _, handler in starts do
 			handler(event.args)
 		end
+		-- Name the modifier events the mod listens to.
+		local watched: { string } = {}
+		for name in modifierEvents do
+			table.insert(watched, name)
+		end
+		if #spawns ~= 0 and not modifierEvents[respawnedEvent] then
+			table.insert(watched, respawnedEvent)
+		end
+
 		-- Timers run from frames, so the library always takes them.
 		return {
 			frames = true,
@@ -1204,6 +1359,13 @@ local handlers: ModHandlers = {
 			damaged = #damageds ~= 0,
 			chat = #chats ~= 0,
 			joins = #joins ~= 0 or #leaves ~= 0,
+			casts = #abilityCasts ~= 0,
+			kills = #kills ~= 0,
+			heals = #heals ~= 0,
+			levels = #levels ~= 0,
+			melees = #melees ~= 0,
+			parries = #parries ~= 0,
+			modifierEvents = watched,
 		}
 	end,
 
@@ -1212,9 +1374,7 @@ local handlers: ModHandlers = {
 			interface.tick(event.timeSeconds)
 		end
 		advanceTimers(event.timeSeconds)
-		if #spawns ~= 0 then
-			watchSpawns()
-		end
+		frameCount += 1
 		for _, handler in frames do
 			handler(event)
 		end
@@ -1305,6 +1465,51 @@ local handlers: ModHandlers = {
 		end
 	end,
 
+	killed = function(event)
+		for _, handler in kills do
+			handler(event)
+		end
+	end,
+
+	abilityCast = function(event)
+		for _, handler in abilityCasts do
+			handler(event)
+		end
+	end,
+
+	healed = function(event)
+		for _, handler in heals do
+			handler(event)
+		end
+	end,
+
+	levelChanged = function(event)
+		for _, handler in levels do
+			handler(event)
+		end
+	end,
+
+	melee = function(event)
+		for _, handler in melees do
+			handler(event)
+		end
+	end,
+
+	parried = function(event)
+		for _, handler in parries do
+			handler(event)
+		end
+	end,
+
+	modifierFired = function(event)
+		if event.name == respawnedEvent and #spawns ~= 0 then
+			respawned(event.player)
+		end
+		for _, handler in modifierEvents[event.name] or {} do
+			handler(event)
+		end
+	end,
+
 	input = function(event)
 		for _, handler in inputs do
 			handler(event.player, event.pressed, event.released)
@@ -1361,9 +1566,10 @@ local handlers: ModHandlers = {
 	end,
 
 	playersChanged = function(event)
-		roster = event.players
+		local players = adopt(event.players)
+		roster = players
 		for _, watcher in rosterWatchers do
-			watcher(event.players)
+			watcher(players)
 		end
 	end,
 

@@ -2177,6 +2177,48 @@ class ModClient {
     return Send<void>("Damaged", event);
   }
 
+  // Killed reports one hero or unit a hit killed, while the mod asked for
+  // kills, after the hit's Damaged event and before the next frame.
+  std::expected<void, std::string> Killed(const combat::KillEvent& event) {
+    return Send<void>("Killed", event);
+  }
+
+  // AbilityCast reports one ability the game executed, while the mod asked
+  // for casts, before the next frame.
+  std::expected<void, std::string> AbilityCast(const abilities::AbilityCastEvent& event) {
+    return Send<void>("AbilityCast", event);
+  }
+
+  // ModifierFired reports one modifier event the mod watches, before the
+  // next frame.
+  std::expected<void, std::string> ModifierFired(const combat::ModifierFiredEvent& event) {
+    return Send<void>("ModifierFired", event);
+  }
+
+  // Healed reports one heal, while the mod asked for heals, before the next
+  // frame.
+  std::expected<void, std::string> Healed(const combat::HealEvent& event) {
+    return Send<void>("Healed", event);
+  }
+
+  // LevelChanged reports one hero reaching a new level, while the mod asked
+  // for levels, before the next frame.
+  std::expected<void, std::string> LevelChanged(const combat::LevelEvent& event) {
+    return Send<void>("LevelChanged", event);
+  }
+
+  // Melee reports one melee swing, while the mod asked for melees, before the
+  // next frame.
+  std::expected<void, std::string> Melee(const combat::MeleeEvent& event) {
+    return Send<void>("Melee", event);
+  }
+
+  // Parried reports one parry that caught a swing, while the mod asked for
+  // parries, before the next frame.
+  std::expected<void, std::string> Parried(const combat::ParryEvent& event) {
+    return Send<void>("Parried", event);
+  }
+
   // Input reports one player's presses of watched buttons, before the next
   // frame. A block in place still withholds them from the hero.
   std::expected<void, std::string> Input(const InputEvent& event) {

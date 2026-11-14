@@ -36,7 +36,7 @@ local function parseTarget(text: string): number?
 	return seconds
 end
 
--- label is the marker's words for the holder.
+-- label returns the marker's text for the holder.
 local function label(holder: Player): string
 	return `BOUNTY\n{roster.name(holder)}  {round.seconds(holder)}/{round.target}`
 end
@@ -87,7 +87,8 @@ modlock.onStart(function(args)
 	modlock.log(`bounty started; first to {round.target} seconds wins`)
 end)
 
--- A new world has removed every object and reset every hero.
+-- Loading a new map removes every object and resets every hero, so the mod
+-- forgets its marker and flares and starts a new round.
 modlock.onWorld(function(map)
 	marker.forget()
 	flare.forget()
@@ -121,7 +122,7 @@ modlock.onFrame(function(frame)
 	end
 end)
 
--- The holder shrugs off part of every hit.
+-- The holder takes only the shield share of every hit.
 modlock.onDamage(function(hit)
 	local holder = round.holding()
 	local pawn = if holder then holder:pawn() else nil
@@ -131,10 +132,11 @@ modlock.onDamage(function(hit)
 	return nil
 end)
 
--- A kill of the holder passes the bounty to the killer; while nobody holds
--- it, any kill claims it.
+-- A kill of the holder passes the bounty to the killer, and while nobody
+-- holds it, any kill claims it.
 modlock.onDamaged(function(hit)
-	-- Find who died and who killed them; a suicide credits no one.
+	-- Find who died and who killed them, and count a suicide as a death to no
+	-- player.
 	if hit.healthBefore <= 0 or hit.healthLost < hit.healthBefore then
 		return
 	end

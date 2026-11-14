@@ -31,6 +31,12 @@ const strayBlow = 1_000_000
 export class Strays {
   /** since maps each stray pawn to when it was first seen with no player. */
   private since = new Map<number, number>()
+  /**
+   * gone holds the controller handles strays name that no longer resolve. A
+   * handle carries its entity's serial, so it never resolves again, and each
+   * failed read logs on the host: a sweep reads it once.
+   */
+  private gone = new Set<number>()
   private sweptAt = -Infinity
 
   /**
@@ -56,8 +62,9 @@ export class Strays {
 
     // Lay a pawn down once it has belonged to no one for the grace period.
     const since = new Map<number, number>()
+    const gone = new Set<number>()
     for (const entity of findEntities('player')) {
-      if (held.has(entity) || ownHero(entity)) {
+      if (held.has(entity) || ownHero(entity, this.gone, gone)) {
         continue
       }
       const first = this.since.get(entity) ?? now
@@ -67,14 +74,20 @@ export class Strays {
       }
     }
     this.since = since
+    this.gone = gone
   }
 }
 
 /**
  * ownHero reports whether the hero pawn entity is its controller's hero. A
- * pawn whose controller is gone, or names another hero, is not.
+ * pawn whose controller is gone, or names another hero, is not. It skips a
+ * controller in known as gone and adds each gone controller it sees to seen.
  */
-function ownHero(entity: number): boolean {
+function ownHero(
+  entity: number,
+  known: Set<number>,
+  seen: Set<number>,
+): boolean {
   // A controller must still hold this hero on behalf of a connection.
   const controller = readField(
     entity,
@@ -83,6 +96,10 @@ function ownHero(entity: number): boolean {
     'handle',
   )
   if (typeof controller !== 'number') {
+    return false
+  }
+  if (known.has(controller)) {
+    seen.add(controller)
     return false
   }
 
@@ -102,6 +119,11 @@ function ownHero(entity: number): boolean {
     'm_hHeroPawn',
     'handle',
   )
+
+  // A controller whose fields both fail to read no longer resolves.
+  if (connected === undefined && hero === undefined) {
+    seen.add(controller)
+  }
   return hero === entity
 }
 
