@@ -210,14 +210,14 @@ var (
 func init() {
 	mod.Command("race", func(p mod.Player, args string) {
 		_ = p.Teleport(course[0], &mod.Angles{}, nil)
-		runs[p.Slot] = &run{next: 1, started: now}
+		runs[p.Slot()] = &run{next: 1, started: now}
 		_ = p.CenterText("Go!")
 	})
 
 	mod.OnFrame(func(frame *mod.FrameEvent) {
 		now = frame.GetTimeSeconds()
 		for slot, r := range runs {
-			p := mod.Player{Slot: slot}
+			p := mod.PlayerOf(slot)
 			pawn, err := p.Pawn()
 			if err != nil || pawn == nil {
 				continue

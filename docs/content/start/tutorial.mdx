@@ -206,14 +206,14 @@ func init() {
 	mod.Command("start", func(mod.Player, string) {
 		connections, _ := mod.Players()
 		for _, c := range connections {
-			_ = mod.Player{Slot: c.GetPlayer()}.Freeze(nil)
+			_ = mod.PlayerOf(c.GetPlayer()).Freeze(nil)
 		}
 		mod.After(5*time.Second, func() {
 			live = true
 			released := false
 			connections, _ := mod.Players()
 			for _, c := range connections {
-				p := mod.Player{Slot: c.GetPlayer()}
+				p := mod.PlayerOf(c.GetPlayer())
 				_ = p.Freeze(&released)
 				_ = p.Announce("Fight!", "The round is live.")
 			}
@@ -235,9 +235,9 @@ The round has a start now, and `live` says whether it has begun. Use it to block
 <Samples>
 
 ```ts
-import { onDamage, onKill } from 'modlock'
+import { onDamage, onKill, type Player } from 'modlock'
 
-const defeats = new Map<number, number>()
+const defeats = new Map<Player, number>()
 
 // Nobody gets hurt until the round is live.
 onDamage(() => (live ? undefined : { block: true }))
@@ -246,15 +246,15 @@ onDamage(() => (live ? undefined : { block: true }))
 onKill((kill) => {
   const scorer = kill.attackerPlayer
   const victim = kill.victimPlayer
-  if (victim.slot < 0 || scorer.slot < 0 || scorer.slot === victim.slot) {
+  if (victim.slot < 0 || scorer.slot < 0 || scorer === victim) {
     return
   }
-  defeats.set(scorer.slot, (defeats.get(scorer.slot) ?? 0) + 1)
+  defeats.set(scorer, (defeats.get(scorer) ?? 0) + 1)
 })
 ```
 
 ```luau
-local defeats: { [number]: number } = {}
+local defeats: { [modlock.Player]: number } = {}
 
 -- Nobody gets hurt until the round is live.
 modlock.onDamage(function(hit)
@@ -267,15 +267,15 @@ end)
 -- A hero's defeat scores for the player who landed the killing hit.
 modlock.onKill(function(kill)
 	local scorer, victim = kill.attackerPlayer, kill.victimPlayer
-	if victim.slot < 0 or scorer.slot < 0 or scorer.slot == victim.slot then
+	if victim.slot < 0 or scorer.slot < 0 or scorer == victim then
 		return
 	end
-	defeats[scorer.slot] = (defeats[scorer.slot] or 0) + 1
+	defeats[scorer] = (defeats[scorer] or 0) + 1
 end)
 ```
 
 ```python
-defeats: dict[int, int] = {}
+defeats: dict[modlock.Player, int] = {}
 
 
 # Nobody gets hurt until the round is live.
@@ -288,13 +288,13 @@ def guard(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
 @modlock.on_kill
 def scored(kill: modlock.KillEvent) -> None:
     scorer, victim = kill.attacker_player, kill.victim_player
-    if victim.slot < 0 or scorer.slot < 0 or scorer.slot == victim.slot:
+    if victim.slot < 0 or scorer.slot < 0 or scorer is victim:
         return
-    defeats[scorer.slot] = defeats.get(scorer.slot, 0) + 1
+    defeats[scorer] = defeats.get(scorer, 0) + 1
 ```
 
 ```go
-var defeats = map[int32]int{}
+var defeats = map[mod.Player]int{}
 
 func init() {
 	// Nobody gets hurt until the round is live.
@@ -308,11 +308,11 @@ func init() {
 
 	// A hero's defeat scores for the player who landed the killing hit.
 	mod.OnKill(func(kill *mod.KillEvent) {
-		scorer, victim := mod.Player{Slot: kill.GetAttackerPlayer()}, kill.GetVictimPlayer()
-		if victim < 0 || scorer.Slot < 0 || scorer.Slot == victim {
+		scorer, victim := mod.PlayerOf(kill.GetAttackerPlayer()), mod.PlayerOf(kill.GetVictimPlayer())
+		if victim.Slot() < 0 || scorer.Slot() < 0 || scorer == victim {
 			return
 		}
-		defeats[scorer.Slot]++
+		defeats[scorer]++
 	})
 }
 ```
@@ -321,9 +321,9 @@ func init() {
 
 To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do no damage. Once the announcement shows, they land, and each hero you defeat adds one to your count in `defeats`. Nothing shows that count yet; the next step draws it.
 
-The damage event comes before the game applies each hit, so the sample can block it while `live` is false. The kill event comes after each hit that kills a hero or a unit, before the next frame. It names the player whose hero died and the player whose hero landed the hit. A slot of -1 means a unit, or a hazard for the attacker. A hero that killed itself is its own attacker, so the sample scores only a kill where both slots are players' and differ.
+The damage event comes before the game applies each hit, so the sample can block it while `live` is false. The kill event comes after each hit that kills a hero or a unit, before the next frame. It names the player whose hero died and the player whose hero landed the hit. A slot of -1 means a unit, or a hazard for the attacker. A hero that killed itself is its own attacker. The sample scores a kill only when both are players and the attacker is someone else.
 
-This map keys scores by slot. A slot is reused when one player leaves and another joins. In a mode where players come and go, clear a player's score when they leave. Or key scores by slot and `generation`, which changes each time someone new takes the slot.
+This map keys scores by player. When someone leaves and another person takes their slot, the newcomer is a new key and starts at zero. The map still holds the leaver's score, so in a mode where players come and go, delete a player's entry when they leave. The mod hears each leave before the player list that drops them, so the leave handler still finds the entry.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
@@ -441,7 +441,7 @@ import { drawScore } from './hud'
 
 onFrame(() => {
   for (const { player } of players()) {
-    drawScore(player, defeats.get(player.slot) ?? 0)
+    drawScore(player, defeats.get(player) ?? 0)
   }
 })
 ```
@@ -451,7 +451,7 @@ local hud = require("./hud")
 
 modlock.onFrame(function()
 	for _, connection in modlock.players() do
-		hud.drawScore(connection.player, defeats[connection.player.slot] or 0)
+		hud.drawScore(connection.player, defeats[connection.player] or 0)
 	end
 end)
 ```
@@ -463,7 +463,7 @@ import hud
 @modlock.on_frame
 def draw(frame: modlock.FrameEvent) -> None:
     for connection in modlock.players():
-        hud.draw_score(connection.player, defeats.get(connection.player.slot, 0))
+        hud.draw_score(connection.player, defeats.get(connection.player, 0))
 ```
 
 ```go
@@ -471,8 +471,8 @@ func init() {
 	mod.OnFrame(func(*mod.FrameEvent) {
 		connections, _ := mod.Players()
 		for _, c := range connections {
-			p := mod.Player{Slot: c.GetPlayer()}
-			drawScore(p, defeats[p.Slot])
+			p := mod.PlayerOf(c.GetPlayer())
+			drawScore(p, defeats[p])
 		}
 	})
 }

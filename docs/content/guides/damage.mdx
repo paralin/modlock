@@ -175,3 +175,11 @@ spells the fields in `snake_case`, and Go reads each player as a slot, such as
 | `ability`        | The ability that dealt the killing hit, or 0.                                                     |
 
 To turn a kill into a score, use [Kill scoring](/mechanics/kill-scoring).
+
+## Melee, parries and heals
+
+`onMelee` reports each melee swing, with whether it was heavy and the entities
+it struck, and `onParry` reports each parry that catches one. `onHeal` reports
+health a hero or unit regains at once.
+[Events](/guides/events#heals-levels-and-melee) lists their fields and what a
+heal leaves out.

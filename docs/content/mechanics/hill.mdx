@@ -11,12 +11,19 @@ stands on it alone:
 <Samples>
 
 ```ts
-import { createText, every, onWorld, players, type Vector } from 'modlock'
+import {
+  createText,
+  every,
+  onWorld,
+  players,
+  type Player,
+  type Vector,
+} from 'modlock'
 
 const hill: Vector = { x: 0, y: 0, z: 0 }
 const radius = 400
 const goal = 30
-const points = new Map<number, number>()
+const points = new Map<Player, number>()
 
 // Mark the hill each time a world loads, and start the score over.
 onWorld(() => {
@@ -41,8 +48,8 @@ every(1, () => {
   if (holder === undefined || holders.length > 1) {
     return // empty or contested
   }
-  const total = (points.get(holder.player.slot) ?? 0) + 1
-  points.set(holder.player.slot, total)
+  const total = (points.get(holder.player) ?? 0) + 1
+  points.set(holder.player, total)
   holder.player.centerText(`${total} / ${goal}`)
   if (total >= goal) {
     for (const { player } of players()) {
@@ -62,7 +69,7 @@ local modlock = require("@modlock")
 local hill = { x = 0, y = 0, z = 0 }
 local radius = 400
 local goal = 30
-local points: { [number]: number } = {}
+local points: { [modlock.Player]: number } = {}
 
 -- Mark the hill each time a world loads, and start the score over.
 modlock.onWorld(function()
@@ -89,8 +96,8 @@ modlock.every(1, function()
 		return -- empty or contested
 	end
 	local holder = holders[1]
-	local total = (points[holder.player.slot] or 0) + 1
-	points[holder.player.slot] = total
+	local total = (points[holder.player] or 0) + 1
+	points[holder.player] = total
 	holder.player:centerText(`{total} / {goal}`)
 	if total >= goal then
 		for _, connection in modlock.players() do
@@ -109,7 +116,7 @@ import modlock
 HILL = modlock.Vector(0, 0, 0)
 RADIUS = 400
 GOAL = 30
-points: dict[int, int] = {}
+points: dict[modlock.Player, int] = {}
 
 
 # Mark the hill each time a world loads, and start the score over.
@@ -137,8 +144,8 @@ def score() -> None:
     if len(holders) != 1:
         return  # empty or contested
     holder = holders[0]
-    total = points.get(holder.player.slot, 0) + 1
-    points[holder.player.slot] = total
+    total = points.get(holder.player, 0) + 1
+    points[holder.player] = total
     holder.player.center_text(f"{total} / {GOAL}")
     if total >= GOAL:
         for connection in modlock.players():
@@ -167,11 +174,11 @@ const (
 
 var (
 	hill   = &mod.Vector{}
-	points = map[int32]int{}
+	points = map[mod.Player]int{}
 )
 
 func onHill(c *mod.Connection) bool {
-	pawn, err := mod.Player{Slot: c.GetPlayer()}.Pawn()
+	pawn, err := mod.PlayerOf(c.GetPlayer()).Pawn()
 	if err != nil || pawn == nil || pawn.GetHealth() <= 0 {
 		return false
 	}
@@ -203,12 +210,13 @@ func init() {
 			return // empty or contested
 		}
 		holder := holders[0]
-		points[holder.GetPlayer()]++
-		total := points[holder.GetPlayer()]
-		_ = mod.Player{Slot: holder.GetPlayer()}.CenterText(fmt.Sprintf("%d / %d", total, goal))
+		p := mod.PlayerOf(holder.GetPlayer())
+		points[p]++
+		total := points[p]
+		_ = p.CenterText(fmt.Sprintf("%d / %d", total, goal))
 		if total >= goal {
 			for _, c := range connections {
-				_ = mod.Player{Slot: c.GetPlayer()}.Announce(holder.GetName()+" holds the hill", "A new round starts now.")
+				_ = mod.PlayerOf(c.GetPlayer()).Announce(holder.GetName()+" holds the hill", "A new round starts now.")
 			}
 			clear(points)
 		}

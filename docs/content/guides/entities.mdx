@@ -426,7 +426,7 @@ if dialog is not None:
 ```go
 dialog, err := entity.PointClientuiDialog.Create(&mod.EntityOptions{Position: position, TransmitAlways: new(true)}, nil)
 if err == nil {
-	_ = mod.ShowEntityOnlyTo(dialog.Handle, []int32{p.Slot})
+	_ = mod.ShowEntityOnlyTo(dialog.Handle, []int32{p.Slot()})
 }
 ```
 

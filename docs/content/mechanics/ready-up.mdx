@@ -218,7 +218,7 @@ func humans() []mod.Player {
 	connections, _ := mod.Players()
 	for _, c := range connections {
 		if !c.GetBot() {
-			list = append(list, mod.Player{Slot: c.GetPlayer()})
+			list = append(list, mod.PlayerOf(c.GetPlayer()))
 		}
 	}
 	return list
@@ -229,11 +229,11 @@ func init() {
 		if phase != "waiting" {
 			return
 		}
-		ready[p.Slot] = true
+		ready[p.Slot()] = true
 		everyone := humans()
 		missing := 0
 		for _, other := range everyone {
-			if !ready[other.Slot] {
+			if !ready[other.Slot()] {
 				missing++
 			}
 		}

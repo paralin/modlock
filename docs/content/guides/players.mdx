@@ -3,7 +3,8 @@ title: Players and heroes
 description: List the players, read their heroes and move them through the match.
 ---
 
-A player is a seat on the server, known by its slot, and a bot is a player too.
+A player is a person in a seat on the server, known by the seat's slot, and a
+bot is a player too. Whoever takes the seat next is a new player.
 A pawn is the player's hero as it is on this frame.
 
 ## List the players
@@ -101,9 +102,10 @@ You can also find a connection from a Steam ID, and make a Player from a slot:
 | TypeScript | `connection(steamId)`, with a bigint                 | `Player.of(slot)`          |
 | Luau       | `modlock.connection(steamId)`, with a string         | `modlock.Player.new(slot)` |
 | Python     | `modlock.connection(steam_id)`, a number above 65535 | `modlock.Player(slot)`     |
-| Go         | `mod.ConnectionOfSteamID(steamID)`                   | `mod.Player{Slot: slot}`   |
+| Go         | `mod.ConnectionOfSteamID(steamID)`                   | `mod.PlayerOf(slot)`       |
 
-The same `connection` call also takes a player or a slot.
+Each gives the player who holds the slot now. In Go, the zero `mod.Player`
+names nobody. The same `connection` call also takes a player or a slot.
 
 ### Roles
 
@@ -181,7 +183,7 @@ func init() {
 		_ = p.Chat(fmt.Sprintf("Hello %d times", greetings[p]))
 	})
 	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
-		delete(greetings, mod.Player{Slot: left.GetConnection().GetPlayer()})
+		delete(greetings, mod.PlayerOf(left.GetConnection().GetPlayer()))
 	})
 }
 ```
@@ -190,10 +192,11 @@ func init() {
 
 The leave handler keys by `connection.player`, because a connection does not
 work as a key: Python cannot hash one, and in the other languages the same
-player's connection can be a new value in each list. In Luau, Python and Go a Player is its slot, so the
-next player to take the slot would inherit the entry; clearing it on leave
-prevents that. TypeScript gives the next player a new Player, so there the
-clear only frees the entry.
+player's connection can be a new value in each list. A person who takes a slot
+another left is a new Player, so they never inherit the leaver's entry. The
+leave arrives before the player list that drops the leaver, so
+`connection.player` still finds their entry, and deleting it keeps the map from
+holding everyone who ever played.
 
 ## Read the hero
 

@@ -101,7 +101,7 @@ func main() {}
 Python spells each as a `snake_case` decorator, such as
 `@modlock.on_player_join`, and Go as an exported function, such as
 `mod.OnPlayerJoin`. A call that takes a name takes it in the decorator, as
-`@modlock.on_modifier_event("PLAYER_RESPAWNED")` does.
+`@modlock.on_modifier_event("STUNNED")` does.
 
 | Call                                                | Runs the handler                                                                          |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -111,11 +111,14 @@ Python spells each as a `snake_case` decorator, such as
 | `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                    |
 | `onFrame(handler)`                                  | Once per server frame.                                                                    |
 | `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined.             |
-| `onSpawn(handler)`                                  | Each time a player's hero enters play, with the hero.                                     |
+| `onSpawn(handler)`                                  | When a player's first hero enters play and on each respawn, with the hero.                |
 | `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero can still be read.                    |
 | `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                             |
 | `onKill(handler)`                                   | After each hit that kills a hero or a unit; see [Damage](/guides/damage#react-to-a-kill). |
 | `onAbilityCast(handler)`                            | After each ability or item the game executes.                                             |
+| `onHeal(handler)`                                   | After each heal; see [Heals, levels and melee](#heals-levels-and-melee).                  |
+| `onLevelChange(handler)`                            | As each hero reaches a new level.                                                         |
+| `onMelee(handler)`, `onParry(handler)`              | After each melee swing; after each parry that catches one.                                |
 | `onModifierEvent(name, handler)`                    | Each time the game fires the named modifier event.                                        |
 | `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                                    |
 | `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                                          |
@@ -130,14 +133,14 @@ the hero.
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | Connecting | The player holds a slot and is still loading the map. Nothing sent to them shows yet.                  | In the [player list](/guides/players#list-the-players) with `ready` false. |
 | Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may have no hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
-| In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn and each new hero.                        |
+| In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn.                                          |
 | Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
 
 Between joined and in play, the player is picking a team or a hero, or the game
 has not placed the hero yet. [`player.seat`](/guides/toolkit#seat-the-players)
 skips the team and hero screens. A call that needs a hero, such as a teleport, fails
-before the hero spawns. Make it in `onSpawn`, which fires for the first hero,
-each respawn and each new hero. A bot joins as soon as it is added.
+before the hero spawns. Make it in `onSpawn`, which fires for the first hero and
+each respawn. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
@@ -215,11 +218,16 @@ def spawned(player: modlock.Player, pawn: modlock.Pawn) -> None:
 
 ```go
 mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
-	mod.Log("slot", player.Slot, "spawned with", pawn.GetHealth(), "health")
+	mod.Log("slot", player.Slot(), "spawned with", pawn.GetHealth(), "health")
 })
 ```
 
 </Samples>
+
+The library hears a spawn from the game's `PLAYER_RESPAWNED` modifier event,
+once for a player's first hero and once for each respawn, and runs your
+handler before that frame's frame handlers. A team change is not a spawn. A
+server that cannot watch modifier events hears no spawns.
 
 ## Casts and modifier events
 
@@ -237,8 +245,8 @@ onAbilityCast((cast) => {
   }
 })
 
-onModifierEvent('PLAYER_RESPAWNED', (event) => {
-  log(`slot ${event.player.slot} respawned`)
+onModifierEvent('STUNNED', (event) => {
+  log(`${event.name} for entity ${event.caster}`)
 })
 ```
 
@@ -249,8 +257,8 @@ modlock.onAbilityCast(function(cast)
 	end
 end)
 
-modlock.onModifierEvent("PLAYER_RESPAWNED", function(event)
-	modlock.log(`slot {event.player.slot} respawned`)
+modlock.onModifierEvent("STUNNED", function(event)
+	modlock.log(`{event.name} for entity {event.caster}`)
 end)
 ```
 
@@ -261,9 +269,9 @@ def cast(event: modlock.AbilityCastEvent) -> None:
         modlock.log(f"slot {event.player.slot} cast {event.name}")
 
 
-@modlock.on_modifier_event("PLAYER_RESPAWNED")
-def respawned(event: modlock.ModifierFiredEvent) -> None:
-    modlock.log(f"slot {event.player.slot} respawned")
+@modlock.on_modifier_event("STUNNED")
+def stunned(event: modlock.ModifierFiredEvent) -> None:
+    modlock.log(f"{event.name} for entity {event.caster}")
 ```
 
 ```go
@@ -273,8 +281,8 @@ mod.OnAbilityCast(func(cast *mod.AbilityCastEvent) {
 	}
 })
 
-mod.OnModifierEvent("PLAYER_RESPAWNED", func(event *mod.ModifierFiredEvent) {
-	mod.Log("slot", event.GetPlayer(), "respawned")
+mod.OnModifierEvent("STUNNED", func(event *mod.ModifierFiredEvent) {
+	mod.Log(event.GetName(), "for entity", event.GetCaster())
 })
 ```
 
@@ -304,18 +312,103 @@ Every modifier event has the same fields, but which ones the game fills depends
 on the event: `caster`, the entity the event is about; `player`, the player
 whose hero the caster is, or slot -1; `target`, the other entity, such as the
 victim of a kill; and `ability`, the entity the event names as its source. An
-unfilled entity is 0. These events have been seen in a running game:
+unfilled entity is 0. These events have been seen in a running game, and
+each has a typed call for the same moment, which names its fields:
 
-| Event                | Fills                                           |
-| -------------------- | ----------------------------------------------- |
-| `PLAYER_RESPAWNED`   | `caster`, the hero that respawned.              |
-| `PLAYER_KILLED`      | `caster`, the killer, and `target`, the victim. |
-| `KILLED`             | `caster`, the unit that died.                   |
-| `HERO_LEVEL_CHANGED` | `caster`, the hero.                             |
-| `UNIT_HEALED`        | Fires very often, so keep its handler short.    |
+| Event                | Fills                                           | Typed call      |
+| -------------------- | ----------------------------------------------- | --------------- |
+| `PLAYER_RESPAWNED`   | `caster`, the hero that respawned.              | `onSpawn`       |
+| `PLAYER_KILLED`      | `caster`, the killer, and `target`, the victim. | `onKill`        |
+| `KILLED`             | `caster`, the unit that died.                   | `onKill`        |
+| `HERO_LEVEL_CHANGED` | `caster`, the hero.                             | `onLevelChange` |
+| `UNIT_HEALED`        | Fires very often, so keep its handler short.    | `onHeal`        |
+
+## Heals, levels and melee
+
+Your mod can hear each heal, each new level, each melee swing and each parry:
+
+<Samples>
+
+```ts
+import { log, onHeal, onLevelChange } from 'modlock'
+
+onHeal(({ targetPlayer, applied }) => {
+  if (targetPlayer.slot >= 0) {
+    log(`slot ${targetPlayer.slot} regained ${applied} health`)
+  }
+})
+
+onLevelChange(({ player, level }) => {
+  log(`slot ${player.slot} reached level ${level}`)
+})
+```
+
+```luau
+modlock.onHeal(function(heal)
+	if heal.targetPlayer.slot >= 0 then
+		modlock.log(`slot {heal.targetPlayer.slot} regained {heal.applied} health`)
+	end
+end)
+
+modlock.onLevelChange(function(change)
+	modlock.log(`slot {change.player.slot} reached level {change.level}`)
+end)
+```
+
+```python
+@modlock.on_heal
+def healed(heal: modlock.HealEvent) -> None:
+    if heal.target_player.slot >= 0:
+        modlock.log(f"slot {heal.target_player.slot} regained {heal.applied} health")
+
+
+@modlock.on_level_change
+def leveled(change: modlock.LevelEvent) -> None:
+    modlock.log(f"slot {change.player.slot} reached level {change.level}")
+```
+
+```go
+mod.OnHeal(func(heal *mod.HealEvent) {
+	if heal.GetTargetPlayer() >= 0 {
+		mod.Log("slot", heal.GetTargetPlayer(), "regained", heal.GetApplied(), "health")
+	}
+})
+
+mod.OnLevelChange(func(change *mod.LevelEvent) {
+	mod.Log("slot", change.GetPlayer(), "reached level", change.GetLevel())
+})
+```
+
+</Samples>
+
+The sample logs heals to players' heroes, since a slot of -1 means a unit. A
+heal is health a hero or unit regains at once from an ability, an item or
+lifesteal. Regeneration reports nothing, including what Siphon Life restores
+as regeneration, and neither does the mod's own heal or a heal that finds the
+target at full health. Each of the four events arrives before the next frame.
+Python spells the fields in `snake_case`, and Go reads each player as a slot,
+such as `heal.GetTargetPlayer()`.
+
+| Field            | On           | Holds                                                                             |
+| ---------------- | ------------ | --------------------------------------------------------------------------------- |
+| `target`         | heal         | The entity healed.                                                                |
+| `targetPlayer`   | heal         | The player whose hero was healed, or slot -1 for a unit.                          |
+| `healer`         | heal         | The entity the heal came from, or 0 when the game names none.                     |
+| `healerPlayer`   | heal         | The player whose hero the healer is, or slot -1.                                  |
+| `ability`        | heal         | The ability or item that healed, or 0.                                            |
+| `applied`        | heal         | The health the heal restored.                                                     |
+| `requested`      | heal         | The heal's whole amount, more than `applied` when the target reached full health. |
+| `hero`           | level        | The hero that leveled.                                                            |
+| `level`          | level        | The hero's new level.                                                             |
+| `player`         | level, parry | The player whose hero leveled or parried, or slot -1.                             |
+| `parrier`        | parry        | The hero that parried.                                                            |
+| `attacker`       | melee, parry | The hero or unit that swung.                                                      |
+| `attackerPlayer` | melee, parry | The player whose hero swung, or slot -1.                                          |
+| `heavy`          | melee        | True for a charged swing, false for a light one.                                  |
+| `hits`           | melee        | The entities the swing struck, empty for a miss.                                  |
 
 ## Where next
 
 - [Timers](/guides/timers) run code later, without counting frames.
-- [Damage](/guides/damage) covers the two hit events.
+- [Damage](/guides/damage) covers the hit and kill events.
 - [Input](/guides/input) covers buttons.

@@ -46,7 +46,7 @@ def joined(event: modlock.PlayerJoinedEvent) -> None:
 
 ```go
 mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
-	player := mod.Player{Slot: joined.GetConnection().GetPlayer()}
+	player := mod.PlayerOf(joined.GetConnection().GetPlayer())
 	player.Seat(mod.Seating{Hero: "haze", Team: 2})
 })
 ```
@@ -132,7 +132,7 @@ def joined(event: modlock.PlayerJoinedEvent) -> None:
 ```go
 mod.OnStart(func(args []string) { _ = mod.SetFreeForAll(true) })
 mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
-	mod.Player{Slot: joined.GetConnection().GetPlayer()}.Seat(mod.Seating{})
+	mod.PlayerOf(joined.GetConnection().GetPlayer()).Seat(mod.Seating{})
 })
 ```
 
@@ -205,7 +205,7 @@ def frame(event: modlock.FrameEvent) -> None:
 // import "time"
 cast := mod.NewCast(mod.CastOptions[mod.Player]{
 	Join: func(connection *mod.Connection) mod.Player {
-		player := mod.Player{Slot: connection.GetPlayer()}
+		player := mod.PlayerOf(connection.GetPlayer())
 		_ = player.Announce("My Mod", "Welcome, "+connection.GetName()+".")
 		return player
 	},

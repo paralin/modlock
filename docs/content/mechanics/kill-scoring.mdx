@@ -133,13 +133,13 @@ var kills = map[mod.Player]int{}
 
 func init() {
 	mod.OnKill(func(kill *mod.KillEvent) {
-		victim := mod.Player{Slot: kill.GetVictimPlayer()}
-		scorer := mod.Player{Slot: kill.GetAttackerPlayer()}
-		if victim.Slot < 0 {
+		victim := mod.PlayerOf(kill.GetVictimPlayer())
+		scorer := mod.PlayerOf(kill.GetAttackerPlayer())
+		if victim.Slot() < 0 {
 			return // a unit, not a hero
 		}
 		mod.After(3*time.Second, func() { _ = victim.Respawn() })
-		if scorer.Slot < 0 || scorer.Slot == victim.Slot {
+		if scorer.Slot() < 0 || scorer.Slot() == victim.Slot() {
 			return // a hazard, a unit or the hero's own hit
 		}
 		name := "Someone"
@@ -151,7 +151,7 @@ func init() {
 		won := total >= goal
 		connections, _ := mod.Players()
 		for _, c := range connections {
-			p := mod.Player{Slot: c.GetPlayer()}
+			p := mod.PlayerOf(c.GetPlayer())
 			if won {
 				_ = p.Announce(name+" wins", "A new round starts now.")
 			} else {
@@ -164,7 +164,7 @@ func init() {
 	})
 
 	mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
-		delete(kills, mod.Player{Slot: left.GetConnection().GetPlayer()})
+		delete(kills, mod.PlayerOf(left.GetConnection().GetPlayer()))
 	})
 }
 
