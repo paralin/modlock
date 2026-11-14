@@ -66,6 +66,7 @@ func main() {
 			logoutCommand(out),
 			updateCommand(out),
 			editorCommand(out),
+			versionCommand(),
 		}, tools(
 			studioCommand(out),
 			panoramaCommand(out),
@@ -113,4 +114,17 @@ func explain() {
 		"  modlock new\n\n" +
 		"Press Enter to close this window.\n")
 	_, _ = fmt.Scanln()
+}
+
+// versionCommand prints the version as --version does, for a person who
+// types the command other tools have.
+func versionCommand() *cli.Command {
+	return &cli.Command{
+		Name:  "version",
+		Usage: "print the version",
+		Action: func(c *cli.Context) error {
+			cli.ShowVersion(c)
+			return nil
+		},
+	}
 }
