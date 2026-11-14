@@ -127,7 +127,7 @@ func (m *Mode) StartRace(p mod.Player, args string) {
 	m.race = NewRace(m.course.Checkpoints(), laps, m.now+countdown)
 	connections, _ := mod.Players()
 	for _, c := range connections {
-		player := mod.Player{Slot: c.GetPlayer()}
+		player := mod.PlayerOf(c.GetPlayer())
 		pawn, err := player.Pawn()
 		if c.GetBot() || err != nil || pawn == nil || pawn.GetHealth() <= 0 {
 			continue
@@ -169,7 +169,7 @@ func (m *Mode) Best(p mod.Player, _ string) {
 	connections, _ := mod.Players()
 	var steamID uint64
 	for _, c := range connections {
-		if c.GetPlayer() == p.Slot {
+		if c.GetPlayer() == p.Slot() {
 			steamID = c.GetSteamId()
 		}
 	}
@@ -197,7 +197,7 @@ func broadcast(text string) {
 	connections, _ := mod.Players()
 	for _, c := range connections {
 		if !c.GetBot() {
-			_ = mod.Player{Slot: c.GetPlayer()}.Chat(text)
+			_ = mod.PlayerOf(c.GetPlayer()).Chat(text)
 		}
 	}
 }
@@ -262,7 +262,7 @@ func (m *Mode) dropLeavers() {
 	// Drop each racer whose player is gone.
 	var left []*Racer
 	for _, racer := range m.race.Racers() {
-		if generation, ok := present[racer.Player.Slot]; !ok || generation != racer.Generation {
+		if generation, ok := present[racer.Player.Slot()]; !ok || generation != racer.Generation {
 			left = append(left, racer)
 		}
 	}

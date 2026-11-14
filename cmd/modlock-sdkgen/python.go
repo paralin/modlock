@@ -276,15 +276,39 @@ func (w *pythonWriter) oneofType(o *oneof) string {
 }
 
 // writeClass writes one class: a frozen dataclass of its key, with its calls
-// as methods.
+// as methods. An interned class keeps one object for each number until
+// release forgets it, compares by identity, and makes every call of the
+// class return that object.
 func (w *pythonWriter) writeClass(c *class) {
-	fmt.Fprintf(&w.out, "@dataclasses.dataclass(frozen=True, slots=True)\nclass %s:\n", c.name)
+	// Open the table an interned class keeps, then the class.
+	table := "_" + snake(c.name) + "_objects"
+	flags := "frozen=True, slots=True"
+	if c.interned {
+		fmt.Fprintf(&w.out, "# %s holds the %s of each %s that %s(%s) made.\n", table, c.name, c.key, c.name, c.key)
+		fmt.Fprintf(&w.out, "%s: dict[int, %q] = {}\n\n\n", table, c.name)
+		flags += ", eq=False"
+	}
+	fmt.Fprintf(&w.out, "@dataclasses.dataclass(%s)\nclass %s:\n", flags, c.name)
 	writePythonDocstring(&w.out, "    ", c.doc)
 	if c.doc != "" {
 		w.out.WriteString("\n")
 	}
 	writeComment(&w.out, "    ", "#", c.keyDoc)
 	fmt.Fprintf(&w.out, "    %s: int\n", c.key)
+
+	// Intern the objects of an interned class.
+	if c.interned {
+		fmt.Fprintf(&w.out, "\n    def __new__(cls, %s: int) -> %q:\n", c.key, c.name)
+		writePythonDocstring(&w.out, "        ", fmt.Sprintf("__new__ returns the %s for %s, the same object each time until\nrelease forgets it, so == and dictionary keys tell whether two values\nare the same %s.", c.name, c.key, lowerCamel(c.noun)))
+		fmt.Fprintf(&w.out, "        held = %s.get(%s)\n        if held is None:\n", table, c.key)
+		fmt.Fprintf(&w.out, "            held = object.__new__(cls)\n            %s[%s] = held\n        return held\n", table, c.key)
+		fmt.Fprintf(&w.out, "\n    def __reduce__(self) -> tuple[type[%q], tuple[int]]:\n", c.name)
+		writePythonDocstring(&w.out, "        ", fmt.Sprintf("__reduce__ makes a copy of a %s the same object.", c.name))
+		fmt.Fprintf(&w.out, "        return (%s, (self.%s,))\n", c.name, c.key)
+		fmt.Fprintf(&w.out, "\n    @staticmethod\n    def release(%s: int) -> None:\n", c.key)
+		writePythonDocstring(&w.out, "        ", fmt.Sprintf("release forgets the %s for %s, so the next %s(%s) makes a new one.", c.name, c.key, c.name, c.key))
+		fmt.Fprintf(&w.out, "        %s.pop(%s, None)\n", table, c.key)
+	}
 	for _, call := range w.calls {
 		if call.class == c {
 			w.out.WriteString("\n")

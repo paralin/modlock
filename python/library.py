@@ -1377,9 +1377,37 @@ def _setting_changed(event: SettingChangedEvent) -> None:
         handler(event.player, event.key, event.value)
 
 
+# _generations holds each slot's connection generation in the last player
+# list, so a new connection in a slot gets a new Player.
+_generations: dict[int, int] = {}
+
+
+def _adopt(players: list[Connection]) -> list[Connection]:
+    """_adopt gives each connection in a player list its slot's Player. A slot
+    whose connection changed since the last list gets a new Player, so a player
+    who takes a slot another left is never == the one who left and never finds
+    their dictionary entry. Its contract rests on the host reporting the list
+    before any event once it changed.
+    """
+    # Forget the Player of each slot whose connection left or was replaced.
+    global _generations
+    current = {c.player.slot: c.generation for c in players}
+    for slot, generation in _generations.items():
+        if current.get(slot) != generation:
+            Player.release(slot)
+    _generations = current
+
+    # Hand each connection its slot's Player, made anew where it was released.
+    adopted: list[Connection] = []
+    for c in players:
+        player = Player(c.player.slot)
+        adopted.append(c if player is c.player else dataclasses.replace(c, player=player))
+    return adopted
+
+
 def _players_changed(event: PlayersChangedEvent) -> None:
     global _roster
-    _roster = event.players
+    _roster = _adopt(event.players)
     for watcher in _player_watchers:
         watcher(_roster)
 

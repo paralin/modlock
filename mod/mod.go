@@ -73,13 +73,23 @@ type handlers struct {
 	// rosters counts the player lists the host reported, so a Cast settles
 	// joins and leaves only after a new one.
 	rosters uint64
+	// generations holds each slot's connection generation in the last player
+	// list, and tenures counts the connections each slot has lost since the
+	// mod started, so PlayerOf tells a newcomer from the one who left.
+	generations map[int32]uint32
+	tenures     map[int32]uint32
 
 	// result holds the last encoded Reply until the host has copied it.
 	result []byte
 }
 
 // registered is the mod's single set of handlers.
-var registered = &handlers{commands: map[string]func(Player, string){}, services: map[string]Service{}}
+var registered = &handlers{
+	commands:    map[string]func(Player, string){},
+	services:    map[string]Service{},
+	generations: map[int32]uint32{},
+	tenures:     map[int32]uint32{},
+}
 
 // Command calls handler when a player types /name in chat. The handler runs
 // with the next server frame, before the frame handlers, and receives the
@@ -280,7 +290,7 @@ func (h *handlers) Command(event *CommandEvent) (*CommandResult, error) {
 	// Claim the command and run its handler with the next frame. The server
 	// reads a client's commands under a CPU budget and drops the client when
 	// one handler spends it; slow work in a frame only delays that frame.
-	player, args := Player{Slot: event.GetPlayer()}, strings.TrimSpace(args)
+	player, args := PlayerOf(event.GetPlayer()), strings.TrimSpace(args)
 	After(0, func() { handler(player, args) })
 	return &CommandResult{Claimed: true}, nil
 }
@@ -307,7 +317,7 @@ func (h *handlers) World(event *WorldEvent) error {
 // UiPress runs the press handlers with the next frame, since a press arrives
 // under the same CPU budget as a command.
 func (h *handlers) UiPress(event *UiPressEvent) error {
-	player, node := Player{Slot: event.GetPlayer()}, event.GetNode()
+	player, node := PlayerOf(event.GetPlayer()), event.GetNode()
 	After(0, func() {
 		for _, handler := range h.presses {
 			handler(player, node)
@@ -393,7 +403,7 @@ func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
 // Input runs the input handlers.
 func (h *handlers) Input(event *InputEvent) error {
 	for _, handler := range h.inputs {
-		handler(Player{Slot: event.GetPlayer()}, event.GetPressed(), event.GetReleased())
+		handler(PlayerOf(event.GetPlayer()), event.GetPressed(), event.GetReleased())
 	}
 	return nil
 }
@@ -402,7 +412,7 @@ func (h *handlers) Input(event *InputEvent) error {
 func (h *handlers) Restored(event *RestoredEvent) error {
 	err := errorOf(event.GetError())
 	for _, handler := range h.restoreds {
-		handler(Player{Slot: event.GetPlayer()}, err)
+		handler(PlayerOf(event.GetPlayer()), err)
 	}
 	return nil
 }
@@ -443,18 +453,36 @@ func (h *handlers) Landed(event *LandedEvent) error {
 // SettingChanged runs the setting handlers.
 func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
 	for _, handler := range h.settings {
-		handler(Player{Slot: event.GetPlayer()}, event.GetKey(), event.GetValue())
+		handler(PlayerOf(event.GetPlayer()), event.GetKey(), event.GetValue())
 	}
 	return nil
 }
 
-// PlayersChanged keeps the reported player list for Players.
+// PlayersChanged keeps the reported player list for Players, and ends the
+// tenure of each slot whose connection left or was replaced, so PlayerOf
+// gives the next holder a different Player. The host reports the list before
+// any event once it changed, so every event's Player names its connection.
 func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
+	// Keep the list.
 	h.roster = event.GetPlayers()
 	if h.roster == nil {
 		h.roster = []*Connection{}
 	}
 	h.rosters++
+
+	// End each tenure whose connection is gone, then note the new list's.
+	current := make(map[int32]uint32, len(h.roster))
+	for _, connection := range h.roster {
+		current[connection.GetPlayer()] = connection.GetGeneration()
+	}
+	for slot, generation := range h.generations {
+		if held, ok := current[slot]; !ok || held != generation {
+			h.tenures[slot]++
+		}
+	}
+	h.generations = current
+
+	// Tell the watchers.
 	for _, handler := range h.rosterWatches {
 		handler(h.roster)
 	}
@@ -487,12 +515,36 @@ func roster() []*Connection {
 	return held
 }
 
+// Player addresses one connected player by their server slot. Two Players
+// are equal only when they name the same connection: a person who takes a
+// slot another left gets a different Player, so a map keyed by Player never
+// hands the newcomer the entry of the one who left. PlayerOf makes one; the
+// zero Player names nobody.
+type Player struct {
+	// slot identifies the player on the server.
+	slot int32
+	// tenure is one more than the number of connections the slot had lost
+	// when the Player was made, so it is zero only in the zero Player.
+	tenure uint32
+}
+
+// PlayerOf returns the Player of the connection that holds slot now, equal
+// to every other Player made for that connection.
+func PlayerOf(slot int32) Player {
+	return Player{slot: slot, tenure: registered.tenures[slot] + 1}
+}
+
+// Slot returns the server slot the player holds.
+func (p Player) Slot() int32 {
+	return p.slot
+}
+
 // Connection returns the player's connection: their name, Steam ID, whether
 // they are a bot and whether they finished joining. It returns nil when
 // nobody holds the slot.
 func (p Player) Connection() *Connection {
 	for _, connection := range roster() {
-		if connection.GetPlayer() == p.Slot {
+		if connection.GetPlayer() == p.slot {
 			return connection
 		}
 	}

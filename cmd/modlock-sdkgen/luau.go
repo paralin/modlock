@@ -236,12 +236,15 @@ func (w *luauWriter) writeNew(c *class) {
 	table := lowerCamel(c.name) + "Objects"
 	fmt.Fprintf(&w.out, "-- %s holds the %s of each %s that %s.new made.\n", table, c.name, c.key, c.name)
 	fmt.Fprintf(&w.out, "local %s: { [number]: %s } = {}\n\n", table, c.name)
-	fmt.Fprintf(&w.out, "-- new returns the %s with %s, the same object each time, so == tells\n", c.name, c.key)
-	fmt.Fprintf(&w.out, "-- whether two values are the same %s and a %s works as a table key.\n", lowerCamel(c.noun), c.name)
+	fmt.Fprintf(&w.out, "-- new returns the %s with %s, the same object each time until release\n", c.name, c.key)
+	fmt.Fprintf(&w.out, "-- forgets it, so == tells whether two values are the same %s and a\n", lowerCamel(c.noun))
+	fmt.Fprintf(&w.out, "-- %s works as a table key.\n", c.name)
 	fmt.Fprintf(&w.out, "function %s.new(%s: number): %s\n", c.name, c.key, c.name)
 	fmt.Fprintf(&w.out, "\tlocal object = %s[%s]\n\tif object == nil then\n", table, c.key)
 	fmt.Fprintf(&w.out, "\t\tobject = table.freeze(setmetatable({ %s = %s }, %s)) :: any\n", c.key, c.key, c.name)
 	fmt.Fprintf(&w.out, "\t\t%s[%s] = object\n\tend\n\treturn object\nend\n\n", table, c.key)
+	fmt.Fprintf(&w.out, "-- release forgets the %s for %s, so the next %s.new makes a new one.\n", c.name, c.key, c.name)
+	fmt.Fprintf(&w.out, "function %s.release(%s: number)\n\t%s[%s] = nil\nend\n\n", c.name, c.key, table, c.key)
 }
 
 // writeClass writes one class: its type, which lists its methods, its

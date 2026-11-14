@@ -29,15 +29,15 @@ func watchSpawns() {
 	// A hero is in play while it lives; a placeholder pawn has hero 0.
 	present := make(map[int32]uint32, len(connections))
 	for _, connection := range connections {
-		player := Player{Slot: connection.GetPlayer()}
+		player := PlayerOf(connection.GetPlayer())
 		pawn, err := player.Pawn()
 		if err != nil || pawn == nil || pawn.GetHero() == 0 || pawn.GetHealth() <= 0 {
 			continue
 		}
-		present[player.Slot] = pawn.GetEntity()
+		present[player.Slot()] = pawn.GetEntity()
 
 		// A respawn follows a death, and a new hero has a new entity.
-		if entity, ok := spawns.entities[player.Slot]; ok && entity == pawn.GetEntity() {
+		if entity, ok := spawns.entities[player.Slot()]; ok && entity == pawn.GetEntity() {
 			continue
 		}
 		for _, handler := range spawns.handlers {

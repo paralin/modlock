@@ -19,8 +19,8 @@ func Show(p mod.Player, root Node) bool {
 
 // Hide removes the interface, the routes and the notices the mod shows player.
 func Hide(p mod.Player) bool {
-	delete(lib.views, p.Slot)
-	delete(lib.screens, p.Slot)
+	delete(lib.views, p.Slot())
+	delete(lib.screens, p.Slot())
 	return send(p, &uipb.Change{Reset_: true})
 }
 

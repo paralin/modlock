@@ -293,6 +293,41 @@ local roster: { Connection }? = nil
 -- rosterWatchers hear each player list the host reports.
 local rosterWatchers: { (players: { Connection }) -> () } = {}
 
+-- generations holds each slot's connection generation in the last player
+-- list, so a new connection in a slot gets a new Player.
+local generations: { [number]: number } = {}
+
+-- adopt gives each connection in a player list its slot's Player. A slot
+-- whose connection changed since the last list gets a new Player, so a
+-- player who takes a slot another left is never == the one who left and
+-- never finds their table entry. Its contract rests on the host reporting
+-- the list before any event once it changed.
+local function adopt(players: { Connection }): { Connection }
+	-- Forget the Player of each slot whose connection left or was replaced.
+	local current: { [number]: number } = {}
+	for _, connection in players do
+		current[connection.player.slot] = connection.generation
+	end
+	for slot, generation in generations do
+		if current[slot] ~= generation then
+			Player.release(slot)
+		end
+	end
+	generations = current
+
+	-- Hand each connection its slot's Player, made anew where it was released.
+	local adopted: { Connection } = {}
+	for _, connection in players do
+		local player = Player.new(connection.player.slot)
+		if player ~= connection.player then
+			connection = table.clone(connection)
+			connection.player = player
+		end
+		table.insert(adopted, connection)
+	end
+	return adopted
+end
+
 -- Interface takes the events of the players' interfaces: the module that
 -- draws them, @modlock/ui, serves them with serveInterface, so the library
 -- loads without it.
@@ -1429,9 +1464,10 @@ local handlers: ModHandlers = {
 	end,
 
 	playersChanged = function(event)
-		roster = event.players
+		local players = adopt(event.players)
+		roster = players
 		for _, watcher in rosterWatchers do
-			watcher(event.players)
+			watcher(players)
 		end
 	end,
 

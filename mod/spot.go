@@ -218,7 +218,7 @@ func (l *LoadedSpot) Bounce(movement []*MovementSample) {
 		}
 		if placed := l.At(hit.GetEntity()); placed != nil && placed.Object.Bounce > 0 {
 			launch := &Vector{X: velocity.GetX(), Y: velocity.GetY(), Z: float64(placed.Object.Bounce)}
-			_ = Player{Slot: sample.GetPlayer()}.SetVelocity(launch)
+			_ = PlayerOf(sample.GetPlayer()).SetVelocity(launch)
 		}
 	}
 }

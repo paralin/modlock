@@ -2257,12 +2257,36 @@ class PrecacheOptions:
     resources: list[str] = dataclasses.field(default_factory=lambda: list[str]())
 
 
-@dataclasses.dataclass(frozen=True, slots=True)
+# _player_objects holds the Player of each slot that Player(slot) made.
+_player_objects: dict[int, "Player"] = {}
+
+
+@dataclasses.dataclass(frozen=True, slots=True, eq=False)
 class Player:
     """Player addresses one connected player by their server slot."""
 
     # slot identifies the player on the server.
     slot: int
+
+    def __new__(cls, slot: int) -> "Player":
+        """__new__ returns the Player for slot, the same object each time until
+        release forgets it, so == and dictionary keys tell whether two values
+        are the same player.
+        """
+        held = _player_objects.get(slot)
+        if held is None:
+            held = object.__new__(cls)
+            _player_objects[slot] = held
+        return held
+
+    def __reduce__(self) -> tuple[type["Player"], tuple[int]]:
+        """__reduce__ makes a copy of a Player the same object."""
+        return (Player, (self.slot,))
+
+    @staticmethod
+    def release(slot: int) -> None:
+        """release forgets the Player for slot, so the next Player(slot) makes a new one."""
+        _player_objects.pop(slot, None)
 
     def chat(self, text: str) -> bool:
         """chat sends a server chat line to the player."""
@@ -6749,9 +6773,37 @@ def _setting_changed(event: SettingChangedEvent) -> None:
         handler(event.player, event.key, event.value)
 
 
+# _generations holds each slot's connection generation in the last player
+# list, so a new connection in a slot gets a new Player.
+_generations: dict[int, int] = {}
+
+
+def _adopt(players: list[Connection]) -> list[Connection]:
+    """_adopt gives each connection in a player list its slot's Player. A slot
+    whose connection changed since the last list gets a new Player, so a player
+    who takes a slot another left is never == the one who left and never finds
+    their dictionary entry. Its contract rests on the host reporting the list
+    before any event once it changed.
+    """
+    # Forget the Player of each slot whose connection left or was replaced.
+    global _generations
+    current = {c.player.slot: c.generation for c in players}
+    for slot, generation in _generations.items():
+        if current.get(slot) != generation:
+            Player.release(slot)
+    _generations = current
+
+    # Hand each connection its slot's Player, made anew where it was released.
+    adopted: list[Connection] = []
+    for c in players:
+        player = Player(c.player.slot)
+        adopted.append(c if player is c.player else dataclasses.replace(c, player=player))
+    return adopted
+
+
 def _players_changed(event: PlayersChangedEvent) -> None:
     global _roster
-    _roster = event.players
+    _roster = _adopt(event.players)
     for watcher in _player_watchers:
         watcher(_roster)
 

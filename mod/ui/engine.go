@@ -130,10 +130,10 @@ const (
 
 // viewOf returns what the mod shows player, made empty on first use.
 func viewOf(p mod.Player) *view {
-	v := lib.views[p.Slot]
+	v := lib.views[p.Slot()]
 	if v == nil {
 		v = &view{player: p}
-		lib.views[p.Slot] = v
+		lib.views[p.Slot()] = v
 	}
 	return v
 }
@@ -145,7 +145,7 @@ func draw(v *view) bool {
 	if len(v.notices) != 0 {
 		root[1] = notices(v.notices)
 	}
-	slot := v.player.Slot
+	slot := v.player.Slot()
 	previous := lib.screens[slot]
 	display := displayRows(v.player, v.display)
 	next := render(previous, v, root, display)
@@ -333,9 +333,9 @@ func displayRows(viewer mod.Player, rows []AbilityRow) []*uipb.AbilityRow {
 	players, _ := mod.Players()
 	wire := make([]*uipb.AbilityRow, len(rows))
 	for i, row := range rows {
-		w := &uipb.AbilityRow{Player: uint32(row.Player.Slot), Own: row.Player.Slot == viewer.Slot}
+		w := &uipb.AbilityRow{Player: uint32(row.Player.Slot()), Own: row.Player.Slot() == viewer.Slot()}
 		for _, c := range players {
-			if c.GetPlayer() == row.Player.Slot {
+			if c.GetPlayer() == row.Player.Slot() {
 				// A Steam name is at most 32 characters, within the host's
 				// 128 bytes.
 				w.Name = string([]rune(c.GetName())[:min(32, len([]rune(c.GetName())))])
@@ -370,12 +370,12 @@ func press(p mod.Player, node string) {
 	// A click on the game's ability bar names its slot, which no button's id
 	// does.
 	if slot, ok := abilitySlot(node); ok {
-		if v := lib.views[p.Slot]; v != nil && v.bar != nil {
+		if v := lib.views[p.Slot()]; v != nil && v.bar != nil {
 			v.bar(p, slot)
 		}
 		return
 	}
-	if s := lib.screens[p.Slot]; s != nil {
+	if s := lib.screens[p.Slot()]; s != nil {
 		if h := s.handlers[node].press; h != nil {
 			h(p)
 		}
@@ -394,8 +394,8 @@ func abilitySlot(node string) (int, bool) {
 // the host checked it.
 func change(event *mod.UiInputEvent) {
 	// Find the input's handlers on the screen the player holds.
-	p := mod.Player{Slot: event.GetPlayer()}
-	s := lib.screens[p.Slot]
+	p := mod.PlayerOf(event.GetPlayer())
+	s := lib.screens[p.Slot()]
 	if s == nil {
 		return
 	}

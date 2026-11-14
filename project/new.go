@@ -83,7 +83,7 @@ func init() {
 	// hero and Team: 2 the team.
 	mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 		connection := joined.GetConnection()
-		player := mod.Player{Slot: connection.GetPlayer()}
+		player := mod.PlayerOf(connection.GetPlayer())
 		player.Seat(mod.Seating{Hero: mod.AnyHero})
 		_ = player.Announce({{name}}, "Welcome, "+connection.GetName()+".")
 	})

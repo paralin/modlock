@@ -139,7 +139,7 @@ func (c *Cast[M]) settle(players []*Connection, now float64) {
 	kept := c.seats[:0]
 	var left []*seat[M]
 	for _, seat := range c.seats {
-		generation, ok := present[seat.player.Slot]
+		generation, ok := present[seat.player.Slot()]
 		if ok && generation == seat.connection.GetGeneration() {
 			kept = append(kept, seat)
 			continue
@@ -159,7 +159,7 @@ func (c *Cast[M]) settle(players []*Connection, now float64) {
 	// A human who finished joining becomes a member, and a bot as the policy
 	// says.
 	for _, connection := range players {
-		player := Player{Slot: connection.GetPlayer()}
+		player := PlayerOf(connection.GetPlayer())
 		if !connection.GetReady() || c.find(player) != nil {
 			continue
 		}

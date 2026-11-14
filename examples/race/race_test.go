@@ -80,7 +80,7 @@ func TestRaceGrace(t *testing.T) {
 func TestRaceResetAndDrop(t *testing.T) {
 	// Race two racers over one lap of the square.
 	race := NewRace(square, 1, 0)
-	stays, leaves := &Racer{Player: mod.Player{Slot: 1}}, &Racer{Player: mod.Player{Slot: 2}}
+	stays, leaves := &Racer{Player: mod.PlayerOf(1)}, &Racer{Player: mod.PlayerOf(2)}
 	race.Join(stays)
 	race.Join(leaves)
 

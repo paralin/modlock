@@ -25,7 +25,7 @@ type BoardPage = scorespb.BoardPage
 // instead, so its author sees what it would report, and returns the host's
 // error.
 func (p Player) ReportScore(report *ScoreReport) error {
-	report.Player = p.Slot
+	report.Player = p.Slot()
 	return reportScores("Report", report, report.GetBoard())
 }
 
