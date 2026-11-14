@@ -3811,7 +3811,6 @@ class MODLOCK_API AbilityOptions final : public ::google::protobuf::Message
     kRechargeEndFieldNumber = 6,
     kMaxChargesFieldNumber = 7,
     kCooldownFieldNumber = 8,
-    kChargeDelayFieldNumber = 9,
   };
   // string ability = 2;
   void clear_ability() ;
@@ -3904,22 +3903,11 @@ class MODLOCK_API AbilityOptions final : public ::google::protobuf::Message
   void _internal_set_cooldown(float value);
 
   public:
-  // optional float charge_delay = 9;
-  bool has_charge_delay() const;
-  void clear_charge_delay() ;
-  float charge_delay() const;
-  void set_charge_delay(float value);
-
-  private:
-  float _internal_charge_delay() const;
-  void _internal_set_charge_delay(float value);
-
-  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.AbilityOptions)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 9,
+  static const ::google::protobuf::internal::TcParseTable<3, 8,
                                    0, 61,
                                    2>
       _table_;
@@ -3949,7 +3937,6 @@ class MODLOCK_API AbilityOptions final : public ::google::protobuf::Message
     float recharge_end_;
     ::int32_t max_charges_;
     float cooldown_;
-    float charge_delay_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -6226,35 +6213,6 @@ inline float AbilityOptions::_internal_cooldown() const {
 inline void AbilityOptions::_internal_set_cooldown(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.cooldown_ = value;
-}
-
-// optional float charge_delay = 9;
-inline bool AbilityOptions::has_charge_delay() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000100U);
-  return value;
-}
-inline void AbilityOptions::clear_charge_delay() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.charge_delay_ = 0;
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000100U);
-}
-inline float AbilityOptions::charge_delay() const {
-  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.AbilityOptions.charge_delay)
-  return _internal_charge_delay();
-}
-inline void AbilityOptions::set_charge_delay(float value) {
-  _internal_set_charge_delay(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
-  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.AbilityOptions.charge_delay)
-}
-inline float AbilityOptions::_internal_charge_delay() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.charge_delay_;
-}
-inline void AbilityOptions::_internal_set_charge_delay(float value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.charge_delay_ = value;
 }
 
 // -------------------------------------------------------------------

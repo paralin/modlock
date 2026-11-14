@@ -722,11 +722,9 @@ class Game : public HostService {
   // time without the ticks the game spent paused.
   std::expected<float, std::string> LatchTime();
 
-  // SetCooldownLength makes seconds the length of one of the ability's
-  // timers, or returns it to the game's own when seconds is negative.
-  std::expected<void, std::string> SetCooldownLength(int32_t slot, uint32_t handle,
-                                                     gameinterop::AbilityCooldown::Timer timer,
-                                                     float seconds);
+  // SetCooldownLength makes seconds the length of the ability's cooldowns,
+  // or returns it to the game's own when seconds is negative.
+  std::expected<void, std::string> SetCooldownLength(int32_t slot, uint32_t handle, float seconds);
 
   // LimitCharges makes maximum the most charges the player's ability holds.
   std::expected<void, std::string> LimitCharges(int32_t slot, uint32_t handle, int32_t maximum);
@@ -953,11 +951,11 @@ class Game : public HostService {
 
   // cooldown_ holds the cooldown lengths the mod gave abilities, created the
   // first time one is given; it puts the game's own lengths back when the
-  // game ends.
+  // mod stops.
   std::unique_ptr<gameinterop::AbilityCooldown> cooldown_;
   // charge_limit_ holds the most charges the mod gave abilities, created the
   // first time one is limited; it puts the game's own maximums back when the
-  // game ends.
+  // mod stops.
   std::unique_ptr<gameinterop::AbilityChargeLimit> charge_limit_;
   // input_ is the mod's blocks, presses, remap and watched buttons.
   InputChanges input_;

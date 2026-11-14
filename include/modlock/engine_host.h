@@ -56,9 +56,13 @@ class MODLOCK_API EngineHost {
   // WatchModifierEvent adds the game's modifier event with this EModifierEvent
   // name, such as MODIFIER_EVENT_ABILITY_CAST_STARTED, to what every OnCombat
   // callback hears as kModifierFired, and returns the running game's value
-  // for it. It needs the hook OnCombat installs, and a watch lasts as long as
-  // that hook; a callback ignores the values it did not ask for.
+  // for it. It needs the hook OnCombat installs, and a watch lasts until
+  // UnwatchModifierEvent is called with the value; a callback ignores the
+  // values it did not ask for.
   std::expected<uint32_t, std::string> WatchModifierEvent(std::string_view name);
+  // UnwatchModifierEvent ends one watch of the value WatchModifierEvent
+  // returned, so the game stops reporting the event once no watch remains.
+  void UnwatchModifierEvent(uint32_t id);
   // ObservedInteractions reports which interactions the combat hook OnCombat
   // installed delivers; none before it is installed.
   gameinterop::ObservedInteractions ObservedInteractions() const;

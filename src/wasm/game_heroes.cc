@@ -685,19 +685,9 @@ std::expected<void, std::string> Game::SetAbility(const abilities::AbilityOption
     }
   }
 
-  // Give its cooldowns the lengths asked for.
-  using Timer = gameinterop::AbilityCooldown::Timer;
+  // Give its cooldowns the length asked for.
   if (request.has_cooldown()) {
-    if (auto set = SetCooldownLength(request.player(), ability->handle, Timer::kCooldown,
-                                     request.cooldown());
-        !set) {
-      return set;
-    }
-  }
-  if (request.has_charge_delay()) {
-    if (auto set = SetCooldownLength(request.player(), ability->handle, Timer::kChargeDelay,
-                                     request.charge_delay());
-        !set) {
+    if (auto set = SetCooldownLength(request.player(), ability->handle, request.cooldown()); !set) {
       return set;
     }
   }
@@ -725,7 +715,6 @@ std::expected<void, std::string> Game::SetAbility(const abilities::AbilityOption
 }
 
 std::expected<void, std::string> Game::SetCooldownLength(int32_t slot, uint32_t handle,
-                                                         gameinterop::AbilityCooldown::Timer timer,
                                                          float seconds) {
   // Create the cooldown lengths once from the server module.
   if (!cooldown_) {
@@ -733,11 +722,11 @@ std::expected<void, std::string> Game::SetCooldownLength(int32_t slot, uint32_t 
     if (!image) {
       return std::unexpected(image.error());
     }
-    auto slots = gameinterop::ResolveAbilityCooldownSlots(**image);
-    if (!slots) {
-      return std::unexpected(slots.error());
+    auto query = gameinterop::ResolveAbilityCooldownSlot(**image);
+    if (!query) {
+      return std::unexpected(query.error());
     }
-    auto created = gameinterop::AbilityCooldown::Create(*slots);
+    auto created = gameinterop::AbilityCooldown::Create(*query);
     if (!created) {
       return std::unexpected(created.error());
     }
@@ -749,8 +738,7 @@ std::expected<void, std::string> Game::SetCooldownLength(int32_t slot, uint32_t 
   if (ability == nullptr) {
     return std::unexpected("the ability is not live");
   }
-  return cooldown_->Set(ability, handle, timer,
-                        seconds < 0 ? std::nullopt : std::optional(seconds));
+  return cooldown_->Set(ability, handle, seconds < 0 ? std::nullopt : std::optional(seconds));
 }
 
 std::expected<void, std::string> Game::LimitCharges(int32_t slot, uint32_t handle,

@@ -225,18 +225,15 @@ type AbilityOptions struct {
 	// are not removed; set them with charges.
 	MaxCharges *int32 `protobuf:"varint,7,opt,name=max_charges,json=maxCharges,proto3,oneof" json:"maxCharges,omitempty"`
 	// Cooldown makes every cooldown the ability starts from now on last this
-	// many seconds, in place of the game's own length. For an ability with
-	// charges it is the time each charge takes to return. 0 leaves the ability
-	// always ready, and a negative value returns it to the game's own. The game
-	// asks for the length as it starts each cooldown, so it holds for every
-	// later cast and the hero's screen shows it; a cooldown already running
-	// keeps its end, which cooldown_end moves. It holds for this ability of
-	// this hero, so set it again after a hero change or a replaced ability.
+	// many seconds, in place of the game's own length. An ability that holds
+	// charges waits this long between casts. 0 leaves the ability always
+	// ready, and a negative value returns it to the game's own. The game asks
+	// for the length as it starts each cooldown and applies the hero's cooldown
+	// reduction to it, so it holds for every later cast and the hero's screen
+	// shows it; a cooldown already running keeps its end, which cooldown_end
+	// moves. It holds for this ability of this hero until the mod stops, so
+	// set it again after a hero change or a replaced ability.
 	Cooldown *float32 `protobuf:"fixed32,8,opt,name=cooldown,proto3,oneof" json:"cooldown,omitempty"`
-	// ChargeDelay makes the wait after the ability spends a charge, before it
-	// can spend the next, last this many seconds, as cooldown does for its
-	// cooldowns.
-	ChargeDelay *float32 `protobuf:"fixed32,9,opt,name=charge_delay,json=chargeDelay,proto3,oneof" json:"chargeDelay,omitempty"`
 }
 
 func (x *AbilityOptions) Reset() {
@@ -297,13 +294,6 @@ func (x *AbilityOptions) GetMaxCharges() int32 {
 func (x *AbilityOptions) GetCooldown() float32 {
 	if x != nil && x.Cooldown != nil {
 		return *x.Cooldown
-	}
-	return 0
-}
-
-func (x *AbilityOptions) GetChargeDelay() float32 {
-	if x != nil && x.ChargeDelay != nil {
-		return *x.ChargeDelay
 	}
 	return 0
 }
@@ -1107,7 +1097,6 @@ func (m *AbilityOptions) CloneVT() *AbilityOptions {
 	r.RechargeEnd = protobuf_go_lite.ClonePtr(m.RechargeEnd)
 	r.MaxCharges = protobuf_go_lite.ClonePtr(m.MaxCharges)
 	r.Cooldown = protobuf_go_lite.ClonePtr(m.Cooldown)
-	r.ChargeDelay = protobuf_go_lite.ClonePtr(m.ChargeDelay)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1587,9 +1576,6 @@ func (this *AbilityOptions) EqualVT(that *AbilityOptions) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualPtr(this.Cooldown, that.Cooldown) {
-		return false
-	}
-	if !protobuf_go_lite.EqualPtr(this.ChargeDelay, that.ChargeDelay) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2411,11 +2397,6 @@ func (x *AbilityOptions) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("cooldown")
 		s.WriteFloat32(*x.Cooldown)
 	}
-	if x.ChargeDelay != nil {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("chargeDelay")
-		s.WriteFloat32(*x.ChargeDelay)
-	}
 	s.WriteObjectEnd()
 }
 
@@ -2487,14 +2468,6 @@ func (x *AbilityOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadFloat32()
 			x.Cooldown = &t
-		case "charge_delay", "chargeDelay":
-			s.AddField("charge_delay")
-			if s.ReadNil() {
-				x.ChargeDelay = nil
-				return
-			}
-			t := s.ReadFloat32()
-			x.ChargeDelay = &t
 		}
 	})
 }
@@ -3905,11 +3878,6 @@ func (m *AbilityOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if m.ChargeDelay != nil {
-		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.ChargeDelay))))
-		i--
-		dAtA[i] = 0x4d
-	}
 	if m.Cooldown != nil {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Cooldown))))
 		i--
@@ -4898,7 +4866,6 @@ func (m *AbilityOptions) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.RechargeEnd)
 	n += protobuf_go_lite.SizeVarintPtr(1, m.MaxCharges)
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Cooldown)
-	n += protobuf_go_lite.SizeFixed32Ptr(1, m.ChargeDelay)
 	n += len(m.unknownFields)
 	return n
 }
@@ -5297,10 +5264,6 @@ func (x *AbilityOptions) MarshalProtoText() string {
 	if x.Cooldown != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "cooldown")
 		protobuf_go_lite.TextWriteFloat32(&sb, *x.Cooldown)
-	}
-	if x.ChargeDelay != nil {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "charge_delay")
-		protobuf_go_lite.TextWriteFloat32(&sb, *x.ChargeDelay)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -6177,19 +6140,6 @@ func (m *AbilityOptions) UnmarshalVT(dAtA []byte) error {
 			v = uint32(_v32)
 			v2 := float32(math.Float32frombits(v))
 			m.Cooldown = &v2
-		case 9:
-			if wireType != 5 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChargeDelay", wireType)
-			}
-			var v uint32
-			var _v32 uint32
-			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			v = uint32(_v32)
-			v2 := float32(math.Float32frombits(v))
-			m.ChargeDelay = &v2
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

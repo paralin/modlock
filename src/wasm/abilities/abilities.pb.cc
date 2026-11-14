@@ -503,8 +503,7 @@ inline constexpr AbilityOptions::Impl_::Impl_(
         cooldown_end_{0},
         recharge_end_{0},
         max_charges_{0},
-        cooldown_{0},
-        charge_delay_{0} {}
+        cooldown_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR AbilityOptions::AbilityOptions(::_pbi::ConstantInitialized)
@@ -757,7 +756,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_._has_bits_),
-        12, // hasbit index offset
+        11, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.ability_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.upgrades_),
@@ -766,7 +765,6 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.recharge_end_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.max_charges_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.cooldown_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::AbilityOptions, _impl_.charge_delay_),
         1,
         0,
         2,
@@ -775,7 +773,6 @@ const ::uint32_t
         5,
         6,
         7,
-        8,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::GiveItemRequest, _impl_._has_bits_),
         6, // hasbit index offset
@@ -949,24 +946,24 @@ static const ::_pbi::MigrationSchema
         {12, sizeof(::modlock::wasm::abilities::AbilitiesResponse)},
         {17, sizeof(::modlock::wasm::abilities::Ability)},
         {44, sizeof(::modlock::wasm::abilities::AbilityOptions)},
-        {65, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
-        {74, sizeof(::modlock::wasm::abilities::BuyItemRequest)},
-        {85, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
-        {92, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
-        {103, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
-        {112, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
-        {121, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
-        {128, sizeof(::modlock::wasm::abilities::ActiveResponse)},
-        {133, sizeof(::modlock::wasm::abilities::ModifiersResponse)},
-        {138, sizeof(::modlock::wasm::abilities::Modifier)},
-        {161, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
-        {170, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
-        {175, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
-        {180, sizeof(::modlock::wasm::abilities::BuildCategory)},
-        {189, sizeof(::modlock::wasm::abilities::BuildItem)},
-        {196, sizeof(::modlock::wasm::abilities::HoldEntityModifierRequest)},
-        {205, sizeof(::modlock::wasm::abilities::GiveEntityModifierRequest)},
-        {214, sizeof(::modlock::wasm::abilities::AbilityCastEvent)},
+        {63, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
+        {72, sizeof(::modlock::wasm::abilities::BuyItemRequest)},
+        {83, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
+        {90, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
+        {101, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
+        {110, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
+        {119, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
+        {126, sizeof(::modlock::wasm::abilities::ActiveResponse)},
+        {131, sizeof(::modlock::wasm::abilities::ModifiersResponse)},
+        {136, sizeof(::modlock::wasm::abilities::Modifier)},
+        {159, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
+        {168, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
+        {173, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
+        {178, sizeof(::modlock::wasm::abilities::BuildCategory)},
+        {187, sizeof(::modlock::wasm::abilities::BuildItem)},
+        {194, sizeof(::modlock::wasm::abilities::HoldEntityModifierRequest)},
+        {203, sizeof(::modlock::wasm::abilities::GiveEntityModifierRequest)},
+        {212, sizeof(::modlock::wasm::abilities::AbilityCastEvent)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HoldReloadRequest_default_instance_._instance,
@@ -1007,60 +1004,59 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\030\006 \001(\002\022\n\n\002id\030\007 \001(\r\022\r\n\005state\030\010 \001(\r\022\026\n\016coo"
     "ldown_start\030\t \001(\002\022\026\n\016recharge_start\030\n \001("
     "\002\022\024\n\014recharge_end\030\013 \001(\002\022\016\n\006imbues\030\014 \003(\t\""
-    "\311\002\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017\n\007ab"
+    "\235\002\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017\n\007ab"
     "ility\030\002 \001(\t\022\025\n\010upgrades\030\003 \001(\rH\000\210\001\001\022\024\n\007ch"
     "arges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown_end\030\005 \001(\002H\002"
     "\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001\022\030\n\013max_ch"
-    "arges\030\007 \001(\005H\004\210\001\001\022\025\n\010cooldown\030\010 \001(\002H\005\210\001\001\022"
-    "\031\n\014charge_delay\030\t \001(\002H\006\210\001\001B\013\n\t_upgradesB"
-    "\n\n\010_chargesB\017\n\r_cooldown_endB\017\n\r_recharg"
-    "e_endB\016\n\014_max_chargesB\013\n\t_cooldownB\017\n\r_c"
-    "harge_delay\"M\n\017GiveItemRequest\022\016\n\006player"
-    "\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001"
-    "B\010\n\006_imbue\"l\n\016BuyItemRequest\022\016\n\006player\030\001"
-    " \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001\022\023"
-    "\n\006source\030\004 \001(\rH\001\210\001\001B\010\n\006_imbueB\t\n\007_source"
-    "\"3\n\023TrainAbilityRequest\022\016\n\006player\030\001 \001(\005\022"
-    "\014\n\004slot\030\002 \001(\r\"c\n\025ReplaceAbilityRequest\022\016"
-    "\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017\n\007ability"
-    "\030\003 \001(\t\022\021\n\004keep\030\004 \001(\010H\000\210\001\001B\007\n\005_keep\"W\n\023Ho"
-    "ldModifierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010mod"
-    "ifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_act"
-    "ive\"H\n\023GiveModifierRequest\022\016\n\006player\030\001 \001"
-    "(\005\022\020\n\010modifier\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"5\n"
-    "\024ModifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n"
-    "\005state\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active"
-    "\030\001 \001(\010\"H\n\021ModifiersResponse\0223\n\tmodifiers"
-    "\030\001 \003(\0132 .modlock.wasm.abilities.Modifier"
-    "\"\304\001\n\010Modifier\022\014\n\004name\030\001 \001(\t\022\022\n\nclass_nam"
-    "e\030\002 \001(\t\022\016\n\006caster\030\003 \001(\r\022\017\n\007ability\030\004 \001(\r"
-    "\022\013\n\003age\030\005 \001(\002\022\026\n\tremaining\030\006 \001(\002H\000\210\001\001\022\016\n"
-    "\006stacks\030\007 \001(\005\022\022\n\nmax_stacks\030\010 \001(\005\022\014\n\004tea"
-    "m\030\t \001(\r\022\020\n\010disabled\030\n \001(\010B\014\n\n_remaining\""
-    "Y\n\030HoldModifierStateRequest\022\016\n\006entity\030\001 "
-    "\001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B"
-    "\t\n\007_active\" \n\020HeroBuildRequest\022\014\n\004hero\030\001"
-    " \001(\t\"N\n\021HeroBuildResponse\0229\n\ncategories\030"
-    "\001 \003(\0132%.modlock.wasm.abilities.BuildCate"
-    "gory\"d\n\rBuildCategory\022\014\n\004name\030\001 \001(\t\022\023\n\013d"
-    "escription\030\002 \001(\t\0220\n\005items\030\003 \003(\0132!.modloc"
-    "k.wasm.abilities.BuildItem\"-\n\tBuildItem\022"
-    "\014\n\004item\030\001 \001(\t\022\022\n\nannotation\030\002 \001(\t\"]\n\031Hol"
-    "dEntityModifierRequest\022\016\n\006entity\030\001 \001(\r\022\020"
-    "\n\010modifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n"
-    "\007_active\"N\n\031GiveEntityModifierRequest\022\016\n"
-    "\006entity\030\001 \001(\r\022\020\n\010modifier\030\002 \001(\t\022\017\n\007secon"
-    "ds\030\003 \001(\002\"o\n\020AbilityCastEvent\022\016\n\006caster\030\001"
-    " \001(\r\022\016\n\006player\030\002 \001(\005\022\017\n\007ability\030\003 \001(\r\022\014\n"
-    "\004name\030\004 \001(\t\022\014\n\004slot\030\005 \001(\005\022\016\n\006target\030\006 \001("
-    "\rB9Z7github.com/paralin/modlock/src/wasm"
-    "/abilities;abilitiesb\006proto3"
+    "arges\030\007 \001(\005H\004\210\001\001\022\025\n\010cooldown\030\010 \001(\002H\005\210\001\001B"
+    "\013\n\t_upgradesB\n\n\010_chargesB\017\n\r_cooldown_en"
+    "dB\017\n\r_recharge_endB\016\n\014_max_chargesB\013\n\t_c"
+    "ooldown\"M\n\017GiveItemRequest\022\016\n\006player\030\001 \001"
+    "(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001B\010\n\006"
+    "_imbue\"l\n\016BuyItemRequest\022\016\n\006player\030\001 \001(\005"
+    "\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001\022\023\n\006so"
+    "urce\030\004 \001(\rH\001\210\001\001B\010\n\006_imbueB\t\n\007_source\"3\n\023"
+    "TrainAbilityRequest\022\016\n\006player\030\001 \001(\005\022\014\n\004s"
+    "lot\030\002 \001(\r\"c\n\025ReplaceAbilityRequest\022\016\n\006pl"
+    "ayer\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017\n\007ability\030\003 \001"
+    "(\t\022\021\n\004keep\030\004 \001(\010H\000\210\001\001B\007\n\005_keep\"W\n\023HoldMo"
+    "difierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010modifie"
+    "r\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_active\""
+    "H\n\023GiveModifierRequest\022\016\n\006player\030\001 \001(\005\022\020"
+    "\n\010modifier\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"5\n\024Mod"
+    "ifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005sta"
+    "te\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active\030\001 \001"
+    "(\010\"H\n\021ModifiersResponse\0223\n\tmodifiers\030\001 \003"
+    "(\0132 .modlock.wasm.abilities.Modifier\"\304\001\n"
+    "\010Modifier\022\014\n\004name\030\001 \001(\t\022\022\n\nclass_name\030\002 "
+    "\001(\t\022\016\n\006caster\030\003 \001(\r\022\017\n\007ability\030\004 \001(\r\022\013\n\003"
+    "age\030\005 \001(\002\022\026\n\tremaining\030\006 \001(\002H\000\210\001\001\022\016\n\006sta"
+    "cks\030\007 \001(\005\022\022\n\nmax_stacks\030\010 \001(\005\022\014\n\004team\030\t "
+    "\001(\r\022\020\n\010disabled\030\n \001(\010B\014\n\n_remaining\"Y\n\030H"
+    "oldModifierStateRequest\022\016\n\006entity\030\001 \001(\r\022"
+    "\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_"
+    "active\" \n\020HeroBuildRequest\022\014\n\004hero\030\001 \001(\t"
+    "\"N\n\021HeroBuildResponse\0229\n\ncategories\030\001 \003("
+    "\0132%.modlock.wasm.abilities.BuildCategory"
+    "\"d\n\rBuildCategory\022\014\n\004name\030\001 \001(\t\022\023\n\013descr"
+    "iption\030\002 \001(\t\0220\n\005items\030\003 \003(\0132!.modlock.wa"
+    "sm.abilities.BuildItem\"-\n\tBuildItem\022\014\n\004i"
+    "tem\030\001 \001(\t\022\022\n\nannotation\030\002 \001(\t\"]\n\031HoldEnt"
+    "ityModifierRequest\022\016\n\006entity\030\001 \001(\r\022\020\n\010mo"
+    "difier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_ac"
+    "tive\"N\n\031GiveEntityModifierRequest\022\016\n\006ent"
+    "ity\030\001 \001(\r\022\020\n\010modifier\030\002 \001(\t\022\017\n\007seconds\030\003"
+    " \001(\002\"o\n\020AbilityCastEvent\022\016\n\006caster\030\001 \001(\r"
+    "\022\016\n\006player\030\002 \001(\005\022\017\n\007ability\030\003 \001(\r\022\014\n\004nam"
+    "e\030\004 \001(\t\022\014\n\004slot\030\005 \001(\005\022\016\n\006target\030\006 \001(\rB9Z"
+    "7github.com/paralin/modlock/src/wasm/abi"
+    "lities;abilitiesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto = {
     false,
     false,
-    2388,
+    2344,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
     "github.com/paralin/modlock/src/wasm/abilities/abilities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once,
@@ -2593,9 +2589,9 @@ AbilityOptions::AbilityOptions(
                offsetof(Impl_, player_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, player_),
-           offsetof(Impl_, charge_delay_) -
+           offsetof(Impl_, cooldown_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::charge_delay_));
+               sizeof(Impl_::cooldown_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.AbilityOptions)
 }
@@ -2610,9 +2606,9 @@ inline void AbilityOptions::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, player_),
            0,
-           offsetof(Impl_, charge_delay_) -
+           offsetof(Impl_, cooldown_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::charge_delay_));
+               sizeof(Impl_::cooldown_));
 }
 AbilityOptions::~AbilityOptions() {
   // @@protoc_insertion_point(destructor:modlock.wasm.abilities.AbilityOptions)
@@ -2672,16 +2668,16 @@ AbilityOptions::GetClassData() const {
   return AbilityOptions_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 9, 0, 61, 2>
+const ::_pbi::TcParseTable<3, 8, 0, 61, 2>
 AbilityOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_._has_bits_),
     0, // no _extensions_
-    9, 120,  // max_field_number, fast_idx_mask
+    8, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294966784,  // skipmap
+    4294967040,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    9,  // num_field_entries
+    8,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     AbilityOptions_class_data_.base(),
@@ -2691,7 +2687,10 @@ AbilityOptions::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::AbilityOptions>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional float cooldown = 8;
+    {::_pbi::TcParser::FastF32S1,
+     {69, 7, 0,
+      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_)}},
     // int32 player = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityOptions, _impl_.player_), 1>(),
      {8, 1, 0,
@@ -2720,20 +2719,6 @@ AbilityOptions::_table_ = {
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(AbilityOptions, _impl_.max_charges_), 6>(),
      {56, 6, 0,
       PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.max_charges_)}},
-    // optional float cooldown = 8;
-    {::_pbi::TcParser::FastF32S1,
-     {69, 7, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_)}},
-    // optional float charge_delay = 9;
-    {::_pbi::TcParser::FastF32S1,
-     {77, 8, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -2753,8 +2738,6 @@ AbilityOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.max_charges_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // optional float cooldown = 8;
     {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
-    // optional float charge_delay = 9;
-    {PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
   }},
   // no aux_entries
   {{
@@ -2779,7 +2762,6 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
         reinterpret_cast<char*>(&_impl_.cooldown_) -
         reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.cooldown_));
   }
-  _impl_.charge_delay_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -2864,13 +2846,6 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
         8, this_._internal_cooldown(), target);
   }
 
-  // optional float charge_delay = 9;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteFloatToArray(
-        9, this_._internal_charge_delay(), target);
-  }
-
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2896,7 +2871,7 @@ PROTOBUF_NOINLINE void AbilityOptions::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  total_size += ::absl::popcount(0x000001b0U & cached_has_bits) * 5;
+  total_size += ::absl::popcount(0x000000b0U & cached_has_bits) * 5;
   if (BatchCheckHasBit(cached_has_bits, 0x0000004fU)) {
     // string ability = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
@@ -2980,9 +2955,6 @@ void AbilityOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
       _this->_impl_.cooldown_ = from._impl_.cooldown_;
     }
   }
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    _this->_impl_.charge_delay_ = from._impl_.charge_delay_;
-  }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -3004,8 +2976,8 @@ void AbilityOptions::InternalSwap(AbilityOptions* PROTOBUF_RESTRICT PROTOBUF_NON
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.ability_, &other->_impl_.ability_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.charge_delay_)
-      + sizeof(AbilityOptions::_impl_.charge_delay_)
+      PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.cooldown_)
+      + sizeof(AbilityOptions::_impl_.cooldown_)
       - PROTOBUF_FIELD_OFFSET(AbilityOptions, _impl_.player_)>(
           reinterpret_cast<char*>(&_impl_.player_),
           reinterpret_cast<char*>(&other->_impl_.player_));

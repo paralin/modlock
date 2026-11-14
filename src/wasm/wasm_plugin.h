@@ -480,11 +480,11 @@ class WasmPlugin final : public Plugin {
   std::vector<gameinterop::DamageTakenEvent> damaged_;
   std::vector<wasm::Game::MovementFact> facts_;
   // casts_ and fired_ queue the casts and watched modifier events the same
-  // way. watched_ names each watched event by the running game's value for
-  // it, and changes only under the lock.
+  // way. watched_ holds, by the running game's value for each watched event,
+  // the names the mod gave it, and changes only under the lock.
   std::vector<gameinterop::AbilityExecutedEvent> casts_;
   std::vector<gameinterop::ModifierFiredEvent> fired_;
-  std::unordered_map<uint32_t, std::string> watched_;
+  std::unordered_map<uint32_t, std::vector<std::string>> watched_;
   // sampled_ is the last tick the movement samples went out on.
   std::optional<uint64_t> sampled_;
   // ui_ follows the interface the running instance shows each player.

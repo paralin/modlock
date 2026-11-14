@@ -312,9 +312,12 @@ class MODLOCK_API CombatEventsHook {
   CombatEventsHook& operator=(const CombatEventsHook&) = delete;
 
   // Watch reports every later modifier event with this EModifierEvent value
-  // to the handler as kModifierFired, until the hook is destroyed. The value
-  // comes from ModifierEventIndex.
+  // to the handler as kModifierFired, until a matching Unwatch or the hook's
+  // destruction. Watches of one value count, so the event is reported while
+  // any remains. The value comes from ModifierEventIndex.
   std::expected<void, std::string> Watch(uint32_t id);
+  // Unwatch ends one Watch of the value.
+  void Unwatch(uint32_t id);
 
   // Observed reports which interaction kinds this hook delivers.
   [[nodiscard]] ObservedInteractions Observed() const;

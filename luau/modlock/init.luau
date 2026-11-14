@@ -508,18 +508,15 @@ export type AbilityOptions = {
 	-- are not removed; set them with charges.
 	maxCharges: number?,
 	-- cooldown makes every cooldown the ability starts from now on last this
-	-- many seconds, in place of the game's own length. For an ability with
-	-- charges it is the time each charge takes to return. 0 leaves the ability
-	-- always ready, and a negative value returns it to the game's own. The game
-	-- asks for the length as it starts each cooldown, so it holds for every
-	-- later cast and the hero's screen shows it; a cooldown already running
-	-- keeps its end, which cooldown_end moves. It holds for this ability of
-	-- this hero, so set it again after a hero change or a replaced ability.
+	-- many seconds, in place of the game's own length. An ability that holds
+	-- charges waits this long between casts. 0 leaves the ability always
+	-- ready, and a negative value returns it to the game's own. The game asks
+	-- for the length as it starts each cooldown and applies the hero's cooldown
+	-- reduction to it, so it holds for every later cast and the hero's screen
+	-- shows it; a cooldown already running keeps its end, which cooldown_end
+	-- moves. It holds for this ability of this hero until the mod stops, so
+	-- set it again after a hero change or a replaced ability.
 	cooldown: number?,
-	-- chargeDelay makes the wait after the ability spends a charge, before it
-	-- can spend the next, last this many seconds, as cooldown does for its
-	-- cooldowns.
-	chargeDelay: number?,
 }
 
 -- Modifier is one modifier an entity holds, as the game keeps it.
@@ -2798,7 +2795,6 @@ schema.AbilityOptions = {
 	{ number = 6, name = "rechargeEnd", kind = "float", optional = true },
 	{ number = 7, name = "maxCharges", kind = "int32", optional = true },
 	{ number = 8, name = "cooldown", kind = "float", optional = true },
-	{ number = 9, name = "chargeDelay", kind = "float", optional = true },
 }
 schema.GiveItemRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

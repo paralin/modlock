@@ -364,21 +364,16 @@ export interface AbilityOptions {
   maxCharges?: number
   /**
    * Cooldown makes every cooldown the ability starts from now on last this
-   * many seconds, in place of the game's own length. For an ability with
-   * charges it is the time each charge takes to return. 0 leaves the ability
-   * always ready, and a negative value returns it to the game's own. The game
-   * asks for the length as it starts each cooldown, so it holds for every
-   * later cast and the hero's screen shows it; a cooldown already running
-   * keeps its end, which cooldown_end moves. It holds for this ability of
-   * this hero, so set it again after a hero change or a replaced ability.
+   * many seconds, in place of the game's own length. An ability that holds
+   * charges waits this long between casts. 0 leaves the ability always
+   * ready, and a negative value returns it to the game's own. The game asks
+   * for the length as it starts each cooldown and applies the hero's cooldown
+   * reduction to it, so it holds for every later cast and the hero's screen
+   * shows it; a cooldown already running keeps its end, which cooldown_end
+   * moves. It holds for this ability of this hero until the mod stops, so
+   * set it again after a hero change or a replaced ability.
    */
   cooldown?: number
-  /**
-   * ChargeDelay makes the wait after the ability spends a charge, before it
-   * can spend the next, last this many seconds, as cooldown does for its
-   * cooldowns.
-   */
-  chargeDelay?: number
 }
 
 export const AbilityOptions: MessageType<AbilityOptions> =
@@ -393,7 +388,6 @@ export const AbilityOptions: MessageType<AbilityOptions> =
       [6, 'recharge_end', 2, 4],
       [7, 'max_charges', 5, 4],
       [8, 'cooldown', 2, 4],
-      [9, 'charge_delay', 2, 4],
     ],
     {
       decode: (
@@ -428,9 +422,6 @@ export const AbilityOptions: MessageType<AbilityOptions> =
               break
             case 8:
               m.cooldown = r.float()
-              break
-            case 9:
-              m.chargeDelay = r.float()
               break
             default:
               r.skip(t)
@@ -470,10 +461,6 @@ export const AbilityOptions: MessageType<AbilityOptions> =
         {
           const v = m.cooldown
           if (v != null) w.uint32(69).float(v)
-        }
-        {
-          const v = m.chargeDelay
-          if (v != null) w.uint32(77).float(v)
         }
       },
     },

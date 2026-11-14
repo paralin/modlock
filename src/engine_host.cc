@@ -299,6 +299,12 @@ std::expected<uint32_t, std::string> EngineHost::WatchModifierEvent(std::string_
   return *id;
 }
 
+void EngineHost::UnwatchModifierEvent(uint32_t id) {
+  if (impl_->combat_hook) {
+    impl_->combat_hook->Unwatch(id);
+  }
+}
+
 gameinterop::ObservedInteractions EngineHost::ObservedInteractions() const {
   return impl_->combat_hook ? impl_->combat_hook->Observed() : gameinterop::ObservedInteractions{};
 }

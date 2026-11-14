@@ -1,11 +1,12 @@
-// Cooldown checks setAbility's cooldown, the cast events and the kill event. When the server
-// starts the mod with the argument probe, the mod adds two bots on the same
-// hero, gives one bot's first three abilities a cooldown of its own, and has
-// both press their ability keys in turn. Each cooldown the game starts for
-// the changed bot should last the given seconds, cast after cast, while the
-// other bot keeps the game's own, and each cast should arrive as an event
-// naming the bot and the ability. One bot then kills the other, which should
-// arrive as a kill naming both. The mod quits the server with PASS or FAIL.
+// Cooldown checks setAbility's cooldown, the cast events and the kill event.
+// When the server starts the mod with the argument probe, the mod adds two
+// bots on the same hero, gives one bot's first three abilities a cooldown of
+// its own, and has both press their ability keys in turn. Each cooldown the
+// game starts for the changed bot should last the given seconds, cast after
+// cast, while the other bot keeps the game's own, and each cast should arrive
+// as an event naming the bot and the ability. One bot then kills the other,
+// which should arrive as a kill naming both. The mod quits the server with
+// PASS or FAIL.
 import {
   addBot,
   Buttons,
@@ -21,13 +22,17 @@ import {
 } from 'modlock'
 
 /**
- * hero is the bots' hero. Its first ability holds charges and its third has
- * a plain cooldown, so the check covers both timers.
+ * hero is the bots' hero. Its first ability holds charges, which the check
+ * gives both bots, and its third has a plain cooldown, so the check covers
+ * both kinds.
  */
 const hero = 'hero_wraith'
 
 /** length is the cooldown, in seconds, the check gives the changed bot. */
 const length = 3
+
+/** charges is how many charges of its first ability the check gives each bot. */
+const charges = 20
 
 /** tolerance is how far a measured cooldown may be from length. */
 const tolerance = 0.1
@@ -67,7 +72,6 @@ interface Bot {
   readonly player: Player
   readonly changed: boolean
   readonly cooldowns: Map<string, Timer>
-  readonly recharges: Map<string, Timer>
   casts: number
 }
 
@@ -142,7 +146,6 @@ function seat(): boolean {
       player,
       changed,
       cooldowns: new Map(),
-      recharges: new Map(),
       casts: 0,
     })
   }
@@ -199,8 +202,8 @@ onFrame((frame) => {
     return
   }
 
-  // Unlock each bot's first three abilities, then two seconds later give the
-  // changed bot's a cooldown and a short wait between charges.
+  // Unlock each bot's first three abilities, then two seconds later give both
+  // bots charges of the first and the changed bot's abilities a cooldown.
   if (unlockedAt === undefined) {
     unlockedAt = frame.timeSeconds
     for (const [index, bot] of bots.entries()) {
@@ -215,19 +218,25 @@ onFrame((frame) => {
   }
   if (armedAt === undefined) {
     armedAt = frame.timeSeconds
+    for (const [index, bot] of bots.entries()) {
+      bot.player.setAbility({
+        ability: abilities[index][0].name,
+        maxCharges: charges,
+        charges,
+      })
+    }
     const changed = bots.findIndex((bot) => bot.changed)
     for (const ability of abilities[changed].filter((item) => item.slot < 3)) {
       const set = bots[changed].player.setAbility({
         ability: ability.name,
         cooldown: length,
-        chargeDelay: 0.25,
       })
       log(`${ability.name} cooldown ${length}: ${set ? 'set' : 'refused'}`)
     }
     return
   }
 
-  // Record each cooldown and each charge's return the game started.
+  // Record each cooldown the game started.
   for (const [index, bot] of bots.entries()) {
     for (const ability of abilities[index].filter((item) => item.slot < 3)) {
       measure(
@@ -235,12 +244,6 @@ onFrame((frame) => {
         ability.name,
         ability.cooldownStart,
         ability.cooldownEnd,
-      )
-      measure(
-        bot.recharges,
-        ability.name,
-        ability.rechargeStart,
-        ability.rechargeEnd,
       )
     }
   }
@@ -276,16 +279,11 @@ onFrame((frame) => {
 function verdict(): string | undefined {
   // Log every length the check measured.
   for (const bot of bots) {
-    for (const [kind, timers] of [
-      ['cooldown', bot.cooldowns],
-      ['recharge', bot.recharges],
-    ] as const) {
-      for (const [name, timer] of timers) {
-        if (timer.lengths.length > 0) {
-          log(
-            `${bot.label} ${name} ${kind}: ${timer.lengths.map((value) => value.toFixed(2)).join(' ')}`,
-          )
-        }
+    for (const [name, timer] of bot.cooldowns) {
+      if (timer.lengths.length > 0) {
+        log(
+          `${bot.label} ${name} cooldown: ${timer.lengths.map((value) => value.toFixed(2)).join(' ')}`,
+        )
       }
     }
     log(`${bot.label} casts: ${bot.casts}`)
@@ -307,30 +305,29 @@ function verdict(): string | undefined {
 
   // Gather each bot's measured lengths.
   const lengths = (bot: Bot) =>
-    [...bot.cooldowns.values(), ...bot.recharges.values()].flatMap(
-      (timer) => timer.lengths,
-    )
+    [...bot.cooldowns.values()].flatMap((timer) => timer.lengths)
   const changed = bots.find((bot) => bot.changed)!
   const control = bots.find((bot) => !bot.changed)!
 
-  // The changed bot's cooldowns and charge returns last the given seconds.
+  // The changed bot's cooldowns last the given seconds.
   const off = lengths(changed).filter(
-    (value) => Math.abs(value - length) > tolerance && value > 0.5,
+    (value) => Math.abs(value - length) > tolerance,
   )
   if (off.length > 0) {
     return `the changed bot had cooldowns of ${off.map((value) => value.toFixed(2)).join(' ')}`
   }
 
-  // They start more than once, and the control bot's are the game's own.
-  const repeated = [...changed.cooldowns.values()].some(
-    (timer) => timer.lengths.length >= 2,
-  )
+  // The ability with charges and the plain one each start more than once,
+  // and none of the control bot's matches.
+  const owned = changed.player.abilities()
+  const repeated = [0, 2].every((slot) => {
+    const timer = changed.cooldowns.get(owned[slot]?.name ?? '')
+    return (timer?.lengths.length ?? 0) >= 2
+  })
   if (!repeated) {
-    return 'no cooldown of the changed bot started twice'
+    return 'a cooldown of the changed bot did not start twice'
   }
-  if (
-    lengths(control).every((value) => Math.abs(value - length) <= tolerance)
-  ) {
+  if (lengths(control).some((value) => Math.abs(value - length) <= tolerance)) {
     return 'the control bot had the same cooldowns'
   }
   return undefined

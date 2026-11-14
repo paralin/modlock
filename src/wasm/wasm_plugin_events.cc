@@ -266,8 +266,15 @@ void WasmPlugin::ListenToCombat() {
       Log("modifier event " + name + " is unavailable: " + id.error());
       continue;
     }
+
+    // An event named twice, with and without the prefix, keeps one watch and
+    // answers to both names.
     std::lock_guard lock(damaged_lock_);
-    watched_.emplace(*id, name);
+    auto& names = watched_[*id];
+    if (!names.empty()) {
+      engine_->UnwatchModifierEvent(*id);
+    }
+    names.push_back(name);
   }
 }
 
@@ -438,7 +445,7 @@ void WasmPlugin::DeliverCasts() {
   // Take what the game queued, and the names of the watched events.
   std::vector<gameinterop::AbilityExecutedEvent> casts;
   std::vector<gameinterop::ModifierFiredEvent> fired;
-  std::unordered_map<uint32_t, std::string> watched;
+  std::unordered_map<uint32_t, std::vector<std::string>> watched;
   {
     std::lock_guard lock(damaged_lock_);
     casts.swap(casts_);
@@ -468,17 +475,24 @@ void WasmPlugin::DeliverCasts() {
     if (!instance_) {
       return;
     }
-    const auto name = watched.find(fact.id);
-    if (name == watched.end() || (!Serves(fact.caster_handle) && !Serves(fact.target_handle))) {
+    const auto names = watched.find(fact.id);
+    if (names == watched.end() || (!Serves(fact.caster_handle) && !Serves(fact.target_handle))) {
       continue;
     }
     wasm::combat::ModifierFiredEvent event;
-    event.set_name(name->second);
     event.set_caster(entity(fact.caster_handle));
     event.set_player(game_.SlotOfPawn(fact.caster_handle).value_or(-1));
     event.set_target(entity(fact.target_handle));
     event.set_ability(entity(fact.ability_handle));
-    static_cast<void>(mod_.ModifierFired(event));
+
+    // Report it under each name the mod gave it.
+    for (const auto& name : names->second) {
+      if (!instance_) {
+        return;
+      }
+      event.set_name(name);
+      static_cast<void>(mod_.ModifierFired(event));
+    }
   }
 }
 
@@ -525,12 +539,16 @@ void WasmPlugin::Unsubscribe() {
   adjusted_.reset();
   sampled_.reset();
 
-  // Drop the queued damage and facts.
+  // Drop the queued damage and facts, and stop the game reporting the
+  // modifier events the mod watched.
   std::lock_guard lock(damaged_lock_);
   damaged_.clear();
   facts_.clear();
   casts_.clear();
   fired_.clear();
+  for (const auto& [id, names] : watched_) {
+    engine_->UnwatchModifierEvent(id);
+  }
   watched_.clear();
 }
 

@@ -83,9 +83,10 @@ struct EventIds {
 
 EventIds g_ids;
 
-// g_watched marks the EModifierEvent values a consumer asked to hear whole.
-// The engine thread sets a mark and any thread that fires an event reads it.
-std::array<std::atomic<bool>, kMaxModifierEvent> g_watched{};
+// g_watched counts, for each EModifierEvent value, the consumers that asked to
+// hear it whole. The engine thread changes a count and any thread that fires
+// an event reads it.
+std::array<std::atomic<uint32_t>, kMaxModifierEvent> g_watched{};
 
 CombatEventsHook::Handler* g_handler = nullptr;
 DamageResultOffsets g_damage_offsets;
@@ -242,7 +243,8 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
     break;
   }
   // Report a watched event with the handles of its three entities.
-  if (event < g_watched.size() && g_watched[event].load(std::memory_order_relaxed) && g_handler) {
+  if (event < g_watched.size() && g_watched[event].load(std::memory_order_relaxed) != 0 &&
+      g_handler) {
     CombatEvent decoded;
     decoded.kind = CombatEvent::Kind::kModifierFired;
     decoded.modifier = ModifierFiredEvent{event, GuardedHandleOf(caster), GuardedHandleOf(target),
@@ -562,7 +564,7 @@ struct CombatEventsHook::Impl {
       g_suppress_damage = nullptr;
       g_adjust_damage = nullptr;
       for (auto& watched : g_watched) {
-        watched.store(false, std::memory_order_relaxed);
+        watched.store(0, std::memory_order_relaxed);
       }
     }
   }
@@ -580,11 +582,21 @@ std::expected<void, std::string> CombatEventsHook::Watch(uint32_t id) {
   if (id >= g_watched.size()) {
     return std::unexpected("modifier event " + std::to_string(id) + " is out of range");
   }
-  g_watched[id].store(true, std::memory_order_relaxed);
+  g_watched[id].fetch_add(1, std::memory_order_relaxed);
   return {};
 #else
   static_cast<void>(id);
   return std::unexpected("modifier events require a Windows game server");
+#endif
+}
+
+void CombatEventsHook::Unwatch(uint32_t id) {
+#if defined(_WIN32)
+  if (id < g_watched.size() && g_watched[id].load(std::memory_order_relaxed) != 0) {
+    g_watched[id].fetch_sub(1, std::memory_order_relaxed);
+  }
+#else
+  static_cast<void>(id);
 #endif
 }
 
