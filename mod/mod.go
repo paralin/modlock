@@ -59,6 +59,10 @@ type handlers struct {
 	damageds      []func(*DamagedEvent)
 	kills         []func(*KillEvent)
 	casts         []func(*AbilityCastEvent)
+	heals         []func(*HealEvent)
+	levels        []func(*LevelEvent)
+	melees        []func(*MeleeEvent)
+	parries       []func(*ParryEvent)
 	modifiers     map[string][]func(*ModifierFiredEvent)
 	launches      []func(*LaunchEvent)
 	impacts       []func(*ImpactEvent)
@@ -189,6 +193,34 @@ func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
 	registered.casts = append(registered.casts, handler)
 }
 
+// OnHeal calls handler after each heal, before the next frame: health a hero
+// or unit regained at once from an ability, an item or lifesteal. Regeneration
+// calls nothing, including what abilities such as Siphon Life restore as
+// regeneration, and neither do the mod's own heal and a heal at full health.
+// The heal names the entity healed, the healer and ability when the game
+// names them, and the player of each: a slot of -1 is a unit's, or no one's.
+func OnHeal(handler func(heal *HealEvent)) {
+	registered.heals = append(registered.heals, handler)
+}
+
+// OnLevelChange calls handler as each hero reaches a new level, before the
+// next frame.
+func OnLevelChange(handler func(change *LevelEvent)) {
+	registered.levels = append(registered.levels, handler)
+}
+
+// OnMelee calls handler after each melee swing, before the next frame, with
+// whether it was heavy and the entities it struck, none for a miss.
+func OnMelee(handler func(swing *MeleeEvent)) {
+	registered.melees = append(registered.melees, handler)
+}
+
+// OnParry calls handler after each parry that catches a melee swing, before
+// the next frame, naming the hero that parried and the attacker it caught.
+func OnParry(handler func(parry *ParryEvent)) {
+	registered.parries = append(registered.parries, handler)
+}
+
 // OnModifierEvent calls handler each time the game fires the modifier event
 // with this EModifierEvent name, such as ABILITY_CAST_STARTED, PARRY_SUCCESS
 // or PLAYER_RESPAWNED, before the next frame. Register before the mod
@@ -260,17 +292,29 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Joins:   len(h.joins) != 0 || len(h.leaves) != 0,
 		Casts:   len(h.casts) != 0,
 		Kills:   len(h.kills) != 0,
+		Heals:   len(h.heals) != 0,
+		Levels:  len(h.levels) != 0,
+		Melees:  len(h.melees) != 0,
+		Parries: len(h.parries) != 0,
 
-		ModifierEvents: slices.Sorted(maps.Keys(h.modifiers)),
+		ModifierEvents: h.modifierEvents(),
 	}, nil
+}
+
+// modifierEvents names the modifier events the mod's handlers watch.
+func (h *handlers) modifierEvents() []string {
+	names := slices.Collect(maps.Keys(h.modifiers))
+	if _, ok := h.modifiers[respawnedEvent]; !ok && len(spawns.handlers) != 0 {
+		names = append(names, respawnedEvent)
+	}
+	slices.Sort(names)
+	return names
 }
 
 // Frame runs the timers that came due and the frame handlers.
 func (h *handlers) Frame(event *FrameEvent) error {
 	advanceTimers(event.GetTimeSeconds())
-	if len(spawns.handlers) != 0 {
-		watchSpawns()
-	}
+	spawns.frame++
 	for _, handler := range h.frames {
 		handler(event)
 	}
@@ -369,31 +413,40 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 }
 
 // Damaged runs the damaged handlers.
-func (h *handlers) Damaged(event *DamagedEvent) error {
-	for _, handler := range h.damageds {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Damaged(event *DamagedEvent) error { return each(h.damageds, event) }
 
 // Killed runs the kill handlers.
-func (h *handlers) Killed(event *KillEvent) error {
-	for _, handler := range h.kills {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Killed(event *KillEvent) error { return each(h.kills, event) }
 
 // AbilityCast runs the cast handlers.
-func (h *handlers) AbilityCast(event *AbilityCastEvent) error {
-	for _, handler := range h.casts {
+func (h *handlers) AbilityCast(event *AbilityCastEvent) error { return each(h.casts, event) }
+
+// Healed runs the heal handlers.
+func (h *handlers) Healed(event *HealEvent) error { return each(h.heals, event) }
+
+// LevelChanged runs the level handlers.
+func (h *handlers) LevelChanged(event *LevelEvent) error { return each(h.levels, event) }
+
+// Melee runs the melee handlers.
+func (h *handlers) Melee(event *MeleeEvent) error { return each(h.melees, event) }
+
+// Parried runs the parry handlers.
+func (h *handlers) Parried(event *ParryEvent) error { return each(h.parries, event) }
+
+// each calls every handler with the event.
+func each[E any](handlers []func(E), event E) error {
+	for _, handler := range handlers {
 		handler(event)
 	}
 	return nil
 }
 
-// ModifierFired runs the handlers of the event's name.
+// ModifierFired tells the spawn handlers of a respawn, then runs the
+// handlers of the event's name.
 func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
+	if event.GetName() == respawnedEvent && len(spawns.handlers) != 0 {
+		respawned(PlayerOf(event.GetPlayer()))
+	}
 	for _, handler := range h.modifiers[event.GetName()] {
 		handler(event)
 	}
@@ -427,28 +480,13 @@ func (h *handlers) NpcsRestored(event *NpcsRestoredEvent) error {
 }
 
 // Launch runs the launch handlers.
-func (h *handlers) Launch(event *LaunchEvent) error {
-	for _, handler := range h.launches {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Launch(event *LaunchEvent) error { return each(h.launches, event) }
 
 // Impact runs the impact handlers.
-func (h *handlers) Impact(event *ImpactEvent) error {
-	for _, handler := range h.impacts {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Impact(event *ImpactEvent) error { return each(h.impacts, event) }
 
 // Landed runs the landing handlers.
-func (h *handlers) Landed(event *LandedEvent) error {
-	for _, handler := range h.landeds {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) Landed(event *LandedEvent) error { return each(h.landeds, event) }
 
 // SettingChanged runs the setting handlers.
 func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
@@ -490,12 +528,7 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 }
 
 // PlayerJoined runs the join handlers.
-func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error {
-	for _, handler := range h.joins {
-		handler(event)
-	}
-	return nil
-}
+func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error { return each(h.joins, event) }
 
 // PlayerLeft runs the leave handlers at once, so the leaving player's hero
 // still reads.

@@ -721,6 +721,218 @@ func (x *ModifierFiredEvent) GetAbility() uint32 {
 	return 0
 }
 
+// HealEvent reports health an ability, item or lifesteal restored at once to
+// a hero or unit. Regeneration reports none, including what abilities such as
+// Siphon Life restore as regeneration, and neither do Modlock's own heal and
+// a heal at full health.
+type HealEvent struct {
+	unknownFields []byte
+	// Target is the entity healed.
+	Target uint32 `protobuf:"varint,1,opt,name=target,proto3" json:"target,omitempty"`
+	// TargetPlayer is the slot of the player whose hero was healed, or -1 for
+	// a unit.
+	TargetPlayer int32 `protobuf:"varint,2,opt,name=target_player,json=targetPlayer,proto3" json:"targetPlayer,omitempty"`
+	// Healer is the entity the heal came from, or zero when the game names
+	// none.
+	Healer uint32 `protobuf:"varint,3,opt,name=healer,proto3" json:"healer,omitempty"`
+	// HealerPlayer is the slot of the player whose hero the healer is, or -1.
+	HealerPlayer int32 `protobuf:"varint,4,opt,name=healer_player,json=healerPlayer,proto3" json:"healerPlayer,omitempty"`
+	// Ability is the ability or item that healed, or zero.
+	Ability uint32 `protobuf:"varint,5,opt,name=ability,proto3" json:"ability,omitempty"`
+	// Applied is the health the heal restored.
+	Applied int32 `protobuf:"varint,6,opt,name=applied,proto3" json:"applied,omitempty"`
+	// Requested is the heal's whole amount; it exceeds applied when the target
+	// reached full health.
+	Requested int32 `protobuf:"varint,7,opt,name=requested,proto3" json:"requested,omitempty"`
+}
+
+func (x *HealEvent) Reset() {
+	*x = HealEvent{}
+}
+
+func (*HealEvent) ProtoMessage() {}
+
+func (x *HealEvent) GetTarget() uint32 {
+	if x != nil {
+		return x.Target
+	}
+	return 0
+}
+
+func (x *HealEvent) GetTargetPlayer() int32 {
+	if x != nil {
+		return x.TargetPlayer
+	}
+	return 0
+}
+
+func (x *HealEvent) GetHealer() uint32 {
+	if x != nil {
+		return x.Healer
+	}
+	return 0
+}
+
+func (x *HealEvent) GetHealerPlayer() int32 {
+	if x != nil {
+		return x.HealerPlayer
+	}
+	return 0
+}
+
+func (x *HealEvent) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
+func (x *HealEvent) GetApplied() int32 {
+	if x != nil {
+		return x.Applied
+	}
+	return 0
+}
+
+func (x *HealEvent) GetRequested() int32 {
+	if x != nil {
+		return x.Requested
+	}
+	return 0
+}
+
+// LevelEvent reports a hero reaching a new level.
+type LevelEvent struct {
+	unknownFields []byte
+	// Hero is the hero's entity.
+	Hero uint32 `protobuf:"varint,1,opt,name=hero,proto3" json:"hero,omitempty"`
+	// Player is the slot of the player whose hero it is, or -1.
+	Player int32 `protobuf:"varint,2,opt,name=player,proto3" json:"player,omitempty"`
+	// Level is the hero's new level.
+	Level int32 `protobuf:"varint,3,opt,name=level,proto3" json:"level,omitempty"`
+}
+
+func (x *LevelEvent) Reset() {
+	*x = LevelEvent{}
+}
+
+func (*LevelEvent) ProtoMessage() {}
+
+func (x *LevelEvent) GetHero() uint32 {
+	if x != nil {
+		return x.Hero
+	}
+	return 0
+}
+
+func (x *LevelEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *LevelEvent) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+// MeleeEvent reports one melee swing as the game resolves it.
+type MeleeEvent struct {
+	unknownFields []byte
+	// Attacker is the hero or unit that swung.
+	Attacker uint32 `protobuf:"varint,1,opt,name=attacker,proto3" json:"attacker,omitempty"`
+	// AttackerPlayer is the slot of the player whose hero swung, or -1.
+	AttackerPlayer int32 `protobuf:"varint,2,opt,name=attacker_player,json=attackerPlayer,proto3" json:"attackerPlayer,omitempty"`
+	// Heavy is true for a charged swing and false for a light one.
+	Heavy bool `protobuf:"varint,3,opt,name=heavy,proto3" json:"heavy,omitempty"`
+	// Hits are the entities the swing struck, empty for a miss.
+	Hits []uint32 `protobuf:"varint,4,rep,packed,name=hits,proto3" json:"hits,omitempty"`
+}
+
+func (x *MeleeEvent) Reset() {
+	*x = MeleeEvent{}
+}
+
+func (*MeleeEvent) ProtoMessage() {}
+
+func (x *MeleeEvent) GetAttacker() uint32 {
+	if x != nil {
+		return x.Attacker
+	}
+	return 0
+}
+
+func (x *MeleeEvent) GetAttackerPlayer() int32 {
+	if x != nil {
+		return x.AttackerPlayer
+	}
+	return 0
+}
+
+func (x *MeleeEvent) GetHeavy() bool {
+	if x != nil {
+		return x.Heavy
+	}
+	return false
+}
+
+func (x *MeleeEvent) GetHits() []uint32 {
+	if x != nil {
+		return x.Hits
+	}
+	return nil
+}
+
+// ParryEvent reports a parry that caught a melee swing.
+type ParryEvent struct {
+	unknownFields []byte
+	// Parrier is the hero that parried.
+	Parrier uint32 `protobuf:"varint,1,opt,name=parrier,proto3" json:"parrier,omitempty"`
+	// Player is the slot of the player whose hero parried, or -1.
+	Player int32 `protobuf:"varint,2,opt,name=player,proto3" json:"player,omitempty"`
+	// Attacker is the hero or unit whose swing was caught.
+	Attacker uint32 `protobuf:"varint,3,opt,name=attacker,proto3" json:"attacker,omitempty"`
+	// AttackerPlayer is the slot of the player whose hero swung, or -1.
+	AttackerPlayer int32 `protobuf:"varint,4,opt,name=attacker_player,json=attackerPlayer,proto3" json:"attackerPlayer,omitempty"`
+}
+
+func (x *ParryEvent) Reset() {
+	*x = ParryEvent{}
+}
+
+func (*ParryEvent) ProtoMessage() {}
+
+func (x *ParryEvent) GetParrier() uint32 {
+	if x != nil {
+		return x.Parrier
+	}
+	return 0
+}
+
+func (x *ParryEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ParryEvent) GetAttacker() uint32 {
+	if x != nil {
+		return x.Attacker
+	}
+	return 0
+}
+
+func (x *ParryEvent) GetAttackerPlayer() int32 {
+	if x != nil {
+		return x.AttackerPlayer
+	}
+	return 0
+}
+
 func (m *DamageEvent) CloneVT() *DamageEvent {
 	if m == nil {
 		return (*DamageEvent)(nil)
@@ -973,6 +1185,84 @@ func (m *ModifierFiredEvent) CloneVT() *ModifierFiredEvent {
 }
 
 func (m *ModifierFiredEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HealEvent) CloneVT() *HealEvent {
+	if m == nil {
+		return (*HealEvent)(nil)
+	}
+	r := new(HealEvent)
+	r.Target = m.Target
+	r.TargetPlayer = m.TargetPlayer
+	r.Healer = m.Healer
+	r.HealerPlayer = m.HealerPlayer
+	r.Ability = m.Ability
+	r.Applied = m.Applied
+	r.Requested = m.Requested
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HealEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *LevelEvent) CloneVT() *LevelEvent {
+	if m == nil {
+		return (*LevelEvent)(nil)
+	}
+	r := new(LevelEvent)
+	r.Hero = m.Hero
+	r.Player = m.Player
+	r.Level = m.Level
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *LevelEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *MeleeEvent) CloneVT() *MeleeEvent {
+	if m == nil {
+		return (*MeleeEvent)(nil)
+	}
+	r := new(MeleeEvent)
+	r.Attacker = m.Attacker
+	r.AttackerPlayer = m.AttackerPlayer
+	r.Heavy = m.Heavy
+	r.Hits = protobuf_go_lite.CloneSlice(m.Hits)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *MeleeEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ParryEvent) CloneVT() *ParryEvent {
+	if m == nil {
+		return (*ParryEvent)(nil)
+	}
+	r := new(ParryEvent)
+	r.Parrier = m.Parrier
+	r.Player = m.Player
+	r.Attacker = m.Attacker
+	r.AttackerPlayer = m.AttackerPlayer
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ParryEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1371,6 +1661,128 @@ func (this *ModifierFiredEvent) EqualVT(that *ModifierFiredEvent) bool {
 
 func (this *ModifierFiredEvent) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ModifierFiredEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HealEvent) EqualVT(that *HealEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Target != that.Target {
+		return false
+	}
+	if this.TargetPlayer != that.TargetPlayer {
+		return false
+	}
+	if this.Healer != that.Healer {
+		return false
+	}
+	if this.HealerPlayer != that.HealerPlayer {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	if this.Applied != that.Applied {
+		return false
+	}
+	if this.Requested != that.Requested {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HealEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HealEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *LevelEvent) EqualVT(that *LevelEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Hero != that.Hero {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Level != that.Level {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *LevelEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*LevelEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *MeleeEvent) EqualVT(that *MeleeEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Attacker != that.Attacker {
+		return false
+	}
+	if this.AttackerPlayer != that.AttackerPlayer {
+		return false
+	}
+	if this.Heavy != that.Heavy {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Hits, that.Hits) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *MeleeEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*MeleeEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ParryEvent) EqualVT(that *ParryEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Parrier != that.Parrier {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Attacker != that.Attacker {
+		return false
+	}
+	if this.AttackerPlayer != that.AttackerPlayer {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ParryEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ParryEvent)
 	if !ok {
 		return false
 	}
@@ -2403,6 +2815,290 @@ func (x *ModifierFiredEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the HealEvent message to JSON.
+func (x *HealEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Target != 0 || s.HasField("target") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("target")
+		s.WriteUint32(x.Target)
+	}
+	if x.TargetPlayer != 0 || s.HasField("targetPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("targetPlayer")
+		s.WriteInt32(x.TargetPlayer)
+	}
+	if x.Healer != 0 || s.HasField("healer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("healer")
+		s.WriteUint32(x.Healer)
+	}
+	if x.HealerPlayer != 0 || s.HasField("healerPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("healerPlayer")
+		s.WriteInt32(x.HealerPlayer)
+	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	if x.Applied != 0 || s.HasField("applied") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("applied")
+		s.WriteInt32(x.Applied)
+	}
+	if x.Requested != 0 || s.HasField("requested") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("requested")
+		s.WriteInt32(x.Requested)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HealEvent to JSON.
+func (x *HealEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HealEvent message from JSON.
+func (x *HealEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "target":
+			s.AddField("target")
+			x.Target = s.ReadUint32()
+		case "target_player", "targetPlayer":
+			s.AddField("target_player")
+			x.TargetPlayer = s.ReadInt32()
+		case "healer":
+			s.AddField("healer")
+			x.Healer = s.ReadUint32()
+		case "healer_player", "healerPlayer":
+			s.AddField("healer_player")
+			x.HealerPlayer = s.ReadInt32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		case "applied":
+			s.AddField("applied")
+			x.Applied = s.ReadInt32()
+		case "requested":
+			s.AddField("requested")
+			x.Requested = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HealEvent from JSON.
+func (x *HealEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the LevelEvent message to JSON.
+func (x *LevelEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Hero != 0 || s.HasField("hero") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hero")
+		s.WriteUint32(x.Hero)
+	}
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Level != 0 || s.HasField("level") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("level")
+		s.WriteInt32(x.Level)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the LevelEvent to JSON.
+func (x *LevelEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the LevelEvent message from JSON.
+func (x *LevelEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "hero":
+			s.AddField("hero")
+			x.Hero = s.ReadUint32()
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "level":
+			s.AddField("level")
+			x.Level = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the LevelEvent from JSON.
+func (x *LevelEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the MeleeEvent message to JSON.
+func (x *MeleeEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Attacker != 0 || s.HasField("attacker") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attacker")
+		s.WriteUint32(x.Attacker)
+	}
+	if x.AttackerPlayer != 0 || s.HasField("attackerPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attackerPlayer")
+		s.WriteInt32(x.AttackerPlayer)
+	}
+	if x.Heavy || s.HasField("heavy") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("heavy")
+		s.WriteBool(x.Heavy)
+	}
+	if len(x.Hits) > 0 || s.HasField("hits") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hits")
+		s.WriteUint32Array(x.Hits)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the MeleeEvent to JSON.
+func (x *MeleeEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MeleeEvent message from JSON.
+func (x *MeleeEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "attacker":
+			s.AddField("attacker")
+			x.Attacker = s.ReadUint32()
+		case "attacker_player", "attackerPlayer":
+			s.AddField("attacker_player")
+			x.AttackerPlayer = s.ReadInt32()
+		case "heavy":
+			s.AddField("heavy")
+			x.Heavy = s.ReadBool()
+		case "hits":
+			s.AddField("hits")
+			if s.ReadNil() {
+				x.Hits = nil
+				return
+			}
+			x.Hits = s.ReadUint32Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the MeleeEvent from JSON.
+func (x *MeleeEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ParryEvent message to JSON.
+func (x *ParryEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Parrier != 0 || s.HasField("parrier") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("parrier")
+		s.WriteUint32(x.Parrier)
+	}
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Attacker != 0 || s.HasField("attacker") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attacker")
+		s.WriteUint32(x.Attacker)
+	}
+	if x.AttackerPlayer != 0 || s.HasField("attackerPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attackerPlayer")
+		s.WriteInt32(x.AttackerPlayer)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ParryEvent to JSON.
+func (x *ParryEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ParryEvent message from JSON.
+func (x *ParryEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "parrier":
+			s.AddField("parrier")
+			x.Parrier = s.ReadUint32()
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "attacker":
+			s.AddField("attacker")
+			x.Attacker = s.ReadUint32()
+		case "attacker_player", "attackerPlayer":
+			s.AddField("attacker_player")
+			x.AttackerPlayer = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ParryEvent from JSON.
+func (x *ParryEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *DamageEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3166,6 +3862,224 @@ func (m *ModifierFiredEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HealEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HealEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HealEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Requested != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Requested))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.Applied != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Applied))
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.HealerPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.HealerPlayer))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Healer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Healer))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.TargetPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.TargetPlayer))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Target != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Target))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LevelEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LevelEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *LevelEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Level != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Level))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Hero != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Hero))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MeleeEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MeleeEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *MeleeEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Hits) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Hits)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Heavy {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Heavy)
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.AttackerPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AttackerPlayer))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Attacker != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Attacker))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ParryEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ParryEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ParryEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.AttackerPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AttackerPlayer))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Attacker != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Attacker))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Parrier != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Parrier))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *DamageEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3379,6 +4293,64 @@ func (m *ModifierFiredEvent) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Target)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HealEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Target)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.TargetPlayer)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Healer)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.HealerPlayer)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Applied)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Requested)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *LevelEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Hero)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Level)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *MeleeEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Attacker)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.AttackerPlayer)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Heavy)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Hits)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ParryEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Parrier)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Attacker)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.AttackerPlayer)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3758,6 +4730,122 @@ func (x *ModifierFiredEvent) MarshalProtoText() string {
 }
 
 func (x *ModifierFiredEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HealEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HealEvent")
+	if x.Target != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "target")
+		protobuf_go_lite.TextWriteUint(&sb, x.Target)
+	}
+	if x.TargetPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "target_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.TargetPlayer)
+	}
+	if x.Healer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "healer")
+		protobuf_go_lite.TextWriteUint(&sb, x.Healer)
+	}
+	if x.HealerPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "healer_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.HealerPlayer)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	if x.Applied != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "applied")
+		protobuf_go_lite.TextWriteInt(&sb, x.Applied)
+	}
+	if x.Requested != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "requested")
+		protobuf_go_lite.TextWriteInt(&sb, x.Requested)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HealEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *LevelEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "LevelEvent")
+	if x.Hero != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero")
+		protobuf_go_lite.TextWriteUint(&sb, x.Hero)
+	}
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Level != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "level")
+		protobuf_go_lite.TextWriteInt(&sb, x.Level)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *LevelEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *MeleeEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MeleeEvent")
+	if x.Attacker != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker")
+		protobuf_go_lite.TextWriteUint(&sb, x.Attacker)
+	}
+	if x.AttackerPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.AttackerPlayer)
+	}
+	if x.Heavy != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "heavy")
+		protobuf_go_lite.TextWriteBool(&sb, x.Heavy)
+	}
+	if len(x.Hits) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "hits")
+		for i, v := range x.Hits {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteUint(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *MeleeEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ParryEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ParryEvent")
+	if x.Parrier != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "parrier")
+		protobuf_go_lite.TextWriteUint(&sb, x.Parrier)
+	}
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Attacker != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker")
+		protobuf_go_lite.TextWriteUint(&sb, x.Attacker)
+	}
+	if x.AttackerPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker_player")
+		protobuf_go_lite.TextWriteInt(&sb, x.AttackerPlayer)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ParryEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4937,6 +6025,362 @@ func (m *ModifierFiredEvent) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Ability = 0
 			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HealEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HealEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HealEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Target", wireType)
+			}
+			m.Target = 0
+			m.Target, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TargetPlayer", wireType)
+			}
+			m.TargetPlayer = 0
+			m.TargetPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Healer", wireType)
+			}
+			m.Healer = 0
+			m.Healer, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HealerPlayer", wireType)
+			}
+			m.HealerPlayer = 0
+			m.HealerPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Applied", wireType)
+			}
+			m.Applied = 0
+			m.Applied, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Requested", wireType)
+			}
+			m.Requested = 0
+			m.Requested, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *LevelEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LevelEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LevelEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hero", wireType)
+			}
+			m.Hero = 0
+			m.Hero, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Level", wireType)
+			}
+			m.Level = 0
+			m.Level, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *MeleeEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MeleeEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MeleeEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attacker", wireType)
+			}
+			m.Attacker = 0
+			m.Attacker, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttackerPlayer", wireType)
+			}
+			m.AttackerPlayer = 0
+			m.AttackerPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Heavy", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Heavy = bool(v)
+		case 4:
+			if wireType == 0 {
+				var v uint32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Hits = append(m.Hits, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Hits) == 0 {
+					m.Hits = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Hits = append(m.Hits, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hits", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ParryEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ParryEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ParryEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Parrier", wireType)
+			}
+			m.Parrier = 0
+			m.Parrier, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attacker", wireType)
+			}
+			m.Attacker = 0
+			m.Attacker, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttackerPlayer", wireType)
+			}
+			m.AttackerPlayer = 0
+			m.AttackerPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

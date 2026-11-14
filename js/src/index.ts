@@ -25,12 +25,16 @@ import {
   type DamagedEvent,
   type DamageResult,
   type FrameEvent,
+  type HealEvent,
   type ImpactEvent,
   type LandedEvent,
   type LaunchEvent,
+  type LevelEvent,
   log as logLine,
+  type MeleeEvent,
   type ModHandlers,
   type ModifierFiredEvent,
+  type ParryEvent,
   type Pawn,
   Player,
   type PlayerJoinedEvent,
@@ -39,7 +43,7 @@ import {
 } from './host.gen.js'
 import { serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
-import { connection, keepPlayers, players } from './players.js'
+import { connection, keepPlayers } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { advance, after } from './timer.js'
@@ -288,18 +292,24 @@ export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
  * onSpawn calls handler each time a player's hero enters play: their first
  * hero after joining, each respawn, and each new hero after a change. The
  * player has a hero to move, equip and read from then on, which onPlayerJoin
- * does not promise. The library reads each player's pawn once a frame while a
- * handler is registered.
+ * does not promise. The library hears it from the game's PLAYER_RESPAWNED
+ * event, before the frame handlers run.
  */
 export function onSpawn(handler: (player: Player, pawn: Pawn) => void): void {
   spawns.push(handler)
 }
 
+/** respawnedEvent is the game's modifier event for a hero entering play. */
+const respawnedEvent = 'PLAYER_RESPAWNED'
+
+/** frameCount counts frames, so spawnedAt can tell one frame's events apart. */
+let frameCount = 0
+
 /**
- * spawned maps each slot whose hero is in play to that hero's entity, as the
- * spawn handlers last heard of it.
+ * spawnedAt maps each slot to the frame the spawn handlers last heard of its
+ * hero; the game repeats the event as a player's hero is built.
  */
-let spawned = new Map<number, number>()
+const spawnedAt = new Map<number, number>()
 
 /** Seating is the hero and team seat gives one player. */
 export interface Seating {
@@ -428,27 +438,20 @@ export function setRespawnDelay(seconds?: number): void {
   startSeating()
 }
 
-/** watchSpawns tells the spawn handlers of each hero that entered play since the last frame. */
-function watchSpawns(): void {
-  // A hero is in play while it lives; a placeholder pawn has hero 0.
-  const present = new Map<number, number>()
-  for (const { player } of players()) {
-    const pawn = player.pawn()
-    if (pawn === undefined || pawn.hero === 0 || pawn.health <= 0) {
-      continue
-    }
-    present.set(player.slot, pawn.entity)
-
-    // A respawn follows a death, and a new hero has a new entity.
-    if (spawned.get(player.slot) !== pawn.entity) {
-      for (const handler of spawns) {
-        handler(player, pawn)
-      }
-    }
+/** respawned tells the spawn handlers that the player's hero entered play. */
+function respawned(player: Player): void {
+  // Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+  const pawn = player.slot < 0 ? undefined : player.pawn()
+  if (pawn === undefined || pawn.hero === 0 || pawn.health <= 0) {
+    return
   }
-
-  // Forget the fallen and the gone, so their next hero is a spawn.
-  spawned = present
+  if (spawnedAt.get(player.slot) === frameCount) {
+    return
+  }
+  spawnedAt.set(player.slot, frameCount)
+  for (const handler of spawns) {
+    handler(player, pawn)
+  }
 }
 
 /** onFrame calls handler once per server frame. */
@@ -527,6 +530,42 @@ export function onKill(handler: (kill: KillEvent) => void): void {
  */
 export function onAbilityCast(handler: (cast: AbilityCastEvent) => void): void {
   abilityCasts.push(handler)
+}
+
+/**
+ * onHeal calls handler after each heal, before the next frame: health a hero
+ * or unit regained at once from an ability, an item or lifesteal. Regeneration
+ * calls nothing, including what abilities such as Siphon Life restore as
+ * regeneration, and neither do the mod's own heal and a heal at full health.
+ * The heal names the entity healed, the healer and ability when the game
+ * names them, and the player of each: a slot of -1 is a unit's, or no one's.
+ */
+export function onHeal(handler: (heal: HealEvent) => void): void {
+  heals.push(handler)
+}
+
+/**
+ * onLevelChange calls handler as each hero reaches a new level, before the
+ * next frame.
+ */
+export function onLevelChange(handler: (change: LevelEvent) => void): void {
+  levels.push(handler)
+}
+
+/**
+ * onMelee calls handler after each melee swing, before the next frame, with
+ * whether it was heavy and the entities it struck, none for a miss.
+ */
+export function onMelee(handler: (swing: MeleeEvent) => void): void {
+  melees.push(handler)
+}
+
+/**
+ * onParry calls handler after each parry that catches a melee swing, before
+ * the next frame, naming the hero that parried and the attacker it caught.
+ */
+export function onParry(handler: (parry: ParryEvent) => void): void {
+  parries.push(handler)
 }
 
 /**
@@ -625,6 +664,10 @@ const damages: ((hit: DamageEvent) => DamageResult | void)[] = []
 const damageds: ((hit: DamagedEvent) => void)[] = []
 const kills: ((kill: KillEvent) => void)[] = []
 const abilityCasts: ((cast: AbilityCastEvent) => void)[] = []
+const heals: ((heal: HealEvent) => void)[] = []
+const levels: ((change: LevelEvent) => void)[] = []
+const melees: ((swing: MeleeEvent) => void)[] = []
+const parries: ((parry: ParryEvent) => void)[] = []
 const modifierEvents = new Map<
   string,
   ((event: ModifierFiredEvent) => void)[]
@@ -650,7 +693,16 @@ const handlers: ModHandlers = {
       joins: joins.length !== 0 || leaves.length !== 0,
       casts: abilityCasts.length !== 0,
       kills: kills.length !== 0,
-      modifierEvents: [...modifierEvents.keys()],
+      heals: heals.length !== 0,
+      levels: levels.length !== 0,
+      melees: melees.length !== 0,
+      parries: parries.length !== 0,
+      modifierEvents: [
+        ...new Set([
+          ...modifierEvents.keys(),
+          ...(spawns.length !== 0 ? [respawnedEvent] : []),
+        ]),
+      ],
     }
   },
 
@@ -660,10 +712,8 @@ const handlers: ModHandlers = {
     advance(event.timeSeconds)
     advancePuppets(event.timeSeconds)
 
-    // Tell the spawn handlers first, so a frame handler sees the hero ready.
-    if (spawns.length !== 0) {
-      watchSpawns()
-    }
+    // Count the frame, then tell the mod.
+    frameCount++
     for (const handler of frames) {
       handler(event)
     }
@@ -753,7 +803,34 @@ const handlers: ModHandlers = {
     }
   },
 
+  healed(event) {
+    for (const handler of heals) {
+      handler(event)
+    }
+  },
+
+  levelChanged(event) {
+    for (const handler of levels) {
+      handler(event)
+    }
+  },
+
+  melee(event) {
+    for (const handler of melees) {
+      handler(event)
+    }
+  },
+
+  parried(event) {
+    for (const handler of parries) {
+      handler(event)
+    }
+  },
+
   modifierFired(event) {
+    if (event.name === respawnedEvent && spawns.length !== 0) {
+      respawned(event.player)
+    }
     for (const handler of modifierEvents.get(event.name) ?? []) {
       handler(event)
     }

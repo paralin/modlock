@@ -315,14 +315,21 @@ class WasmPlugin final : public Plugin {
   // Contact returns what the mod does with a hit between the entities with
   // the handles attacker and victim.
   PlayerScope::Contact Contact(uint32_t attacker, uint32_t victim) const;
-  // Fought queues an applied hit, a cast or a watched modifier event for a
-  // mod that wants it, and a movement fact or completed interaction for the
-  // movement samples. hits is true for a mod that wants hits or kills.
-  void Fought(const gameinterop::CombatEvent& event, bool hits, bool casts);
+  // Fought queues an applied hit, a cast, a heal, a level, a swing, a parry
+  // or a watched modifier event for a mod whose wants ask for it, and a
+  // movement fact or completed interaction for the movement samples.
+  void Fought(const gameinterop::CombatEvent& event, const wasm::StartResult& wants);
   void DeliverDamaged();
-  // DeliverCasts tells the mod the casts and watched modifier events queued
-  // since the last frame.
-  void DeliverCasts();
+  // DeliverCombat tells the mod the casts, heals, levels, swings, parries and
+  // watched modifier events queued since the last frame.
+  void DeliverCombat();
+  // DeliverTyped tells the mod one queued heal, level, swing or parry it
+  // hears.
+  void DeliverTyped(const gameinterop::CombatEvent& fact);
+  // EntityOf reads a game handle as the wire's entity, zero for none.
+  static uint32_t EntityOf(uint32_t handle);
+  // SlotOf returns the slot of the player whose hero has this handle, or -1.
+  int32_t SlotOf(uint32_t handle) const;
   // Serves reports whether the mod hears about the entity with this handle:
   // any entity for a mod that serves everyone, and only its players' heroes
   // for a limited one.
@@ -484,6 +491,9 @@ class WasmPlugin final : public Plugin {
   // the names the mod gave it, and changes only under the lock.
   std::vector<gameinterop::AbilityExecutedEvent> casts_;
   std::vector<gameinterop::ModifierFiredEvent> fired_;
+  // typed_ queues heals, levels, swings and parries the same way, in the
+  // order the game fired them.
+  std::vector<gameinterop::CombatEvent> typed_;
   std::unordered_map<uint32_t, std::vector<std::string>> watched_;
   // sampled_ is the last tick the movement samples went out on.
   std::optional<uint64_t> sampled_;

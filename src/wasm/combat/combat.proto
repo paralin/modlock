@@ -246,3 +246,75 @@ message ModifierFiredEvent {
   // zero.
   uint32 ability = 5;
 }
+
+// HealEvent reports health an ability, item or lifesteal restored at once to
+// a hero or unit. Regeneration reports none, including what abilities such as
+// Siphon Life restore as regeneration, and neither do Modlock's own heal and
+// a heal at full health.
+message HealEvent {
+  // Target is the entity healed.
+  uint32 target = 1;
+
+  // TargetPlayer is the slot of the player whose hero was healed, or -1 for
+  // a unit.
+  int32 target_player = 2;
+
+  // Healer is the entity the heal came from, or zero when the game names
+  // none.
+  uint32 healer = 3;
+
+  // HealerPlayer is the slot of the player whose hero the healer is, or -1.
+  int32 healer_player = 4;
+
+  // Ability is the ability or item that healed, or zero.
+  uint32 ability = 5;
+
+  // Applied is the health the heal restored.
+  int32 applied = 6;
+
+  // Requested is the heal's whole amount; it exceeds applied when the target
+  // reached full health.
+  int32 requested = 7;
+}
+
+// LevelEvent reports a hero reaching a new level.
+message LevelEvent {
+  // Hero is the hero's entity.
+  uint32 hero = 1;
+
+  // Player is the slot of the player whose hero it is, or -1.
+  int32 player = 2;
+
+  // Level is the hero's new level.
+  int32 level = 3;
+}
+
+// MeleeEvent reports one melee swing as the game resolves it.
+message MeleeEvent {
+  // Attacker is the hero or unit that swung.
+  uint32 attacker = 1;
+
+  // AttackerPlayer is the slot of the player whose hero swung, or -1.
+  int32 attacker_player = 2;
+
+  // Heavy is true for a charged swing and false for a light one.
+  bool heavy = 3;
+
+  // Hits are the entities the swing struck, empty for a miss.
+  repeated uint32 hits = 4;
+}
+
+// ParryEvent reports a parry that caught a melee swing.
+message ParryEvent {
+  // Parrier is the hero that parried.
+  uint32 parrier = 1;
+
+  // Player is the slot of the player whose hero parried, or -1.
+  int32 player = 2;
+
+  // Attacker is the hero or unit whose swing was caught.
+  uint32 attacker = 3;
+
+  // AttackerPlayer is the slot of the player whose hero swung, or -1.
+  int32 attacker_player = 4;
+}

@@ -1,10 +1,13 @@
 #include "modlock/gameinterop/combat_events.h"
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <string_view>
 #include <utility>
 
@@ -23,15 +26,25 @@ namespace {
 constexpr size_t kDamageVictimOffset = 0;
 constexpr size_t kDamageAttackerOffset = 4;
 constexpr size_t kDamageResultOffset = 16;
-constexpr size_t kHealthEntityOffset = 0;
-constexpr size_t kHealthRequestedOffset = 4;
-constexpr size_t kHealthAppliedOffset = 8;
+constexpr size_t kHealHealerOffset = 0;
+constexpr size_t kHealTargetOffset = 4;
+constexpr size_t kHealAbilityOffset = 8;
+constexpr size_t kHealAppliedOffset = 0xC;
+constexpr size_t kHealLeftoverOffset = 0x10;
 constexpr size_t kAbilityCasterOffset = 0;
 constexpr size_t kAbilityHandleOffset = 4;
 constexpr size_t kAbilityTargetOffset = 8;
 constexpr size_t kBrokenPropOffset = 0;
 constexpr size_t kBrokenInflictorOffset = 4;
 constexpr size_t kBrokenBreakerOffset = 8;
+constexpr size_t kLevelHeroOffset = 0;
+constexpr size_t kLevelValueOffset = 4;
+constexpr size_t kMeleeAttackerOffset = 0;
+constexpr size_t kMeleeHeavyOffset = 5;
+constexpr size_t kMeleeHitCountOffset = 0x18;
+constexpr size_t kMeleeHitStorageOffset = 0x20;
+constexpr size_t kParryParrierOffset = 0;
+constexpr size_t kParryAttackerOffset = 4;
 
 std::string AddressName(const void* address) {
   char text[32] = {};
@@ -74,10 +87,13 @@ constexpr uint32_t kUnobservedEvent = UINT32_MAX;
 struct EventIds {
   uint32_t pre_damage = kUnobservedEvent;
   uint32_t damage = kUnobservedEvent;
-  uint32_t health = kUnobservedEvent;
+  uint32_t healed = kUnobservedEvent;
   uint32_t ability = kUnobservedEvent;
   uint32_t shield_broadcast = kUnobservedEvent;
   uint32_t prop_broken = kUnobservedEvent;
+  uint32_t level = kUnobservedEvent;
+  uint32_t melee = kUnobservedEvent;
+  uint32_t parry = kUnobservedEvent;
   std::array<std::pair<uint32_t, MovementExecution>, kMovementEventNames.size()> movement{};
 };
 
@@ -144,38 +160,6 @@ void __fastcall PickupThunk(void* pickup, void* collector) {
   }
 }
 
-void DecodeAndDispatch(uint32_t event, void* event_data) {
-  if (g_handler == nullptr) {
-    return;
-  }
-  CombatEvent decoded;
-  if (event == g_ids.damage) {
-    if (auto value = DecodeDamageTaken(event_data, g_damage_offsets, ReadNative)) {
-      decoded.kind = CombatEvent::Kind::kDamageTaken;
-      decoded.damage = *value;
-    } else {
-      decoded.reason = value.error();
-    }
-  } else if (event == g_ids.health) {
-    if (auto value = DecodeHealthTaken(event_data, ReadNative)) {
-      decoded.kind = CombatEvent::Kind::kHealthTaken;
-      decoded.health = *value;
-    } else {
-      decoded.reason = value.error();
-    }
-  } else if (event == g_ids.ability) {
-    if (auto value = DecodeAbilityExecuted(event_data, ReadNative)) {
-      decoded.kind = CombatEvent::Kind::kAbilityExecuted;
-      decoded.ability = *value;
-    } else {
-      decoded.reason = value.error();
-    }
-  } else {
-    return;
-  }
-  (*g_handler)(decoded);
-}
-
 // GuardedHandleOf reads an entity's handle through guarded loads. A watched
 // event's arguments are not known to be entities for every event, so a null,
 // foreign or leaving one reads kInvalidEHandleIndex instead of faulting.
@@ -200,6 +184,55 @@ uint32_t GuardedHandleOf(void* entity) {
   return LiveHandleOf(stored, flags).value_or(kInvalidEHandleIndex);
 }
 
+// Decoded fills one of CombatEvent's payloads from a decoder's result, or
+// its reason when decoding failed.
+template <typename T>
+void Decoded(CombatEvent& decoded, CombatEvent::Kind kind, std::optional<T>& slot,
+             std::expected<T, std::string> value) {
+  if (!value) {
+    decoded.reason = std::move(value.error());
+    return;
+  }
+  decoded.kind = kind;
+  slot = std::move(*value);
+}
+
+// DecodeAndDispatch decodes one event the hook reads whole and hands it to
+// the handler, with the reason in place of a payload when decoding failed.
+void DecodeAndDispatch(uint32_t event, void* event_data) {
+  if (g_handler == nullptr) {
+    return;
+  }
+
+  // Decode the payload the event's id names.
+  CombatEvent decoded;
+  if (event == g_ids.damage) {
+    Decoded(decoded, CombatEvent::Kind::kDamageTaken, decoded.damage,
+            DecodeDamageTaken(event_data, g_damage_offsets, ReadNative));
+  } else if (event == g_ids.healed) {
+    Decoded(decoded, CombatEvent::Kind::kHealed, decoded.heal,
+            DecodeHealed(event_data, ReadNative));
+
+    // A hero at full health is healed by nothing about ten times a second.
+    if (decoded.heal && decoded.heal->applied == 0) {
+      return;
+    }
+  } else if (event == g_ids.level) {
+    Decoded(decoded, CombatEvent::Kind::kLevelChanged, decoded.level,
+            DecodeLevelChanged(event_data, ReadNative));
+  } else if (event == g_ids.melee) {
+    Decoded(decoded, CombatEvent::Kind::kMelee, decoded.melee, DecodeMelee(event_data, ReadNative));
+  } else if (event == g_ids.parry) {
+    Decoded(decoded, CombatEvent::Kind::kParry, decoded.parry, DecodeParry(event_data, ReadNative));
+  } else if (event == g_ids.ability) {
+    Decoded(decoded, CombatEvent::Kind::kAbilityExecuted, decoded.ability,
+            DecodeAbilityExecuted(event_data, ReadNative));
+  } else {
+    return;
+  }
+  (*g_handler)(decoded);
+}
+
 __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* target,
                                           void* cast_entity, void* event_data) {
   if (event == g_ids.pre_damage &&
@@ -220,9 +253,10 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
   }
   // Decode before the call: the payload may reference stack storage the
   // native dispatch is entitled to reuse once its listeners return. Damage,
-  // healing and ability execution use modifier events; their broadcast
-  // duplicates stay undecoded so nothing counts twice.
-  if (event == g_ids.damage || event == g_ids.health || event == g_ids.ability) {
+  // healing, levels, melee, parries and ability execution use modifier
+  // events; their broadcast duplicates stay undecoded so nothing counts twice.
+  if (event == g_ids.damage || event == g_ids.healed || event == g_ids.ability ||
+      event == g_ids.level || event == g_ids.melee || event == g_ids.parry) {
     DecodeAndDispatch(event, event_data);
   }
   if (event == g_ids.prop_broken && g_handler && g_interactions) {
@@ -401,8 +435,8 @@ std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(const void* event
   return event;
 }
 
-std::expected<HealthTakenEvent, std::string> DecodeHealthTaken(const void* event_data,
-                                                               const BoundedReader& read) {
+std::expected<HealedEvent, std::string> DecodeHealed(const void* event_data,
+                                                     const BoundedReader& read) {
   // Refuse a missing payload or reader.
   if (event_data == nullptr) {
     return std::unexpected(std::string("combat event: heal payload pointer is null"));
@@ -411,19 +445,79 @@ std::expected<HealthTakenEvent, std::string> DecodeHealthTaken(const void* event
     return std::unexpected(std::string("combat event: no bounded reader is configured"));
   }
 
-  // Read the heal, refusing a nonfinite request or negative heal.
-  HealthTakenEvent event{};
+  // Read the heal, refusing a negative one.
+  HealedEvent event{};
+  uint32_t leftover = 0;
   const auto* bytes = static_cast<const unsigned char*>(event_data);
-  if (!read(bytes + kHealthEntityOffset, &event.entity_handle, sizeof(event.entity_handle)) ||
-      !read(bytes + kHealthRequestedOffset, &event.requested, sizeof(event.requested)) ||
-      !read(bytes + kHealthAppliedOffset, &event.applied, sizeof(event.applied))) {
+  if (!read(bytes + kHealHealerOffset, &event.healer_handle, sizeof(event.healer_handle)) ||
+      !read(bytes + kHealTargetOffset, &event.target_handle, sizeof(event.target_handle)) ||
+      !read(bytes + kHealAbilityOffset, &event.ability_handle, sizeof(event.ability_handle)) ||
+      !read(bytes + kHealAppliedOffset, &event.applied, sizeof(event.applied)) ||
+      !read(bytes + kHealLeftoverOffset, &leftover, sizeof(leftover))) {
     return std::unexpected(Unreadable(event_data, "the heal payload"));
-  }
-  if (!std::isfinite(event.requested)) {
-    return std::unexpected("combat event: the heal request is nonfinite");
   }
   if (event.applied < 0) {
     return std::unexpected("combat event: the applied heal is negative");
+  }
+
+  // The request is what was applied plus what full health refused.
+  const int64_t requested = int64_t{event.applied} + leftover;
+  event.requested =
+      static_cast<int32_t>(std::min<int64_t>(requested, std::numeric_limits<int32_t>::max()));
+  return event;
+}
+
+std::expected<LevelChangedEvent, std::string> DecodeLevelChanged(const void* event_data,
+                                                                 const BoundedReader& read) {
+  // Read the hero and its new level.
+  LevelChangedEvent event;
+  const auto* bytes = static_cast<const unsigned char*>(event_data);
+  if (!event_data || !read ||
+      !read(bytes + kLevelHeroOffset, &event.hero_handle, sizeof(event.hero_handle)) ||
+      !read(bytes + kLevelValueOffset, &event.level, sizeof(event.level))) {
+    return std::unexpected(Unreadable(event_data, "the level payload"));
+  }
+  return event;
+}
+
+std::expected<MeleeEvent, std::string> DecodeMelee(const void* event_data,
+                                                   const BoundedReader& read) {
+  // Read the attacker, the heavy flag and the hit list's count and storage.
+  MeleeEvent event;
+  const auto* bytes = static_cast<const unsigned char*>(event_data);
+  uint8_t heavy = 0;
+  int32_t count = 0;
+  const uint32_t* hits = nullptr;
+  if (!event_data || !read ||
+      !read(bytes + kMeleeAttackerOffset, &event.attacker_handle, sizeof(event.attacker_handle)) ||
+      !read(bytes + kMeleeHeavyOffset, &heavy, sizeof(heavy)) ||
+      !read(bytes + kMeleeHitCountOffset, &count, sizeof(count)) ||
+      !read(bytes + kMeleeHitStorageOffset, &hits, sizeof(hits))) {
+    return std::unexpected(Unreadable(event_data, "the melee payload"));
+  }
+  event.heavy = heavy != 0;
+
+  // Copy the hits, refusing a count no swing reaches.
+  if (count < 0 || count > kMaxMeleeHits || (count > 0 && hits == nullptr)) {
+    return std::unexpected("combat event: the melee payload lists " + std::to_string(count) +
+                           " hits");
+  }
+  event.hit_handles.resize(static_cast<size_t>(count));
+  if (count > 0 && !read(hits, event.hit_handles.data(), event.hit_handles.size() * 4)) {
+    return std::unexpected(Unreadable(hits, "the melee hits"));
+  }
+  return event;
+}
+
+std::expected<ParryEvent, std::string> DecodeParry(const void* event_data,
+                                                   const BoundedReader& read) {
+  // Read the parrier and the attacker it caught.
+  ParryEvent event;
+  const auto* bytes = static_cast<const unsigned char*>(event_data);
+  if (!event_data || !read ||
+      !read(bytes + kParryParrierOffset, &event.parrier_handle, sizeof(event.parrier_handle)) ||
+      !read(bytes + kParryAttackerOffset, &event.attacker_handle, sizeof(event.attacker_handle))) {
+    return std::unexpected(Unreadable(event_data, "the parry payload"));
   }
   return event;
 }
@@ -648,10 +742,13 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   EventIds ids;
   ids.pre_damage = resolve("MODIFIER_EVENT_PRE_DAMAGE_TAKEN");
   ids.damage = resolve("MODIFIER_EVENT_DAMAGE_TAKEN");
-  ids.health = resolve("MODIFIER_EVENT_HEALTH_TAKEN");
+  ids.healed = resolve("MODIFIER_EVENT_UNIT_HEALED");
   ids.ability = resolve("MODIFIER_EVENT_ABILITY_EXECUTED");
   ids.shield_broadcast = resolve("MODIFIER_EVENT_UNIT_SHIELD_ABSORBED_DAMAGE_BROADCAST");
   ids.prop_broken = resolve("MODIFIER_EVENT_BREAKABLE_PROP_BROKEN");
+  ids.level = resolve("MODIFIER_EVENT_HERO_LEVEL_CHANGED");
+  ids.melee = resolve("MODIFIER_EVENT_MELEE_ATTACK");
+  ids.parry = resolve("MODIFIER_EVENT_PARRY_SUCCESS");
   for (size_t i = 0; i < kMovementEventNames.size(); ++i) {
     ids.movement[i] = {resolve(kMovementEventNames[i].first), kMovementEventNames[i].second};
   }

@@ -70,6 +70,10 @@ class DamagedEvent;
 struct DamagedEventDefaultTypeInternal;
 MODLOCK_API extern DamagedEventDefaultTypeInternal _DamagedEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DamagedEvent_class_data_;
+class HealEvent;
+struct HealEventDefaultTypeInternal;
+MODLOCK_API extern HealEventDefaultTypeInternal _HealEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HealEvent_class_data_;
 class HitOptions;
 struct HitOptionsDefaultTypeInternal;
 MODLOCK_API extern HitOptionsDefaultTypeInternal _HitOptions_default_instance_;
@@ -90,10 +94,22 @@ class LaunchEvent;
 struct LaunchEventDefaultTypeInternal;
 MODLOCK_API extern LaunchEventDefaultTypeInternal _LaunchEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LaunchEvent_class_data_;
+class LevelEvent;
+struct LevelEventDefaultTypeInternal;
+MODLOCK_API extern LevelEventDefaultTypeInternal _LevelEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LevelEvent_class_data_;
+class MeleeEvent;
+struct MeleeEventDefaultTypeInternal;
+MODLOCK_API extern MeleeEventDefaultTypeInternal _MeleeEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull MeleeEvent_class_data_;
 class ModifierFiredEvent;
 struct ModifierFiredEventDefaultTypeInternal;
 MODLOCK_API extern ModifierFiredEventDefaultTypeInternal _ModifierFiredEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierFiredEvent_class_data_;
+class ParryEvent;
+struct ParryEventDefaultTypeInternal;
+MODLOCK_API extern ParryEventDefaultTypeInternal _ParryEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ParryEvent_class_data_;
 class ProjectileOptions;
 struct ProjectileOptionsDefaultTypeInternal;
 MODLOCK_API extern ProjectileOptionsDefaultTypeInternal _ProjectileOptions_default_instance_;
@@ -342,6 +358,232 @@ class MODLOCK_API ProjectileOptions final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ProjectileOptions_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ParryEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.ParryEvent) */ {
+ public:
+  inline ParryEvent() : ParryEvent(nullptr) {}
+  ~ParryEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ParryEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ParryEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ParryEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline ParryEvent(const ParryEvent& from) : ParryEvent(nullptr, from) {}
+  inline ParryEvent(ParryEvent&& from) noexcept
+      : ParryEvent(nullptr, ::std::move(from)) {}
+  inline ParryEvent& operator=(const ParryEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParryEvent& operator=(ParryEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParryEvent& default_instance() {
+    return *reinterpret_cast<const ParryEvent*>(
+        &_ParryEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 16;
+  friend void swap(ParryEvent& a, ParryEvent& b) { a.Swap(&b); }
+  inline void Swap(ParryEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParryEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParryEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ParryEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ParryEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ParryEvent& from) { ParryEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ParryEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.ParryEvent"; }
+
+  explicit ParryEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ParryEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ParryEvent& from);
+  ParryEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ParryEvent&& from) noexcept
+      : ParryEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kParrierFieldNumber = 1,
+    kPlayerFieldNumber = 2,
+    kAttackerFieldNumber = 3,
+    kAttackerPlayerFieldNumber = 4,
+  };
+  // uint32 parrier = 1;
+  void clear_parrier() ;
+  ::uint32_t parrier() const;
+  void set_parrier(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_parrier() const;
+  void _internal_set_parrier(::uint32_t value);
+
+  public:
+  // int32 player = 2;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // uint32 attacker = 3;
+  void clear_attacker() ;
+  ::uint32_t attacker() const;
+  void set_attacker(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_attacker() const;
+  void _internal_set_attacker(::uint32_t value);
+
+  public:
+  // int32 attacker_player = 4;
+  void clear_attacker_player() ;
+  ::int32_t attacker_player() const;
+  void set_attacker_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_attacker_player() const;
+  void _internal_set_attacker_player(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.ParryEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ParryEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t parrier_;
+    ::int32_t player_;
+    ::uint32_t attacker_;
+    ::int32_t attacker_player_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ParryEvent_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API ModifierFiredEvent final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.combat.ModifierFiredEvent) */ {
  public:
@@ -583,6 +825,455 @@ class MODLOCK_API ModifierFiredEvent final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ModifierFiredEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API MeleeEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.MeleeEvent) */ {
+ public:
+  inline MeleeEvent() : MeleeEvent(nullptr) {}
+  ~MeleeEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(MeleeEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(MeleeEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR MeleeEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline MeleeEvent(const MeleeEvent& from) : MeleeEvent(nullptr, from) {}
+  inline MeleeEvent(MeleeEvent&& from) noexcept
+      : MeleeEvent(nullptr, ::std::move(from)) {}
+  inline MeleeEvent& operator=(const MeleeEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MeleeEvent& operator=(MeleeEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MeleeEvent& default_instance() {
+    return *reinterpret_cast<const MeleeEvent*>(
+        &_MeleeEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 15;
+  friend void swap(MeleeEvent& a, MeleeEvent& b) { a.Swap(&b); }
+  inline void Swap(MeleeEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MeleeEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MeleeEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<MeleeEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const MeleeEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const MeleeEvent& from) { MeleeEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(MeleeEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.MeleeEvent"; }
+
+  explicit MeleeEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  MeleeEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const MeleeEvent& from);
+  MeleeEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, MeleeEvent&& from) noexcept
+      : MeleeEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kHitsFieldNumber = 4,
+    kAttackerFieldNumber = 1,
+    kAttackerPlayerFieldNumber = 2,
+    kHeavyFieldNumber = 3,
+  };
+  // repeated uint32 hits = 4;
+  int hits_size() const;
+  private:
+  int _internal_hits_size() const;
+
+  public:
+  void clear_hits() ;
+  ::uint32_t hits(int index) const;
+  void set_hits(int index, ::uint32_t value);
+  void add_hits(::uint32_t value);
+  const ::google::protobuf::RepeatedField<::uint32_t>& hits() const;
+  ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL mutable_hits();
+
+  private:
+  const ::google::protobuf::RepeatedField<::uint32_t>& _internal_hits() const;
+  ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL _internal_mutable_hits();
+
+  public:
+  // uint32 attacker = 1;
+  void clear_attacker() ;
+  ::uint32_t attacker() const;
+  void set_attacker(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_attacker() const;
+  void _internal_set_attacker(::uint32_t value);
+
+  public:
+  // int32 attacker_player = 2;
+  void clear_attacker_player() ;
+  ::int32_t attacker_player() const;
+  void set_attacker_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_attacker_player() const;
+  void _internal_set_attacker_player(::int32_t value);
+
+  public:
+  // bool heavy = 3;
+  void clear_heavy() ;
+  bool heavy() const;
+  void set_heavy(bool value);
+
+  private:
+  bool _internal_heavy() const;
+  void _internal_set_heavy(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.MeleeEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const MeleeEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::uint32_t> hits_;
+    ::google::protobuf::internal::CachedSize _hits_cached_byte_size_;
+    ::uint32_t attacker_;
+    ::int32_t attacker_player_;
+    bool heavy_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull MeleeEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API LevelEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.LevelEvent) */ {
+ public:
+  inline LevelEvent() : LevelEvent(nullptr) {}
+  ~LevelEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(LevelEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(LevelEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR LevelEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline LevelEvent(const LevelEvent& from) : LevelEvent(nullptr, from) {}
+  inline LevelEvent(LevelEvent&& from) noexcept
+      : LevelEvent(nullptr, ::std::move(from)) {}
+  inline LevelEvent& operator=(const LevelEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline LevelEvent& operator=(LevelEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const LevelEvent& default_instance() {
+    return *reinterpret_cast<const LevelEvent*>(
+        &_LevelEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 14;
+  friend void swap(LevelEvent& a, LevelEvent& b) { a.Swap(&b); }
+  inline void Swap(LevelEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(LevelEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  LevelEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<LevelEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const LevelEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const LevelEvent& from) { LevelEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(LevelEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.LevelEvent"; }
+
+  explicit LevelEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  LevelEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const LevelEvent& from);
+  LevelEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, LevelEvent&& from) noexcept
+      : LevelEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kHeroFieldNumber = 1,
+    kPlayerFieldNumber = 2,
+    kLevelFieldNumber = 3,
+  };
+  // uint32 hero = 1;
+  void clear_hero() ;
+  ::uint32_t hero() const;
+  void set_hero(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_hero() const;
+  void _internal_set_hero(::uint32_t value);
+
+  public:
+  // int32 player = 2;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // int32 level = 3;
+  void clear_level() ;
+  ::int32_t level() const;
+  void set_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_level() const;
+  void _internal_set_level(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.LevelEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const LevelEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t hero_;
+    ::int32_t player_;
+    ::int32_t level_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LevelEvent_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API KillOptions final : public ::google::protobuf::Message
@@ -1304,6 +1995,268 @@ class MODLOCK_API HitOptions final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HitOptions_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API HealEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.combat.HealEvent) */ {
+ public:
+  inline HealEvent() : HealEvent(nullptr) {}
+  ~HealEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(HealEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(HealEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR HealEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline HealEvent(const HealEvent& from) : HealEvent(nullptr, from) {}
+  inline HealEvent(HealEvent&& from) noexcept
+      : HealEvent(nullptr, ::std::move(from)) {}
+  inline HealEvent& operator=(const HealEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline HealEvent& operator=(HealEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const HealEvent& default_instance() {
+    return *reinterpret_cast<const HealEvent*>(
+        &_HealEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 13;
+  friend void swap(HealEvent& a, HealEvent& b) { a.Swap(&b); }
+  inline void Swap(HealEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(HealEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  HealEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<HealEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const HealEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const HealEvent& from) { HealEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(HealEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.combat.HealEvent"; }
+
+  explicit HealEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  HealEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const HealEvent& from);
+  HealEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, HealEvent&& from) noexcept
+      : HealEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kTargetFieldNumber = 1,
+    kTargetPlayerFieldNumber = 2,
+    kHealerFieldNumber = 3,
+    kHealerPlayerFieldNumber = 4,
+    kAbilityFieldNumber = 5,
+    kAppliedFieldNumber = 6,
+    kRequestedFieldNumber = 7,
+  };
+  // uint32 target = 1;
+  void clear_target() ;
+  ::uint32_t target() const;
+  void set_target(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_target() const;
+  void _internal_set_target(::uint32_t value);
+
+  public:
+  // int32 target_player = 2;
+  void clear_target_player() ;
+  ::int32_t target_player() const;
+  void set_target_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_target_player() const;
+  void _internal_set_target_player(::int32_t value);
+
+  public:
+  // uint32 healer = 3;
+  void clear_healer() ;
+  ::uint32_t healer() const;
+  void set_healer(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_healer() const;
+  void _internal_set_healer(::uint32_t value);
+
+  public:
+  // int32 healer_player = 4;
+  void clear_healer_player() ;
+  ::int32_t healer_player() const;
+  void set_healer_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_healer_player() const;
+  void _internal_set_healer_player(::int32_t value);
+
+  public:
+  // uint32 ability = 5;
+  void clear_ability() ;
+  ::uint32_t ability() const;
+  void set_ability(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_ability() const;
+  void _internal_set_ability(::uint32_t value);
+
+  public:
+  // int32 applied = 6;
+  void clear_applied() ;
+  ::int32_t applied() const;
+  void set_applied(::int32_t value);
+
+  private:
+  ::int32_t _internal_applied() const;
+  void _internal_set_applied(::int32_t value);
+
+  public:
+  // int32 requested = 7;
+  void clear_requested() ;
+  ::int32_t requested() const;
+  void set_requested(::int32_t value);
+
+  private:
+  ::int32_t _internal_requested() const;
+  void _internal_set_requested(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.combat.HealEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 7,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const HealEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t target_;
+    ::int32_t target_player_;
+    ::uint32_t healer_;
+    ::int32_t healer_player_;
+    ::uint32_t ability_;
+    ::int32_t applied_;
+    ::int32_t requested_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fcombat_2fcombat_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HealEvent_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API DamagedEvent final : public ::google::protobuf::Message
@@ -5673,6 +6626,497 @@ inline ::uint32_t ModifierFiredEvent::_internal_ability() const {
 inline void ModifierFiredEvent::_internal_set_ability(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ability_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// HealEvent
+
+// uint32 target = 1;
+inline void HealEvent::clear_target() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t HealEvent::target() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.target)
+  return _internal_target();
+}
+inline void HealEvent::set_target(::uint32_t value) {
+  _internal_set_target(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.target)
+}
+inline ::uint32_t HealEvent::_internal_target() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.target_;
+}
+inline void HealEvent::_internal_set_target(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_ = value;
+}
+
+// int32 target_player = 2;
+inline void HealEvent::clear_target_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t HealEvent::target_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.target_player)
+  return _internal_target_player();
+}
+inline void HealEvent::set_target_player(::int32_t value) {
+  _internal_set_target_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.target_player)
+}
+inline ::int32_t HealEvent::_internal_target_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.target_player_;
+}
+inline void HealEvent::_internal_set_target_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.target_player_ = value;
+}
+
+// uint32 healer = 3;
+inline void HealEvent::clear_healer() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.healer_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t HealEvent::healer() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.healer)
+  return _internal_healer();
+}
+inline void HealEvent::set_healer(::uint32_t value) {
+  _internal_set_healer(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.healer)
+}
+inline ::uint32_t HealEvent::_internal_healer() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.healer_;
+}
+inline void HealEvent::_internal_set_healer(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.healer_ = value;
+}
+
+// int32 healer_player = 4;
+inline void HealEvent::clear_healer_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.healer_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::int32_t HealEvent::healer_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.healer_player)
+  return _internal_healer_player();
+}
+inline void HealEvent::set_healer_player(::int32_t value) {
+  _internal_set_healer_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.healer_player)
+}
+inline ::int32_t HealEvent::_internal_healer_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.healer_player_;
+}
+inline void HealEvent::_internal_set_healer_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.healer_player_ = value;
+}
+
+// uint32 ability = 5;
+inline void HealEvent::clear_ability() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline ::uint32_t HealEvent::ability() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.ability)
+  return _internal_ability();
+}
+inline void HealEvent::set_ability(::uint32_t value) {
+  _internal_set_ability(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.ability)
+}
+inline ::uint32_t HealEvent::_internal_ability() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_;
+}
+inline void HealEvent::_internal_set_ability(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_ = value;
+}
+
+// int32 applied = 6;
+inline void HealEvent::clear_applied() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.applied_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline ::int32_t HealEvent::applied() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.applied)
+  return _internal_applied();
+}
+inline void HealEvent::set_applied(::int32_t value) {
+  _internal_set_applied(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.applied)
+}
+inline ::int32_t HealEvent::_internal_applied() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.applied_;
+}
+inline void HealEvent::_internal_set_applied(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.applied_ = value;
+}
+
+// int32 requested = 7;
+inline void HealEvent::clear_requested() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.requested_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000040U);
+}
+inline ::int32_t HealEvent::requested() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.HealEvent.requested)
+  return _internal_requested();
+}
+inline void HealEvent::set_requested(::int32_t value) {
+  _internal_set_requested(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.HealEvent.requested)
+}
+inline ::int32_t HealEvent::_internal_requested() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.requested_;
+}
+inline void HealEvent::_internal_set_requested(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.requested_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// LevelEvent
+
+// uint32 hero = 1;
+inline void LevelEvent::clear_hero() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.hero_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t LevelEvent::hero() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.LevelEvent.hero)
+  return _internal_hero();
+}
+inline void LevelEvent::set_hero(::uint32_t value) {
+  _internal_set_hero(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.LevelEvent.hero)
+}
+inline ::uint32_t LevelEvent::_internal_hero() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.hero_;
+}
+inline void LevelEvent::_internal_set_hero(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.hero_ = value;
+}
+
+// int32 player = 2;
+inline void LevelEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t LevelEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.LevelEvent.player)
+  return _internal_player();
+}
+inline void LevelEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.LevelEvent.player)
+}
+inline ::int32_t LevelEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void LevelEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// int32 level = 3;
+inline void LevelEvent::clear_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::int32_t LevelEvent::level() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.LevelEvent.level)
+  return _internal_level();
+}
+inline void LevelEvent::set_level(::int32_t value) {
+  _internal_set_level(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.LevelEvent.level)
+}
+inline ::int32_t LevelEvent::_internal_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.level_;
+}
+inline void LevelEvent::_internal_set_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// MeleeEvent
+
+// uint32 attacker = 1;
+inline void MeleeEvent::clear_attacker() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t MeleeEvent::attacker() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.MeleeEvent.attacker)
+  return _internal_attacker();
+}
+inline void MeleeEvent::set_attacker(::uint32_t value) {
+  _internal_set_attacker(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.MeleeEvent.attacker)
+}
+inline ::uint32_t MeleeEvent::_internal_attacker() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_;
+}
+inline void MeleeEvent::_internal_set_attacker(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = value;
+}
+
+// int32 attacker_player = 2;
+inline void MeleeEvent::clear_attacker_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::int32_t MeleeEvent::attacker_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.MeleeEvent.attacker_player)
+  return _internal_attacker_player();
+}
+inline void MeleeEvent::set_attacker_player(::int32_t value) {
+  _internal_set_attacker_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.MeleeEvent.attacker_player)
+}
+inline ::int32_t MeleeEvent::_internal_attacker_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_player_;
+}
+inline void MeleeEvent::_internal_set_attacker_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = value;
+}
+
+// bool heavy = 3;
+inline void MeleeEvent::clear_heavy() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heavy_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline bool MeleeEvent::heavy() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.MeleeEvent.heavy)
+  return _internal_heavy();
+}
+inline void MeleeEvent::set_heavy(bool value) {
+  _internal_set_heavy(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.MeleeEvent.heavy)
+}
+inline bool MeleeEvent::_internal_heavy() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.heavy_;
+}
+inline void MeleeEvent::_internal_set_heavy(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heavy_ = value;
+}
+
+// repeated uint32 hits = 4;
+inline int MeleeEvent::_internal_hits_size() const {
+  return _internal_hits().size();
+}
+inline int MeleeEvent::hits_size() const {
+  return _internal_hits_size();
+}
+inline void MeleeEvent::clear_hits() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.hits_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t MeleeEvent::hits(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.MeleeEvent.hits)
+  return _internal_hits().Get(index);
+}
+inline void MeleeEvent::set_hits(int index, ::uint32_t value) {
+  _internal_mutable_hits()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.MeleeEvent.hits)
+}
+inline void MeleeEvent::add_hits(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_hits()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.combat.MeleeEvent.hits)
+}
+inline const ::google::protobuf::RepeatedField<::uint32_t>& MeleeEvent::hits() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.combat.MeleeEvent.hits)
+  return _internal_hits();
+}
+inline ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL MeleeEvent::mutable_hits()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.combat.MeleeEvent.hits)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_hits();
+}
+inline const ::google::protobuf::RepeatedField<::uint32_t>&
+MeleeEvent::_internal_hits() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.hits_;
+}
+inline ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL
+MeleeEvent::_internal_mutable_hits() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.hits_;
+}
+
+// -------------------------------------------------------------------
+
+// ParryEvent
+
+// uint32 parrier = 1;
+inline void ParryEvent::clear_parrier() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parrier_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t ParryEvent::parrier() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ParryEvent.parrier)
+  return _internal_parrier();
+}
+inline void ParryEvent::set_parrier(::uint32_t value) {
+  _internal_set_parrier(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ParryEvent.parrier)
+}
+inline ::uint32_t ParryEvent::_internal_parrier() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.parrier_;
+}
+inline void ParryEvent::_internal_set_parrier(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parrier_ = value;
+}
+
+// int32 player = 2;
+inline void ParryEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t ParryEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ParryEvent.player)
+  return _internal_player();
+}
+inline void ParryEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ParryEvent.player)
+}
+inline ::int32_t ParryEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void ParryEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// uint32 attacker = 3;
+inline void ParryEvent::clear_attacker() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t ParryEvent::attacker() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ParryEvent.attacker)
+  return _internal_attacker();
+}
+inline void ParryEvent::set_attacker(::uint32_t value) {
+  _internal_set_attacker(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ParryEvent.attacker)
+}
+inline ::uint32_t ParryEvent::_internal_attacker() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_;
+}
+inline void ParryEvent::_internal_set_attacker(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_ = value;
+}
+
+// int32 attacker_player = 4;
+inline void ParryEvent::clear_attacker_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::int32_t ParryEvent::attacker_player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.combat.ParryEvent.attacker_player)
+  return _internal_attacker_player();
+}
+inline void ParryEvent::set_attacker_player(::int32_t value) {
+  _internal_set_attacker_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.combat.ParryEvent.attacker_player)
+}
+inline ::int32_t ParryEvent::_internal_attacker_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_player_;
+}
+inline void ParryEvent::_internal_set_attacker_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_player_ = value;
 }
 
 #ifdef __GNUC__

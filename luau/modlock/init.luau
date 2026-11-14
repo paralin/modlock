@@ -777,6 +777,64 @@ export type ModifierFiredEvent = {
 	ability: number,
 }
 
+-- HealEvent reports health an ability, item or lifesteal restored at once to
+-- a hero or unit. Regeneration reports none, including what abilities such as
+-- Siphon Life restore as regeneration, and neither do Modlock's own heal and
+-- a heal at full health.
+export type HealEvent = {
+	-- target is the entity healed.
+	target: number,
+	-- targetPlayer is the slot of the player whose hero was healed, or -1 for
+	-- a unit.
+	targetPlayer: Player,
+	-- healer is the entity the heal came from, or zero when the game names
+	-- none.
+	healer: number,
+	-- healerPlayer is the slot of the player whose hero the healer is, or -1.
+	healerPlayer: Player,
+	-- ability is the ability or item that healed, or zero.
+	ability: number,
+	-- applied is the health the heal restored.
+	applied: number,
+	-- requested is the heal's whole amount; it exceeds applied when the target
+	-- reached full health.
+	requested: number,
+}
+
+-- LevelEvent reports a hero reaching a new level.
+export type LevelEvent = {
+	-- hero is the hero's entity.
+	hero: number,
+	-- player is the slot of the player whose hero it is, or -1.
+	player: Player,
+	-- level is the hero's new level.
+	level: number,
+}
+
+-- MeleeEvent reports one melee swing as the game resolves it.
+export type MeleeEvent = {
+	-- attacker is the hero or unit that swung.
+	attacker: number,
+	-- attackerPlayer is the slot of the player whose hero swung, or -1.
+	attackerPlayer: Player,
+	-- heavy is true for a charged swing and false for a light one.
+	heavy: boolean,
+	-- hits are the entities the swing struck, empty for a miss.
+	hits: { number },
+}
+
+-- ParryEvent reports a parry that caught a melee swing.
+export type ParryEvent = {
+	-- parrier is the hero that parried.
+	parrier: number,
+	-- player is the slot of the player whose hero parried, or -1.
+	player: Player,
+	-- attacker is the hero or unit whose swing was caught.
+	attacker: number,
+	-- attackerPlayer is the slot of the player whose hero swung, or -1.
+	attackerPlayer: Player,
+}
+
 -- SoundOptions shape one sound; the zero value plays it to every player as
 -- the game made it.
 export type SoundOptions = {
@@ -1593,6 +1651,14 @@ export type StartResult = {
 	modifierEvents: { string }?,
 	-- kills asks for a Killed event after each hit that kills a hero or unit.
 	kills: boolean,
+	-- heals asks for a Healed event after each heal.
+	heals: boolean,
+	-- levels asks for a LevelChanged event as each hero reaches a new level.
+	levels: boolean,
+	-- melees asks for a Melee event after each melee swing.
+	melees: boolean,
+	-- parries asks for a Parried event after each parry that catches a swing.
+	parries: boolean,
 }
 
 -- FrameEvent identifies one server frame.
@@ -2989,6 +3055,32 @@ schema.ModifierFiredEvent = {
 	{ number = 4, name = "target", kind = "uint32" },
 	{ number = 5, name = "ability", kind = "uint32" },
 }
+schema.HealEvent = {
+	{ number = 1, name = "target", kind = "uint32" },
+	{ number = 2, name = "targetPlayer", kind = "int32", class = Player, key = "slot" },
+	{ number = 3, name = "healer", kind = "uint32" },
+	{ number = 4, name = "healerPlayer", kind = "int32", class = Player, key = "slot" },
+	{ number = 5, name = "ability", kind = "uint32" },
+	{ number = 6, name = "applied", kind = "int32" },
+	{ number = 7, name = "requested", kind = "int32" },
+}
+schema.LevelEvent = {
+	{ number = 1, name = "hero", kind = "uint32" },
+	{ number = 2, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 3, name = "level", kind = "int32" },
+}
+schema.MeleeEvent = {
+	{ number = 1, name = "attacker", kind = "uint32" },
+	{ number = 2, name = "attackerPlayer", kind = "int32", class = Player, key = "slot" },
+	{ number = 3, name = "heavy", kind = "bool" },
+	{ number = 4, name = "hits", kind = "uint32", repeated = true },
+}
+schema.ParryEvent = {
+	{ number = 1, name = "parrier", kind = "uint32" },
+	{ number = 2, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 3, name = "attacker", kind = "uint32" },
+	{ number = 4, name = "attackerPlayer", kind = "int32", class = Player, key = "slot" },
+}
 schema.ChatRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "text", kind = "string" },
@@ -3938,6 +4030,10 @@ schema.StartResult = {
 	{ number = 6, name = "casts", kind = "bool" },
 	{ number = 7, name = "modifierEvents", kind = "string", repeated = true },
 	{ number = 8, name = "kills", kind = "bool" },
+	{ number = 9, name = "heals", kind = "bool" },
+	{ number = 10, name = "levels", kind = "bool" },
+	{ number = 11, name = "melees", kind = "bool" },
+	{ number = 12, name = "parries", kind = "bool" },
 }
 schema.FrameEvent = {
 	{ number = 1, name = "tick", kind = "uint64" },
@@ -4641,6 +4737,18 @@ export type ModHandlers = {
 	-- modifierFired reports one modifier event the mod watches, before the
 	-- next frame.
 	modifierFired: (event: ModifierFiredEvent) -> (),
+	-- healed reports one heal, while the mod asked for heals, before the next
+	-- frame.
+	healed: (event: HealEvent) -> (),
+	-- levelChanged reports one hero reaching a new level, while the mod asked
+	-- for levels, before the next frame.
+	levelChanged: (event: LevelEvent) -> (),
+	-- melee reports one melee swing, while the mod asked for melees, before the
+	-- next frame.
+	melee: (event: MeleeEvent) -> (),
+	-- parried reports one parry that caught a swing, while the mod asked for
+	-- parries, before the next frame.
+	parried: (event: ParryEvent) -> (),
 	-- input reports one player's presses of watched buttons, before the next
 	-- frame. A block in place still withholds them from the hero.
 	input: (event: InputEvent) -> (),
@@ -4692,6 +4800,10 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Killed = { request = "KillEvent", response = "Empty", handler = "killed" },
 	AbilityCast = { request = "AbilityCastEvent", response = "Empty", handler = "abilityCast" },
 	ModifierFired = { request = "ModifierFiredEvent", response = "Empty", handler = "modifierFired" },
+	Healed = { request = "HealEvent", response = "Empty", handler = "healed" },
+	LevelChanged = { request = "LevelEvent", response = "Empty", handler = "levelChanged" },
+	Melee = { request = "MeleeEvent", response = "Empty", handler = "melee" },
+	Parried = { request = "ParryEvent", response = "Empty", handler = "parried" },
 	Input = { request = "InputEvent", response = "Empty", handler = "input" },
 	Restored = { request = "RestoredEvent", response = "Empty", handler = "restored" },
 	NpcsRestored = { request = "NpcsRestoredEvent", response = "Empty", handler = "npcsRestored" },
@@ -5008,6 +5120,10 @@ local damages: { (hit: DamageEvent) -> DamageResult? } = {}
 local damageds: { (hit: DamagedEvent) -> () } = {}
 local kills: { (kill: KillEvent) -> () } = {}
 local abilityCasts: { (cast: AbilityCastEvent) -> () } = {}
+local heals: { (heal: HealEvent) -> () } = {}
+local levels: { (change: LevelEvent) -> () } = {}
+local melees: { (swing: MeleeEvent) -> () } = {}
+local parries: { (parry: ParryEvent) -> () } = {}
 local modifierEvents: { [string]: { (event: ModifierFiredEvent) -> () } } = {}
 local launches: { (projectile: LaunchEvent) -> () } = {}
 local impacts: { (impact: ImpactEvent) -> () } = {}
@@ -5916,41 +6032,39 @@ end
 -- spawns holds the spawn handlers, which run in registration order.
 local spawns: { (player: Player, pawn: Pawn) -> () } = {}
 
--- spawned maps each slot whose hero is in play to that hero's entity, as the
--- spawn handlers last heard of it.
-local spawned: { [number]: number } = {}
+-- respawnedEvent is the game's modifier event for a hero entering play.
+local respawnedEvent = "PLAYER_RESPAWNED"
+
+-- frameCount counts frames, so spawnedAt can tell one frame's events apart.
+local frameCount = 0
+
+-- spawnedAt maps each slot to the frame the spawn handlers last heard of its
+-- hero; the game repeats the event as a player's hero is built.
+local spawnedAt: { [number]: number } = {}
 
 -- onSpawn calls handler each time a player's hero enters play: their first
 -- hero after joining, each respawn, and each new hero after a change. The
 -- player has a hero to move, equip and read from then on, which onPlayerJoin
--- does not promise. The library reads each player's pawn once a frame while a
--- handler is registered.
+-- does not promise. The library hears it from the game's PLAYER_RESPAWNED
+-- event, before the frame handlers run.
 function modlock.onSpawn(handler: (player: Player, pawn: Pawn) -> ())
 	table.insert(spawns, handler)
 end
 
--- watchSpawns tells the spawn handlers of each hero that entered play since
--- the last frame.
-local function watchSpawns()
-	-- A hero is in play while it lives; a placeholder pawn has hero 0.
-	local present: { [number]: number } = {}
-	for _, connection in modlock.players() do
-		local player = connection.player
-		local pawn = player:pawn()
-		if pawn and pawn.hero ~= 0 and pawn.health > 0 then
-			present[player.slot] = pawn.entity
-
-			-- A respawn follows a death, and a new hero has a new entity.
-			if spawned[player.slot] ~= pawn.entity then
-				for _, handler in spawns do
-					handler(player, pawn)
-				end
-			end
-		end
+-- respawned tells the spawn handlers that the player's hero entered play.
+local function respawned(player: Player)
+	-- Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+	local pawn = if player.slot < 0 then nil else player:pawn()
+	if not pawn or pawn.hero == 0 or pawn.health <= 0 then
+		return
 	end
-
-	-- Forget the fallen and the gone, so their next hero is a spawn.
-	spawned = present
+	if spawnedAt[player.slot] == frameCount then
+		return
+	end
+	spawnedAt[player.slot] = frameCount
+	for _, handler in spawns do
+		handler(player, pawn)
+	end
 end
 
 -- onDamaged calls handler on the frame after each hit lands.
@@ -5963,6 +6077,34 @@ end
 -- -1 is a unit's, or a hazard's for the attacker.
 function modlock.onKill(handler: (kill: KillEvent) -> ())
 	table.insert(kills, handler)
+end
+
+-- onHeal calls handler after each heal, before the next frame: health a hero
+-- or unit regained at once from an ability, an item or lifesteal. Regeneration
+-- calls nothing, including what abilities such as Siphon Life restore as
+-- regeneration, and neither do the mod's own heal and a heal at full health.
+-- The heal names the entity healed, the healer and ability when the game
+-- names them, and the player of each: a slot of -1 is a unit's, or no one's.
+function modlock.onHeal(handler: (heal: HealEvent) -> ())
+	table.insert(heals, handler)
+end
+
+-- onLevelChange calls handler as each hero reaches a new level, before the
+-- next frame.
+function modlock.onLevelChange(handler: (change: LevelEvent) -> ())
+	table.insert(levels, handler)
+end
+
+-- onMelee calls handler after each melee swing, before the next frame, with
+-- whether it was heavy and the entities it struck, none for a miss.
+function modlock.onMelee(handler: (swing: MeleeEvent) -> ())
+	table.insert(melees, handler)
+end
+
+-- onParry calls handler after each parry that catches a melee swing, before
+-- the next frame, naming the hero that parried and the attacker it caught.
+function modlock.onParry(handler: (parry: ParryEvent) -> ())
+	table.insert(parries, handler)
 end
 
 -- onAbilityCast calls handler after each ability the game executes, before
@@ -6018,6 +6160,9 @@ local handlers: ModHandlers = {
 		for name in modifierEvents do
 			table.insert(watched, name)
 		end
+		if #spawns ~= 0 and not modifierEvents[respawnedEvent] then
+			table.insert(watched, respawnedEvent)
+		end
 
 		-- Timers run from frames, so the library always takes them.
 		return {
@@ -6028,6 +6173,10 @@ local handlers: ModHandlers = {
 			joins = #joins ~= 0 or #leaves ~= 0,
 			casts = #abilityCasts ~= 0,
 			kills = #kills ~= 0,
+			heals = #heals ~= 0,
+			levels = #levels ~= 0,
+			melees = #melees ~= 0,
+			parries = #parries ~= 0,
 			modifierEvents = watched,
 		}
 	end,
@@ -6037,9 +6186,7 @@ local handlers: ModHandlers = {
 			interface.tick(event.timeSeconds)
 		end
 		advanceTimers(event.timeSeconds)
-		if #spawns ~= 0 then
-			watchSpawns()
-		end
+		frameCount += 1
 		for _, handler in frames do
 			handler(event)
 		end
@@ -6142,7 +6289,34 @@ local handlers: ModHandlers = {
 		end
 	end,
 
+	healed = function(event)
+		for _, handler in heals do
+			handler(event)
+		end
+	end,
+
+	levelChanged = function(event)
+		for _, handler in levels do
+			handler(event)
+		end
+	end,
+
+	melee = function(event)
+		for _, handler in melees do
+			handler(event)
+		end
+	end,
+
+	parried = function(event)
+		for _, handler in parries do
+			handler(event)
+		end
+	end,
+
 	modifierFired = function(event)
+		if event.name == respawnedEvent and #spawns ~= 0 then
+			respawned(event.player)
+		end
 		for _, handler in modifierEvents[event.name] or {} do
 			handler(event)
 		end

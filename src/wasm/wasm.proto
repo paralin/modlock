@@ -797,6 +797,22 @@ service Mod {
   // next frame.
   rpc ModifierFired(modlock.wasm.combat.ModifierFiredEvent) returns (Empty);
 
+  // Healed reports one heal, while the mod asked for heals, before the next
+  // frame.
+  rpc Healed(modlock.wasm.combat.HealEvent) returns (Empty);
+
+  // LevelChanged reports one hero reaching a new level, while the mod asked
+  // for levels, before the next frame.
+  rpc LevelChanged(modlock.wasm.combat.LevelEvent) returns (Empty);
+
+  // Melee reports one melee swing, while the mod asked for melees, before the
+  // next frame.
+  rpc Melee(modlock.wasm.combat.MeleeEvent) returns (Empty);
+
+  // Parried reports one parry that caught a swing, while the mod asked for
+  // parries, before the next frame.
+  rpc Parried(modlock.wasm.combat.ParryEvent) returns (Empty);
+
   // Input reports one player's presses of watched buttons, before the next
   // frame. A block in place still withholds them from the hero.
   rpc Input(modlock.wasm.InputEvent) returns (Empty);
@@ -889,6 +905,18 @@ message StartResult {
 
   // Kills asks for a Killed event after each hit that kills a hero or unit.
   bool kills = 8;
+
+  // Heals asks for a Healed event after each heal.
+  bool heals = 9;
+
+  // Levels asks for a LevelChanged event as each hero reaches a new level.
+  bool levels = 10;
+
+  // Melees asks for a Melee event after each melee swing.
+  bool melees = 11;
+
+  // Parries asks for a Parried event after each parry that catches a swing.
+  bool parries = 12;
 }
 
 // FrameEvent identifies one server frame.

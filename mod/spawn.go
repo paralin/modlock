@@ -1,50 +1,48 @@
 package mod
 
-// spawns holds the spawn handlers and the heroes they last heard of.
+// respawnedEvent is the game's modifier event for a hero entering play.
+const respawnedEvent = "PLAYER_RESPAWNED"
+
+// spawns holds the spawn handlers and when they last heard of each hero.
 var spawns struct {
 	// handlers run in registration order.
 	handlers []func(Player, *Pawn)
-	// entities maps each slot whose hero is in play to that hero's entity.
-	entities map[int32]uint32
+	// frame counts frames, so heardAt can tell one frame's events apart.
+	frame uint64
+	// heardAt maps each slot to the frame the handlers last heard of its
+	// hero; the game repeats the event as a player's hero is built.
+	heardAt map[int32]uint64
 }
 
 // OnSpawn calls handler each time a player's hero enters play: their first
 // hero after joining, each respawn, and each new hero after a change. The
 // player has a hero to move, equip and read from then on, which OnPlayerJoin
-// does not promise. The library reads each player's pawn once a frame while
-// a handler is registered.
+// does not promise. The library hears it from the game's PLAYER_RESPAWNED
+// event, before the frame handlers run.
 func OnSpawn(handler func(player Player, pawn *Pawn)) {
 	spawns.handlers = append(spawns.handlers, handler)
 }
 
-// watchSpawns tells the spawn handlers of each hero that entered play since
-// the last frame.
-func watchSpawns() {
-	// Without the player list this frame, keep what the handlers heard.
-	connections, err := Players()
-	if err != nil {
+// respawned tells the spawn handlers that the player's hero entered play.
+func respawned(player Player) {
+	// Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+	if player.Slot() < 0 {
 		return
 	}
-
-	// A hero is in play while it lives; a placeholder pawn has hero 0.
-	present := make(map[int32]uint32, len(connections))
-	for _, connection := range connections {
-		player := PlayerOf(connection.GetPlayer())
-		pawn, err := player.Pawn()
-		if err != nil || pawn == nil || pawn.GetHero() == 0 || pawn.GetHealth() <= 0 {
-			continue
-		}
-		present[player.Slot()] = pawn.GetEntity()
-
-		// A respawn follows a death, and a new hero has a new entity.
-		if entity, ok := spawns.entities[player.Slot()]; ok && entity == pawn.GetEntity() {
-			continue
-		}
-		for _, handler := range spawns.handlers {
-			handler(player, pawn)
-		}
+	pawn, err := player.Pawn()
+	if err != nil || pawn == nil || pawn.GetHero() == 0 || pawn.GetHealth() <= 0 {
+		return
 	}
+	if frame, ok := spawns.heardAt[player.Slot()]; ok && frame == spawns.frame {
+		return
+	}
+	if spawns.heardAt == nil {
+		spawns.heardAt = map[int32]uint64{}
+	}
+	spawns.heardAt[player.Slot()] = spawns.frame
 
-	// Forget the fallen and the gone, so their next hero is a spawn.
-	spawns.entities = present
+	// Tell each handler.
+	for _, handler := range spawns.handlers {
+		handler(player, pawn)
+	}
 }

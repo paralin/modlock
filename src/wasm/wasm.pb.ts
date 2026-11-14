@@ -257,6 +257,22 @@ export interface StartResult {
    * Kills asks for a Killed event after each hit that kills a hero or unit.
    */
   kills?: boolean
+  /**
+   * Heals asks for a Healed event after each heal.
+   */
+  heals?: boolean
+  /**
+   * Levels asks for a LevelChanged event as each hero reaches a new level.
+   */
+  levels?: boolean
+  /**
+   * Melees asks for a Melee event after each melee swing.
+   */
+  melees?: boolean
+  /**
+   * Parries asks for a Parried event after each parry that catches a swing.
+   */
+  parries?: boolean
 }
 
 export const StartResult: MessageType<StartResult> =
@@ -271,6 +287,10 @@ export const StartResult: MessageType<StartResult> =
       [6, 'casts', 8],
       [7, 'modifier_events', 9, 1],
       [8, 'kills', 8],
+      [9, 'heals', 8],
+      [10, 'levels', 8],
+      [11, 'melees', 8],
+      [12, 'parries', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: StartResult): StartResult => {
@@ -301,6 +321,18 @@ export const StartResult: MessageType<StartResult> =
               break
             case 8:
               m.kills = r.bool()
+              break
+            case 9:
+              m.heals = r.bool()
+              break
+            case 10:
+              m.levels = r.bool()
+              break
+            case 11:
+              m.melees = r.bool()
+              break
+            case 12:
+              m.parries = r.bool()
               break
             default:
               r.skip(t)
@@ -340,6 +372,22 @@ export const StartResult: MessageType<StartResult> =
         {
           const v = m.kills
           if (v) w.uint32(64).bool(v)
+        }
+        {
+          const v = m.heals
+          if (v) w.uint32(72).bool(v)
+        }
+        {
+          const v = m.levels
+          if (v) w.uint32(80).bool(v)
+        }
+        {
+          const v = m.melees
+          if (v) w.uint32(88).bool(v)
+        }
+        {
+          const v = m.parries
+          if (v) w.uint32(96).bool(v)
         }
       },
     },

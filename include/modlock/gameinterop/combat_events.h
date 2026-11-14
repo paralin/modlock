@@ -9,24 +9,13 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "modlock/export.h"
 #include "modlock/gameinterop/game_symbols.h"
 #include "modlock/gameinterop/native_memory.h"
 
 namespace modlock::gameinterop {
-
-// Native modifier-event IDs decoded by the combat observer, as numbered in
-// game build 6711. Game updates renumber EModifierEvent, so CombatEventsHook
-// resolves the running game's ids by name (ModifierEventIndex) and never
-// dispatches on these numbers; they remain for fixtures and existing callers.
-// The broadcast ids are the same damage/heal facts delivered twice; only the
-// modifier-path ids are decoded, so no event is counted twice.
-inline constexpr uint32_t kCombatEventPreDamageTaken = 0x17;
-inline constexpr uint32_t kCombatEventDamageTaken = 0x18;
-inline constexpr uint32_t kCombatEventHealthTaken = 0x1a;
-inline constexpr uint32_t kCombatEventAbilityExecuted = 0x25;
-inline constexpr uint32_t kCombatBroadcastShieldAbsorbed = 0x0f;
 
 // DamageTakenEvent carries the immutable values one native damage application
 // reported. health_lost is post-mitigation health damage; accounting clamps it
@@ -82,14 +71,40 @@ struct ShieldDamageEvent {
   float absorbed = 0;
 };
 
-// HealthTakenEvent carries one native heal. requested is the raw heal amount;
-// applied is what the game clamped into current health, so requested > applied
-// marks overheal. Regen coverage is not yet accepted; this event does not
-// attribute a source.
-struct HealthTakenEvent {
-  uint32_t entity_handle = 0;
-  float requested = 0.0f;
+// HealedEvent carries one heal the game applied (native UNIT_HEALED layout:
+// healer handle +0, target handle +4, ability handle +8, applied int +0xC,
+// leftover uint +0x10). requested is applied plus the leftover the target's
+// maximum health refused. Handles are kInvalidEHandleIndex when the game
+// names none. Regeneration, heal types 1 and 3, fires no UNIT_HEALED.
+struct HealedEvent {
+  uint32_t healer_handle = 0;
+  uint32_t target_handle = 0;
+  uint32_t ability_handle = 0;
   int32_t applied = 0;
+  int32_t requested = 0;
+};
+
+// LevelChangedEvent carries one hero reaching a new level (native layout:
+// hero handle +0, level +4).
+struct LevelChangedEvent {
+  uint32_t hero_handle = 0;
+  int32_t level = 0;
+};
+
+// MeleeEvent carries one melee swing as the game resolves it (native layout:
+// attacker handle +0, heavy flag +5, and from +0x18 the count and storage of
+// the hit entities' handles). A swing that hits nothing has no hits.
+struct MeleeEvent {
+  uint32_t attacker_handle = 0;
+  bool heavy = false;
+  std::vector<uint32_t> hit_handles;
+};
+
+// ParryEvent carries one parry that caught a melee swing (native layout:
+// parrier handle +0, attacker handle +4).
+struct ParryEvent {
+  uint32_t parrier_handle = 0;
+  uint32_t attacker_handle = 0;
 };
 
 // AbilityExecutedEvent carries the raw packed handles from one native ability
@@ -200,7 +215,10 @@ struct InteractionOffsets {
 struct CombatEvent {
   enum class Kind {
     kDamageTaken,
-    kHealthTaken,
+    kHealed,
+    kLevelChanged,
+    kMelee,
+    kParry,
     kShieldDamage,
     kAbilityExecuted,
     kMovementExecuted,
@@ -213,7 +231,10 @@ struct CombatEvent {
   std::string reason;
   // At most one of the payloads is meaningful, by kind.
   std::optional<DamageTakenEvent> damage;
-  std::optional<HealthTakenEvent> health;
+  std::optional<HealedEvent> heal;
+  std::optional<LevelChangedEvent> level;
+  std::optional<MeleeEvent> melee;
+  std::optional<ParryEvent> parry;
   std::optional<ShieldDamageEvent> shield;
   std::optional<AbilityExecutedEvent> ability;
   std::optional<MovementExecutedEvent> movement;
@@ -261,9 +282,21 @@ struct DamageResultOffsets {
 [[nodiscard]] MODLOCK_API std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(
     const void* event_data, const DamageResultOffsets& offsets, const BoundedReader& read);
 
-// DecodeHealthTaken reads one HealthTaken eventData payload (native layout:
-// entity handle +0, requested float +4, applied int +8).
-[[nodiscard]] MODLOCK_API std::expected<HealthTakenEvent, std::string> DecodeHealthTaken(
+// DecodeHealed reads one UNIT_HEALED payload.
+[[nodiscard]] MODLOCK_API std::expected<HealedEvent, std::string> DecodeHealed(
+    const void* event_data, const BoundedReader& read);
+
+// DecodeLevelChanged reads one HERO_LEVEL_CHANGED payload.
+[[nodiscard]] MODLOCK_API std::expected<LevelChangedEvent, std::string> DecodeLevelChanged(
+    const void* event_data, const BoundedReader& read);
+
+// DecodeMelee reads one MELEE_ATTACK payload, with at most kMaxMeleeHits hits.
+inline constexpr int32_t kMaxMeleeHits = 64;
+[[nodiscard]] MODLOCK_API std::expected<MeleeEvent, std::string> DecodeMelee(
+    const void* event_data, const BoundedReader& read);
+
+// DecodeParry reads one PARRY_SUCCESS payload.
+[[nodiscard]] MODLOCK_API std::expected<ParryEvent, std::string> DecodeParry(
     const void* event_data, const BoundedReader& read);
 
 [[nodiscard]] MODLOCK_API std::expected<ShieldDamageEvent, std::string> DecodeShieldDamage(
@@ -286,7 +319,8 @@ struct DamageResultOffsets {
 // through a native detour. The thunk forwards every event
 // with all five arguments and the original return value unchanged, so native
 // modifier dispatch is never suppressed; before the call it decodes damage,
-// healing, ability execution and prop breaks into immutable values. The
+// healing, level changes, melee swings, parries, ability execution and prop
+// breaks into immutable values. The
 // broadcast hook observes shield absorption without duplicating modifier
 // events, and the pickup hook observes each pickup's completion with its
 // collector before forwarding it once. One hook may

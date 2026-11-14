@@ -493,6 +493,10 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     kJoinsFieldNumber = 5,
     kCastsFieldNumber = 6,
     kKillsFieldNumber = 8,
+    kHealsFieldNumber = 9,
+    kLevelsFieldNumber = 10,
+    kMeleesFieldNumber = 11,
+    kParriesFieldNumber = 12,
   };
   // repeated string modifier_events = 7;
   int modifier_events_size() const;
@@ -586,11 +590,51 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
   void _internal_set_kills(bool value);
 
   public:
+  // bool heals = 9;
+  void clear_heals() ;
+  bool heals() const;
+  void set_heals(bool value);
+
+  private:
+  bool _internal_heals() const;
+  void _internal_set_heals(bool value);
+
+  public:
+  // bool levels = 10;
+  void clear_levels() ;
+  bool levels() const;
+  void set_levels(bool value);
+
+  private:
+  bool _internal_levels() const;
+  void _internal_set_levels(bool value);
+
+  public:
+  // bool melees = 11;
+  void clear_melees() ;
+  bool melees() const;
+  void set_melees(bool value);
+
+  private:
+  bool _internal_melees() const;
+  void _internal_set_melees(bool value);
+
+  public:
+  // bool parries = 12;
+  void clear_parries() ;
+  bool parries() const;
+  void set_parries(bool value);
+
+  private:
+  bool _internal_parries() const;
+  void _internal_set_parries(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.StartResult)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 8,
+  static const ::google::protobuf::internal::TcParseTable<4, 12,
                                    0, 56,
                                    2>
       _table_;
@@ -620,6 +664,10 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     bool joins_;
     bool casts_;
     bool kills_;
+    bool heals_;
+    bool levels_;
+    bool melees_;
+    bool parries_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4027,6 +4075,106 @@ inline bool StartResult::_internal_kills() const {
 inline void StartResult::_internal_set_kills(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.kills_ = value;
+}
+
+// bool heals = 9;
+inline void StartResult::clear_heals() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heals_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000100U);
+}
+inline bool StartResult::heals() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.heals)
+  return _internal_heals();
+}
+inline void StartResult::set_heals(bool value) {
+  _internal_set_heals(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.heals)
+}
+inline bool StartResult::_internal_heals() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.heals_;
+}
+inline void StartResult::_internal_set_heals(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.heals_ = value;
+}
+
+// bool levels = 10;
+inline void StartResult::clear_levels() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.levels_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000200U);
+}
+inline bool StartResult::levels() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.levels)
+  return _internal_levels();
+}
+inline void StartResult::set_levels(bool value) {
+  _internal_set_levels(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.levels)
+}
+inline bool StartResult::_internal_levels() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.levels_;
+}
+inline void StartResult::_internal_set_levels(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.levels_ = value;
+}
+
+// bool melees = 11;
+inline void StartResult::clear_melees() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.melees_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000400U);
+}
+inline bool StartResult::melees() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.melees)
+  return _internal_melees();
+}
+inline void StartResult::set_melees(bool value) {
+  _internal_set_melees(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.melees)
+}
+inline bool StartResult::_internal_melees() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.melees_;
+}
+inline void StartResult::_internal_set_melees(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.melees_ = value;
+}
+
+// bool parries = 12;
+inline void StartResult::clear_parries() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parries_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000800U);
+}
+inline bool StartResult::parries() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.parries)
+  return _internal_parries();
+}
+inline void StartResult::set_parries(bool value) {
+  _internal_set_parries(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.parries)
+}
+inline bool StartResult::_internal_parries() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.parries_;
+}
+inline void StartResult::_internal_set_parries(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parries_ = value;
 }
 
 // -------------------------------------------------------------------

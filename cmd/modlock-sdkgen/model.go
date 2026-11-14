@@ -438,7 +438,7 @@ var classes = []*class{
 		goType:   "int32",
 		keyDoc:   "slot identifies the player on the server.",
 		noun:     "Player",
-		also:     []string{"victim_player", "attacker_player"},
+		also:     []string{"victim_player", "attacker_player", "target_player", "healer_player"},
 		interned: true,
 	},
 	{

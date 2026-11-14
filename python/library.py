@@ -108,6 +108,10 @@ _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
 _kills: list[Callable[[KillEvent], object]] = []
 _ability_casts: list[Callable[[AbilityCastEvent], object]] = []
+_heals: list[Callable[[HealEvent], object]] = []
+_levels: list[Callable[[LevelEvent], object]] = []
+_melees: list[Callable[[MeleeEvent], object]] = []
+_parries: list[Callable[[ParryEvent], object]] = []
 _modifier_events: dict[str, list[Callable[[ModifierFiredEvent], object]]] = {}
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
@@ -116,9 +120,15 @@ _setting_changes: list[Callable[[Player, str, str], object]] = []
 
 _spawns: list[Callable[[Player, Pawn], object]] = []
 
-# _spawned maps each slot whose hero is in play to that hero's entity, as the
-# spawn handlers last heard of it.
-_spawned: dict[int, int] = {}
+# _RESPAWNED is the game's modifier event for a hero entering play.
+_RESPAWNED = "PLAYER_RESPAWNED"
+
+# _frame_count counts frames, so _spawned_at can tell one frame's events apart.
+_frame_count = 0
+
+# _spawned_at maps each slot to the frame the spawn handlers last heard of its
+# hero; the game repeats the event as a player's hero is built.
+_spawned_at: dict[int, int] = {}
 
 # _roster is the player list the host last reported, or None before one.
 _roster: list[Connection] | None = None
@@ -1020,8 +1030,8 @@ def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
     """on_spawn calls handler each time a player's hero enters play: their
     first hero after joining, each respawn, and each new hero after a change.
     The player has a hero to move, equip and read from then on, which
-    on_player_join does not promise. The library reads each player's pawn
-    once a frame while a handler is registered.
+    on_player_join does not promise. The library hears it from the game's
+    PLAYER_RESPAWNED event, before the frame handlers run.
 
     Annotate the handler's parameters, since a checker and an editor's
     completion read their types from there:
@@ -1033,26 +1043,18 @@ def on_spawn[F: Callable[[Player, Pawn], object]](handler: F) -> F:
     return handler
 
 
-def _watch_spawns() -> None:
-    """_watch_spawns tells the spawn handlers of each hero that entered play
-    since the last frame."""
-    # A hero is in play while it lives; a placeholder pawn has hero 0.
-    present: dict[int, int] = {}
-    for connection in players():
-        player = connection.player
-        pawn = player.pawn()
-        if pawn is None or pawn.hero == 0 or pawn.health <= 0:
-            continue
-        present[player.slot] = pawn.entity
-
-        # A respawn follows a death, and a new hero has a new entity.
-        if _spawned.get(player.slot) != pawn.entity:
-            for handler in _spawns:
-                handler(player, pawn)
-
-    # Forget the fallen and the gone, so their next hero is a spawn.
-    _spawned.clear()
-    _spawned.update(present)
+def _respawned(player: Player) -> None:
+    """_respawned tells the spawn handlers that the player's hero entered
+    play."""
+    # Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
+    pawn = None if player.slot < 0 else player.pawn()
+    if pawn is None or pawn.hero == 0 or pawn.health <= 0:
+        return
+    if _spawned_at.get(player.slot) == _frame_count:
+        return
+    _spawned_at[player.slot] = _frame_count
+    for handler in _spawns:
+        handler(player, pawn)
 
 
 def on_kill[F: Callable[[KillEvent], object]](handler: F) -> F:
@@ -1064,6 +1066,56 @@ def on_kill[F: Callable[[KillEvent], object]](handler: F) -> F:
         def killed(kill: modlock.KillEvent) -> None: ...
     """
     _kills.append(handler)
+    return handler
+
+
+def on_heal[F: Callable[[HealEvent], object]](handler: F) -> F:
+    """on_heal calls handler after each heal, before the next frame: health a
+    hero or unit regained at once from an ability, an item or lifesteal.
+    Regeneration calls nothing, including what abilities such as Siphon Life
+    restore as regeneration, and neither do the mod's own heal and a heal at
+    full health. The heal names the entity healed, the healer and ability when
+    the game names them, and the player of each: a slot of -1 is a unit's, or
+    no one's.
+
+        @modlock.on_heal
+        def healed(heal: modlock.HealEvent) -> None: ...
+    """
+    _heals.append(handler)
+    return handler
+
+
+def on_level_change[F: Callable[[LevelEvent], object]](handler: F) -> F:
+    """on_level_change calls handler as each hero reaches a new level, before
+    the next frame.
+
+        @modlock.on_level_change
+        def leveled(change: modlock.LevelEvent) -> None: ...
+    """
+    _levels.append(handler)
+    return handler
+
+
+def on_melee[F: Callable[[MeleeEvent], object]](handler: F) -> F:
+    """on_melee calls handler after each melee swing, before the next frame,
+    with whether it was heavy and the entities it struck, none for a miss.
+
+        @modlock.on_melee
+        def swung(swing: modlock.MeleeEvent) -> None: ...
+    """
+    _melees.append(handler)
+    return handler
+
+
+def on_parry[F: Callable[[ParryEvent], object]](handler: F) -> F:
+    """on_parry calls handler after each parry that catches a melee swing,
+    before the next frame, naming the hero that parried and the attacker it
+    caught.
+
+        @modlock.on_parry
+        def parried(parry: modlock.ParryEvent) -> None: ...
+    """
+    _parries.append(handler)
     return handler
 
 
@@ -1181,7 +1233,13 @@ def _start(event: StartEvent) -> StartResult:
         joins=bool(_joins or _leaves),
         casts=bool(_ability_casts),
         kills=bool(_kills),
-        modifier_events=list(_modifier_events),
+        heals=bool(_heals),
+        levels=bool(_levels),
+        melees=bool(_melees),
+        parries=bool(_parries),
+        modifier_events=list(
+            _modifier_events.keys() | ({_RESPAWNED} if _spawns else set())
+        ),
     )
 
 
@@ -1214,11 +1272,11 @@ def _serve_ui(handlers: _UiHandlers) -> None:
 
 
 def _frame(event: FrameEvent) -> None:
+    global _frame_count
+    _frame_count += 1
     if _ui is not None:
         _ui.tick(event.time_seconds)
     _advance_timers(event.time_seconds)
-    if _spawns:
-        _watch_spawns()
     for handler in _frames:
         handler(event)
 
@@ -1337,7 +1395,29 @@ def _ability_cast(event: AbilityCastEvent) -> None:
         handler(event)
 
 
+def _healed(event: HealEvent) -> None:
+    for handler in _heals:
+        handler(event)
+
+
+def _level_changed(event: LevelEvent) -> None:
+    for handler in _levels:
+        handler(event)
+
+
+def _melee(event: MeleeEvent) -> None:
+    for handler in _melees:
+        handler(event)
+
+
+def _parried(event: ParryEvent) -> None:
+    for handler in _parries:
+        handler(event)
+
+
 def _modifier_fired(event: ModifierFiredEvent) -> None:
+    if event.name == _RESPAWNED and _spawns:
+        _respawned(event.player)
     for handler in _modifier_events.get(event.name, ()):
         handler(event)
 
@@ -1437,6 +1517,10 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "damaged": _damaged,
     "killed": _killed,
     "ability_cast": _ability_cast,
+    "healed": _healed,
+    "level_changed": _level_changed,
+    "melee": _melee,
+    "parried": _parried,
     "modifier_fired": _modifier_fired,
     "input": _input,
     "restored": _restored,

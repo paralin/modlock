@@ -374,6 +374,21 @@ type TraceHit = combatpb.TraceHit
 // fills depends on the event.
 type ModifierFiredEvent = combatpb.ModifierFiredEvent
 
+// HealEvent reports health an ability, item or lifesteal restored at once to
+// a hero or unit. Regeneration reports none, including what abilities such as
+// Siphon Life restore as regeneration, and neither do Modlock's own heal and
+// a heal at full health.
+type HealEvent = combatpb.HealEvent
+
+// LevelEvent reports a hero reaching a new level.
+type LevelEvent = combatpb.LevelEvent
+
+// MeleeEvent reports one melee swing as the game resolves it.
+type MeleeEvent = combatpb.MeleeEvent
+
+// ParryEvent reports a parry that caught a melee swing.
+type ParryEvent = combatpb.ParryEvent
+
 // SoundOptions shape one sound; the zero value plays it to every player as
 // the game made it.
 type SoundOptions = effectspb.SoundOptions
@@ -1900,6 +1915,18 @@ type modHandlers interface {
 	// ModifierFired reports one modifier event the mod watches, before the
 	// next frame.
 	ModifierFired(event *ModifierFiredEvent) error
+	// Healed reports one heal, while the mod asked for heals, before the next
+	// frame.
+	Healed(event *HealEvent) error
+	// LevelChanged reports one hero reaching a new level, while the mod asked
+	// for levels, before the next frame.
+	LevelChanged(event *LevelEvent) error
+	// Melee reports one melee swing, while the mod asked for melees, before the
+	// next frame.
+	Melee(event *MeleeEvent) error
+	// Parried reports one parry that caught a swing, while the mod asked for
+	// parries, before the next frame.
+	Parried(event *ParryEvent) error
 	// Input reports one player's presses of watched buttons, before the next
 	// frame. A block in place still withholds them from the hero.
 	Input(event *InputEvent) error
@@ -2017,6 +2044,30 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.ModifierFired(event))
+	case "Healed":
+		event := &HealEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Healed(event))
+	case "LevelChanged":
+		event := &LevelEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.LevelChanged(event))
+	case "Melee":
+		event := &MeleeEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Melee(event))
+	case "Parried":
+		event := &ParryEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Parried(event))
 	case "Input":
 		event := &InputEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
