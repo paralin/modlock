@@ -43,25 +43,6 @@ command('hello', (player) => {
 > [Go](https://paralin.github.io/modlock/languages/go) mods, the `modlock` command line and
 > `modlock publish` all work today.
 
-## Why WebAssembly
-
-- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server, where
-  it can reach only the calls the schema declares. Those calls let it read and
-  write its own files, but it has no network access and no environment
-  variables. When a mod crashes, loops forever or allocates past its limit, the
-  server stops that mod, logs why and keeps the match running. A slow event
-  still finishes, and the players see a warning in chat. Any player can restart
-  a stopped or slow mod with `/restartmod`.
-- **Any language.** You can write a mod in any language that compiles to
-  WebAssembly, using a small library for that language.
-- **Built once.** The server looks up each field and input a mod uses by name,
-  so a mod built before a game update still works after it.
-- **Fast.** Wasmtime compiles mods to machine code with Cranelift. The server
-  calls a mod inside the game frame and waits for its answer, so the mod can
-  claim a command or change that frame before the game moves on.
-
-[Wasmtime]: https://wasmtime.dev
-
 ## Getting started
 
 The only program you need is the `modlock` command. Install it by running the
@@ -127,6 +108,25 @@ choose your language, every page shows its samples in it.
 
 The site's source is in [`docs`](docs), and running `bun install` and
 `bun run dev` there serves it locally. Complete mods to read and run are in [`examples`](examples).
+
+## Why WebAssembly
+
+- **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server, where
+  it can reach only the calls the schema declares. Those calls let it read and
+  write its own files, but it has no network access and no environment
+  variables. When a mod crashes, loops forever or allocates past its limit, the
+  server stops that mod, logs why and keeps the match running. A slow event
+  still finishes, and the players see a warning in chat. Any player can restart
+  a stopped or slow mod with `/restartmod`.
+- **Any language.** You can write a mod in any language that compiles to
+  WebAssembly, using a small library for that language.
+- **Built once.** The server looks up each field and input a mod uses by name,
+  so a mod built before a game update still works after it.
+- **Fast.** Wasmtime compiles mods to machine code with Cranelift. The server
+  calls a mod inside the game frame and waits for its answer, so the mod can
+  claim a command or change that frame before the game moves on.
+
+[Wasmtime]: https://wasmtime.dev
 
 ## Acknowledgments
 
