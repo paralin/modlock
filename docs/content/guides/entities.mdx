@@ -41,9 +41,10 @@ err = mod.WriteField(pawn.GetEntity(), "CBaseEntity", "m_iHealth", mod.FieldType
 
 </Samples>
 
-The Go sample writes `int64(500)` because Go's `WriteField` takes a `bool`,
-`float64`, `int64`, `string` or `*mod.Vector`, whatever the field's type. A
-plain `500` is an `int`, and `WriteField` returns an error for it.
+The Go sample writes `int64(500)` because Go's `WriteField` takes only a `bool`,
+`float64`, `int64`, `string` or `*mod.Vector`. An integer is passed as an
+`int64` even when the field is narrower, as the 32-bit `m_iHealth` is. A plain
+`500` is an `int`, and `WriteField` returns an error for it.
 
 For an animated prop, the host finds `CBaseAnimGraphController` fields through
 the prop's body component. This sample sets a sequence that does not use the
@@ -289,21 +290,16 @@ if err == nil {
 </Samples>
 
 The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
-while it spawns, and `subclass` names that entry. Without a subclass, the host
+while it spawns, and `subclass` is the name of that entry. Without a subclass, the host
 looks for an entry named after the class. The game has no entry named
 `npc_trooper_boss`, and the class crashes the server without one, so the host
-refuses the call and its message names an entry to pass.
+refuses the call and its message gives an entry you can pass.
 
 The values passed to `fireInput` already have the type each input takes, because
 an input does not convert text. `Alpha` takes an integer, and `Color` takes a
 color written as `0xRRGGBBAA`. `entities.json` lists the type each input takes.
-In Go, the type of the value you pass sets its kind:
-
-| Go type   | Kind    |
-| --------- | ------- |
-| `int32`   | integer |
-| `float32` | number  |
-| `uint32`  | color   |
+In Go, an `int32` is sent as an integer, a `float32` is sent as a number and a
+`uint32` is sent as a color.
 
 The Luau, Python and Go samples check the created entity before they send
 inputs. `createEntity` returns no entity for a designer name the server does not
