@@ -6043,7 +6043,7 @@ local frameCount = 0
 local spawnedAt: { [number]: number } = {}
 
 -- onSpawn calls handler each time a player's hero enters play: their first
--- hero after joining, each respawn, and each new hero after a change. The
+-- hero after joining, and each respawn. The
 -- player has a hero to move, equip and read from then on, which onPlayerJoin
 -- does not promise. The library hears it from the game's PLAYER_RESPAWNED
 -- event, before the frame handlers run.
