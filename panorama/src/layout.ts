@@ -23,6 +23,22 @@ import {
   routeAttribute,
 } from './data.js'
 
+/**
+ * $ is the part of Panorama's script API this library calls. Declaring it here
+ * keeps the library self-contained, so a consumer that compiles this file from
+ * a vendored copy needs no global declarations of its own.
+ */
+declare const $: {
+  Msg(...values: unknown[]): void
+  GetContextPanel(): {
+    GetAttributeString(name: string, fallback: string): string
+  }
+  RegisterForUnhandledEvent(
+    event: string,
+    handler: (...args: never[]) => boolean | void,
+  ): number
+}
+
 /** Handler receives a value the mod sent, or undefined for none. */
 export type Handler = (value: unknown) => void
 
