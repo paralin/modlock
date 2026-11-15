@@ -47,12 +47,13 @@ const Built = "built"
 //go:embed all:built
 var built embed.FS
 
-// Sources holds the library modules that import nothing, so a Go module that
-// vendors Modlock keeps them and its browser pages can import them beside its
-// own TypeScript: the HUD kit's tokens, the hero table and the HUD text
-// helpers, which a page drawn in the game's look shares with its mods.
+// Sources holds the library's whole TypeScript source, so a Go module that
+// vendors Modlock keeps the library at the version it pins: its type checker
+// can resolve modlock to src/index.ts, and its browser pages can import a
+// module such as the HUD kit's tokens beside their own TypeScript. The
+// protobuf messages the source imports are vendored with their own packages.
 //
-//go:embed src/theme.ts src/heroes.ts src/format.ts
+//go:embed src
 var Sources embed.FS
 
 // Renderer is the built renderer's file name, which a client content package
