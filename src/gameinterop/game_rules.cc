@@ -24,8 +24,7 @@ using HeroPrecacheFn = void(__fastcall*)(void* global_set, const char* hero_name
 
 // Thunk state: one hook may exist at a time. The names and decoded targets
 // are set once at install; the manifest context is per call.
-std::vector<std::string> g_hero_names;
-std::vector<std::string> g_resource_names;
+PrecacheList g_precache;
 void* g_precache_global = nullptr;
 HeroPrecacheFn g_precache_fn = nullptr;
 GameRulesHooks::AddResourceFn g_add_resource = nullptr;
@@ -41,7 +40,7 @@ struct ResourceContext {
 
 void PrecacheIntoCurrentManifest(void** original_args) {
   // Nothing is added without heroes or the precache pair.
-  if (g_hero_names.empty()) {
+  if (g_precache.heroes().empty()) {
     return;
   }
   if (g_precache_fn == nullptr || g_precache_global == nullptr) {
@@ -53,7 +52,7 @@ void PrecacheIntoCurrentManifest(void** original_args) {
   // Precache each hero into the session manifest.
   ResourceContext ctx{0, 0, original_args != nullptr ? *original_args : nullptr};
   int count = 0;
-  for (const auto& name : g_hero_names) {
+  for (const auto& name : g_precache.heroes()) {
     // An unknown name fails inside the game's own lookup without touching
     // the manifest; the log line keeps the outcome visible for the session.
     g_precache_fn(g_precache_global, name.c_str(), &ctx);
@@ -68,7 +67,8 @@ __int64 __fastcall ManifestBuildThunk(void* thisptr, void** original_args) {
   const __int64 result = g_hook.call<__int64>(thisptr, original_args);
   PrecacheIntoCurrentManifest(original_args);
   void* manifest = original_args ? *original_args : nullptr;
-  GameRulesHooks::RegisterResources(manifest, g_add_resource, g_resource_names);
+  GameRulesHooks::RegisterResources(manifest, g_add_resource, g_precache.resources());
+  g_precache.Built();
   return result;
 }
 
@@ -81,8 +81,7 @@ struct GameRulesHooks::Impl {
 #if defined(_WIN32)
     // Remove the hook and forget what it registered.
     g_hook.reset();
-    g_hero_names.clear();
-    g_resource_names.clear();
+    g_precache = {};
     g_precache_global = nullptr;
     g_precache_fn = nullptr;
     g_add_resource = nullptr;
@@ -107,20 +106,39 @@ bool GameRulesHooks::RegisterResources(void* manifest, AddResourceFn add_resourc
   return true;
 }
 
+bool PrecacheList::Add(std::vector<std::string> heroes, std::vector<std::string> resources) {
+  // Append each name once; any new name waits for the next build.
+  bool added = false;
+  const auto append = [&added](std::vector<std::string>& held, std::vector<std::string>& names) {
+    for (auto& name : names) {
+      if (std::find(held.begin(), held.end(), name) != held.end()) {
+        continue;
+      }
+      held.push_back(std::move(name));
+      added = true;
+    }
+  };
+  append(heroes_, heroes);
+  append(resources_, resources);
+  pending_ = pending_ || added;
+  return added;
+}
+
 void GameRulesHooks::AddPrecache(std::vector<std::string> heroes,
                                  std::vector<std::string> resources) {
 #if defined(_WIN32)
-  for (auto& hero : heroes) {
-    if (std::find(g_hero_names.begin(), g_hero_names.end(), hero) == g_hero_names.end()) {
-      g_hero_names.push_back(std::move(hero));
-    }
-  }
-  for (auto& resource : resources) {
-    if (std::find(g_resource_names.begin(), g_resource_names.end(), resource) ==
-        g_resource_names.end()) {
-      g_resource_names.push_back(std::move(resource));
-    }
-  }
+  g_precache.Add(std::move(heroes), std::move(resources));
+#else
+  (void)heroes;
+  (void)resources;
+#endif
+}
+
+bool GameRulesHooks::PrecachePending() const {
+#if defined(_WIN32)
+  return g_precache.Pending();
+#else
+  return false;
 #endif
 }
 
@@ -410,7 +428,7 @@ std::expected<GameRulesHooks, std::string> GameRulesHooks::Install(
 
   // Log where the hook landed.
   std::cout << "[modlock] game rules: manifest hook installed at +0x" << std::hex
-            << builder_addr - server.base() << std::dec << "; " << g_hero_names.size()
+            << builder_addr - server.base() << std::dec << "; " << g_precache.heroes().size()
             << " hero(es) registered\n";
   return owner;
 #else

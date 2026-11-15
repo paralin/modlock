@@ -71,6 +71,34 @@ class MODLOCK_API GamePause {
   size_t paused_offset_ = 0;
 };
 
+// PrecacheList holds the hero and resource names every session manifest
+// build registers, each once, in the order first added. Names stay for the
+// life of the list, so a world that registered a name keeps it in every later
+// manifest. The list also tracks whether a name arrived after the last build:
+// such a name reaches the game only with the next map load. It is not
+// synchronized; the game thread both adds and builds.
+class MODLOCK_API PrecacheList {
+ public:
+  // Add appends each name the list lacks and reports whether it added any.
+  bool Add(std::vector<std::string> heroes, std::vector<std::string> resources);
+
+  // Built records that a manifest build registered every name held.
+  void Built() { pending_ = false; }
+
+  // Pending reports whether Add appended a name since the last Built, so the
+  // loaded world lacks it until the map loads again.
+  [[nodiscard]] bool Pending() const { return pending_; }
+
+  [[nodiscard]] const std::vector<std::string>& heroes() const { return heroes_; }
+
+  [[nodiscard]] const std::vector<std::string>& resources() const { return resources_; }
+
+ private:
+  std::vector<std::string> heroes_;
+  std::vector<std::string> resources_;
+  bool pending_ = false;
+};
+
 // GameRulesHooks interposes CCitadelGameRules::BuildGameSessionManifest
 // through a native detour. The engine builds one session
 // manifest per map activation; the hook lets the original build it, then
@@ -101,6 +129,9 @@ class MODLOCK_API GameRulesHooks {
 
   // AddPrecache adds plugin-supplied resources before the next manifest build.
   void AddPrecache(std::vector<std::string> heroes, std::vector<std::string> resources);
+  // PrecachePending reports whether AddPrecache named a hero or resource that
+  // no manifest build has registered yet; the next map load registers it.
+  [[nodiscard]] bool PrecachePending() const;
 
   GameRulesHooks(GameRulesHooks&&) noexcept;
   GameRulesHooks& operator=(GameRulesHooks&&) noexcept;

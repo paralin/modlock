@@ -91,6 +91,12 @@ class MODLOCK_API EngineHost {
   // Resource selection belongs to the plugin; the framework deduplicates them.
   std::expected<void, std::string> Precache(std::vector<std::string> heroes,
                                             std::vector<std::string> resources);
+  // PrecachePending reports whether Precache named a hero or resource that
+  // the loaded world lacks: no session manifest has registered it since.
+  // Such a name reaches the game only when a map loads, so a host that needs
+  // it, such as one starting another mod, reloads the map; once registered, a
+  // name stays in every later manifest and never makes this true again.
+  [[nodiscard]] bool PrecachePending() const;
 
   // AdvertiseAddons offers comma-separated content addon names to every
   // connecting client, once per host, before Run starts the listen server.
