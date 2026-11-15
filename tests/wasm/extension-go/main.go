@@ -8,11 +8,17 @@
 // which makes the calls a host's call profile must count: an allowed and a
 // refused console command, a refused file name, more distinct files than the
 // profile keeps, and a method the host does not have; and the crash service,
-// which panics and so stops the mod.
+// which panics and so stops the mod; and the later service, whose "start"
+// starts a call to the service, method and payload its payload names,
+// separated by "|", with a timeout in milliseconds after them, and whose
+// "ended" lists the calls that ended so far, one line each.
 package main
 
 import (
+	"errors"
 	"strconv"
+	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/paralin/modlock/mod"
@@ -27,6 +33,9 @@ func hostCall(data unsafe.Pointer, size uint32) uint32
 
 //go:wasmimport modlock host_read
 func hostRead(data unsafe.Pointer, size uint32)
+
+// ended lists the later service's calls that ended, in order.
+var ended []string
 
 // init registers the service before the host starts the mod.
 func init() {
@@ -60,6 +69,23 @@ func init() {
 		for i := range 300 {
 			_, _ = mod.ReadFile("probe/" + strconv.Itoa(i))
 		}
+		return nil, nil
+	})
+	mod.Serve("later", func(method string, payload []byte) ([]byte, error) {
+		if method == "ended" {
+			return []byte(strings.Join(ended, "\n")), nil
+		}
+		parts := strings.Split(string(payload), "|")
+		timeout, _ := strconv.Atoi(parts[3])
+		mod.CallServiceLater(parts[0], parts[1], []byte(parts[2]), time.Duration(timeout)*time.Millisecond, func(reply []byte, err error) {
+			var failed *mod.ServiceError
+			switch {
+			case errors.As(err, &failed):
+				ended = append(ended, parts[2]+" "+failed.Failure.String()+": "+failed.Message)
+			default:
+				ended = append(ended, parts[2]+" "+string(reply))
+			}
+		})
 		return nil, nil
 	})
 	mod.Serve("crash", func(string, []byte) ([]byte, error) {

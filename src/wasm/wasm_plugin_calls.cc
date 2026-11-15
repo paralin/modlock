@@ -25,6 +25,11 @@ constexpr std::string_view kPressCommand = "modlockpress ";
 // with the value as UiTrees::Input reads it.
 constexpr std::string_view kInputCommand = "modlockinput ";
 
+// kActionCommand starts the console command a mod's layout script sends to
+// press back to its mod: "modlockaction <mod> <node> <action> [payload]",
+// with the rest as UiTrees::Action reads it.
+constexpr std::string_view kActionCommand = "modlockaction ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -160,6 +165,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
     return true;
   }
 
+  if (line.starts_with(kActionCommand)) {
+    // A layout's press names this mod, then its layout, action and payload.
+    const auto sent = line.substr(kActionCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = Action(slot, sent.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
   // Then the free for all, then the mod, may claim the command.
   if (game_.FreeForAllCommand(line)) {
     return true;
@@ -287,6 +305,10 @@ std::expected<wasm::ServiceReply, std::string> WasmPlugin::CallService(
   // Find the service, ask it, and wrap its answer.
   auto found = host_.extensions.find(call.service());
   if (found == host_.extensions.end()) {
+    if (host_.late_extensions.contains(call.service())) {
+      return std::unexpected("the service " + call.service() +
+                             " answers only calls started with StartServiceCall");
+    }
     return std::unexpected("this host provides no service " + call.service());
   }
   auto answer = found->second(name_, call.method(), call.payload());
@@ -295,6 +317,30 @@ std::expected<wasm::ServiceReply, std::string> WasmPlugin::CallService(
   }
   wasm::ServiceReply reply;
   reply.set_payload(std::move(*answer));
+  return reply;
+}
+
+std::expected<wasm::ServiceCallStarted, std::string> WasmPlugin::StartServiceCall(
+    const wasm::StartServiceCallRequest& request) {
+  // Number the call; a mod holding too many is refused at once.
+  auto started = service_calls_.Start(std::chrono::milliseconds(request.timeout_milliseconds()));
+  if (!started) {
+    return std::unexpected(started.error());
+  }
+  wasm::ServiceCallStarted reply;
+  reply.set_call(started->call);
+
+  // Hand the call to the service's late extension, or answer it now from
+  // its extension. A service nobody provides is never asked.
+  const auto& service = request.service();
+  if (auto late = host_.late_extensions.find(service); late != host_.late_extensions.end()) {
+    late->second(name_, request.method(), request.payload(), std::move(started->reply));
+  } else if (auto found = host_.extensions.find(service); found != host_.extensions.end()) {
+    started->reply(found->second(name_, request.method(), request.payload()));
+  } else {
+    service_calls_.Fail(started->call, wasm::SERVICE_FAILURE_UNAVAILABLE,
+                        "this host provides no service " + service);
+  }
   return reply;
 }
 
@@ -443,10 +489,14 @@ uint64_t WasmPlugin::SteamId(int32_t slot) {
 
 bool PluginGame::AnswersWithoutGame(std::string_view method) {
   // Keep this list to the host calls this class overrides.
-  static constexpr std::array<std::string_view, 13> kMethods = {
-      "Log",        "Ui",      "CallService", "PlayerSetting", "SetPlayerSetting", "AddMetric",
-      "HoldReload", "Handoff", "HandedOff",   "PlayerHandoff", "PlayerHandedOff",  "ReadFile",
-      "WriteFile",
+  static constexpr std::array<std::string_view, 14> kMethods = {
+      "Log",           "Ui",
+      "CallService",   "StartServiceCall",
+      "PlayerSetting", "SetPlayerSetting",
+      "AddMetric",     "HoldReload",
+      "Handoff",       "HandedOff",
+      "PlayerHandoff", "PlayerHandedOff",
+      "ReadFile",      "WriteFile",
   };
   return std::ranges::find(kMethods, method) != kMethods.end();
 }
@@ -494,6 +544,11 @@ std::expected<void, std::string> PluginGame::Ui(const wasm::ui::UiRequest& reque
 std::expected<wasm::ServiceReply, std::string> PluginGame::CallService(
     const wasm::ServiceCall& request) {
   return plugin_.CallService(request);
+}
+
+std::expected<wasm::ServiceCallStarted, std::string> PluginGame::StartServiceCall(
+    const wasm::StartServiceCallRequest& request) {
+  return plugin_.StartServiceCall(request);
 }
 
 std::expected<wasm::settings::SettingResponse, std::string> PluginGame::PlayerSetting(

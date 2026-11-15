@@ -25,8 +25,8 @@ namespace modlock::host_app {
 // ControlLink connects modlock-host to the program that started it, such as
 // modlock dev, with the framing control.proto describes. The host dials the
 // controller's loopback address, streams mod starts, logs, failures, server
-// readiness, player joins and leaves and mod interfaces, and takes reloads
-// and the players' roles.
+// readiness, player joins and leaves and mod interfaces, and takes reloads,
+// the players' roles and the answers to the service calls it forwards.
 // Requests run on the engine thread through RunRequests. When the controller
 // disconnects, events are dropped and the host keeps running.
 class ControlLink final : public WasmHostObserver, public gameinterop::ConnectionEventSink {
@@ -48,6 +48,12 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   // runs on the engine thread.
   void RunRequests(WasmHost& mods);
 
+  // Forward sends one mod's started service call to the controller, and ends
+  // it with the controller's answer in a later RunRequests, or at once when
+  // the controller is gone. It runs on the engine thread.
+  void Forward(std::string_view mod, std::string_view service, std::string_view method,
+               std::string_view payload, WasmReply reply);
+
   void Started(std::string_view mod, bool reloaded) override;
   void Logged(std::string_view mod, std::string_view text) override;
   void Failed(std::string_view mod, std::string_view error) override;
@@ -63,6 +69,10 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   // replies_ outlives the control link when a host extension still holds it.
   // All access runs on the engine thread.
   std::shared_ptr<ServiceReplies> replies_ = std::make_shared<ServiceReplies>();
+  // calls_ holds each forwarded call's reply by id until its answer comes,
+  // and next_call_ numbers the next. Both are on the engine thread.
+  std::map<uint64_t, WasmReply> calls_;
+  uint64_t next_call_ = 0;
 
   explicit ControlLink(intptr_t socket);
 

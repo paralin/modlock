@@ -139,3 +139,74 @@ func tarNames(t *testing.T, body io.Reader) []string {
 		names = append(names, header.Name)
 	}
 }
+
+// TestCallService sends a call with the saved session only, and reads back the
+// service's answer and its refusals without ever signing in.
+func TestCallService(t *testing.T) {
+	// Serve the call endpoint, refusing any other session.
+	var got *ServiceCall
+	service := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Refuse any other path or session.
+		if r.URL.Path != serviceCallPath || r.Header.Get("Authorization") != "Bearer saved" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		// Record the call, then refuse another mod or answer.
+		body, _ := io.ReadAll(r.Body)
+		got = &ServiceCall{}
+		if err := got.UnmarshalVT(body); err != nil {
+			t.Error(err)
+		}
+		if got.GetMod() != "arena" {
+			data, _ := (&Error{Code: "forbidden", Message: "this account cannot call that service"}).MarshalVT()
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write(data)
+			return
+		}
+		data, _ := (&ServiceAnswer{Payload: []byte(`{"drills":[]}`)}).MarshalVT()
+		_, _ = w.Write(data)
+	}))
+	defer service.Close()
+	call := &ServiceCall{Mod: "arena", Service: "Drills", Method: "ListDrills", Payload: []byte("{}")}
+
+	// With no saved session the call fails before it is sent.
+	sessionFile := filepath.Join(t.TempDir(), "session.json")
+	hyperline := &Hyperline{Origin: service.URL, SessionFile: sessionFile, Output: io.Discard}
+	if _, err := hyperline.CallService(t.Context(), call); err == nil || got != nil {
+		t.Fatalf("no session: err %v, sent %v", err, got)
+	}
+
+	// A refused session asks for a new sign-in rather than making one.
+	save := func(token string) {
+		saved, _ := (&Session{Origin: service.URL, Token: token, ExpiresAt: time.Now().Add(time.Hour).UnixMilli()}).MarshalJSON()
+		if err := os.WriteFile(sessionFile, saved, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	save("stale")
+	if _, err := hyperline.CallService(t.Context(), call); err == nil || err.Error() != service.URL+" refused the saved sign-in; run modlock login again" {
+		t.Fatalf("stale session: %v", err)
+	}
+
+	// The saved session's call reaches the service and returns its reply.
+	save("saved")
+	payload, err := hyperline.CallService(t.Context(), call)
+	if err != nil || string(payload) != `{"drills":[]}` {
+		t.Fatalf("answered %q, %v", payload, err)
+	}
+	if got.GetService() != "Drills" || got.GetMethod() != "ListDrills" || string(got.GetPayload()) != "{}" {
+		t.Errorf("the service got %v", got)
+	}
+
+	// A refusal returns the service's explanation.
+	other := &ServiceCall{Mod: "other", Service: "Drills", Method: "ListDrills"}
+	if _, err := hyperline.CallService(t.Context(), other); err == nil || err.Error() != "this account cannot call that service" {
+		t.Errorf("refused call: %v", err)
+	}
+
+	// Another origin is refused before any session is read.
+	if _, err := (&Hyperline{Origin: "http://example.com", SessionFile: sessionFile}).CallService(t.Context(), call); err == nil {
+		t.Error("a plain http origin was used")
+	}
+}

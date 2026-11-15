@@ -1111,6 +1111,8 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kNodeFieldNumber = 2,
+    kActionFieldNumber = 3,
+    kPayloadFieldNumber = 4,
     kPlayerFieldNumber = 1,
   };
   // string node = 2;
@@ -1128,6 +1130,36 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
 
   public:
+  // string action = 3;
+  void clear_action() ;
+  const ::std::string& action() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_action(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_action();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_action();
+  void set_allocated_action(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_action() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_action(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_action();
+
+  public:
+  // string payload = 4;
+  void clear_payload() ;
+  const ::std::string& payload() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_payload(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_payload();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_payload();
+  void set_allocated_payload(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_payload() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_payload(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_payload();
+
+  public:
   // int32 player = 1;
   void clear_player() ;
   ::int32_t player() const;
@@ -1142,8 +1174,8 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 41,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 54,
                                    2>
       _table_;
 
@@ -1165,6 +1197,8 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr node_;
+    ::google::protobuf::internal::ArenaStringPtr action_;
+    ::google::protobuf::internal::ArenaStringPtr payload_;
     ::int32_t player_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -14732,7 +14766,7 @@ inline void UiPressEvent::clear_player() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000008U);
 }
 inline ::int32_t UiPressEvent::player() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiPressEvent.player)
@@ -14740,7 +14774,7 @@ inline ::int32_t UiPressEvent::player() const {
 }
 inline void UiPressEvent::set_player(::int32_t value) {
   _internal_set_player(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiPressEvent.player)
 }
 inline ::int32_t UiPressEvent::_internal_player() const {
@@ -14815,6 +14849,136 @@ inline void UiPressEvent::set_allocated_node(::std::string* PROTOBUF_NULLABLE va
     _impl_.node_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.UiPressEvent.node)
+}
+
+// string action = 3;
+inline void UiPressEvent::clear_action() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.action_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& UiPressEvent::action() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiPressEvent.action)
+  return _internal_action();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void UiPressEvent::set_action(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.action_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiPressEvent.action)
+}
+inline ::std::string* PROTOBUF_NONNULL UiPressEvent::mutable_action()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_action();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiPressEvent.action)
+  return _s;
+}
+inline const ::std::string& UiPressEvent::_internal_action() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.action_.Get();
+}
+inline void UiPressEvent::_internal_set_action(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.action_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL UiPressEvent::_internal_mutable_action() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.action_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE UiPressEvent::release_action() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiPressEvent.action)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.action_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.action_.Set("", GetArena());
+  }
+  return released;
+}
+inline void UiPressEvent::set_allocated_action(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.action_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.action_.IsDefault()) {
+    _impl_.action_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.UiPressEvent.action)
+}
+
+// string payload = 4;
+inline void UiPressEvent::clear_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& UiPressEvent::payload() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiPressEvent.payload)
+  return _internal_payload();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void UiPressEvent::set_payload(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.payload_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiPressEvent.payload)
+}
+inline ::std::string* PROTOBUF_NONNULL UiPressEvent::mutable_payload()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_payload();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiPressEvent.payload)
+  return _s;
+}
+inline const ::std::string& UiPressEvent::_internal_payload() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.payload_.Get();
+}
+inline void UiPressEvent::_internal_set_payload(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL UiPressEvent::_internal_mutable_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.payload_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE UiPressEvent::release_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiPressEvent.payload)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.payload_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  return released;
+}
+inline void UiPressEvent::set_allocated_payload(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.payload_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.payload_.IsDefault()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.UiPressEvent.payload)
 }
 
 // -------------------------------------------------------------------

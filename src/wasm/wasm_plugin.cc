@@ -242,6 +242,21 @@ std::expected<void, std::string> WasmPlugin::Input(int32_t slot, std::string_vie
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Action(int32_t slot, std::string_view line) {
+  // Refuse a press the running mod's layout did not send.
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
+  auto event = ui_.Action(slot, line, std::chrono::steady_clock::now());
+  if (!event) {
+    return std::unexpected(name_ + " " + event.error());
+  }
+
+  // Deliver the press to the mod.
+  static_cast<void>(mod_.UiPress(*event));
+  return {};
+}
+
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
   if (!reply) {
@@ -251,6 +266,17 @@ std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCal
 }
 
 std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
+  // A mod whose needed service nobody here provides does not start, and the
+  // error names the service.
+  for (const auto& service : manifest_.services()) {
+    if (!service.optional() && !host_.extensions.contains(service.name()) &&
+        !host_.late_extensions.contains(service.name())) {
+      auto error = "the mod needs service " + service.name() + ", which nobody provides here";
+      Failed(error);
+      return std::unexpected(std::move(error));
+    }
+  }
+
   // Start the mod and learn which events it consumes.
   wasm::StartEvent event;
   for (const auto& arg : args_) {
@@ -301,7 +327,10 @@ void WasmPlugin::Halt() {
   Untune(untuned_);
   tuned_ = false;
 
-  // Drop the movement, the subscriptions and the game state.
+  // Drop the movement, the subscriptions, the started service calls and
+  // the game state.
+  service_calls_.Drop();
+  host_.Notify([&](WasmHostObserver& observer) { observer.Halted(name_); });
   movement_.reset();
   hero_slots_.clear();
   Unsubscribe();
@@ -518,6 +547,9 @@ void WasmPlugin::Tick() {
   if (const auto now = std::chrono::steady_clock::now(); now - calls_reported_ >= kCallsPeriod) {
     ReportCalls();
   }
+
+  // End the started service calls that ended, which need no game.
+  DeliverServiceReplies();
 
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {

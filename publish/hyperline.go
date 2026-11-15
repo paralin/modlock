@@ -42,6 +42,10 @@ const maxResponseBytes = 1 << 20
 // contentType is the media type of every request and response body.
 const contentType = "application/octet-stream"
 
+// serviceCallPath answers a local session's call to a service its mod names,
+// for the mod's signed-in developer.
+const serviceCallPath = "/api/mods/services/call"
+
 // Hyperline publishes to hyperline.gg or another service with its API.
 type Hyperline struct {
 	// Origin is the service, such as DefaultOrigin.
@@ -84,6 +88,36 @@ func (h *Hyperline) JoinDevLobby(ctx context.Context, lobby string) (*DevLobbyHo
 	}
 	host := &DevLobbyHost{}
 	return host, h.signedSend(ctx, devLobbyJoinPath, body, host)
+}
+
+// CallService sends one call a mod in a local session made to a service its
+// mod.json names, as the saved session's developer, and returns the reply. It
+// never signs in: without a usable saved session it fails, naming modlock
+// login.
+func (h *Hyperline) CallService(ctx context.Context, call *ServiceCall) ([]byte, error) {
+	// Use only the saved session.
+	if err := checkOrigin(h.Origin); err != nil {
+		return nil, err
+	}
+	saved := SavedSession(h.SessionFile, h.Origin)
+	if saved == nil {
+		return nil, errors.Errorf("no saved sign-in for %s; run modlock login first", h.Origin)
+	}
+
+	// Send the call; a refused session needs a new sign-in.
+	body, err := call.MarshalVT()
+	if err != nil {
+		return nil, err
+	}
+	answer := &ServiceAnswer{}
+	err = h.send(ctx, serviceCallPath, saved.GetToken(), body, answer)
+	if errors.Is(err, errSignIn) {
+		return nil, errors.Errorf("%s refused the saved sign-in; run modlock login again", h.Origin)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return answer.GetPayload(), nil
 }
 
 // errSignIn reports that the service refused the session.
@@ -285,6 +319,12 @@ func (h *Hyperline) signIn(ctx context.Context) (*Session, error) {
 		ExpiresAt: signedIn.GetExpiresAt(),
 		Name:      signedIn.GetAccount().GetDisplayName(),
 	}, nil
+}
+
+// CheckOrigin requires origin to be a service origin over HTTPS, or HTTP on
+// loopback for a local service.
+func CheckOrigin(origin string) error {
+	return checkOrigin(origin)
 }
 
 // checkOrigin requires HTTPS, except on loopback for a local service.

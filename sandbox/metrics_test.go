@@ -23,7 +23,7 @@ func TestMetrics(t *testing.T) {
 	}}}
 	add := func(name, label string) {
 		request, _ := (&metricspb.AddMetricRequest{Name: name, Label: &label}).MarshalVT()
-		s.answer(&Build{Manifest: manifest}, &wasm.Call{Method: "AddMetric", Request: request})
+		s.answer(&Build{Manifest: manifest}, &serviceCalls{}, &wasm.Call{Method: "AddMetric", Request: request})
 	}
 
 	// Count the declared label and refuse an undeclared label and metric.
@@ -46,7 +46,7 @@ func TestHandoff(t *testing.T) {
 	build := &Build{Manifest: &wasm.Manifest{Slug: "hud"}}
 	call := func(method string, request interface{ MarshalVT() ([]byte, error) }) string {
 		data, _ := request.MarshalVT()
-		reply := s.answer(build, &wasm.Call{Method: method, Request: data})
+		reply := s.answer(build, &serviceCalls{}, &wasm.Call{Method: method, Request: data})
 		response := &wasm.HandedOffResponse{}
 		if err := response.UnmarshalVT(reply.GetResponse()); err != nil {
 			t.Fatal(err)

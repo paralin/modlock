@@ -40,6 +40,8 @@ import {
   type PlayerJoinedEvent,
   type PlayerLeftEvent,
   serveMod,
+  type ServiceFailure,
+  startServiceCall,
 } from './host.gen.js'
 import { serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
@@ -233,6 +235,47 @@ export type Service = (method: string, payload: Uint8Array) => Uint8Array
 /** serve answers the host's calls to service with handler, replacing its earlier handler. */
 export function serve(service: string, handler: Service): void {
   services.set(service, { handler })
+}
+
+/**
+ * ServiceDone ends one callServiceLater: with the reply, or without one and
+ * with the error and the failure that says why.
+ */
+export type ServiceDone = (
+  reply: Uint8Array | undefined,
+  error?: string,
+  failure?: ServiceFailure,
+) => void
+
+/**
+ * callServiceLater calls method of a service the host provides and returns at
+ * once; done runs in a later frame with the answer, or with an error when
+ * the service refused, the call waited past timeoutMilliseconds or nobody
+ * provides the service. Zero waits the host's longest, 30 seconds. done runs
+ * once while the mod runs; calls still waiting when the mod stops end with
+ * it.
+ */
+export function callServiceLater(
+  service: string,
+  method: string,
+  payload: Uint8Array,
+  done: ServiceDone,
+  timeoutMilliseconds = 0,
+): void {
+  // A call the host refuses to start ends in the next frame as well, so done
+  // never runs before this returns.
+  const call = startServiceCall(service, method, payload, timeoutMilliseconds)
+  if (call === undefined) {
+    after(0, () =>
+      done(
+        undefined,
+        `the host did not start the call to ${service}`,
+        'unavailable',
+      ),
+    )
+    return
+  }
+  waiting.set(call, done)
 }
 
 /**
@@ -648,6 +691,9 @@ const commands = new Map<
 /** services maps each service the mod serves to its handler. */
 const services = new Map<string, { readonly handler: Service }>()
 
+/** waiting maps each started service call's number to the function its end runs. */
+const waiting = new Map<bigint, ServiceDone>()
+
 // Each list runs in registration order.
 const starts: ((args: readonly string[]) => void)[] = []
 const frames: ((frame: FrameEvent) => void)[] = []
@@ -755,7 +801,7 @@ const handlers: ModHandlers = {
   uiPress(event) {
     // A press arrives under the same CPU budget as a command, so its handler
     // also runs with the next frame.
-    after(0, () => press(event.player, event.node))
+    after(0, () => press(event.player, event.node, event.action, event.payload))
   },
 
   uiInput(event) {
@@ -769,6 +815,22 @@ const handlers: ModHandlers = {
       throw new Error(`the mod serves no service ${event.service}`)
     }
     return { payload: registered.handler(event.method, event.payload) }
+  },
+
+  serviceReplied(event) {
+    // Each call ends once; a number the mod no longer waits for is ignored.
+    const done = waiting.get(event.call)
+    if (!done) {
+      return
+    }
+    waiting.delete(event.call)
+
+    // A failure ends the call without a reply.
+    if (event.failure && event.failure !== 'none') {
+      done(undefined, event.error, event.failure)
+      return
+    }
+    done(event.payload)
   },
 
   // scriptc types an unannotated method that returns literals of different

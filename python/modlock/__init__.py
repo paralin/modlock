@@ -836,6 +836,20 @@ _Align: dict[Any, Any] = {
 }
 
 
+# ServiceFailure says why a service call ended without an answer.
+type ServiceFailure = Literal["none", "refused", "timeout", "unavailable"]
+_ServiceFailure: dict[Any, Any] = {
+    0: "none",
+    "none": 0,
+    1: "refused",
+    "refused": 1,
+    2: "timeout",
+    "timeout": 2,
+    3: "unavailable",
+    "unavailable": 3,
+}
+
+
 # _Window maps each Window to its number and back.
 _Window: dict[Any, Any] = {
     1: "all_time",
@@ -2158,12 +2172,21 @@ class Wheel:
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class UiPressEvent:
-    """UiPressEvent reports a press on a button in a player's interface."""
+    """UiPressEvent reports a press on a button in a player's interface, or a
+    press a layout's script sent with an action and a payload.
+    """
 
     # player is the player who pressed.
     player: Player
-    # node is the id of the pressed button.
+    # node is the id of the pressed button, or of the layout whose script
+    # sent the press.
     node: str = ""
+    # action names a layout's press, as its script sent it: one to 64
+    # letters, digits, '_', '-' and '.'. It is empty for a button's press.
+    action: str = ""
+    # payload is the text a layout's press carries, which the layout library
+    # writes as JSON: valid UTF-8 of at most 180 bytes.
+    payload: str = ""
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2319,6 +2342,20 @@ class ServiceReply:
 
     # payload is the answer.
     payload: bytes = b""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ServiceRepliedEvent:
+    """ServiceRepliedEvent ends one started service call."""
+
+    # call is the number StartServiceCall returned.
+    call: int = 0
+    # payload is the answer, when failure is none.
+    payload: bytes = b""
+    # failure says why the call ended without an answer.
+    failure: ServiceFailure | None = None
+    # error describes the failure.
+    error: str = ""
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -4690,6 +4727,8 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "node", "string"),
+            wire.Field(3, "action", "string"),
+            wire.Field(4, "payload", "string"),
         ],
     ),
     "UiInputEvent": (
@@ -4800,6 +4839,30 @@ _SCHEMA: wire.Schema = {
         ServiceReply,
         [
             wire.Field(1, "payload", "bytes"),
+        ],
+    ),
+    "StartServiceCallRequest": (
+        None,
+        [
+            wire.Field(1, "service", "string"),
+            wire.Field(2, "method", "string"),
+            wire.Field(3, "payload", "bytes"),
+            wire.Field(4, "timeout_milliseconds", "uint32"),
+        ],
+    ),
+    "ServiceCallStarted": (
+        None,
+        [
+            wire.Field(1, "call", "uint64"),
+        ],
+    ),
+    "ServiceRepliedEvent": (
+        ServiceRepliedEvent,
+        [
+            wire.Field(1, "call", "uint64"),
+            wire.Field(2, "payload", "bytes"),
+            wire.Field(3, "failure", "enum", enum=_ServiceFailure),
+            wire.Field(4, "error", "string"),
         ],
     ),
     "LogRequest": (
@@ -5246,6 +5309,22 @@ def call_service(service: str, method: str, payload: bytes) -> bytes | None:
     return response.payload
 
 
+def start_service_call(service: str, method: str, payload: bytes, timeout_milliseconds: int) -> int | None:
+    """start_service_call calls method of a service the host provides and
+    returns at once with a number; the answer arrives in a later frame as a
+    ServiceReplied event carrying that number. Every call ends once: with
+    the reply, the service's refusal, a timeout or no provider at all. A
+    service nobody provides is never asked. The host waits at most 30
+    seconds, or the call's shorter timeout, and drops the mod's waiting
+    calls when the mod stops or reloads. A service that answers at once
+    answers this way too, in the next frame.
+    """
+    response = _call("StartServiceCall", "StartServiceCallRequest", {"service": service, "method": method, "payload": payload, "timeout_milliseconds": timeout_milliseconds}, "ServiceCallStarted")
+    if response is None:
+        return None
+    return response["call"]
+
+
 def create_entity(options: EntityOptions) -> int | None:
     """create_entity creates an entity the server knows by its designer name,
     such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
@@ -5512,6 +5591,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
+    "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
     "Damaged": ("DamagedEvent", "Empty", "damaged"),
     "Killed": ("KillEvent", "Empty", "killed"),
@@ -6343,6 +6423,33 @@ _now: float | None = None
 _entries: list[_Entry] = []
 
 
+# ServiceDone ends one call_service_later: with the reply and no error, or
+# with no reply, the error and the failure that says why.
+type ServiceDone = Callable[[bytes | None, str | None, ServiceFailure], object]
+
+# _waiting maps each started service call's number to the function its end
+# runs.
+_waiting: dict[int, ServiceDone] = {}
+
+
+def call_service_later(
+    service: str, method: str, payload: bytes, done: ServiceDone, timeout: float = 0.0
+) -> None:
+    """call_service_later calls method of a service the host provides and
+    returns at once; done runs in a later frame with the answer, or with an
+    error when the service refused, the call waited past timeout seconds or
+    nobody provides the service. Zero waits the host's longest, 30 seconds.
+    done runs once while the mod runs; calls still waiting when the mod stops
+    end with it."""
+    # A call the host refuses to start ends in the next frame as well, so done
+    # never runs before this returns.
+    call = start_service_call(service, method, payload, int(timeout * 1000))
+    if call is None:
+        after(0, lambda: done(None, "the host did not start the call to " + service, "unavailable"))
+        return
+    _waiting[call] = done
+
+
 def _schedule(delay: float, run: Callable[[], float | None]) -> Timer:
     entry = _Entry(delay, run)
     _entries.append(entry)
@@ -6954,6 +7061,16 @@ def _npcs_restored(event: NpcsRestoredEvent) -> None:
         handler(event.error or None)
 
 
+def _service_replied(event: ServiceRepliedEvent) -> None:
+    done = _waiting.pop(event.call, None)
+    if done is None:
+        return
+    if event.failure not in (None, "none"):
+        done(None, event.error, event.failure)
+        return
+    done(event.payload, None, "none")
+
+
 def _launch(event: LaunchEvent) -> None:
     for handler in _launches:
         handler(event)
@@ -7030,6 +7147,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_press": _ui_press,
     "ui_input": _ui_input,
     "serve": _serve,
+    "service_replied": _service_replied,
     "damage": _damage,
     "damaged": _damaged,
     "killed": _killed,

@@ -1,4 +1,5 @@
 import type { Panel, Panorama } from '../src/draw.js'
+import { scriptPath } from './layouts.js'
 import { cascade, parseSheet, type Rule, type Scope } from './sheets.js'
 
 /** mouse is the last pointer position in window pixels, as Panorama reports it. */
@@ -10,10 +11,10 @@ const mouse = { x: 0, y: 0 }
  * layout with the CSS in panels.css, which the page must link: children
  * overlap unless the panel flows them down or right, and fill-parent-flow
  * takes the remaining space. Fonts and engine-only styles are approximate.
- * A layout it loads draws its panels, their classes and inline styles, and
+ * A layout it loads draws its panels, their classes and inline styles,
  * applies its style sheets to the panel it loads into and that panel's
- * subtree, but runs none of its scripts; the installed game remains the
- * reference.
+ * subtree, and runs its scripts with that panel as their context; the
+ * installed game remains the reference.
  */
 export class DomPanel implements Panel {
   readonly element: HTMLElement
@@ -120,8 +121,26 @@ export class DomPanel implements Panel {
     return this.element.offsetWidth
   }
 
+  get actuallayoutheight(): number {
+    return this.element.offsetHeight
+  }
+
   get actualuiscale_x(): number {
     return this.element.getBoundingClientRect().width / this.element.offsetWidth
+  }
+
+  get actualuiscale_y(): number {
+    return (
+      this.element.getBoundingClientRect().height / this.element.offsetHeight
+    )
+  }
+
+  get actualxoffset(): number {
+    return this.element.offsetLeft
+  }
+
+  get actualyoffset(): number {
+    return this.element.offsetTop
   }
 
   GetPositionWithinWindow(): { x: number; y: number } {
@@ -301,6 +320,9 @@ export class DomPanel implements Panel {
     return this.attributes.get(name) ?? fallback
   }
 
+  // The page shows no web page in a panel, so an HTML panel stays empty.
+  SetURL(_url: string) {}
+
   SetImage(path: string) {
     this.element.style.backgroundImage = path
       ? `url(${JSON.stringify(path)})`
@@ -311,8 +333,9 @@ export class DomPanel implements Panel {
    * BLoadLayout loads the layout a page path such as /layout/mod/board.xml
    * serves into this panel, as Panorama does: the layout's top panel
    * describes this one and its children become this panel's, though a style
-   * the drawing already gave this panel stays. It loads in the background,
-   * and refuses a game path, which a browser cannot read.
+   * the drawing already gave this panel stays. Its scripts run once its
+   * panels are built. It loads in the background, and refuses a game path,
+   * which a browser cannot read.
    */
   BLoadLayout(url: string) {
     if (!url.startsWith('/')) return false
@@ -320,6 +343,8 @@ export class DomPanel implements Panel {
       new DOMParser().parseFromString(text, 'text/xml'),
     )
       .then((layout) => {
+        // Style the panel, then build its panels, then run its scripts
+        // over them.
         const top = [...layout.documentElement.children].find(
           (child) => !nonPanels.has(child.tagName.toLowerCase()),
         )
@@ -328,6 +353,9 @@ export class DomPanel implements Panel {
           if (child.tagName.toLowerCase() === 'styles')
             this.loadSheets(child, url)
         if (top) this.loadElement(top, new Set(Object.keys(this.inline)))
+        for (const child of layout.documentElement.children)
+          if (child.tagName.toLowerCase() === 'scripts')
+            this.loadScripts(child, url)
       })
       .catch((error: unknown) => console.debug(`layout ${url}:`, error))
     return true
@@ -385,6 +413,34 @@ export class DomPanel implements Panel {
         restyle()
       })
     }
+  }
+
+  // loadScripts runs the scripts a layout's scripts element includes, fetched
+  // from the page beside the layout at url, in order and in one scope, as the
+  // game runs a layout's scripts in one context: the layout library's Modlock
+  // is the next script's. A script the page does not serve leaves the rest
+  // unrun, since a later one leans on it.
+  private loadScripts(scripts: Element, url: string) {
+    const build = new URL(url, location.href).search
+    const paths = [...scripts.children].map((include) =>
+      scriptPath(include.getAttribute('src') ?? '', build),
+    )
+    if (paths.some((path) => path === '')) {
+      console.debug(`layout ${url}: a script the page cannot load`)
+      return
+    }
+    void Promise.all(paths.map((path) => fetchOnce(path, (text) => text)))
+      .then((sources) => {
+        if (!this.valid) return
+        // A mod's layout script is code by design; the page runs what the
+        // game would.
+        // oxlint-disable-next-line typescript/no-implied-eval
+        const run = new Function('$', sources.join('\n;\n')) as (
+          panorama: unknown,
+        ) => void
+        run(layoutPanorama(this))
+      })
+      .catch((error: unknown) => console.debug(`layout ${url}:`, error))
   }
 
   /** applySheets writes the values the style sheets now give this panel. */
@@ -500,10 +556,32 @@ if (typeof document !== 'undefined') {
 // than panels.
 const nonPanels = new Set(['styles', 'scripts', 'snippets'])
 
+/** Listener is a layout script's handler for an event nothing handled. */
+interface Listener {
+  readonly event: string
+  readonly handler: (...values: unknown[]) => void
+  readonly context: DomPanel
+}
+
+// listeners holds the layout scripts' handlers in registration order; one
+// whose layout left the page hears nothing more, and one that throws keeps
+// the rest from missing the event. command passes on the console
+// commands the scripts dispatch.
+const listeners = new Set<Listener>()
+let command: (line: string) => void = () => {}
+
+/**
+ * onCommand passes each console command a layout's script dispatches, such
+ * as a press for its mod, to handler.
+ */
+export function onCommand(handler: (line: string) => void): void {
+  command = handler
+}
+
 /**
  * domPanorama is the part of Panorama a Drawing uses, on DomPanels. Debug
- * messages go to the console; a press reaches the page through the Drawing's
- * Press, so dispatched events go nowhere.
+ * messages go to the console; a button's press reaches the page through the
+ * Drawing's Press, and a layout's through onCommand.
  */
 export const domPanorama = {
   MousePosition: () => mouse,
@@ -540,8 +618,30 @@ export const domPanorama = {
     const values = Object.values(panel.dialogVariables())
     return values.length ? `${token} ${values.join(' ')}` : token
   },
-  // A text tooltip shows as the element's title; other events go nowhere.
+  // A console command goes to the page, a text tooltip shows as the element's
+  // title, and other events reach the layout scripts listening for them.
   DispatchEvent(event: string, ...values: unknown[]) {
+    // A console command, such as a layout's press, is the page's alone.
+    if (event === 'CitadelConCommand') {
+      command(typeof values[0] === 'string' ? values[0] : '')
+      return
+    }
+
+    // Each live layout listening hears the event.
+    for (const listener of listeners) {
+      const { context } = listener
+      if (!context.IsValid() || !context.element.isConnected) {
+        listeners.delete(listener)
+      } else if (listener.event === event) {
+        try {
+          listener.handler(...values)
+        } catch (error: unknown) {
+          console.debug(`layout script ${event}:`, error)
+        }
+      }
+    }
+
+    // A tooltip shows on the panel it names.
     const [panel, text] = values
     if (!(panel instanceof DomPanel)) return
     if (event === 'UIShowTextTooltip') panel.element.title = String(text)
@@ -554,6 +654,37 @@ export const domPanorama = {
     setTimeout(callback, seconds * 1000)
   },
 } satisfies Panorama
+
+/**
+ * layoutPanorama is the $ a layout's scripts see: domPanorama with context as
+ * the panel the layout loaded into, timers it can cancel, and handlers for
+ * the events nothing else handles. Called with a selector #id, it finds that
+ * panel in context's subtree.
+ */
+export function layoutPanorama(context: DomPanel) {
+  const find = (selector: string) =>
+    selector.startsWith('#')
+      ? context.FindChildTraverse(selector.slice(1))
+      : null
+  return Object.assign(find, domPanorama, {
+    GetContextPanel: () => context,
+    Schedule: (seconds: number, callback: () => void) =>
+      setTimeout(callback, seconds * 1000),
+    CancelScheduled: (handle: ReturnType<typeof setTimeout>) =>
+      clearTimeout(handle),
+    RegisterForUnhandledEvent(
+      event: string,
+      handler: (...values: unknown[]) => void,
+    ) {
+      const listener = { event, handler, context }
+      listeners.add(listener)
+      return listener
+    },
+    UnregisterForUnhandledEvent(_event: string, listener: Listener) {
+      listeners.delete(listener)
+    },
+  })
+}
 
 // control returns the form element a panel of type draws on, made with
 // properties as the game makes it, or undefined for a plain panel.

@@ -67,6 +67,9 @@ func StartHost(ctx context.Context, config HostConfig) (*Host, error) {
 	if config.Files != "" {
 		arguments = append(arguments, "--files", path(config.Files))
 	}
+	if config.Fixtures != "" {
+		arguments = append(arguments, "--fixtures", path(config.Fixtures))
+	}
 	for _, mod := range config.Mods {
 		arguments = append(arguments, "--plugin", path(mod))
 	}

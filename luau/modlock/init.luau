@@ -458,6 +458,19 @@ local CameraParam: { [any]: any } = {
 	horizontalOffset = 4,
 }
 
+-- ServiceFailure says why a service call ended without an answer.
+export type ServiceFailure = "none" | "refused" | "timeout" | "unavailable"
+local ServiceFailure: { [any]: any } = {
+	[0] = "none",
+	none = 0,
+	[1] = "refused",
+	refused = 1,
+	[2] = "timeout",
+	timeout = 2,
+	[3] = "unavailable",
+	unavailable = 3,
+}
+
 -- Ability is one ability a hero owns.
 export type Ability = {
 	-- name is the ability's name, such as citadel_ability_hornet_snipe.
@@ -1594,12 +1607,20 @@ export type Wheel = {
 	fraction: number,
 }
 
--- UiPressEvent reports a press on a button in a player's interface.
+-- UiPressEvent reports a press on a button in a player's interface, or a
+-- press a layout's script sent with an action and a payload.
 export type UiPressEvent = {
 	-- player is the player who pressed.
 	player: Player,
-	-- node is the id of the pressed button.
+	-- node is the id of the pressed button, or of the layout whose script
+	-- sent the press.
 	node: string,
+	-- action names a layout's press, as its script sent it: one to 64
+	-- letters, digits, '_', '-' and '.'. It is empty for a button's press.
+	action: string,
+	-- payload is the text a layout's press carries, which the layout library
+	-- writes as JSON: valid UTF-8 of at most 180 bytes.
+	payload: string,
 }
 
 -- UiInputEvent reports a change the player made to an input in their
@@ -1731,6 +1752,18 @@ export type ServiceCall = {
 export type ServiceReply = {
 	-- payload is the answer.
 	payload: string,
+}
+
+-- ServiceRepliedEvent ends one started service call.
+export type ServiceRepliedEvent = {
+	-- call is the number StartServiceCall returned.
+	call: number,
+	-- payload is the answer, when failure is none.
+	payload: string,
+	-- failure says why the call ended without an answer.
+	failure: ServiceFailure?,
+	-- error describes the failure.
+	error: string,
 }
 
 -- PrecacheOptions names what the next world loads ahead of use.
@@ -3993,6 +4026,8 @@ schema.Change = {
 schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "node", kind = "string" },
+	{ number = 3, name = "action", kind = "string" },
+	{ number = 4, name = "payload", kind = "string" },
 }
 schema.UiInputEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -4064,6 +4099,21 @@ schema.ServiceCall = {
 }
 schema.ServiceReply = {
 	{ number = 1, name = "payload", kind = "bytes" },
+}
+schema.StartServiceCallRequest = {
+	{ number = 1, name = "service", kind = "string" },
+	{ number = 2, name = "method", kind = "string" },
+	{ number = 3, name = "payload", kind = "bytes" },
+	{ number = 4, name = "timeoutMilliseconds", kind = "uint32" },
+}
+schema.ServiceCallStarted = {
+	{ number = 1, name = "call", kind = "uint64" },
+}
+schema.ServiceRepliedEvent = {
+	{ number = 1, name = "call", kind = "uint64" },
+	{ number = 2, name = "payload", kind = "bytes" },
+	{ number = 3, name = "failure", kind = "enum", enum = ServiceFailure },
+	{ number = 4, name = "error", kind = "string" },
 }
 schema.LogRequest = {
 	{ number = 1, name = "message", kind = "string" },
@@ -4459,6 +4509,22 @@ function modlock.callService(service: string, method: string, payload: string): 
 	return response.payload
 end
 
+-- startServiceCall calls method of a service the host provides and
+-- returns at once with a number; the answer arrives in a later frame as a
+-- ServiceReplied event carrying that number. Every call ends once: with
+-- the reply, the service's refusal, a timeout or no provider at all. A
+-- service nobody provides is never asked. The host waits at most 30
+-- seconds, or the call's shorter timeout, and drops the mod's waiting
+-- calls when the mod stops or reloads. A service that answers at once
+-- answers this way too, in the next frame.
+function modlock.startServiceCall(service: string, method: string, payload: string, timeoutMilliseconds: number): number?
+	local response = call("StartServiceCall", "StartServiceCallRequest", { service = service, method = method, payload = payload, timeoutMilliseconds = timeoutMilliseconds }, "ServiceCallStarted")
+	if response == nil then
+		return nil
+	end
+	return response.call
+end
+
 -- createEntity creates an entity the server knows by its designer name,
 -- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 -- written before it spawns. The world removes it when the world ends;
@@ -4722,6 +4788,8 @@ export type ModHandlers = {
 	uiInput: (event: UiInputEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
+	-- serviceReplied ends one StartServiceCall, in a frame after the call.
+	serviceReplied: (event: ServiceRepliedEvent) -> (),
 	-- damage offers one hit before the game applies it, while the mod asked
 	-- for damage. The mod's answer may block the hit or change its amount.
 	damage: (event: DamageEvent) -> DamageResult,
@@ -4795,6 +4863,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
+	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
 	Damaged = { request = "DamagedEvent", response = "Empty", handler = "damaged" },
 	Killed = { request = "KillEvent", response = "Empty", handler = "killed" },
@@ -5104,6 +5173,14 @@ local commands: { [string]: (player: Player, args: string) -> () } = {}
 
 -- services maps each service the mod serves to its handler.
 local services: { [string]: Service } = {}
+
+-- ServiceDone ends one callServiceLater: with the reply and no error, or with
+-- no reply, the error and the failure that says why.
+export type ServiceDone = (reply: string?, error: string?, failure: ServiceFailure) -> ()
+
+-- waiting maps each started service call's number to the function its end
+-- runs.
+local waiting: { [number]: ServiceDone } = {}
 
 -- starts to settingChanges hold each event's handlers, which run in
 -- registration order.
@@ -5723,6 +5800,25 @@ function modlock.serve(service: string, handler: Service)
 	services[service] = handler
 end
 
+-- callServiceLater calls method of a service the host provides and returns
+-- at once; done runs in a later frame with the answer, or with an error when
+-- the service refused, the call waited past timeout seconds or nobody
+-- provides the service. Zero or nil waits the host's longest, 30 seconds.
+-- done runs once while the mod runs; calls still waiting when the mod stops
+-- end with it.
+function modlock.callServiceLater(service: string, method: string, payload: string, done: ServiceDone, timeout: number?)
+	-- A call the host refuses to start ends in the next frame as well, so
+	-- done never runs before this returns.
+	local call = modlock.startServiceCall(service, method, payload, math.floor((timeout or 0) * 1000))
+	if call == nil then
+		modlock.after(0, function()
+			done(nil, "the host did not start the call to " .. service, "unavailable")
+		end)
+		return
+	end
+	waiting[call] = done
+end
+
 -- command calls handler when a player types /name in chat or their client
 -- sends the console command name to the server. The handler runs with the
 -- next server frame, before the frame handlers, and receives the text after
@@ -6332,6 +6428,19 @@ local handlers: ModHandlers = {
 		for _, handler in restoreds do
 			handler(event.player, if event.error ~= "" then event.error else nil)
 		end
+	end,
+
+	serviceReplied = function(event)
+		local done = waiting[event.call]
+		if done == nil then
+			return
+		end
+		waiting[event.call] = nil
+		if event.failure ~= nil and event.failure ~= "none" then
+			done(nil, event.error, event.failure)
+			return
+		end
+		done(event.payload, nil, "none")
 	end,
 
 	npcsRestored = function(event)

@@ -252,8 +252,8 @@ export enum Kind {
 
   /**
    * KIND_LAYOUT loads the node's layout from the mod's content addon, whose
-   * script runs in the player's game and talks to the mod through its own
-   * console commands. Only a host that has reviewed the mod's content loads
+   * script runs in the player's game and sends presses back to the mod, as
+   * UiPressEvent's action and payload, or its own console commands. Only a host that has reviewed the mod's content loads
    * it; Modlock's renderer draws an empty panel.
    */
   LAYOUT = 4,
@@ -3238,7 +3238,8 @@ export const Screen: MessageType<Screen> =
   )
 
 /**
- * UiPressEvent reports a press on a button in a player's interface.
+ * UiPressEvent reports a press on a button in a player's interface, or a
+ * press a layout's script sent with an action and a payload.
  *
  * @generated from message modlock.wasm.ui.UiPressEvent
  */
@@ -3248,9 +3249,20 @@ export interface UiPressEvent {
    */
   player?: number
   /**
-   * Node is the id of the pressed button.
+   * Node is the id of the pressed button, or of the layout whose script
+   * sent the press.
    */
   node?: string
+  /**
+   * Action names a layout's press, as its script sent it: one to 64
+   * letters, digits, '_', '-' and '.'. It is empty for a button's press.
+   */
+  action?: string
+  /**
+   * Payload is the text a layout's press carries, which the layout library
+   * writes as JSON: valid UTF-8 of at most 180 bytes.
+   */
+  payload?: string
 }
 
 export const UiPressEvent: MessageType<UiPressEvent> =
@@ -3259,6 +3271,8 @@ export const UiPressEvent: MessageType<UiPressEvent> =
     () => [
       [1, 'player', 5],
       [2, 'node', 9],
+      [3, 'action', 9],
+      [4, 'payload', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: UiPressEvent): UiPressEvent => {
@@ -3271,6 +3285,12 @@ export const UiPressEvent: MessageType<UiPressEvent> =
               break
             case 2:
               m.node = r.string()
+              break
+            case 3:
+              m.action = r.string()
+              break
+            case 4:
+              m.payload = r.string()
               break
             default:
               r.skip(t)
@@ -3286,6 +3306,14 @@ export const UiPressEvent: MessageType<UiPressEvent> =
         {
           const v = m.node
           if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.action
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.payload
+          if (v) w.uint32(34).string(v)
         }
       },
     },

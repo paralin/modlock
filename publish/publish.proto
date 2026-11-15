@@ -178,3 +178,25 @@ message DevLobbyHost {
   // Secret admits the guest's game to the host session.
   uint64 secret = 2;
 }
+
+// ServiceCall is one call a mod in a local session makes to a service its
+// mod.json names, which the signed-in developer forwards to the service.
+message ServiceCall {
+  // Mod is the calling mod's slug.
+  string mod = 1;
+
+  // Service names the service, as the mod's mod.json does.
+  string service = 2;
+
+  // Method names the service's method.
+  string method = 3;
+
+  // Payload is the call's bytes, opaque to Modlock.
+  bytes payload = 4;
+}
+
+// ServiceAnswer is the service's reply to one ServiceCall.
+message ServiceAnswer {
+  // Payload is the reply's bytes.
+  bytes payload = 1;
+}

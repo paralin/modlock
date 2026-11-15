@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <expected>
 #include <map>
@@ -41,6 +42,24 @@ class UiTrees {
                                                                    std::string_view node,
                                                                    std::string_view value) const;
 
+  // Action checks a press a layout's script sent, as a player's game sends
+  // it: "<node> <action>" and then the payload's UTF-8 in unpadded
+  // base64url, which an empty payload leaves off. It returns the event the
+  // mod hears from slot, the player the engine names, while slot's tree shows
+  // the layout node and the player keeps under kActionsPerSecond presses a
+  // second after a burst of kActionBurst. A name, a payload or a pace past
+  // those is refused, and so is every press once the tree is gone.
+  [[nodiscard]] std::expected<ui::UiPressEvent, std::string> Action(
+      int32_t slot, std::string_view line, std::chrono::steady_clock::time_point now);
+
+  // kActionPayload is the most bytes of payload a layout's press carries.
+  static constexpr size_t kActionPayload = 180;
+
+  // kActionBurst and kActionsPerSecond bound the presses one player's
+  // layouts send: a burst, then a steady pace.
+  static constexpr double kActionBurst = 8;
+  static constexpr double kActionsPerSecond = 4;
+
   // Drop forgets slot's tree when its player leaves, and reports whether it
   // held any node.
   bool Drop(int32_t slot);
@@ -74,6 +93,16 @@ class UiTrees {
   std::map<int32_t, std::map<std::string, Shown, std::less<>>> trees_;
   // left_ holds the slots whose player left since their last reset.
   std::set<int32_t> left_;
+
+  // Pace is what one player's layouts have left of their presses: the
+  // presses they may still send, as of when.
+  struct Pace {
+    double presses = kActionBurst;
+    std::chrono::steady_clock::time_point when;
+  };
+
+  // paces_ maps each slot that pressed through a layout to its pace.
+  std::map<int32_t, Pace> paces_;
 };
 
 }  // namespace modlock::wasm

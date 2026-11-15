@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cctype>
 #include <charconv>
+#include <chrono>
 #include <cmath>
+#include <format>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -335,6 +337,26 @@ float Fit(float value, float min, float max, float step) {
   return std::clamp(value, min, max);
 }
 
+// IsActionName reports whether name can name a layout's press: one to 64
+// letters, digits, '_', '-' and '.'.
+bool IsActionName(std::string_view name) {
+  return !name.empty() && name.size() <= 64 && std::ranges::all_of(name, [](unsigned char c) {
+    return std::isalnum(c) != 0 || c == '_' || c == '-' || c == '.';
+  });
+}
+
+// IsUtf8 reports whether text is well-formed UTF-8.
+bool IsUtf8(std::string_view text) {
+  while (!text.empty()) {
+    const auto size = CharacterSize(static_cast<unsigned char>(text[0]));
+    if (size == 0 || size > text.size() || !ReadCharacter(text, size)) {
+      return false;
+    }
+    text.remove_prefix(size);
+  }
+  return true;
+}
+
 }  // namespace
 
 std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& change) {
@@ -504,7 +526,65 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
   return event;
 }
 
+std::expected<ui::UiPressEvent, std::string> UiTrees::Action(
+    int32_t slot, std::string_view line, std::chrono::steady_clock::time_point now) {
+  // Split the line into the layout node, the action and the payload.
+  const auto first = line.find(' ');
+  const auto node = line.substr(0, first);
+  const auto rest = first == std::string_view::npos ? std::string_view() : line.substr(first + 1);
+  const auto second = rest.find(' ');
+  const auto action = rest.substr(0, second);
+  const auto encoded =
+      second == std::string_view::npos ? std::string_view() : rest.substr(second + 1);
+
+  // Refuse a press from a layout the player's tree does not show.
+  auto tree = trees_.find(slot);
+  if (tree == trees_.end()) {
+    return std::unexpected("shows no layout " + std::string(node));
+  }
+  auto shown = tree->second.find(node);
+  if (shown == tree->second.end() || shown->second.kind != ui::KIND_LAYOUT) {
+    return std::unexpected("shows no layout " + std::string(node));
+  }
+  if (!IsActionName(action)) {
+    return std::unexpected("layout " + std::string(node) + " cannot press that name");
+  }
+  if (encoded.size() > (kActionPayload * 4 + 2) / 3) {
+    return std::unexpected("layout " + std::string(node) + " sent a payload over " +
+                           std::to_string(kActionPayload) + " bytes");
+  }
+  const auto payload = DecodeBase64Url(encoded);
+  if (!payload || payload->size() > kActionPayload || !IsUtf8(*payload)) {
+    return std::unexpected("layout " + std::string(node) +
+                           " sent a payload that is not short UTF-8");
+  }
+
+  // Refill the player's presses for the time since their last, and spend one.
+  auto [pace, fresh] = paces_.try_emplace(slot);
+  if (fresh) {
+    pace->second.when = now;
+  }
+  const std::chrono::duration<double> since = now - pace->second.when;
+  pace->second.presses = std::min(
+      kActionBurst, pace->second.presses + std::max(0.0, since.count()) * kActionsPerSecond);
+  pace->second.when = std::max(now, pace->second.when);
+  if (pace->second.presses < 1) {
+    return std::unexpected("layout " + std::string(node) + " pressed faster than " +
+                           std::format("{}", kActionsPerSecond) + " a second");
+  }
+  pace->second.presses -= 1;
+
+  // The engine named the player, so the press is theirs.
+  ui::UiPressEvent event;
+  event.set_player(slot);
+  event.set_node(std::string(node));
+  event.set_action(std::string(action));
+  event.set_payload(*payload);
+  return event;
+}
+
 bool UiTrees::Drop(int32_t slot) {
+  paces_.erase(slot);
   if (trees_.erase(slot) == 0) {
     return false;
   }
@@ -520,6 +600,7 @@ std::vector<int32_t> UiTrees::Clear() {
   }
   trees_.clear();
   left_.clear();
+  paces_.clear();
   return slots;
 }
 
