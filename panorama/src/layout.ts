@@ -41,6 +41,7 @@ import {
  */
 declare const $: {
   Msg(...values: unknown[]): void
+  DispatchEvent(event: string, ...args: unknown[]): void
   GetContextPanel(): {
     GetAttributeString(name: string, fallback: string): string
   }
