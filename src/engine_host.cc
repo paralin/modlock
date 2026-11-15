@@ -454,6 +454,11 @@ std::expected<gameinterop::StaminaObserver*, std::string> EngineHost::Stamina() 
   return &*impl_->stamina;
 }
 
+bool EngineHost::PrecachePending() const {
+  // Without the hooks nothing was asked for, so nothing waits.
+  return impl_->rules && impl_->rules->PrecachePending();
+}
+
 std::expected<void, std::string> EngineHost::Precache(std::vector<std::string> heroes,
                                                       std::vector<std::string> resources) {
   // Add to the precache lists once the hooks exist.
