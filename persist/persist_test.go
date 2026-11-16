@@ -13,6 +13,12 @@ import (
 	persistpb "github.com/paralin/modlock/src/wasm/persist"
 )
 
+// newStore returns a store of the records kept in dir without its lock, for
+// tests that stand in for one host.
+func newStore(dir string) *Store {
+	return &Store{dir: dir}
+}
+
 // stats is the record type the tests keep: a prop hunt mod's player stats.
 var stats = &persistpb.RecordType{
 	Name:    "stats",
@@ -57,6 +63,7 @@ func refused(t *testing.T, err error, text string) {
 }
 
 func TestValidate(t *testing.T) {
+	// Check a valid declaration before varying individual manifest constraints.
 	if err := Validate(manifest()); err != nil {
 		t.Fatal(err)
 	}
@@ -270,6 +277,7 @@ func TestApplyLimits(t *testing.T) {
 	_, _, err = Apply(stats, nil, ops[:1], strings.Repeat("k", UpdateKeyBytes+1))
 	refused(t, err, "key is up to 64 bytes")
 
+	// Fill a field's tag limit before attempting one further insert.
 	var next *persistpb.StoredRecord
 	for i := range TagLimit {
 		if next, _, err = Apply(stats, next, []*persistpb.Op{insert("unlocks", strconv.Itoa(i))}, ""); err != nil {
@@ -340,6 +348,7 @@ func TestStoreRefusesLargeFile(t *testing.T) {
 // TestTwoWritersBothLand is the conflict of two servers that update one
 // player's record at once: every add lands, and a set's later write wins.
 func TestTwoWritersBothLand(t *testing.T) {
+	// Submit distinct round identities from two writers into one player file.
 	store := newStore(t.TempDir())
 	const each = 50
 	var wg sync.WaitGroup
@@ -353,6 +362,8 @@ func TestTwoWritersBothLand(t *testing.T) {
 			}
 		})
 	}
+
+	// Read only after every concurrent round has finished its durable update.
 	wg.Wait()
 	record, err := store.Get(7, stats)
 	if err != nil {
@@ -367,6 +378,7 @@ func TestTwoWritersBothLand(t *testing.T) {
 }
 
 func TestAnswer(t *testing.T) {
+	// Resolve players through the same slot callback the local host uses.
 	store := newStore(t.TempDir())
 	m := manifest()
 	players := func(slot int32) (uint64, bool) { return 100 + uint64(slot), slot < 4 }
@@ -402,8 +414,63 @@ func TestAnswer(t *testing.T) {
 	refused(t, err, "no player is in slot 9")
 	_, err = call("GetMany", &persistpb.GetManyRequest{Players: make([]int32, ManyLimit+1), Type: "stats"})
 	refused(t, err, "up to 16 players")
+
+	// Malformed payloads and methods outside the contract are refused too.
 	_, err = Answer(store, m, players, "Get", []byte{0xff})
 	refused(t, err, "malformed")
 	_, err = Answer(store, m, players, "Delete", nil)
 	refused(t, err, "no method Delete")
+}
+
+// TestStoreJSONEscaping keeps records at their declared bounds readable even
+// when control characters make the JSON file much larger than binary records.
+func TestStoreJSONEscaping(t *testing.T) {
+	// Every permitted type holds a large record and every permitted retry key.
+	dir := t.TempDir()
+	store := newStore(dir)
+	value := strings.Repeat("\x00", StringLimit)
+
+	// Build one binary record that fits while its JSON text expands sixfold.
+	fields := make(map[string]*persistpb.Field, 28)
+	ops := make([]*persistpb.Op, 0, 28)
+	for i := range 28 {
+		name := "f" + strconv.Itoa(i)
+		fields[name] = &persistpb.Field{Kind: persistpb.Field_KIND_STRING, MaxBytes: StringLimit}
+		ops = append(ops, setText(name, value))
+	}
+
+	// JSON escapes each NUL as six bytes; the last 64 keys need that room too.
+	for i := range TypeLimit {
+		recordType := &persistpb.RecordType{Name: "record" + strconv.Itoa(i), Fields: fields}
+		for key := range RecentKeys {
+			updateKey := strings.Repeat("\x00", UpdateKeyBytes-2) + strconv.Itoa(key)
+			if _, _, err := store.Update(7, recordType, ops, updateKey); err != nil {
+				t.Fatalf("type %d key %d: %v", i, key, err)
+			}
+		}
+	}
+
+	// A successful writer never leaves a file beyond its reader's bound.
+	info, err := os.Stat(filepath.Join(dir, "7.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Size() <= FileBytes/6 || info.Size() > FileBytes {
+		t.Fatalf("escaped file size %d, want more than %d and at most %d", info.Size(), FileBytes/6, FileBytes)
+	}
+
+	// Reopening the stored files retains every type's fields and retry keys.
+	restarted := newStore(dir)
+	for i := range TypeLimit {
+		recordType := &persistpb.RecordType{Name: "record" + strconv.Itoa(i), Fields: fields}
+		record, err := restarted.Get(7, recordType)
+		if err != nil || len(record.GetFields()) != len(fields) || record.GetFields()["f0"].GetText() != value {
+			t.Fatalf("reopened type %d: %v, error %v", i, record, err)
+		}
+		key := strings.Repeat("\x00", UpdateKeyBytes-2) + strconv.Itoa(RecentKeys-1)
+		if _, repeated, err := restarted.Update(7, recordType, ops, key); err != nil || !repeated {
+			t.Fatalf("reopened type %d retry: repeated %v, error %v", i, repeated, err)
+		}
+	}
+	t.Logf("escaped player file: %d bytes, reader bound: %d bytes", info.Size(), FileBytes)
 }

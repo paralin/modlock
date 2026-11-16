@@ -1,14 +1,11 @@
 package persist
 
 import (
-	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
 
-	"github.com/paralin/modlock/internal/filelock"
 	"github.com/paralin/modlock/src/wasm"
 	persistpb "github.com/paralin/modlock/src/wasm/persist"
 	"github.com/pkg/errors"
@@ -18,20 +15,10 @@ import (
 // records in, one file per player.
 const Dir = ".modlock/persist"
 
-// FileBytes bounds one player's file: every type's record at its bound with
-// its recent keys, and room for the names around them.
-const FileBytes = TypeLimit*(RecordBytes+RecentKeys*(UpdateKeyBytes+2)) + 16<<10
-
-// LockFile is the file in a store's directory that the one process keeping
-// its records holds locked, and HolderFile names that process, so a second
-// host started on the same records is refused with the first one's name.
-const (
-	LockFile   = "lock"
-	HolderFile = "holder"
-)
-
-// holderBytes bounds what a refused Open reads of HolderFile.
-const holderBytes = 512
+// FileBytes bounds one player's JSON file: every type's binary record bound,
+// its recent keys and envelope, allowing six JSON bytes for each source byte
+// when strings and keys contain control characters.
+const FileBytes = 6 * (TypeLimit*(RecordBytes+RecentKeys*(UpdateKeyBytes+2)) + 16<<10)
 
 // Store keeps one mod's records in a directory, one file per player, so
 // they survive a restart of the host. Each update reads the player's file,
@@ -42,85 +29,6 @@ type Store struct {
 	dir string
 	// mu orders the updates, so each reads the file the last one wrote.
 	mu sync.Mutex
-}
-
-// opened are the stores this process holds the lock of, by directory, and
-// their lock files. A store stays open, and its directory locked, until the
-// process exits, so a rebuilt mod keeps writing through the store its first
-// build opened.
-var opened = struct {
-	sync.Mutex
-	stores map[string]*Store
-	locks  []*os.File
-}{stores: map[string]*Store{}}
-
-// Open returns the store of the records kept in dir, creating dir, and holds
-// dir's lock until this process exits. Within one process each directory has
-// one store. It refuses a directory another process holds, naming that
-// process, so two hosts never write one mod's records at once.
-func Open(dir string) (*Store, error) {
-	// Return this process's store of dir if it has one.
-	abs, err := filepath.Abs(dir)
-	if err != nil {
-		return nil, err
-	}
-	opened.Lock()
-	defer opened.Unlock()
-	if store := opened.stores[abs]; store != nil {
-		return store, nil
-	}
-
-	// Lock the directory, or name the process that holds it.
-	if err := os.MkdirAll(abs, 0o755); err != nil {
-		return nil, err
-	}
-	held, err := filelock.Lock(filepath.Join(abs, LockFile), true, false)
-	if errors.Is(err, filelock.ErrLocked) {
-		return nil, errors.Errorf("another modlock keeps these records in %s: %s; stop it, then start this one again", abs, holder(abs))
-	}
-	if err != nil {
-		return nil, errors.Wrapf(err, "lock %s", abs)
-	}
-
-	// Name this process for the next one by its ID and program name, never
-	// its arguments, which may carry a path or a token, and keep the lock for
-	// its life. Only the next modlock of the same user reads the name.
-	// A file an older modlock left keeps its mode through the write, so set
-	// the mode too.
-	name := fmt.Sprintf("process %d, %s", os.Getpid(), filepath.Base(os.Args[0]))
-	path := filepath.Join(abs, HolderFile)
-	if err := os.WriteFile(path, []byte(name), 0o600); err != nil {
-		_ = held.Close()
-		return nil, err
-	}
-	if err := os.Chmod(path, 0o600); err != nil {
-		_ = held.Close()
-		return nil, err
-	}
-	store := &Store{dir: abs}
-	opened.stores[abs] = store
-	opened.locks = append(opened.locks, held)
-	return store, nil
-}
-
-// holder returns the name of the process holding dir's lock, as it wrote it.
-func holder(dir string) string {
-	f, err := os.Open(filepath.Join(dir, HolderFile))
-	if err != nil {
-		return "a process that has not named itself"
-	}
-	defer f.Close()
-	data, _ := io.ReadAll(io.LimitReader(f, holderBytes))
-	if len(data) == 0 {
-		return "a process that has not named itself"
-	}
-	return string(data)
-}
-
-// newStore returns a store of the records kept in dir without its lock, for
-// tests that stand in for one host.
-func newStore(dir string) *Store {
-	return &Store{dir: dir}
 }
 
 // Dir returns the directory the store keeps its files in.
@@ -203,6 +111,12 @@ func (s *Store) Update(steamID uint64, recordType *persistpb.RecordType, ops []*
 
 // write replaces path with data through a file beside it.
 func (s *Store) write(path string, data []byte) error {
+	// Never acknowledge a file the reader's bound would make unreadable.
+	if len(data) > FileBytes {
+		return refuse("a player's encoded persist records are up to %d bytes", FileBytes)
+	}
+
+	// Replace in the same directory so readers see the old or new whole file.
 	if err := os.MkdirAll(s.dir, 0o755); err != nil {
 		return err
 	}
@@ -244,6 +158,7 @@ type Players func(slot int32) (uint64, bool)
 func Answer(store *Store, manifest *wasm.Manifest, players Players, method string, payload []byte) ([]byte, error) {
 	// Find the record type and player a call reaches.
 	reach := func(typeName, key string, slot int32) (*persistpb.RecordType, uint64, error) {
+		// A slot reaches only the declared record of the human who holds it.
 		recordType := Find(manifest, typeName)
 		if recordType == nil {
 			return nil, 0, refuse("mod.json declares no persist record type %q", typeName)

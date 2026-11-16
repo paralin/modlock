@@ -88,13 +88,16 @@ func Validate(manifest *wasm.Manifest) error {
 	if len(types) > TypeLimit {
 		return errors.Errorf("mod.json declares more than %d persist record types", TypeLimit)
 	}
-	for i, recordType := range types {
+	seen := make(map[string]struct{}, len(types))
+	for _, recordType := range types {
 		if err := validate(recordType); err != nil {
 			return err
 		}
-		if slices.ContainsFunc(types[:i], func(t *persistpb.RecordType) bool { return t.GetName() == recordType.GetName() }) {
-			return errors.Errorf("mod.json declares persist record type %q twice", recordType.GetName())
+		name := recordType.GetName()
+		if _, duplicate := seen[name]; duplicate {
+			return errors.Errorf("mod.json declares persist record type %q twice", name)
 		}
+		seen[name] = struct{}{}
 	}
 	return nil
 }
@@ -158,6 +161,8 @@ func Apply(recordType *persistpb.RecordType, stored *persistpb.StoredRecord, ops
 	if updateKey == "" && hasAdd(ops) {
 		return nil, false, refuse("a persist update that adds needs an update key, so a resend counts once")
 	}
+
+	// Repeated keys preserve the previously stored record without applying operations.
 	next := stored.CloneVT()
 	if next == nil {
 		next = &persistpb.StoredRecord{}
@@ -239,6 +244,7 @@ func holds(kind, wrote persistpb.Field_Kind, value *persistpb.Value) bool {
 // with a max in a field this build counts, rather than read the value as the
 // new kind.
 func applyOp(field *persistpb.Field, wrote persistpb.Field_Kind, value *persistpb.Value, op *persistpb.Op) (*persistpb.Value, error) {
+	// Keep the earlier value's declared kind before choosing an operation.
 	name := op.GetField()
 	if value.GetValue() != nil && !holds(field.GetKind(), wrote, value) {
 		return nil, refuse("persist field %s holds a value of another kind than this release's %s, kept by an earlier release; the record is unchanged", name, kindName(field.GetKind()))

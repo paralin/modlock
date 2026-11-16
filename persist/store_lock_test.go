@@ -18,6 +18,7 @@ const holdEnv = "MODLOCK_PERSIST_TEST_HOLD"
 // TestHoldStoreHelper is the first host when holdEnv is set: it writes a
 // record, says so, and holds the store until its input closes.
 func TestHoldStoreHelper(t *testing.T) {
+	// Only the subprocess owns this directory while it writes the test record.
 	dir := os.Getenv(holdEnv)
 	if dir == "" {
 		t.Skip("run by TestSecondHostRefused")
@@ -59,6 +60,8 @@ func TestSecondHostRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Wait on the writer's readiness message before checking exclusive admission.
 	stdout, err := first.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)
