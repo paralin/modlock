@@ -32,6 +32,7 @@ constexpr auto kShedLogPeriod = std::chrono::minutes(1);
 // reports a slow frame, such as "; hottest hotLoop (mod.js:5), 8 of 9 samples".
 // It returns nothing when the frame took no sample.
 std::string Hottest(const profile::StackSamples& samples) {
+  // A frame without a sampled leaf has nothing to attribute.
   if (samples.stacks().empty() || samples.stacks(0).frames().empty()) {
     return {};
   }
@@ -135,6 +136,8 @@ bool WasmPlugin::Start() {
                                   map_ = std::string(map);
                                   tuned_ = false;
                                   combat_unavailable_ = false;
+
+                                  // Attach game observers to the new world.
                                   host_.game.WorldReady();
                                   game_.WorldReady();
                                   ListenForRestart();
@@ -285,6 +288,8 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   }
   event.set_check_only(check_only_);
   event.set_source(source_.data(), source_.size());
+
+  // Clear the previous run before applying the manifest to this start.
   reported_.reset();
   attendance_.Clear();
   deferred_leaves_.clear();
@@ -356,7 +361,9 @@ void WasmPlugin::ListenForRestart() {
     return;
   }
   auto chats = engine_->OnChat([this](const gameinterop::NativeChatHook::Message& line) {
+    // Read this chat line without retaining the engine callback storage.
     std::string_view text = line.text;
+
     // Accept only the restart command, for this mod or for all.
     if (text.empty() || !std::string_view("/.+-").contains(text.front())) {
       return;
