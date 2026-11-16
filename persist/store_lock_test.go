@@ -15,16 +15,28 @@ import (
 // holdEnv names the directory a helper process opens and holds.
 const holdEnv = "MODLOCK_PERSIST_TEST_HOLD"
 
-// TestHoldStoreHelper is the first host when holdEnv is set: it opens the
-// store, says so, and holds it until its input closes.
+// TestHoldStoreHelper is the first host when holdEnv is set: it writes a
+// record, says so, and holds the store until its input closes.
 func TestHoldStoreHelper(t *testing.T) {
 	dir := os.Getenv(holdEnv)
 	if dir == "" {
 		t.Skip("run by TestSecondHostRefused")
 	}
-	if _, err := Open(dir); err != nil {
+	store, err := Open(dir)
+	if err != nil {
 		t.Fatal(err)
 	}
+	ops := []*persistpb.Op{
+		add("roundsWon", 3),
+		{Field: "bestHide", Op: &persistpb.Op_Max{Max: 41}},
+		setText("title", "winner"),
+		insert("unlocks", "crate"),
+	}
+	if _, _, err := store.Update(76561197960265728, stats, ops, "round-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Keep the writer alive until its caller has checked the exclusive lock.
 	os.Stdout.WriteString("held\n")
 	_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
 }
@@ -32,7 +44,8 @@ func TestHoldStoreHelper(t *testing.T) {
 // TestSecondHostRefused starts a first host in another process and checks
 // that a second cannot open the same records, that its error names the
 // first by process ID and program name only, that the holder file is the
-// owner's alone, and that the records open once the first exits.
+// owner's alone, and that the record and its update key survive that
+// process's exit and a second process opening the store.
 func TestSecondHostRefused(t *testing.T) {
 	// Start the first host and wait until it holds the store.
 	// An older modlock left a world-readable holder file with its arguments.
@@ -76,7 +89,7 @@ func TestSecondHostRefused(t *testing.T) {
 		t.Fatalf("holder file mode: %v %v, want 0600", info.Mode().Perm(), err)
 	}
 
-	// Once the first exits, the records open and take an update.
+	// Once the first exits, a new process reads every field it kept.
 	_ = stdin.Close()
 	if err := first.Wait(); err != nil {
 		t.Fatalf("first host exit: %v", err)
@@ -85,7 +98,27 @@ func TestSecondHostRefused(t *testing.T) {
 	if err != nil {
 		t.Fatalf("after the first exits: %v", err)
 	}
-	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-1"); err != nil {
+	record, err := store.Get(76561197960265728, stats)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fields := record.GetFields()
+	if fields["roundsWon"].GetNumber() != 3 || fields["bestHide"].GetNumber() != 41 || fields["title"].GetText() != "winner" || strings.Join(fields["unlocks"].GetTags().GetMembers(), ",") != "crate" {
+		t.Fatalf("after the writer process exits: %v", record)
+	}
+
+	// Resending the first process's update after restart counts it once.
+	_, repeated, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 3)}, "round-1")
+	if err != nil || !repeated {
+		t.Fatalf("resent after process restart: repeated %v, error %v", repeated, err)
+	}
+	record, err = store.Get(76561197960265728, stats)
+	if err != nil || record.GetFields()["roundsWon"].GetNumber() != 3 {
+		t.Fatalf("resent record: %v, error %v", record, err)
+	}
+
+	// A new round can still change the reopened record.
+	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-2"); err != nil {
 		t.Fatal(err)
 	}
 

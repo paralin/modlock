@@ -30,6 +30,7 @@ required fields:
 | `settings`    |          | [Choices](/reference/manifest#settings) each player makes about the mod.                                              |
 | `metrics`     |          | Running [totals](/reference/manifest#metrics) for each player, which the mod adds to.                                 |
 | `boards`      |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                                     |
+| `persist`     |          | [Records](/reference/manifest#persist) the mod keeps for each player across sessions.                                 |
 | `services`    |          | [Services](/reference/manifest#services) the mod calls, each needed or optional.                                      |
 | `freeForAll`  |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
 
@@ -314,7 +315,8 @@ answers later with `WasmHost::ProvideLater`.
 
 A mod keeps one record of each declared type for each player, up to 8 types,
 and names the `persist` service. Each type has up to 32 fields, and a record
-holds up to 8 KB.
+holds up to 8 KB. Hosts may also bound the manifest size; keep `mod.json` under
+256 KiB for hosts that use that limit.
 
 | Kind          | Holds                                                            | Changes                    |
 | ------------- | ---------------------------------------------------------------- | -------------------------- |
@@ -335,9 +337,13 @@ roundsWon: { add: 1 }, longestHide: { max: 41 } }, { key: roundId })` sends up
 to 32 changes the host applies all or none. Changes merge rather than replace,
 so two servers that update one player at once both land; of two `set`s the
 later wins. A `key` of up to 64 bytes makes a resent update count once: the
-host keeps each record's last 64 keys. A change outside its kind's rules, an
-undeclared field or a record past its bound is refused whole, and the record
-is unchanged.
+host keeps each record's last 64 keys. An update with an `add` needs a key and
+is refused without one. An update the host answers as taking too long may
+still have been kept: send it again with the same key, and do not act as if
+nothing was written. A change outside its kind's rules, an undeclared
+field, a field whose stored value is of another kind than mod.json now
+declares, or a record past its bound is refused whole, and the record is
+unchanged.
 
 `modlock play` keeps the records itself, in the sandbox and in the game, one
 file per player in the project's `.modlock/persist/`, so they survive a

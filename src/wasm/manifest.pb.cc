@@ -349,7 +349,8 @@ static const ::_pbi::MigrationSchema
         {49, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
         {56, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
         {63, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
-        {70, sizeof(::modlock::wasm::Definition)},
+        {70, sizeof(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse)},
+        {77, sizeof(::modlock::wasm::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Manifest_default_instance_._instance,
@@ -395,21 +396,24 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "nt\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.Movemen"
     "t.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Model\022\020\n\014MODEL"
     "_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001J\004\010\003\020\004R\023u"
-    "npredicted_buttons\"\352\003\n\nDefinition\022+\n\004fil"
+    "npredicted_buttons\"\360\004\n\nDefinition\022+\n\004fil"
     "e\030\001 \001(\0162\035.modlock.wasm.Definition.File\022\r"
     "\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 \003(\0132(.modl"
     "ock.wasm.Definition.PropertiesEntry\0224\n\006f"
     "ields\030\004 \003(\0132$.modlock.wasm.Definition.Fi"
     "eldsEntry\022=\n\013copy_fields\030\005 \003(\0132(.modlock"
-    ".wasm.Definition.CopyFieldsEntry\0321\n\017Prop"
-    "ertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:"
-    "\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
-    "\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022\013\n\003key\030\001 \001"
-    "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\004File\022\022\n\016FILE_AB"
-    "ILITIES\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE_BOT_D"
-    "IFFICULTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003B*Z(githu"
-    "b.com/paralin/modlock/src/wasm;wasmb\006pro"
-    "to3"
+    ".wasm.Definition.CopyFieldsEntry\022=\n\013text"
+    "_fields\030\006 \003(\0132(.modlock.wasm.Definition."
+    "TextFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003ke"
+    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntr"
+    "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017Cop"
+    "yFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t"
+    ":\0028\001\0321\n\017TextFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005"
+    "value\030\002 \001(\t:\0028\001\"l\n\004File\022\022\n\016FILE_ABILITIE"
+    "S\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE_BOT_DIFFICU"
+    "LTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003\022\022\n\016FILE_MODIFI"
+    "ERS\020\004B*Z(github.com/paralin/modlock/src/"
+    "wasm;wasmb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps[4] = {
@@ -422,13 +426,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto = {
     false,
     false,
-    1843,
+    1977,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps,
     4,
-    7,
+    8,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto::offsets,
