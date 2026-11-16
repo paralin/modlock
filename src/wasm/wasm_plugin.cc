@@ -269,7 +269,8 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   // A mod whose needed service nobody here provides does not start, and the
   // error names the service.
   for (const auto& service : manifest_.services()) {
-    if (!service.optional() && !host_.extensions.contains(service.name()) &&
+    if (enforce_required_services_ && !service.optional() &&
+        !host_.extensions.contains(service.name()) &&
         !host_.late_extensions.contains(service.name())) {
       auto error = "the mod needs service " + service.name() + ", which nobody provides here";
       Failed(error);

@@ -139,6 +139,7 @@ class WasmPlugin final : public Plugin {
         slug_(std::move(slug)),
         engine_(context.engine),
         check_only_(context.check_only),
+        enforce_required_services_(context.enforce_required_services),
         mod_([this](const wasm::Call& call) { return Send(call); }),
         game_(*this, host, context.engine) {
     for (int i = 1; i < context.argc; ++i) {
@@ -402,6 +403,8 @@ class WasmPlugin final : public Plugin {
   // check_only_ is true when the host only checks the mod, which the mod
   // hears at its start.
   bool check_only_;
+  // Admission policy is fixed for this plugin, including reloads.
+  const bool enforce_required_services_;
   std::vector<std::string> args_;
   std::unique_ptr<wasm::Instance> instance_;
   // module_ is the running build's WebAssembly, which a restart instantiates

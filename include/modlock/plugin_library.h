@@ -38,6 +38,9 @@ struct PluginContext {
   // host's interface controller sees their interfaces as it sees the host's
   // own mods. It is null when the host runs no sandboxed mods.
   WasmHost* wasm = nullptr;
+  // Hosts upgrading a format that ignored service declarations can retain that
+  // admission policy. Calls to unavailable services still fail normally.
+  bool enforce_required_services = true;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.
