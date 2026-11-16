@@ -54,7 +54,7 @@ func PersistRemove(field, tag string) *PersistOp {
 // service; done runs in a later frame with the record, empty for one never
 // written, or the error that refused the read.
 func (p Player) GetRecord(recordType string, done func(*PersistRecord, error)) {
-	data, err := (&persistpb.GetRequest{Player: p.Slot, Type: recordType}).MarshalVT()
+	data, err := (&persistpb.GetRequest{Player: p.Slot(), Type: recordType}).MarshalVT()
 	if err != nil {
 		done(nil, err)
 		return
@@ -83,7 +83,7 @@ func (p Player) UpdateRecord(recordType string, ops []*PersistOp, key string, do
 	if done == nil {
 		done = func(*PersistRecord, bool, error) {}
 	}
-	data, err := (&persistpb.UpdateRequest{Player: p.Slot, Type: recordType, Ops: ops, UpdateKey: key}).MarshalVT()
+	data, err := (&persistpb.UpdateRequest{Player: p.Slot(), Type: recordType, Ops: ops, UpdateKey: key}).MarshalVT()
 	if err != nil {
 		done(nil, false, err)
 		return
