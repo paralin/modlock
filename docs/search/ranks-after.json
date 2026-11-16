@@ -1,0 +1,338 @@
+[
+  {
+    "query": "replaceAbility",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "trainAbility",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "adjustAbilityPoints",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "abilityBarPresses",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "abilityDisplay",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "setAbility",
+    "kind": "exact",
+    "expect": "/guides/abilities",
+    "rank": 2,
+    "first": "/guides/abilities#cooldown-length"
+  },
+  {
+    "query": "onAbilityCast",
+    "kind": "exact",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "onModifierEvent",
+    "kind": "exact",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "watchProjectiles",
+    "kind": "exact",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "heroNamed",
+    "kind": "exact",
+    "expect": "/guides/players#heroes",
+    "rank": 1,
+    "first": "/guides/players#heroes"
+  },
+  {
+    "query": "findHero",
+    "kind": "exact",
+    "expect": "/guides/players#heroes",
+    "rank": 1,
+    "first": "/guides/players#heroes"
+  },
+  {
+    "query": "setFreeForAll",
+    "kind": "exact",
+    "expect": "/guides/toolkit",
+    "rank": 2,
+    "first": "/guides/toolkit#play-free-for-all"
+  },
+  {
+    "query": "RaceGate",
+    "kind": "exact",
+    "expect": "/guides/toolkit",
+    "rank": 1,
+    "first": "/guides/toolkit"
+  },
+  {
+    "query": "createFog",
+    "kind": "exact",
+    "expect": "/guides/world#every-call",
+    "rank": 1,
+    "first": "/guides/world#every-call"
+  },
+  {
+    "query": "holdEntityModifier",
+    "kind": "exact",
+    "expect": "/guides/world#every-call",
+    "rank": 1,
+    "first": "/guides/world#every-call"
+  },
+  {
+    "query": "citadel_ability_hornet_snipe",
+    "kind": "exact",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "upgrade_ability",
+    "kind": "exact",
+    "expect": "/guides/abilities#game-commands-a-mod-claims",
+    "rank": 1,
+    "first": "/guides/abilities#game-commands-a-mod-claims"
+  },
+  {
+    "query": "PRE_UNIT_HEALED",
+    "kind": "exact",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "HERO_LEVEL_CHANGED",
+    "kind": "exact",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "replaceability",
+    "kind": "lowercase",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "onabilitycast",
+    "kind": "lowercase",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "heronamed",
+    "kind": "lowercase",
+    "expect": "/guides/players#heroes",
+    "rank": 1,
+    "first": "/guides/players#heroes"
+  },
+  {
+    "query": "racegate",
+    "kind": "lowercase",
+    "expect": "/guides/toolkit",
+    "rank": 1,
+    "first": "/guides/toolkit"
+  },
+  {
+    "query": "replaceAb",
+    "kind": "prefix",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "onAbility",
+    "kind": "prefix",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "adjustAbil",
+    "kind": "prefix",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "holdEntity",
+    "kind": "prefix",
+    "expect": "/guides/world#every-call",
+    "rank": 1,
+    "first": "/guides/world#every-call"
+  },
+  {
+    "query": "citadel_ability_hor",
+    "kind": "prefix",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "replace ability",
+    "kind": "words",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "train ability",
+    "kind": "words",
+    "expect": "/guides/abilities",
+    "rank": 2,
+    "first": "/guides/abilities#game-commands-a-mod-claims"
+  },
+  {
+    "query": "ability cast",
+    "kind": "words",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "hero named",
+    "kind": "words",
+    "expect": "/guides/players#heroes",
+    "rank": 1,
+    "first": "/guides/players#heroes"
+  },
+  {
+    "query": "race gate",
+    "kind": "words",
+    "expect": "/guides/toolkit",
+    "rank": 1,
+    "first": "/guides/toolkit"
+  },
+  {
+    "query": "free for all",
+    "kind": "words",
+    "expect": "/guides/toolkit",
+    "rank": 10,
+    "first": "/reference/manifest"
+  },
+  {
+    "query": "hornet snipe",
+    "kind": "words",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "unit healed",
+    "kind": "words",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "hornet",
+    "kind": "part",
+    "expect": "/guides/events#casts-and-modifier-events",
+    "rank": 1,
+    "first": "/guides/events#casts-and-modifier-events"
+  },
+  {
+    "query": "AbilityCast",
+    "kind": "part",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "EntityModifier",
+    "kind": "part",
+    "expect": "/guides/world#every-call",
+    "rank": 1,
+    "first": "/guides/world#every-call"
+  },
+  {
+    "query": "replaceAbilty",
+    "kind": "misspelt",
+    "expect": "/guides/abilities",
+    "rank": 1,
+    "first": "/guides/abilities"
+  },
+  {
+    "query": "onAbiltyCast",
+    "kind": "misspelt",
+    "expect": "/guides/events#every-event",
+    "rank": 1,
+    "first": "/guides/events#every-event"
+  },
+  {
+    "query": "heroNamd",
+    "kind": "misspelt",
+    "expect": "/guides/players#heroes",
+    "rank": 1,
+    "first": "/guides/players#heroes"
+  },
+  {
+    "query": "install modlock",
+    "kind": "prose",
+    "expect": "/start/install",
+    "rank": 1,
+    "first": "/start/install"
+  },
+  {
+    "query": "cooldown length",
+    "kind": "prose",
+    "expect": "/guides/abilities#cooldown-length",
+    "rank": 1,
+    "first": "/guides/abilities#cooldown-length"
+  },
+  {
+    "query": "publish a mod",
+    "kind": "prose",
+    "expect": "/reference/publishing",
+    "rank": 9,
+    "first": "/reference/cli"
+  },
+  {
+    "query": "ready up countdown",
+    "kind": "prose",
+    "expect": "/mechanics/ready-up",
+    "rank": 1,
+    "first": "/mechanics/ready-up"
+  },
+  {
+    "query": "play together",
+    "kind": "prose",
+    "expect": "/reference/play-together",
+    "rank": 3,
+    "first": "/reference/play-together#which-mods-play"
+  },
+  {
+    "query": "your first mod",
+    "kind": "prose",
+    "expect": "/start/first-mod",
+    "rank": 1,
+    "first": "/start/first-mod"
+  }
+]

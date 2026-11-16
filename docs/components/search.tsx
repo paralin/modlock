@@ -13,6 +13,7 @@ import {
   type SharedProps,
 } from 'fumadocs-ui/components/dialog/search'
 
+import { searchParams } from '@/lib/search'
 import { basePath } from '@/lib/site'
 
 /**
@@ -20,7 +21,10 @@ import { basePath } from '@/lib/site'
  * static file, fetched on the first search and queried in the browser.
  */
 export default function StaticSearchDialog(props: SharedProps) {
-  const search = useStaticSearch({ from: `${basePath}/api/search` })
+  const search = useStaticSearch({
+    from: `${basePath}/api/search`,
+    search: searchParams,
+  })
   return (
     <SearchDialog {...search} {...props}>
       <SearchDialogOverlay />
