@@ -39,6 +39,16 @@ func persistDir(path, slug string) (string, error) {
 	if rel, err := filepath.Rel(root, dir); err != nil || rel != slug {
 		return "", errors.Errorf("persist: the records of %q would leave %s", slug, root)
 	}
+
+	// The name stays inside only if nothing there leads elsewhere: a link
+	// already at dir would pass the check above and take the records out.
+	info, err := os.Lstat(dir)
+	if err == nil && (info.Mode()&os.ModeSymlink != 0 || !info.IsDir()) {
+		return "", errors.Errorf("persist: %s is not a directory of its own; remove it to keep the records of %q there", dir, slug)
+	}
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return "", errors.Wrap(err, "persist")
+	}
 	return dir, nil
 }
 
@@ -54,7 +64,14 @@ type localPersist struct {
 	// mu guards slots.
 	mu sync.Mutex
 	// slots are the players in the server, by slot.
-	slots map[int32]uint64
+	slots map[int32]slotPlayer
+}
+
+// slotPlayer is the player the host says holds a slot, and the generation of
+// their connection, zero from a host that does not report it.
+type slotPlayer struct {
+	steamID    uint64
+	generation uint32
 }
 
 // persistMod is one mod's declared record types and the store of its records.
@@ -66,7 +83,7 @@ type persistMod struct {
 // newLocalPersist returns the local persist service of the mods built at
 // dirs, printing where each mod's records are kept.
 func newLocalPersist(out *printer, dirs []string) (*localPersist, error) {
-	local := &localPersist{mods: map[string]*persistMod{}, slots: map[int32]uint64{}}
+	local := &localPersist{mods: map[string]*persistMod{}, slots: map[int32]slotPlayer{}}
 	for _, dir := range dirs {
 		manifest, err := project.ReadManifest(dir)
 		if err != nil {
@@ -105,7 +122,7 @@ func (l *localPersist) follow(events func(*control.HostEvent)) func(*control.Hos
 	return func(event *control.HostEvent) {
 		if joined := event.GetJoined(); joined != nil {
 			l.mu.Lock()
-			l.slots[joined.GetSlot()] = joined.GetSteamId()
+			l.slots[joined.GetSlot()] = slotPlayer{steamID: joined.GetSteamId(), generation: joined.GetGeneration()}
 			l.mu.Unlock()
 		}
 		if left := event.GetLeft(); left != nil {
@@ -117,14 +134,14 @@ func (l *localPersist) follow(events func(*control.HostEvent)) func(*control.Hos
 	}
 }
 
-// player returns the SteamID64 of the player in slot; a bot has none. The
-// host's join events carry no connection generation, so it reports none and
-// a Player kept after its player left is refused by the mod library alone.
+// player returns the SteamID64 of the player in slot and the generation of
+// their connection, as the host's join event named them; a bot has none. A
+// host too old to name the generation reports zero, which Answer refuses.
 func (l *localPersist) player(slot int32) (uint64, uint32, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	steamID := l.slots[slot]
-	return steamID, 0, steamID != 0
+	held := l.slots[slot]
+	return held.steamID, held.generation, held.steamID != 0
 }
 
 // answer answers the persist calls of the mods that keep records here and

@@ -193,6 +193,11 @@ message PlayerJoined {
 
   // SteamId is the player's Steam ID, zero for a bot.
   fixed64 steam_id = 3;
+
+  // Generation is the slot's connection generation, as mods see it in a
+  // Connection; zero from a host that does not report it. A controller that
+  // answers calls naming a generation refuses them all when it is zero.
+  uint32 generation = 4;
 }
 
 // PlayerLeft identifies a player who left. Bots leave too; a controller drops

@@ -1018,6 +1018,12 @@ export interface PlayerJoined {
    * SteamId is the player's Steam ID, zero for a bot.
    */
   steamId?: bigint
+  /**
+   * Generation is the slot's connection generation, as mods see it in a
+   * Connection; zero from a host that does not report it. A controller that
+   * answers calls naming a generation refuses them all when it is zero.
+   */
+  generation?: number
 }
 
 export const PlayerJoined: MessageType<PlayerJoined> =
@@ -1027,6 +1033,7 @@ export const PlayerJoined: MessageType<PlayerJoined> =
       [1, 'slot', 5],
       [2, 'name', 9],
       [3, 'steam_id', 6],
+      [4, 'generation', 13],
     ],
     {
       decode: (r: BinaryReader, end: number, m: PlayerJoined): PlayerJoined => {
@@ -1042,6 +1049,9 @@ export const PlayerJoined: MessageType<PlayerJoined> =
               break
             case 3:
               m.steamId = r.fixed64()
+              break
+            case 4:
+              m.generation = r.uint32()
               break
             default:
               r.skip(t)
@@ -1061,6 +1071,10 @@ export const PlayerJoined: MessageType<PlayerJoined> =
         {
           const v = m.steamId
           if (v) w.uint32(25).fixed64(v)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(32).uint32(v)
         }
       },
     },

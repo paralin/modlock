@@ -437,6 +437,30 @@ func TestAnswer(t *testing.T) {
 	refused(t, err, "no method Delete")
 }
 
+// TestAnswerNeedsHeldGeneration refuses every call when the host reports no
+// generation for the slot's connection, so a request made for a player who
+// left cannot reach the next player in the slot on a host that does not
+// learn generations.
+func TestAnswerNeedsHeldGeneration(t *testing.T) {
+	// The host knows who is in each slot but not their connection.
+	store := newStore(t.TempDir())
+	m := manifest()
+	players := func(slot int32) (uint64, uint32, bool) { return 100 + uint64(slot), 0, true }
+	call := func(method string, request interface{ MarshalVT() ([]byte, error) }) error {
+		payload, _ := request.MarshalVT()
+		_, err := Answer(store, m, players, method, payload)
+		return err
+	}
+
+	// No path reaches a record.
+	refused(t, call("Update", &persistpb.UpdateRequest{Player: 1, Generation: 1, Type: "stats", Ops: []*persistpb.Op{add("roundsWon", 1)}, UpdateKey: "r1"}), "left slot 1")
+	refused(t, call("Get", &persistpb.GetRequest{Player: 1, Generation: 1, Type: "stats"}), "left slot 1")
+	refused(t, call("GetMany", &persistpb.GetManyRequest{Players: []int32{1}, Generations: []uint32{1}, Type: "stats"}), "left slot 1")
+	if record, err := store.Get(101, stats); err != nil || len(record.GetFields()) != 0 {
+		t.Fatalf("after refused calls: %v %v", record, err)
+	}
+}
+
 // TestStoreJSONEscaping keeps records at their declared bounds readable even
 // when control characters make the JSON file much larger than binary records.
 func TestStoreJSONEscaping(t *testing.T) {

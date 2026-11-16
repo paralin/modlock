@@ -93,8 +93,16 @@ func (s *Store) Update(steamID uint64, recordType *persistpb.RecordType, ops []*
 	}
 	name := recordType.GetName()
 	next, repeated, err := Apply(recordType, file.GetRecords()[name], ops, updateKey)
-	if err != nil || repeated {
+	if err != nil {
 		return recordOf(next), repeated, err
+	}
+	if repeated {
+		// The update this repeats may have renamed its file in and then
+		// failed to sync the directory, so sync it before answering.
+		if err := syncDir(s.dir); err != nil {
+			return nil, false, err
+		}
+		return recordOf(next), true, nil
 	}
 
 	// Replace the file whole, so a crash leaves the old file or the new.
@@ -154,8 +162,9 @@ func recordOf(stored *persistpb.StoredRecord) *persistpb.Record {
 
 // Players resolves a server slot to the SteamID64 of the player in it and
 // the generation of their connection, and reports false for an empty slot.
-// A host that does not learn generations reports zero, which leaves the
-// check of a request's generation to the mod library.
+// A host that does not learn generations reports zero, and every call
+// naming that slot is refused: without the slot's generation a request made
+// for a player who left would reach the next one.
 type Players func(slot int32) (steamID uint64, generation uint32, ok bool)
 
 // Answer answers one call of the persist service from the mod manifest
@@ -183,7 +192,7 @@ func Answer(store *Store, manifest *wasm.Manifest, players Players, method strin
 		if !ok {
 			return nil, 0, refuse("no player is in slot %d", slot)
 		}
-		if held != 0 && held != generation {
+		if held != generation {
 			return nil, 0, refuse("the player the request names left slot %d", slot)
 		}
 		return recordType, steamID, nil

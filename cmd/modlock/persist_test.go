@@ -53,8 +53,8 @@ func TestLocalPersist(t *testing.T) {
 
 	// A player joins slot 2 and a bot slot 3.
 	events := records.follow(func(*control.HostEvent) {})
-	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 2, SteamId: 76561197960265729}}})
-	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 3}}})
+	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 2, SteamId: 76561197960265729, Generation: 1}}})
+	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 3, Generation: 1}}})
 	var passed []string
 	answer := records.answer(func(_ context.Context, call *control.ServiceCall) ([]byte, error) {
 		passed = append(passed, call.GetService())
@@ -86,6 +86,105 @@ func TestLocalPersist(t *testing.T) {
 	// Other services go to the forwarder.
 	if _, err := answer(t.Context(), &control.ServiceCall{Mod: "prophunt", Service: "example.drills.v1"}); err != nil || len(passed) != 1 {
 		t.Fatalf("forwarded %v %v", passed, err)
+	}
+}
+
+// TestLocalPersistDelayedRequest refuses a request made for a player who has
+// since left, when it reaches the session after the next player took the
+// slot, so it cannot write that player's record.
+func TestLocalPersistDelayedRequest(t *testing.T) {
+	// A project declares a record type.
+	dir := t.TempDir()
+	manifest := `{"slug":"prophunt","services":[{"name":"persist"}],` +
+		`"persist":[{"name":"stats","writers":"WRITERS_SERVERS","fields":{"roundsWon":{"kind":"KIND_COUNT"}}}]}`
+	build := filepath.Join(dir, "build")
+	for _, file := range []string{filepath.Join(dir, "mod.json"), filepath.Join(build, "mod.json")} {
+		if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(file, []byte(manifest), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	records, err := newLocalPersist(&printer{brief: true}, []string{build})
+	if err != nil {
+		t.Fatal(err)
+	}
+	events := records.follow(func(*control.HostEvent) {})
+	answer := records.answer(nil)
+	update := func(generation uint32, key string) error {
+		payload, _ := (&persistpb.UpdateRequest{Player: 2, Generation: generation, Type: "stats", UpdateKey: key, Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}}}).MarshalVT()
+		_, err := answer(t.Context(), &control.ServiceCall{Mod: "prophunt", Service: "persist", Method: "Update", Payload: payload})
+		return err
+	}
+
+	// A holds slot 2 on connection 1 and a request is made for them; A
+	// leaves and B takes the slot on connection 2 before it arrives.
+	const a, b = 76561197960265729, 76561197960265730
+	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 2, SteamId: a, Generation: 1}}})
+	events(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 2}}})
+	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 2, SteamId: b, Generation: 2}}})
+
+	// The delayed request is refused and B's record is never written.
+	bFile := filepath.Join(dir, ".modlock", "persist", "76561197960265730.json")
+	if err := update(1, "round-1"); err == nil {
+		t.Fatal("a request made for the slot's earlier player wrote the next player's record")
+	}
+	if _, err := os.Stat(bFile); !os.IsNotExist(err) {
+		t.Fatalf("B's record was written: %v", err)
+	}
+
+	// B's own request lands.
+	if err := update(2, "round-2"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(bFile); err != nil {
+		t.Fatal(err)
+	}
+
+	// A host that names no generation has every call refused.
+	events(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 2, SteamId: b}}})
+	if err := update(2, "round-3"); err == nil || !strings.Contains(err.Error(), "left slot 2") {
+		t.Fatalf("a slot with no generation: %v", err)
+	}
+}
+
+// TestPersistSlugSymlinkRefused refuses a built mod whose records directory
+// already exists beneath Modlock's persist directory as a link elsewhere,
+// before any file is made through it.
+func TestPersistSlugSymlinkRefused(t *testing.T) {
+	// The persist directory holds a link named for the mod's slug.
+	config := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", config)
+	t.Setenv("HOME", config)
+	t.Setenv("AppData", config)
+	root := configPath("persist")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outside := t.TempDir()
+	if err := os.Symlink(outside, filepath.Join(root, "review-mod")); err != nil {
+		t.Fatal(err)
+	}
+	build := filepath.Join(t.TempDir(), "built")
+	if err := os.MkdirAll(build, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	manifest := `{"slug":"review-mod","services":[{"name":"persist"}],` +
+		`"persist":[{"name":"stats","writers":"WRITERS_SERVERS","fields":{"roundsWon":{"kind":"KIND_COUNT"}}}]}`
+	if err := os.WriteFile(filepath.Join(build, "mod.json"), []byte(manifest), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// The directory is refused and nothing is made through the link.
+	if dir, err := persistDir(build, "review-mod"); err == nil {
+		t.Fatalf("records kept through a link in %q", dir)
+	}
+	if _, err := newLocalPersist(&printer{brief: true}, []string{build}); err == nil {
+		t.Fatal("the session kept records through a link")
+	}
+	if entries, _ := os.ReadDir(outside); len(entries) != 0 {
+		t.Fatalf("files were made outside the persist directory: %v", entries)
 	}
 }
 

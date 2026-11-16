@@ -350,8 +350,10 @@ and the host refuses one whose connection is gone.
 
 `modlock play` keeps the records itself, in the sandbox and in the game, one
 file per player in the project's `.modlock/persist/`, so they survive a
-restart. In the game it learns the player in each slot as they join, and
-refuses a bot's record. It answers persist itself even with
+restart. In the game it learns the player in each slot and their connection
+as they join, and refuses a bot's record. A game host too old to name the
+connection has every persist call refused, rather than answered for whoever
+holds the slot. It answers persist itself even with
 `--forward-services`.
 
 ## The built manifest

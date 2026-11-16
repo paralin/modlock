@@ -721,6 +721,10 @@ type PlayerJoined struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// SteamId is the player's Steam ID, zero for a bot.
 	SteamId uint64 `protobuf:"fixed64,3,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	// Generation is the slot's connection generation, as mods see it in a
+	// Connection; zero from a host that does not report it. A controller that
+	// answers calls naming a generation refuses them all when it is zero.
+	Generation uint32 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 
 func (x *PlayerJoined) Reset() {
@@ -746,6 +750,13 @@ func (x *PlayerJoined) GetName() string {
 func (x *PlayerJoined) GetSteamId() uint64 {
 	if x != nil {
 		return x.SteamId
+	}
+	return 0
+}
+
+func (x *PlayerJoined) GetGeneration() uint32 {
+	if x != nil {
+		return x.Generation
 	}
 	return 0
 }
@@ -1646,6 +1657,7 @@ func (m *PlayerJoined) CloneVT() *PlayerJoined {
 	r.Slot = m.Slot
 	r.Name = m.Name
 	r.SteamId = m.SteamId
+	r.Generation = m.Generation
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2471,6 +2483,9 @@ func (this *PlayerJoined) EqualVT(that *PlayerJoined) bool {
 		return false
 	}
 	if this.SteamId != that.SteamId {
+		return false
+	}
+	if this.Generation != that.Generation {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -3663,6 +3678,11 @@ func (x *PlayerJoined) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("steamId")
 		s.WriteUint64(x.SteamId)
 	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint32(x.Generation)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -3689,6 +3709,9 @@ func (x *PlayerJoined) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "steam_id", "steamId":
 			s.AddField("steam_id")
 			x.SteamId = s.ReadUint64()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint32()
 		}
 	})
 }
@@ -5386,6 +5409,11 @@ func (m *PlayerJoined) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.SteamId != 0 {
 		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(m.SteamId))
 		i--
@@ -6394,6 +6422,7 @@ func (m *PlayerJoined) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
 	n += protobuf_go_lite.SizeFixed64NonZero(1, m.SteamId)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6910,6 +6939,10 @@ func (x *PlayerJoined) MarshalProtoText() string {
 	if x.SteamId != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
 		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -8326,6 +8359,15 @@ func (m *PlayerJoined) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.SteamId = uint64(_v64)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

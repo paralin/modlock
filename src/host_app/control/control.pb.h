@@ -2162,8 +2162,9 @@ class PlayerJoined final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kNameFieldNumber = 2,
-    kSteamIdFieldNumber = 3,
     kSlotFieldNumber = 1,
+    kGenerationFieldNumber = 4,
+    kSteamIdFieldNumber = 3,
   };
   // string name = 2;
   void clear_name() ;
@@ -2180,16 +2181,6 @@ class PlayerJoined final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
 
   public:
-  // fixed64 steam_id = 3;
-  void clear_steam_id() ;
-  ::uint64_t steam_id() const;
-  void set_steam_id(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_steam_id() const;
-  void _internal_set_steam_id(::uint64_t value);
-
-  public:
   // int32 slot = 1;
   void clear_slot() ;
   ::int32_t slot() const;
@@ -2200,11 +2191,31 @@ class PlayerJoined final : public ::google::protobuf::Message
   void _internal_set_slot(::int32_t value);
 
   public:
+  // uint32 generation = 4;
+  void clear_generation() ;
+  ::uint32_t generation() const;
+  void set_generation(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_generation() const;
+  void _internal_set_generation(::uint32_t value);
+
+  public:
+  // fixed64 steam_id = 3;
+  void clear_steam_id() ;
+  ::uint64_t steam_id() const;
+  void set_steam_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_steam_id() const;
+  void _internal_set_steam_id(::uint64_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.PlayerJoined)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 50,
                                    2>
       _table_;
@@ -2227,8 +2238,9 @@ class PlayerJoined final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
-    ::uint64_t steam_id_;
     ::int32_t slot_;
+    ::uint32_t generation_;
+    ::uint64_t steam_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -8873,7 +8885,7 @@ inline void PlayerJoined::clear_slot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.slot_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000002U);
 }
 inline ::int32_t PlayerJoined::slot() const {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.slot)
@@ -8881,7 +8893,7 @@ inline ::int32_t PlayerJoined::slot() const {
 }
 inline void PlayerJoined::set_slot(::int32_t value) {
   _internal_set_slot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.slot)
 }
 inline ::int32_t PlayerJoined::_internal_slot() const {
@@ -8963,7 +8975,7 @@ inline void PlayerJoined::clear_steam_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.steam_id_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000008U);
 }
 inline ::uint64_t PlayerJoined::steam_id() const {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.steam_id)
@@ -8971,7 +8983,7 @@ inline ::uint64_t PlayerJoined::steam_id() const {
 }
 inline void PlayerJoined::set_steam_id(::uint64_t value) {
   _internal_set_steam_id(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.steam_id)
 }
 inline ::uint64_t PlayerJoined::_internal_steam_id() const {
@@ -8981,6 +8993,31 @@ inline ::uint64_t PlayerJoined::_internal_steam_id() const {
 inline void PlayerJoined::_internal_set_steam_id(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.steam_id_ = value;
+}
+
+// uint32 generation = 4;
+inline void PlayerJoined::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t PlayerJoined::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.generation)
+  return _internal_generation();
+}
+inline void PlayerJoined::set_generation(::uint32_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.generation)
+}
+inline ::uint32_t PlayerJoined::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void PlayerJoined::_internal_set_generation(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
 }
 
 // -------------------------------------------------------------------

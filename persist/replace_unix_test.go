@@ -61,3 +61,46 @@ func TestStoreSyncsDirectory(t *testing.T) {
 		t.Fatal("an update whose directory sync failed was answered as kept")
 	}
 }
+
+// TestStoreRetrySyncsDirectory answers a resend of an update whose rename
+// landed but whose directory sync failed only once the directory is synced,
+// so the repeat is never acknowledged ahead of the durability barrier.
+func TestStoreRetrySyncsDirectory(t *testing.T) {
+	// An update renames its file in, then its directory sync fails.
+	saved := syncDir
+	t.Cleanup(func() { syncDir = saved })
+	dir := filepath.Join(t.TempDir(), "prophunt")
+	store, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	syncDir = func(string) error {
+		calls++
+		return errors.New("the disk went away")
+	}
+	ops := []*persistpb.Op{add("roundsWon", 1)}
+	if _, _, err := store.Update(76561197960265728, stats, ops, "round-1"); err == nil {
+		t.Fatal("an update whose directory sync failed was answered as kept")
+	}
+
+	// A resend while the sync still fails is refused, after trying it.
+	calls = 0
+	if _, repeated, err := store.Update(76561197960265728, stats, ops, "round-1"); err == nil {
+		t.Fatalf("a resend was answered repeated=%v with directory sync calls=%d while the sync fails", repeated, calls)
+	}
+	if calls != 1 {
+		t.Fatalf("a resend tried the directory sync %d times, want 1", calls)
+	}
+
+	// Once the sync succeeds the resend is answered as a repeat, counted once.
+	calls = 0
+	syncDir = func(d string) error {
+		calls++
+		return saved(d)
+	}
+	record, repeated, err := store.Update(76561197960265728, stats, ops, "round-1")
+	if err != nil || !repeated || calls != 1 || record.GetFields()["roundsWon"].GetNumber() != 1 {
+		t.Fatalf("resend: repeated=%v calls=%d record=%v err=%v", repeated, calls, record, err)
+	}
+}
