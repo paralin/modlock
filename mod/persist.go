@@ -114,6 +114,7 @@ func (p Player) GetRecord(recordType string, done func(*PersistRecord, error)) {
 // otherwise. done runs in a later frame and may be nil. A Player kept after
 // its player left is refused at once with ErrPlayerLeft, changing nothing.
 func (p Player) UpdateRecord(recordType string, ops []*PersistOp, key string, done func(record *PersistRecord, repeated bool, err error)) {
+	// Let a caller that wants no answer pass nil.
 	if done == nil {
 		done = func(*PersistRecord, bool, error) {}
 	}
