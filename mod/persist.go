@@ -1,11 +1,37 @@
 package mod
 
 import (
+	"errors"
+
 	persistpb "github.com/paralin/modlock/src/wasm/persist"
 )
 
 // persistService names the host service that keeps players' records.
 const persistService = "persist"
+
+// ErrPlayerLeft refuses a persist call for a Player whose connection has
+// left the server, such as one a mod kept after the player went. The slot
+// may hold another player by then, whose record the call must not reach.
+var ErrPlayerLeft = errors.New("persist: the player left; their Player no longer names a connection")
+
+// callPersist starts one call of the persist service; a test replaces it to
+// see what is sent.
+var callPersist = CallServiceLater
+
+// generation returns the connection generation p was made for, or
+// ErrPlayerLeft when p no longer names the slot's connection. The host
+// checks it again, so a call started just before the player left still
+// cannot reach the next player in the slot.
+func (p Player) generation() (uint32, error) {
+	if p.tenure == 0 || p.tenure != registered.tenures[p.slot]+1 {
+		return 0, ErrPlayerLeft
+	}
+	connection := p.Connection()
+	if connection == nil || connection.GetGeneration() == 0 {
+		return 0, ErrPlayerLeft
+	}
+	return connection.GetGeneration(), nil
+}
 
 // PersistRecord is one player's record of a type the manifest declares under
 // persist: each field written so far, by name.
@@ -52,14 +78,21 @@ func PersistRemove(field, tag string) *PersistOp {
 
 // GetRecord reads the player's record of recordType over the host's persist
 // service; done runs in a later frame with the record, empty for one never
-// written, or the error that refused the read.
+// written, or the error that refused the read. A Player kept after its
+// player left is refused at once with ErrPlayerLeft.
 func (p Player) GetRecord(recordType string, done func(*PersistRecord, error)) {
-	data, err := (&persistpb.GetRequest{Player: p.Slot(), Type: recordType}).MarshalVT()
+	// Name the player's connection, refusing a Player whose player left.
+	generation, err := p.generation()
 	if err != nil {
 		done(nil, err)
 		return
 	}
-	CallServiceLater(persistService, "Get", data, 0, func(reply []byte, err error) {
+	data, err := (&persistpb.GetRequest{Player: p.Slot(), Type: recordType, Generation: generation}).MarshalVT()
+	if err != nil {
+		done(nil, err)
+		return
+	}
+	callPersist(persistService, "Get", data, 0, func(reply []byte, err error) {
 		if err != nil {
 			done(nil, err)
 			return
@@ -78,17 +111,26 @@ func (p Player) GetRecord(recordType string, done func(*PersistRecord, error)) {
 // both land. With a key, such as a round's, an update the host already took
 // is left out and done hears repeated. An update with a PersistAdd needs a
 // key, since a resend without one would count twice; the host refuses it
-// otherwise. done runs in a later frame and may be nil.
+// otherwise. done runs in a later frame and may be nil. A Player kept after
+// its player left is refused at once with ErrPlayerLeft, changing nothing.
 func (p Player) UpdateRecord(recordType string, ops []*PersistOp, key string, done func(record *PersistRecord, repeated bool, err error)) {
 	if done == nil {
 		done = func(*PersistRecord, bool, error) {}
 	}
-	data, err := (&persistpb.UpdateRequest{Player: p.Slot(), Type: recordType, Ops: ops, UpdateKey: key}).MarshalVT()
+
+	// Name the player's connection, refusing a Player whose player left.
+	generation, err := p.generation()
+	if err != nil {
+		Log("persist ", recordType, " update: ", err)
+		done(nil, false, err)
+		return
+	}
+	data, err := (&persistpb.UpdateRequest{Player: p.Slot(), Type: recordType, Ops: ops, UpdateKey: key, Generation: generation}).MarshalVT()
 	if err != nil {
 		done(nil, false, err)
 		return
 	}
-	CallServiceLater(persistService, "Update", data, 0, func(reply []byte, err error) {
+	callPersist(persistService, "Update", data, 0, func(reply []byte, err error) {
 		if err != nil {
 			Log("persist ", recordType, " update: ", err)
 			done(nil, false, err)

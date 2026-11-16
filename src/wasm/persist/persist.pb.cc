@@ -82,7 +82,8 @@ inline constexpr GetRequest::Impl_::Impl_(
         key_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        player_{0} {}
+        player_{0},
+        generation_{0u} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR GetRequest::GetRequest(::_pbi::ConstantInitialized)
@@ -109,6 +110,8 @@ inline constexpr GetManyRequest::Impl_::Impl_(
       : _cached_size_{0},
         players_{},
         _players_cached_byte_size_{0},
+        generations_{},
+        _generations_cached_byte_size_{0},
         type_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()) {}
@@ -292,7 +295,8 @@ inline constexpr UpdateRequest::Impl_::Impl_(
         update_key_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        player_{0} {}
+        player_{0},
+        generation_{0u} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR UpdateRequest::UpdateRequest(::_pbi::ConstantInitialized)
@@ -589,13 +593,15 @@ const ::uint32_t
         ~0u,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetRequest, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetRequest, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetRequest, _impl_.type_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetRequest, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetRequest, _impl_.generation_),
         2,
         0,
         1,
+        3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetReply, _impl_._has_bits_),
         4, // hasbit index offset
@@ -603,10 +609,12 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetManyRequest, _impl_._has_bits_),
-        5, // hasbit index offset
+        6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetManyRequest, _impl_.players_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetManyRequest, _impl_.type_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetManyRequest, _impl_.generations_),
         0,
+        2,
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::GetManyReply, _impl_._has_bits_),
@@ -622,17 +630,19 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_._has_bits_),
-        8, // hasbit index offset
+        9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.type_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.key_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.ops_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.update_key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateRequest, _impl_.generation_),
         4,
         1,
         2,
         0,
         3,
+        5,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::persist::UpdateReply, _impl_._has_bits_),
         5, // hasbit index offset
@@ -685,16 +695,16 @@ static const ::_pbi::MigrationSchema
         {41, sizeof(::modlock::wasm::persist::Record)},
         {46, sizeof(::modlock::wasm::persist::Op)},
         {65, sizeof(::modlock::wasm::persist::GetRequest)},
-        {74, sizeof(::modlock::wasm::persist::GetReply)},
-        {79, sizeof(::modlock::wasm::persist::GetManyRequest)},
-        {86, sizeof(::modlock::wasm::persist::GetManyReply)},
-        {91, sizeof(::modlock::wasm::persist::PlayerRecord)},
-        {98, sizeof(::modlock::wasm::persist::UpdateRequest)},
-        {111, sizeof(::modlock::wasm::persist::UpdateReply)},
-        {118, sizeof(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse)},
-        {125, sizeof(::modlock::wasm::persist::StoredRecord)},
-        {136, sizeof(::modlock::wasm::persist::PlayerFile_RecordsEntry_DoNotUse)},
-        {143, sizeof(::modlock::wasm::persist::PlayerFile)},
+        {76, sizeof(::modlock::wasm::persist::GetReply)},
+        {81, sizeof(::modlock::wasm::persist::GetManyRequest)},
+        {90, sizeof(::modlock::wasm::persist::GetManyReply)},
+        {95, sizeof(::modlock::wasm::persist::PlayerRecord)},
+        {102, sizeof(::modlock::wasm::persist::UpdateRequest)},
+        {117, sizeof(::modlock::wasm::persist::UpdateReply)},
+        {124, sizeof(::modlock::wasm::persist::StoredRecord_KindsEntry_DoNotUse)},
+        {131, sizeof(::modlock::wasm::persist::StoredRecord)},
+        {142, sizeof(::modlock::wasm::persist::PlayerFile_RecordsEntry_DoNotUse)},
+        {149, sizeof(::modlock::wasm::persist::PlayerFile)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::persist::_RecordType_FieldsEntry_DoNotUse_default_instance_._instance,
@@ -741,40 +751,41 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\030\001 \001(\t\022\r\n\003add\030\002 \001(\001H\000\022\r\n\003max\030\003 \001(\001H\000\022\r\n\003"
     "min\030\004 \001(\001H\000\022*\n\003set\030\005 \001(\0132\033.modlock.wasm."
     "persist.ValueH\000\022\020\n\006insert\030\006 \001(\tH\000\022\020\n\006rem"
-    "ove\030\007 \001(\tH\000B\004\n\002op\"7\n\nGetRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\022\014\n\004type\030\002 \001(\t\022\013\n\003key\030\003 \001(\t\"8\n\010Ge"
-    "tReply\022,\n\006record\030\001 \001(\0132\034.modlock.wasm.pe"
-    "rsist.Record\"/\n\016GetManyRequest\022\017\n\007player"
-    "s\030\001 \003(\005\022\014\n\004type\030\002 \001(\t\"C\n\014GetManyReply\0223\n"
-    "\007records\030\001 \003(\0132\".modlock.wasm.persist.Pl"
-    "ayerRecord\"L\n\014PlayerRecord\022\016\n\006player\030\001 \001"
-    "(\005\022,\n\006record\030\002 \001(\0132\034.modlock.wasm.persis"
-    "t.Record\"u\n\rUpdateRequest\022\016\n\006player\030\001 \001("
-    "\005\022\014\n\004type\030\002 \001(\t\022\013\n\003key\030\003 \001(\t\022%\n\003ops\030\004 \003("
-    "\0132\030.modlock.wasm.persist.Op\022\022\n\nupdate_ke"
-    "y\030\005 \001(\t\"M\n\013UpdateReply\022,\n\006record\030\001 \001(\0132\034"
-    ".modlock.wasm.persist.Record\022\020\n\010repeated"
-    "\030\002 \001(\010\"\360\001\n\014StoredRecord\022,\n\006record\030\001 \001(\0132"
-    "\034.modlock.wasm.persist.Record\022\023\n\013recent_"
-    "keys\030\002 \003(\t\022\017\n\007version\030\003 \001(\004\022<\n\005kinds\030\004 \003"
-    "(\0132-.modlock.wasm.persist.StoredRecord.K"
-    "indsEntry\032N\n\nKindsEntry\022\013\n\003key\030\001 \001(\t\022/\n\005"
-    "value\030\002 \001(\0162 .modlock.wasm.persist.Field"
-    ".Kind:\0028\001\"\262\001\n\nPlayerFile\022\020\n\010steam_id\030\001 \001"
-    "(\004\022>\n\007records\030\002 \003(\0132-.modlock.wasm.persi"
-    "st.PlayerFile.RecordsEntry\032R\n\014RecordsEnt"
-    "ry\022\013\n\003key\030\001 \001(\t\0221\n\005value\030\002 \001(\0132\".modlock"
-    ".wasm.persist.StoredRecord:\0028\001*H\n\007Writer"
-    "s\022\023\n\017WRITERS_UNKNOWN\020\000\022\023\n\017WRITERS_SERVER"
-    "S\020\001\022\023\n\017WRITERS_PLAYERS\020\002B5Z3github.com/p"
-    "aralin/modlock/src/wasm/persist;persistb"
-    "\006proto3"
+    "ove\030\007 \001(\tH\000B\004\n\002op\"K\n\nGetRequest\022\016\n\006playe"
+    "r\030\001 \001(\005\022\014\n\004type\030\002 \001(\t\022\013\n\003key\030\003 \001(\t\022\022\n\nge"
+    "neration\030\020 \001(\r\"8\n\010GetReply\022,\n\006record\030\001 \001"
+    "(\0132\034.modlock.wasm.persist.Record\"D\n\016GetM"
+    "anyRequest\022\017\n\007players\030\001 \003(\005\022\014\n\004type\030\002 \001("
+    "\t\022\023\n\013generations\030\020 \003(\r\"C\n\014GetManyReply\0223"
+    "\n\007records\030\001 \003(\0132\".modlock.wasm.persist.P"
+    "layerRecord\"L\n\014PlayerRecord\022\016\n\006player\030\001 "
+    "\001(\005\022,\n\006record\030\002 \001(\0132\034.modlock.wasm.persi"
+    "st.Record\"\211\001\n\rUpdateRequest\022\016\n\006player\030\001 "
+    "\001(\005\022\014\n\004type\030\002 \001(\t\022\013\n\003key\030\003 \001(\t\022%\n\003ops\030\004 "
+    "\003(\0132\030.modlock.wasm.persist.Op\022\022\n\nupdate_"
+    "key\030\005 \001(\t\022\022\n\ngeneration\030\020 \001(\r\"M\n\013UpdateR"
+    "eply\022,\n\006record\030\001 \001(\0132\034.modlock.wasm.pers"
+    "ist.Record\022\020\n\010repeated\030\002 \001(\010\"\360\001\n\014StoredR"
+    "ecord\022,\n\006record\030\001 \001(\0132\034.modlock.wasm.per"
+    "sist.Record\022\023\n\013recent_keys\030\002 \003(\t\022\017\n\007vers"
+    "ion\030\003 \001(\004\022<\n\005kinds\030\004 \003(\0132-.modlock.wasm."
+    "persist.StoredRecord.KindsEntry\032N\n\nKinds"
+    "Entry\022\013\n\003key\030\001 \001(\t\022/\n\005value\030\002 \001(\0162 .modl"
+    "ock.wasm.persist.Field.Kind:\0028\001\"\262\001\n\nPlay"
+    "erFile\022\020\n\010steam_id\030\001 \001(\004\022>\n\007records\030\002 \003("
+    "\0132-.modlock.wasm.persist.PlayerFile.Reco"
+    "rdsEntry\032R\n\014RecordsEntry\022\013\n\003key\030\001 \001(\t\0221\n"
+    "\005value\030\002 \001(\0132\".modlock.wasm.persist.Stor"
+    "edRecord:\0028\001*H\n\007Writers\022\023\n\017WRITERS_UNKNO"
+    "WN\020\000\022\023\n\017WRITERS_SERVERS\020\001\022\023\n\017WRITERS_PLA"
+    "YERS\020\002B5Z3github.com/paralin/modlock/src"
+    "/wasm/persist;persistb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto = {
     false,
     false,
-    1967,
+    2029,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto,
     "github.com/paralin/modlock/src/wasm/persist/persist.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fpersist_2fpersist_2eproto_once,
@@ -3183,7 +3194,13 @@ GetRequest::GetRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.player_ = from._impl_.player_;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, player_),
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::generation_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.persist.GetRequest)
 }
@@ -3196,7 +3213,12 @@ PROTOBUF_NDEBUG_INLINE GetRequest::Impl_::Impl_(
 
 inline void GetRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.player_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::generation_));
 }
 GetRequest::~GetRequest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.persist.GetRequest)
@@ -3257,16 +3279,16 @@ GetRequest::GetClassData() const {
   return GetRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 47, 2>
+const ::_pbi::TcParseTable<2, 4, 0, 47, 2>
 GetRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(GetRequest, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    16, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294934520,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     GetRequest_class_data_.base(),
@@ -3276,7 +3298,10 @@ GetRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::persist::GetRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 generation = 16;
+    {::_pbi::TcParser::FastV32S2,
+     {384, 3, 0,
+      PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.generation_)}},
     // int32 player = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(GetRequest, _impl_.player_), 2>(),
      {8, 2, 0,
@@ -3298,6 +3323,8 @@ GetRequest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.type_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string key = 3;
     {PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.key_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 generation = 16;
+    {PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.generation_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
   }},
   // no aux_entries
   {{
@@ -3323,7 +3350,11 @@ PROTOBUF_NOINLINE void GetRequest::Clear() {
       _impl_.key_.ClearNonDefaultToEmpty();
     }
   }
-  _impl_.player_ = 0;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.generation_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.generation_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -3376,6 +3407,15 @@ PROTOBUF_NOINLINE void GetRequest::Clear() {
     }
   }
 
+  // uint32 generation = 16;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_generation() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          16, this_._internal_generation(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3401,7 +3441,7 @@ PROTOBUF_NOINLINE void GetRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     // string type = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_type().empty()) {
@@ -3423,6 +3463,13 @@ PROTOBUF_NOINLINE void GetRequest::Clear() {
             this_._internal_player());
       }
     }
+    // uint32 generation = 16;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_generation() != 0) {
+        total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
+                                        this_._internal_generation());
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
@@ -3442,7 +3489,7 @@ void GetRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_type().empty()) {
         _this->_internal_set_type(from._internal_type());
@@ -3464,6 +3511,11 @@ void GetRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (from._internal_player() != 0) {
         _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_generation() != 0) {
+        _this->_impl_.generation_ = from._impl_.generation_;
       }
     }
   }
@@ -3488,7 +3540,12 @@ void GetRequest::InternalSwap(GetRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.type_, &other->_impl_.type_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.key_, &other->_impl_.key_, arena);
-  swap(_impl_.player_, other->_impl_.player_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.generation_)
+      + sizeof(GetRequest::_impl_.generation_)
+      - PROTOBUF_FIELD_OFFSET(GetRequest, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
 }
 
 ::google::protobuf::Metadata GetRequest::GetMetadata() const {
@@ -3792,6 +3849,8 @@ PROTOBUF_NDEBUG_INLINE GetManyRequest::Impl_::Impl_(
         _cached_size_{0},
         players_{visibility, arena, from.players_},
         _players_cached_byte_size_{0},
+        generations_{visibility, arena, from.generations_},
+        _generations_cached_byte_size_{0},
         type_(arena, from.type_) {}
 
 GetManyRequest::GetManyRequest(
@@ -3816,6 +3875,8 @@ PROTOBUF_NDEBUG_INLINE GetManyRequest::Impl_::Impl_(
       : _cached_size_{0},
         players_{visibility, arena},
         _players_cached_byte_size_{0},
+        generations_{visibility, arena},
+        _generations_cached_byte_size_{0},
         type_(arena) {}
 
 inline void GetManyRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -3845,6 +3906,10 @@ constexpr auto GetManyRequest::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
       PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.players_) +
           decltype(GetManyRequest::_impl_.players_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.generations_) +
+          decltype(GetManyRequest::_impl_.generations_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -3891,16 +3956,16 @@ GetManyRequest::GetClassData() const {
   return GetManyRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 48, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 48, 2>
 GetManyRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    16, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294934524,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     GetManyRequest_class_data_.base(),
@@ -3910,21 +3975,28 @@ GetManyRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::persist::GetManyRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string type = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 1, 0,
-      PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.type_)}},
+    // repeated uint32 generations = 16;
+    {::_pbi::TcParser::FastV32P2,
+     {386, 1, 0,
+      PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.generations_)}},
     // repeated int32 players = 1;
     {::_pbi::TcParser::FastV32P1,
      {10, 0, 0,
       PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.players_)}},
+    // string type = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 2, 0,
+      PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.type_)}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // repeated int32 players = 1;
     {PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.players_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // string type = 2;
-    {PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.type_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.type_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // repeated uint32 generations = 16;
+    {PROTOBUF_FIELD_OFFSET(GetManyRequest, _impl_.generations_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedUInt32)},
   }},
   // no aux_entries
   {{
@@ -3941,11 +4013,14 @@ PROTOBUF_NOINLINE void GetManyRequest::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _impl_.players_.Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _impl_.generations_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       _impl_.type_.ClearNonDefaultToEmpty();
     }
   }
@@ -3984,12 +4059,23 @@ PROTOBUF_NOINLINE void GetManyRequest::Clear() {
   }
 
   // string type = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     if (!this_._internal_type().empty()) {
       const ::std::string& _s = this_._internal_type();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
           _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.persist.GetManyRequest.type");
       target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // repeated uint32 generations = 16;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+    {
+      int byte_size = this_._impl_._generations_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteUInt32Packed(
+            16, this_._internal_generations(), byte_size, target);
+      }
     }
   }
 
@@ -4018,7 +4104,7 @@ PROTOBUF_NOINLINE void GetManyRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     // repeated int32 players = 1;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size +=
@@ -4026,8 +4112,15 @@ PROTOBUF_NOINLINE void GetManyRequest::Clear() {
               this_._internal_players(), 1,
               this_._impl_._players_cached_byte_size_);
     }
+    // repeated uint32 generations = 16;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      total_size +=
+          ::_pbi::WireFormatLite::UInt32SizeWithPackedTagSize(
+              this_._internal_generations(), 2,
+              this_._impl_._generations_cached_byte_size_);
+    }
     // string type = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (!this_._internal_type().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_type());
@@ -4052,11 +4145,14 @@ void GetManyRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_players()->MergeFrom(from._internal_players());
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _this->_internal_mutable_generations()->MergeFrom(from._internal_generations());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (!from._internal_type().empty()) {
         _this->_internal_set_type(from._internal_type());
       } else {
@@ -4086,6 +4182,7 @@ void GetManyRequest::InternalSwap(GetManyRequest* PROTOBUF_RESTRICT PROTOBUF_NON
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.players_.InternalSwap(&other->_impl_.players_);
+  _impl_.generations_.InternalSwap(&other->_impl_.generations_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.type_, &other->_impl_.type_, arena);
 }
 
@@ -4732,7 +4829,13 @@ UpdateRequest::UpdateRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.player_ = from._impl_.player_;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, player_),
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::generation_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.persist.UpdateRequest)
 }
@@ -4747,7 +4850,12 @@ PROTOBUF_NDEBUG_INLINE UpdateRequest::Impl_::Impl_(
 
 inline void UpdateRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.player_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::generation_));
 }
 UpdateRequest::~UpdateRequest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.persist.UpdateRequest)
@@ -4821,16 +4929,16 @@ UpdateRequest::GetClassData() const {
   return UpdateRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 5, 1, 60, 2>
+const ::_pbi::TcParseTable<3, 6, 1, 60, 2>
 UpdateRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    16, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294934496,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
+    6,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     UpdateRequest_class_data_.base(),
@@ -4840,7 +4948,10 @@ UpdateRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::persist::UpdateRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 generation = 16;
+    {::_pbi::TcParser::FastV32S2,
+     {384, 5, 0,
+      PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.generation_)}},
     // int32 player = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UpdateRequest, _impl_.player_), 4>(),
      {8, 4, 0,
@@ -4876,6 +4987,8 @@ UpdateRequest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.ops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // string update_key = 5;
     {PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.update_key_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 generation = 16;
+    {PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.generation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::persist::Op>()},
@@ -4910,7 +5023,11 @@ PROTOBUF_NOINLINE void UpdateRequest::Clear() {
       _impl_.update_key_.ClearNonDefaultToEmpty();
     }
   }
-  _impl_.player_ = 0;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000030U)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.generation_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.generation_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -4986,6 +5103,15 @@ PROTOBUF_NOINLINE void UpdateRequest::Clear() {
     }
   }
 
+  // uint32 generation = 16;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (this_._internal_generation() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          16, this_._internal_generation(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -5011,7 +5137,7 @@ PROTOBUF_NOINLINE void UpdateRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     // repeated .modlock.wasm.persist.Op ops = 4;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_ops_size();
@@ -5047,6 +5173,13 @@ PROTOBUF_NOINLINE void UpdateRequest::Clear() {
             this_._internal_player());
       }
     }
+    // uint32 generation = 16;
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (this_._internal_generation() != 0) {
+        total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
+                                        this_._internal_generation());
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
@@ -5067,7 +5200,7 @@ void UpdateRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_ops()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -5105,6 +5238,11 @@ void UpdateRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.player_ = from._impl_.player_;
       }
     }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (from._internal_generation() != 0) {
+        _this->_impl_.generation_ = from._impl_.generation_;
+      }
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -5129,7 +5267,12 @@ void UpdateRequest::InternalSwap(UpdateRequest* PROTOBUF_RESTRICT PROTOBUF_NONNU
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.type_, &other->_impl_.type_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.key_, &other->_impl_.key_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.update_key_, &other->_impl_.update_key_, arena);
-  swap(_impl_.player_, other->_impl_.player_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.generation_)
+      + sizeof(UpdateRequest::_impl_.generation_)
+      - PROTOBUF_FIELD_OFFSET(UpdateRequest, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
 }
 
 ::google::protobuf::Metadata UpdateRequest::GetMetadata() const {

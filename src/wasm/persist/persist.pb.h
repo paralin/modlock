@@ -628,6 +628,7 @@ class MODLOCK_API GetRequest final : public ::google::protobuf::Message
     kTypeFieldNumber = 2,
     kKeyFieldNumber = 3,
     kPlayerFieldNumber = 1,
+    kGenerationFieldNumber = 16,
   };
   // string type = 2;
   void clear_type() ;
@@ -669,11 +670,21 @@ class MODLOCK_API GetRequest final : public ::google::protobuf::Message
   void _internal_set_player(::int32_t value);
 
   public:
+  // uint32 generation = 16;
+  void clear_generation() ;
+  ::uint32_t generation() const;
+  void set_generation(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_generation() const;
+  void _internal_set_generation(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.persist.GetRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 47,
                                    2>
       _table_;
@@ -698,6 +709,7 @@ class MODLOCK_API GetRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr type_;
     ::google::protobuf::internal::ArenaStringPtr key_;
     ::int32_t player_;
+    ::uint32_t generation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -850,6 +862,7 @@ class MODLOCK_API GetManyRequest final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kPlayersFieldNumber = 1,
+    kGenerationsFieldNumber = 16,
     kTypeFieldNumber = 2,
   };
   // repeated int32 players = 1;
@@ -868,6 +881,24 @@ class MODLOCK_API GetManyRequest final : public ::google::protobuf::Message
   private:
   const ::google::protobuf::RepeatedField<::int32_t>& _internal_players() const;
   ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_players();
+
+  public:
+  // repeated uint32 generations = 16;
+  int generations_size() const;
+  private:
+  int _internal_generations_size() const;
+
+  public:
+  void clear_generations() ;
+  ::uint32_t generations(int index) const;
+  void set_generations(int index, ::uint32_t value);
+  void add_generations(::uint32_t value);
+  const ::google::protobuf::RepeatedField<::uint32_t>& generations() const;
+  ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL mutable_generations();
+
+  private:
+  const ::google::protobuf::RepeatedField<::uint32_t>& _internal_generations() const;
+  ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL _internal_mutable_generations();
 
   public:
   // string type = 2;
@@ -889,7 +920,7 @@ class MODLOCK_API GetManyRequest final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 48,
                                    2>
       _table_;
@@ -913,6 +944,8 @@ class MODLOCK_API GetManyRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedField<::int32_t> players_;
     ::google::protobuf::internal::CachedSize _players_cached_byte_size_;
+    ::google::protobuf::RepeatedField<::uint32_t> generations_;
+    ::google::protobuf::internal::CachedSize _generations_cached_byte_size_;
     ::google::protobuf::internal::ArenaStringPtr type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -2163,6 +2196,7 @@ class MODLOCK_API UpdateRequest final : public ::google::protobuf::Message
     kKeyFieldNumber = 3,
     kUpdateKeyFieldNumber = 5,
     kPlayerFieldNumber = 1,
+    kGenerationFieldNumber = 16,
   };
   // repeated .modlock.wasm.persist.Op ops = 4;
   int ops_size() const;
@@ -2236,11 +2270,21 @@ class MODLOCK_API UpdateRequest final : public ::google::protobuf::Message
   void _internal_set_player(::int32_t value);
 
   public:
+  // uint32 generation = 16;
+  void clear_generation() ;
+  ::uint32_t generation() const;
+  void set_generation(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_generation() const;
+  void _internal_set_generation(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.persist.UpdateRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
                                    1, 60,
                                    2>
       _table_;
@@ -2267,6 +2311,7 @@ class MODLOCK_API UpdateRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr key_;
     ::google::protobuf::internal::ArenaStringPtr update_key_;
     ::int32_t player_;
+    ::uint32_t generation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4870,6 +4915,31 @@ inline void GetRequest::set_allocated_key(::std::string* PROTOBUF_NULLABLE value
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.persist.GetRequest.key)
 }
 
+// uint32 generation = 16;
+inline void GetRequest::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t GetRequest::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.persist.GetRequest.generation)
+  return _internal_generation();
+}
+inline void GetRequest::set_generation(::uint32_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.persist.GetRequest.generation)
+}
+inline ::uint32_t GetRequest::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void GetRequest::_internal_set_generation(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // GetReply
@@ -5032,7 +5102,7 @@ inline void GetManyRequest::clear_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline const ::std::string& GetManyRequest::type() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -5042,13 +5112,13 @@ inline const ::std::string& GetManyRequest::type() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void GetManyRequest::set_type(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   _impl_.type_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.persist.GetManyRequest.type)
 }
 inline ::std::string* PROTOBUF_NONNULL GetManyRequest::mutable_type()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::std::string* _s = _internal_mutable_type();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.persist.GetManyRequest.type)
   return _s;
@@ -5068,10 +5138,10 @@ inline ::std::string* PROTOBUF_NONNULL GetManyRequest::_internal_mutable_type() 
 inline ::std::string* PROTOBUF_NULLABLE GetManyRequest::release_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.persist.GetManyRequest.type)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   auto* released = _impl_.type_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.type_.Set("", GetArena());
@@ -5081,15 +5151,65 @@ inline ::std::string* PROTOBUF_NULLABLE GetManyRequest::release_type() {
 inline void GetManyRequest::set_allocated_type(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
   _impl_.type_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.type_.IsDefault()) {
     _impl_.type_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.persist.GetManyRequest.type)
+}
+
+// repeated uint32 generations = 16;
+inline int GetManyRequest::_internal_generations_size() const {
+  return _internal_generations().size();
+}
+inline int GetManyRequest::generations_size() const {
+  return _internal_generations_size();
+}
+inline void GetManyRequest::clear_generations() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generations_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t GetManyRequest::generations(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.persist.GetManyRequest.generations)
+  return _internal_generations().Get(index);
+}
+inline void GetManyRequest::set_generations(int index, ::uint32_t value) {
+  _internal_mutable_generations()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.persist.GetManyRequest.generations)
+}
+inline void GetManyRequest::add_generations(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_generations()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.persist.GetManyRequest.generations)
+}
+inline const ::google::protobuf::RepeatedField<::uint32_t>& GetManyRequest::generations() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.persist.GetManyRequest.generations)
+  return _internal_generations();
+}
+inline ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL GetManyRequest::mutable_generations()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.persist.GetManyRequest.generations)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_generations();
+}
+inline const ::google::protobuf::RepeatedField<::uint32_t>&
+GetManyRequest::_internal_generations() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generations_;
+}
+inline ::google::protobuf::RepeatedField<::uint32_t>* PROTOBUF_NONNULL
+GetManyRequest::_internal_mutable_generations() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.generations_;
 }
 
 // -------------------------------------------------------------------
@@ -5558,6 +5678,31 @@ inline void UpdateRequest::set_allocated_update_key(::std::string* PROTOBUF_NULL
     _impl_.update_key_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.persist.UpdateRequest.update_key)
+}
+
+// uint32 generation = 16;
+inline void UpdateRequest::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline ::uint32_t UpdateRequest::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.persist.UpdateRequest.generation)
+  return _internal_generation();
+}
+inline void UpdateRequest::set_generation(::uint32_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.persist.UpdateRequest.generation)
+}
+inline ::uint32_t UpdateRequest::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void UpdateRequest::_internal_set_generation(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
 }
 
 // -------------------------------------------------------------------

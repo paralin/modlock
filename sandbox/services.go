@@ -43,7 +43,10 @@ func (s *Sandbox) provide(path string, build *Build) error {
 	if len(build.Manifest.GetPersist()) != 0 {
 		dir := ""
 		if s.config.Persist != nil {
-			dir = s.config.Persist(path, mod)
+			var err error
+			if dir, err = s.config.Persist(path, mod); err != nil {
+				return err
+			}
 		}
 		if dir == "" {
 			temp, err := os.MkdirTemp("", "modlock-persist-")
@@ -157,8 +160,9 @@ func (f *fixture) answer(call *wasm.ServiceCall) *wasm.Reply {
 // sandbox's one player in slot 0. A refused call is logged, so the mod's
 // author sees why.
 func (s *Sandbox) persist(build *Build, call *wasm.ServiceCall) *wasm.Reply {
-	players := func(slot int32) (uint64, bool) {
-		return player.GetSteamId(), slot == player.GetPlayer()
+	// Answer from the records for the sandbox's player on its connection.
+	players := func(slot int32) (uint64, uint32, bool) {
+		return player.GetSteamId(), player.GetGeneration(), slot == player.GetPlayer()
 	}
 	response, err := persist.Answer(build.records, build.Manifest, players, call.GetMethod(), call.GetPayload())
 	if err != nil {

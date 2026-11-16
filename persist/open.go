@@ -54,7 +54,7 @@ func (s *storeSet) open(dir string) (*Store, error) {
 	}
 
 	// Lock the directory, or name the process that holds it.
-	if err := os.MkdirAll(abs, 0o755); err != nil {
+	if err := makeDir(abs); err != nil {
 		return nil, err
 	}
 	held, err := filelock.Lock(filepath.Join(abs, LockFile), true, false)
@@ -101,4 +101,27 @@ func holder(dir string) string {
 		return "a process that has not named itself"
 	}
 	return string(data)
+}
+
+// makeDir creates dir and its missing parents, and syncs the directory
+// holding each one it created, so a crash cannot lose the directory under
+// records the store already answered for.
+func makeDir(dir string) error {
+	// Note the directories that do not exist yet, innermost first.
+	var made []string
+	for d := dir; ; d = filepath.Dir(d) {
+		if _, err := os.Stat(d); err == nil || filepath.Dir(d) == d {
+			break
+		}
+		made = append(made, d)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	for _, d := range made {
+		if err := syncDir(filepath.Dir(d)); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -29,7 +29,7 @@ func TestPersistService(t *testing.T) {
 	start := func() (*Sandbox, *Build, []string) {
 		var logged []string
 		s := &Sandbox{config: Config{
-			Persist: func(path, slug string) string { return dir },
+			Persist: func(path, slug string) (string, error) { return dir, nil },
 			Events:  func(event *control.HostEvent) { logged = append(logged, event.GetLog().GetText()) },
 		}}
 		build := &Build{Manifest: manifest}
@@ -57,7 +57,7 @@ func TestPersistService(t *testing.T) {
 		t.Fatalf("logged %q, want %q", logged, want)
 	}
 	ended := call(s, build, "Update", &persistpb.UpdateRequest{
-		Player: 0, Type: "stats", UpdateKey: "round-1",
+		Player: 0, Generation: 1, Type: "stats", UpdateKey: "round-1",
 		Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}},
 	})
 	if ended.GetError() != "" {
@@ -66,14 +66,14 @@ func TestPersistService(t *testing.T) {
 
 	// A new sandbox on the directory reads the record back.
 	s, build, _ = start()
-	ended = call(s, build, "Get", &persistpb.GetRequest{Player: 0, Type: "stats"})
+	ended = call(s, build, "Get", &persistpb.GetRequest{Player: 0, Generation: 1, Type: "stats"})
 	got := &persistpb.GetReply{}
 	if err := got.UnmarshalVT(ended.GetPayload()); err != nil || got.GetRecord().GetFields()["roundsWon"].GetNumber() != 1 {
 		t.Fatalf("after restart: %v %v %s", got, err, ended.GetError())
 	}
 
 	// Slot 3 holds nobody in the sandbox.
-	ended = call(s, build, "Get", &persistpb.GetRequest{Player: 3, Type: "stats"})
+	ended = call(s, build, "Get", &persistpb.GetRequest{Player: 3, Generation: 1, Type: "stats"})
 	if ended.GetFailure() != wasm.ServiceFailure_SERVICE_FAILURE_REFUSED || !strings.Contains(ended.GetError(), "no player is in slot 3") {
 		t.Fatalf("slot 3: %v", ended)
 	}

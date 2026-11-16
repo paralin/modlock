@@ -12,6 +12,7 @@
 import * as persistPb from '../../src/wasm/persist/persist.pb.js'
 import { callServiceLater } from './service-later.js'
 import { log, type Player } from './host.gen.js'
+import { connection } from './players.js'
 
 /** service names the host service that keeps records. */
 const service = 'persist'
@@ -121,13 +122,41 @@ function start(known: Entry): number {
   return known.started
 }
 
+/** left is why a Player kept after its player left is refused. */
+const left =
+  'the player left; their Player no longer names a connection, and the slot may hold another player'
+
+/**
+ * generation returns the connection generation player was made for, or
+ * undefined when player no longer names the connection in its slot, as when
+ * the mod kept it after the player left. The host checks it again, so a
+ * request started just before the player left still cannot reach the next
+ * player in the slot.
+ */
+function generation(player: Player): number | undefined {
+  const held = connection(player)
+  if (held === undefined || held.player !== player || !held.generation) {
+    return undefined
+  }
+  return held.generation
+}
+
 /** load asks the host for player's record of type. */
 function load(player: Player, type: string, known: Entry): void {
   const request = start(known)
+  const live = generation(player)
+  if (live === undefined) {
+    settle(known, request, unavailable(type, left))
+    return
+  }
   callServiceLater(
     service,
     'Get',
-    persistPb.GetRequest.toBinary({ player: player.slot, type }),
+    persistPb.GetRequest.toBinary({
+      player: player.slot,
+      type,
+      generation: live,
+    }),
     (reply, error) => {
       if (reply === undefined) {
         settle(known, request, unavailable(type, error))
@@ -161,18 +190,33 @@ export const persist = {
   /**
    * getMany starts reading the record of type for each of players, up to
    * 16, in one call, such as everyone in a lobby at join. persist.get then
-   * answers each.
+   * answers each; a Player kept after its player left answers unavailable.
    */
   getMany(players: readonly Player[], type: string): void {
-    const pending = players.map((player) => {
+    // Start each live player's read; a left player's is unavailable at once.
+    const pending: {
+      player: Player
+      known: Entry
+      request: number
+      generation: number
+    }[] = []
+    for (const player of players) {
       const known = entry(player, type)
-      return { player, known, request: start(known) }
-    })
+      const request = start(known)
+      const live = generation(player)
+      if (live === undefined) {
+        settle(known, request, unavailable(type, left))
+        continue
+      }
+      pending.push({ player, known, request, generation: live })
+    }
+    if (pending.length === 0) return
     callServiceLater(
       service,
       'GetMany',
       persistPb.GetManyRequest.toBinary({
-        players: players.map((player) => player.slot),
+        players: pending.map((p) => p.player.slot),
+        generations: pending.map((p) => p.generation),
         type,
       }),
       (reply, error) => {
@@ -205,7 +249,8 @@ export const persist = {
    * twice. An update the host answers as taking too long may still have been
    * kept: send it again with the same key, and do not act as if nothing was
    * written. persist.get answers the changed record once the host has
-   * answered, and done runs then.
+   * answered, and done runs then. An update for a Player kept after its
+   * player left is refused without being sent.
    */
   update(
     player: Player,
@@ -223,6 +268,12 @@ export const persist = {
       done?.(undefined, why)
       return
     }
+    const live = generation(player)
+    if (live === undefined) {
+      log(`persist ${type} update: ${left}`)
+      done?.(undefined, left)
+      return
+    }
     const known = entry(player, type)
     const request = start(known)
     callServiceLater(
@@ -230,6 +281,7 @@ export const persist = {
       'Update',
       persistPb.UpdateRequest.toBinary({
         player: player.slot,
+        generation: live,
         type,
         key: options.record,
         ops,

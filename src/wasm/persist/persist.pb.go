@@ -429,6 +429,12 @@ type GetRequest struct {
 	// Key selects one of the player's records of the type. Empty is the one
 	// record each player has; hosts refuse any other key for now.
 	Key string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
+	// Generation is the connection generation of the Player the request was
+	// made for, as Connection.generation carries it. The host refuses the
+	// request unless the slot's connection still has that generation, so a
+	// Player kept after its player left never reads or changes the record of
+	// the next player in the slot. Zero is never a connection's generation.
+	Generation uint32 `protobuf:"varint,16,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 
 func (x *GetRequest) Reset() {
@@ -456,6 +462,13 @@ func (x *GetRequest) GetKey() string {
 		return x.Key
 	}
 	return ""
+}
+
+func (x *GetRequest) GetGeneration() uint32 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
 }
 
 // GetReply is the response of the Get method.
@@ -486,6 +499,9 @@ type GetManyRequest struct {
 	Players []int32 `protobuf:"varint,1,rep,packed,name=players,proto3" json:"players,omitempty"`
 	// Type names a record type the manifest declares.
 	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	// Generations holds the connection generation of each of players, in the
+	// same order, as GetRequest's generation does for one player.
+	Generations []uint32 `protobuf:"varint,16,rep,packed,name=generations,proto3" json:"generations,omitempty"`
 }
 
 func (x *GetManyRequest) Reset() {
@@ -506,6 +522,13 @@ func (x *GetManyRequest) GetType() string {
 		return x.Type
 	}
 	return ""
+}
+
+func (x *GetManyRequest) GetGenerations() []uint32 {
+	if x != nil {
+		return x.Generations
+	}
+	return nil
 }
 
 // GetManyReply is the response of the GetMany method.
@@ -574,6 +597,8 @@ type UpdateRequest struct {
 	// counts once: an update whose key is among the record's last 64 is
 	// left out. Up to 64 bytes; empty applies the update every time.
 	UpdateKey string `protobuf:"bytes,5,opt,name=update_key,json=updateKey,proto3" json:"updateKey,omitempty"`
+	// Generation is the connection generation of the Player, as in GetRequest.
+	Generation uint32 `protobuf:"varint,16,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 
 func (x *UpdateRequest) Reset() {
@@ -615,6 +640,13 @@ func (x *UpdateRequest) GetUpdateKey() string {
 		return x.UpdateKey
 	}
 	return ""
+}
+
+func (x *UpdateRequest) GetGeneration() uint32 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
 }
 
 // UpdateReply is the response of the Update method.
@@ -1058,6 +1090,7 @@ func (m *GetRequest) CloneVT() *GetRequest {
 	r.Player = m.Player
 	r.Type = m.Type
 	r.Key = m.Key
+	r.Generation = m.Generation
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1091,6 +1124,7 @@ func (m *GetManyRequest) CloneVT() *GetManyRequest {
 	r := new(GetManyRequest)
 	r.Type = m.Type
 	r.Players = protobuf_go_lite.CloneSlice(m.Players)
+	r.Generations = protobuf_go_lite.CloneSlice(m.Generations)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1143,6 +1177,7 @@ func (m *UpdateRequest) CloneVT() *UpdateRequest {
 	r.Type = m.Type
 	r.Key = m.Key
 	r.UpdateKey = m.UpdateKey
+	r.Generation = m.Generation
 	r.Ops = protobuf_go_lite.CloneVTSlice(m.Ops)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -1521,6 +1556,9 @@ func (this *GetRequest) EqualVT(that *GetRequest) bool {
 	if this.Key != that.Key {
 		return false
 	}
+	if this.Generation != that.Generation {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1562,6 +1600,9 @@ func (this *GetManyRequest) EqualVT(that *GetManyRequest) bool {
 		return false
 	}
 	if this.Type != that.Type {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Generations, that.Generations) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1637,6 +1678,9 @@ func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
 		return false
 	}
 	if this.UpdateKey != that.UpdateKey {
+		return false
+	}
+	if this.Generation != that.Generation {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2339,6 +2383,11 @@ func (x *GetRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("key")
 		s.WriteString(x.Key)
 	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint32(x.Generation)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2365,6 +2414,9 @@ func (x *GetRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "key":
 			s.AddField("key")
 			x.Key = s.ReadString()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint32()
 		}
 	})
 }
@@ -2438,6 +2490,11 @@ func (x *GetManyRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("type")
 		s.WriteString(x.Type)
 	}
+	if len(x.Generations) > 0 || s.HasField("generations") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generations")
+		s.WriteUint32Array(x.Generations)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2465,6 +2522,13 @@ func (x *GetManyRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "type":
 			s.AddField("type")
 			x.Type = s.ReadString()
+		case "generations":
+			s.AddField("generations")
+			if s.ReadNil() {
+				x.Generations = nil
+				return
+			}
+			x.Generations = s.ReadUint32Array()
 		}
 	})
 }
@@ -2630,6 +2694,11 @@ func (x *UpdateRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("updateKey")
 		s.WriteString(x.UpdateKey)
 	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint32(x.Generation)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2677,6 +2746,9 @@ func (x *UpdateRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "update_key", "updateKey":
 			s.AddField("update_key")
 			x.UpdateKey = s.ReadString()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint32()
 		}
 	})
 }
@@ -3452,6 +3524,13 @@ func (m *GetRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x80
+	}
 	if len(m.Key) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
 		i--
@@ -3540,6 +3619,13 @@ func (m *GetManyRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Generations) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Generations)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x82
 	}
 	if len(m.Type) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Type)
@@ -3673,6 +3759,13 @@ func (m *UpdateRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x80
 	}
 	if len(m.UpdateKey) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.UpdateKey)
@@ -4083,6 +4176,7 @@ func (m *GetRequest) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Type)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Generation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4109,6 +4203,7 @@ func (m *GetManyRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintPacked(1, m.Players)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Type)
+	n += protobuf_go_lite.SizeVarintPacked(2, m.Generations)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4156,6 +4251,7 @@ func (m *UpdateRequest) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.UpdateKey)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Generation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4434,6 +4530,10 @@ func (x *GetRequest) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
 		protobuf_go_lite.TextWriteString(&sb, x.Key)
 	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -4469,6 +4569,14 @@ func (x *GetManyRequest) MarshalProtoText() string {
 	if x.Type != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "type")
 		protobuf_go_lite.TextWriteString(&sb, x.Type)
+	}
+	if len(x.Generations) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "generations")
+		for i, v := range x.Generations {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteUint(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -4547,6 +4655,10 @@ func (x *UpdateRequest) MarshalProtoText() string {
 	if x.UpdateKey != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "update_key")
 		protobuf_go_lite.TextWriteString(&sb, x.UpdateKey)
+	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5255,6 +5367,15 @@ func (m *GetRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Key = v
+		case 16:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -5396,6 +5517,36 @@ func (m *GetManyRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Type = v
+		case 16:
+			if wireType == 0 {
+				var v uint32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Generations = append(m.Generations, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Generations) == 0 {
+					m.Generations = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Generations = append(m.Generations, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generations", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -5614,6 +5765,15 @@ func (m *UpdateRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.UpdateKey = v
+		case 16:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

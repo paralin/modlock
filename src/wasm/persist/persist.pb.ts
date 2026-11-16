@@ -524,6 +524,14 @@ export interface GetRequest {
    * record each player has; hosts refuse any other key for now.
    */
   key?: string
+  /**
+   * Generation is the connection generation of the Player the request was
+   * made for, as Connection.generation carries it. The host refuses the
+   * request unless the slot's connection still has that generation, so a
+   * Player kept after its player left never reads or changes the record of
+   * the next player in the slot. Zero is never a connection's generation.
+   */
+  generation?: number
 }
 
 export const GetRequest: MessageType<GetRequest> =
@@ -533,6 +541,7 @@ export const GetRequest: MessageType<GetRequest> =
       [1, 'player', 5],
       [2, 'type', 9],
       [3, 'key', 9],
+      [16, 'generation', 13],
     ],
     {
       decode: (r: BinaryReader, end: number, m: GetRequest): GetRequest => {
@@ -548,6 +557,9 @@ export const GetRequest: MessageType<GetRequest> =
               break
             case 3:
               m.key = r.string()
+              break
+            case 16:
+              m.generation = r.uint32()
               break
             default:
               r.skip(t)
@@ -567,6 +579,10 @@ export const GetRequest: MessageType<GetRequest> =
         {
           const v = m.key
           if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(128).uint32(v)
         }
       },
     },
@@ -627,6 +643,11 @@ export interface GetManyRequest {
    * Type names a record type the manifest declares.
    */
   type?: string
+  /**
+   * Generations holds the connection generation of each of players, in the
+   * same order, as GetRequest's generation does for one player.
+   */
+  generations?: number[]
 }
 
 export const GetManyRequest: MessageType<GetManyRequest> =
@@ -635,6 +656,7 @@ export const GetManyRequest: MessageType<GetManyRequest> =
     () => [
       [1, 'players', 5, 3],
       [2, 'type', 9],
+      [16, 'generations', 13, 3],
     ],
     {
       decode: (
@@ -652,6 +674,10 @@ export const GetManyRequest: MessageType<GetManyRequest> =
               break
             case 2:
               m.type = r.string()
+              break
+            case 16:
+              for (const e = r.run(t), a = (m.generations ??= []); r.pos < e;)
+                a.push(r.uint32())
               break
             default:
               r.skip(t)
@@ -671,6 +697,14 @@ export const GetManyRequest: MessageType<GetManyRequest> =
         {
           const v = m.type
           if (v) w.uint32(18).string(v)
+        }
+        {
+          const a = m.generations
+          if (a != null && a.length > 0) {
+            const s = w.uint32(130).fork()
+            for (const e of a) w.uint32(e)
+            w.join(s)
+          }
         }
       },
     },
@@ -800,6 +834,10 @@ export interface UpdateRequest {
    * left out. Up to 64 bytes; empty applies the update every time.
    */
   updateKey?: string
+  /**
+   * Generation is the connection generation of the Player, as in GetRequest.
+   */
+  generation?: number
 }
 
 export const UpdateRequest: MessageType<UpdateRequest> =
@@ -811,6 +849,7 @@ export const UpdateRequest: MessageType<UpdateRequest> =
       [3, 'key', 9],
       [4, 'ops', 11, 1, Op.codec],
       [5, 'update_key', 9],
+      [16, 'generation', 13],
     ],
     {
       decode: (
@@ -836,6 +875,9 @@ export const UpdateRequest: MessageType<UpdateRequest> =
               break
             case 5:
               m.updateKey = r.string()
+              break
+            case 16:
+              m.generation = r.uint32()
               break
             default:
               r.skip(t)
@@ -863,6 +905,10 @@ export const UpdateRequest: MessageType<UpdateRequest> =
         {
           const v = m.updateKey
           if (v) w.uint32(42).string(v)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(128).uint32(v)
         }
       },
     },

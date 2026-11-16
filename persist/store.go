@@ -109,7 +109,8 @@ func (s *Store) Update(steamID uint64, recordType *persistpb.RecordType, ops []*
 	return recordOf(next), false, s.write(s.path(steamID), data)
 }
 
-// write replaces path with data through a file beside it.
+// write replaces path with data through a file beside it, and returns once
+// both the data and the replace would survive an OS crash or power loss.
 func (s *Store) write(path string, data []byte) error {
 	// Never acknowledge a file the reader's bound would make unreadable.
 	if len(data) > FileBytes {
@@ -117,7 +118,7 @@ func (s *Store) write(path string, data []byte) error {
 	}
 
 	// Replace in the same directory so readers see the old or new whole file.
-	if err := os.MkdirAll(s.dir, 0o755); err != nil {
+	if err := makeDir(s.dir); err != nil {
 		return err
 	}
 	temp, err := os.CreateTemp(s.dir, ".update-*")
@@ -136,7 +137,11 @@ func (s *Store) write(path string, data []byte) error {
 	if err := temp.Close(); err != nil {
 		return err
 	}
-	return os.Rename(temp.Name(), path)
+
+	// Answer only once the new name is durable too. A failure past the
+	// rename may leave the update kept, as a lost answer does; a resend with
+	// the same update key counts once.
+	return replace(temp.Name(), path)
 }
 
 // recordOf returns stored's record, or an empty one.
@@ -147,18 +152,23 @@ func recordOf(stored *persistpb.StoredRecord) *persistpb.Record {
 	return &persistpb.Record{}
 }
 
-// Players resolves a server slot to the SteamID64 of the player in it, and
-// reports false for an empty slot.
-type Players func(slot int32) (uint64, bool)
+// Players resolves a server slot to the SteamID64 of the player in it and
+// the generation of their connection, and reports false for an empty slot.
+// A host that does not learn generations reports zero, which leaves the
+// check of a request's generation to the mod library.
+type Players func(slot int32) (steamID uint64, generation uint32, ok bool)
 
 // Answer answers one call of the persist service from the mod manifest
 // describes: its record types, its players and the store of its records. It
 // returns the reply's bytes, or a Refusal for a call that breaks a rule or a
-// bound.
+// bound. A call reaches a player's record only when it names the generation
+// of the connection in the slot, so a Player a mod kept after its player left
+// cannot reach the next player in the slot.
 func Answer(store *Store, manifest *wasm.Manifest, players Players, method string, payload []byte) ([]byte, error) {
 	// Find the record type and player a call reaches.
-	reach := func(typeName, key string, slot int32) (*persistpb.RecordType, uint64, error) {
-		// A slot reaches only the declared record of the human who holds it.
+	reach := func(typeName, key string, slot int32, generation uint32) (*persistpb.RecordType, uint64, error) {
+		// A slot reaches only the declared record of the human who holds it,
+		// on the connection the call was made for.
 		recordType := Find(manifest, typeName)
 		if recordType == nil {
 			return nil, 0, refuse("mod.json declares no persist record type %q", typeName)
@@ -166,9 +176,15 @@ func Answer(store *Store, manifest *wasm.Manifest, players Players, method strin
 		if err := CheckKey(key); err != nil {
 			return nil, 0, err
 		}
-		steamID, ok := players(slot)
+		if generation == 0 {
+			return nil, 0, refuse("a persist request names its player's connection generation; build the mod with this Modlock")
+		}
+		steamID, held, ok := players(slot)
 		if !ok {
 			return nil, 0, refuse("no player is in slot %d", slot)
+		}
+		if held != 0 && held != generation {
+			return nil, 0, refuse("the player the request names left slot %d", slot)
 		}
 		return recordType, steamID, nil
 	}
@@ -179,7 +195,7 @@ func Answer(store *Store, manifest *wasm.Manifest, players Players, method strin
 		if err := request.UnmarshalVT(payload); err != nil {
 			return nil, refuse("the persist Get request is malformed")
 		}
-		recordType, steamID, err := reach(request.GetType(), request.GetKey(), request.GetPlayer())
+		recordType, steamID, err := reach(request.GetType(), request.GetKey(), request.GetPlayer(), request.GetGeneration())
 		if err != nil {
 			return nil, err
 		}
@@ -196,9 +212,12 @@ func Answer(store *Store, manifest *wasm.Manifest, players Players, method strin
 		if len(request.GetPlayers()) > ManyLimit {
 			return nil, refuse("a persist GetMany reads up to %d players", ManyLimit)
 		}
+		if len(request.GetGenerations()) != len(request.GetPlayers()) {
+			return nil, refuse("a persist GetMany names one connection generation for each player")
+		}
 		reply := &persistpb.GetManyReply{}
-		for _, slot := range request.GetPlayers() {
-			recordType, steamID, err := reach(request.GetType(), "", slot)
+		for i, slot := range request.GetPlayers() {
+			recordType, steamID, err := reach(request.GetType(), "", slot, request.GetGenerations()[i])
 			if err != nil {
 				return nil, err
 			}
@@ -214,7 +233,7 @@ func Answer(store *Store, manifest *wasm.Manifest, players Players, method strin
 		if err := request.UnmarshalVT(payload); err != nil {
 			return nil, refuse("the persist Update request is malformed")
 		}
-		recordType, steamID, err := reach(request.GetType(), request.GetKey(), request.GetPlayer())
+		recordType, steamID, err := reach(request.GetType(), request.GetKey(), request.GetPlayer(), request.GetGeneration())
 		if err != nil {
 			return nil, err
 		}

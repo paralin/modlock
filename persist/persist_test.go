@@ -381,14 +381,14 @@ func TestAnswer(t *testing.T) {
 	// Resolve players through the same slot callback the local host uses.
 	store := newStore(t.TempDir())
 	m := manifest()
-	players := func(slot int32) (uint64, bool) { return 100 + uint64(slot), slot < 4 }
+	players := func(slot int32) (uint64, uint32, bool) { return 100 + uint64(slot), 10 + uint32(slot), slot < 4 }
 	call := func(method string, request interface{ MarshalVT() ([]byte, error) }) ([]byte, error) {
 		payload, _ := request.MarshalVT()
 		return Answer(store, m, players, method, payload)
 	}
 
 	// An update and a read reach the player in the slot.
-	data, err := call("Update", &persistpb.UpdateRequest{Player: 1, Type: "stats", Ops: []*persistpb.Op{add("roundsWon", 1)}, UpdateKey: "r1"})
+	data, err := call("Update", &persistpb.UpdateRequest{Player: 1, Generation: 11, Type: "stats", Ops: []*persistpb.Op{add("roundsWon", 1)}, UpdateKey: "r1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +396,7 @@ func TestAnswer(t *testing.T) {
 	if err := updated.UnmarshalVT(data); err != nil || updated.GetRecord().GetFields()["roundsWon"].GetNumber() != 1 {
 		t.Fatalf("update: %v %v", updated, err)
 	}
-	data, err = call("GetMany", &persistpb.GetManyRequest{Players: []int32{1, 2}, Type: "stats"})
+	data, err = call("GetMany", &persistpb.GetManyRequest{Players: []int32{1, 2}, Generations: []uint32{11, 12}, Type: "stats"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -406,12 +406,27 @@ func TestAnswer(t *testing.T) {
 	}
 
 	// Each call outside the rules is refused.
-	_, err = call("Get", &persistpb.GetRequest{Player: 1, Type: "settings"})
+	_, err = call("Get", &persistpb.GetRequest{Player: 1, Generation: 11, Type: "settings"})
 	refused(t, err, "declares no persist record type")
-	_, err = call("Get", &persistpb.GetRequest{Player: 1, Type: "stats", Key: "alt"})
+	_, err = call("Get", &persistpb.GetRequest{Player: 1, Generation: 11, Type: "stats", Key: "alt"})
 	refused(t, err, "take no key")
-	_, err = call("Get", &persistpb.GetRequest{Player: 9, Type: "stats"})
+	_, err = call("Get", &persistpb.GetRequest{Player: 9, Generation: 19, Type: "stats"})
 	refused(t, err, "no player is in slot 9")
+
+	// A request made for the slot's earlier connection, or naming none, is
+	// refused before it reaches a record, so a Player kept after its player
+	// left cannot read or change the next player's.
+	_, err = call("Update", &persistpb.UpdateRequest{Player: 1, Generation: 10, Type: "stats", Ops: []*persistpb.Op{add("roundsWon", 1)}, UpdateKey: "r2"})
+	refused(t, err, "left slot 1")
+	_, err = call("Get", &persistpb.GetRequest{Player: 1, Type: "stats"})
+	refused(t, err, "connection generation")
+	_, err = call("GetMany", &persistpb.GetManyRequest{Players: []int32{1, 2}, Generations: []uint32{11, 2}, Type: "stats"})
+	refused(t, err, "left slot 2")
+	_, err = call("GetMany", &persistpb.GetManyRequest{Players: []int32{1, 2}, Generations: []uint32{11}, Type: "stats"})
+	refused(t, err, "one connection generation for each player")
+	if record, err := store.Get(101, stats); err != nil || record.GetFields()["roundsWon"].GetNumber() != 1 {
+		t.Fatalf("after refused updates: %v %v", record, err)
+	}
 	_, err = call("GetMany", &persistpb.GetManyRequest{Players: make([]int32, ManyLimit+1), Type: "stats"})
 	refused(t, err, "up to 16 players")
 

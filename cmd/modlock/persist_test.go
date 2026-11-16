@@ -61,7 +61,7 @@ func TestLocalPersist(t *testing.T) {
 		return nil, nil
 	})
 	update := func(slot int32) error {
-		payload, _ := (&persistpb.UpdateRequest{Player: slot, Type: "stats", UpdateKey: "round-1", Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}}}).MarshalVT()
+		payload, _ := (&persistpb.UpdateRequest{Player: slot, Generation: 1, Type: "stats", UpdateKey: "round-1", Ops: []*persistpb.Op{{Field: "roundsWon", Op: &persistpb.Op_Add{Add: 1}}}}).MarshalVT()
 		_, err := answer(t.Context(), &control.ServiceCall{Mod: "prophunt", Service: "persist", Method: "Update", Payload: payload})
 		return err
 	}
@@ -86,5 +86,47 @@ func TestLocalPersist(t *testing.T) {
 	// Other services go to the forwarder.
 	if _, err := answer(t.Context(), &control.ServiceCall{Mod: "prophunt", Service: "example.drills.v1"}); err != nil || len(passed) != 1 {
 		t.Fatalf("forwarded %v %v", passed, err)
+	}
+}
+
+// TestPersistSlugStaysInside refuses a built mod whose manifest slug would
+// keep its records outside Modlock's persist directory, before any directory
+// is made, on the session's path and the sandbox's.
+func TestPersistSlugStaysInside(t *testing.T) {
+	// A built mod outside any project names a slug that climbs out.
+	config := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", config)
+	t.Setenv("HOME", config)
+	t.Setenv("AppData", config)
+	build := filepath.Join(t.TempDir(), "built")
+	if err := os.MkdirAll(build, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	manifest := `{"slug":"../../escaped","services":[{"name":"persist"}],` +
+		`"persist":[{"name":"stats","writers":"WRITERS_SERVERS","fields":{"roundsWon":{"kind":"KIND_COUNT"}}}]}`
+	if err := os.WriteFile(filepath.Join(build, "mod.json"), []byte(manifest), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	root := configPath("persist")
+	if !strings.HasPrefix(root, config) {
+		t.Fatalf("persist directory %s is outside the test's %s", root, config)
+	}
+
+	// The session refuses it and makes no directory for it.
+	if _, err := newLocalPersist(&printer{brief: true}, []string{build}); err == nil || !strings.Contains(err.Error(), "slug") {
+		t.Fatalf("session: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "../../escaped")); !os.IsNotExist(err) {
+		t.Fatalf("the escaped directory was made: %v", err)
+	}
+
+	// The sandbox's directory comes from the same check.
+	for _, slug := range []string{"../escaped", "a/b", "", ".", "Upper"} {
+		if dir, err := persistDir(build, slug); err == nil {
+			t.Fatalf("slug %q kept in %q", slug, dir)
+		}
+	}
+	if dir, err := persistDir(build, "prop-hunt"); err != nil || dir != filepath.Join(root, "prop-hunt") {
+		t.Fatalf("prop-hunt: %q %v", dir, err)
 	}
 }

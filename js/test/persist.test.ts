@@ -9,6 +9,10 @@ import {
   UpdateRequest,
 } from '../../src/wasm/persist/persist.pb.js'
 import {
+  type Connection as ConnectionMessage,
+  PlayersChangedEvent,
+} from '../../src/wasm/players/players.pb.js'
+import {
   Call,
   Reply,
   ServiceCallStarted,
@@ -56,6 +60,34 @@ function replied(
   expect(reply.error ?? '').toBe('')
 }
 
+/** seats holds the connection generation of each occupied slot. */
+const seats = new Map<number, number>()
+
+/** report delivers the host's player list of seats, as on each change. */
+function report(): void {
+  const players: ConnectionMessage[] = [...seats].map(([slot, generation]) => ({
+    player: slot,
+    steamId: 76561197960265728n + BigInt(slot),
+    generation,
+  }))
+  dispatch(
+    Call.toBinary({
+      method: 'PlayersChanged',
+      request: PlayersChangedEvent.toBinary({ players }),
+    }),
+  )
+}
+
+/** seat puts a connection of generation in slot and reports the list. */
+function seat(slot: number, generation: number): void {
+  seats.set(slot, generation)
+  report()
+}
+
+// The players the tests address are connected.
+for (const slot of [2, 5, 6, 7, 8, 9]) seats.set(slot, 1)
+report()
+
 /** number is a record value holding n. */
 function number(n: number) {
   return { value: { case: 'number' as const, value: n } }
@@ -72,6 +104,7 @@ test('a record loads once, then answers what the host sent', () => {
   expect(GetRequest.fromBinary(started[at - 1]!.payload)).toEqual({
     player: 2,
     type: 'stats',
+    generation: 1,
   })
 
   // The answer arrives in a later frame.
@@ -193,6 +226,7 @@ test('getMany fills each player, and a new player in a slot reads anew', () => {
   expect(GetManyRequest.fromBinary(started[many - 1]!.payload)).toEqual({
     players: [8, 9],
     type: 'stats',
+    generations: [1, 1],
   })
   replied(many, {
     payload: GetManyReply.toBinary({
@@ -209,7 +243,7 @@ test('getMany fills each player, and a new player in a slot reads anew', () => {
   expect(persist.get(second, 'stats')).toEqual({ state: 'loaded', record: {} })
 
   // A player who takes slot 8 next is a new Player, whose record loads.
-  Player.release(8)
+  seat(8, 2)
   expect(persist.get(Player.of(8), 'stats')).toEqual({ state: 'loading' })
 })
 
@@ -232,4 +266,53 @@ test('an update that adds without a key is refused and not sent', () => {
   // A keyless update without an add is sent.
   persist.update(player, 'stats', { title: { set: 'hider' } })
   expect(started.length).toBe(at + 1)
+})
+
+test('a Player kept after its player left is refused before anything is sent', () => {
+  // A player in slot 10 reads; the read names their connection.
+  seat(10, 1)
+  const kept = Player.of(10)
+  persist.get(kept, 'stats')
+  expect(
+    GetRequest.fromBinary(started[started.length - 1]!.payload).generation,
+  ).toBe(1)
+
+  // They leave and another player takes slot 10. An update through the
+  // kept Player is refused at once and nothing reaches the host.
+  seat(10, 2)
+  const next = Player.of(10)
+  expect(next).not.toBe(kept)
+  const at = started.length
+  const ended: (string | undefined)[] = []
+  persist.update(
+    kept,
+    'stats',
+    { roundsWon: { add: 1 } },
+    { key: 'round-1' },
+    (_, error) => ended.push(error),
+  )
+  expect(started.length).toBe(at)
+  expect(ended).toEqual([
+    'the player left; their Player no longer names a connection, and the slot may hold another player',
+  ])
+
+  // A read through it answers unavailable; getMany asks only for the newcomer.
+  persist.getMany([kept, next], 'stats')
+  expect(started.length).toBe(at + 1)
+  expect(GetManyRequest.fromBinary(started[at]!.payload)).toEqual({
+    players: [10],
+    type: 'stats',
+    generations: [2],
+  })
+  expect(persist.get(kept, 'stats').state).toBe('unavailable')
+
+  // The newcomer's own update goes with their generation.
+  persist.update(next, 'stats', { roundsWon: { add: 1 } }, { key: 'round-1' })
+  expect(UpdateRequest.fromBinary(started[at + 1]!.payload).generation).toBe(2)
+
+  // Once they leave too, the slot's Player reaches nothing.
+  seats.delete(10)
+  report()
+  persist.update(next, 'stats', { title: { set: 'gone' } })
+  expect(started.length).toBe(at + 2)
 })

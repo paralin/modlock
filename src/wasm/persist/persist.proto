@@ -133,6 +133,13 @@ message GetRequest {
   // Key selects one of the player's records of the type. Empty is the one
   // record each player has; hosts refuse any other key for now.
   string key = 3;
+
+  // Generation is the connection generation of the Player the request was
+  // made for, as Connection.generation carries it. The host refuses the
+  // request unless the slot's connection still has that generation, so a
+  // Player kept after its player left never reads or changes the record of
+  // the next player in the slot. Zero is never a connection's generation.
+  uint32 generation = 16;
 }
 
 // GetReply is the response of the Get method.
@@ -149,6 +156,10 @@ message GetManyRequest {
 
   // Type names a record type the manifest declares.
   string type = 2;
+
+  // Generations holds the connection generation of each of players, in the
+  // same order, as GetRequest's generation does for one player.
+  repeated uint32 generations = 16;
 }
 
 // GetManyReply is the response of the GetMany method.
@@ -186,6 +197,9 @@ message UpdateRequest {
   // counts once: an update whose key is among the record's last 64 is
   // left out. Up to 64 bytes; empty applies the update every time.
   string update_key = 5;
+
+  // Generation is the connection generation of the Player, as in GetRequest.
+  uint32 generation = 16;
 }
 
 // UpdateReply is the response of the Update method.

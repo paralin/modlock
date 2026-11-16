@@ -37,5 +37,7 @@ type Config struct {
 	// Persist returns the directory that keeps the records of the built mod
 	// at path, the mod slug, through the persist service, or empty to keep
 	// them for the session only. Nil keeps every mod's for the session only.
-	Persist func(path, slug string) string
+	// An error, such as for a slug that cannot name a directory, refuses to
+	// start the mod.
+	Persist func(path, slug string) (string, error)
 }

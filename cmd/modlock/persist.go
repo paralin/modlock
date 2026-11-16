@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/persist"
 	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/src/host_app/control"
@@ -16,15 +17,29 @@ import (
 // persistDir is the directory a local session keeps the records of the mod
 // slug built at path in: the project's own when the build is a project's,
 // otherwise one in Modlock's configuration directory. Empty keeps them for
-// the session only.
-func persistDir(path, slug string) string {
+// the session only. A built mod's manifest is not checked as a project's is,
+// so the slug is checked here before it names any directory, and the
+// directory must stay beneath the one Modlock keeps records in.
+func persistDir(path, slug string) (string, error) {
+	// Refuse a slug that cannot name a directory, then keep a project's
+	// records in the project.
+	if err := check.Slug(slug); err != nil {
+		return "", errors.Wrap(err, "persist")
+	}
 	if fixtures := projectFixtures(path); fixtures != "" {
-		return filepath.Join(filepath.Dir(fixtures), persist.Dir)
+		return filepath.Join(filepath.Dir(fixtures), persist.Dir), nil
 	}
-	if config := configPath("persist"); config != "" && slug != "" {
-		return filepath.Join(config, slug)
+
+	// Keep a built mod's records beneath Modlock's persist directory.
+	root := configPath("persist")
+	if root == "" {
+		return "", nil
 	}
-	return ""
+	dir := filepath.Join(root, slug)
+	if rel, err := filepath.Rel(root, dir); err != nil || rel != slug {
+		return "", errors.Errorf("persist: the records of %q would leave %s", slug, root)
+	}
+	return dir, nil
 }
 
 // localPersist answers the persist calls of a local server's mods from files
@@ -61,7 +76,10 @@ func newLocalPersist(out *printer, dirs []string) (*localPersist, error) {
 			continue
 		}
 		slug := manifest.GetSlug()
-		records := persistDir(dir, slug)
+		records, err := persistDir(dir, slug)
+		if err != nil {
+			return nil, err
+		}
 		if records == "" {
 			if records, err = os.MkdirTemp("", "modlock-persist-"); err != nil {
 				return nil, err
@@ -99,12 +117,14 @@ func (l *localPersist) follow(events func(*control.HostEvent)) func(*control.Hos
 	}
 }
 
-// player returns the SteamID64 of the player in slot; a bot has none.
-func (l *localPersist) player(slot int32) (uint64, bool) {
+// player returns the SteamID64 of the player in slot; a bot has none. The
+// host's join events carry no connection generation, so it reports none and
+// a Player kept after its player left is refused by the mod library alone.
+func (l *localPersist) player(slot int32) (uint64, uint32, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	steamID := l.slots[slot]
-	return steamID, steamID != 0
+	return steamID, 0, steamID != 0
 }
 
 // answer answers the persist calls of the mods that keep records here and
