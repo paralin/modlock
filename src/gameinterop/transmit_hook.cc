@@ -69,6 +69,10 @@ int32_t TransmitSet::Slot() const {
   return slot;
 }
 
+bool TransmitSet::FullUpdate() const {
+  return static_cast<const uint8_t*>(info_)[kFullUpdateOffset] != 0;
+}
+
 bool TransmitSet::Sends(uint32_t handle) const {
   const uint32_t index = EntityIndexOf(handle);
   if (index >= kEntityCount) {
