@@ -8,10 +8,8 @@
 
 namespace modlock::gameinterop {
 
-std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const ModuleImage& server,
-                                                                     void* schema,
-                                                                     std::string_view key,
-                                                                     float duration) {
+std::expected<AbilityModifier::Calls, std::string> AbilityModifier::ResolveCalls(
+    const ModuleImage& server, void* schema) {
   // Deadworks NativeAbility and CModifierProperty provide the native call
   // contract.
   auto lookup = ResolveSignature(server, "vdata.lookup-by-hash");
@@ -22,13 +20,12 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Modul
   if (!add) {
     return std::unexpected(add.error());
   }
-  return Resolve(reinterpret_cast<AbilityDefinitions::Lookup>(*lookup),
-                 reinterpret_cast<AddModifier>(*add), schema, key, duration);
+  return ResolveCalls(reinterpret_cast<AbilityDefinitions::Lookup>(*lookup),
+                      reinterpret_cast<AddModifier>(*add), schema);
 }
 
-std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(
-    AbilityDefinitions::Lookup lookup, AddModifier add, void* schema, std::string_view key,
-    float duration) {
+std::expected<AbilityModifier::Calls, std::string> AbilityModifier::ResolveCalls(
+    AbilityDefinitions::Lookup lookup, AddModifier add, void* schema) {
   if (!lookup || !add) {
     return std::unexpected("modifier calls unavailable");
   }
@@ -43,30 +40,68 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(
   if (!property || !life_state || !modifiers || !predicted || !lifetime) {
     return std::unexpected("modifier property schema unavailable");
   }
+  return Calls{
+      .lookup = lookup,
+      .add = add,
+      .duration = lifetime->offset,
+      .property = property->offset,
+      .modifiers = modifiers->offset,
+      .predicted = predicted->offset,
+      .life_state = life_state->offset,
+  };
+}
 
-  // Find the modifier's definition.
-  auto* definition =
-      static_cast<unsigned char*>(lookup(AbilityDefinitions::kModifiers, MakeMemberName(key).hash));
+std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const ModuleImage& server,
+                                                                     void* schema,
+                                                                     std::string_view key,
+                                                                     float duration) {
+  auto calls = ResolveCalls(server, schema);
+  if (!calls) {
+    return std::unexpected(calls.error());
+  }
+  return Resolve(*calls, key, duration);
+}
+
+std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(
+    AbilityDefinitions::Lookup lookup, AddModifier add, void* schema, std::string_view key,
+    float duration) {
+  auto calls = ResolveCalls(lookup, add, schema);
+  if (!calls) {
+    return std::unexpected(calls.error());
+  }
+  return Resolve(*calls, key, duration);
+}
+
+std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Calls& calls,
+                                                                     std::string_view key,
+                                                                     float duration) {
+  if (!calls.lookup || !calls.add) {
+    return std::unexpected("modifier calls unavailable");
+  }
+
+  // Find the modifier's definition, which belongs to the loaded world.
+  auto* definition = static_cast<unsigned char*>(
+      calls.lookup(AbilityDefinitions::kModifiers, MakeMemberName(key).hash));
   if (!definition) {
     return std::unexpected("modifier definition " + std::string(key) + " unavailable");
   }
 
   // Swap in the duration, keeping the original to restore.
   AbilityModifier modifier;
-  std::memcpy(&modifier.previous_, definition + lifetime->offset, sizeof(modifier.previous_));
-  std::memcpy(definition + lifetime->offset, &duration, sizeof(duration));
+  std::memcpy(&modifier.previous_, definition + calls.duration, sizeof(modifier.previous_));
+  std::memcpy(definition + calls.duration, &duration, sizeof(duration));
 
   // Record the call, parent ability subclass (when embedded) and offsets.
-  modifier.add_ = add;
+  modifier.add_ = calls.add;
   modifier.definition_ = definition;
   if (const auto slash = key.find('/'); slash != std::string_view::npos && slash > 0) {
     modifier.ability_subclass_ = MakeMemberName(key.substr(0, slash)).hash;
   }
-  modifier.duration_ = lifetime->offset;
-  modifier.property_ = property->offset;
-  modifier.modifiers_ = modifiers->offset;
-  modifier.predicted_ = predicted->offset;
-  modifier.life_state_ = life_state->offset;
+  modifier.duration_ = calls.duration;
+  modifier.property_ = calls.property;
+  modifier.modifiers_ = calls.modifiers;
+  modifier.predicted_ = calls.predicted;
+  modifier.life_state_ = calls.life_state;
   return modifier;
 }
 

@@ -941,15 +941,11 @@ std::expected<void, std::string> Game::EnsureHeldModifier(const std::string& key
   if (modifiers_.contains(key)) {
     return {};
   }
-  auto image = services_.Image();
-  if (!image) {
-    return std::unexpected(image.error());
+  auto calls = services_.ModifierCalls();
+  if (!calls) {
+    return std::unexpected(calls.error());
   }
-  auto schema = services_.Schema();
-  if (!schema) {
-    return std::unexpected(schema.error());
-  }
-  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, key, -1);
+  auto modifier = gameinterop::AbilityModifier::Resolve(**calls, key, -1);
   if (!modifier) {
     return std::unexpected(modifier.error());
   }
@@ -996,14 +992,10 @@ std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifie
 }
 
 std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifierRequest& request) {
-  // Resolve the server module, the schema and the ability that applies it.
-  auto image = services_.Image();
-  if (!image) {
-    return std::unexpected(image.error());
-  }
-  auto schema = services_.Schema();
-  if (!schema) {
-    return std::unexpected(schema.error());
+  // Resolve the modifier calls and the ability that applies it.
+  auto calls = services_.ModifierCalls();
+  if (!calls) {
+    return std::unexpected(calls.error());
   }
   if (auto pawn = LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
@@ -1015,8 +1007,8 @@ std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifie
 
   // The modifier takes its duration when attached, so the shared definition
   // gets its own duration back right away.
-  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, request.modifier(),
-                                                        request.seconds());
+  auto modifier =
+      gameinterop::AbilityModifier::Resolve(**calls, request.modifier(), request.seconds());
   if (!modifier) {
     return std::unexpected(modifier.error());
   }
@@ -1053,14 +1045,10 @@ std::expected<void, std::string> Game::HoldEntityModifier(
 
 std::expected<void, std::string> Game::GiveEntityModifier(
     const abilities::GiveEntityModifierRequest& request) {
-  // Resolve the server module, the schema and the target entity.
-  auto image = services_.Image();
-  if (!image) {
-    return std::unexpected(image.error());
-  }
-  auto schema = services_.Schema();
-  if (!schema) {
-    return std::unexpected(schema.error());
+  // Resolve the modifier calls and the target entity.
+  auto calls = services_.ModifierCalls();
+  if (!calls) {
+    return std::unexpected(calls.error());
   }
   auto entity = Entity(request.entity());
   if (!entity) {
@@ -1069,8 +1057,8 @@ std::expected<void, std::string> Game::GiveEntityModifier(
 
   // The modifier takes its duration when attached, so the shared definition
   // gets its own duration back right away.
-  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, request.modifier(),
-                                                        request.seconds());
+  auto modifier =
+      gameinterop::AbilityModifier::Resolve(**calls, request.modifier(), request.seconds());
   if (!modifier) {
     return std::unexpected(modifier.error());
   }

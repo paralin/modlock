@@ -23,8 +23,30 @@ class MODLOCK_API AbilityModifier {
  public:
   using AddModifier = void* (*)(void*, void*, uint32_t, uint32_t, void*, void*, void*);
 
+  // Calls holds the native calls and schema offsets every modifier shares.
+  // They belong to the server module, not the loaded world, so a host resolves
+  // them once and keeps them while server.dll stays loaded.
+  struct Calls {
+    AbilityDefinitions::Lookup lookup = nullptr;
+    AddModifier add = nullptr;
+    size_t duration = 0;
+    size_t property = 0;
+    size_t modifiers = 0;
+    size_t predicted = 0;
+    size_t life_state = 0;
+  };
+
+  // ResolveCalls scans server for the definition lookup and AddModifier, and
+  // reads the modifier layout from the schema.
+  static std::expected<Calls, std::string> ResolveCalls(const ModuleImage& server, void* schema);
+  static std::expected<Calls, std::string> ResolveCalls(AbilityDefinitions::Lookup lookup,
+                                                        AddModifier add, void* schema);
+
   // Resolve finds the "<ability>/<modifier>" or standalone modifier definition
-  // and sets its duration; a negative duration never expires.
+  // and sets its duration; a negative duration never expires. The overload
+  // that takes Calls does no signature scan or schema read.
+  static std::expected<AbilityModifier, std::string> Resolve(const Calls& calls,
+                                                             std::string_view key, float duration);
   static std::expected<AbilityModifier, std::string> Resolve(const ModuleImage& server,
                                                              void* schema, std::string_view key,
                                                              float duration);

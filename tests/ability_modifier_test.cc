@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -237,6 +238,39 @@ TEST(AbilityModifier, RefusesDeadEntitiesAndEntitiesWithoutModifierProperty) {
   entity[8] = 2;  // LIFE_DEAD
   EXPECT_FALSE(modifier->EntityAlive(entity.data()));
   EXPECT_FALSE(modifier->AttachEntity(entity.data()));
+}
+
+TEST(AbilityModifier, ResolvedCallsServeLaterModifiersWithoutTheSchema) {
+  // Resolve the shared calls once, then retire the schema they came from.
+  g_state = CallState{};
+  std::optional<AbilityModifier::Calls> calls;
+  {
+    ModifierSchema schema;
+    auto resolved = AbilityModifier::ResolveCalls(FakeLookup, FakeAdd, &schema.system);
+    ASSERT_TRUE(resolved) << resolved.error();
+    calls = *resolved;
+  }
+  EXPECT_EQ(calls->duration, 8u);
+  EXPECT_EQ(calls->property, 16u);
+  EXPECT_EQ(calls->predicted, 24u);
+  EXPECT_EQ(calls->life_state, 8u);
+
+  // Each later modifier looks up only its own definition.
+  std::array<unsigned char, 32> property{};
+  std::array<unsigned char, 24> entity{};
+  unsigned char* property_ptr = property.data();
+  std::memcpy(entity.data() + 16, &property_ptr, sizeof(property_ptr));
+  for (const std::string_view key : {"modifier_citadel_idol_glow", "upgrade_colossus/modifier_x"}) {
+    auto modifier = AbilityModifier::Resolve(*calls, key, 3.0f);
+    ASSERT_TRUE(modifier) << modifier.error();
+    EXPECT_EQ(g_state.last_lookup_hash, MakeMemberName(key).hash);
+    ASSERT_TRUE(modifier->AttachEntity(entity.data()));
+    EXPECT_EQ(g_state.predicted_during_add, 1u);
+    modifier->Restore();
+  }
+
+  // Calls without the native functions refuse, as the scanning overload does.
+  EXPECT_FALSE(AbilityModifier::Resolve(AbilityModifier::Calls{}, "modifier_citadel_idol_glow", 1));
 }
 
 }  // namespace
