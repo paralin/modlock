@@ -27,7 +27,16 @@ func persistDir(path, slug string) (string, error) {
 		return "", errors.Wrap(err, "persist")
 	}
 	if fixtures := projectFixtures(path); fixtures != "" {
-		return filepath.Join(filepath.Dir(fixtures), persist.Dir), nil
+		// A checkout can carry .modlock or .modlock/persist as a committed
+		// link, which would take the records, the lock and the holder file
+		// wherever it leads.
+		dir := filepath.Join(filepath.Dir(fixtures), persist.Dir)
+		for _, d := range []string{filepath.Dir(dir), dir} {
+			if err := ownDir(d, slug); err != nil {
+				return "", err
+			}
+		}
+		return dir, nil
 	}
 
 	// Keep a built mod's records beneath Modlock's persist directory.
@@ -42,14 +51,23 @@ func persistDir(path, slug string) (string, error) {
 
 	// The name stays inside only if nothing there leads elsewhere: a link
 	// already at dir would pass the check above and take the records out.
-	info, err := os.Lstat(dir)
-	if err == nil && (info.Mode()&os.ModeSymlink != 0 || !info.IsDir()) {
-		return "", errors.Errorf("persist: %s is not a directory of its own; remove it to keep the records of %q there", dir, slug)
-	}
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return "", errors.Wrap(err, "persist")
+	if err := ownDir(dir, slug); err != nil {
+		return "", err
 	}
 	return dir, nil
+}
+
+// ownDir refuses dir, a directory the records of slug are kept in or
+// beneath, when it is a link or not a directory. A dir not made yet passes.
+func ownDir(dir, slug string) error {
+	info, err := os.Lstat(dir)
+	if err == nil && (info.Mode()&os.ModeSymlink != 0 || !info.IsDir()) {
+		return errors.Errorf("persist: %s is not a directory of its own; remove it to keep the records of %q there", dir, slug)
+	}
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return errors.Wrap(err, "persist")
+	}
+	return nil
 }
 
 // localPersist answers the persist calls of a local server's mods from files

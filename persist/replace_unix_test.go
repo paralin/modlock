@@ -22,9 +22,9 @@ func TestStoreSyncsDirectory(t *testing.T) {
 	var synced []string
 	saved := syncDir
 	t.Cleanup(func() { syncDir = saved })
-	syncDir = func(dir string) error {
+	syncDir = func(dir string, root *os.Root) error {
 		synced = append(synced, dir)
-		return saved(dir)
+		return saved(dir, root)
 	}
 
 	// Open creates the store's directory and syncs its parent.
@@ -41,12 +41,12 @@ func TestStoreSyncsDirectory(t *testing.T) {
 	// An update syncs the store's directory after its rename.
 	synced = nil
 	file := filepath.Join(dir, "76561197960265728.json")
-	syncDir = func(d string) error {
+	syncDir = func(d string, root *os.Root) error {
 		if data, err := os.ReadFile(file); err != nil || !strings.Contains(string(data), "roundsWon") {
 			t.Errorf("synced %s before the rename: %v", d, err)
 		}
 		synced = append(synced, d)
-		return saved(d)
+		return saved(d, root)
 	}
 	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-1"); err != nil {
 		t.Fatal(err)
@@ -56,7 +56,7 @@ func TestStoreSyncsDirectory(t *testing.T) {
 	}
 
 	// An update whose directory sync failed is not answered as kept.
-	syncDir = func(string) error { return errors.New("the disk went away") }
+	syncDir = func(string, *os.Root) error { return errors.New("the disk went away") }
 	if _, _, err := store.Update(76561197960265728, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-2"); err == nil {
 		t.Fatal("an update whose directory sync failed was answered as kept")
 	}
@@ -75,7 +75,7 @@ func TestStoreRetrySyncsDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 	calls := 0
-	syncDir = func(string) error {
+	syncDir = func(string, *os.Root) error {
 		calls++
 		return errors.New("the disk went away")
 	}
@@ -95,9 +95,9 @@ func TestStoreRetrySyncsDirectory(t *testing.T) {
 
 	// Once the sync succeeds the resend is answered as a repeat, counted once.
 	calls = 0
-	syncDir = func(d string) error {
+	syncDir = func(d string, root *os.Root) error {
 		calls++
-		return saved(d)
+		return saved(d, root)
 	}
 	record, repeated, err := store.Update(76561197960265728, stats, ops, "round-1")
 	if err != nil || !repeated || calls != 1 || record.GetFields()["roundsWon"].GetNumber() != 1 {

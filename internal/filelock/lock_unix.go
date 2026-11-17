@@ -19,7 +19,16 @@ func Lock(path string, exclusive, wait bool) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := LockOpen(f, exclusive, wait); err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	return f, nil
+}
 
+// LockOpen locks the open file f as Lock does, for a caller that opened the
+// file itself. It leaves f open when the lock fails.
+func LockOpen(f *os.File, exclusive, wait bool) error {
 	// Take the lock in its mode, waiting for it only when asked.
 	how := unix.LOCK_SH
 	if exclusive {
@@ -28,18 +37,15 @@ func Lock(path string, exclusive, wait bool) (*os.File, error) {
 	if !wait {
 		how |= unix.LOCK_NB
 	}
+	var err error
 	for {
 		err = unix.Flock(int(f.Fd()), how)
 		if err != unix.EINTR {
 			break
 		}
 	}
-	if err != nil {
-		_ = f.Close()
-		if errors.Is(err, unix.EWOULDBLOCK) {
-			return nil, ErrLocked
-		}
-		return nil, err
+	if errors.Is(err, unix.EWOULDBLOCK) {
+		return ErrLocked
 	}
-	return f, nil
+	return err
 }

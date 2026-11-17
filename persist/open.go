@@ -53,45 +53,86 @@ func (s *storeSet) open(dir string) (*Store, error) {
 		return store, nil
 	}
 
-	// Lock the directory, or name the process that holds it.
+	// Open the directory once, refusing a link, and do every file operation
+	// through it, so neither a link nor a swap after the check redirects the
+	// lock, the holder or the records.
+	if err := notLink(abs); err != nil {
+		return nil, err
+	}
 	if err := makeDir(abs); err != nil {
 		return nil, err
 	}
-	held, err := filelock.Lock(filepath.Join(abs, LockFile), true, false)
-	if errors.Is(err, filelock.ErrLocked) {
-		return nil, errors.Errorf("another modlock keeps these records in %s: %s; stop it, then start this one again", abs, holder(abs))
-	}
+	root, err := openDir(abs)
 	if err != nil {
+		return nil, err
+	}
+
+	// Lock the directory, or name the process that holds it.
+	held, err := openFile(root, abs, LockFile, os.O_RDWR|os.O_CREATE, 0o600)
+	if err != nil {
+		_ = root.Close()
 		return nil, errors.Wrapf(err, "lock %s", abs)
+	}
+	if err := filelock.LockOpen(held, true, false); err != nil {
+		_ = held.Close()
+		if errors.Is(err, filelock.ErrLocked) {
+			err = errors.Errorf("another modlock keeps these records in %s: %s; stop it, then start this one again", abs, holder(root, abs))
+		} else {
+			err = errors.Wrapf(err, "lock %s", abs)
+		}
+		_ = root.Close()
+		return nil, err
 	}
 
 	// Name this process for the next one by its ID and program name, never
 	// its arguments, which may carry a path or a token, and keep the lock for
 	// its life. Only the next modlock of the same user reads the name.
 	// A file an older modlock left keeps its mode through the write, so set
-	// the mode too.
+	// the mode too. The file is opened without truncating and emptied only
+	// once it is known to be the store's own, so a refused link's target is
+	// left as it was.
 	name := fmt.Sprintf("process %d, %s", os.Getpid(), filepath.Base(os.Args[0]))
-	path := filepath.Join(abs, HolderFile)
-	if err := os.WriteFile(path, []byte(name), 0o600); err != nil {
+	if err := writeHolder(root, abs, name); err != nil {
 		_ = held.Close()
-		return nil, err
-	}
-	if err := os.Chmod(path, 0o600); err != nil {
-		_ = held.Close()
+		_ = root.Close()
 		return nil, err
 	}
 
-	// Retain both the store and its exclusive lock for the process lifetime.
-	store := &Store{dir: abs}
+	// Retain the store, its directory and its exclusive lock for the process
+	// lifetime.
+	store := &Store{dir: abs, root: root}
 	s.stores[abs] = store
 	s.locks = append(s.locks, held)
 	return store, nil
 }
 
+// writeHolder replaces the contents of dir's HolderFile with name.
+func writeHolder(root *os.Root, dir, name string) error {
+	// Open the file only if it is the directory's own, then replace its
+	// contents and mode.
+	f, err := openFile(root, dir, HolderFile, os.O_WRONLY|os.O_CREATE, 0o600)
+	if err != nil {
+		return err
+	}
+	if err := f.Truncate(0); err != nil {
+		_ = f.Close()
+		return err
+	}
+	if _, err := f.WriteString(name); err != nil {
+		_ = f.Close()
+		return err
+	}
+	if err := f.Chmod(0o600); err != nil {
+		_ = f.Close()
+		return err
+	}
+	return f.Close()
+}
+
 // holder returns the name of the process holding dir's lock, as it wrote it.
-func holder(dir string) string {
+func holder(root *os.Root, dir string) string {
 	// A refusal reads only the bounded process name left by the current holder.
-	f, err := os.Open(filepath.Join(dir, HolderFile))
+	f, err := openFile(root, dir, HolderFile, os.O_RDONLY, 0)
 	if err != nil {
 		return "a process that has not named itself"
 	}
@@ -119,9 +160,86 @@ func makeDir(dir string) error {
 		return err
 	}
 	for _, d := range made {
-		if err := syncDir(filepath.Dir(d)); err != nil {
+		if err := syncDir(filepath.Dir(d), nil); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// openDir opens dir as the root of every file a store opens. It refuses a
+// link at dir, and checks once the directory is open that it is the one at
+// dir, so a link swapped in between the check and the open is refused too.
+func openDir(dir string) (*os.Root, error) {
+	// Open the directory, then check it is still the one named dir.
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return nil, err
+	}
+	opened, err := root.Stat(".")
+	if err == nil {
+		var info os.FileInfo
+		if info, err = os.Lstat(dir); err == nil && (!info.IsDir() || !os.SameFile(opened, info)) {
+			err = linked(dir)
+		}
+	}
+	if err != nil {
+		_ = root.Close()
+		return nil, err
+	}
+	return root, nil
+}
+
+// openFile opens name in the store directory root, which is at dir, and
+// refuses it unless it is a plain file of the directory's own. The root keeps
+// the open inside the directory, but it follows a link that leads to another
+// file there, so the file is checked before the open and again after it: a
+// link swapped in between is refused before anything is read or written. The
+// flag must not truncate, so a refused file is left as it was.
+func openFile(root *os.Root, dir, name string, flag int, perm os.FileMode) (*os.File, error) {
+	// Refuse a link or any other entry that is not a plain file.
+	path := filepath.Join(dir, name)
+	if info, err := root.Lstat(name); err == nil && !info.Mode().IsRegular() {
+		return nil, linked(path)
+	}
+	f, err := root.OpenFile(name, flag, perm)
+	if err != nil {
+		return nil, err
+	}
+
+	// The open file must be the plain file the directory names.
+	opened, err := f.Stat()
+	if err == nil {
+		var info os.FileInfo
+		if info, err = root.Lstat(name); err == nil && (!info.Mode().IsRegular() || !os.SameFile(opened, info)) {
+			err = linked(path)
+		}
+	}
+	if err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	return f, nil
+}
+
+// notLink refuses a link at path; a path that does not exist passes.
+func notLink(path string) error {
+	// A missing path is made later as a directory of its own.
+	info, err := os.Lstat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return linked(path)
+	}
+	return nil
+}
+
+// linked is the error of a store path that is a link or not a plain entry
+// of the store's own.
+func linked(path string) error {
+	return errors.Errorf("persist: %s is a link or not a plain file or directory; Modlock keeps no records through one, so remove it", path)
 }

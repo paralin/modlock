@@ -16,7 +16,11 @@ import (
 // newStore returns a store of the records kept in dir without its lock, for
 // tests that stand in for one host.
 func newStore(dir string) *Store {
-	return &Store{dir: dir}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		panic(err)
+	}
+	return &Store{dir: dir, root: root}
 }
 
 // stats is the record type the tests keep: a prop hunt mod's player stats.
@@ -512,4 +516,80 @@ func TestStoreJSONEscaping(t *testing.T) {
 		}
 	}
 	t.Logf("escaped player file: %d bytes, reader bound: %d bytes", info.Size(), FileBytes)
+}
+
+// TestOpenRefusesLinkedDir refuses a store directory that is a link, as a
+// mod's checkout can carry .modlock/persist, before anything is made through
+// it.
+func TestOpenRefusesLinkedDir(t *testing.T) {
+	outside := t.TempDir()
+	dir := filepath.Join(t.TempDir(), "persist")
+	if err := os.Symlink(outside, dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Open(dir); err == nil || !strings.Contains(err.Error(), dir) {
+		t.Fatalf("a linked store directory was opened: %v", err)
+	}
+	if entries, _ := os.ReadDir(outside); len(entries) != 0 {
+		t.Fatalf("files were made through the link: %v", entries)
+	}
+}
+
+// TestOpenLeavesHolderLinkTarget refuses a store whose holder file is a link,
+// to a file outside the directory or to a record in it, and leaves the file
+// it leads to as it was.
+func TestOpenLeavesHolderLinkTarget(t *testing.T) {
+	for _, inside := range []bool{false, true} {
+		dir := t.TempDir()
+		target := filepath.Join(t.TempDir(), "kept")
+		if inside {
+			target = filepath.Join(dir, "76561197960265728.json")
+		}
+		if err := os.WriteFile(target, []byte("kept"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(target, filepath.Join(dir, HolderFile)); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Open(dir); err == nil {
+			t.Fatalf("inside=%v: a store with a linked holder file was opened", inside)
+		}
+		if data, err := os.ReadFile(target); err != nil || string(data) != "kept" {
+			t.Fatalf("inside=%v: the holder link's target is now %q: %v", inside, data, err)
+		}
+	}
+}
+
+// TestStoreRefusesLinkedRecord neither reads nor updates a player's file that
+// is a link, and leaves the file it leads to as it was.
+func TestStoreRefusesLinkedRecord(t *testing.T) {
+	// A player's file leads to a valid file outside the store.
+	dir := t.TempDir()
+	store := newStore(t.TempDir())
+	if _, _, err := store.Update(1, stats, []*persistpb.Op{add("roundsWon", 5)}, "round-1"); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(store.Dir(), "1.json")
+	want, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, filepath.Join(dir, "1.json")); err != nil {
+		t.Fatal(err)
+	}
+
+	// Both a read and an update are refused, naming the file.
+	linked := newStore(dir)
+	if record, err := linked.Get(1, stats); err == nil || !strings.Contains(err.Error(), filepath.Join(dir, "1.json")) {
+		t.Fatalf("read through a link: %v %v", record, err)
+	}
+	if _, _, err := linked.Update(1, stats, []*persistpb.Op{add("roundsWon", 1)}, "round-2"); err == nil {
+		t.Fatal("an update through a link was kept")
+	}
+	if data, err := os.ReadFile(target); err != nil || string(data) != string(want) {
+		t.Fatalf("the record link's target is now %q: %v", data, err)
+	}
+	if info, err := os.Lstat(filepath.Join(dir, "1.json")); err != nil || info.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("the link was replaced: %v", err)
+	}
 }

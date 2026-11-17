@@ -19,7 +19,16 @@ func Lock(path string, exclusive, wait bool) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := LockOpen(f, exclusive, wait); err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	return f, nil
+}
 
+// LockOpen locks the open file f as Lock does, for a caller that opened the
+// file itself. It leaves f open when the lock fails.
+func LockOpen(f *os.File, exclusive, wait bool) error {
 	// Take the lock over the file's first byte in its mode, waiting for it
 	// only when asked.
 	var flags uint32
@@ -29,13 +38,9 @@ func Lock(path string, exclusive, wait bool) (*os.File, error) {
 	if !wait {
 		flags |= windows.LOCKFILE_FAIL_IMMEDIATELY
 	}
-	err = windows.LockFileEx(windows.Handle(f.Fd()), flags, 0, 1, 0, &windows.Overlapped{})
-	if err != nil {
-		_ = f.Close()
-		if errors.Is(err, windows.ERROR_LOCK_VIOLATION) {
-			return nil, ErrLocked
-		}
-		return nil, err
+	err := windows.LockFileEx(windows.Handle(f.Fd()), flags, 0, 1, 0, &windows.Overlapped{})
+	if errors.Is(err, windows.ERROR_LOCK_VIOLATION) {
+		return ErrLocked
 	}
-	return f, nil
+	return err
 }

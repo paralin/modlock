@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/paralin/modlock/persist"
+	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/src/host_app/control"
 	persistpb "github.com/paralin/modlock/src/wasm/persist"
 )
@@ -227,5 +229,44 @@ func TestPersistSlugStaysInside(t *testing.T) {
 	}
 	if dir, err := persistDir(build, "prop-hunt"); err != nil || dir != filepath.Join(root, "prop-hunt") {
 		t.Fatalf("prop-hunt: %q %v", dir, err)
+	}
+}
+
+// TestPersistProjectLinkRefused refuses a project whose .modlock or
+// .modlock/persist is a link, as a mod's checkout can carry either one
+// committed, before any file is made through it.
+func TestPersistProjectLinkRefused(t *testing.T) {
+	for _, link := range []string{".modlock", persist.Dir} {
+		// The project's build sits beside its manifest, and link leads out.
+		dir := t.TempDir()
+		build := filepath.Join(dir, project.BuildDir)
+		if err := os.MkdirAll(filepath.Join(dir, filepath.Dir(link)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(build, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		manifest := `{"slug":"review-mod","services":[{"name":"persist"}],` +
+			`"persist":[{"name":"stats","writers":"WRITERS_SERVERS","fields":{"roundsWon":{"kind":"KIND_COUNT"}}}]}`
+		for _, file := range []string{filepath.Join(dir, project.ManifestFile), filepath.Join(build, project.ManifestFile)} {
+			if err := os.WriteFile(file, []byte(manifest), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		outside := t.TempDir()
+		if err := os.Symlink(outside, filepath.Join(dir, link)); err != nil {
+			t.Fatal(err)
+		}
+
+		// The session and the sandbox refuse it, naming the link.
+		if got, err := persistDir(build, "review-mod"); err == nil || !strings.Contains(err.Error(), filepath.Join(dir, link)) {
+			t.Fatalf("%s: records kept in %q: %v", link, got, err)
+		}
+		if _, err := newLocalPersist(&printer{brief: true}, []string{build}); err == nil {
+			t.Fatalf("%s: the session kept records through a link", link)
+		}
+		if entries, _ := os.ReadDir(outside); len(entries) != 0 {
+			t.Fatalf("%s: files were made through the link: %v", link, entries)
+		}
 	}
 }

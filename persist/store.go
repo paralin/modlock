@@ -1,6 +1,8 @@
 package persist
 
 import (
+	"io"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -27,6 +29,9 @@ const FileBytes = 6 * (TypeLimit*(RecordBytes+RecentKeys*(UpdateKeyBytes+2)) + 1
 type Store struct {
 	// dir holds the files.
 	dir string
+	// root is dir, opened once; every file is opened through it, never by a
+	// path that a link could redirect.
+	root *os.Root
 	// mu orders the updates, so each reads the file the last one wrote.
 	mu sync.Mutex
 }
@@ -36,29 +41,32 @@ func (s *Store) Dir() string {
 	return s.dir
 }
 
-// path is the file of the player steamID.
-func (s *Store) path(steamID uint64) string {
-	return filepath.Join(s.dir, strconv.FormatUint(steamID, 10)+".json")
+// playerFile is the file of the player steamID in the store's directory.
+func playerFile(steamID uint64) string {
+	return strconv.FormatUint(steamID, 10) + ".json"
 }
 
 // read returns the file of the player steamID, empty when none is kept. A
 // file past FileBytes is refused rather than read.
 func (s *Store) read(steamID uint64) (*persistpb.PlayerFile, error) {
-	// Read the file within its bound.
-	path := s.path(steamID)
-	info, err := os.Stat(path)
+	// Open the player's file through the store's directory, never a link.
+	path := filepath.Join(s.dir, playerFile(steamID))
+	f, err := openFile(s.root, s.dir, playerFile(steamID), os.O_RDONLY, 0)
 	if errors.Is(err, os.ErrNotExist) {
 		return &persistpb.PlayerFile{SteamId: steamID}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	if info.Size() > FileBytes {
-		return nil, errors.Errorf("%s is %d bytes, past the %d a player's records may take", path, info.Size(), FileBytes)
-	}
-	data, err := os.ReadFile(path)
+	defer f.Close()
+
+	// Read it within its bound.
+	data, err := io.ReadAll(io.LimitReader(f, FileBytes+1))
 	if err != nil {
 		return nil, err
+	}
+	if len(data) > FileBytes {
+		return nil, errors.Errorf("%s is past the %d bytes a player's records may take", path, FileBytes)
 	}
 
 	// Parse it as the store wrote it.
@@ -99,7 +107,7 @@ func (s *Store) Update(steamID uint64, recordType *persistpb.RecordType, ops []*
 	if repeated {
 		// The update this repeats may have renamed its file in and then
 		// failed to sync the directory, so sync it before answering.
-		if err := syncDir(s.dir); err != nil {
+		if err := syncDir(s.dir, s.root); err != nil {
 			return nil, false, err
 		}
 		return recordOf(next), true, nil
@@ -114,26 +122,24 @@ func (s *Store) Update(steamID uint64, recordType *persistpb.RecordType, ops []*
 	if err != nil {
 		return nil, false, err
 	}
-	return recordOf(next), false, s.write(s.path(steamID), data)
+	return recordOf(next), false, s.write(playerFile(steamID), data)
 }
 
-// write replaces path with data through a file beside it, and returns once
-// both the data and the replace would survive an OS crash or power loss.
-func (s *Store) write(path string, data []byte) error {
+// write replaces the file target with data through a file beside it, and
+// returns once both the data and the replace would survive an OS crash or
+// power loss.
+func (s *Store) write(target string, data []byte) error {
 	// Never acknowledge a file the reader's bound would make unreadable.
 	if len(data) > FileBytes {
 		return refuse("a player's encoded persist records are up to %d bytes", FileBytes)
 	}
 
 	// Replace in the same directory so readers see the old or new whole file.
-	if err := makeDir(s.dir); err != nil {
-		return err
-	}
-	temp, err := os.CreateTemp(s.dir, ".update-*")
+	temp, tempName, err := s.createTemp()
 	if err != nil {
 		return err
 	}
-	defer os.Remove(temp.Name())
+	defer s.root.Remove(tempName)
 	if _, err := temp.Write(data); err != nil {
 		_ = temp.Close()
 		return err
@@ -149,7 +155,22 @@ func (s *Store) write(path string, data []byte) error {
 	// Answer only once the new name is durable too. A failure past the
 	// rename may leave the update kept, as a lost answer does; a resend with
 	// the same update key counts once.
-	return replace(temp.Name(), path)
+	return replace(s.root, s.dir, tempName, target)
+}
+
+// createTemp creates a new file for an update in the store's directory. The
+// name is new each time it is created exclusively, so nothing already in the
+// directory, a link included, is opened or followed.
+func (s *Store) createTemp() (*os.File, string, error) {
+	for range 100 {
+		tempName := ".update-" + strconv.FormatUint(rand.Uint64(), 36)
+		f, err := s.root.OpenFile(tempName, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600)
+		if errors.Is(err, os.ErrExist) {
+			continue
+		}
+		return f, tempName, err
+	}
+	return nil, "", errors.Errorf("persist: no new update file could be made in %s", s.dir)
 }
 
 // recordOf returns stored's record, or an empty one.
