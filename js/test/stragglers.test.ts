@@ -96,8 +96,8 @@ test('heroes are swept by default and not when heroes is false', () => {
   keepPlayers([])
   sent.length = 0
   new Stragglers().sweep(0)
-  expect(sent).toContain('FindEntities')
+  expect(sent.includes('FindEntities')).toEqual(true)
   sent.length = 0
   new Stragglers({ heroes: false }).sweep(0)
-  expect(sent).not.toContain('FindEntities')
+  expect(sent.includes('FindEntities')).toEqual(false)
 })
