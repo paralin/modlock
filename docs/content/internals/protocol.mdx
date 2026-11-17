@@ -30,8 +30,8 @@ capability is added as a new method, so the three functions never change. Each
 event runs within a time budget, which stops a runaway loop, and each mod has a
 memory limit.
 
-A program that embeds the host can offer mods more than the game, such as a game
-mode's match rules. The program provides a service with `WasmHost::Provide`, and
+A program that embeds the host can add services of its own for mods to call,
+such as a service for a game mode's match rules. The program provides a service with `WasmHost::Provide`, and
 mods call it with the host's `CallService` method, `callService(service,
 method, payload)` in a mod's library. It calls a service a mod serves with
 `WasmHost::Call`, which delivers the mod's `Serve` event to the handler the mod

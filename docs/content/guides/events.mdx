@@ -292,7 +292,8 @@ A cast arrives once it takes effect, after any cast time, for a hero's
 abilities and for the items a player activates. The sample checks `slot`
 because only a player's hero casts from a slot, and only then does the cast
 carry a name. The game fires `PRE_UNIT_HEALED` before every heal and every tick
-of regeneration, so a real handler for it should do less than log.
+of regeneration, so a real handler for it should do less work than the sample,
+which writes a log line for every one.
 
 | Cast field | Holds                                                                                     |
 | ---------- | ----------------------------------------------------------------------------------------- |
