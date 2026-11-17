@@ -1,0 +1,174 @@
+---
+title: Cut a frame's cost
+description: Make fewer game calls, act on changes instead of every frame, and spread work across frames.
+---
+
+A common cause of slow frames is work repeated on every frame for every
+player. A game call costs more than plain code: the mod encodes the request,
+the game does the work, and the mod decodes the reply. Some calls, such as
+`giveModifier`, look up game data each time. The skipped-frames line names the
+[slowest call](/performance/frame-budget#frames-over-the-allowance), and the
+sampled stacks in `modlock play` show which code makes it.
+
+## Act on a change, not every frame
+
+A modifier given again on every frame, to keep it on, costs a call per player
+per frame. Hold it instead: `holdModifier` keeps the modifier on the hero with
+no expiry and gives it back when the game removes it or the hero returns. Keep
+what you last asked for, and call the game only when it changes:
+
+<Samples>
+
+```ts
+import type { Player } from 'modlock'
+
+const boost = 'modifier_street_brawl_round_start_zipline_boost'
+const boosted = new Set<number>()
+
+function setBoost(player: Player, on: boolean) {
+  if (boosted.has(player.slot) === on) return
+  if (on) boosted.add(player.slot)
+  else boosted.delete(player.slot)
+  player.holdModifier(boost, on)
+}
+```
+
+```luau
+local boost = "modifier_street_brawl_round_start_zipline_boost"
+local boosted: { [number]: boolean } = {}
+
+local function setBoost(player: modlock.Player, on: boolean)
+	if (boosted[player.slot] == true) == on then
+		return
+	end
+	boosted[player.slot] = on or nil
+	player:holdModifier(boost, on)
+end
+```
+
+```python
+BOOST = "modifier_street_brawl_round_start_zipline_boost"
+boosted: set[int] = set()
+
+
+def set_boost(player: modlock.Player, on: bool) -> None:
+    if (player.slot in boosted) == on:
+        return
+    if on:
+        boosted.add(player.slot)
+    else:
+        boosted.discard(player.slot)
+    player.hold_modifier(BOOST, on)
+```
+
+```go
+const boost = "modifier_street_brawl_round_start_zipline_boost"
+
+var boosted = map[int32]bool{}
+
+func setBoost(player mod.Player, on bool) {
+	if boosted[player.Slot()] == on {
+		return
+	}
+	boosted[player.Slot()] = on
+	_ = player.HoldModifier(boost, &on)
+}
+```
+
+</Samples>
+
+Clear the record for a player who leaves, so a new player in the slot starts
+fresh. The same holds for other state the game keeps, such as a hero's
+abilities or model: set it once, and again only when something changes it.
+
+## Ask once per frame
+
+Read a value once and pass it to the code that needs it. `player.pawn()` and
+`findEntities` each make a call, and `findEntities` searches the world's
+entities. Read each player's pawn once at the top of the frame. Find the
+entities a map places, such as zipline nodes, once after the world loads, and
+keep the handles. The player list from `players()` is answered from the roster
+the host last sent, so it rarely makes a call.
+
+## Stop asking for what fails
+
+A call that fails logs why and returns `false`, or an error in Go. A modifier
+the game does not define fails on every try, and each try still pays for the
+lookup and adds a log line. Check the result, and stop asking for that
+modifier once it fails.
+
+## Spread work across frames
+
+Work that does not need every frame, such as checking who is hiding or
+updating a scoreboard, can visit one player per frame. With 12 players each is
+checked about five times a second, and no frame pays for all of them:
+
+<Samples>
+
+```ts
+import { onFrame, players } from 'modlock'
+
+let next = 0
+
+onFrame(() => {
+  const all = players()
+  if (all.length === 0) return
+  next = (next + 1) % all.length
+  checkHiding(all[next].player)
+})
+```
+
+```luau
+local nextIndex = 0
+
+modlock.onFrame(function(frame)
+	local all = modlock.players()
+	if #all == 0 then
+		return
+	end
+	nextIndex = nextIndex % #all + 1
+	checkHiding(all[nextIndex].player)
+end)
+```
+
+```python
+next_index = 0
+
+
+@modlock.on_frame
+def frame(frame: modlock.FrameEvent) -> None:
+    global next_index
+    everyone = modlock.players()
+    if not everyone:
+        return
+    next_index = (next_index + 1) % len(everyone)
+    check_hiding(everyone[next_index].player)
+```
+
+```go
+var next int
+
+func init() {
+	mod.OnFrame(func(frame *mod.FrameEvent) {
+		all, _ := mod.Players()
+		if len(all) == 0 {
+			return
+		}
+		next = (next + 1) % len(all)
+		checkHiding(mod.PlayerOf(all[next].GetPlayer()))
+	})
+}
+```
+
+</Samples>
+
+Use the game clock, such as `frame.timeSeconds`, for anything timed, so the
+work keeps its pace when the mod skips a frame.
+
+## Send less
+
+Each call's request and reply pass through an encoder and a decoder in your
+mod, and a mod that makes hundreds of calls a frame spends much of its time
+there. In a slow frame's stacks this shows as functions named `encode` and
+`decode`. Make fewer calls, as above, and send an interface or a
+state update only when it changes, not on every frame.

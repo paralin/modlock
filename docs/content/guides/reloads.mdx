@@ -28,6 +28,9 @@ When a mod stops, the host removes what it placed and the interfaces it showed,
 and the mod stays stopped. The host warns in chat each minute until a player types `/restartmod` or a reload replaces it.
 A restart starts the same build in a new instance, as a reload does.
 
+A frame handler has a much smaller allowance than an event: past 8 ms the mod
+skips frames to repay it. See [The frame budget](/performance/frame-budget).
+
 ## Hold a reload
 
 When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits, and the newest build replaces the running one on the next frame after you release the hold. A mod that stops also releases its hold.

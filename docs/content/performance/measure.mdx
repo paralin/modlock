@@ -1,0 +1,58 @@
+---
+title: Measure a mod
+description: Find a mod's slow frames and what spends them before players do.
+---
+
+Measure in the game, with as many players as a real match. The sandbox runs
+your mod with one stand-in player and no hero, and it does not hold back a slow
+frame: it only logs `slow: Frame took 612 ms` for an event past 500 ms. A mod
+that runs well in the sandbox can still skip most of its frames on a server.
+
+## Play with bots
+
+`modlock play` starts the game with your mod, and the terminal shows what the
+host reports. When the mod skips frames, the terminal prints the host's
+[skipped-frames line](/performance/frame-budget#frames-over-the-allowance) and,
+under it, the slowest frame with the stacks the sampler caught there:
+
+```text
+! prophunt: a frame took 230 ms, 59 ms of it in host calls, and the mod skipped 2862 frames to repay slow ones
+    4 of 9 samples in decode (src/net.ts:41) < readState (src/state.ts:88) < tick (src/main.ts:30) < ...
+```
+
+Each stack lists the innermost function first, up to four deep. The sampler
+starts once a frame passes 8 ms, so a frame under the allowance has no samples.
+
+To fill the server, have the mod add bots with `addBot` when it starts with a
+test argument, such as `modlock play --arg probe`. Bots fire the same events players do, so they drive the mod's per-player work. See
+[Testing](/guides/testing#in-the-game).
+
+## Read names, not bundle names
+
+`modlock play` and `modlock dev` build a TypeScript or JavaScript mod without
+minifying it, and write a source map beside the bundle. The terminal maps each
+sampled frame through it, so stacks name your functions, files and lines.
+
+A published build, and a build with `--release`, is minified and has no map.
+Its stacks name the bundle's short names, such as `Nc (mod.js:2)`, and so does
+the host's log on a server. To find what a slow frame on a server spends,
+reproduce it with `modlock play` without `--release`.
+
+## Time the parts of a frame
+
+In TypeScript, [`frameClock`](/guides/toolkit#time-your-frames) times named
+parts of your frame handler. Once a minute it logs the median and slowest
+frame, each part's mean and slowest time, and the parts that cost most in the
+slowest frame. Use it when the sampler shows time spread across many functions,
+or to compare a change before and after.
+
+## Check before you publish
+
+Before you publish, play a full round with a full server and watch the
+terminal:
+
+- No skipped-frames line, or one that counts only a handful of frames.
+- No `slow:` line.
+- With `frameClock`, a slowest frame of a few milliseconds at most, since
+  [the server is slower](/performance/frame-budget#leave-room-for-the-server)
+  than your computer.

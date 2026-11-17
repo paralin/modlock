@@ -6,8 +6,9 @@ description: Try a mod in seconds without the game, and test a whole round in it
 ## In the sandbox
 
 On macOS, or on any computer without Deadlock, `modlock dev` runs your mod in
-the sandbox. The sandbox has the same runtime and limits as a server, and one
-stand-in player with no hero. When you type `/hello` and press Enter, the
+the sandbox. The sandbox has the same runtime and event limits as a server,
+and one stand-in player with no hero. It does not hold back a slow frame as a
+server does, so [measure speed](/performance/measure) in the game. When you type `/hello` and press Enter, the
 sandbox sends it as that player's chat. The terminal shows your mod's log
 and everything it sends to players. Calls that need the game, such as
 reading a hero's position, return nothing.
@@ -51,3 +52,6 @@ onFrame((frame) => {
   run.tick(frame.timeSeconds, 'two fighters', () => fighters() >= 2)
 })
 ```
+
+A probe that seats a full server of bots also shows whether the mod keeps
+within its [frame budget](/performance/frame-budget).
