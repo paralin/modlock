@@ -20,6 +20,9 @@ type Timer struct {
 	// run returns the wait before the timer's next run, and false after its
 	// last.
 	run func() (time.Duration, bool)
+	// site counts the timer's runs while profiling, or is nil for the
+	// library's own deferred handlers, which count themselves.
+	site *site
 }
 
 // Finished reports whether the timer ran its last time or was cancelled.
@@ -42,10 +45,25 @@ var clock struct {
 
 // After runs fn once, delay from now.
 func After(delay time.Duration, fn func()) *Timer {
+	// Finding the caller costs a stack walk, so a timer made while nobody
+	// profiles shares one site.
+	at := ""
+	if profiling {
+		at = caller(2)
+	}
 	return schedule(delay, func() (time.Duration, bool) {
 		fn()
 		return 0, false
-	})
+	}, siteAt("After", at))
+}
+
+// soon runs fn with the next frame, untimed as a timer, for the library's own
+// deferred handlers.
+func soon(fn func()) {
+	schedule(0, func() (time.Duration, bool) {
+		fn()
+		return 0, false
+	}, nil)
 }
 
 // Every runs fn each interval, keeping its cadence through a late frame.
@@ -53,7 +71,7 @@ func Every(interval time.Duration, fn func()) *Timer {
 	return schedule(interval, func() (time.Duration, bool) {
 		fn()
 		return interval, true
-	})
+	}, siteAt("Every", caller(2)))
 }
 
 // Sequence calls fn on the next frame with the number of times it has run,
@@ -64,12 +82,12 @@ func Sequence(fn func(run int) (wait time.Duration, again bool)) *Timer {
 	return schedule(0, func() (time.Duration, bool) {
 		runs++
 		return fn(runs)
-	})
+	}, siteAt("Sequence", caller(2)))
 }
 
 // schedule adds a timer whose first run is delay away.
-func schedule(delay time.Duration, run func() (time.Duration, bool)) *Timer {
-	t := &Timer{delay: delay.Seconds(), started: clock.known, run: run}
+func schedule(delay time.Duration, run func() (time.Duration, bool), at *site) *Timer {
+	t := &Timer{delay: delay.Seconds(), started: clock.known, run: run, site: at}
 	if clock.known {
 		t.at = clock.now + t.delay
 	}
@@ -107,6 +125,7 @@ func advanceTimers(seconds float64) {
 	}
 	slices.SortStableFunc(due, func(a, b *Timer) int { return cmp.Compare(a.at, b.at) })
 
+	// Run them in order, then drop the finished ones.
 	for _, t := range due {
 		if !t.finished {
 			runTimer(t, seconds)
@@ -117,13 +136,24 @@ func advanceTimers(seconds float64) {
 
 // runTimer runs one due timer and schedules its next run.
 func runTimer(t *Timer, seconds float64) {
+	// A timer that panics stops, and the others still run.
 	defer func() {
 		if r := recover(); r != nil {
 			t.finished = true
 			Log(fmt.Sprintf("timer failed: %v", r))
 		}
 	}()
-	wait, again := t.run()
+
+	// Run it, timed against its site while profiling.
+	var wait time.Duration
+	var again bool
+	if profiling && t.site != nil {
+		timed(t.site, func() { wait, again = t.run() })
+	} else {
+		wait, again = t.run()
+	}
+
+	// Schedule its next run, if it has one.
 	if !again {
 		t.finished = true
 		return

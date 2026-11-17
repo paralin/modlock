@@ -1,0 +1,64 @@
+---
+title: Time each handler
+description: Read each handler's time per frame while you develop, and fix the slow one.
+---
+
+Each mod's work happens inside the server's
+[15.6 ms frame](/performance/frame-budget), so a mod that spends a few
+milliseconds a frame is enough to make the game late when it runs with others.
+
+`modlock dev` and `modlock play` time every handler your mod registers and
+show which ones take the time. You write nothing for it: the library knows
+each handler by how you registered it and the line that registered it.
+
+## The timing table
+
+Every 10 seconds, while your mod spends more than 1 ms a frame on average, the
+session prints a table:
+
+```text
+  bounty  10 s, 640 frames: mean 2.90 ms, max 11.20 ms, 21 over 4 ms
+    handler                                        calls  mean ms  max ms over 4 ms
+    onFrame src/bots.ts:40                           640     1.84    9.70        21
+    every src/hud.ts:112                              20     0.61    1.30         0
+    onDamage src/rules.ts:88                         212     0.09    0.41         0
+    command /spawn src/admin.ts:15                     1     0.02    0.02         0
+```
+
+The first line is the mod's whole frame work: its timers and every frame
+handler, once per server frame. Each row below is one handler, the most time
+first. A handler is named by its kind, such as `onFrame`, `every` or
+`command /spawn`, and the line of your code that registered it.
+
+Run `modlock dev --perf` to print the table every 10 seconds whatever the
+mod's time. With `--json`, each table arrives as a `timings` event, a
+`ModTimings` message, whether or not it would print.
+
+## What counts
+
+- A frame is the library's frame event: the timers that came due, then the
+  frame handlers. Commands, chat lines and interface presses run with the next
+  frame, so their time counts in that frame too.
+- Other events, such as damage, kills and joins, count in their handler's row
+  but not in a frame.
+- Time is wall time inside the mod. A call into the game, such as reading a
+  pawn, counts in the handler that made it.
+- `after` timers made before the table starts share one row, named `after`
+  without a line, since finding the line costs a stack. Once the profiler runs,
+  each `after` gets its own row. `every` and `sequence` always have their line.
+- Interface presses and input changes have one row each, `ui press` and
+  `ui input`.
+
+## On servers
+
+The library times handlers only while `modlock dev` or `modlock play` asks for
+the timings. A published mod on a server never times its handlers; there each
+dispatch costs one check. The server still reports a mod whose frames run past
+[8 ms](/performance/frame-budget#frames-over-the-allowance), once a minute.
+
+## Which languages
+
+TypeScript and JavaScript mods on QuickJS, and Go mods, report the table. A
+TypeScript mod built with scriptc reports it with the handlers' kinds but
+without their lines. A mod built with an older library, or written in Luau or
+Python, prints nothing.

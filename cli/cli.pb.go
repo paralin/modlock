@@ -7,6 +7,7 @@ package cli
 import (
 	fmt "fmt"
 	io "io"
+	math "math"
 	slices "slices"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
@@ -30,6 +31,7 @@ type Event struct {
 	//	*Event_Sandbox
 	//	*Event_Update
 	//	*Event_Hosting
+	//	*Event_Timings
 	Body isEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -102,6 +104,13 @@ func (x *Event) GetHosting() *Hosting {
 	return nil
 }
 
+func (x *Event) GetTimings() *ModTimings {
+	if x, ok := x.GetBody().(*Event_Timings); ok {
+		return x.Timings
+	}
+	return nil
+}
+
 type isEvent_Body interface {
 	isEvent_Body()
 }
@@ -148,6 +157,12 @@ type Event_Hosting struct {
 	Hosting *Hosting `protobuf:"bytes,8,opt,name=hosting,proto3,oneof"`
 }
 
+type Event_Timings struct {
+	// Timings reports one mod's handler timings over the profiler's period,
+	// every 10 seconds of a dev or play session.
+	Timings *ModTimings `protobuf:"bytes,9,opt,name=timings,proto3,oneof"`
+}
+
 func (*Event_Note) isEvent_Body() {}
 
 func (*Event_Building) isEvent_Body() {}
@@ -163,6 +178,134 @@ func (*Event_Sandbox) isEvent_Body() {}
 func (*Event_Update) isEvent_Body() {}
 
 func (*Event_Hosting) isEvent_Body() {}
+
+func (*Event_Timings) isEvent_Body() {}
+
+// ModTimings is one mod's processor time, by handler, over one period of
+// modlock dev or modlock play. The mod's library times its handlers only while
+// the command line asks, so a production server never pays for it.
+type ModTimings struct {
+	unknownFields []byte
+	// Mod is the mod's slug.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Seconds is the length of the period.
+	Seconds uint32 `protobuf:"varint,2,opt,name=seconds,proto3" json:"seconds,omitempty"`
+	// Frames is the mod's whole frame work: the library's timers and every
+	// frame handler, once per server frame.
+	Frames *HandlerTiming `protobuf:"bytes,3,opt,name=frames,proto3" json:"frames,omitempty"`
+	// Handlers holds each registered handler that ran in the period, the most
+	// time first.
+	Handlers []*HandlerTiming `protobuf:"bytes,4,rep,name=handlers,proto3" json:"handlers,omitempty"`
+}
+
+func (x *ModTimings) Reset() {
+	*x = ModTimings{}
+}
+
+func (*ModTimings) ProtoMessage() {}
+
+func (x *ModTimings) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *ModTimings) GetSeconds() uint32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+func (x *ModTimings) GetFrames() *HandlerTiming {
+	if x != nil {
+		return x.Frames
+	}
+	return nil
+}
+
+func (x *ModTimings) GetHandlers() []*HandlerTiming {
+	if x != nil {
+		return x.Handlers
+	}
+	return nil
+}
+
+// HandlerTiming is the time one handler, or the mod's frames, took.
+type HandlerTiming struct {
+	unknownFields []byte
+	// Kind names how the mod registered the handler, such as "onFrame",
+	// "every" or "command /spawn".
+	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// File and Line name the registering call in the mod's source, when the
+	// library and the source map could tell. File is relative to the working
+	// directory when under it.
+	File string `protobuf:"bytes,2,opt,name=file,proto3" json:"file,omitempty"`
+	Line uint32 `protobuf:"varint,3,opt,name=line,proto3" json:"line,omitempty"`
+	// Calls counts the handler's runs in the period.
+	Calls uint64 `protobuf:"varint,4,opt,name=calls,proto3" json:"calls,omitempty"`
+	// TotalMs and MaxMs are the runs' total and longest times in milliseconds.
+	TotalMs float64 `protobuf:"fixed64,5,opt,name=total_ms,json=totalMs,proto3" json:"totalMs,omitempty"`
+	MaxMs   float64 `protobuf:"fixed64,6,opt,name=max_ms,json=maxMs,proto3" json:"maxMs,omitempty"`
+	// Over counts the runs longer than 4 ms.
+	Over uint64 `protobuf:"varint,7,opt,name=over,proto3" json:"over,omitempty"`
+}
+
+func (x *HandlerTiming) Reset() {
+	*x = HandlerTiming{}
+}
+
+func (*HandlerTiming) ProtoMessage() {}
+
+func (x *HandlerTiming) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *HandlerTiming) GetFile() string {
+	if x != nil {
+		return x.File
+	}
+	return ""
+}
+
+func (x *HandlerTiming) GetLine() uint32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *HandlerTiming) GetCalls() uint64 {
+	if x != nil {
+		return x.Calls
+	}
+	return 0
+}
+
+func (x *HandlerTiming) GetTotalMs() float64 {
+	if x != nil {
+		return x.TotalMs
+	}
+	return 0
+}
+
+func (x *HandlerTiming) GetMaxMs() float64 {
+	if x != nil {
+		return x.MaxMs
+	}
+	return 0
+}
+
+func (x *HandlerTiming) GetOver() uint64 {
+	if x != nil {
+		return x.Over
+	}
+	return 0
+}
 
 // Building identifies the project a build started for.
 type Building struct {
@@ -1013,6 +1156,60 @@ func (m *Event_Hosting) CloneOneofVT() isEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *Event_Timings) CloneVT() *Event_Timings {
+	if m == nil {
+		return (*Event_Timings)(nil)
+	}
+	r := new(Event_Timings)
+	r.Timings = protobuf_go_lite.CloneVTValue(m.Timings)
+	return r
+}
+
+func (m *Event_Timings) CloneOneofVT() isEvent_Body {
+	return m.CloneVT()
+}
+
+func (m *ModTimings) CloneVT() *ModTimings {
+	if m == nil {
+		return (*ModTimings)(nil)
+	}
+	r := new(ModTimings)
+	r.Mod = m.Mod
+	r.Seconds = m.Seconds
+	r.Frames = protobuf_go_lite.CloneVTValue(m.Frames)
+	r.Handlers = protobuf_go_lite.CloneVTSlice(m.Handlers)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ModTimings) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HandlerTiming) CloneVT() *HandlerTiming {
+	if m == nil {
+		return (*HandlerTiming)(nil)
+	}
+	r := new(HandlerTiming)
+	r.Kind = m.Kind
+	r.File = m.File
+	r.Line = m.Line
+	r.Calls = m.Calls
+	r.TotalMs = m.TotalMs
+	r.MaxMs = m.MaxMs
+	r.Over = m.Over
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HandlerTiming) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *Building) CloneVT() *Building {
 	if m == nil {
 		return (*Building)(nil)
@@ -1587,6 +1784,90 @@ func (this *Event_Hosting) EqualVT(thatIface isEvent_Body) bool {
 		return false
 	}
 	return true
+}
+
+func (this *Event_Timings) EqualVT(thatIface isEvent_Body) bool {
+	that, ok := thatIface.(*Event_Timings)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Timings, that.Timings, func() *ModTimings { return &ModTimings{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *ModTimings) EqualVT(that *ModTimings) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Frames, that.Frames) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Handlers, that.Handlers, func() *HandlerTiming { return &HandlerTiming{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ModTimings) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ModTimings)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HandlerTiming) EqualVT(that *HandlerTiming) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if this.File != that.File {
+		return false
+	}
+	if this.Line != that.Line {
+		return false
+	}
+	if this.Calls != that.Calls {
+		return false
+	}
+	if this.TotalMs != that.TotalMs {
+		return false
+	}
+	if this.MaxMs != that.MaxMs {
+		return false
+	}
+	if this.Over != that.Over {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HandlerTiming) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HandlerTiming)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Building) EqualVT(that *Building) bool {
@@ -2211,6 +2492,10 @@ func (x *Event) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("hosting")
 			ov.Hosting.MarshalProtoJSON(s.WithField("hosting"))
+		case *Event_Timings:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("timings")
+			ov.Timings.MarshalProtoJSON(s.WithField("timings"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2298,12 +2583,202 @@ func (x *Event) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Hosting = &Hosting{}
 			ov.Hosting.UnmarshalProtoJSON(s.WithField("hosting", true))
+		case "timings":
+			ov := &Event_Timings{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Timings = nil
+				return
+			}
+			ov.Timings = &ModTimings{}
+			ov.Timings.UnmarshalProtoJSON(s.WithField("timings", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Event from JSON.
 func (x *Event) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ModTimings message to JSON.
+func (x *ModTimings) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteUint32(x.Seconds)
+	}
+	if x.Frames != nil || s.HasField("frames") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("frames")
+		x.Frames.MarshalProtoJSON(s.WithField("frames"))
+	}
+	if len(x.Handlers) > 0 || s.HasField("handlers") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("handlers")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Handlers {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("handlers"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ModTimings to JSON.
+func (x *ModTimings) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModTimings message from JSON.
+func (x *ModTimings) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadUint32()
+		case "frames":
+			if s.ReadNil() {
+				x.Frames = nil
+				return
+			}
+			x.Frames = &HandlerTiming{}
+			x.Frames.UnmarshalProtoJSON(s.WithField("frames", true))
+		case "handlers":
+			s.AddField("handlers")
+			if s.ReadNil() {
+				x.Handlers = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Handlers = append(x.Handlers, nil)
+					return
+				}
+				v := &HandlerTiming{}
+				v.UnmarshalProtoJSON(s.WithField("handlers", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Handlers = append(x.Handlers, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ModTimings from JSON.
+func (x *ModTimings) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HandlerTiming message to JSON.
+func (x *HandlerTiming) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Kind != "" || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		s.WriteString(x.Kind)
+	}
+	if x.File != "" || s.HasField("file") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("file")
+		s.WriteString(x.File)
+	}
+	if x.Line != 0 || s.HasField("line") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("line")
+		s.WriteUint32(x.Line)
+	}
+	if x.Calls != 0 || s.HasField("calls") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("calls")
+		s.WriteUint64(x.Calls)
+	}
+	if x.TotalMs != 0 || s.HasField("totalMs") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("totalMs")
+		s.WriteFloat64(x.TotalMs)
+	}
+	if x.MaxMs != 0 || s.HasField("maxMs") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("maxMs")
+		s.WriteFloat64(x.MaxMs)
+	}
+	if x.Over != 0 || s.HasField("over") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("over")
+		s.WriteUint64(x.Over)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HandlerTiming to JSON.
+func (x *HandlerTiming) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HandlerTiming message from JSON.
+func (x *HandlerTiming) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "kind":
+			s.AddField("kind")
+			x.Kind = s.ReadString()
+		case "file":
+			s.AddField("file")
+			x.File = s.ReadString()
+		case "line":
+			s.AddField("line")
+			x.Line = s.ReadUint32()
+		case "calls":
+			s.AddField("calls")
+			x.Calls = s.ReadUint64()
+		case "total_ms", "totalMs":
+			s.AddField("total_ms")
+			x.TotalMs = s.ReadFloat64()
+		case "max_ms", "maxMs":
+			s.AddField("max_ms")
+			x.MaxMs = s.ReadFloat64()
+		case "over":
+			s.AddField("over")
+			x.Over = s.ReadUint64()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HandlerTiming from JSON.
+func (x *HandlerTiming) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3503,6 +3978,161 @@ func (m *Event_Hosting) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Event_Timings) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Event_Timings) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Timings != nil {
+		size, err := m.Timings.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x4a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x4a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ModTimings) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ModTimings) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ModTimings) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Handlers) > 0 {
+		for iNdEx := len(m.Handlers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Handlers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Frames != nil {
+		size, err := m.Frames.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Seconds))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HandlerTiming) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HandlerTiming) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HandlerTiming) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Over != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Over))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.MaxMs != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.MaxMs))))
+		i--
+		dAtA[i] = 0x31
+	}
+	if m.TotalMs != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.TotalMs))))
+		i--
+		dAtA[i] = 0x29
+	}
+	if m.Calls != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Calls))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Line != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Line))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.File) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.File)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Kind) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Kind)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Building) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4567,6 +5197,58 @@ func (m *Event_Hosting) SizeVT() (n int) {
 	return n
 }
 
+func (m *Event_Timings) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Timings != nil {
+		l = m.Timings.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *ModTimings) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Seconds)
+	if m.Frames != nil {
+		l = m.Frames.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for _, e := range m.Handlers {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HandlerTiming) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Kind)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.File)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Line)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Calls)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.TotalMs)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.MaxMs)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Over)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *Building) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -4978,11 +5660,90 @@ func (x *Event) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Hosting)
 		}
+	case *Event_Timings:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "timings")
+		if body.Timings == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ModTimings{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Timings)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Event) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ModTimings) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModTimings")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteUint(&sb, x.Seconds)
+	}
+	if x.Frames != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "frames")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Frames)
+	}
+	if len(x.Handlers) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "handlers")
+		for i, v := range x.Handlers {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &HandlerTiming{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ModTimings) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HandlerTiming) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HandlerTiming")
+	if x.Kind != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteString(&sb, x.Kind)
+	}
+	if x.File != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "file")
+		protobuf_go_lite.TextWriteString(&sb, x.File)
+	}
+	if x.Line != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "line")
+		protobuf_go_lite.TextWriteUint(&sb, x.Line)
+	}
+	if x.Calls != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "calls")
+		protobuf_go_lite.TextWriteUint(&sb, x.Calls)
+	}
+	if x.TotalMs != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "total_ms")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.TotalMs)
+	}
+	if x.MaxMs != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_ms")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.MaxMs)
+	}
+	if x.Over != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "over")
+		protobuf_go_lite.TextWriteUint(&sb, x.Over)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HandlerTiming) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -5529,6 +6290,230 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				m.Body = &Event_Hosting{Hosting: v}
 			}
 			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Timings", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Event_Timings); ok {
+				if err := oneof.Timings.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ModTimings{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Event_Timings{Timings: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ModTimings) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ModTimings: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ModTimings: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			m.Seconds = 0
+			m.Seconds, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Frames", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Frames == nil {
+				m.Frames = &HandlerTiming{}
+			}
+			if err := m.Frames.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Handlers", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Handlers = append(m.Handlers, &HandlerTiming{})
+			if err := m.Handlers[len(m.Handlers)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HandlerTiming) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HandlerTiming: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HandlerTiming: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Kind = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field File", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.File = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Line", wireType)
+			}
+			m.Line = 0
+			m.Line, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Calls", wireType)
+			}
+			m.Calls = 0
+			m.Calls, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalMs", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.TotalMs = float64(math.Float64frombits(v))
+		case 6:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxMs", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.MaxMs = float64(math.Float64frombits(v))
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Over", wireType)
+			}
+			m.Over = 0
+			m.Over, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

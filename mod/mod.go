@@ -44,6 +44,8 @@ type Service func(method string, payload []byte) ([]byte, error)
 type handlers struct {
 	// commands maps each registered command name to its handler.
 	commands map[string]func(Player, string)
+	// commandSites holds each command's profiled site.
+	commandSites map[string]*site
 	// services maps each service the mod serves to its handler.
 	services map[string]Service
 	// waiting maps each started service call's number to the function its
@@ -93,11 +95,12 @@ type handlers struct {
 
 // registered is the mod's single set of handlers.
 var registered = &handlers{
-	commands:    map[string]func(Player, string){},
-	services:    map[string]Service{},
-	waiting:     map[uint64]func(reply []byte, err error){},
-	generations: map[int32]uint32{},
-	tenures:     map[int32]uint32{},
+	commands:     map[string]func(Player, string){},
+	commandSites: map[string]*site{},
+	services:     map[string]Service{},
+	waiting:      map[uint64]func(reply []byte, err error){},
+	generations:  map[int32]uint32{},
+	tenures:      map[int32]uint32{},
 }
 
 // Command calls handler when a player types /name in chat. The handler runs
@@ -106,6 +109,7 @@ var registered = &handlers{
 // again replaces its handler.
 func Command(name string, handler func(p Player, args string)) {
 	registered.commands[name] = handler
+	registered.commandSites[name] = track("Command /" + name)
 }
 
 // Serve answers the host's calls to service with handler. Registering a
@@ -147,17 +151,20 @@ func CallServiceLater(service, method string, payload []byte, timeout time.Durat
 // arguments that follow -- on the modlock-host command line.
 func OnStart(handler func(args []string)) {
 	registered.starts = append(registered.starts, handler)
+	track("OnStart")
 }
 
 // OnFrame calls handler once per server frame.
 func OnFrame(handler func(f *FrameEvent)) {
 	registered.frames = append(registered.frames, handler)
+	track("OnFrame")
 }
 
 // OnChat calls handler with each chat line a player writes, commands
 // included, on the next server frame.
 func OnChat(handler func(line *ChatEvent)) {
 	registered.chats = append(registered.chats, handler)
+	track("OnChat")
 }
 
 // OnPlayerJoin calls handler once for each player the mod serves when they
@@ -165,6 +172,7 @@ func OnChat(handler func(line *ChatEvent)) {
 // each player already in the game.
 func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
 	registered.joins = append(registered.joins, handler)
+	track("OnPlayerJoin")
 }
 
 // OnPlayerLeave calls handler once for each joined player who leaves the mod,
@@ -173,6 +181,7 @@ func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
 // stops serving leaves too, with Disconnected false.
 func OnPlayerLeave(handler func(left *PlayerLeftEvent)) {
 	registered.leaves = append(registered.leaves, handler)
+	track("OnPlayerLeave")
 }
 
 // OnWorld calls handler with the map's name each time a world loads, and at
@@ -180,6 +189,7 @@ func OnPlayerLeave(handler func(left *PlayerLeftEvent)) {
 // by then.
 func OnWorld(handler func(mapName string)) {
 	registered.worlds = append(registered.worlds, handler)
+	track("OnWorld")
 }
 
 // OnInput calls handler with the watched buttons a player pressed and
@@ -187,18 +197,21 @@ func OnWorld(handler func(mapName string)) {
 // press until its release.
 func OnInput(handler func(p Player, pressed, released uint64)) {
 	registered.inputs = append(registered.inputs, handler)
+	track("OnInput")
 }
 
 // OnRestored calls handler when a player's Player.RestoreHero ends: err is
 // nil once the target held for a second, or says why it did not.
 func OnRestored(handler func(p Player, err error)) {
 	registered.restoreds = append(registered.restoreds, handler)
+	track("OnRestored")
 }
 
 // OnNpcsRestored calls handler when RestoreNpcs ends: err is nil once the map
 // holds every target, or says why it does not.
 func OnNpcsRestored(handler func(err error)) {
 	registered.npcsRestoreds = append(registered.npcsRestoreds, handler)
+	track("OnNpcsRestored")
 }
 
 // OnDamage calls handler before each hit lands, so it can block the hit or
@@ -206,11 +219,13 @@ func OnNpcsRestored(handler func(err error)) {
 // handlers see the earlier ones' amount.
 func OnDamage(handler func(hit *DamageEvent) *DamageResult) {
 	registered.damages = append(registered.damages, handler)
+	track("OnDamage")
 }
 
 // OnDamaged calls handler on the frame after each hit lands.
 func OnDamaged(handler func(hit *DamagedEvent)) {
 	registered.damageds = append(registered.damageds, handler)
+	track("OnDamaged")
 }
 
 // OnKill calls handler after each hit that kills a hero or a unit, before the
@@ -218,6 +233,7 @@ func OnDamaged(handler func(hit *DamagedEvent)) {
 // -1 is a unit's, or a hazard's for the attacker.
 func OnKill(handler func(kill *KillEvent)) {
 	registered.kills = append(registered.kills, handler)
+	track("OnKill")
 }
 
 // OnAbilityCast calls handler after each ability the game executes, before
@@ -225,6 +241,7 @@ func OnKill(handler func(kill *KillEvent)) {
 // the moment the cast takes effect.
 func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
 	registered.casts = append(registered.casts, handler)
+	track("OnAbilityCast")
 }
 
 // OnHeal calls handler after each heal, before the next frame: health a hero
@@ -235,24 +252,28 @@ func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
 // names them, and the player of each: a slot of -1 is a unit's, or no one's.
 func OnHeal(handler func(heal *HealEvent)) {
 	registered.heals = append(registered.heals, handler)
+	track("OnHeal")
 }
 
 // OnLevelChange calls handler as each hero reaches a new level, before the
 // next frame.
 func OnLevelChange(handler func(change *LevelEvent)) {
 	registered.levels = append(registered.levels, handler)
+	track("OnLevelChange")
 }
 
 // OnMelee calls handler after each melee swing, before the next frame, with
 // whether it was heavy and the entities it struck, none for a miss.
 func OnMelee(handler func(swing *MeleeEvent)) {
 	registered.melees = append(registered.melees, handler)
+	track("OnMelee")
 }
 
 // OnParry calls handler after each parry that catches a melee swing, before
 // the next frame, naming the hero that parried and the attacker it caught.
 func OnParry(handler func(parry *ParryEvent)) {
 	registered.parries = append(registered.parries, handler)
+	track("OnParry")
 }
 
 // OnModifierEvent calls handler each time the game fires the modifier event
@@ -264,24 +285,28 @@ func OnModifierEvent(name string, handler func(event *ModifierFiredEvent)) {
 		registered.modifiers = map[string][]func(*ModifierFiredEvent){}
 	}
 	registered.modifiers[name] = append(registered.modifiers[name], handler)
+	track("OnModifierEvent " + name)
 }
 
 // OnLaunch calls handler with each watched projectile's first frame, before
 // the next frame. WatchProjectiles names the projectiles.
 func OnLaunch(handler func(projectile *LaunchEvent)) {
 	registered.launches = append(registered.launches, handler)
+	track("OnLaunch")
 }
 
 // OnImpact calls handler when a watched projectile strikes something, inside
 // the game's impact: its calls apply before the game continues.
 func OnImpact(handler func(impact *ImpactEvent)) {
 	registered.impacts = append(registered.impacts, handler)
+	track("OnImpact")
 }
 
 // OnLanded calls handler when a hero lands under the manifest's QuakeWorld
 // movement, before the next frame.
 func OnLanded(handler func(landing *LandedEvent)) {
 	registered.landeds = append(registered.landeds, handler)
+	track("OnLanded")
 }
 
 // OnSettingChanged calls handler when a player's setting changes outside the
@@ -289,6 +314,7 @@ func OnLanded(handler func(landing *LandedEvent)) {
 // do not reach it.
 func OnSettingChanged(handler func(p Player, key, value string)) {
 	registered.settings = append(registered.settings, handler)
+	track("OnSettingChanged")
 }
 
 // OnUiPress calls handler with the node id of each button a player presses in
@@ -296,6 +322,7 @@ func OnSettingChanged(handler func(p Player, key, value string)) {
 // run the buttons' handlers.
 func OnUiPress(handler func(p Player, node string)) {
 	registered.presses = append(registered.presses, handler)
+	track("OnUiPress")
 }
 
 // OnUiInput calls handler with each change a player makes to an input in the
@@ -303,6 +330,7 @@ func OnUiPress(handler func(p Player, node string)) {
 // the inputs' handlers.
 func OnUiInput(handler func(event *UiInputEvent)) {
 	registered.changes = append(registered.changes, handler)
+	track("OnUiInput")
 }
 
 // OnPlayers calls handler with each player list the host reports, before the
@@ -310,13 +338,12 @@ func OnUiInput(handler func(event *UiInputEvent)) {
 // connection.
 func OnPlayers(handler func(players []*Connection)) {
 	registered.rosterWatches = append(registered.rosterWatches, handler)
+	track("OnPlayers")
 }
 
 // Start runs the start handlers and asks for the events the mod handles.
 func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
-	for _, handler := range h.starts {
-		handler(event.GetArgs())
-	}
+	eachTimed(h.starts, "OnStart", event.GetArgs())
 	// Timers run from frames, so the library always takes them.
 	return &StartResult{
 		Frames:  true,
@@ -347,12 +374,19 @@ func (h *handlers) modifierEvents() []string {
 
 // Frame runs the timers that came due and the frame handlers.
 func (h *handlers) Frame(event *FrameEvent) error {
+	if profiling {
+		timed(frameTimes, func() { h.frame(event) })
+		return nil
+	}
+	h.frame(event)
+	return nil
+}
+
+// frame runs the timers that came due and the frame handlers.
+func (h *handlers) frame(event *FrameEvent) {
 	advanceTimers(event.GetTimeSeconds())
 	spawns.frame++
-	for _, handler := range h.frames {
-		handler(event)
-	}
-	return nil
+	eachTimed(h.frames, "OnFrame", event)
 }
 
 // Command runs the handler registered for the command's name and claims the
@@ -369,26 +403,27 @@ func (h *handlers) Command(event *CommandEvent) (*CommandResult, error) {
 	// reads a client's commands under a CPU budget and drops the client when
 	// one handler spends it; slow work in a frame only delays that frame.
 	player, args := PlayerOf(event.GetPlayer()), strings.TrimSpace(args)
-	After(0, func() { handler(player, args) })
+	at := h.commandSites[name]
+	soon(func() {
+		if profiling && at != nil {
+			timed(at, func() { handler(player, args) })
+			return
+		}
+		handler(player, args)
+	})
 	return &CommandResult{Claimed: true}, nil
 }
 
 // Chat runs the chat handlers with the next frame, since the line arrives
 // under the same CPU budget as a command.
 func (h *handlers) Chat(event *ChatEvent) error {
-	After(0, func() {
-		for _, handler := range h.chats {
-			handler(event)
-		}
-	})
+	soon(func() { eachTimed(h.chats, "OnChat", event) })
 	return nil
 }
 
 // World runs the world handlers.
 func (h *handlers) World(event *WorldEvent) error {
-	for _, handler := range h.worlds {
-		handler(event.GetMap())
-	}
+	eachTimed(h.worlds, "OnWorld", event.GetMap())
 	return nil
 }
 
@@ -396,7 +431,11 @@ func (h *handlers) World(event *WorldEvent) error {
 // under the same CPU budget as a command.
 func (h *handlers) UiPress(event *UiPressEvent) error {
 	player, node := PlayerOf(event.GetPlayer()), event.GetNode()
-	After(0, func() {
+	soon(func() {
+		if profiling {
+			eachWith(h.presses, sitesOf["OnUiPress"], func(handler func(Player, string)) { handler(player, node) })
+			return
+		}
 		for _, handler := range h.presses {
 			handler(player, node)
 		}
@@ -406,17 +445,17 @@ func (h *handlers) UiPress(event *UiPressEvent) error {
 
 // UiInput runs the input handlers with the next frame, as a press does.
 func (h *handlers) UiInput(event *UiInputEvent) error {
-	After(0, func() {
-		for _, handler := range h.changes {
-			handler(event)
-		}
-	})
+	soon(func() { eachTimed(h.changes, "OnUiInput", event) })
 	return nil
 }
 
 // Serve runs the handler of the called service.
 func (h *handlers) Serve(event *ServiceCall) (*ServiceReply, error) {
+	// Find the service's handler; the profiler's is built in.
 	handler, ok := h.services[event.GetService()]
+	if !ok && event.GetService() == profileService {
+		handler, ok = func(method string, _ []byte) ([]byte, error) { return readProfile(method) }, true
+	}
 	if !ok {
 		return nil, errors.New("the mod serves no service " + event.GetService())
 	}
@@ -430,9 +469,16 @@ func (h *handlers) Serve(event *ServiceCall) (*ServiceReply, error) {
 // Damage chains the hit's amount through the damage handlers, stopping at the
 // first that blocks it.
 func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
+	// Pass the hit through each handler, timed while profiling.
 	hit := event.CloneVT()
-	for _, handler := range h.damages {
-		change := handler(hit)
+	at := sitesOf["OnDamage"]
+	for i, handler := range h.damages {
+		var change *DamageResult
+		if profiling && i < len(at) {
+			timed(at[i], func() { change = handler(hit) })
+		} else {
+			change = handler(hit)
+		}
 		if change.GetBlock() {
 			return change, nil
 		}
@@ -447,31 +493,44 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 }
 
 // Damaged runs the damaged handlers.
-func (h *handlers) Damaged(event *DamagedEvent) error { return each(h.damageds, event) }
+func (h *handlers) Damaged(event *DamagedEvent) error {
+	eachTimed(h.damageds, "OnDamaged", event)
+	return nil
+}
 
 // Killed runs the kill handlers.
-func (h *handlers) Killed(event *KillEvent) error { return each(h.kills, event) }
+func (h *handlers) Killed(event *KillEvent) error {
+	eachTimed(h.kills, "OnKill", event)
+	return nil
+}
 
 // AbilityCast runs the cast handlers.
-func (h *handlers) AbilityCast(event *AbilityCastEvent) error { return each(h.casts, event) }
+func (h *handlers) AbilityCast(event *AbilityCastEvent) error {
+	eachTimed(h.casts, "OnAbilityCast", event)
+	return nil
+}
 
 // Healed runs the heal handlers.
-func (h *handlers) Healed(event *HealEvent) error { return each(h.heals, event) }
+func (h *handlers) Healed(event *HealEvent) error {
+	eachTimed(h.heals, "OnHeal", event)
+	return nil
+}
 
 // LevelChanged runs the level handlers.
-func (h *handlers) LevelChanged(event *LevelEvent) error { return each(h.levels, event) }
+func (h *handlers) LevelChanged(event *LevelEvent) error {
+	eachTimed(h.levels, "OnLevelChange", event)
+	return nil
+}
 
 // Melee runs the melee handlers.
-func (h *handlers) Melee(event *MeleeEvent) error { return each(h.melees, event) }
+func (h *handlers) Melee(event *MeleeEvent) error {
+	eachTimed(h.melees, "OnMelee", event)
+	return nil
+}
 
 // Parried runs the parry handlers.
-func (h *handlers) Parried(event *ParryEvent) error { return each(h.parries, event) }
-
-// each calls every handler with the event.
-func each[E any](handlers []func(E), event E) error {
-	for _, handler := range handlers {
-		handler(event)
-	}
+func (h *handlers) Parried(event *ParryEvent) error {
+	eachTimed(h.parries, "OnParry", event)
 	return nil
 }
 
@@ -481,14 +540,18 @@ func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
 	if event.GetName() == respawnedEvent && len(spawns.handlers) != 0 {
 		respawned(PlayerOf(event.GetPlayer()))
 	}
-	for _, handler := range h.modifiers[event.GetName()] {
-		handler(event)
-	}
+	eachTimed(h.modifiers[event.GetName()], "OnModifierEvent "+event.GetName(), event)
 	return nil
 }
 
 // Input runs the input handlers.
 func (h *handlers) Input(event *InputEvent) error {
+	if profiling {
+		eachWith(h.inputs, sitesOf["OnInput"], func(handler func(Player, uint64, uint64)) {
+			handler(PlayerOf(event.GetPlayer()), event.GetPressed(), event.GetReleased())
+		})
+		return nil
+	}
 	for _, handler := range h.inputs {
 		handler(PlayerOf(event.GetPlayer()), event.GetPressed(), event.GetReleased())
 	}
@@ -498,6 +561,10 @@ func (h *handlers) Input(event *InputEvent) error {
 // Restored runs the restored handlers.
 func (h *handlers) Restored(event *RestoredEvent) error {
 	err := errorOf(event.GetError())
+	if profiling {
+		eachWith(h.restoreds, sitesOf["OnRestored"], func(handler func(Player, error)) { handler(PlayerOf(event.GetPlayer()), err) })
+		return nil
+	}
 	for _, handler := range h.restoreds {
 		handler(PlayerOf(event.GetPlayer()), err)
 	}
@@ -507,14 +574,13 @@ func (h *handlers) Restored(event *RestoredEvent) error {
 // NpcsRestored runs the NPC restored handlers.
 func (h *handlers) NpcsRestored(event *NpcsRestoredEvent) error {
 	err := errorOf(event.GetError())
-	for _, handler := range h.npcsRestoreds {
-		handler(err)
-	}
+	eachTimed(h.npcsRestoreds, "OnNpcsRestored", err)
 	return nil
 }
 
 // ServiceReplied ends one started service call.
 func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
+	// Find the call and forget it, then pass its reply or failure on.
 	done, ok := h.waiting[event.GetCall()]
 	if !ok {
 		return nil
@@ -529,16 +595,31 @@ func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
 }
 
 // Launch runs the launch handlers.
-func (h *handlers) Launch(event *LaunchEvent) error { return each(h.launches, event) }
+func (h *handlers) Launch(event *LaunchEvent) error {
+	eachTimed(h.launches, "OnLaunch", event)
+	return nil
+}
 
 // Impact runs the impact handlers.
-func (h *handlers) Impact(event *ImpactEvent) error { return each(h.impacts, event) }
+func (h *handlers) Impact(event *ImpactEvent) error {
+	eachTimed(h.impacts, "OnImpact", event)
+	return nil
+}
 
 // Landed runs the landing handlers.
-func (h *handlers) Landed(event *LandedEvent) error { return each(h.landeds, event) }
+func (h *handlers) Landed(event *LandedEvent) error {
+	eachTimed(h.landeds, "OnLanded", event)
+	return nil
+}
 
 // SettingChanged runs the setting handlers.
 func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
+	if profiling {
+		eachWith(h.settings, sitesOf["OnSettingChanged"], func(handler func(Player, string, string)) {
+			handler(PlayerOf(event.GetPlayer()), event.GetKey(), event.GetValue())
+		})
+		return nil
+	}
 	for _, handler := range h.settings {
 		handler(PlayerOf(event.GetPlayer()), event.GetKey(), event.GetValue())
 	}
@@ -570,21 +651,20 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 	h.generations = current
 
 	// Tell the watchers.
-	for _, handler := range h.rosterWatches {
-		handler(h.roster)
-	}
+	eachTimed(h.rosterWatches, "OnPlayers", h.roster)
 	return nil
 }
 
 // PlayerJoined runs the join handlers.
-func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error { return each(h.joins, event) }
+func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error {
+	eachTimed(h.joins, "OnPlayerJoin", event)
+	return nil
+}
 
 // PlayerLeft runs the leave handlers at once, so the leaving player's hero
 // still reads.
 func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
-	for _, handler := range h.leaves {
-		handler(event)
-	}
+	eachTimed(h.leaves, "OnPlayerLeave", event)
 	return nil
 }
 

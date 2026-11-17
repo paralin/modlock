@@ -26,6 +26,7 @@ var suiteDir = filepath.Join("test", "scriptc")
 var pending = map[string]string{
 	"host":     "entities.create, keyed by designer name, does not compile under scriptc",
 	"rotation": "Standings, generic over Extra, keeps Standing & Extra values that scriptc does not compile",
+	"profile":  "it spies on performance.now and reads registration lines, which the suite's bun:test and scriptc's stackless errors lack",
 }
 
 // suiteBuilds is how many test files build at once. Each scriptc build takes

@@ -27,6 +27,13 @@ To fill the server, have the mod add bots with `addBot` when it starts with a
 test argument, such as `modlock play --arg probe`. Bots fire the same events players do, so they drive the mod's per-player work. See
 [Testing](/guides/testing#in-the-game).
 
+## Time each handler
+
+While `modlock dev` or `modlock play` runs, the library times every handler
+your mod registered, and the terminal prints a table of them every 10 seconds
+when the mod spends more than 1 ms a frame. See
+[Time each handler](/performance/handlers).
+
 ## Read names, not bundle names
 
 `modlock play` and `modlock dev` build a TypeScript or JavaScript mod without

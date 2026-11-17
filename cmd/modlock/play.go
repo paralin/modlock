@@ -31,6 +31,10 @@ var sessionFlags = append([]cli.Flag{
 		Usage: "run the mods without the game, with a stand-in player, even where the game runs",
 	},
 	&cli.StringSliceFlag{Name: "arg", Usage: "pass an argument to the mods' start handlers; repeat for several"},
+	&cli.BoolFlag{
+		Name:  "perf",
+		Usage: "print each mod's handler timings every 10 seconds, not only while a mod uses more than 1 ms a frame",
+	},
 }, interfaceFlags...)
 
 // interfaceFlags configure how the game shows the mods' interfaces.
@@ -158,8 +162,9 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 	}
 
 	// Start a server unless the game cannot run here, naming the source
-	// lines of the mods' slow frames.
-	events := locateFrames(mods, out.host)
+	// lines of the mods' slow frames and timing their handlers.
+	out.profiler = newProfiler(out, mods, c.Bool("perf"))
+	events := out.profiler.follow(locateFrames(mods, out.host))
 	reason := "--sandbox asked for it"
 	if !c.Bool("sandbox") {
 		running, err := startServer(c, out, events, mods, mapName, logPath)
@@ -427,6 +432,11 @@ func waitSession(c *cli.Context, out *printer, running server) error {
 			cancel()
 		}
 	}()
+
+	// Read the mods' handler timings while the session runs.
+	if out.profiler != nil {
+		go out.profiler.run(ctx, running)
+	}
 
 	// A stop the user asked for is not an error.
 	stop := context.AfterFunc(ctx, running.Stop)

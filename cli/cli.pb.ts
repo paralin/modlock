@@ -33,6 +33,7 @@ export interface Event {
     | { value: Sandbox; case: 'sandbox' }
     | { value: Update; case: 'update' }
     | { value: Hosting; case: 'hosting' }
+    | { value: ModTimings; case: 'timings' }
 }
 
 export const Event: MessageType<Event> =
@@ -47,6 +48,7 @@ export const Event: MessageType<Event> =
       [6, 'sandbox', 11, 0, Sandbox.codec, 'body'],
       [7, 'update', 11, 0, Update.codec, 'body'],
       [8, 'hosting', 11, 0, Hosting.codec, 'body'],
+      [9, 'timings', 11, 0, ModTimings.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Event): Event => {
@@ -127,6 +129,16 @@ export const Event: MessageType<Event> =
                 ),
               }
               break
+            case 9:
+              m.body = {
+                case: 'timings',
+                value: ModTimings.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'timings' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -173,6 +185,210 @@ export const Event: MessageType<Event> =
           const o = m.body
           if (o?.case === 'hosting' && o.value != null)
             Hosting.writeField(w, 8, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'timings' && o.value != null)
+            ModTimings.writeField(w, 9, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * ModTimings is one mod's processor time, by handler, over one period of
+ * modlock dev or modlock play. The mod's library times its handlers only while
+ * the command line asks, so a production server never pays for it.
+ *
+ * @generated from message modlock.cli.ModTimings
+ */
+export interface ModTimings {
+  /**
+   * Mod is the mod's slug.
+   */
+  mod?: string
+  /**
+   * Seconds is the length of the period.
+   */
+  seconds?: number
+  /**
+   * Frames is the mod's whole frame work: the library's timers and every
+   * frame handler, once per server frame.
+   */
+  frames?: HandlerTiming
+  /**
+   * Handlers holds each registered handler that ran in the period, the most
+   * time first.
+   */
+  handlers?: HandlerTiming[]
+}
+
+export const ModTimings: MessageType<ModTimings> =
+  /* @__PURE__ */ createMessageType<ModTimings>(
+    'modlock.cli.ModTimings',
+    () => [
+      [1, 'mod', 9],
+      [2, 'seconds', 13],
+      [3, 'frames', 11, 0, HandlerTiming.codec],
+      [4, 'handlers', 11, 1, HandlerTiming.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ModTimings): ModTimings => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.seconds = r.uint32()
+              break
+            case 3:
+              m.frames = HandlerTiming.decode(r, r.delimited(), m.frames ?? {})
+              break
+            case 4:
+              ;(m.handlers ??= []).push(
+                HandlerTiming.decode(r, r.delimited(), {}),
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModTimings, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.seconds
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.frames
+          if (v != null) HandlerTiming.writeField(w, 3, v)
+        }
+        {
+          const a = m.handlers
+          if (a != null) for (const e of a) HandlerTiming.writeField(w, 4, e)
+        }
+      },
+    },
+  )
+
+/**
+ * HandlerTiming is the time one handler, or the mod's frames, took.
+ *
+ * @generated from message modlock.cli.HandlerTiming
+ */
+export interface HandlerTiming {
+  /**
+   * Kind names how the mod registered the handler, such as "onFrame",
+   * "every" or "command /spawn".
+   */
+  kind?: string
+  /**
+   * File and Line name the registering call in the mod's source, when the
+   * library and the source map could tell. File is relative to the working
+   * directory when under it.
+   */
+  file?: string
+  line?: number
+  /**
+   * Calls counts the handler's runs in the period.
+   */
+  calls?: bigint
+  /**
+   * TotalMs and MaxMs are the runs' total and longest times in milliseconds.
+   */
+  totalMs?: number
+  maxMs?: number
+  /**
+   * Over counts the runs longer than 4 ms.
+   */
+  over?: bigint
+}
+
+export const HandlerTiming: MessageType<HandlerTiming> =
+  /* @__PURE__ */ createMessageType<HandlerTiming>(
+    'modlock.cli.HandlerTiming',
+    () => [
+      [1, 'kind', 9],
+      [2, 'file', 9],
+      [3, 'line', 13],
+      [4, 'calls', 4],
+      [5, 'total_ms', 1],
+      [6, 'max_ms', 1],
+      [7, 'over', 4],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: HandlerTiming,
+      ): HandlerTiming => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.kind = r.string()
+              break
+            case 2:
+              m.file = r.string()
+              break
+            case 3:
+              m.line = r.uint32()
+              break
+            case 4:
+              m.calls = r.uint64()
+              break
+            case 5:
+              m.totalMs = r.double()
+              break
+            case 6:
+              m.maxMs = r.double()
+              break
+            case 7:
+              m.over = r.uint64()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HandlerTiming, w: Writer): void => {
+        {
+          const v = m.kind
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.file
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.line
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.calls
+          if (v) w.uint32(32).uint64(v)
+        }
+        {
+          const v = m.totalMs
+          if (v != null && v !== 0) w.uint32(41).double(v)
+        }
+        {
+          const v = m.maxMs
+          if (v != null && v !== 0) w.uint32(49).double(v)
+        }
+        {
+          const v = m.over
+          if (v) w.uint32(56).uint64(v)
         }
       },
     },

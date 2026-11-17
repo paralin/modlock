@@ -47,7 +47,21 @@ import { connection, keepPlayers } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { endServiceCall } from './service-later.js'
-import { advance, after } from './timer.js'
+import {
+  clock,
+  each,
+  eachWith,
+  frameEnded,
+  frameStarted,
+  profile,
+  profileService,
+  read,
+  Site,
+  site,
+  siteAt,
+  timed,
+} from './profile.js'
+import { advance, soon } from './timer.js'
 import { change, press, tick } from './ui.js'
 export * as vector from './vector.js'
 
@@ -259,7 +273,7 @@ export function command(
   name: string,
   handler: (player: Player, args: string) => void,
 ): void {
-  commands.set(name, { handler })
+  commands.set(name, { handler, site: site(`command /${name}`) })
 }
 
 /**
@@ -269,6 +283,7 @@ export function command(
  */
 export function onStart(handler: (args: readonly string[]) => void): void {
   starts.push(handler)
+  startsSites.push(site('onStart'))
 }
 
 /**
@@ -277,6 +292,7 @@ export function onStart(handler: (args: readonly string[]) => void): void {
  */
 export function onChat(handler: (line: ChatEvent) => void): void {
   chats.push(handler)
+  chatsSites.push(site('onChat'))
 }
 
 /**
@@ -288,6 +304,7 @@ export function onPlayerJoin(
   handler: (joined: PlayerJoinedEvent) => void,
 ): void {
   joins.push(handler)
+  joinsSites.push(site('onPlayerJoin'))
 }
 
 /**
@@ -298,6 +315,7 @@ export function onPlayerJoin(
  */
 export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
   leaves.push(handler)
+  leavesSites.push(site('onPlayerLeave'))
 }
 
 /**
@@ -309,6 +327,7 @@ export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
  */
 export function onSpawn(handler: (player: Player, pawn: Pawn) => void): void {
   spawns.push(handler)
+  spawnsSites.push(site('onSpawn'))
 }
 
 /** respawnedEvent is the game's modifier event for a hero entering play. */
@@ -461,14 +480,13 @@ function respawned(player: Player): void {
     return
   }
   spawnedAt.set(player.slot, frameCount)
-  for (const handler of spawns) {
-    handler(player, pawn)
-  }
+  eachWith(spawns, spawnsSites, (handler) => handler(player, pawn))
 }
 
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
+  framesSites.push(site('onFrame'))
 }
 
 /**
@@ -478,6 +496,7 @@ export function onFrame(handler: (frame: FrameEvent) => void): void {
  */
 export function onWorld(handler: (map: string) => void): void {
   worlds.push(handler)
+  worldsSites.push(site('onWorld'))
 }
 
 /**
@@ -489,6 +508,7 @@ export function onInput(
   handler: (player: Player, pressed: bigint, released: bigint) => void,
 ): void {
   inputs.push(handler)
+  inputsSites.push(site('onInput'))
 }
 
 /**
@@ -499,6 +519,7 @@ export function onRestored(
   handler: (player: Player, error: string | undefined) => void,
 ): void {
   restoreds.push(handler)
+  restoredsSites.push(site('onRestored'))
 }
 
 /**
@@ -509,6 +530,7 @@ export function onNpcsRestored(
   handler: (error: string | undefined) => void,
 ): void {
   npcsRestoreds.push(handler)
+  npcsRestoredsSites.push(site('onNpcsRestored'))
 }
 
 /**
@@ -519,11 +541,13 @@ export function onDamage(
   handler: (hit: DamageEvent) => DamageResult | void,
 ): void {
   damages.push(handler)
+  damagesSites.push(site('onDamage'))
 }
 
 /** onDamaged calls handler on the frame after each hit lands. */
 export function onDamaged(handler: (hit: DamagedEvent) => void): void {
   damageds.push(handler)
+  damagedsSites.push(site('onDamaged'))
 }
 
 /**
@@ -533,6 +557,7 @@ export function onDamaged(handler: (hit: DamagedEvent) => void): void {
  */
 export function onKill(handler: (kill: KillEvent) => void): void {
   kills.push(handler)
+  killsSites.push(site('onKill'))
 }
 
 /**
@@ -542,6 +567,7 @@ export function onKill(handler: (kill: KillEvent) => void): void {
  */
 export function onAbilityCast(handler: (cast: AbilityCastEvent) => void): void {
   abilityCasts.push(handler)
+  abilityCastsSites.push(site('onAbilityCast'))
 }
 
 /**
@@ -554,6 +580,7 @@ export function onAbilityCast(handler: (cast: AbilityCastEvent) => void): void {
  */
 export function onHeal(handler: (heal: HealEvent) => void): void {
   heals.push(handler)
+  healsSites.push(site('onHeal'))
 }
 
 /**
@@ -562,6 +589,7 @@ export function onHeal(handler: (heal: HealEvent) => void): void {
  */
 export function onLevelChange(handler: (change: LevelEvent) => void): void {
   levels.push(handler)
+  levelsSites.push(site('onLevelChange'))
 }
 
 /**
@@ -570,6 +598,7 @@ export function onLevelChange(handler: (change: LevelEvent) => void): void {
  */
 export function onMelee(handler: (swing: MeleeEvent) => void): void {
   melees.push(handler)
+  meleesSites.push(site('onMelee'))
 }
 
 /**
@@ -578,6 +607,7 @@ export function onMelee(handler: (swing: MeleeEvent) => void): void {
  */
 export function onParry(handler: (parry: ParryEvent) => void): void {
   parries.push(handler)
+  parriesSites.push(site('onParry'))
 }
 
 /**
@@ -601,6 +631,7 @@ export function onModifierEvent(
  */
 export function onLaunch(handler: (projectile: LaunchEvent) => void): void {
   launches.push(handler)
+  launchesSites.push(site('onLaunch'))
 }
 
 /**
@@ -609,6 +640,7 @@ export function onLaunch(handler: (projectile: LaunchEvent) => void): void {
  */
 export function onImpact(handler: (impact: ImpactEvent) => void): void {
   impacts.push(handler)
+  impactsSites.push(site('onImpact'))
 }
 
 /**
@@ -617,6 +649,7 @@ export function onImpact(handler: (impact: ImpactEvent) => void): void {
  */
 export function onLanded(handler: (landing: LandedEvent) => void): void {
   landeds.push(handler)
+  landedsSites.push(site('onLanded'))
 }
 
 /**
@@ -628,6 +661,7 @@ export function onSettingChanged(
   handler: (player: Player, key: string, value: string) => void,
 ): void {
   settingChanges.push(handler)
+  settingChangesSites.push(site('onSettingChanged'))
 }
 
 /**
@@ -654,48 +688,76 @@ export function settingNumber(player: Player, key: string): number | undefined {
 /** commands maps each registered command name to its handler. */
 const commands = new Map<
   string,
-  { readonly handler: (player: Player, args: string) => void }
+  {
+    readonly handler: (player: Player, args: string) => void
+    readonly site: Site
+  }
 >()
+
+/** pressSite and changeSite time the interface's press and input handlers. */
+const pressSite = siteAt('ui press', '')
+const changeSite = siteAt('ui input', '')
 
 /** services maps each service the mod serves to its handler. */
 const services = new Map<string, { readonly handler: Service }>()
 
 // Each list runs in registration order.
 const starts: ((args: readonly string[]) => void)[] = []
+const startsSites: Site[] = []
 const frames: ((frame: FrameEvent) => void)[] = []
+const framesSites: Site[] = []
 const chats: ((line: ChatEvent) => void)[] = []
+const chatsSites: Site[] = []
 const joins: ((joined: PlayerJoinedEvent) => void)[] = []
+const joinsSites: Site[] = []
 const leaves: ((left: PlayerLeftEvent) => void)[] = []
+const leavesSites: Site[] = []
 const spawns: ((player: Player, pawn: Pawn) => void)[] = []
+const spawnsSites: Site[] = []
 const worlds: ((map: string) => void)[] = []
+const worldsSites: Site[] = []
 const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
   []
+const inputsSites: Site[] = []
 const restoreds: ((player: Player, error: string | undefined) => void)[] = []
+const restoredsSites: Site[] = []
 const npcsRestoreds: ((error: string | undefined) => void)[] = []
+const npcsRestoredsSites: Site[] = []
 const damages: ((hit: DamageEvent) => DamageResult | void)[] = []
+const damagesSites: Site[] = []
 const damageds: ((hit: DamagedEvent) => void)[] = []
+const damagedsSites: Site[] = []
 const kills: ((kill: KillEvent) => void)[] = []
+const killsSites: Site[] = []
 const abilityCasts: ((cast: AbilityCastEvent) => void)[] = []
+const abilityCastsSites: Site[] = []
 const heals: ((heal: HealEvent) => void)[] = []
+const healsSites: Site[] = []
 const levels: ((change: LevelEvent) => void)[] = []
+const levelsSites: Site[] = []
 const melees: ((swing: MeleeEvent) => void)[] = []
+const meleesSites: Site[] = []
 const parries: ((parry: ParryEvent) => void)[] = []
+const parriesSites: Site[] = []
 const modifierEvents = new Map<
   string,
   ((event: ModifierFiredEvent) => void)[]
 >()
+const modifierSites = new Map<string, Site[]>()
 const launches: ((projectile: LaunchEvent) => void)[] = []
+const launchesSites: Site[] = []
 const impacts: ((impact: ImpactEvent) => void)[] = []
+const impactsSites: Site[] = []
 const landeds: ((landing: LandedEvent) => void)[] = []
+const landedsSites: Site[] = []
 const settingChanges: ((player: Player, key: string, value: string) => void)[] =
   []
+const settingChangesSites: Site[] = []
 
 /** handlers delivers each event to the handlers the mod registered. */
 const handlers: ModHandlers = {
   start(event) {
-    for (const handler of starts) {
-      handler(event.args)
-    }
+    each(starts, startsSites, event.args)
     // Frames also fade the notices toast shows, so the library always takes them.
     return {
       frames: true,
@@ -720,15 +782,15 @@ const handlers: ModHandlers = {
 
   frame(event) {
     // Advance the library's own clocks before the mod's handlers run.
+    const start = frameStarted()
     tick(event.timeSeconds)
     advance(event.timeSeconds)
     advancePuppets(event.timeSeconds)
 
     // Count the frame, then tell the mod.
     frameCount++
-    for (const handler of frames) {
-      handler(event)
-    }
+    each(frames, framesSites, event)
+    frameEnded(start)
   },
 
   command(event) {
@@ -744,40 +806,57 @@ const handlers: ModHandlers = {
     // reads a client's commands under a CPU budget and drops the client when
     // one handler spends it; slow work in a frame only delays that frame.
     const args = space < 0 ? '' : line.slice(space + 1).trim()
-    after(0, () => registered.handler(event.player, args))
+    soon(() => {
+      if (profile.on) {
+        timed(registered.site, () => registered.handler(event.player, args))
+      } else {
+        registered.handler(event.player, args)
+      }
+    })
     return { claimed: true }
   },
 
   chat(event) {
     // A line arrives under the same CPU budget as a command, so its handlers
     // run with the next frame.
-    after(0, () => {
-      for (const handler of chats) {
-        handler(event)
-      }
-    })
+    soon(() => each(chats, chatsSites, event))
   },
 
   world(event) {
-    for (const handler of worlds) {
-      handler(event.map)
-    }
+    each(worlds, worldsSites, event.map)
   },
 
   uiPress(event) {
     // A press arrives under the same CPU budget as a command, so its handler
     // also runs with the next frame.
-    after(0, () => press(event.player, event.node, event.action, event.payload))
+    soon(() => {
+      if (profile.on) {
+        timed(pressSite, () =>
+          press(event.player, event.node, event.action, event.payload),
+        )
+      } else {
+        press(event.player, event.node, event.action, event.payload)
+      }
+    })
   },
 
   uiInput(event) {
     // A change runs with the next frame, as a press does.
-    after(0, () => change(event.player, event.node, event.value))
+    soon(() => {
+      if (profile.on) {
+        timed(changeSite, () => change(event.player, event.node, event.value))
+      } else {
+        change(event.player, event.node, event.value)
+      }
+    })
   },
 
   serve(event) {
     const registered = services.get(event.service)
     if (!registered) {
+      if (event.service === profileService) {
+        return { payload: read(event.method) }
+      }
       throw new Error(`the mod serves no service ${event.service}`)
     }
     return { payload: registered.handler(event.method, event.payload) }
@@ -791,8 +870,14 @@ const handlers: ModHandlers = {
   // shapes by those literals rather than by ModHandlers, and the call throws.
   damage(event): DamageResult {
     let amount = event.amount
+    let i = 0
     for (const handler of damages) {
+      const counted = damagesSites[i++]
+      const start = profile.on ? clock() : 0
       const change = handler({ ...event, amount })
+      if (start !== 0) {
+        counted?.add(clock() - start)
+      }
       if (change?.block) {
         return { block: true }
       }
@@ -802,97 +887,77 @@ const handlers: ModHandlers = {
   },
 
   damaged(event) {
-    for (const handler of damageds) {
-      handler(event)
-    }
+    each(damageds, damagedsSites, event)
   },
 
   killed(event) {
-    for (const handler of kills) {
-      handler(event)
-    }
+    each(kills, killsSites, event)
   },
 
   abilityCast(event) {
-    for (const handler of abilityCasts) {
-      handler(event)
-    }
+    each(abilityCasts, abilityCastsSites, event)
   },
 
   healed(event) {
-    for (const handler of heals) {
-      handler(event)
-    }
+    each(heals, healsSites, event)
   },
 
   levelChanged(event) {
-    for (const handler of levels) {
-      handler(event)
-    }
+    each(levels, levelsSites, event)
   },
 
   melee(event) {
-    for (const handler of melees) {
-      handler(event)
-    }
+    each(melees, meleesSites, event)
   },
 
   parried(event) {
-    for (const handler of parries) {
-      handler(event)
-    }
+    each(parries, parriesSites, event)
   },
 
   modifierFired(event) {
     if (event.name === respawnedEvent && spawns.length !== 0) {
       respawned(event.player)
     }
-    for (const handler of modifierEvents.get(event.name) ?? []) {
-      handler(event)
-    }
+    each(
+      modifierEvents.get(event.name) ?? [],
+      modifierSites.get(event.name) ?? [],
+      event,
+    )
   },
 
   input(event) {
-    for (const handler of inputs) {
-      handler(event.player, event.pressed, event.released)
-    }
+    eachWith(inputs, inputsSites, (handler) =>
+      handler(event.player, event.pressed, event.released),
+    )
   },
 
   restored(event) {
     settleRestore(event.player, event.error || undefined)
-    for (const handler of restoreds) {
-      handler(event.player, event.error || undefined)
-    }
+    eachWith(restoreds, restoredsSites, (handler) =>
+      handler(event.player, event.error || undefined),
+    )
   },
 
   npcsRestored(event) {
-    for (const handler of npcsRestoreds) {
-      handler(event.error || undefined)
-    }
+    each(npcsRestoreds, npcsRestoredsSites, event.error || undefined)
   },
 
   launch(event) {
-    for (const handler of launches) {
-      handler(event)
-    }
+    each(launches, launchesSites, event)
   },
 
   impact(event) {
-    for (const handler of impacts) {
-      handler(event)
-    }
+    each(impacts, impactsSites, event)
   },
 
   landed(event) {
-    for (const handler of landeds) {
-      handler(event)
-    }
+    each(landeds, landedsSites, event)
   },
 
   settingChanged(event) {
-    for (const handler of settingChanges) {
-      handler(event.player, event.key, event.value)
-    }
+    eachWith(settingChanges, settingChangesSites, (handler) =>
+      handler(event.player, event.key, event.value),
+    )
   },
 
   playersChanged(event) {
@@ -901,15 +966,11 @@ const handlers: ModHandlers = {
 
   // A join and a leave run at once, so the leaving player's hero still reads.
   playerJoined(event) {
-    for (const handler of joins) {
-      handler(event)
-    }
+    each(joins, joinsSites, event)
   },
 
   playerLeft(event) {
-    for (const handler of leaves) {
-      handler(event)
-    }
+    each(leaves, leavesSites, event)
   },
 }
 

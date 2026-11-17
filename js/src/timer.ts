@@ -11,6 +11,7 @@
 // order they came due.
 
 import { log } from './host.gen.js'
+import { clock, profile, Site, site, siteAt } from './profile.js'
 
 /** Timer is one scheduled callback. */
 export interface Timer {
@@ -33,6 +34,7 @@ class Entry implements Timer {
   constructor(
     private readonly delay: number,
     readonly run: () => number | undefined,
+    readonly site: Site | undefined,
   ) {
     this.at = now === undefined ? undefined : now + delay
   }
@@ -55,18 +57,44 @@ let entries: Entry[] = []
 
 /** after runs fn once, seconds from now. */
 export function after(seconds: number, fn: () => void): Timer {
-  return schedule(seconds, () => {
-    fn()
-    return undefined
-  })
+  // Finding the caller costs a stack, so a timer made while nobody profiles
+  // shares one site.
+  const at = profile.on ? site('after') : siteAt('after', '')
+  return schedule(
+    seconds,
+    () => {
+      fn()
+      return undefined
+    },
+    at,
+  )
+}
+
+/**
+ * soon runs fn with the next frame, untimed as a timer, for the library's
+ * own deferred handlers, which time themselves.
+ */
+export function soon(fn: () => void): void {
+  schedule(
+    0,
+    () => {
+      fn()
+      return undefined
+    },
+    undefined,
+  )
 }
 
 /** every runs fn each seconds, keeping its cadence through a late frame. */
 export function every(seconds: number, fn: () => void): Timer {
-  return schedule(seconds, () => {
-    fn()
-    return seconds
-  })
+  return schedule(
+    seconds,
+    () => {
+      fn()
+      return seconds
+    },
+    site('every'),
+  )
 }
 
 /**
@@ -76,12 +104,16 @@ export function every(seconds: number, fn: () => void): Timer {
  */
 export function sequence(fn: (run: number) => number | void): Timer {
   let run = 0
-  return schedule(0, () => fn(++run) ?? undefined)
+  return schedule(0, () => fn(++run) ?? undefined, site('sequence'))
 }
 
 /** schedule adds a timer whose first run is delay seconds away. */
-function schedule(delay: number, run: () => number | undefined): Timer {
-  const entry = new Entry(delay, run)
+function schedule(
+  delay: number,
+  run: () => number | undefined,
+  at: Site | undefined,
+): Timer {
+  const entry = new Entry(delay, run, at)
   entries.push(entry)
   return entry
 }
@@ -119,7 +151,8 @@ export function advance(seconds: number): void {
       continue
     }
     try {
-      const wait = entry.run()
+      const wait =
+        profile.on && entry.site ? timedRun(entry, entry.site) : entry.run()
       if (wait === undefined) {
         entry.finished = true
       } else {
@@ -132,4 +165,14 @@ export function advance(seconds: number): void {
     }
   }
   entries = entries.filter((entry) => !entry.finished)
+}
+
+/** timedRun runs a timer, counting its time to its site. */
+function timedRun(entry: Entry, at: Site): number | undefined {
+  const start = clock()
+  try {
+    return entry.run()
+  } finally {
+    at.add(clock() - start)
+  }
 }

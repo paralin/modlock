@@ -49,6 +49,10 @@ type printer struct {
 	mod string
 	// names holds each joined player's name by slot.
 	names map[int32]string
+
+	// profiler reads the session's handler timings, or is nil outside a
+	// session.
+	profiler *profiler
 }
 
 // header opens a session's output with the command line's release, the

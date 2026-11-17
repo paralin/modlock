@@ -42,7 +42,53 @@ message Event {
     // Hosting reports how players on other PCs join the hosted session, each
     // time it changes.
     Hosting hosting = 8;
+
+    // Timings reports one mod's handler timings over the profiler's period,
+    // every 10 seconds of a dev or play session.
+    ModTimings timings = 9;
   }
+}
+
+// ModTimings is one mod's processor time, by handler, over one period of
+// modlock dev or modlock play. The mod's library times its handlers only while
+// the command line asks, so a production server never pays for it.
+message ModTimings {
+  // Mod is the mod's slug.
+  string mod = 1;
+
+  // Seconds is the length of the period.
+  uint32 seconds = 2;
+
+  // Frames is the mod's whole frame work: the library's timers and every
+  // frame handler, once per server frame.
+  HandlerTiming frames = 3;
+
+  // Handlers holds each registered handler that ran in the period, the most
+  // time first.
+  repeated HandlerTiming handlers = 4;
+}
+
+// HandlerTiming is the time one handler, or the mod's frames, took.
+message HandlerTiming {
+  // Kind names how the mod registered the handler, such as "onFrame",
+  // "every" or "command /spawn".
+  string kind = 1;
+
+  // File and Line name the registering call in the mod's source, when the
+  // library and the source map could tell. File is relative to the working
+  // directory when under it.
+  string file = 2;
+  uint32 line = 3;
+
+  // Calls counts the handler's runs in the period.
+  uint64 calls = 4;
+
+  // TotalMs and MaxMs are the runs' total and longest times in milliseconds.
+  double total_ms = 5;
+  double max_ms = 6;
+
+  // Over counts the runs longer than 4 ms.
+  uint64 over = 7;
 }
 
 // Building identifies the project a build started for.
