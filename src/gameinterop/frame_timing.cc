@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <format>
 
 namespace modlock::gameinterop {
 namespace {
@@ -44,6 +45,7 @@ uint32_t FrameTiming::Histogram::CountAbove(Clock::duration duration) const {
 }
 
 std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
+                                                      Clock::time_point engine_end,
                                                       Clock::time_point end) {
   // Add the frame to the window.
   if (frames_ == 0) {
@@ -54,6 +56,8 @@ std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
   }
   previous_start_ = start;
   work_.Add(end - start);
+  engine_.Add(engine_end - start);
+  modlock_.Add(end - engine_end);
   ++frames_;
   if (end - window_start_ < kWindow) {
     return std::nullopt;
@@ -64,6 +68,8 @@ std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
   frames_ = 0;
   intervals_ = {};
   work_ = {};
+  engine_ = {};
+  modlock_ = {};
   return summary;
 }
 
@@ -78,18 +84,52 @@ FrameTimingSummary FrameTiming::Summarize(Clock::time_point now) const {
       .work_p50_ms = Milliseconds(work_.Percentile(0.5)),
       .work_p99_ms = Milliseconds(work_.Percentile(0.99)),
       .work_max_ms = Milliseconds(work_.max),
+      .engine_p50_ms = Milliseconds(engine_.Percentile(0.5)),
+      .engine_p99_ms = Milliseconds(engine_.Percentile(0.99)),
+      .engine_max_ms = Milliseconds(engine_.max),
+      .modlock_p50_ms = Milliseconds(modlock_.Percentile(0.5)),
+      .modlock_p99_ms = Milliseconds(modlock_.Percentile(0.99)),
+      .modlock_max_ms = Milliseconds(modlock_.max),
       .late = intervals_.CountAbove(2 * median),
   };
 }
 
+std::optional<std::string> ModFrames::Record(Clock::time_point start, Clock::time_point end) {
+  // Add the frame to the period.
+  if (frames_ == 0) {
+    started_ = start;
+  }
+  const auto spent = end - start;
+  ++frames_;
+  spent_ += spent;
+  slowest_ = std::max(slowest_, spent);
+  if (spent > kOver) {
+    ++over_;
+  }
+  if (end - started_ < kPeriod) {
+    return std::nullopt;
+  }
+
+  // Summarize a full period and start the next.
+  const auto line =
+      std::format("frames: {} in {:.0f} s, mean {:.2f} ms, max {:.2f} ms, {} over 4 ms", frames_,
+                  std::chrono::duration<double>(end - started_).count(),
+                  Milliseconds(spent_) / frames_, Milliseconds(slowest_), over_);
+  *this = {};
+  return line;
+}
+
 std::string FormatFrameTiming(const FrameTimingSummary& summary) {
-  char line[256];
+  char line[384];
   std::snprintf(line, sizeof(line),
                 "[modlock] frames: %u in %.1fs, interval p50 %.1f p99 %.1f max %.1f ms, "
-                "work p50 %.1f p99 %.1f max %.1f ms, late %u",
+                "work p50 %.1f p99 %.1f max %.1f ms (engine p50 %.1f p99 %.1f max %.1f, "
+                "mods p50 %.1f p99 %.1f max %.1f), late %u",
                 summary.frames, summary.seconds, summary.interval_p50_ms, summary.interval_p99_ms,
                 summary.interval_max_ms, summary.work_p50_ms, summary.work_p99_ms,
-                summary.work_max_ms, summary.late);
+                summary.work_max_ms, summary.engine_p50_ms, summary.engine_p99_ms,
+                summary.engine_max_ms, summary.modlock_p50_ms, summary.modlock_p99_ms,
+                summary.modlock_max_ms, summary.late);
   return line;
 }
 

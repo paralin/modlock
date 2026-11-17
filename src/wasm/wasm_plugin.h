@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "modlock/engine_host.h"
+#include "modlock/gameinterop/frame_timing.h"
 #include "modlock/gameinterop/movement_hook.h"
 #include "modlock/plugin.h"
 #include "modlock/wasm_host.h"
@@ -540,6 +541,9 @@ class WasmPlugin final : public Plugin {
   std::chrono::steady_clock::duration slowest_{};
   std::string slowest_report_;
   wasm::profile::SlowFrame slowest_frame_;
+  // minute_ totals the frames the mod ran for the log's summary of them once
+  // a minute.
+  gameinterop::ModFrames minute_;
 
   // service_calls_ holds the running instance's started service calls until
   // a frame delivers their ends.

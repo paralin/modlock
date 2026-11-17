@@ -579,6 +579,11 @@ void WasmPlugin::Tick() {
     frames_resume_ = ended + spent;
   }
 
+  // Log a summary of the mod's frames once a minute.
+  if (auto summary = minute_.Record(began, ended)) {
+    Log(*summary);
+  }
+
   // Log the skipped frames at most once a period.
   if (skipped_ > 0 && ended - shed_logged_ >= kShedLogPeriod) {
     // Report the count and the slowest frame, then count afresh.

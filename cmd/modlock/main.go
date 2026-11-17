@@ -60,6 +60,7 @@ func main() {
 			devCommand(out),
 			buildCommand(out),
 			playCommand(out),
+			profileCommand(out),
 			joinCommand(out),
 			publishCommand(out),
 			loginCommand(out),

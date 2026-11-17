@@ -55,6 +55,21 @@ Every event counts, not only frames: a damage hook or a command that takes
 5 ms holds the server's frame as long. A reload starts the warnings afresh,
 so a fix shows at once.
 
+## A flame graph
+
+`modlock profile` builds the mod and runs it alone in the sandbox for 10
+seconds, or `--seconds`, prints the table, and writes the timings to
+`profile.speedscope.json`, or `--out`:
+
+```sh
+modlock profile --seconds 30 --out bounty.speedscope.json
+```
+
+Open the file at [speedscope.app](https://www.speedscope.app). The mod is the
+root, and each handler above it is as wide as the time it spent, named by its
+kind and line. The sandbox has one stand-in player and no hero, so a handler
+whose work grows with the players weighs less than on a full server.
+
 `modlock publish` runs the built mod in the sandbox for 3 seconds first, and
 warns when it spent more than 1 ms a frame on average or a frame took more
 than 4 ms. It publishes the mod either way.
@@ -79,11 +94,24 @@ than 4 ms. It publishes the mod either way.
 The library times handlers only while `modlock dev` or `modlock play` asks for
 the timings. A published mod on a server never times its handlers; there each
 dispatch costs one check. The server still reports a mod whose frames run past
-[8 ms](/performance/frame-budget#frames-over-the-allowance), once a minute.
+[8 ms](/performance/frame-budget#frames-over-the-allowance), and logs one line
+a minute for each mod, its frames' mean and slowest time:
+
+```text
+[prophunt] frames: 3601 in 60 s, mean 1.18 ms, max 9.10 ms, 36 over 4 ms
+```
+
+The server's own frame line splits each frame's work between the game and
+the mods together:
+
+```text
+[modlock] frames: 3840 in 60.0s, interval p50 15.6 p99 16.4 max 31.0 ms, work p50 3.1 p99 6.4 max 31.0 ms (engine p50 1.9 p99 2.6 max 7.0, mods p50 1.2 p99 3.8 max 24.0), late 2
+```
 
 ## Which languages
 
-TypeScript and JavaScript mods on QuickJS, and Go mods, report the table. A
-TypeScript mod built with scriptc reports it with the handlers' kinds but
-without their lines. A mod built with an older library, or written in Luau or
-Python, prints nothing.
+TypeScript and JavaScript mods on QuickJS, Go mods, Luau mods and Python mods
+report the table, each handler named by the line of its function in Luau and
+Python. A TypeScript mod built with scriptc reports it with the handlers'
+kinds but without their lines. A mod built with an older library prints
+nothing.

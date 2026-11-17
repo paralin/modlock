@@ -5856,6 +5856,11 @@ type Entry = Timer & {
 	-- run returns the seconds before the entry's next run, or nil after its
 	-- last.
 	run: () -> number?,
+	-- kind and fn name the timer to the profiler, such as every and the
+	-- function the mod passed; a timer without a kind times only the
+	-- handlers its run calls.
+	kind: string?,
+	fn: any,
 }
 
 local timerMethods = {}
@@ -5865,13 +5870,205 @@ function timerMethods.cancel(self: Entry)
 	self.finished = true
 end
 
+-- The library times the mod's handlers for the profiler of modlock dev and
+-- modlock play, which calls the "modlock.profile" service. Its first call
+-- turns timing on; until then, and on a production server that never calls,
+-- each event costs one test of profiling and no clock read. Each handler is
+-- known by its kind, such as onFrame, and the file and line of its function.
+
+-- profileService is the service the profiler calls.
+local profileService = "modlock.profile"
+
+-- overMs is the time past which one call or event counts as slow.
+local overMs = 4
+
+-- slowKept is the most slow events one read lists; the rest are counted.
+local slowKept = 16
+
+-- profiling is true while the profiler reads the timings.
+local profiling = false
+
+-- Site is one handler and its timings since the last read, in milliseconds.
+type Site = { kind: string, at: string, calls: number, total: number, max: number, over: number }
+
+-- sites holds every handler that ran while profiling, in the order they first
+-- ran, and sitesByKey finds each by its kind and location.
+local sites: { Site } = {}
+local sitesByKey: { [string]: Site } = {}
+
+-- newSite returns a site of kind at a location, with no calls.
+local function newSite(kind: string, at: string): Site
+	return { kind = kind, at = at, calls = 0, total = 0, max = 0, over = 0 }
+end
+
+-- frameSite counts whole frames.
+local frameSite = newSite("frame", "")
+
+-- SlowEvent is one event the mod took longer than overMs to serve, and the
+-- handler that spent the most of it.
+type SlowEvent = { event: string, ms: number, site: Site?, siteMs: number }
+
+-- slow holds the slow events since the last read, and slowMore counts the
+-- rest. busiest is the handler that spent the most of the event being served.
+local slow: { SlowEvent } = {}
+local slowMore = 0
+local busiest: Site? = nil
+local busiestMs = 0
+
+-- addTime counts one call that took ms to a site.
+local function addTime(site: Site, ms: number)
+	site.calls += 1
+	site.total += ms
+	site.max = math.max(site.max, ms)
+	if ms > overMs then
+		site.over += 1
+	end
+end
+
+-- siteOf returns the site of a handler of kind, by where its function is
+-- defined, made on first use.
+local function siteOf(kind: string, fn: any): Site
+	-- A function's source and line name it, however many closures it makes.
+	local source, line = debug.info(fn :: () -> (), "sl")
+	local at = if source then `{(string.gsub(source, "^[@=]", ""))}:{line}` else ""
+	local key = kind .. " " .. at
+	local held = sitesByKey[key]
+	if held then
+		return held
+	end
+	local made = newSite(kind, at)
+	sitesByKey[key] = made
+	table.insert(sites, made)
+	return made
+end
+
+-- spent counts ms to a handler's site, noting the event's busiest handler.
+local function spent(site: Site, ms: number)
+	addTime(site, ms)
+	if ms > busiestMs then
+		busiest, busiestMs = site, ms
+	end
+end
+
+-- timedCall calls handler with the arguments and counts its time to its site,
+-- returning its first result. Call it only while profiling.
+local function timedCall(kind: string, handler: any, ...: any): any
+	local start = os.clock()
+	local result = handler(...)
+	spent(siteOf(kind, handler), (os.clock() - start) * 1000)
+	return result
+end
+
+-- each calls every handler with the arguments, timing each. Call it only
+-- while profiling.
+local function each(kind: string, list: { any }, ...: any)
+	for _, handler in list do
+		timedCall(kind, handler, ...)
+	end
+end
+
+-- jsonString returns text as a JSON string.
+local function jsonString(text: string): string
+	local escaped = string.gsub(text, '[%c"\\]', function(c: string): string
+		return string.format("\\u%04x", string.byte(c))
+	end)
+	return '"' .. escaped .. '"'
+end
+
+-- siteJson returns a site's timings for the profiler, and resets them.
+local function siteJson(site: Site): string
+	local row = string.format(
+		'{"kind":%s,"at":%s,"calls":%d,"ms":%.6f,"max":%.6f,"over":%d}',
+		jsonString(site.kind),
+		jsonString(site.at),
+		site.calls,
+		site.total,
+		site.max,
+		site.over
+	)
+	site.calls, site.total, site.max, site.over = 0, 0, 0, 0
+	return row
+end
+
+-- readProfile answers the profiler: method "read" turns timing on and
+-- returns the timings since the last read as JSON, resetting them, and "stop"
+-- turns it off.
+local function readProfile(method: string): string
+	-- Stop turns timing off; any method but read is refused.
+	if method == "stop" then
+		profiling = false
+		return ""
+	end
+	if method ~= "read" then
+		error(`{profileService} has no method {method}`, 0)
+	end
+
+	-- Report what ran while timing was on, resetting every count, and turn
+	-- timing on.
+	local counted = profiling
+	local frames = siteJson(frameSite)
+	local rows: { string } = {}
+	for _, site in sites do
+		local calls = site.calls
+		local row = siteJson(site)
+		if counted and calls ~= 0 then
+			table.insert(rows, row)
+		end
+	end
+	local slowRows: { string } = {}
+	local listed: { SlowEvent } = if counted then slow else {}
+	for _, event in listed do
+		local site = event.site
+		table.insert(
+			slowRows,
+			string.format(
+				'{"event":%s,"ms":%.6f,"kind":%s,"at":%s,"siteMs":%.6f}',
+				jsonString(event.event),
+				event.ms,
+				jsonString(if site then site.kind else ""),
+				jsonString(if site then site.at else ""),
+				event.siteMs
+			)
+		)
+	end
+	local report = string.format(
+		'{"frames":%s,"sites":[%s],"slow":[%s],"slowMore":%d}',
+		if counted then frames else siteJson(newSite("frame", "")),
+		table.concat(rows, ","),
+		table.concat(slowRows, ","),
+		if counted then slowMore else 0
+	)
+	slow, slowMore = {}, 0
+	profiling = true
+	return report
+end
+
+-- methodOf reads the method name, field 1, at the start of an encoded Call,
+-- or returns empty. The host writes it first, in ASCII.
+local function methodOf(call: string): string
+	local size = string.byte(call, 2) or 0
+	if string.byte(call, 1) ~= 0x0a or size > 127 or #call < 2 + size then
+		return ""
+	end
+	return string.sub(call, 3, 2 + size)
+end
+
+-- timedRun runs a timer while profiling, counting its time to the function
+-- the mod passed.
+local function timedRun(entry: any): number?
+	local start = os.clock()
+	local wait = entry.run()
+	spent(siteOf(entry.kind, entry.fn), (os.clock() - start) * 1000)
+	return wait
+end
+
 -- now is the game time of the latest frame, unset before the first.
 local now: number? = nil
 local entries: { Entry } = {}
 local lastTimer = 0
 
 -- schedule adds a timer whose first run is delay seconds away.
-local function schedule(delay: number, run: () -> number?): Timer
+local function schedule(delay: number, run: () -> number?, kind: string?, fn: any): Timer
 	lastTimer += 1
 	local entry = setmetatable({
 		finished = false,
@@ -5879,6 +6076,8 @@ local function schedule(delay: number, run: () -> number?): Timer
 		at = if now then now + delay else nil,
 		delay = delay,
 		run = run,
+		kind = kind,
+		fn = fn,
 	}, timerMethods) :: any
 	table.insert(entries, entry)
 	return entry
@@ -5890,7 +6089,7 @@ function modlock.after(seconds: number, fn: () -> ()): Timer
 	return schedule(seconds, function()
 		fn()
 		return nil
-	end)
+	end, "after", fn)
 end
 
 -- every runs fn each seconds, keeping its cadence through a late frame.
@@ -5898,7 +6097,7 @@ function modlock.every(seconds: number, fn: () -> ()): Timer
 	return schedule(seconds, function()
 		fn()
 		return seconds
-	end)
+	end, "every", fn)
 end
 
 -- sequence calls fn on the next frame with the number of times it has run,
@@ -5909,7 +6108,7 @@ function modlock.sequence(fn: (run: number) -> number?): Timer
 	return schedule(0, function()
 		runs += 1
 		return fn(runs)
-	end)
+	end, "sequence", fn)
 end
 
 -- advanceTimers moves the clock to a frame and runs the timers that came due,
@@ -5950,7 +6149,12 @@ local function advanceTimers(seconds: number)
 		if entry.finished then
 			continue
 		end
-		local ok, wait = pcall(entry.run)
+		local ok, wait
+		if profiling and entry.kind then
+			ok, wait = pcall(timedRun, entry)
+		else
+			ok, wait = pcall(entry.run)
+		end
 		if not ok then
 			entry.finished = true
 			modlock.log("timer failed: " .. tostring(wait))
@@ -6278,13 +6482,21 @@ local handlers: ModHandlers = {
 	end,
 
 	frame = function(event)
+		local start = if profiling then os.clock() else -1
 		if interface then
 			interface.tick(event.timeSeconds)
 		end
 		advanceTimers(event.timeSeconds)
 		frameCount += 1
-		for _, handler in frames do
-			handler(event)
+		if profiling then
+			each("onFrame", frames, event)
+		else
+			for _, handler in frames do
+				handler(event)
+			end
+		end
+		if profiling and start >= 0 then
+			addTime(frameSite, (os.clock() - start) * 1000)
 		end
 	end,
 
@@ -6300,9 +6512,10 @@ local handlers: ModHandlers = {
 		-- reads a client's commands under a CPU budget and drops the client when
 		-- one handler spends it; slow work in a frame only delays that frame.
 		local player = event.player
-		modlock.after(0, function()
+		schedule(0, function()
 			handler(player, args or "")
-		end)
+			return nil
+		end, "command /" .. (name :: string), handler)
 		return { claimed = true }
 	end,
 
@@ -6310,6 +6523,10 @@ local handlers: ModHandlers = {
 	-- run with the next frame.
 	chat = function(event)
 		modlock.after(0, function()
+			if profiling then
+				each("onChat", chats, event)
+				return
+			end
 			for _, handler in chats do
 				handler(event)
 			end
@@ -6317,6 +6534,10 @@ local handlers: ModHandlers = {
 	end,
 
 	world = function(event)
+		if profiling then
+			each("onWorld", worlds, event.map)
+			return
+		end
 		for _, handler in worlds do
 			handler(event.map)
 		end
@@ -6342,6 +6563,9 @@ local handlers: ModHandlers = {
 	end,
 
 	serve = function(event)
+		if event.service == profileService then
+			return { payload = readProfile(event.method) }
+		end
 		local handler = services[event.service]
 		if handler == nil then
 			error(`the mod serves no service {event.service}`, 0)
@@ -6356,7 +6580,7 @@ local handlers: ModHandlers = {
 		for _, handler in damages do
 			local hit = table.clone(event)
 			hit.amount = amount
-			local change = handler(hit)
+			local change = if profiling then timedCall("onDamage", handler, hit) else handler(hit)
 			if change and change.block then
 				return { block = true }
 			end
@@ -6368,42 +6592,70 @@ local handlers: ModHandlers = {
 	end,
 
 	damaged = function(event)
+		if profiling then
+			each("onDamaged", damageds, event)
+			return
+		end
 		for _, handler in damageds do
 			handler(event)
 		end
 	end,
 
 	killed = function(event)
+		if profiling then
+			each("onKill", kills, event)
+			return
+		end
 		for _, handler in kills do
 			handler(event)
 		end
 	end,
 
 	abilityCast = function(event)
+		if profiling then
+			each("onAbilityCast", abilityCasts, event)
+			return
+		end
 		for _, handler in abilityCasts do
 			handler(event)
 		end
 	end,
 
 	healed = function(event)
+		if profiling then
+			each("onHeal", heals, event)
+			return
+		end
 		for _, handler in heals do
 			handler(event)
 		end
 	end,
 
 	levelChanged = function(event)
+		if profiling then
+			each("onLevelChange", levels, event)
+			return
+		end
 		for _, handler in levels do
 			handler(event)
 		end
 	end,
 
 	melee = function(event)
+		if profiling then
+			each("onMelee", melees, event)
+			return
+		end
 		for _, handler in melees do
 			handler(event)
 		end
 	end,
 
 	parried = function(event)
+		if profiling then
+			each("onParry", parries, event)
+			return
+		end
 		for _, handler in parries do
 			handler(event)
 		end
@@ -6413,18 +6665,30 @@ local handlers: ModHandlers = {
 		if event.name == respawnedEvent and #spawns ~= 0 then
 			respawned(event.player)
 		end
+		if profiling then
+			each("onModifierEvent", modifierEvents[event.name] or {}, event)
+			return
+		end
 		for _, handler in modifierEvents[event.name] or {} do
 			handler(event)
 		end
 	end,
 
 	input = function(event)
+		if profiling then
+			each("onInput", inputs, event.player, event.pressed, event.released)
+			return
+		end
 		for _, handler in inputs do
 			handler(event.player, event.pressed, event.released)
 		end
 	end,
 
 	restored = function(event)
+		if profiling then
+			each("onRestored", restoreds, event.player, if event.error ~= "" then event.error else nil)
+			return
+		end
 		for _, handler in restoreds do
 			handler(event.player, if event.error ~= "" then event.error else nil)
 		end
@@ -6444,30 +6708,50 @@ local handlers: ModHandlers = {
 	end,
 
 	npcsRestored = function(event)
+		if profiling then
+			each("onNpcsRestored", npcsRestoreds, if event.error ~= "" then event.error else nil)
+			return
+		end
 		for _, handler in npcsRestoreds do
 			handler(if event.error ~= "" then event.error else nil)
 		end
 	end,
 
 	launch = function(event)
+		if profiling then
+			each("onLaunch", launches, event)
+			return
+		end
 		for _, handler in launches do
 			handler(event)
 		end
 	end,
 
 	impact = function(event)
+		if profiling then
+			each("onImpact", impacts, event)
+			return
+		end
 		for _, handler in impacts do
 			handler(event)
 		end
 	end,
 
 	landed = function(event)
+		if profiling then
+			each("onLanded", landeds, event)
+			return
+		end
 		for _, handler in landeds do
 			handler(event)
 		end
 	end,
 
 	settingChanged = function(event)
+		if profiling then
+			each("onSettingChanged", settingChanges, event.player, event.key, event.value)
+			return
+		end
 		for _, handler in settingChanges do
 			handler(event.player, event.key, event.value)
 		end
@@ -6483,20 +6767,51 @@ local handlers: ModHandlers = {
 
 	-- A join and a leave run at once, so the leaving player's hero still reads.
 	playerJoined = function(event)
+		if profiling then
+			each("onPlayerJoin", joins, event)
+			return
+		end
 		for _, handler in joins do
 			handler(event)
 		end
 	end,
 
 	playerLeft = function(event)
+		if profiling then
+			each("onPlayerLeave", leaves, event)
+			return
+		end
 		for _, handler in leaves do
 			handler(event)
 		end
 	end,
 }
 
--- Answer each of the host's events with the handlers above.
+-- served serves one encoded host call while profiling, and notes it when it
+-- took longer than overMs, with the handler that spent the most.
+local function served(call: string): string
+	busiest, busiestMs = nil, 0
+	local start = os.clock()
+	local reply = serveMod(handlers, call)
+	local ms = (os.clock() - start) * 1000
+
+	-- Keep the first slow events of a read, and count the rest.
+	if ms > overMs then
+		if #slow < slowKept then
+			table.insert(slow, { event = methodOf(call), ms = ms, site = busiest, siteMs = busiestMs })
+		else
+			slowMore += 1
+		end
+	end
+	return reply
+end
+
+-- Answer each of the host's events with the handlers above, timing each while
+-- profiling.
 host.handle(function(call: string): string
+	if profiling then
+		return served(call)
+	end
 	return serveMod(handlers, call)
 end)
 

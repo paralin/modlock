@@ -12,15 +12,17 @@ namespace {
 using modlock::gameinterop::FormatFrameTiming;
 using modlock::gameinterop::FrameTiming;
 using modlock::gameinterop::FrameTimingSummary;
+using modlock::gameinterop::ModFrames;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 
-// RunFrames records frames every interval, each working for work, until one
-// returns a summary, and returns it.
+// RunFrames records frames every interval, each working for work, of which
+// the mods take mods, until one returns a summary, and returns it.
 std::optional<FrameTimingSummary> RunFrames(FrameTiming& timing, FrameTiming::Clock::time_point& at,
-                                            microseconds interval, microseconds work, int frames) {
+                                            microseconds interval, microseconds work, int frames,
+                                            microseconds mods = microseconds(0)) {
   for (int frame = 0; frame < frames; ++frame) {
-    if (auto summary = timing.Record(at, at + work)) {
+    if (auto summary = timing.Record(at, at + work - mods, at + work)) {
       return summary;
     }
     at += interval;
@@ -73,6 +75,22 @@ TEST(FrameTiming, StartsTheNextWindowAfterASummary) {
   EXPECT_NEAR(next->interval_p50_ms, 16.667, 1e-9);
 }
 
+TEST(FrameTiming, SplitsTheEngineFromTheMods) {
+  // Run a minute of frames in which the mods take 1.2 ms of 3.05 ms.
+  FrameTiming timing;
+  FrameTiming::Clock::time_point at{};
+  const auto summary =
+      RunFrames(timing, at, microseconds(16'667), microseconds(3'050), 4000, microseconds(1'250));
+
+  // The engine's share and the mods' share come apart.
+  ASSERT_TRUE(summary);
+  EXPECT_NEAR(summary->work_p50_ms, 3.05, 1e-9);
+  EXPECT_NEAR(summary->engine_p50_ms, 1.8, 1e-9);
+  EXPECT_NEAR(summary->engine_max_ms, 1.8, 1e-9);
+  EXPECT_NEAR(summary->modlock_p50_ms, 1.25, 1e-9);
+  EXPECT_NEAR(summary->modlock_max_ms, 1.25, 1e-9);
+}
+
 TEST(FrameTiming, FormatsOneLogLine) {
   const FrameTimingSummary summary{
       .frames = 3600,
@@ -83,11 +101,37 @@ TEST(FrameTiming, FormatsOneLogLine) {
       .work_p50_ms = 3.1,
       .work_p99_ms = 6.4,
       .work_max_ms = 31.0,
+      .engine_p50_ms = 1.9,
+      .engine_p99_ms = 2.6,
+      .engine_max_ms = 7.0,
+      .modlock_p50_ms = 1.2,
+      .modlock_p99_ms = 3.8,
+      .modlock_max_ms = 24.0,
       .late = 2,
   };
   EXPECT_EQ(FormatFrameTiming(summary),
             "[modlock] frames: 3600 in 60.0s, interval p50 16.7 p99 17.3 max 48.2 ms, "
-            "work p50 3.1 p99 6.4 max 31.0 ms, late 2");
+            "work p50 3.1 p99 6.4 max 31.0 ms (engine p50 1.9 p99 2.6 max 7.0, "
+            "mods p50 1.2 p99 3.8 max 24.0), late 2");
+}
+
+TEST(ModFrames, SummarizesAMinuteOfOneModsFrames) {
+  // Run a minute of a mod's frames, every hundredth of them slow.
+  ModFrames mod;
+  ModFrames::Clock::time_point at{};
+  std::optional<std::string> line;
+  int frames = 0;
+  for (; !line && frames < 5000; ++frames) {
+    const auto spent = frames % 100 == 99 ? microseconds(9'100) : microseconds(1'100);
+    line = mod.Record(at, at + spent);
+    at += microseconds(16'667);
+  }
+
+  // One line sums the minute, and the next minute counts afresh.
+  ASSERT_TRUE(line);
+  EXPECT_EQ(frames, 3601);
+  EXPECT_EQ(*line, "frames: 3601 in 60 s, mean 1.18 ms, max 9.10 ms, 36 over 4 ms");
+  EXPECT_FALSE(mod.Record(at, at + microseconds(1'000)));
 }
 
 }  // namespace

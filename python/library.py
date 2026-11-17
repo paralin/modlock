@@ -20,6 +20,7 @@ import io
 import math
 import random
 import sys
+import time
 import traceback
 
 from .heroes import HEROES as HEROES
@@ -807,12 +808,19 @@ class Timer:
 class _Entry(Timer):
     """_Entry is a Timer the clock keeps until it finishes."""
 
-    def __init__(self, delay: float, run: Callable[[], float | None]) -> None:
+    def __init__(
+        self, delay: float, run: Callable[[], float | None], kind: str | None, fn: object
+    ) -> None:
         super().__init__()
         self.delay = delay
         # run returns the seconds before the entry's next run, or None after
         # its last.
         self.run = run
+        # kind and fn name the timer to the profiler, such as every and the
+        # function the mod passed; a kind of None times only the handlers
+        # the run calls.
+        self.kind = kind
+        self.fn = fn
         # at is the game time the entry next runs. It is unset until started,
         # which waits for the clock when the entry came before the first frame.
         self.started = _now is not None
@@ -853,8 +861,10 @@ def call_service_later(
     _waiting[call] = done
 
 
-def _schedule(delay: float, run: Callable[[], float | None]) -> Timer:
-    entry = _Entry(delay, run)
+def _schedule(
+    delay: float, run: Callable[[], float | None], kind: str | None = None, fn: object = None
+) -> Timer:
+    entry = _Entry(delay, run, kind, fn)
     _entries.append(entry)
     return entry
 
@@ -865,7 +875,7 @@ def after(seconds: float, fn: Callable[[], object]) -> Timer:
     def run() -> None:
         fn()
 
-    return _schedule(seconds, run)
+    return _schedule(seconds, run, "after", fn)
 
 
 def every(seconds: float, fn: Callable[[], object]) -> Timer:
@@ -875,7 +885,7 @@ def every(seconds: float, fn: Callable[[], object]) -> Timer:
         fn()
         return seconds
 
-    return _schedule(seconds, run)
+    return _schedule(seconds, run, "every", fn)
 
 
 def sequence(fn: Callable[[int], float | None]) -> Timer:
@@ -889,7 +899,7 @@ def sequence(fn: Callable[[int], float | None]) -> Timer:
         runs += 1
         return fn(runs)
 
-    return _schedule(0, run)
+    return _schedule(0, run, "sequence", fn)
 
 
 def _advance_timers(seconds: float) -> None:
@@ -920,7 +930,7 @@ def _advance_timers(seconds: float) -> None:
         if entry.finished:
             continue
         try:
-            wait = entry.run()
+            wait = entry.run() if not _profiling or entry.kind is None else _timed_run(entry)
         except Exception as error:
             entry.finished = True
             log(f"timer failed: {error!r}")
@@ -1299,11 +1309,30 @@ def _serve_ui(handlers: _UiHandlers) -> None:
 
 
 def _frame(event: FrameEvent) -> None:
+    if _profiling:
+        _frame_timed(event)
+        return
+    _frame_run(event)
+
+
+def _frame_timed(event: FrameEvent) -> None:
+    """_frame_timed runs a frame while profiling, counting its time whole."""
+    start = time.perf_counter()
+    try:
+        _frame_run(event)
+    finally:
+        _frame_site.add((time.perf_counter() - start) * 1000)
+
+
+def _frame_run(event: FrameEvent) -> None:
     global _frame_count
     _frame_count += 1
     if _ui is not None:
         _ui.tick(event.time_seconds)
     _advance_timers(event.time_seconds)
+    if _profiling:
+        _each("on_frame", _frames, event)
+        return
     for handler in _frames:
         handler(event)
 
@@ -1319,7 +1348,7 @@ def _command(event: CommandEvent) -> CommandResult:
     # reads a client's commands under a CPU budget and drops the client when
     # one handler spends it; slow work in a frame only delays that frame.
     player, text = event.player, args.strip()
-    after(0, lambda: handler(player, text))
+    _schedule(0, lambda: handler(player, text), "command /" + name, handler)
     return CommandResult(claimed=True)
 
 
@@ -1327,6 +1356,9 @@ def _chat(event: ChatEvent) -> None:
     # The line arrives under the same CPU budget as a command, so its
     # handlers run with the next frame.
     def run() -> None:
+        if _profiling:
+            _each("on_chat", _chats, event)
+            return
         for handler in _chats:
             handler(event)
 
@@ -1334,6 +1366,9 @@ def _chat(event: ChatEvent) -> None:
 
 
 def _world(event: WorldEvent) -> None:
+    if _profiling:
+        _each("on_world", _worlds, event.map)
+        return
     for handler in _worlds:
         handler(event.map)
 
@@ -1388,6 +1423,8 @@ def _console(method: str, payload: bytes) -> bytes:
 
 
 def _serve(event: ServiceCall) -> ServiceReply:
+    if event.service == _PROFILE_SERVICE:
+        return ServiceReply(payload=_read_profile(event.method))
     handler = _services.get(event.service)
     if handler is None and event.service == "console":
         handler = _console
@@ -1399,7 +1436,8 @@ def _serve(event: ServiceCall) -> ServiceReply:
 def _damage(event: DamageEvent) -> DamageResult | None:
     amount = event.amount
     for handler in _damages:
-        change = handler(dataclasses.replace(event, amount=amount))
+        hit = dataclasses.replace(event, amount=amount)
+        change = handler(hit) if not _profiling else _timed_call("on_damage", handler, hit)
         if change is not None and change.block:
             return DamageResult(block=True)
         if change is not None and change.amount is not None:
@@ -1408,36 +1446,57 @@ def _damage(event: DamageEvent) -> DamageResult | None:
 
 
 def _damaged(event: DamagedEvent) -> None:
+    if _profiling:
+        _each("on_damaged", _damageds, event)
+        return
     for handler in _damageds:
         handler(event)
 
 
 def _killed(event: KillEvent) -> None:
+    if _profiling:
+        _each("on_kill", _kills, event)
+        return
     for handler in _kills:
         handler(event)
 
 
 def _ability_cast(event: AbilityCastEvent) -> None:
+    if _profiling:
+        _each("on_ability_cast", _ability_casts, event)
+        return
     for handler in _ability_casts:
         handler(event)
 
 
 def _healed(event: HealEvent) -> None:
+    if _profiling:
+        _each("on_heal", _heals, event)
+        return
     for handler in _heals:
         handler(event)
 
 
 def _level_changed(event: LevelEvent) -> None:
+    if _profiling:
+        _each("on_level_change", _levels, event)
+        return
     for handler in _levels:
         handler(event)
 
 
 def _melee(event: MeleeEvent) -> None:
+    if _profiling:
+        _each("on_melee", _melees, event)
+        return
     for handler in _melees:
         handler(event)
 
 
 def _parried(event: ParryEvent) -> None:
+    if _profiling:
+        _each("on_parry", _parries, event)
+        return
     for handler in _parries:
         handler(event)
 
@@ -1445,21 +1504,33 @@ def _parried(event: ParryEvent) -> None:
 def _modifier_fired(event: ModifierFiredEvent) -> None:
     if event.name == _RESPAWNED and _spawns:
         _respawned(event.player)
+    if _profiling:
+        _each("on_modifier_event", _modifier_events.get(event.name, ()), event)
+        return
     for handler in _modifier_events.get(event.name, ()):
         handler(event)
 
 
 def _input(event: InputEvent) -> None:
+    if _profiling:
+        _each("on_input", _inputs, event.player, Buttons(event.pressed), Buttons(event.released))
+        return
     for handler in _inputs:
         handler(event.player, Buttons(event.pressed), Buttons(event.released))
 
 
 def _restored(event: RestoredEvent) -> None:
+    if _profiling:
+        _each("on_restored", _restoreds, event.player, event.error or None)
+        return
     for handler in _restoreds:
         handler(event.player, event.error or None)
 
 
 def _npcs_restored(event: NpcsRestoredEvent) -> None:
+    if _profiling:
+        _each("on_npcs_restored", _npcs_restoreds, event.error or None)
+        return
     for handler in _npcs_restoreds:
         handler(event.error or None)
 
@@ -1475,21 +1546,33 @@ def _service_replied(event: ServiceRepliedEvent) -> None:
 
 
 def _launch(event: LaunchEvent) -> None:
+    if _profiling:
+        _each("on_launch", _launches, event)
+        return
     for handler in _launches:
         handler(event)
 
 
 def _impact(event: ImpactEvent) -> None:
+    if _profiling:
+        _each("on_impact", _impacts, event)
+        return
     for handler in _impacts:
         handler(event)
 
 
 def _landed(event: LandedEvent) -> None:
+    if _profiling:
+        _each("on_landed", _landeds, event)
+        return
     for handler in _landeds:
         handler(event)
 
 
 def _setting_changed(event: SettingChangedEvent) -> None:
+    if _profiling:
+        _each("on_setting_changed", _setting_changes, event.player, event.key, event.value)
+        return
     for handler in _setting_changes:
         handler(event.player, event.key, event.value)
 
@@ -1531,13 +1614,207 @@ def _players_changed(event: PlayersChangedEvent) -> None:
 
 # A join and a leave run at once, so the leaving player's hero still reads.
 def _player_joined(event: PlayerJoinedEvent) -> None:
+    if _profiling:
+        _each("on_player_join", _joins, event)
+        return
     for handler in _joins:
         handler(event)
 
 
 def _player_left(event: PlayerLeftEvent) -> None:
+    if _profiling:
+        _each("on_player_leave", _leaves, event)
+        return
     for handler in _leaves:
         handler(event)
+
+
+# The library times the mod's handlers for the profiler of modlock dev and
+# modlock play, which calls the "modlock.profile" service. Its first call
+# turns timing on; until then, and on a production server that never calls,
+# each event costs one test of _profiling and no clock read. Each handler is
+# known by its kind, such as on_frame, and the file and line of its function.
+
+# _PROFILE_SERVICE is the service the profiler calls.
+_PROFILE_SERVICE = "modlock.profile"
+
+# _OVER_MS is the time past which one call or event counts as slow.
+_OVER_MS = 4.0
+
+# _SLOW_KEPT is the most slow events one read lists; the rest are counted.
+_SLOW_KEPT = 16
+
+# _profiling is True while the profiler reads the timings.
+_profiling = False
+
+
+class _Site:
+    """_Site is one handler and its timings since the last read, in
+    milliseconds."""
+
+    __slots__ = ("at", "calls", "kind", "max", "over", "total")
+
+    def __init__(self, kind: str, at: str) -> None:
+        # kind names the registration, and at the handler's file and line.
+        self.kind = kind
+        self.at = at
+        self.calls = 0
+        self.total = 0.0
+        self.max = 0.0
+        # over counts the calls longer than _OVER_MS.
+        self.over = 0
+
+    def add(self, ms: float) -> None:
+        """add counts one call that took ms."""
+        self.calls += 1
+        self.total += ms
+        self.max = max(self.max, ms)
+        if ms > _OVER_MS:
+            self.over += 1
+
+    def row(self) -> dict[str, object]:
+        """row returns the site's timings for the profiler and resets them."""
+        row = {"kind": self.kind, "at": self.at, "calls": self.calls, "ms": self.total,
+               "max": self.max, "over": self.over}
+        self.calls, self.total, self.max, self.over = 0, 0.0, 0.0, 0
+        return row
+
+
+# _sites holds every handler that ran while profiling, in the order they
+# first ran, and _sites_by_code finds each by its kind and function's code.
+_sites: list[_Site] = []
+_sites_by_code: dict[tuple[str, object], _Site] = {}
+
+# _frame_site counts whole frames.
+_frame_site = _Site("frame", "")
+
+# _slow holds the slow events since the last read, and _slow_more counts
+# the rest. _busiest is the handler that spent the most of the event being
+# served, and _busiest_ms its time.
+_slow: list[dict[str, object]] = []
+_slow_more = 0
+_busiest: _Site | None = None
+_busiest_ms = 0.0
+
+
+def _site_of(kind: str, fn: object) -> _Site:
+    """_site_of returns the site of a handler of kind, by where its function
+    is defined, made on first use."""
+    # One function's code is one site, however many closures it makes.
+    code = getattr(fn, "__code__", None)
+    key = (kind, code if code is not None else type(fn))
+    held = _sites_by_code.get(key)
+    if held is not None:
+        return held
+    at = f"{code.co_filename}:{code.co_firstlineno}" if code is not None else ""
+    made = _sites_by_code[key] = _Site(kind, at)
+    _sites.append(made)
+    return made
+
+
+def _spent(site: _Site, ms: float) -> None:
+    """_spent counts ms to a handler's site, noting the event's busiest
+    handler."""
+    global _busiest, _busiest_ms
+    site.add(ms)
+    if ms > _busiest_ms:
+        _busiest, _busiest_ms = site, ms
+
+
+def _timed_call(kind: str, handler: Callable[..., Any], *args: object) -> Any:
+    """_timed_call calls handler with args and counts its time to its site. Call
+    it only while profiling."""
+    start = time.perf_counter()
+    try:
+        return handler(*args)
+    finally:
+        _spent(_site_of(kind, handler), (time.perf_counter() - start) * 1000)
+
+
+def _each(kind: str, handlers: list[Any] | tuple[Any, ...], *args: object) -> None:
+    """_each calls every handler with args, timing each. Call it only while
+    profiling."""
+    for handler in handlers:
+        _timed_call(kind, handler, *args)
+
+
+def _timed_run(entry: _Entry) -> float | None:
+    """_timed_run runs a timer, counting its time to the function the mod
+    passed."""
+    start = time.perf_counter()
+    try:
+        return entry.run()
+    finally:
+        _spent(_site_of(entry.kind or "", entry.fn), (time.perf_counter() - start) * 1000)
+
+
+def _method_of(call: bytes) -> str:
+    """_method_of reads the method name, field 1, at the start of an encoded
+    Call, or returns empty. The host writes it first, in ASCII."""
+    if len(call) < 2 or call[0] != 0x0A or call[1] > 127 or len(call) < 2 + call[1]:
+        return ""
+    return call[2 : 2 + call[1]].decode("ascii", "replace")
+
+
+def _served(call: bytes) -> bytes:
+    """_served serves one encoded host call while profiling, and notes it
+    when it took longer than _OVER_MS, with the handler that spent the
+    most."""
+    global _busiest, _busiest_ms, _slow_more
+    _busiest, _busiest_ms = None, 0.0
+    start = time.perf_counter()
+    reply = _serve_mod(_HANDLERS, call)
+    ms = (time.perf_counter() - start) * 1000
+
+    # Keep the first slow events of a read, and count the rest.
+    if ms > _OVER_MS:
+        if len(_slow) < _SLOW_KEPT:
+            busiest = _busiest
+            _slow.append({
+                "event": _method_of(call), "ms": ms,
+                "kind": busiest.kind if busiest else "", "at": busiest.at if busiest else "",
+                "siteMs": _busiest_ms,
+            })
+        else:
+            _slow_more += 1
+    return reply
+
+
+def _read_profile(method: str) -> bytes:
+    """_read_profile answers the profiler: method "read" turns timing on and
+    returns the timings since the last read as JSON, resetting them, and
+    "stop" turns it off."""
+    global _profiling, _slow, _slow_more
+    import json
+
+    # Stop turns timing off; any method but read is refused.
+    if method == "stop":
+        _profiling = False
+        return b""
+    if method != "read":
+        raise LookupError(_PROFILE_SERVICE + " has no method " + method)
+
+    # Report what ran while timing was on, resetting every count, and turn
+    # timing on.
+    counted = _profiling
+    frames = _frame_site.row()
+    sites = [row for row in (site.row() for site in _sites) if counted and row["calls"]]
+    report = {
+        "frames": frames if counted else _Site("frame", "").row(),
+        "sites": sites,
+        "slow": _slow if counted else [],
+        "slowMore": _slow_more if counted else 0,
+    }
+    _slow, _slow_more = [], 0
+    _profiling = True
+    return json.dumps(report).encode()
+
+
+def _dispatch(call: bytes) -> bytes:
+    """_dispatch serves one encoded host call, timing it while profiling."""
+    if _profiling:
+        return _served(call)
+    return _serve_mod(_HANDLERS, call)
 
 
 # _HANDLERS delivers each event to the handlers the mod registered.
@@ -1572,4 +1849,4 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "player_left": _player_left,
 }
 
-_modlock.handle(lambda data: _serve_mod(_HANDLERS, data))
+_modlock.handle(_dispatch)

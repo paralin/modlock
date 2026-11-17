@@ -30,16 +30,18 @@ void ClearThunkState() {
 using GameFrameFn = void (*)(void* self, bool simulating, bool first_tick, bool last_tick);
 
 // GameFrameThunk runs the engine's own GameFrame first, then modlock's frame
-// work on the same server thread, and logs their timing once per window.
+// work on the same server thread, and logs their timing once per window, the
+// engine's apart from modlock's.
 void GameFrameThunk(void* self, bool simulating, bool first_tick, bool last_tick) {
   const auto start = FrameTiming::Clock::now();
   if (g_game_frame_original != nullptr) {
     reinterpret_cast<GameFrameFn>(g_game_frame_original)(self, simulating, first_tick, last_tick);
   }
+  const auto engine_end = FrameTiming::Clock::now();
   if (g_on_frame) {
     g_on_frame();
   }
-  if (auto summary = g_frame_timing.Record(start, FrameTiming::Clock::now())) {
+  if (auto summary = g_frame_timing.Record(start, engine_end, FrameTiming::Clock::now())) {
     std::cout << FormatFrameTiming(*summary) << std::endl;
   }
 }
