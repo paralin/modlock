@@ -20,6 +20,12 @@ class MODLOCK_API TransmitSet {
   // kSlotOffset holds the info's int32 player slot: CheckTransmit passes it
   // to the slot-to-controller lookup.
   static constexpr size_t kSlotOffset = 0x240;
+  // kFullUpdateOffset holds the info's bool that marks a full update: the
+  // engine sets it while the client's delta tick is -1, so this update
+  // deletes and creates every entity on that client. engine2 stores it from
+  // the sign of CServerSideClient's delta tick as it fills the info, and
+  // CheckTransmit reads it beside the slot.
+  static constexpr size_t kFullUpdateOffset = 0x244;
   // kEntityCount is the bit count of the CBitVec<16384> the info's first
   // field points to; a set bit sends that entity index.
   static constexpr uint32_t kEntityCount = 16384;
@@ -29,6 +35,10 @@ class MODLOCK_API TransmitSet {
 
   // Slot returns the receiving player's server slot.
   int32_t Slot() const;
+
+  // FullUpdate reports whether this update is a full one, after which the
+  // client holds only the entities this update sends.
+  bool FullUpdate() const;
 
   // Sends reports whether this player's client receives the entity with the
   // packed handle in this update. A handle whose index lies past the set is

@@ -233,6 +233,13 @@ void HeldAbilities::Prune(std::span<const OwnedAbility> abilities) {
   }
 }
 
+void HeldAbilities::Forget(int32_t slot) {
+  const auto found = slots_.find(slot);
+  if (found != slots_.end()) {
+    found->second.handles.clear();
+  }
+}
+
 size_t HeldAbilities::Count(int32_t slot) const {
   const auto found = slots_.find(slot);
   return found == slots_.end() ? 0 : found->second.handles.size();
@@ -242,6 +249,13 @@ GuardedAbilities WithholdOwnerless(TransmitSet& set, std::span<const OwnedAbilit
                                    HeldAbilities& held) {
   GuardedAbilities guarded;
   const int32_t slot = set.Slot();
+
+  // A full update makes the client delete every entity and create again only
+  // what it sends, so an ownerless ability would be created without its owner.
+  if (set.FullUpdate()) {
+    held.Forget(slot);
+  }
+
   for (const auto& ability : abilities) {
     if (!set.Sends(ability.index)) {
       continue;

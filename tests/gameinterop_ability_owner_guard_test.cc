@@ -1,7 +1,7 @@
 // Contract tests for the ability owner guard: finding abilities and their
 // owners in the entity list, withholding an ability from a player whose update
 // does not send its live owner, and never withholding one that player's client
-// may already hold.
+// may already hold, unless a full update dropped it.
 #include <gtest/gtest.h>
 
 #include <array>
@@ -128,6 +128,8 @@ struct FakeInfo {
   bool Sends(uint32_t index) const { return (bits[index / 32] >> (index % 32)) & 1; }
 
   void Clear(uint32_t index) { bits[index / 32] &= ~(uint32_t{1} << (index % 32)); }
+
+  void MarkFullUpdate() { bytes[TransmitSet::kFullUpdateOffset] = 1; }
 
   std::array<uint32_t, TransmitSet::kEntityCount / 32> bits;
   alignas(void*) std::array<uint8_t, TransmitSet::kSlotOffset + 8> bytes{};
@@ -354,6 +356,55 @@ TEST(WithholdOwnerless, KeepsAnAbilityTheClientMayHold) {
   ASSERT_EQ(kept.kept.size(), 1u);
   EXPECT_EQ(kept.kept[0].index, 600u);
   EXPECT_TRUE(next.Sends(600));
+}
+
+TEST(WithholdOwnerless, WithholdsAnAbilityTheClientHeldBeforeAFullUpdate) {
+  // Slots 4 and 5 received the slide with its pawn; then the pawn left both
+  // sets, and slot 4 takes a full update, which drops every entity it held.
+  World world;
+  const uint32_t pawn = world.entities.Place(3, world.pawn, 7, kInvalidEHandleIndex);
+  world.entities.Place(600, world.slide, 2, pawn);
+  const auto abilities = world.Find();
+  HeldAbilities held;
+  for (const int32_t slot : {4, 5}) {
+    held.Track(slot, true, 1);
+    FakeInfo first(slot);
+    TransmitSet first_set(first.bytes.data());
+    static_cast<void>(WithholdOwnerless(first_set, abilities, held));
+  }
+
+  // A delta update keeps sending the slide the client holds.
+  FakeInfo delta(4);
+  delta.Clear(3);
+  TransmitSet delta_set(delta.bytes.data());
+  EXPECT_FALSE(delta_set.FullUpdate());
+  EXPECT_EQ(WithholdOwnerless(delta_set, abilities, held).kept.size(), 1u);
+  EXPECT_TRUE(delta.Sends(600));
+
+  // The full update would create the slide without its owner: withhold it.
+  FakeInfo full(4);
+  full.Clear(3);
+  full.MarkFullUpdate();
+  TransmitSet full_set(full.bytes.data());
+  const GuardedAbilities guarded = WithholdOwnerless(full_set, abilities, held);
+  ASSERT_EQ(guarded.withheld.size(), 1u);
+  EXPECT_EQ(guarded.withheld[0].index, 600u);
+  EXPECT_FALSE(full.Sends(600));
+  EXPECT_EQ(held.Count(4), 0u);
+
+  // Later deltas withhold it too, until its owner is sent again.
+  FakeInfo after(4);
+  after.Clear(3);
+  TransmitSet after_set(after.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(after_set, abilities, held).withheld.size(), 1u);
+  EXPECT_FALSE(after.Sends(600));
+
+  // Slot 5 took no full update and still holds the slide.
+  FakeInfo other(5);
+  other.Clear(3);
+  TransmitSet other_set(other.bytes.data());
+  EXPECT_EQ(WithholdOwnerless(other_set, abilities, held).kept.size(), 1u);
+  EXPECT_TRUE(other.Sends(600));
 }
 
 TEST(WithholdOwnerless, KeepsAnAbilityWhoseOwnerLeavesTheWorld) {

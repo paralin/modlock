@@ -71,7 +71,8 @@ using AbilityClasses = std::unordered_map<const void*, bool>;
 // its bit later makes the client drop an entity the server still updates,
 // which closes the client with "CopyExistingEntity: missing client entity".
 // A record lasts until the ability leaves the world, another entity takes its
-// index, or the slot's connection ends.
+// index, the slot's connection ends, or the client takes a full update, in
+// which it drops every entity it held.
 class MODLOCK_API HeldAbilities {
  public:
   // Track starts a pass for slot. A slot no connection occupies, or occupied
@@ -85,6 +86,10 @@ class MODLOCK_API HeldAbilities {
 
   // Hold records that the client in slot receives ability.
   void Hold(int32_t slot, const OwnedAbility& ability);
+
+  // Forget clears what the client in slot may hold, as a full update to it
+  // does, and keeps tracking the slot.
+  void Forget(int32_t slot);
 
   // Prune forgets every record whose ability is not in abilities, the
   // abilities in the world now, with the same handle.
@@ -114,8 +119,9 @@ struct GuardedAbilities {
 
 // WithholdOwnerless withholds from set each ability it sends whose owner is
 // not a live entity it also sends, unless held says the client may already
-// hold that ability. It records in held every ability the set still sends.
-// held must be tracked for the set's slot first.
+// hold that ability. A full update holds nothing from before it, so it first
+// forgets what held recorded for the set's slot. It records in held every
+// ability the set still sends. held must be tracked for the set's slot first.
 //
 // The client resolves an ability's owner handle against the entities it
 // holds, and its ability code reads through the result without a null check:
