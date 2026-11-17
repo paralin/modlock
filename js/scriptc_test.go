@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -29,7 +31,7 @@ var pending = map[string]string{
 }
 
 // suiteBuilds is how many test files build at once. Each scriptc build takes
-// about three minutes and one and a half gigabytes.
+// about four to six minutes and one and a half gigabytes.
 const suiteBuilds = 3
 
 // TestScriptcSuite compiles each of the library's test files with scriptc and
@@ -37,12 +39,21 @@ const suiteBuilds = 3
 // miscompiles fails here rather than in a mod. Each file is its own module:
 // the files bind the host at their top level, and one file's bind and the
 // library state it leaves would otherwise reach the next.
+//
+// SCRIPTC_SHARD=i/n runs only shard i of n: every n-th runnable file, in name
+// order. A shard runs its files in one round of suiteBuilds, so the suite
+// fails when the n shards cannot hold every runnable file in one round; a
+// fourth file would wait for a slot and double the shard's time.
 func TestScriptcSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("each test file takes minutes to compile with scriptc")
 	}
 	if _, err := exec.LookPath("zig"); err != nil {
 		t.Skip("scriptc links with zig, which is not on PATH")
+	}
+	shard, shards, err := parseShard(os.Getenv("SCRIPTC_SHARD"))
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	// Read the suite's configuration and list the test files.
@@ -55,10 +66,27 @@ func TestScriptcSuite(t *testing.T) {
 		t.Fatalf("list the test files: %v", err)
 	}
 
-	// Build and run each file, a few at a time.
-	slots := make(chan struct{}, suiteBuilds)
+	// Deal the runnable files to the shards and check that one round fits.
+	var names []string
+	runnable := 0
 	for _, file := range files {
 		name := strings.TrimSuffix(filepath.Base(file), ".test.ts")
+		if _, ok := pending[name]; ok {
+			names = append(names, name)
+			continue
+		}
+		if runnable%shards == shard {
+			names = append(names, name)
+		}
+		runnable++
+	}
+	if shards > 1 && runnable > shards*suiteBuilds {
+		t.Fatalf("%d runnable files need %d shards of %d, not %d: add a shard to the scriptc job", runnable, (runnable+suiteBuilds-1)/suiteBuilds, suiteBuilds, shards)
+	}
+
+	// Build and run each file, a few at a time.
+	slots := make(chan struct{}, suiteBuilds)
+	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
 			if reason, ok := pending[name]; ok {
 				t.Skip(reason)
@@ -69,6 +97,21 @@ func TestScriptcSuite(t *testing.T) {
 			runSuiteFile(t, config, name)
 		})
 	}
+}
+
+// parseShard reads a SCRIPTC_SHARD value of the form i/n, with i below n. An
+// empty value is the whole suite, shard 0 of 1.
+func parseShard(value string) (shard, shards int, err error) {
+	if value == "" {
+		return 0, 1, nil
+	}
+	index, count, ok := strings.Cut(value, "/")
+	shard, err1 := strconv.Atoi(index)
+	shards, err2 := strconv.Atoi(count)
+	if !ok || err1 != nil || err2 != nil || shards < 1 || shard < 0 || shard >= shards {
+		return 0, 0, fmt.Errorf("SCRIPTC_SHARD=%q is not i/n with i below n", value)
+	}
+	return shard, shards, nil
 }
 
 // runSuiteFile builds the test file name as a project of its own under the
