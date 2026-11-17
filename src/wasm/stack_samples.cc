@@ -3,6 +3,7 @@
 #include "wasm/stack_samples.h"
 
 #include <algorithm>
+#include <format>
 #include <map>
 #include <vector>
 
@@ -146,6 +147,25 @@ profile::StackSamples GuestSampler::Finish() {
     }
   }
   return result;
+}
+
+std::string Hottest(const profile::StackSamples& samples) {
+  // A frame without a sampled leaf has nothing to attribute.
+  if (samples.stacks().empty() || samples.stacks(0).frames().empty()) {
+    return {};
+  }
+  const auto& stack = samples.stacks(0);
+  const auto& leaf = stack.frames(0);
+  std::string text =
+      std::format("; hottest {}", leaf.function().empty() ? "<anonymous>" : leaf.function());
+  if (!leaf.file().empty()) {
+    text += std::format(" ({}", leaf.file());
+    if (leaf.line() > 0) {
+      text += std::format(":{}", leaf.line());
+    }
+    text += ')';
+  }
+  return text + std::format(", {} of {} samples", stack.samples(), samples.total());
 }
 
 }  // namespace modlock::wasm

@@ -53,6 +53,28 @@ const known = new Map<string, Site>()
 /** frames holds the timings of whole frames since the last read. */
 const frames = new Site('frame', '')
 
+/**
+ * Slow is one event the mod took longer than overMs to serve, and the
+ * handler that spent the most of it.
+ */
+interface Slow {
+  event: string
+  ms: number
+  site: Site | undefined
+  siteMs: number
+}
+
+/** slowKept is the most slow events one read lists; the rest are counted. */
+const slowKept = 16
+
+/** slow holds the slow events since the last read, and slowMore the rest. */
+const slow: Slow[] = []
+let slowMore = 0
+
+/** busiest is the handler that spent the most of the event being served. */
+let busiest: Site | undefined
+let busiestMs = 0
+
 /** clock reads the runtime's millisecond clock. */
 export function clock(): number {
   return performance.now()
@@ -116,7 +138,7 @@ export function each<E>(
     try {
       handler(event)
     } finally {
-      counted?.add(clock() - start)
+      spent(counted, clock() - start)
     }
   }
 }
@@ -143,7 +165,7 @@ export function eachWith<H>(
     try {
       call(handler)
     } finally {
-      counted?.add(clock() - start)
+      spent(counted, clock() - start)
     }
   }
 }
@@ -154,18 +176,68 @@ export function timed(at: Site, fn: () => void): void {
   try {
     fn()
   } finally {
-    at.add(clock() - start)
+    spent(at, clock() - start)
   }
 }
 
-/** frameStarted returns the clock at a frame's start, or 0 when not profiling. */
+/** spent counts ms to a handler's site, noting the event's busiest handler. */
+export function spent(at: Site | undefined, ms: number): void {
+  if (at === undefined) {
+    return
+  }
+  at.add(ms)
+  if (ms > busiestMs) {
+    busiest = at
+    busiestMs = ms
+  }
+}
+
+/**
+ * served serves one encoded host call with serve while profiling, and notes
+ * it when it took longer than overMs, with the handler that spent the most.
+ */
+export function served(
+  call: Uint8Array,
+  serve: (call: Uint8Array) => Uint8Array,
+): Uint8Array {
+  // Serve the call, timing it and its handlers.
+  busiest = undefined
+  busiestMs = 0
+  const start = clock()
+  const reply = serve(call)
+  const ms = clock() - start
+
+  // Keep a slow one, or count it once the read holds enough.
+  if (ms > overMs) {
+    if (slow.length < slowKept) {
+      slow.push({ event: methodOf(call), ms, site: busiest, siteMs: busiestMs })
+    } else {
+      slowMore++
+    }
+  }
+  return reply
+}
+
+/**
+ * methodOf reads the method name, field 1, at the start of an encoded Call,
+ * or returns empty. The host writes it first, in ASCII.
+ */
+export function methodOf(call: Uint8Array): string {
+  const size = call[1] ?? 0
+  if (call[0] !== 0x0a || size > 127 || call.length < 2 + size) {
+    return ''
+  }
+  return String.fromCharCode(...call.subarray(2, 2 + size))
+}
+
+/** frameStarted returns the clock at a frame's start, or -1 when not profiling. */
 export function frameStarted(): number {
-  return profile.on ? clock() : 0
+  return profile.on ? clock() : -1
 }
 
 /** frameEnded counts the frame that started at start, while profiling. */
 export function frameEnded(start: number): void {
-  if (profile.on && start !== 0) {
+  if (profile.on && start >= 0) {
     frames.add(clock() - start)
   }
 }
@@ -191,7 +263,7 @@ export function read(method: string): Uint8Array {
 
 /** snapshot writes the timings as JSON, and resets them when counted is true. */
 function snapshot(counted: boolean): string {
-  // Write the sites that ran, then start every count afresh.
+  // Write the sites that ran and the slow events.
   const rows: string[] = []
   if (counted) {
     for (const at of sites) {
@@ -200,17 +272,28 @@ function snapshot(counted: boolean): string {
       }
     }
   }
-  const text = `{"frames":${counted ? row(frames) : row(new Site('frame', ''))},"sites":[${rows.join(',')}]}`
+  const events = counted ? slow.map(slowRow) : []
+  const more = counted ? slowMore : 0
+  const text = `{"frames":${counted ? row(frames) : row(new Site('frame', ''))},"sites":[${rows.join(',')}],"slow":[${events.join(',')}],"slowMore":${more}}`
+
+  // Start every count afresh.
   for (const at of sites) {
     reset(at)
   }
   reset(frames)
+  slow.length = 0
+  slowMore = 0
   return text
 }
 
 /** row writes one site's timings as a JSON object. */
 function row(at: Site): string {
   return `{"kind":${JSON.stringify(at.kind)},"at":${JSON.stringify(at.at)},"calls":${at.calls},"ms":${at.total},"max":${at.max},"over":${at.over}}`
+}
+
+/** slowRow writes one slow event as a JSON object. */
+function slowRow(event: Slow): string {
+  return `{"event":${JSON.stringify(event.event)},"ms":${event.ms},"kind":${JSON.stringify(event.site?.kind ?? '')},"at":${JSON.stringify(event.site?.at ?? '')},"siteMs":${event.siteMs}}`
 }
 
 /** reset clears a site's timings. */

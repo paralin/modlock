@@ -12,6 +12,11 @@
 
 namespace modlock::wasm {
 
+// Hottest describes the stack with the most samples for the log line that
+// reports a slow event or frame, such as "; hottest hotLoop (mod.js:5), 8 of
+// 9 samples". It returns nothing when nothing was sampled.
+std::string Hottest(const profile::StackSamples& samples);
+
 // StackTally folds the stacks sampled during one call into counts by stack.
 // It keeps every distinct stack until Take, which returns the few with the
 // most samples.

@@ -55,11 +55,12 @@ or to compare a change before and after.
 
 ## Check before you publish
 
-Before you publish, play a full round with a full server and watch the
-terminal:
+`modlock publish` times the mod in the sandbox for a few seconds and warns
+when its frames are slow, but the sandbox has one stand-in player. Before you
+publish, play a full round with a full server and watch the terminal:
 
 - No skipped-frames line, or one that counts only a handful of frames.
-- No `slow:` line.
+- No `slow:` line, and no warning of an event over 4 ms.
 - With `frameClock`, a slowest frame of a few milliseconds at most, since
   [the server is slower](/performance/frame-budget#leave-room-for-the-server)
   than your computer.

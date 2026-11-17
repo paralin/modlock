@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,12 +34,14 @@ func buildProfiled(t *testing.T) string {
 }
 
 // runProfiled runs the profiled mod in the sandbox for about seconds,
-// reading its timings every half second, and returns the profiler and the
-// host events it passed on.
-func runProfiled(t *testing.T, seconds int) (*profiler, []*control.HostEvent) {
+// reading its timings every half second, and returns the profiler, the host
+// events it passed on and its warnings.
+func runProfiled(t *testing.T, seconds int) (*profiler, []*control.HostEvent, []string) {
 	t.Helper()
 	dist := buildProfiled(t)
 	prof := newProfiler(&printer{}, []string{dist}, true)
+	var warnings []string
+	prof.say = func(text string) { warnings = append(warnings, text) }
 	passed := make(chan *control.HostEvent, 1024)
 	started := make(chan string, 1)
 	ctx := context.Background()
@@ -78,11 +82,11 @@ func runProfiled(t *testing.T, seconds int) (*profiler, []*control.HostEvent) {
 	for event := range passed {
 		events = append(events, event)
 	}
-	return prof, events
+	return prof, events, warnings
 }
 
 func TestProfilerTimesEachHandler(t *testing.T) {
-	prof, events := runProfiled(t, 3)
+	prof, events, warnings := runProfiled(t, 3)
 
 	// The profiler's own results stay out of the session's events.
 	for _, event := range events {
@@ -121,9 +125,38 @@ func TestProfilerTimesEachHandler(t *testing.T) {
 		t.Errorf("the slowest handler is %s with %d runs over 4 ms, want OnFrame with its 6 ms frames", first.GetKind(), first.GetOver())
 	}
 
+	// The first 6 ms frame warned at once, naming its handler, and no handler
+	// warned twice. On a loaded machine the 1 ms timer may pass 4 ms too.
+	t.Log("\n" + strings.Join(warnings, "\n"))
+	named := map[string]bool{}
+	for _, warning := range warnings {
+		handler := warning[strings.LastIndex(warning, " in ")+1:]
+		if !strings.HasPrefix(warning, "profiled: a frame took") || named[handler] {
+			t.Errorf("warned %q, want one frame warning for each handler", warnings)
+		}
+		named[handler] = true
+	}
+	onFrame := false
+	for handler := range named {
+		onFrame = onFrame || strings.HasPrefix(handler, "in OnFrame ") && strings.HasSuffix(handler, "testdata/profiled/main.go:23")
+	}
+	if !onFrame {
+		t.Errorf("warned %q, want a frame warning naming OnFrame at main.go:23", warnings)
+	}
+
 	// A period's timings go once.
 	if again := prof.take(3 * time.Second); len(again) != 0 {
 		t.Errorf("took the timings twice: %v", again)
+	}
+}
+
+func TestCheckSpeedWarnsOfASlowMod(t *testing.T) {
+	// The profiled mod spends 2 ms a frame and 6 ms every 30th.
+	warnings := checkSpeed(context.Background(), buildProfiled(t), nil)
+	t.Log(strings.Join(warnings, "\n"))
+	if len(warnings) != 1 || !strings.HasPrefix(warnings[0], "profiled spent ") ||
+		!strings.Contains(warnings[0], "run modlock dev to find the slow handler") {
+		t.Fatalf("warned %q", warnings)
 	}
 }
 
@@ -149,6 +182,68 @@ func TestProfilerSkipsAModWithoutIt(t *testing.T) {
 	prof.poll(context.Background(), callCounter(func() { calls++ }))
 	if calls != 1 {
 		t.Fatalf("polled the restarted mod %d times, want 1", calls)
+	}
+}
+
+func TestProfilerWarnsOnceThenFolds(t *testing.T) {
+	// Collect the warnings of a profiler following one mod.
+	prof := newProfiler(&printer{}, nil, false)
+	var said []string
+	prof.say = func(text string) { said = append(said, text) }
+	follow := prof.follow(func(*control.HostEvent) {})
+	start := func() {
+		follow(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: "bounty"}}})
+	}
+	reads := 0
+	answer := func(read timingRead) {
+		payload, err := json.Marshal(read)
+		if err != nil {
+			t.Fatal(err)
+		}
+		reads++
+		follow(&control.HostEvent{Body: &control.HostEvent_Called{Called: &control.ModCallResult{
+			Id: profileCallPrefix + fmt.Sprint(reads), Mod: "bounty", Payload: payload,
+		}}})
+	}
+	slowFrames := func(n int, ms float64) timingRead {
+		var read timingRead
+		for range n {
+			read.Slow = append(read.Slow, slowRead{Event: "Frame", Ms: ms, Kind: "onFrame", At: "/a/bots.go:40", SiteMs: ms - 0.5})
+		}
+		return read
+	}
+	start()
+
+	// A mod slow every frame for a period warns once, at the first.
+	first := slowFrames(16, 6)
+	first.SlowMore = 30
+	answer(first)
+	answer(slowFrames(16, 9))
+	if len(said) != 1 || said[0] != "bounty: a frame took 6.00 ms, more than the 4 ms a mod may spend of a server frame; 5.50 ms of it in onFrame /a/bots.go:40" {
+		t.Fatalf("warned %q", said)
+	}
+
+	// The period's end folds the repeats into one line, and then has none.
+	prof.warnFolded()
+	if len(said) != 2 || said[1] != "bounty: 61 more events took more than 4 ms in 10 s, the slowest 9.00 ms in onFrame /a/bots.go:40" {
+		t.Fatalf("folded into %q", said[1:])
+	}
+	prof.warnFolded()
+	if len(said) != 2 {
+		t.Fatalf("folded an empty period into %q", said[2:])
+	}
+
+	// Another event warns at once; a restart warns afresh.
+	answer(timingRead{Slow: []slowRead{{Event: "Damage", Ms: 4.5}}})
+	answer(slowFrames(1, 7))
+	start()
+	answer(slowFrames(1, 7))
+	want := []string{
+		"bounty: a Damage event took 4.50 ms, more than the 4 ms a mod may spend of a server frame",
+		"bounty: a frame took 7.00 ms, more than the 4 ms a mod may spend of a server frame; 6.50 ms of it in onFrame /a/bots.go:40",
+	}
+	if len(said) != 4 || said[2] != want[0] || said[3] != want[1] {
+		t.Fatalf("warned %q, want %q", said[2:], want)
 	}
 }
 

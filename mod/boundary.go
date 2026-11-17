@@ -37,7 +37,7 @@ func modlockEvent(size uint32) uint64 {
 	}
 
 	// Serve the call and keep its encoded reply for the host.
-	reply, err := serveMod(registered, call).MarshalVT()
+	reply, err := serveProfiled(call).MarshalVT()
 	if err != nil || len(reply) == 0 {
 		return 0
 	}

@@ -28,28 +28,6 @@ constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
 // kShedLogPeriod is how often the log reports the frames a slow mod skipped.
 constexpr auto kShedLogPeriod = std::chrono::minutes(1);
 
-// Hottest describes the stack with the most samples for the log line that
-// reports a slow frame, such as "; hottest hotLoop (mod.js:5), 8 of 9 samples".
-// It returns nothing when the frame took no sample.
-std::string Hottest(const profile::StackSamples& samples) {
-  // A frame without a sampled leaf has nothing to attribute.
-  if (samples.stacks().empty() || samples.stacks(0).frames().empty()) {
-    return {};
-  }
-  const auto& stack = samples.stacks(0);
-  const auto& leaf = stack.frames(0);
-  std::string text =
-      std::format("; hottest {}", leaf.function().empty() ? "<anonymous>" : leaf.function());
-  if (!leaf.file().empty()) {
-    text += std::format(" ({}", leaf.file());
-    if (leaf.line() > 0) {
-      text += std::format(":{}", leaf.line());
-    }
-    text += ')';
-  }
-  return text + std::format(", {} of {} samples", stack.samples(), samples.total());
-}
-
 // kRestartCommand is the chat command that restarts a stopped or slow mod,
 // alone for every such mod or followed by one mod's name. kWarnPeriod is how
 // often the players hear of it, and kOfferWindow how long a slow event keeps

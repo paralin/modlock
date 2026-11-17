@@ -56,9 +56,11 @@ import {
   profile,
   profileService,
   read,
+  served,
   Site,
   site,
   siteAt,
+  spent,
   timed,
 } from './profile.js'
 import { advance, soon } from './timer.js'
@@ -873,10 +875,10 @@ const handlers: ModHandlers = {
     let i = 0
     for (const handler of damages) {
       const counted = damagesSites[i++]
-      const start = profile.on ? clock() : 0
+      const start = profile.on ? clock() : -1
       const change = handler({ ...event, amount })
-      if (start !== 0) {
-        counted?.add(clock() - start)
+      if (start >= 0) {
+        spent(counted, clock() - start)
       }
       if (change?.block) {
         return { block: true }
@@ -974,4 +976,8 @@ const handlers: ModHandlers = {
   },
 }
 
-serveEvents((call) => serveMod(handlers, call))
+serveEvents((call) =>
+  profile.on
+    ? served(call, (timed) => serveMod(handlers, timed))
+    : serveMod(handlers, call),
+)

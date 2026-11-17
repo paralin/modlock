@@ -188,20 +188,24 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 		compiled = filepath.Join(cache, "modlock", "compiled")
 	}
 	return sandbox.Start(c.Context, sandbox.Config{
-		Mods:     mods,
-		Map:      mapName,
-		Args:     c.StringSlice("arg"),
-		Settings: configPath("settings.json"),
-		Files:    configPath("files"),
-		Compiled: compiled,
-		Interpreters: func(ctx context.Context) (string, error) {
-			host, err := session.FindHost(ctx, Version)
-			return filepath.Dir(host), err
-		},
-		Events:   events,
-		Fixtures: projectFixtures,
-		Persist:  persistDir,
+		Mods:         mods,
+		Map:          mapName,
+		Args:         c.StringSlice("arg"),
+		Settings:     configPath("settings.json"),
+		Files:        configPath("files"),
+		Compiled:     compiled,
+		Interpreters: hostInterpreters,
+		Events:       events,
+		Fixtures:     projectFixtures,
+		Persist:      persistDir,
 	}), nil
+}
+
+// hostInterpreters returns the directory of the host's package, which holds
+// the script interpreters the sandbox runs.
+func hostInterpreters(ctx context.Context) (string, error) {
+	host, err := session.FindHost(ctx, Version)
+	return filepath.Dir(host), err
 }
 
 // projectFixtures is the service fixture directory of the project whose build

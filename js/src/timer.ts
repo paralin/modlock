@@ -11,7 +11,7 @@
 // order they came due.
 
 import { log } from './host.gen.js'
-import { clock, profile, Site, site, siteAt } from './profile.js'
+import { clock, profile, Site, site, siteAt, spent } from './profile.js'
 
 /** Timer is one scheduled callback. */
 export interface Timer {
@@ -173,6 +173,6 @@ function timedRun(entry: Entry, at: Site): number | undefined {
   try {
     return entry.run()
   } finally {
-    at.add(clock() - start)
+    spent(at, clock() - start)
   }
 }

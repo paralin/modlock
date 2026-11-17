@@ -3,6 +3,7 @@
 // runaway loop, an oversized memory or a bad boundary call stops only that
 // mod. Mods share compiled modules through the runtime.
 #include <chrono>
+#include <format>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -18,6 +19,7 @@ using modlock::wasm::Call;
 using modlock::wasm::CommandEvent;
 using modlock::wasm::CommandResult;
 using modlock::wasm::FrameEvent;
+using modlock::wasm::Hottest;
 using modlock::wasm::Instance;
 using modlock::wasm::Limits;
 using modlock::wasm::LogRequest;
@@ -680,6 +682,10 @@ TEST(WasmInstance, SamplesACallThatRunsSlow) {
   EXPECT_EQ(hot.frames(0).function(), "spin");
   EXPECT_EQ(hot.frames(1).function(), "update");
   EXPECT_EQ(hot.samples(), samples.total());
+
+  // The slow event's log line names the hottest function.
+  EXPECT_EQ(Hottest(samples),
+            std::format("; hottest spin, {} of {} samples", hot.samples(), samples.total()));
 }
 
 // A call that ends within sample_after takes no sample.

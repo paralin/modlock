@@ -71,8 +71,9 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
   if (!reply->error().empty() && call.method() != "Serve" && call.method() != "PlayersChanged") {
     Log(reply->error());
   }
+  // A slow event's report names its hottest stack, as a slow frame's does.
   if (instance_->Slow()) {
-    Slowed(instance_->Report());
+    Slowed(instance_->Report() + Hottest(instance_->Describe().samples()));
   }
   return reply;
 }

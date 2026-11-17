@@ -46,6 +46,12 @@ func publishCommand(out *printer) *cli.Command {
 			if err := checkRuntime(opened.Manifest.GetRuntime(), manifest.GetRuntime(), c.Bool("allow-fallback")); err != nil {
 				return err
 			}
+
+			// Time the mod in the sandbox, warning of a slow one without
+			// refusing it.
+			for _, warning := range checkSpeed(c.Context, opened.Output(), hostInterpreters) {
+				out.mark("!", yellow, warning)
+			}
 			mod := &modpublish.Mod{Dir: opened.Output(), Manifest: manifest, Notes: c.String("notes"), Prerelease: c.Bool("prerelease")}
 			name := manifest.GetSlug() + " " + manifest.GetVersion()
 

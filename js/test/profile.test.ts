@@ -7,10 +7,11 @@ import {
   Reply,
   ServiceCall,
   ServiceReply,
+  WorldEvent,
 } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver as dispatch } from '../src/host.js'
-import { command, every, onFrame } from '../src/index.js'
-import { caller } from '../src/profile.js'
+import { command, every, onFrame, onWorld } from '../src/index.js'
+import { caller, methodOf } from '../src/profile.js'
 
 // The library answers every host call it makes with an empty reply.
 bind(() => Reply.toBinary({}))
@@ -35,10 +36,21 @@ interface Row {
   over: number
 }
 
+/** Slow is one event the mod took more than 4 ms to serve. */
+interface Slow {
+  event: string
+  ms: number
+  kind: string
+  at: string
+  siteMs: number
+}
+
 /** Timings is the profiler's answer. */
 interface Timings {
   frames: Row
   sites: Row[]
+  slow: Slow[]
+  slowMore: number
 }
 
 /** profileCall calls the profiler's service with method and decodes its answer. */
@@ -72,6 +84,17 @@ onFrame(() => frames++)
 every(0.01, () => ticks++)
 command('go', () => commands++)
 
+// A slow handler for a frame and one for a world, which spend the fake
+// clock's time when the test asks.
+let fake = 0
+let spend = 0
+onFrame(() => {
+  fake += spend
+})
+onWorld(() => {
+  fake += spend
+})
+
 test('without the profiler the library reads no clock', () => {
   const now = spyOn(performance, 'now')
   try {
@@ -99,7 +122,12 @@ test('the profiler times each handler by where it was registered', () => {
   // The next read has each handler's calls, located at its registration.
   const read = profileCall('read')
   expect(read?.frames.calls).toBe(4)
-  const sites = new Map(read?.sites.map((row) => [row.kind, row]))
+  const sites = new Map<string, Row>()
+  for (const row of read?.sites ?? []) {
+    if (!sites.has(row.kind)) {
+      sites.set(row.kind, row)
+    }
+  }
   expect(sites.get('onFrame')?.calls).toBe(4)
   expect(sites.get('every')?.calls).toBe(4)
   expect(sites.get('command /go')?.calls).toBe(4)
@@ -130,4 +158,57 @@ test('caller reads both QuickJS and JavaScriptCore stacks', () => {
     'site@/a/mod.js:1:2\nonFrame@/a/mod.js:3:4\nmodule code@/a/mod.js:5:6'
   expect(caller(jsc, 2)).toBe('/a/mod.js:5:6')
   expect(caller('', 2)).toBe('')
+})
+
+test('the profiler lists each event over 4 ms with its busiest handler', () => {
+  // Read the fake clock, which moves only when a handler spends it.
+  const now = spyOn(performance, 'now').mockImplementation(() => fake)
+  try {
+    profileCall('read')
+
+    // A fast frame, a 6 ms frame, a 5 ms world and twenty more slow frames.
+    frame(20)
+    spend = 6
+    frame(21)
+    spend = 5
+    deliver('World', WorldEvent.toBinary({ map: 'street_test' }))
+    spend = 7
+    for (let i = 22; i < 42; i++) {
+      frame(i)
+    }
+    spend = 0
+
+    // The read keeps 16 events and counts the rest.
+    const read = profileCall('read')
+    const slow = read?.slow ?? []
+    expect(slow.length).toBe(16)
+    expect(read?.slowMore).toBe(6)
+    expect(slow[0]).toMatchObject({
+      event: 'Frame',
+      ms: 6,
+      kind: 'onFrame',
+      siteMs: 6,
+    })
+    expect(slow[0]?.at).toMatch(registeredAt('onFrame(() => {'))
+    expect(slow[1]).toMatchObject({
+      event: 'World',
+      ms: 5,
+      kind: 'onWorld',
+      siteMs: 5,
+    })
+    expect(slow[1]?.at).toMatch(registeredAt('onWorld('))
+    expect(read?.frames.over).toBe(21)
+
+    // The next read starts afresh.
+    expect(profileCall('read')?.slow).toEqual([])
+  } finally {
+    now.mockRestore()
+    profileCall('stop')
+  }
+})
+
+test('methodOf reads the method of an encoded call', () => {
+  expect(methodOf(Call.toBinary({ method: 'Frame' }))).toBe('Frame')
+  expect(methodOf(new Uint8Array())).toBe('')
+  expect(methodOf(new Uint8Array([0x0a, 9, 0x46]))).toBe('')
 })

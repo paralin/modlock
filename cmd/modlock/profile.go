@@ -15,6 +15,7 @@ import (
 
 	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/project"
+	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/sourcemap"
 	"github.com/paralin/modlock/src/host_app/control"
 )
@@ -49,6 +50,25 @@ type timingRead struct {
 	Frames timingRow `json:"frames"`
 	// Sites holds each handler that ran.
 	Sites []timingRow `json:"sites"`
+	// Slow holds the events over 4 ms, up to the library's limit.
+	Slow []slowRead `json:"slow"`
+	// SlowMore counts the slow events past that limit.
+	SlowMore uint64 `json:"slowMore"`
+}
+
+// slowRead is one event a mod took more than 4 ms to serve, as the library
+// writes it, with the handler that spent the most of it.
+type slowRead struct {
+	// Event is the host's method, such as Frame.
+	Event string `json:"event"`
+	// Ms is the event's time in milliseconds.
+	Ms float64 `json:"ms"`
+	// Kind names the busiest handler's registration, or is empty.
+	Kind string `json:"kind"`
+	// At is the busiest handler's location, as in timingRow.
+	At string `json:"at"`
+	// SiteMs is the busiest handler's time in milliseconds.
+	SiteMs float64 `json:"siteMs"`
 }
 
 // timingRow is one handler's timings in a read. Times are milliseconds.
@@ -87,6 +107,18 @@ type modProfile struct {
 	frames timingRow
 	sites  map[string]*timingRow
 	order  []string
+	// warned holds each slow event and handler warned of since the mod
+	// started; a repeat only counts in folded until the next report.
+	warned map[string]bool
+	folded slowFold
+}
+
+// slowFold counts the slow events a period did not warn of one by one.
+type slowFold struct {
+	// count is the events, and slowest the time and handler of the slowest.
+	count   uint64
+	slowest float64
+	name    string
 }
 
 // profiler reads the running mods' handler timings during a dev or play
@@ -106,6 +138,9 @@ type profiler struct {
 	order []string
 	// calls counts the reads sent, for their ids.
 	calls uint64
+
+	// say prints one warning.
+	say func(text string)
 }
 
 // newProfiler returns a profiler for the mods built in mods.
@@ -116,7 +151,10 @@ func newProfiler(out *printer, mods []string, always bool) *profiler {
 			dirs[manifest.GetSlug()] = dir
 		}
 	}
-	return &profiler{out: out, always: always, dirs: dirs, mods: map[string]*modProfile{}}
+	return &profiler{
+		out: out, always: always, dirs: dirs, mods: map[string]*modProfile{},
+		say: func(text string) { out.mark("!", yellow, text) },
+	}
 }
 
 // follow returns a handler that passes each host event to events, keeping
@@ -142,7 +180,7 @@ func (p *profiler) started(mod string) {
 	if _, ok := p.mods[mod]; !ok {
 		p.order = append(p.order, mod)
 	}
-	p.mods[mod] = &modProfile{dir: p.dirs[mod], sites: map[string]*timingRow{}}
+	p.mods[mod] = &modProfile{dir: p.dirs[mod], sites: map[string]*timingRow{}, warned: map[string]bool{}}
 }
 
 // answered counts one read's timings into its mod.
@@ -175,6 +213,63 @@ func (p *profiler) answered(result *control.ModCallResult) {
 		}
 		total.add(row)
 	}
+
+	// Warn of each slow event at once, and fold its repeats.
+	for _, slow := range read.Slow {
+		name := ""
+		if slow.Kind != "" {
+			file, line := locateSite(held.dir, slow.At)
+			name = handlerName(&modcli.HandlerTiming{Kind: slow.Kind, File: file, Line: line})
+		}
+		key := slow.Event + " " + name
+		if !held.warned[key] {
+			held.warned[key] = true
+			p.say(slowWarning(result.GetMod(), slow, name))
+			continue
+		}
+		held.folded.count++
+		if slow.Ms > held.folded.slowest {
+			held.folded.slowest, held.folded.name = slow.Ms, name
+		}
+	}
+	held.folded.count += read.SlowMore
+}
+
+// slowWarning describes one slow event of mod, naming the handler that
+// spent the most of it.
+func slowWarning(mod string, slow slowRead, name string) string {
+	// Name the event and its time, then the handler that spent the most.
+	event := "a " + slow.Event + " event"
+	if slow.Event == "Frame" {
+		event = "a frame"
+	}
+	text := fmt.Sprintf("%s: %s took %.2f ms, more than the 4 ms a mod may spend of a server frame", mod, event, slow.Ms)
+	if name != "" {
+		text += fmt.Sprintf("; %.2f ms of it in %s", slow.SiteMs, name)
+	}
+	return text
+}
+
+// warnFolded prints, for each mod, the slow events of the period that ended
+// that were not warned of one by one, and starts the next period.
+func (p *profiler) warnFolded() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for _, mod := range p.order {
+		folded := p.mods[mod].folded
+		if folded.count == 0 {
+			continue
+		}
+		text := fmt.Sprintf("%s: %d more events took more than 4 ms in %d s", mod, folded.count, int(profileReport/time.Second))
+		if folded.slowest > 0 {
+			text += fmt.Sprintf(", the slowest %.2f ms", folded.slowest)
+			if folded.name != "" {
+				text += " in " + folded.name
+			}
+		}
+		p.say(text)
+		p.mods[mod].folded = slowFold{}
+	}
 }
 
 // run reads the mods' timings each second and reports them every 10 seconds
@@ -195,6 +290,7 @@ func (p *profiler) run(ctx context.Context, running server) {
 			for _, timings := range p.take(profileReport) {
 				p.report(timings)
 			}
+			p.warnFolded()
 		}
 	}
 }
@@ -248,7 +344,7 @@ func (p *profiler) take(length time.Duration) []*modcli.ModTimings {
 			return cmp.Compare(b.GetTotalMs(), a.GetTotalMs())
 		})
 		taken = append(taken, timings)
-		p.mods[mod] = &modProfile{dir: held.dir, sites: map[string]*timingRow{}}
+		held.frames, held.sites, held.order = timingRow{}, map[string]*timingRow{}, nil
 	}
 	return taken
 }
@@ -372,4 +468,88 @@ func handlerName(handler *modcli.HandlerTiming) string {
 		}
 	}
 	return name
+}
+
+// speedCheck is how long publish runs a mod in the sandbox to time it.
+const speedCheck = 3 * time.Second
+
+// checkSpeed runs the built mod in dir in the sandbox for speedCheck, timing
+// its handlers, and returns a warning when it spent more than 1 ms a frame
+// on average or a frame took more than 4 ms. It never fails: a mod the
+// sandbox cannot run, or one built with a library from before the profiler,
+// returns nothing.
+func checkSpeed(ctx context.Context, dir string, interpreters func(context.Context) (string, error)) []string {
+	// Run the mod alone, quietly.
+	prof := newProfiler(&printer{}, []string{dir}, false)
+	prof.say = func(string) {}
+	taken := timeInSandbox(ctx, prof, dir, interpreters, speedCheck)
+
+	// Warn of a mod over either line.
+	var warnings []string
+	for _, timings := range taken {
+		frames := timings.GetFrames()
+		mean := frames.GetTotalMs() / float64(max(frames.GetCalls(), 1))
+		if mean <= profileShowMs && frames.GetOver() == 0 {
+			continue
+		}
+		warnings = append(warnings, fmt.Sprintf(
+			"%s spent %.2f ms a frame on average in %d s in the sandbox, and %d of %d frames took more than 4 ms; "+
+				"a server holds back a mod past 8 ms a frame, so run modlock dev to find the slow handler",
+			timings.GetMod(), mean, int(speedCheck/time.Second), frames.GetOver(), frames.GetCalls()))
+	}
+	return warnings
+}
+
+// timeInSandbox runs the built mod in dir alone in the sandbox for length,
+// from its start, reading its timings into prof six times over, and returns
+// them. A mod the sandbox cannot run, or one that does not serve the
+// profiler, returns nothing; so does a run ctx ends.
+func timeInSandbox(ctx context.Context, prof *profiler, dir string, interpreters func(context.Context) (string, error), length time.Duration) []*modcli.ModTimings {
+	// Start the mod, and wait until it runs, which a loaded machine delays.
+	started := make(chan bool, 1)
+	box := sandbox.Start(ctx, sandbox.Config{
+		Mods:         []string{dir},
+		Interpreters: interpreters,
+		Events: prof.follow(func(event *control.HostEvent) {
+			if event.GetStarted() != nil || event.GetFailed() != nil {
+				select {
+				case started <- event.GetStarted() != nil:
+				default:
+				}
+			}
+		}),
+		Fixtures: projectFixtures,
+	})
+	defer box.Stop()
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-time.After(time.Minute):
+		return nil
+	case ok := <-started:
+		if !ok {
+			return nil
+		}
+	}
+
+	// Run it, reading its timings each sixth of the run.
+	poll := time.NewTicker(length / 6)
+	defer poll.Stop()
+	end := time.After(length)
+	for waiting := true; waiting; {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-poll.C:
+			prof.poll(ctx, box)
+		case <-end:
+			waiting = false
+		}
+	}
+
+	// Let the last read's answer arrive, then stop the mod.
+	time.Sleep(min(length/6, time.Second))
+	box.Stop()
+	_ = box.Wait()
+	return prof.take(length)
 }

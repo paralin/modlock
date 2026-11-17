@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	wasmpb "github.com/paralin/modlock/src/wasm"
 )
 
 // The library times the mod's handlers for the profiler of modlock dev and
@@ -89,11 +91,76 @@ func siteAt(kind, at string) *site {
 	return made
 }
 
-// timed calls fn and counts its time to at.
+// timed calls fn and counts its time to at, noting the busiest handler of
+// the event being served.
 func timed(at *site, fn func()) {
 	start := now()
-	defer func() { at.add(now().Sub(start)) }()
+	defer func() {
+		spent := now().Sub(start)
+		at.add(spent)
+		if at != frameTimes && spent > busiestTime {
+			busiest, busiestTime = at, spent
+		}
+	}()
 	fn()
+}
+
+// slowEvent is one event the mod took longer than overBudget to serve, and
+// the handler that spent the most of it. Times are milliseconds.
+type slowEvent struct {
+	// Event is the host's method, such as Frame.
+	Event string `json:"event"`
+	// Ms is the whole event's time.
+	Ms float64 `json:"ms"`
+	// Kind names the busiest handler's registration, or is empty.
+	Kind string `json:"kind"`
+	// At is the busiest handler's file and line.
+	At string `json:"at"`
+	// SiteMs is the busiest handler's time.
+	SiteMs float64 `json:"siteMs"`
+}
+
+// slowKept is the most slow events one read lists; the rest are counted.
+const slowKept = 16
+
+// slowEvents holds the slow events since the last read and slowMore counts
+// the rest. busiest is the handler that spent the most of the event being
+// served, for busiestTime.
+var (
+	slowEvents  []slowEvent
+	slowMore    int
+	busiest     *site
+	busiestTime time.Duration
+)
+
+// serveProfiled serves one host call, noting it while profiling when it took
+// longer than overBudget.
+func serveProfiled(call *wasmpb.Call) *wasmpb.Reply {
+	// Without the profiler the call costs this one test.
+	if !profiling {
+		return serveMod(registered, call)
+	}
+
+	// Serve the call, timing it and its handlers.
+	busiest, busiestTime = nil, 0
+	start := now()
+	reply := serveMod(registered, call)
+	took := now().Sub(start)
+
+	// Keep a slow one, or count it once the read holds enough.
+	if took <= overBudget {
+		return reply
+	}
+	if len(slowEvents) == slowKept {
+		slowMore++
+		return reply
+	}
+	event := slowEvent{Event: call.GetMethod(), Ms: millis(took), SiteMs: millis(busiestTime)}
+	if busiest != nil {
+		event.Kind, event.At = busiest.kind, filepath.ToSlash(busiest.at)
+	}
+	slowEvents = append(slowEvents, event)
+	return reply
 }
 
 // now reads the clock that times handlers; a test counts its reads.
@@ -146,6 +213,10 @@ type timings struct {
 	Frames timingRow `json:"frames"`
 	// Sites holds each handler that ran.
 	Sites []timingRow `json:"sites"`
+	// Slow holds the events over overBudget, up to slowKept.
+	Slow []slowEvent `json:"slow"`
+	// SlowMore counts the slow events past slowKept.
+	SlowMore int `json:"slowMore"`
 }
 
 // rowOf returns a site's timings and resets them.
@@ -188,6 +259,13 @@ func readProfile(method string) ([]byte, error) {
 	if !counted {
 		report.Frames = timingRow{Kind: "frame"}
 	}
+
+	// List the slow events while timing was on, and start afresh.
+	report.Slow = []slowEvent{}
+	if counted {
+		report.Slow, report.SlowMore = append(report.Slow, slowEvents...), slowMore
+	}
+	slowEvents, slowMore = nil, 0
 	profiling = true
 	return json.Marshal(report)
 }

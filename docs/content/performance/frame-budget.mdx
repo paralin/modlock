@@ -38,7 +38,14 @@ as above, runs at a fraction of the server's rate.
 ## Events that run far over
 
 Any event, not only a frame, that runs past 500 ms of processor time logs a
-`slow:` line with where its time went. The host warns the players in chat and
+`slow:` line with where its time went and, as for a slow frame, the
+hottest stack the sampler caught:
+
+```text
+[prophunt] slow: Damage took 640 ms; hottest scoreHit (mod.js:2), 58 of 61 samples
+```
+
+The host warns the players in chat and
 lets any player restart the mod with `/restartmod` for five minutes. An event
 that runs past five seconds stops the mod. See
 [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods).

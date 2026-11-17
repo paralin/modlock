@@ -34,6 +34,31 @@ Run `modlock dev --perf` to print the table every 10 seconds whatever the
 mod's time. With `--json`, each table arrives as a `timings` event, a
 `ModTimings` message, whether or not it would print.
 
+## Slow events
+
+A mod may spend 4 ms of a server frame while you develop it. The first time
+an event takes longer, the session warns within a second and names the
+handler that spent the most of it:
+
+```text
+  ! bounty: a frame took 6.20 ms, more than the 4 ms a mod may spend of a server frame; 5.90 ms of it in onFrame src/bots.ts:40
+```
+
+It warns once for each kind of event and handler. Later ones fold into one
+line every 10 seconds:
+
+```text
+  ! bounty: 37 more events took more than 4 ms in 10 s, the slowest 9.10 ms in onFrame src/bots.ts:40
+```
+
+Every event counts, not only frames: a damage hook or a command that takes
+5 ms holds the server's frame as long. A reload starts the warnings afresh,
+so a fix shows at once.
+
+`modlock publish` runs the built mod in the sandbox for 3 seconds first, and
+warns when it spent more than 1 ms a frame on average or a frame took more
+than 4 ms. It publishes the mod either way.
+
 ## What counts
 
 - A frame is the library's frame event: the timers that came due, then the
