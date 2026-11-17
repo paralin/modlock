@@ -137,6 +137,11 @@ export {
 } from './rotation.js'
 export { bystanderStates, holdBystander } from './bystander.js'
 export { Strays, strayGraceSeconds } from './strays.js'
+export {
+  Stragglers,
+  stragglerConnectSeconds,
+  type StragglersOptions,
+} from './stragglers.js'
 export { type Check, ProbeRun } from './probe.js'
 export {
   poseAt,

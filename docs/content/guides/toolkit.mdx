@@ -1,6 +1,6 @@
 ---
 title: Toolkit
-description: 'Helpers built on the library: seating, a player roster, free-for-all, vectors, number formats, the floor, race gates and a frame clock.'
+description: 'Helpers built on the library: seating, a player roster, free-for-all, clearing stragglers, vectors, number formats, the floor, race gates and a frame clock.'
 ---
 
 The toolkit's helpers are built on the library calls and do the work most modes
@@ -11,6 +11,7 @@ repeat:
 | [`seat`](#seat-the-players)           | Gives a player a hero on a team, with no team or hero screen.                       | All        |
 | [`setFreeForAll`](#play-free-for-all) | Makes every hero an enemy of every other.                                           | All        |
 | [`Cast`](#keep-the-players-with-cast) | Keeps one member per human, with the hero each wants.                               | All        |
+| [`Stragglers`](#clear-stragglers)     | Kicks players stuck joining and lays down heroes a player left behind.              | TypeScript |
 | [`vector`](#vectors-and-hud-text)     | Places points and turns heroes to face them.                                        | TypeScript |
 | [`format`](#vectors-and-hud-text)     | Writes numbers as a HUD shows them.                                                 | TypeScript |
 | [`ground`](#find-the-floor)           | Finds the floor under a point. `trace`, which it is built on, is in every language. | TypeScript |
@@ -236,6 +237,36 @@ Read the hero back from the cast rather than asking the game again:
 | `members`           | `members()` | `Members` | Every member.                             |
 | `get(player)`       | `get`       | `Get`     | The member for a player, if they are one. |
 | `pawn(player)`      | `pawn`      | `Pawn`    | The member's hero as Cast last read it.   |
+
+## Clear stragglers
+
+A player who stops loading keeps their slot, listed with `ready` false, until
+the network gives up on them. The game can keep a disconnected player's hero
+standing in the world, and revives it on its own timer with no player.
+`Stragglers` kicks a human still joining after `connectSeconds` and
+lays down each hero no player holds, as [`Strays`](/mechanics/rotation#heroes-left-behind)
+does. Keep one and call `sweep(now)` each frame:
+
+```ts
+import { onFrame, Stragglers } from 'modlock'
+
+const stragglers = new Stragglers({ connectSeconds: 120 })
+onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
+```
+
+| Option           | Default | Does                                                                                            |
+| ---------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `connectSeconds` | 120     | Kicks a human still joining this long after the sweep first saw them. Zero or less never kicks. |
+| `heroes`         | `true`  | Kills each hero that has had no player for `strayGraceSeconds` and holds off its respawn.       |
+
+The sweep checks once a second and kicks each connection once, by name, with
+`kick "name"`; a name that is empty or holds a quote is logged instead. A
+player who reconnects gets a new slot connection and a new deadline. A
+disconnect already fires [`onPlayerLeave`](/guides/events#joins-and-leaves)
+with `disconnected` true and drops the player from the player list, so remove
+them from your own teams and rounds there. The sweep sees only slots the
+server put a player in: a connection attempt that never got that far, shown by
+`status` with id 65535, has no slot a mod can kick.
 
 ## Vectors and HUD text
 
