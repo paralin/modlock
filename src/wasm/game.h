@@ -118,6 +118,7 @@ class GameServices {
   std::expected<const gameinterop::WorldEntities::Calls*, std::string> WorldCalls();
   std::expected<const gameinterop::PlayerSelectionCalls*, std::string> Selection();
   std::expected<const gameinterop::AbilityDefinitions*, std::string> Abilities();
+  std::expected<const gameinterop::AbilityModifier::Calls*, std::string> ModifierCalls();
   std::expected<const gameinterop::ItemFunctions*, std::string> Items();
   std::expected<const gameinterop::ImbueFunctions*, std::string> Imbues();
   std::expected<const gameinterop::TrainFunctions*, std::string> Training();
@@ -231,6 +232,9 @@ class GameServices {
   std::optional<gameinterop::WorldEntities::Calls> world_calls_;
   std::optional<gameinterop::PlayerSelectionCalls> selection_;
   std::optional<gameinterop::AbilityDefinitions> abilities_;
+  // modifier_calls_ are the calls and layout every modifier shares; resolving
+  // them scans server.dll, so they resolve once per host, not per modifier.
+  std::optional<gameinterop::AbilityModifier::Calls> modifier_calls_;
   std::optional<gameinterop::ItemFunctions> items_;
   std::optional<gameinterop::ImbueFunctions> imbues_;
   std::optional<gameinterop::TrainFunctions> training_;

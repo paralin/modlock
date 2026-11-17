@@ -189,6 +189,18 @@ std::expected<const gameinterop::AbilityDefinitions*, std::string> GameServices:
   return &*abilities_;
 }
 
+std::expected<const gameinterop::AbilityModifier::Calls*, std::string>
+GameServices::ModifierCalls() {
+  if (auto cached = Cache(modifier_calls_,
+                          [](const gameinterop::ModuleImage& server, void* schema) {
+                            return gameinterop::AbilityModifier::ResolveCalls(server, schema);
+                          });
+      !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*modifier_calls_;
+}
+
 std::expected<const gameinterop::ItemFunctions*, std::string> GameServices::Items() {
   if (auto cached = Cache(items_, &gameinterop::ItemFunctions::Resolve); !cached) {
     return std::unexpected(cached.error());
