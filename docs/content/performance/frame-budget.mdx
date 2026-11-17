@@ -1,0 +1,53 @@
+---
+title: The frame budget
+description: How much of a server frame a mod may spend, and what the host does when it spends more.
+---
+
+The server runs 64 frames a second, so each frame lasts about 15.6 ms. The
+game, every other mod and the network share that time with your mod. The host
+gives each mod's frame handler 8 ms, half a frame, and holds back a mod that
+takes longer so the server keeps up and no player times out.
+
+## Frames over the allowance
+
+A frame that takes more than 8 ms of wall time, including the game calls it
+makes, still finishes. The mod then skips frames for as long as the slow frame
+took: after a 40 ms frame, the mod misses the next two or three. Only frame
+handlers are skipped. Chat commands, damage hooks and the other events still
+reach the mod. Your mod reads the game clock, so a skipped frame delays its
+work without losing it. Players still notice a mod that skips often, since its timers fire late and what it updates each frame moves in steps.
+
+At most once a minute, while the mod is skipping, the host logs a line such as:
+
+```text
+[prophunt] skipped 2862 frames to repay slow ones; the slowest took 258 ms: Frame took 230 ms, 59 ms of it in host calls, the slowest GiveModifier at 13 ms; hottest decode (mod.js:2), 1 of 9 samples
+```
+
+| Part                                | Means                                                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `skipped 2862 frames`               | The frames the mod missed since the last line. A minute has 3,840 frames.                          |
+| `the slowest took 258 ms`           | The wall time of the slowest frame since the last line.                                            |
+| `Frame took 230 ms`                 | The processor time of that frame. Time the server spent waiting, as on a page fault, is not in it. |
+| `59 ms of it in host calls`         | The part spent in game calls, such as `giveModifier` or `findEntities`.                            |
+| `the slowest GiveModifier at 13 ms` | The single game call that took longest.                                                            |
+| `hottest decode (mod.js:2)`         | The function the sampler caught most often, with its file and line.                                |
+
+A mod that skips a few frames a minute is fine. A mod that skips most of them,
+as above, runs at a fraction of the server's rate.
+
+## Events that run far over
+
+Any event, not only a frame, that runs past 500 ms of processor time logs a
+`slow:` line with where its time went. The host warns the players in chat and
+lets any player restart the mod with `/restartmod` for five minutes. An event
+that runs past five seconds stops the mod. See
+[Slow and stopped mods](/guides/reloads#slow-and-stopped-mods).
+
+## Leave room for the server
+
+Hyperline's servers run on cores of about 2.4 GHz, slower than a desktop's.
+A frame that takes 4 ms on your computer can take 8 ms or more there. Aim for frames well under the
+allowance on your own computer: a few milliseconds at most for the slowest
+frame of a busy round, with every player in it. [Measure](/performance/measure)
+with as many players as a real match has, since most of a mod's work grows with
+them.
