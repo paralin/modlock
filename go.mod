@@ -11,7 +11,7 @@ replace (
 )
 
 require (
-	github.com/aperturerobotics/abseil-cpp v0.0.0-20261118164633-6b4c85e52f3d
+	github.com/aperturerobotics/abseil-cpp v0.0.0-20261118220503-715c128d7a7c
 	github.com/aperturerobotics/cli v1.1.1-0.20261024231437-afc764ba6d68
 	github.com/aperturerobotics/common v0.38.0
 	github.com/aperturerobotics/controllerbus v0.53.6-0.20261027053904-dd1f04e29852
