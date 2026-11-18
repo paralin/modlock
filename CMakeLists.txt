@@ -7,13 +7,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # scripts/lint-cc.ts reads the compile database.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-if(APPLE)
-  set(CMAKE_INSTALL_RPATH "@loader_path;@loader_path/../lib")
-elseif(UNIX)
-  set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
-endif()
 set(BUILD_SHARED_LIBS OFF)
 include(GNUInstallDirs)
+# Installed programs find the SDK's shared libraries beside themselves and in
+# the library directory GNUInstallDirs chose, which is lib64 on some
+# distributions and lib/<triplet> on others, so the path is derived from it.
+file(RELATIVE_PATH modlock_bin_to_lib
+  ${CMAKE_INSTALL_FULL_BINDIR} ${CMAKE_INSTALL_FULL_LIBDIR})
+if(APPLE)
+  set(CMAKE_INSTALL_RPATH "@loader_path;@loader_path/${modlock_bin_to_lib}")
+elseif(UNIX)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/${modlock_bin_to_lib}")
+endif()
 include(CMakePackageConfigHelpers)
 include(CTest)
 
