@@ -8,12 +8,15 @@ import (
 	"path/filepath"
 )
 
-// steamRoots lists where Steam may be installed.
+// steamRoots lists where Steam may be installed: the native locations, then
+// the private homes of the Flatpak and Snap packages, then macOS's.
 func steamRoots() []string {
 	home, _ := os.UserHomeDir()
 	return []string{
 		filepath.Join(home, ".local", "share", "Steam"),
 		filepath.Join(home, ".steam", "steam"),
+		filepath.Join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam"),
+		filepath.Join(home, "snap", "steam", "common", ".local", "share", "Steam"),
 		filepath.Join(home, "Library", "Application Support", "Steam"),
 	}
 }
