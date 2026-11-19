@@ -1,65 +1,97 @@
 package mod
 
 import (
+	"errors"
+
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 )
 
 // scoresService names the host service that keeps scores.
 const scoresService = "scores"
 
-// ScoreReport reports one score to a board the manifest declares; its Player
-// is set by ReportScore.
+// ScoreConnection is the connection enrolled by BindScorePlayer.
+type ScoreConnection = scorespb.ScoreConnection
+
+// ScoreReport reports one enrolled player's result to a board.
 type ScoreReport = scorespb.ScoreReport
 
-// MatchReport reports one match's places to a board the manifest declares.
+// MatchReport reports one match's places to a board.
 type MatchReport = scorespb.MatchReport
 
-// BoardQuery selects a page of a board the manifest declares.
+// MatchPlace names an enrolled participant and their finishing place.
+type MatchPlace = scorespb.Place
+
+// BoardQuery selects a page of a board and optionally a viewer.
 type BoardQuery = scorespb.BoardQuery
 
-// BoardPage is a page of a board.
+// BoardPage is a page of standings and the requested viewer's own row.
 type BoardPage = scorespb.BoardPage
 
-// ReportScore reports report as the player's score over the host's scores
-// service. A host without the service takes none; the mod logs the score
-// instead, so its author sees what it would report, and returns the host's
-// error.
-func (p Player) ReportScore(report *ScoreReport) error {
-	report.Player = p.Slot()
-	return reportScores("Report", report, report.GetBoard())
-}
+// BindScorePlayer enrolls a live connection for reporting after it leaves.
+func BindScorePlayer(player *Connection) (*ScoreConnection, error) {
+	if player == nil {
+		return nil, errors.New("a live player connection is required")
+	}
 
-// ReportMatch reports one match's places over the host's scores service, as
-// ReportScore does. Players who tie share a place.
-func ReportMatch(report *MatchReport) error {
-	return reportScores("Match", report, report.GetBoard())
-}
-
-// ReadBoard reads a page of a board as the host last read it. A page the
-// host has not read yet comes back Loading.
-func ReadBoard(query *BoardQuery) (*BoardPage, error) {
-	data, err := query.MarshalVT()
+	// Capture the connection at enrollment rather than at finalization.
+	data, err := scoreIdentity(player).MarshalVT()
 	if err != nil {
 		return nil, err
 	}
-	reply, err := CallService(scoresService, "Read", data)
+	reply, err := CallService(scoresService, "Bind", data)
 	if err != nil {
 		return nil, err
 	}
-	page := &BoardPage{}
-	return page, page.UnmarshalVT(reply)
+	bound := &ScoreConnection{}
+	return bound, bound.UnmarshalVT(reply)
 }
 
-// reportScores calls a reporting method and logs the report when the host
-// takes no score.
-func reportScores(method string, report message, board string) error {
-	data, err := report.MarshalVT()
+// ReportScore reports an enrolled player's score. Done receives acceptance or
+// refusal on a later frame. Key distinguishes rounds within the game.
+func ReportScore(player *ScoreConnection, report *ScoreReport, done func(error)) {
+	report = report.CloneVT()
+	report.Player, report.Connection = player.GetSlot(), player
+	callScore("Report", report, func(_ []byte, err error) { done(err) })
+}
+
+// ReportMatch reports the places of enrolled players together. Done receives
+// acceptance or refusal on a later frame. Each place carries a connection.
+func ReportMatch(report *MatchReport, done func(error)) {
+	callScore("Match", report, func(_ []byte, err error) { done(err) })
+}
+
+// ReadBoard reads the board and optional live viewer on a later frame.
+func ReadBoard(query *BoardQuery, viewer *Connection, done func(*BoardPage, error)) {
+	query = query.CloneVT()
+	if viewer != nil {
+		query.Player = &viewer.Player
+		query.Connection = scoreIdentity(viewer)
+	}
+	callScore("Read", query, func(reply []byte, err error) {
+		if err != nil {
+			done(nil, err)
+			return
+		}
+		page := &BoardPage{}
+		if err := page.UnmarshalVT(reply); err != nil {
+			done(nil, err)
+			return
+		}
+		done(page, nil)
+	})
+}
+
+// callScore encodes the request before starting a service call.
+func callScore(method string, request message, done func([]byte, error)) {
+	data, err := request.MarshalVT()
 	if err != nil {
-		return err
+		After(0, func() { done(nil, err) })
+		return
 	}
-	if _, err := CallService(scoresService, method, data); err != nil {
-		Log("score ", board, " not reported: ", err)
-		return err
-	}
-	return nil
+	CallServiceLater(scoresService, method, data, 0, done)
+}
+
+// scoreIdentity copies the fields the host needs to check a live connection.
+func scoreIdentity(player *Connection) *ScoreConnection {
+	return &ScoreConnection{Slot: player.GetPlayer(), SteamId: player.GetSteamId(), Generation: player.GetGeneration()}
 }

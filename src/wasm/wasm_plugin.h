@@ -279,6 +279,9 @@ class WasmPlugin final : public Plugin {
   // Slug names the mod's build, which keys its files, roles and interface.
   const std::string& Slug() const { return slug_; }
 
+  // BoardVersion returns the version in the manifest attached to this instance.
+  std::optional<uint32_t> BoardVersion(std::string_view name) const;
+
   bool Start() override;
   void Tick() override;
   void Stop() override;

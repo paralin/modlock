@@ -507,8 +507,124 @@ export const Partition: MessageType<Partition> =
   )
 
 /**
+ * ScoreConnection names a human connection to the mod's game. The scores
+ * service's synchronous Bind method checks the live connection and returns
+ * this message with proof the mod can keep to report the result after a leave.
+ *
+ * @generated from message modlock.wasm.scores.ScoreConnection
+ */
+export interface ScoreConnection {
+  /**
+   * Slot is the player's server slot.
+   */
+  slot?: number
+  /**
+   * SteamId is the human player's SteamID64.
+   */
+  steamId?: bigint
+  /**
+   * Generation changes when another connection takes the slot.
+   */
+  generation?: number
+  /**
+   * Proof is assigned by Bind. Board reads check the live connection instead.
+   */
+  proof?: string
+}
+
+export const ScoreConnection: MessageType<ScoreConnection> =
+  /* @__PURE__ */ createMessageType<ScoreConnection>(
+    'modlock.wasm.scores.ScoreConnection',
+    () => [
+      [1, 'slot', 5],
+      [2, 'steam_id', 4],
+      [3, 'generation', 13],
+      [4, 'proof', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ScoreConnection,
+      ): ScoreConnection => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.slot = r.int32()
+              break
+            case 2:
+              m.steamId = r.uint64()
+              break
+            case 3:
+              m.generation = r.uint32()
+              break
+            case 4:
+              m.proof = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ScoreConnection, w: Writer): void => {
+        {
+          const v = m.slot
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.steamId
+          if (v) w.uint32(16).uint64(v)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.proof
+          if (v) w.uint32(34).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ScoreAccepted is an empty reply to a report the host accepted. A refusal
+ * ends the asynchronous service call with an error.
+ *
+ * @generated from message modlock.wasm.scores.ScoreAccepted
+ */
+export interface ScoreAccepted {}
+
+export const ScoreAccepted: MessageType<ScoreAccepted> =
+  /* @__PURE__ */ createMessageType<ScoreAccepted>(
+    'modlock.wasm.scores.ScoreAccepted',
+    () => [],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ScoreAccepted,
+      ): ScoreAccepted => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ScoreAccepted, w: Writer): void => {},
+    },
+  )
+
+/**
  * ScoreReport reports one score for one player, the request of the scores
- * service's Report method.
+ * service's asynchronous Report method, returning ScoreAccepted.
  *
  * @generated from message modlock.wasm.scores.ScoreReport
  */
@@ -536,8 +652,9 @@ export interface ScoreReport {
    */
   partition?: { [key: string]: string }
   /**
-   * Key identifies the run the score came from, so a resent report counts
-   * once. Empty lets the host make one.
+   * Key identifies the round or run within this game, so a resent report
+   * counts once. Empty identifies the sole result for this player and board
+   * in the game. Use distinct keys for distinct rounds or runs.
    */
   key?: string
   /**
@@ -550,6 +667,10 @@ export interface ScoreReport {
    * that keeps it.
    */
   evidence?: string
+  /**
+   * Connection is the enrollment proof from Bind.
+   */
+  connection?: ScoreConnection
 }
 
 export const ScoreReport: MessageType<ScoreReport> =
@@ -564,6 +685,7 @@ export const ScoreReport: MessageType<ScoreReport> =
       [6, 'key', 9],
       [7, 'earned_at_unix_millis', 3],
       [8, 'evidence', 9],
+      [9, 'connection', 11, 0, ScoreConnection.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: ScoreReport): ScoreReport => {
@@ -602,6 +724,13 @@ export const ScoreReport: MessageType<ScoreReport> =
               break
             case 8:
               m.evidence = r.string()
+              break
+            case 9:
+              m.connection = ScoreConnection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
               break
             default:
               r.skip(t)
@@ -648,13 +777,18 @@ export const ScoreReport: MessageType<ScoreReport> =
           const v = m.evidence
           if (v) w.uint32(66).string(v)
         }
+        {
+          const v = m.connection
+          if (v != null) ScoreConnection.writeField(w, 9, v)
+        }
       },
     },
   )
 
 /**
  * MatchReport reports one match's places on a rating or match board, the
- * request of the scores service's Match method.
+ * request of the scores service's asynchronous Match method, returning
+ * ScoreAccepted.
  *
  * @generated from message modlock.wasm.scores.MatchReport
  */
@@ -672,7 +806,8 @@ export interface MatchReport {
    */
   partition?: { [key: string]: string }
   /**
-   * Key identifies the match, so a resent report counts once.
+   * Key identifies the round or match within this game. Empty identifies
+   * the sole match on this board in the game.
    */
   key?: string
   /**
@@ -788,6 +923,10 @@ export interface Place {
    * Value is the player's score in the match, for a board that keeps one.
    */
   value?: bigint
+  /**
+   * Connection is the participant's enrollment proof from Bind.
+   */
+  connection?: ScoreConnection
 }
 
 export const Place: MessageType<Place> =
@@ -797,6 +936,7 @@ export const Place: MessageType<Place> =
       [1, 'player', 5],
       [2, 'place', 13],
       [3, 'value', 3],
+      [4, 'connection', 11, 0, ScoreConnection.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Place): Place => {
@@ -812,6 +952,13 @@ export const Place: MessageType<Place> =
               break
             case 3:
               m.value = r.int64()
+              break
+            case 4:
+              m.connection = ScoreConnection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
               break
             default:
               r.skip(t)
@@ -832,13 +979,17 @@ export const Place: MessageType<Place> =
           const v = m.value
           if (v) w.uint32(24).int64(v)
         }
+        {
+          const v = m.connection
+          if (v != null) ScoreConnection.writeField(w, 4, v)
+        }
       },
     },
   )
 
 /**
  * BoardQuery reads a page of one board, the request of the scores service's
- * Read method.
+ * asynchronous Read method, returning BoardPage.
  *
  * @generated from message modlock.wasm.scores.BoardQuery
  */
@@ -867,6 +1018,10 @@ export interface BoardQuery {
    * Player asks for this player's own row too, by server slot.
    */
   player?: number
+  /**
+   * Connection identifies the current viewer when Player is set.
+   */
+  connection?: ScoreConnection
 }
 
 export const BoardQuery: MessageType<BoardQuery> =
@@ -879,6 +1034,7 @@ export const BoardQuery: MessageType<BoardQuery> =
       [4, 'offset', 13],
       [5, 'limit', 13],
       [6, 'player', 5, 4],
+      [7, 'connection', 11, 0, ScoreConnection.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: BoardQuery): BoardQuery => {
@@ -911,6 +1067,13 @@ export const BoardQuery: MessageType<BoardQuery> =
               break
             case 6:
               m.player = r.int32()
+              break
+            case 7:
+              m.connection = ScoreConnection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
               break
             default:
               r.skip(t)
@@ -949,6 +1112,10 @@ export const BoardQuery: MessageType<BoardQuery> =
           const v = m.player
           if (v != null) w.uint32(48).int32(v)
         }
+        {
+          const v = m.connection
+          if (v != null) ScoreConnection.writeField(w, 7, v)
+        }
       },
     },
   )
@@ -967,11 +1134,6 @@ export interface BoardPage {
    * Player is the asked player's row, when they hold a standing.
    */
   player?: Standing
-  /**
-   * Loading is set while the host has not read the board yet; reading again
-   * on a later frame returns it.
-   */
-  loading?: boolean
 }
 
 export const BoardPage: MessageType<BoardPage> =
@@ -980,7 +1142,6 @@ export const BoardPage: MessageType<BoardPage> =
     () => [
       [1, 'rows', 11, 1, Standing.codec],
       [2, 'player', 11, 0, Standing.codec],
-      [3, 'loading', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: BoardPage): BoardPage => {
@@ -993,9 +1154,6 @@ export const BoardPage: MessageType<BoardPage> =
               break
             case 2:
               m.player = Standing.decode(r, r.delimited(), m.player ?? {})
-              break
-            case 3:
-              m.loading = r.bool()
               break
             default:
               r.skip(t)
@@ -1011,10 +1169,6 @@ export const BoardPage: MessageType<BoardPage> =
         {
           const v = m.player
           if (v != null) Standing.writeField(w, 2, v)
-        }
-        {
-          const v = m.loading
-          if (v) w.uint32(24).bool(v)
         }
       },
     },

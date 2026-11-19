@@ -74,6 +74,14 @@ bool WasmHost::Held(std::string_view mod) const {
   return found != impl_->plugins.end() && found->second->Held();
 }
 
+std::optional<uint32_t> WasmHost::BoardVersion(std::string_view mod, std::string_view board) const {
+  const auto found = impl_->plugins.find(mod);
+  if (found == impl_->plugins.end()) {
+    return std::nullopt;
+  }
+  return found->second->BoardVersion(board);
+}
+
 std::expected<void, std::string> WasmHost::Scope(std::string_view mod, WasmScope scope) {
   auto found = impl_->plugins.find(mod);
   if (found == impl_->plugins.end()) {

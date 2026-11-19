@@ -158,6 +158,11 @@ class MODLOCK_API WasmHost {
   // reloads.
   [[nodiscard]] bool Held(std::string_view mod) const;
 
+  // BoardVersion returns the active build's declared version of board. A
+  // queued reload leaves the active declaration in place until it starts.
+  [[nodiscard]] std::optional<uint32_t> BoardVersion(std::string_view mod,
+                                                     std::string_view board) const;
+
   // Scope limits the running mod named mod to scope, as when one mod runs a
   // game for some of the server's players beside another. A limited mod sees
   // only its players, hears no event or hit about another player, and is

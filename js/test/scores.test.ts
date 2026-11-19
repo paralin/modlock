@@ -1,98 +1,176 @@
 import { expect, test } from 'bun:test'
 
-import { BoardPage, ScoreReport } from '../../src/wasm/scores/scores.pb.js'
+import {
+  BoardPage as PageMessage,
+  BoardQuery,
+  MatchReport,
+  ScoreConnection,
+  ScoreReport,
+} from '../../src/wasm/scores/scores.pb.js'
 import {
   Call,
-  LogRequest,
   Reply,
   ServiceCall,
+  ServiceCallStarted,
   ServiceReply,
+  StartServiceCallRequest,
 } from '../../src/wasm/wasm.pb.js'
-import { Player } from '../src/host.gen.js'
+import { Player, type Connection } from '../src/host.gen.js'
 import { bind } from '../src/host.js'
-import { readBoard, reportScore } from '../src/scores.js'
+import {
+  bindScorePlayer,
+  readBoard,
+  reportMatch,
+  reportScore,
+  type BoardPage,
+  type ScoreDone,
+} from '../src/scores.js'
+import { endServiceCall } from '../src/service-later.js'
 
-/** answer is what the bound transport replies with next. */
-let answer = Reply.toBinary({})
+/** player is the enrolled human in slot zero. */
+const player: Connection = {
+  player: Player.of(0),
+  steamId: 76561198000000002n,
+  generation: 5,
+  bot: false,
+  ready: true,
+  name: 'Jun',
+  roles: [],
+}
 
-/** sent holds the Calls the transport carried, decoded. */
-const sent: { method: string; request: Uint8Array }[] = []
+/** sent retains each started score request for the wire assertions. */
+const sent: StartServiceCallRequest[] = []
 bind((bytes) => {
-  const decoded = Call.fromBinary(bytes)
-  sent.push({
-    method: decoded.method ?? '',
-    request: decoded.request ?? new Uint8Array(),
+  // Bind returns proof for the identity it saw.
+  const request = Call.fromBinary(bytes)
+  if (request.method === 'CallService') {
+    const bind = ServiceCall.fromBinary(request.request)
+    expect([bind.service, bind.method]).toEqual(['scores', 'Bind'])
+    const bound = ScoreConnection.fromBinary(bind.payload)
+    return Reply.toBinary({
+      response: ServiceReply.toBinary({
+        payload: ScoreConnection.toBinary({ ...bound, proof: 'test proof' }),
+      }),
+    })
+  }
+
+  // The report and read return only a call number until the frame arrives.
+  expect(request.method).toBe('StartServiceCall')
+  sent.push(StartServiceCallRequest.fromBinary(request.request))
+  return Reply.toBinary({
+    response: ServiceCallStarted.toBinary({ call: BigInt(sent.length) }),
   })
-  // A log line succeeds whatever the service answered.
-  return decoded.method === 'Log' ? Reply.toBinary({}) : answer
 })
 
-test('a score reaches the scores service, or is logged when no host keeps scores', () => {
-  // A host with the service takes the report as encoded.
-  sent.length = 0
-  answer = Reply.toBinary({ response: ServiceReply.toBinary({}) })
-  const player = Player.of(3)
-  expect(
-    reportScore(player, 'trial.time', 41250.4, {
+test('a lost score reply can resend the identical enrolled result', () => {
+  // Submit a result and wait for the backend, even with slot zero.
+  const enrolled = bindScorePlayer(player)!
+  const result: {
+    calls: number
+    error?: string
+    retry?: (done: ScoreDone) => void
+  } = { calls: 0 }
+  reportScore(
+    enrolled,
+    'trial.time',
+    41250.4,
+    (error, retry) => {
+      result.calls++
+      result.error = error
+      result.retry = retry
+    },
+    {
       partition: { course: 'canyon' },
       key: 'run-7',
-    }),
-  ).toBe(true)
-  const call = ServiceCall.fromBinary(sent[0]!.request)
-  expect([call.service, call.method]).toEqual(['scores', 'Report'])
-  const report = ScoreReport.fromBinary(call.payload)
-  expect([report.player, report.value, report.partition, report.key]).toEqual([
-    3,
-    41250n,
-    { course: 'canyon' },
-    'run-7',
-  ])
-
-  // A host without it refuses, and the mod logs the score instead.
-  sent.length = 0
-  answer = Reply.toBinary({ error: 'this host provides no service scores' })
-  expect(
-    reportScore(player, 'trial.time', 39000, {
-      partition: { course: 'canyon' },
-    }),
-  ).toBe(false)
-  const logged = LogRequest.fromBinary(sent[1]!.request).message
-  expect(logged).toBe(
-    'score trial.time[course=canyon]: player 3 39000 (not reported: the host keeps no scores)',
+    },
   )
+  const first = sent.at(-1)!
+  expect([first.service, first.method]).toEqual(['scores', 'Report'])
+  expect(ScoreReport.fromBinary(first.payload)).toMatchObject({
+    value: 41250n,
+    partition: { course: 'canyon' },
+    key: 'run-7',
+    connection: { generation: 5, steamId: player.steamId, proof: 'test proof' },
+  })
+  expect(result.calls).toBe(0)
+
+  // Retrying after a timeout sends exactly the same bytes.
+  endServiceCall({
+    call: BigInt(sent.length),
+    failure: 'timeout',
+    error: 'The reply was lost',
+    payload: new Uint8Array(),
+  })
+  expect(result.error).toBe('The reply was lost')
+  result.retry!((error) => {
+    result.calls++
+    result.error = error
+  })
+  expect(sent.at(-1)?.payload).toEqual(first.payload)
+  endServiceCall({
+    call: BigInt(sent.length),
+    payload: new Uint8Array(),
+    failure: 'none',
+    error: '',
+  })
+  expect(result.calls).toBe(2)
+  expect(result.error).toBeUndefined()
 })
 
-test('a board page decodes its rows and the asked player', () => {
-  const page = BoardPage.toBinary({
-    rows: [
-      {
-        rank: 1,
-        steamId: 76561198000000001n,
-        name: 'Mira',
-        value: 39000n,
-        count: 4,
-      },
-    ],
+test('a match and a viewer read use the same asynchronous service', () => {
+  // The match carries the participant proof with its placement.
+  const enrolled = bindScorePlayer(player)!
+  reportMatch('cup', [{ player: enrolled, place: 1 }], () => {})
+  const match = sent.at(-1)!
+  expect(match.method).toBe('Match')
+  expect(
+    MatchReport.fromBinary(match.payload).places?.[0]?.connection,
+  ).toMatchObject({
+    steamId: enrolled.steamId,
+    generation: enrolled.generation,
+    proof: enrolled.proof,
+  })
+  endServiceCall({
+    call: BigInt(sent.length),
+    payload: new Uint8Array(),
+    failure: 'none',
+    error: '',
+  })
+
+  // The read keeps slot zero and the live identity.
+  const result: { calls: number; page?: BoardPage } = { calls: 0 }
+  readBoard('cup', { player }, (page) => {
+    result.calls++
+    result.page = page
+  })
+  const read = sent.at(-1)!
+  expect(read.method).toBe('Read')
+  expect(BoardQuery.fromBinary(read.payload)).toMatchObject({
+    player: 0,
+    connection: { generation: 5, steamId: player.steamId },
+  })
+  expect(result.calls).toBe(0)
+
+  // A later frame returns the private row.
+  const page = PageMessage.toBinary({
+    player: { rank: 38, steamId: player.steamId },
+  })
+  endServiceCall({
+    call: BigInt(sent.length),
+    payload: page,
+    failure: 'none',
+    error: '',
+  })
+  expect(result.calls).toBe(1)
+  expect(result.page).toEqual({
+    rows: [],
     player: {
       rank: 38,
-      steamId: 76561198000000002n,
-      name: 'Jun',
-      value: 52000n,
-      count: 1,
+      steamId: player.steamId,
+      name: '',
+      value: 0,
+      tiebreak: 0,
+      count: 0,
     },
   })
-  answer = Reply.toBinary({
-    response: ServiceReply.toBinary({ payload: page }),
-  })
-  const read = readBoard('trial.time', {
-    partition: { course: 'canyon' },
-    player: Player.of(1),
-  })
-  expect(read?.rows.map((r) => [r.rank, r.name, r.value])).toEqual([
-    [1, 'Mira', 39000],
-  ])
-  expect([read?.player?.rank, read?.loading]).toEqual([38, false])
-
-  answer = Reply.toBinary({ error: 'this host provides no service scores' })
-  expect(readBoard('trial.time')).toBeUndefined()
 })

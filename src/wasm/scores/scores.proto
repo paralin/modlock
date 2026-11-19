@@ -165,8 +165,29 @@ enum Hud {
   HUD_END_CARD = 1;
 }
 
+// ScoreConnection names a human connection to the mod's game. The scores
+// service's synchronous Bind method checks the live connection and returns
+// this message with proof the mod can keep to report the result after a leave.
+message ScoreConnection {
+  // Slot is the player's server slot.
+  int32 slot = 1;
+
+  // SteamId is the human player's SteamID64.
+  uint64 steam_id = 2;
+
+  // Generation changes when another connection takes the slot.
+  uint32 generation = 3;
+
+  // Proof is assigned by Bind. Board reads check the live connection instead.
+  string proof = 4;
+}
+
+// ScoreAccepted is an empty reply to a report the host accepted. A refusal
+// ends the asynchronous service call with an error.
+message ScoreAccepted {}
+
 // ScoreReport reports one score for one player, the request of the scores
-// service's Report method.
+// service's asynchronous Report method, returning ScoreAccepted.
 message ScoreReport {
   // Board names a board the manifest declares.
   string board = 1;
@@ -185,8 +206,9 @@ message ScoreReport {
   // Partition names a value for each of the board's partitions.
   map<string, string> partition = 5;
 
-  // Key identifies the run the score came from, so a resent report counts
-  // once. Empty lets the host make one.
+  // Key identifies the round or run within this game, so a resent report
+  // counts once. Empty identifies the sole result for this player and board
+  // in the game. Use distinct keys for distinct rounds or runs.
   string key = 6;
 
   // EarnedAtUnixMillis is when the player earned the score; zero takes the
@@ -196,10 +218,14 @@ message ScoreReport {
   // Evidence names what shows the run, such as a recording, for a host
   // that keeps it.
   string evidence = 8;
+
+  // Connection is the enrollment proof from Bind.
+  ScoreConnection connection = 9;
 }
 
 // MatchReport reports one match's places on a rating or match board, the
-// request of the scores service's Match method.
+// request of the scores service's asynchronous Match method, returning
+// ScoreAccepted.
 message MatchReport {
   // Board names a board the manifest declares.
   string board = 1;
@@ -210,7 +236,8 @@ message MatchReport {
   // Partition names a value for each of the board's partitions.
   map<string, string> partition = 3;
 
-  // Key identifies the match, so a resent report counts once.
+  // Key identifies the round or match within this game. Empty identifies
+  // the sole match on this board in the game.
   string key = 4;
 
   // EarnedAtUnixMillis is when the match ended; zero takes the host's clock.
@@ -231,10 +258,13 @@ message Place {
 
   // Value is the player's score in the match, for a board that keeps one.
   int64 value = 3;
+
+  // Connection is the participant's enrollment proof from Bind.
+  ScoreConnection connection = 4;
 }
 
 // BoardQuery reads a page of one board, the request of the scores service's
-// Read method.
+// asynchronous Read method, returning BoardPage.
 message BoardQuery {
   // Board names a board the manifest declares.
   string board = 1;
@@ -253,6 +283,9 @@ message BoardQuery {
 
   // Player asks for this player's own row too, by server slot.
   optional int32 player = 6;
+
+  // Connection identifies the current viewer when Player is set.
+  ScoreConnection connection = 7;
 }
 
 // BoardPage is a page of one board, the response of the Read method.
@@ -263,9 +296,8 @@ message BoardPage {
   // Player is the asked player's row, when they hold a standing.
   Standing player = 2;
 
-  // Loading is set while the host has not read the board yet; reading again
-  // on a later frame returns it.
-  bool loading = 3;
+  reserved 3;
+  reserved "loading";
 }
 
 // Standing is one player's place on one board, partition and window.

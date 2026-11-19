@@ -129,74 +129,107 @@ each of the board's partitions.
 <Samples>
 
 ```ts
-import { command, readBoard, reportScore } from 'modlock'
+import { bindScorePlayer, command, log, readBoard, reportScore } from 'modlock'
 
-reportScore(player, 'aim.score', 4210, {
-  partition: { scenario: 'tracking', difficulty: 'hard' },
-})
+// Enroll while the player is connected. Keep this proof with the run.
+const enrolled = bindScorePlayer(connection)
+if (enrolled) {
+  reportScore(
+    enrolled,
+    'aim.score',
+    4210,
+    (error) => {
+      if (error) log(error)
+    },
+    { partition: { scenario: 'tracking', difficulty: 'hard' }, key: runId },
+  )
+}
 
-// Show the top five.
 command('top', (player) => {
-  for (const row of readBoard('aim.score', { limit: 5 })?.rows ?? []) {
-    player.chat(`${row.rank}. ${row.name} ${row.value}`)
-  }
+  readBoard('aim.score', { limit: 5 }, (page, error) => {
+    if (error) player.chat(error)
+    for (const row of page?.rows ?? []) {
+      player.chat(`${row.rank}. ${row.name} ${row.value}`)
+    }
+  })
 })
 ```
 
 ```luau
-modlock.reportScore(player, "aim.score", 4210, {
-	partition = { scenario = "tracking", difficulty = "hard" },
-})
+local enrolled = modlock.bindScorePlayer(connection)
+if enrolled then
+	modlock.reportScore(enrolled, "aim.score", 4210, function(err)
+		if err then modlock.log(err) end
+	end, { partition = { scenario = "tracking", difficulty = "hard" }, key = runId })
+end
 
--- Show the top five.
 modlock.command("top", function(player)
-	local page = modlock.readBoard("aim.score", { limit = 5 })
-	for _, row in if page then page.rows else {} do
-		player:chat(`{row.rank}. {row.name} {row.value}`)
-	end
+	modlock.readBoard("aim.score", { limit = 5 }, function(page, err)
+		if err then player:chat(err) end
+		for _, row in if page then page.rows else {} do
+			player:chat(`{row.rank}. {row.name} {row.value}`)
+		end
+	end)
 end)
 ```
 
 ```python
-modlock.report_score(
-    player, "aim.score", 4210, partition={"scenario": "tracking", "difficulty": "hard"}
-)
+enrolled = modlock.bind_score_player(connection)
+if enrolled is not None:
+    modlock.report_score(
+        enrolled, "aim.score", 4210, lambda err: modlock.log(err) if err else None,
+        partition={"scenario": "tracking", "difficulty": "hard"}, key=run_id,
+    )
 
-
-# Show the top five.
 @modlock.command("top")
 def top(player: modlock.Player, args: str) -> None:
-    page = modlock.read_board("aim.score", limit=5)
-    for row in page.rows if page is not None else []:
-        player.chat(f"{row.rank}. {row.name} {row.value}")
+    def show(page, err):
+        if err:
+            player.chat(err)
+        for row in page.rows if page is not None else []:
+            player.chat(f"{row.rank}. {row.name} {row.value}")
+
+    modlock.read_board("aim.score", show, limit=5)
 ```
 
 ```go
-_ = p.ReportScore(&mod.ScoreReport{
-	Board:     "aim.score",
-	Value:     4210,
-	Partition: map[string]string{"scenario": "tracking", "difficulty": "hard"},
-})
+if enrolled, err := mod.BindScorePlayer(connection); err == nil {
+	mod.ReportScore(enrolled, &mod.ScoreReport{
+		Board: "aim.score", Value: 4210, Key: runID,
+		Partition: map[string]string{"scenario": "tracking", "difficulty": "hard"},
+	}, func(err error) {
+		if err != nil {
+			mod.Log(err.Error())
+		}
+	})
+}
 
-// Show the top five.
 mod.Command("top", func(p mod.Player, args string) {
-	page, err := mod.ReadBoard(&mod.BoardQuery{Board: "aim.score", Limit: 5})
-	if err != nil {
-		return
-	}
-	for _, row := range page.GetRows() {
-		_ = p.Chat(fmt.Sprintf("%d. %s %d", row.GetRank(), row.GetName(), row.GetValue()))
-	}
+	mod.ReadBoard(&mod.BoardQuery{Board: "aim.score", Limit: 5}, nil, func(page *mod.BoardPage, err error) {
+		if err != nil {
+			_ = p.Chat(err.Error())
+			return
+		}
+		for _, row := range page.GetRows() {
+			_ = p.Chat(fmt.Sprintf("%d. %s %d", row.GetRank(), row.GetName(), row.GetValue()))
+		}
+	})
 })
 ```
 
 </Samples>
 
-| Call                                          | Does                                                                                                                                      |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `reportScore(player, board, value, options?)` | Reports one score. Returns whether the host accepted it. A host without boards accepts none, and the score goes to the mod's log instead. |
-| `reportMatch(board, places, options?)`        | Reports a whole match's places to a rated board. Players who tie share a place.                                                           |
-| `readBoard(board, read?)`                     | Reads a page of a board, ten rows by default, as the host last read it. A page the host has not read yet comes back `loading`.            |
+| Call                                                  | Does                                                                    |
+| ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `bindScorePlayer(connection)`                         | Enrolls the live player so the game can report after they leave.        |
+| `reportScore(enrolled, board, value, done, options?)` | Reports one result and delivers acceptance or refusal on a later frame. |
+| `reportMatch(board, places, done, options?)`          | Reports the enrolled players' places together. Ties share a place.      |
+| `readBoard(board, read, done)`                        | Delivers a page of standings on a later frame. The default is all time. |
+
+Use a stable key for each round or run if the game reports multiple results
+for the same player and board. Reuse that key and the same result if a reply
+is lost or the mod reloads. Leaving out the key identifies a single result
+for that player and board in the game.
 
 Python spells them in `snake_case` with keyword options. Go spells them
 `Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's
