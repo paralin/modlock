@@ -120,3 +120,5 @@ jobs:
           done
       - name: Go protocol tests
         run: go test ./...
+      - name: Build the JavaScript library from a vendored dependency
+        run: scripts/test-vendor.sh

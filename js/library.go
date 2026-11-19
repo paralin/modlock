@@ -35,6 +35,13 @@ import (
 	"github.com/paralin/modlock/internal/fetch"
 	"github.com/paralin/modlock/internal/npm"
 	"github.com/pkg/errors"
+
+	// Keep the library's TypeScript inputs when a consumer runs go mod vendor.
+	_ "github.com/paralin/modlock/cli"
+	_ "github.com/paralin/modlock/mod/spot"
+	_ "github.com/paralin/modlock/panorama"
+	_ "github.com/paralin/modlock/src/wasm"
+	_ "github.com/paralin/modlock/studio"
 )
 
 // Built is the directory under js that the release build fills with the

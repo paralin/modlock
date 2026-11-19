@@ -5,9 +5,15 @@
 package studio
 
 import (
+	"embed"
 	"net/http"
 	"os"
 )
+
+// webSources keeps Studio's page and protocol together when vendoring.
+//
+//go:embed web studio.pb.ts
+var webSources embed.FS
 
 // Handler returns the page in the directory page and the API of every
 // workspace. Without assets, the page still serves and says why it has no
