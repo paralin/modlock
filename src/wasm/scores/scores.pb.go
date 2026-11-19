@@ -482,8 +482,69 @@ func (x *Partition) GetValues() []string {
 	return nil
 }
 
+// ScoreConnection names a human connection to the mod's game. The scores
+// service's synchronous Bind method checks the live connection and returns
+// this message with proof the mod can keep to report the result after a leave.
+type ScoreConnection struct {
+	unknownFields []byte
+	// Slot is the player's server slot.
+	Slot int32 `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty"`
+	// SteamId is the human player's SteamID64.
+	SteamId uint64 `protobuf:"varint,2,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	// Generation changes when another connection takes the slot.
+	Generation uint32 `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Proof is assigned by Bind. Board reads check the live connection instead.
+	Proof string `protobuf:"bytes,4,opt,name=proof,proto3" json:"proof,omitempty"`
+}
+
+func (x *ScoreConnection) Reset() {
+	*x = ScoreConnection{}
+}
+
+func (*ScoreConnection) ProtoMessage() {}
+
+func (x *ScoreConnection) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *ScoreConnection) GetSteamId() uint64 {
+	if x != nil {
+		return x.SteamId
+	}
+	return 0
+}
+
+func (x *ScoreConnection) GetGeneration() uint32 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *ScoreConnection) GetProof() string {
+	if x != nil {
+		return x.Proof
+	}
+	return ""
+}
+
+// ScoreAccepted is an empty reply to a report the host accepted. A refusal
+// ends the asynchronous service call with an error.
+type ScoreAccepted struct {
+	unknownFields []byte
+}
+
+func (x *ScoreAccepted) Reset() {
+	*x = ScoreAccepted{}
+}
+
+func (*ScoreAccepted) ProtoMessage() {}
+
 // ScoreReport reports one score for one player, the request of the scores
-// service's Report method.
+// service's asynchronous Report method, returning ScoreAccepted.
 type ScoreReport struct {
 	unknownFields []byte
 	// Board names a board the manifest declares.
@@ -498,8 +559,9 @@ type ScoreReport struct {
 	Tiebreak int64 `protobuf:"varint,4,opt,name=tiebreak,proto3" json:"tiebreak,omitempty"`
 	// Partition names a value for each of the board's partitions.
 	Partition map[string]string `protobuf:"bytes,5,rep,name=partition,proto3" json:"partition,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// Key identifies the run the score came from, so a resent report counts
-	// once. Empty lets the host make one.
+	// Key identifies the round or run within this game, so a resent report
+	// counts once. Empty identifies the sole result for this player and board
+	// in the game. Use distinct keys for distinct rounds or runs.
 	Key string `protobuf:"bytes,6,opt,name=key,proto3" json:"key,omitempty"`
 	// EarnedAtUnixMillis is when the player earned the score; zero takes the
 	// host's clock. It decides the windows the score falls in.
@@ -507,6 +569,8 @@ type ScoreReport struct {
 	// Evidence names what shows the run, such as a recording, for a host
 	// that keeps it.
 	Evidence string `protobuf:"bytes,8,opt,name=evidence,proto3" json:"evidence,omitempty"`
+	// Connection is the enrollment proof from Bind.
+	Connection *ScoreConnection `protobuf:"bytes,9,opt,name=connection,proto3" json:"connection,omitempty"`
 }
 
 func (x *ScoreReport) Reset() {
@@ -571,8 +635,16 @@ func (x *ScoreReport) GetEvidence() string {
 	return ""
 }
 
+func (x *ScoreReport) GetConnection() *ScoreConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
 // MatchReport reports one match's places on a rating or match board, the
-// request of the scores service's Match method.
+// request of the scores service's asynchronous Match method, returning
+// ScoreAccepted.
 type MatchReport struct {
 	unknownFields []byte
 	// Board names a board the manifest declares.
@@ -581,7 +653,8 @@ type MatchReport struct {
 	Places []*Place `protobuf:"bytes,2,rep,name=places,proto3" json:"places,omitempty"`
 	// Partition names a value for each of the board's partitions.
 	Partition map[string]string `protobuf:"bytes,3,rep,name=partition,proto3" json:"partition,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// Key identifies the match, so a resent report counts once.
+	// Key identifies the round or match within this game. Empty identifies
+	// the sole match on this board in the game.
 	Key string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
 	// EarnedAtUnixMillis is when the match ended; zero takes the host's clock.
 	EarnedAtUnixMillis int64 `protobuf:"varint,5,opt,name=earned_at_unix_millis,json=earnedAtUnixMillis,proto3" json:"earnedAtUnixMillis,omitempty"`
@@ -647,6 +720,8 @@ type Place struct {
 	Place uint32 `protobuf:"varint,2,opt,name=place,proto3" json:"place,omitempty"`
 	// Value is the player's score in the match, for a board that keeps one.
 	Value int64 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
+	// Connection is the participant's enrollment proof from Bind.
+	Connection *ScoreConnection `protobuf:"bytes,4,opt,name=connection,proto3" json:"connection,omitempty"`
 }
 
 func (x *Place) Reset() {
@@ -676,8 +751,15 @@ func (x *Place) GetValue() int64 {
 	return 0
 }
 
+func (x *Place) GetConnection() *ScoreConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
 // BoardQuery reads a page of one board, the request of the scores service's
-// Read method.
+// asynchronous Read method, returning BoardPage.
 type BoardQuery struct {
 	unknownFields []byte
 	// Board names a board the manifest declares.
@@ -692,6 +774,8 @@ type BoardQuery struct {
 	Limit uint32 `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Player asks for this player's own row too, by server slot.
 	Player *int32 `protobuf:"varint,6,opt,name=player,proto3,oneof" json:"player,omitempty"`
+	// Connection identifies the current viewer when Player is set.
+	Connection *ScoreConnection `protobuf:"bytes,7,opt,name=connection,proto3" json:"connection,omitempty"`
 }
 
 func (x *BoardQuery) Reset() {
@@ -742,6 +826,13 @@ func (x *BoardQuery) GetPlayer() int32 {
 	return 0
 }
 
+func (x *BoardQuery) GetConnection() *ScoreConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
 // BoardPage is a page of one board, the response of the Read method.
 type BoardPage struct {
 	unknownFields []byte
@@ -749,9 +840,6 @@ type BoardPage struct {
 	Rows []*Standing `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"`
 	// Player is the asked player's row, when they hold a standing.
 	Player *Standing `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
-	// Loading is set while the host has not read the board yet; reading again
-	// on a later frame returns it.
-	Loading bool `protobuf:"varint,3,opt,name=loading,proto3" json:"loading,omitempty"`
 }
 
 func (x *BoardPage) Reset() {
@@ -772,13 +860,6 @@ func (x *BoardPage) GetPlayer() *Standing {
 		return x.Player
 	}
 	return nil
-}
-
-func (x *BoardPage) GetLoading() bool {
-	if x != nil {
-		return x.Loading
-	}
-	return false
 }
 
 // Standing is one player's place on one board, partition and window.
@@ -969,6 +1050,40 @@ func (m *Partition) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ScoreConnection) CloneVT() *ScoreConnection {
+	if m == nil {
+		return (*ScoreConnection)(nil)
+	}
+	r := new(ScoreConnection)
+	r.Slot = m.Slot
+	r.SteamId = m.SteamId
+	r.Generation = m.Generation
+	r.Proof = m.Proof
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ScoreConnection) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ScoreAccepted) CloneVT() *ScoreAccepted {
+	if m == nil {
+		return (*ScoreAccepted)(nil)
+	}
+	r := new(ScoreAccepted)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ScoreAccepted) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *ScoreReport) CloneVT() *ScoreReport {
 	if m == nil {
 		return (*ScoreReport)(nil)
@@ -982,6 +1097,7 @@ func (m *ScoreReport) CloneVT() *ScoreReport {
 	r.EarnedAtUnixMillis = m.EarnedAtUnixMillis
 	r.Evidence = m.Evidence
 	r.Partition = protobuf_go_lite.CloneMap(m.Partition)
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1021,6 +1137,7 @@ func (m *Place) CloneVT() *Place {
 	r.Player = m.Player
 	r.Place = m.Place
 	r.Value = m.Value
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1042,6 +1159,7 @@ func (m *BoardQuery) CloneVT() *BoardQuery {
 	r.Limit = m.Limit
 	r.Partition = protobuf_go_lite.CloneMap(m.Partition)
 	r.Player = protobuf_go_lite.ClonePtr(m.Player)
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1057,7 +1175,6 @@ func (m *BoardPage) CloneVT() *BoardPage {
 		return (*BoardPage)(nil)
 	}
 	r := new(BoardPage)
-	r.Loading = m.Loading
 	r.Rows = protobuf_go_lite.CloneVTSlice(m.Rows)
 	r.Player = protobuf_go_lite.CloneVTValue(m.Player)
 	if len(m.unknownFields) > 0 {
@@ -1170,6 +1287,52 @@ func (this *Partition) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *ScoreConnection) EqualVT(that *ScoreConnection) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Slot != that.Slot {
+		return false
+	}
+	if this.SteamId != that.SteamId {
+		return false
+	}
+	if this.Generation != that.Generation {
+		return false
+	}
+	if this.Proof != that.Proof {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ScoreConnection) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ScoreConnection)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ScoreAccepted) EqualVT(that *ScoreAccepted) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ScoreAccepted) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ScoreAccepted)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *ScoreReport) EqualVT(that *ScoreReport) bool {
 	if this == that {
 		return true
@@ -1198,6 +1361,9 @@ func (this *ScoreReport) EqualVT(that *ScoreReport) bool {
 		return false
 	}
 	if this.Evidence != that.Evidence {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1261,6 +1427,9 @@ func (this *Place) EqualVT(that *Place) bool {
 	if this.Value != that.Value {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1296,6 +1465,9 @@ func (this *BoardQuery) EqualVT(that *BoardQuery) bool {
 	if !protobuf_go_lite.EqualPtr(this.Player, that.Player) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1317,9 +1489,6 @@ func (this *BoardPage) EqualVT(that *BoardPage) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Player, that.Player) {
-		return false
-	}
-	if this.Loading != that.Loading {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1885,6 +2054,102 @@ func (x *Partition) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ScoreConnection message to JSON.
+func (x *ScoreConnection) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Slot != 0 || s.HasField("slot") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("slot")
+		s.WriteInt32(x.Slot)
+	}
+	if x.SteamId != 0 || s.HasField("steamId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steamId")
+		s.WriteUint64(x.SteamId)
+	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint32(x.Generation)
+	}
+	if x.Proof != "" || s.HasField("proof") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("proof")
+		s.WriteString(x.Proof)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ScoreConnection to JSON.
+func (x *ScoreConnection) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ScoreConnection message from JSON.
+func (x *ScoreConnection) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "slot":
+			s.AddField("slot")
+			x.Slot = s.ReadInt32()
+		case "steam_id", "steamId":
+			s.AddField("steam_id")
+			x.SteamId = s.ReadUint64()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint32()
+		case "proof":
+			s.AddField("proof")
+			x.Proof = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ScoreConnection from JSON.
+func (x *ScoreConnection) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ScoreAccepted message to JSON.
+func (x *ScoreAccepted) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ScoreAccepted to JSON.
+func (x *ScoreAccepted) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ScoreAccepted message from JSON.
+func (x *ScoreAccepted) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		// no fields
+	})
+}
+
+// UnmarshalJSON unmarshals the ScoreAccepted from JSON.
+func (x *ScoreAccepted) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the ScoreReport_PartitionEntry message to JSON.
 func (x *ScoreReport_PartitionEntry) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1991,6 +2256,11 @@ func (x *ScoreReport) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("evidence")
 		s.WriteString(x.Evidence)
 	}
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2039,6 +2309,13 @@ func (x *ScoreReport) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "evidence":
 			s.AddField("evidence")
 			x.Evidence = s.ReadString()
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &ScoreConnection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
 		}
 	})
 }
@@ -2239,6 +2516,11 @@ func (x *Place) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("value")
 		s.WriteInt64(x.Value)
 	}
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2265,6 +2547,13 @@ func (x *Place) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "value":
 			s.AddField("value")
 			x.Value = s.ReadInt64()
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &ScoreConnection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
 		}
 	})
 }
@@ -2370,6 +2659,11 @@ func (x *BoardQuery) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("player")
 		s.WriteInt32(*x.Player)
 	}
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2417,6 +2711,13 @@ func (x *BoardQuery) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadInt32()
 			x.Player = &t
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &ScoreConnection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
 		}
 	})
 }
@@ -2449,11 +2750,6 @@ func (x *BoardPage) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("player")
 		x.Player.MarshalProtoJSON(s.WithField("player"))
-	}
-	if x.Loading || s.HasField("loading") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("loading")
-		s.WriteBool(x.Loading)
 	}
 	s.WriteObjectEnd()
 }
@@ -2497,9 +2793,6 @@ func (x *BoardPage) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Player = &Standing{}
 			x.Player.UnmarshalProtoJSON(s.WithField("player", true))
-		case "loading":
-			s.AddField("loading")
-			x.Loading = s.ReadBool()
 		}
 	})
 }
@@ -2739,6 +3032,90 @@ func (m *Partition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ScoreConnection) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ScoreConnection) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ScoreConnection) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Proof) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Proof)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.SteamId != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SteamId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Slot != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Slot))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ScoreAccepted) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ScoreAccepted) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ScoreAccepted) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ScoreReport) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2767,6 +3144,16 @@ func (m *ScoreReport) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x4a
 	}
 	if len(m.Evidence) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Evidence)
@@ -2929,6 +3316,16 @@ func (m *Place) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	}
 	if m.Value != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Value))
 		i--
@@ -2975,6 +3372,16 @@ func (m *BoardQuery) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x3a
 	}
 	if m.Player != nil {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Player))
@@ -3047,11 +3454,6 @@ func (m *BoardPage) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
-	}
-	if m.Loading {
-		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Loading)
-		i--
-		dAtA[i] = 0x18
 	}
 	if m.Player != nil {
 		size, err := m.Player.MarshalToSizedBufferVT(dAtA[:i])
@@ -3178,6 +3580,30 @@ func (m *Partition) SizeVT() (n int) {
 	return n
 }
 
+func (m *ScoreConnection) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SteamId)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Proof)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ScoreAccepted) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *ScoreReport) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3197,6 +3623,10 @@ func (m *ScoreReport) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.EarnedAtUnixMillis)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Evidence)
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3234,6 +3664,10 @@ func (m *Place) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Place)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Value)
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3255,6 +3689,10 @@ func (m *BoardQuery) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Offset)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Limit)
 	n += protobuf_go_lite.SizeVarintPtr(1, m.Player)
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3273,7 +3711,6 @@ func (m *BoardPage) SizeVT() (n int) {
 		l = m.Player.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
-	n += protobuf_go_lite.SizeBoolNonZero(1, m.Loading)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3418,6 +3855,42 @@ func (x *Partition) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *ScoreConnection) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ScoreConnection")
+	if x.Slot != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slot")
+		protobuf_go_lite.TextWriteInt(&sb, x.Slot)
+	}
+	if x.SteamId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
+	if x.Proof != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "proof")
+		protobuf_go_lite.TextWriteString(&sb, x.Proof)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ScoreConnection) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ScoreAccepted) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	protobuf_go_lite.TextStartMessage(&sb, "ScoreAccepted")
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ScoreAccepted) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *ScoreReport_PartitionEntry) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PartitionEntry")
@@ -3477,6 +3950,10 @@ func (x *ScoreReport) MarshalProtoText() string {
 	if x.Evidence != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "evidence")
 		protobuf_go_lite.TextWriteString(&sb, x.Evidence)
+	}
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3567,6 +4044,10 @@ func (x *Place) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
 		protobuf_go_lite.TextWriteInt(&sb, x.Value)
 	}
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -3626,6 +4107,10 @@ func (x *BoardQuery) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
 		protobuf_go_lite.TextWriteInt(&sb, *x.Player)
 	}
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -3651,10 +4136,6 @@ func (x *BoardPage) MarshalProtoText() string {
 	if x.Player != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Player)
-	}
-	if x.Loading != false {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "loading")
-		protobuf_go_lite.TextWriteBool(&sb, x.Loading)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3965,6 +4446,129 @@ func (m *Partition) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
+func (m *ScoreConnection) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ScoreConnection: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ScoreConnection: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slot", wireType)
+			}
+			m.Slot = 0
+			m.Slot, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SteamId", wireType)
+			}
+			m.SteamId = 0
+			m.SteamId, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Proof = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ScoreAccepted) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ScoreAccepted: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ScoreAccepted: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
 func (m *ScoreReport) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4093,6 +4697,21 @@ func (m *ScoreReport) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Evidence = v
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &ScoreConnection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4300,6 +4919,21 @@ func (m *Place) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &ScoreConnection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4434,6 +5068,21 @@ func (m *BoardQuery) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Player = &v
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &ScoreConnection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4505,16 +5154,6 @@ func (m *BoardPage) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Loading", wireType)
-			}
-			var v bool
-			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Loading = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

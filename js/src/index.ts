@@ -168,6 +168,7 @@ export {
   type PersistValue,
 } from './persist.js'
 export {
+  bindScorePlayer,
   type BoardPage,
   type BoardRead,
   type BoardRow,
@@ -176,7 +177,9 @@ export {
   readBoard,
   reportMatch,
   reportScore,
+  type ScoreDone,
   type ScoreOptions,
+  type ScorePlayer,
 } from './scores.js'
 export {
   decodeSpot,

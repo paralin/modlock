@@ -92,13 +92,6 @@ function modlock.setOrbitCamera(player: Player, enabled: boolean): boolean
 	return flag and zoom
 end
 
--- Scores report a player's results to the boards a mod declares in mod.json
--- and read those boards back, over the host's scores service. A host without
--- the service, such as a server with no backend, takes no score; the mod
--- logs each one instead, so its author sees what it would report.
---
---   modlock.reportScore(player, "trial.time", elapsedMs, { partition = { course = "canyon" }, key = runId })
-
 -- scoresService names the host service that keeps scores.
 local scoresService = "scores"
 
@@ -125,9 +118,15 @@ export type ScoreOptions = MatchOptions & {
 	tiebreak: number?,
 }
 
+-- ScorePlayer is a human connection enrolled for reporting.
+export type ScorePlayer = { slot: number, steamId: string, generation: number, proof: string }
+
+-- ScoreDone receives a write's acceptance or refusal on a later frame.
+export type ScoreDone = (string?) -> ()
+
 -- MatchPlace is one player's finishing place in a match, 1 for the winner.
 export type MatchPlace = {
-	player: Player,
+	player: ScorePlayer,
 	place: number,
 	-- value is the player's score in the match, for a board that keeps one.
 	value: number?,
@@ -143,8 +142,8 @@ export type BoardRead = {
 	offset: number?,
 	-- limit bounds the rows; ten by default.
 	limit: number?,
-	-- player asks for this player's own row too.
-	player: Player?,
+	-- player asks for this connection's own row too.
+	player: Connection?,
 }
 
 -- BoardRow is one player's place on a board.
@@ -164,42 +163,30 @@ export type BoardPage = {
 	rows: { BoardRow },
 	-- player is the asked player's row, when they hold a standing.
 	player: BoardRow?,
-	-- loading is set until the host has read the board; read again on a later
-	-- frame.
-	loading: boolean,
 }
 
--- describePartition writes partition values as "[course=canyon]", in name
--- order.
-local function describePartition(partition: { [string]: string }?): string
-	local names: { string } = {}
-	for name, value in partition or {} :: { [string]: string } do
-		table.insert(names, `{name}={value}`)
-	end
-	if #names == 0 then
-		return ""
-	end
-	table.sort(names)
-	return `[{table.concat(names, " ")}]`
+-- scoreIdentity copies the identity the host checks against the current seat.
+local function scoreIdentity(connection: Connection)
+	return { slot = connection.player.slot, steamId = connection.steamId, generation = connection.generation }
 end
 
--- taken calls a reporting method and logs line when the host takes no score.
-local function taken(method: string, report: string, line: string): boolean
-	if modlock.callService(scoresService, method, report) ~= nil then
-		return true
+-- bindScorePlayer enrolls a live connection for reporting after it leaves.
+function modlock.bindScorePlayer(connection: Connection): ScorePlayer?
+	local payload = wire.encode(schema, "ScoreConnection", scoreIdentity(connection))
+	local reply = modlock.callService(scoresService, "Bind", payload)
+	if reply == nil then
+		return nil
 	end
-	modlock.log(`score {line} (not reported: the host keeps no scores)`)
-	return false
+	return wire.decode(schema, "ScoreConnection", reply) :: ScorePlayer
 end
 
--- reportScore reports one score for player to a board the manifest declares.
--- It reports whether the host took it; a host without the scores service
--- takes none, and the mod logs the score instead.
-function modlock.reportScore(player: Player, board: string, value: number, options: ScoreOptions?): boolean
+-- reportScore reports the enrolled player's result and answers on a later frame.
+function modlock.reportScore(player: ScorePlayer, board: string, value: number, done: ScoreDone, options: ScoreOptions?)
 	local o: ScoreOptions = options or {}
 	local report = wire.encode(schema, "ScoreReport", {
 		board = board,
-		player = player,
+		player = Player.new(player.slot),
+		connection = player,
 		value = math.round(value),
 		tiebreak = math.round(o.tiebreak or 0),
 		partition = o.partition,
@@ -207,22 +194,22 @@ function modlock.reportScore(player: Player, board: string, value: number, optio
 		earnedAtUnixMillis = math.round(o.earnedAt or 0),
 		evidence = o.evidence,
 	})
-	return taken("Report", report, `{board}{describePartition(o.partition)}: player {player.slot} {value}`)
+	modlock.callServiceLater(scoresService, "Report", report, function(_, err)
+		done(err)
+	end)
 end
 
--- reportMatch reports one match's places to a rating or match board the
--- manifest declares. Players who tie, such as one team's members, share a
--- place. It reports whether the host took it, as reportScore does.
-function modlock.reportMatch(board: string, places: { MatchPlace }, options: MatchOptions?): boolean
-	-- Encode each place and the line the mod logs when the host takes none.
+-- reportMatch reports every enrolled participant's place and answers on a later frame.
+function modlock.reportMatch(board: string, places: { MatchPlace }, done: ScoreDone, options: MatchOptions?)
 	local o: MatchOptions = options or {}
-	local encoded, lines = {}, {}
+	local encoded = {}
 	for _, p in places do
-		table.insert(encoded, { player = p.player, place = p.place, value = math.round(p.value or 0) })
-		table.insert(lines, `player {p.player.slot} #{p.place}`)
+		table.insert(encoded, {
+			player = Player.new(p.player.slot), connection = p.player,
+			place = p.place, value = math.round(p.value or 0),
+		})
 	end
 
-	-- Report the match.
 	local report = wire.encode(schema, "MatchReport", {
 		board = board,
 		places = encoded,
@@ -231,28 +218,30 @@ function modlock.reportMatch(board: string, places: { MatchPlace }, options: Mat
 		earnedAtUnixMillis = math.round(o.earnedAt or 0),
 		evidence = o.evidence,
 	})
-	return taken("Match", report, `{board}{describePartition(o.partition)}: {table.concat(lines, ", ")}`)
+	modlock.callServiceLater(scoresService, "Match", report, function(_, err)
+		done(err)
+	end)
 end
 
--- readBoard reads a page of a board the manifest declares, as the host last
--- read it, or nil when the host serves no scores. A page the host has not
--- read yet comes back loading.
-function modlock.readBoard(board: string, read: BoardRead?): BoardPage?
-	-- Ask the host for the page; a host without scores answers nothing.
-	local r: BoardRead = read or {}
+-- readBoard reads a page and the optional connected viewer's row on a later frame.
+function modlock.readBoard(board: string, read: BoardRead, done: (BoardPage?, string?) -> ())
+	local r = read
 	local query = wire.encode(schema, "BoardQuery", {
 		board = board,
 		partition = r.partition,
 		window = r.window,
 		offset = r.offset,
 		limit = r.limit,
-		player = r.player,
+		player = if r.player then r.player.player else nil,
+		connection = if r.player then scoreIdentity(r.player) else nil,
 	})
-	local reply = modlock.callService(scoresService, "Read", query)
-	if reply == nil then
-		return nil
-	end
-	return wire.decode(schema, "BoardPage", reply) :: BoardPage
+	modlock.callServiceLater(scoresService, "Read", query, function(reply, err)
+		if reply == nil then
+			done(nil, err)
+		else
+			done(wire.decode(schema, "BoardPage", reply) :: BoardPage, nil)
+		end
+	end)
 end
 
 -- Service answers the host's calls to one service the mod serves: the
