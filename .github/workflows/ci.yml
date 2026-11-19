@@ -65,6 +65,20 @@ jobs:
         env:
           SCRIPTC_SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
         run: go test -timeout 60m -run '^TestScriptcSuite$' -v ./js
+  windows-sdk:
+    # The Master build workflow runs this build on pushes to master.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Build and install the Windows SDK
+        run: MODLOCK_BUILD_JOBS=$(nproc) scripts/proton-build.sh
   sdk:
     runs-on: ubuntu-24.04
     env:
