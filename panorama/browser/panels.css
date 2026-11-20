@@ -15,7 +15,9 @@
 .p-Label {
   white-space: normal;
   overflow-wrap: anywhere;
-  line-height: 1.2;
+  /* Panorama sets a line from the font's metrics, floored to whole pixels;
+     dom.ts sets the ratio for each font family. */
+  line-height: round(down, calc(var(--line-ratio, 1.2) * 1em), 1px);
 }
 
 .p-Button {

@@ -33,6 +33,8 @@ export class DomPanel implements Panel {
   /** options holds a dropdown's option panels by id. */
   private readonly options = new Map<string, DomPanel>()
   private dialog: Record<string, string> = {}
+  /** caption is a text button's inner label, which holds its text. */
+  private readonly caption?: DomPanel
 
   constructor(
     readonly paneltype: string,
@@ -115,6 +117,14 @@ export class DomPanel implements Panel {
       },
       { passive: false },
     )
+
+    // A text button draws its text in an inner label at the top left of its
+    // content box, as in Panorama, where the button's own text-align and width
+    // leave the label where it is.
+    if (paneltype === 'TextButton') {
+      this.caption = new DomPanel('Label', '')
+      this.caption.SetParent(this)
+    }
   }
 
   get actuallayoutwidth(): number {
@@ -149,11 +159,16 @@ export class DomPanel implements Panel {
   }
 
   get text(): string {
+    if (this.caption) return this.caption.text
     return this.element instanceof HTMLInputElement
       ? this.element.value
       : (this.element.textContent ?? '')
   }
   set text(value: string) {
+    if (this.caption) {
+      this.caption.text = value
+      return
+    }
     if (this.element instanceof HTMLInputElement) {
       this.element.value = value
       return
@@ -842,6 +857,11 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
       shrink(element)
       return
     }
+    case 'fontFamily': {
+      css.fontFamily = value
+      lineRatio(element, value)
+      return
+    }
     case 'fontSize': {
       css.fontSize = value
       element.dataset.fontSize = value
@@ -878,12 +898,71 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
   }
 }
 
+// lineRatio sets the line height ratio of an element's font family. Panorama
+// sets a line to the face's ascent plus descent plus half its line gap, which
+// matches the game for every Deadlock face, and panels.css floors the ratio
+// times the font size to whole pixels, as the game does. Canvas gives the
+// ascent and descent, and a line at normal height adds the whole gap. The
+// face's metrics are read once it loads, and an element with no family of its
+// own inherits the document's, set when the page's fonts are ready.
+const ratios = new Map<string, Promise<number>>()
+function lineRatio(element: HTMLElement, family: string): void {
+  // An element without a family of its own inherits its parent's ratio.
+  element.dataset.family = family
+  if (!family) {
+    element.style.removeProperty('--line-ratio')
+    return
+  }
+
+  // Measure each family once, and give the element its ratio unless its
+  // family changed while the face loaded.
+  let ratio = ratios.get(family)
+  if (!ratio) {
+    ratio = document.fonts.load(`100px ${family}`).then(() => faceRatio(family))
+    ratios.set(family, ratio)
+  }
+  void ratio.then((value) => {
+    if (element.dataset.family !== family) return
+    element.style.setProperty('--line-ratio', String(value))
+    shrink(element)
+  })
+}
+
+// faceRatio returns a loaded family's ascent plus descent plus half its line
+// gap, per unit of font size.
+function faceRatio(family: string): number {
+  // Canvas gives the face's ascent and descent.
+  const context = document.createElement('canvas').getContext('2d')
+  if (!context) return 1.2
+  context.font = `1000px ${family}`
+  const metrics = context.measureText('Hg')
+  const face = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
+
+  // A line at normal height adds the whole gap.
+  const line = document.createElement('div')
+  line.style.cssText = `position: absolute; visibility: hidden; font: 1000px/normal ${family}`
+  line.textContent = 'Hg'
+  document.body.append(line)
+  const normal = line.offsetHeight
+  line.remove()
+  return (face + Math.max(0, normal - face) / 2) / 1000
+}
+void document.fonts.ready.then(() =>
+  lineRatio(
+    document.documentElement,
+    getComputedStyle(document.body ?? document.documentElement).fontFamily,
+  ),
+)
+
 // shrink fits a label set to text-overflow: shrink, as Panorama does, by
 // stepping its font size down from the declared one until the text fits its
-// box. It waits a frame so the label is laid out, and fits it again whenever
-// its box resizes, so a label measured before its row had a width, or before
-// the window changed size, does not stay shrunk. A label that leaves shrink
-// gets its declared size back.
+// box, while its line box keeps the declared size's height. A label whose
+// height fits its text grows with it, so only a fixed height is a bound;
+// measuring a fitted one would compare a fractional line box rounded two ways
+// and shrink a label that fits. It waits a frame so the label is laid out,
+// and fits it again whenever its box resizes, so a label measured before its
+// row had a width, or before the window changed size, does not stay shrunk. A
+// label that leaves shrink gets its declared size back.
 const shrinking = new WeakSet<HTMLElement>()
 const fitted = new WeakSet<HTMLElement>()
 const resized = new ResizeObserver((entries) => {
@@ -897,6 +976,7 @@ function shrink(element: HTMLElement): void {
     // Start from the declared size; a label that left shrink stops there.
     shrinking.delete(element)
     element.style.fontSize = element.dataset.fontSize ?? ''
+    element.style.lineHeight = ''
     if (!element.classList.contains('shrink')) {
       fitted.delete(element)
       resized.unobserve(element)
@@ -909,10 +989,15 @@ function shrink(element: HTMLElement): void {
 
     // A label with no box yet keeps its size until the observer sees one.
     if (!element.clientWidth) return
+    const fixed =
+      element.style.height !== '' || element.classList.contains('grow-height')
     const fits = () =>
       element.scrollWidth <= element.clientWidth &&
-      element.scrollHeight <= element.clientHeight
-    let size = parseFloat(getComputedStyle(element).fontSize)
+      (!fixed || element.scrollHeight <= element.clientHeight)
+    if (fits()) return
+    const declared = getComputedStyle(element)
+    element.style.lineHeight = declared.lineHeight
+    let size = parseFloat(declared.fontSize)
     while (!fits() && size > 6) element.style.fontSize = `${--size}px`
   })
 }
