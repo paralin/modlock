@@ -14,8 +14,8 @@
 #include <chrono>
 #include <expected>
 #include <filesystem>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -36,9 +36,12 @@ using modlock::WasmHostObserver;
 // Failures records the failures the host's mods report.
 class Failures final : public WasmHostObserver {
  public:
-  void Started(std::string_view, bool) override {}
+  void Started(std::string_view, const std::filesystem::path&, bool) override {}
+
   void Logged(std::string_view, std::string_view) override {}
+
   void Failed(std::string_view, std::string_view error) override { seen.emplace_back(error); }
+
   void Ui(std::string_view, int32_t, const modlock::wasm::ui::Change&) override {}
 
   std::vector<std::string> seen;
@@ -53,9 +56,12 @@ class Build {
     std::filesystem::create_directories(root_);
     std::filesystem::copy_file(EXTENSION_GO_WASM, root_ / "mod.wasm");
     std::ofstream(root_ / "mod.json")
-        << R"({"slug":"extension-go","runtime":"RUNTIME_WASM","entry":"mod.wasm","services":)" << services << "}";
+        << R"({"slug":"extension-go","runtime":"RUNTIME_WASM","entry":"mod.wasm","services":)"
+        << services << "}";
   }
+
   ~Build() { std::filesystem::remove_all(root_); }
+
   Build(const Build&) = delete;
   Build& operator=(const Build&) = delete;
 
@@ -164,8 +170,8 @@ TEST(HostFixtures, AForwardedServiceTakesItsModsStartedCalls) {
       host, Forwarded(),
       [&](std::string_view mod, std::string_view service, std::string_view method,
           std::string_view payload, modlock::WasmReply reply) {
-        calls.push_back(std::string(mod) + " " + std::string(service) + " " +
-                        std::string(method) + " " + std::string(payload));
+        calls.push_back(std::string(mod) + " " + std::string(service) + " " + std::string(method) +
+                        " " + std::string(payload));
         replies.push_back(std::move(reply));
       });
   ASSERT_TRUE(provided) << provided.error();
@@ -202,15 +208,19 @@ class Controller {
     ::getsockname(listener_, reinterpret_cast<sockaddr*>(&address), &size);
     port_ = ntohs(address.sin_port);
   }
+
   ~Controller() {
     Hangup();
     ::close(listener_);
   }
+
   Controller(const Controller&) = delete;
   Controller& operator=(const Controller&) = delete;
 
   std::string Address() const { return "127.0.0.1:" + std::to_string(port_); }
+
   void Accept() { conn_ = ::accept(listener_, nullptr, nullptr); }
+
   void Hangup() {
     if (conn_ >= 0) {
       ::close(conn_);
@@ -257,7 +267,8 @@ class Controller {
 
 // Until runs the link's requests until done reports true, for two seconds at
 // most.
-bool Until(modlock::host_app::ControlLink& link, WasmHost& host, const std::function<bool()>& done) {
+bool Until(modlock::host_app::ControlLink& link, WasmHost& host,
+           const std::function<bool()>& done) {
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
   while (std::chrono::steady_clock::now() < deadline) {
     link.RunRequests(host);

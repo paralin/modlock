@@ -44,9 +44,11 @@ class MODLOCK_API WasmHostObserver {
  public:
   virtual ~WasmHostObserver() = default;
 
-  // Started reports a mod that started; reloaded is true when it started
-  // again, for a new build or after it stopped.
-  virtual void Started(std::string_view mod, bool reloaded) = 0;
+  // Started reports a mod that started from the build read at path, the
+  // directory or .wasm file given to Load or Reload; reloaded is true when it
+  // started again, for a new build or after it stopped. A held mod starts the
+  // newest build a reload brought, which path names.
+  virtual void Started(std::string_view mod, const std::filesystem::path& path, bool reloaded) = 0;
 
   // Logged carries one line the mod logged.
   virtual void Logged(std::string_view mod, std::string_view text) = 0;

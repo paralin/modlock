@@ -313,8 +313,8 @@ void ControlLink::RunRequests(WasmHost& mods) {
   }
 }
 
-void ControlLink::Forward(std::string_view mod, std::string_view service,
-                          std::string_view method, std::string_view payload, WasmReply reply) {
+void ControlLink::Forward(std::string_view mod, std::string_view service, std::string_view method,
+                          std::string_view payload, WasmReply reply) {
   // A call with nobody to answer it ends at once.
   {
     std::lock_guard lock(mu_);
@@ -337,7 +337,7 @@ void ControlLink::Forward(std::string_view mod, std::string_view service,
   Push(std::move(event));
 }
 
-void ControlLink::Started(std::string_view mod, bool reloaded) {
+void ControlLink::Started(std::string_view mod, const std::filesystem::path&, bool reloaded) {
   control::HostEvent event;
   event.mutable_started()->set_mod(std::string(mod));
   event.mutable_started()->set_reloaded(reloaded);

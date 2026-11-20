@@ -1,11 +1,11 @@
 #include <charconv>
-#include <fstream>
-#include <iterator>
 #include <cstdlib>
 #include <expected>
 #include <filesystem>
+#include <fstream>
 #include <initializer_list>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <string>
@@ -97,7 +97,7 @@ class FailureRecorder final : public modlock::WasmHostObserver {
  public:
   std::string error;
 
-  void Started(std::string_view, bool) override {}
+  void Started(std::string_view, const std::filesystem::path&, bool) override {}
 
   void Logged(std::string_view, std::string_view) override {}
 
@@ -222,9 +222,9 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
 
     // Every other option takes one.
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
-        argument != "--map" && argument != "--engine-args" &&
-        argument != "--control" && argument != "--settings" && argument != "--files" &&
-        argument != "--fixtures" && argument != "--dump" && argument != "--game-data") {
+        argument != "--map" && argument != "--engine-args" && argument != "--control" &&
+        argument != "--settings" && argument != "--files" && argument != "--fixtures" &&
+        argument != "--dump" && argument != "--game-data") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return std::unexpected(2);
     }
@@ -271,8 +271,7 @@ int main(int argc, char** argv) {
       std::cerr << "Set DEADLOCK_DIR or pass --game-dir with your Deadlock installation.\n";
       return 2;
     }
-    if (auto opened = engine.Open(std::filesystem::absolute(options.game_dir));
-        !opened) {
+    if (auto opened = engine.Open(std::filesystem::absolute(options.game_dir)); !opened) {
       std::cerr << opened.error() << '\n';
       return 1;
     }

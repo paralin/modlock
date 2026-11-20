@@ -15,6 +15,8 @@ namespace modlock::wasm {
 struct Build {
   // name identifies the mod among the host's plugins.
   std::string name;
+  // path is where the build was read from: its directory or .wasm file.
+  std::filesystem::path path;
   // module holds the WebAssembly bytes to run.
   std::vector<uint8_t> module;
   // source holds an interpreted mod's entry, which module evaluates at start.
