@@ -217,7 +217,8 @@ inline constexpr Manifest::Impl_::Impl_(
         movement_{nullptr},
         language_{static_cast< ::modlock::wasm::Manifest_Language >(0)},
         runtime_{static_cast< ::modlock::wasm::Manifest_Runtime >(0)},
-        free_for_all_{false} {}
+        free_for_all_{false},
+        keep_leaver_heroes_{false} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Manifest::Manifest(::_pbi::ConstantInitialized)
@@ -249,7 +250,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_._has_bits_),
-        19, // hasbit index offset
+        20, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.slug_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.name_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.version_),
@@ -266,6 +267,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.boards_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.services_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.persist_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Manifest, _impl_.keep_leaver_heroes_),
         6,
         7,
         8,
@@ -282,6 +284,7 @@ const ::uint32_t
         3,
         4,
         5,
+        16,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Service, _impl_._has_bits_),
         5, // hasbit index offset
@@ -344,13 +347,13 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::Manifest)},
-        {35, sizeof(::modlock::wasm::Service)},
-        {42, sizeof(::modlock::wasm::Movement)},
-        {49, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
-        {56, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
-        {63, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
-        {70, sizeof(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse)},
-        {77, sizeof(::modlock::wasm::Definition)},
+        {37, sizeof(::modlock::wasm::Service)},
+        {44, sizeof(::modlock::wasm::Movement)},
+        {51, sizeof(::modlock::wasm::Definition_PropertiesEntry_DoNotUse)},
+        {58, sizeof(::modlock::wasm::Definition_FieldsEntry_DoNotUse)},
+        {65, sizeof(::modlock::wasm::Definition_CopyFieldsEntry_DoNotUse)},
+        {72, sizeof(::modlock::wasm::Definition_TextFieldsEntry_DoNotUse)},
+        {79, sizeof(::modlock::wasm::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Manifest_default_instance_._instance,
@@ -371,7 +374,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "sm/persist/persist.proto\0327github.com/par"
     "alin/modlock/src/wasm/scores/scores.prot"
     "o\032;github.com/paralin/modlock/src/wasm/s"
-    "ettings/settings.proto\"\241\006\n\010Manifest\022\014\n\004s"
+    "ettings/settings.proto\"\275\006\n\010Manifest\022\014\n\004s"
     "lug\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\017\n\007version\030\003 \001(\t"
     "\0221\n\010language\030\004 \001(\0162\037.modlock.wasm.Manife"
     "st.Language\022/\n\007runtime\030\005 \001(\0162\036.modlock.w"
@@ -385,35 +388,36 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "*\n\006boards\030\016 \003(\0132\032.modlock.wasm.scores.Bo"
     "ard\022\'\n\010services\030\017 \003(\0132\025.modlock.wasm.Ser"
     "vice\0221\n\007persist\030\020 \003(\0132 .modlock.wasm.per"
-    "sist.RecordType\"k\n\007Runtime\022\023\n\017RUNTIME_UN"
-    "KNOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUNTIME_QUI"
-    "CKJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNTIME_PYTH"
-    "ON\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_UNKNOWN\020\000\022"
-    "\017\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYPESCRIPT\020"
-    "\002\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLANGUAGE_L"
-    "UAU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\")\n\007Service\022\014\n"
-    "\004name\030\001 \001(\t\022\020\n\010optional\030\002 \001(\010\"\222\001\n\010Moveme"
-    "nt\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.Movemen"
-    "t.Model\022\r\n\005scale\030\002 \001(\002\"/\n\005Model\022\020\n\014MODEL"
-    "_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001J\004\010\003\020\004R\023u"
-    "npredicted_buttons\"\360\004\n\nDefinition\022+\n\004fil"
-    "e\030\001 \001(\0162\035.modlock.wasm.Definition.File\022\r"
-    "\n\005entry\030\002 \001(\t\022<\n\nproperties\030\003 \003(\0132(.modl"
-    "ock.wasm.Definition.PropertiesEntry\0224\n\006f"
-    "ields\030\004 \003(\0132$.modlock.wasm.Definition.Fi"
-    "eldsEntry\022=\n\013copy_fields\030\005 \003(\0132(.modlock"
-    ".wasm.Definition.CopyFieldsEntry\022=\n\013text"
-    "_fields\030\006 \003(\0132(.modlock.wasm.Definition."
-    "TextFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003ke"
-    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntr"
-    "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017Cop"
-    "yFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t"
-    ":\0028\001\0321\n\017TextFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005"
-    "value\030\002 \001(\t:\0028\001\"l\n\004File\022\022\n\016FILE_ABILITIE"
-    "S\020\000\022\017\n\013FILE_HEROES\020\001\022\027\n\023FILE_BOT_DIFFICU"
-    "LTY\020\002\022\022\n\016FILE_NPC_UNITS\020\003\022\022\n\016FILE_MODIFI"
-    "ERS\020\004B*Z(github.com/paralin/modlock/src/"
-    "wasm;wasmb\006proto3"
+    "sist.RecordType\022\032\n\022keep_leaver_heroes\030\021 "
+    "\001(\010\"k\n\007Runtime\022\023\n\017RUNTIME_UNKNOWN\020\000\022\020\n\014R"
+    "UNTIME_WASM\020\001\022\023\n\017RUNTIME_QUICKJS\020\002\022\020\n\014RU"
+    "NTIME_LUAU\020\003\022\022\n\016RUNTIME_PYTHON\020\004\"\213\001\n\010Lan"
+    "guage\022\024\n\020LANGUAGE_UNKNOWN\020\000\022\017\n\013LANGUAGE_"
+    "GO\020\001\022\027\n\023LANGUAGE_TYPESCRIPT\020\002\022\027\n\023LANGUAG"
+    "E_JAVASCRIPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004\022\023\n\017LAN"
+    "GUAGE_PYTHON\020\005\")\n\007Service\022\014\n\004name\030\001 \001(\t\022"
+    "\020\n\010optional\030\002 \001(\010\"\222\001\n\010Movement\022+\n\005model\030"
+    "\001 \001(\0162\034.modlock.wasm.Movement.Model\022\r\n\005s"
+    "cale\030\002 \001(\002\"/\n\005Model\022\020\n\014MODEL_NATIVE\020\000\022\024\n"
+    "\020MODEL_QUAKEWORLD\020\001J\004\010\003\020\004R\023unpredicted_b"
+    "uttons\"\360\004\n\nDefinition\022+\n\004file\030\001 \001(\0162\035.mo"
+    "dlock.wasm.Definition.File\022\r\n\005entry\030\002 \001("
+    "\t\022<\n\nproperties\030\003 \003(\0132(.modlock.wasm.Def"
+    "inition.PropertiesEntry\0224\n\006fields\030\004 \003(\0132"
+    "$.modlock.wasm.Definition.FieldsEntry\022=\n"
+    "\013copy_fields\030\005 \003(\0132(.modlock.wasm.Defini"
+    "tion.CopyFieldsEntry\022=\n\013text_fields\030\006 \003("
+    "\0132(.modlock.wasm.Definition.TextFieldsEn"
+    "try\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v"
+    "alue\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001"
+    "(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry"
+    "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0321\n\017Text"
+    "FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:"
+    "\0028\001\"l\n\004File\022\022\n\016FILE_ABILITIES\020\000\022\017\n\013FILE_"
+    "HEROES\020\001\022\027\n\023FILE_BOT_DIFFICULTY\020\002\022\022\n\016FIL"
+    "E_NPC_UNITS\020\003\022\022\n\016FILE_MODIFIERS\020\004B*Z(git"
+    "hub.com/paralin/modlock/src/wasm;wasmb\006p"
+    "roto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_deps[4] = {
@@ -426,7 +430,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto = {
     false,
     false,
-    1977,
+    2005,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2eproto_once,
@@ -548,9 +552,9 @@ Manifest::Manifest(
                offsetof(Impl_, language_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, language_),
-           offsetof(Impl_, free_for_all_) -
+           offsetof(Impl_, keep_leaver_heroes_) -
                offsetof(Impl_, language_) +
-               sizeof(Impl_::free_for_all_));
+               sizeof(Impl_::keep_leaver_heroes_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.Manifest)
 }
@@ -576,9 +580,9 @@ inline void Manifest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, movement_),
            0,
-           offsetof(Impl_, free_for_all_) -
+           offsetof(Impl_, keep_leaver_heroes_) -
                offsetof(Impl_, movement_) +
-               sizeof(Impl_::free_for_all_));
+               sizeof(Impl_::keep_leaver_heroes_));
 }
 Manifest::~Manifest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.Manifest)
@@ -676,16 +680,16 @@ Manifest::GetClassData() const {
   return Manifest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 16, 7, 82, 2>
+const ::_pbi::TcParseTable<5, 17, 7, 82, 2>
 Manifest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Manifest, _impl_._has_bits_),
     0, // no _extensions_
-    16, 120,  // max_field_number, fast_idx_mask
+    17, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294901760,  // skipmap
+    4294836224,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    16,  // num_field_entries
+    17,  // num_field_entries
     7,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Manifest_class_data_.base(),
@@ -695,10 +699,7 @@ Manifest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::Manifest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // repeated .modlock.wasm.persist.RecordType persist = 16;
-    {::_pbi::TcParser::FastMtR2,
-     {386, 5, 6,
-      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.persist_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string slug = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 6, 0,
@@ -759,6 +760,28 @@ Manifest::_table_ = {
     {::_pbi::TcParser::FastMtR1,
      {122, 4, 5,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.services_)}},
+    // repeated .modlock.wasm.persist.RecordType persist = 16;
+    {::_pbi::TcParser::FastMtR2,
+     {386, 5, 6,
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.persist_)}},
+    // bool keep_leaver_heroes = 17;
+    {::_pbi::TcParser::FastV8S2,
+     {392, 16, 0,
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.keep_leaver_heroes_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -794,6 +817,8 @@ Manifest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.services_), _Internal::kHasBitsOffset + 4, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.persist.RecordType persist = 16;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.persist_), _Internal::kHasBitsOffset + 5, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // bool keep_leaver_heroes = 17;
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.keep_leaver_heroes_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::Movement>()},
@@ -872,6 +897,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
         reinterpret_cast<char*>(&_impl_.free_for_all_) -
         reinterpret_cast<char*>(&_impl_.language_)) + sizeof(_impl_.free_for_all_));
   }
+  _impl_.keep_leaver_heroes_ = false;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -1067,6 +1093,15 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
     }
   }
 
+  // bool keep_leaver_heroes = 17;
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (this_._internal_keep_leaver_heroes() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          17, this_._internal_keep_leaver_heroes(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -1205,6 +1240,14 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
       }
     }
   }
+   {
+    // bool keep_leaver_heroes = 17;
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+      if (this_._internal_keep_leaver_heroes() != 0) {
+        total_size += 3;
+      }
+    }
+  }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
 }
@@ -1335,6 +1378,11 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (from._internal_keep_leaver_heroes() != 0) {
+      _this->_impl_.keep_leaver_heroes_ = from._impl_.keep_leaver_heroes_;
+    }
+  }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -1367,8 +1415,8 @@ void Manifest::InternalSwap(Manifest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.map_, &other->_impl_.map_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.content_addon_, &other->_impl_.content_addon_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_)
-      + sizeof(Manifest::_impl_.free_for_all_)
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.keep_leaver_heroes_)
+      + sizeof(Manifest::_impl_.keep_leaver_heroes_)
       - PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_)>(
           reinterpret_cast<char*>(&_impl_.movement_),
           reinterpret_cast<char*>(&other->_impl_.movement_));

@@ -522,6 +522,14 @@ class MODLOCK_API PawnObserver {
                                                 uint32_t generation, int32_t team, void* definition,
                                                 const PlayerSelectionCalls& calls);
 
+  // RemoveHero strips and removes the hero the player in slot holds, and
+  // reports whether there was one to remove. It is for a player who is
+  // leaving: the caller runs it before the engine's own disconnect, while the
+  // controller still holds the hero, because the strip finds the controller
+  // through the pawn's binding. The engine keeps a leaver's hero standing for
+  // a rejoin that a drop-in game never sees.
+  std::expected<bool, std::string> RemoveHero(int32_t slot, const PlayerSelectionCalls& calls);
+
   // ControllerTeam returns the team number a player's controller replicates:
   // 0 until the player joins a team, 1 for spectators, 2 and 3 for the sides.
   // It is empty when the slot has no controller.
@@ -764,6 +772,16 @@ class MODLOCK_API PawnObserver {
   // PinnedAbilities reads the abilities of the pawn before still selects.
   std::expected<std::vector<Ability>, std::string> PinnedAbilities(int32_t slot,
                                                                    const Located& before);
+  // Borrow finds a player's controller and the entity system again, or says
+  // why the player is no longer the one a call began with.
+  using Borrow = std::function<std::expected<std::pair<void*, void*>, std::string>()>;
+  // ReleaseHero takes the hero from the controller borrow finds, on team:
+  // it strips the hero while bound, clears and publishes the controller's
+  // hero handle, unbinds the pawn and removes it, borrowing again after each
+  // native call. It reports whether it removed a hero; one it could not
+  // strip stays in the world.
+  std::expected<bool, std::string> ReleaseHero(uint8_t team, const PlayerSelectionCalls& calls,
+                                               const Borrow& borrow);
   // ControllerOfSlot returns the slot's controller and the entity list that
   // resolves its handles.
   std::expected<std::pair<unsigned char*, unsigned char*>, std::string> ControllerOfSlot(

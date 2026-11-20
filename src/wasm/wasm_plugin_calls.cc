@@ -254,6 +254,12 @@ void WasmPlugin::Leave(int32_t slot, std::optional<int32_t> reason) {
     }
   }
 
+  // Remove the hero a disconnecting player holds, which the engine would
+  // keep standing for a rejoin, unless the mod keeps leavers' heroes.
+  if (reason && !manifest_.keep_leaver_heroes()) {
+    game_.RemoveHero(slot);
+  }
+
   // Hand on the player's metrics and drop their state.
   HandOn(slot);
   handoff_players_.erase(slot);

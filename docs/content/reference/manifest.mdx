@@ -17,22 +17,23 @@ required fields:
 }
 ```
 
-| Field         | Required | Value                                                                                                                 |
-| ------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `slug`        | yes      | Identifier: lowercase letters, digits and hyphens.                                                                    |
-| `name`        | yes      | The name players see.                                                                                                 |
-| `version`     | yes      | A semantic version: up to 64 letters, digits, `.`, `+` and `-`. Raise it for each publication.                        |
-| `language`    | yes      | `LANGUAGE_TYPESCRIPT`, `LANGUAGE_JAVASCRIPT`, `LANGUAGE_LUAU`, `LANGUAGE_PYTHON` or `LANGUAGE_GO`.                    |
-| `runtime`     |          | `RUNTIME_WASM` publishes a TypeScript or JavaScript mod [compiled ahead of time](/languages/typescript#two-runtimes). |
-| `map`         |          | The [map](/reference/manifest#map) the mod plays on.                                                                  |
-| `movement`    |          | A [movement model](/reference/manifest#movement) that replaces how heroes move.                                       |
-| `definitions` |          | [Definition changes](/reference/manifest#definitions) to heroes and abilities.                                        |
-| `settings`    |          | [Choices](/reference/manifest#settings) each player makes about the mod.                                              |
-| `metrics`     |          | Running [totals](/reference/manifest#metrics) for each player, which the mod adds to.                                 |
-| `boards`      |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                                     |
-| `persist`     |          | [Records](/reference/manifest#persist) the mod keeps for each player across sessions.                                 |
-| `services`    |          | [Services](/reference/manifest#services) the mod calls, each needed or optional.                                      |
-| `freeForAll`  |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
+| Field              | Required | Value                                                                                                                 |
+| ------------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `slug`             | yes      | Identifier: lowercase letters, digits and hyphens.                                                                    |
+| `name`             | yes      | The name players see.                                                                                                 |
+| `version`          | yes      | A semantic version: up to 64 letters, digits, `.`, `+` and `-`. Raise it for each publication.                        |
+| `language`         | yes      | `LANGUAGE_TYPESCRIPT`, `LANGUAGE_JAVASCRIPT`, `LANGUAGE_LUAU`, `LANGUAGE_PYTHON` or `LANGUAGE_GO`.                    |
+| `runtime`          |          | `RUNTIME_WASM` publishes a TypeScript or JavaScript mod [compiled ahead of time](/languages/typescript#two-runtimes). |
+| `map`              |          | The [map](/reference/manifest#map) the mod plays on.                                                                  |
+| `movement`         |          | A [movement model](/reference/manifest#movement) that replaces how heroes move.                                       |
+| `definitions`      |          | [Definition changes](/reference/manifest#definitions) to heroes and abilities.                                        |
+| `settings`         |          | [Choices](/reference/manifest#settings) each player makes about the mod.                                              |
+| `metrics`          |          | Running [totals](/reference/manifest#metrics) for each player, which the mod adds to.                                 |
+| `boards`           |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                                     |
+| `persist`          |          | [Records](/reference/manifest#persist) the mod keeps for each player across sessions.                                 |
+| `services`         |          | [Services](/reference/manifest#services) the mod calls, each needed or optional.                                      |
+| `freeForAll`       |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
+| `keepLeaverHeroes` |          | `true` keeps the hero of a player who disconnects, [as the stock game does](/guides/events#joins-and-leaves).         |
 
 ## Map
 

@@ -117,6 +117,13 @@ message Manifest {
   // Persist are the record types the mod keeps for each player through the
   // host's persist service, such as stats or unlocks, up to 8.
   repeated modlock.wasm.persist.RecordType persist = 16;
+
+  // KeepLeaverHeroes leaves the hero of a player who disconnects standing in
+  // the world, as the stock game does, so a player who rejoins a long match
+  // finds their hero, items and place. By default the host removes the hero
+  // with its abilities and items as the player leaves, after the mod's
+  // PlayerLeft, and a player who rejoins starts as any new player does.
+  bool keep_leaver_heroes = 17;
 }
 
 // Service names one service a mod calls.
