@@ -351,6 +351,11 @@ class Game : public HostService {
   // so no first call stalls a frame with players in it.
   void WorldReady();
 
+  // RemoveHero removes the hero of the player in slot, who is disconnecting,
+  // with its abilities and items, so no body stays in the world. It runs
+  // before the engine's own disconnect and logs a hero it has to leave.
+  void RemoveHero(int32_t slot);
+
   // Leave forgets what the mod set for the player in slot, who left, so the
   // next player there starts clear.
   void Leave(int32_t slot);

@@ -104,6 +104,14 @@ export interface Manifest {
    * host's persist service, such as stats or unlocks, up to 8.
    */
   persist?: RecordType[]
+  /**
+   * KeepLeaverHeroes leaves the hero of a player who disconnects standing in
+   * the world, as the stock game does, so a player who rejoins a long match
+   * finds their hero, items and place. By default the host removes the hero
+   * with its abilities and items as the player leaves, after the mod's
+   * PlayerLeft, and a player who rejoins starts as any new player does.
+   */
+  keepLeaverHeroes?: boolean
 }
 
 export const Manifest: MessageType<Manifest> =
@@ -126,6 +134,7 @@ export const Manifest: MessageType<Manifest> =
       [14, 'boards', 11, 1, Board.codec],
       [15, 'services', 11, 1, Service.codec],
       [16, 'persist', 11, 1, RecordType.codec],
+      [17, 'keep_leaver_heroes', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Manifest): Manifest => {
@@ -182,6 +191,9 @@ export const Manifest: MessageType<Manifest> =
               break
             case 16:
               ;(m.persist ??= []).push(RecordType.decode(r, r.delimited(), {}))
+              break
+            case 17:
+              m.keepLeaverHeroes = r.bool()
               break
             default:
               r.skip(t)
@@ -253,6 +265,10 @@ export const Manifest: MessageType<Manifest> =
         {
           const a = m.persist
           if (a != null) for (const e of a) RecordType.writeField(w, 16, e)
+        }
+        {
+          const v = m.keepLeaverHeroes
+          if (v) w.uint32(136).bool(v)
         }
       },
     },

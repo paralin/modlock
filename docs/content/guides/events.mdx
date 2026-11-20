@@ -190,6 +190,18 @@ mod.OnPlayerLeave(func(left *mod.PlayerLeftEvent) {
 | `disconnected` | leave          | Whether the player left the server; false when they stay but the mod stops serving them. |
 | `reason`       | leave          | The server's reason, such as `'kicked'` or `'disconnectByUser'`, when it gave one.       |
 
+The stock game keeps a disconnected player's hero standing in the world for
+their return. Under a mod, the host removes that hero, with its abilities and
+items, as soon as your leave handler returns, so players who come and go leave
+no bodies behind. A player watching from a camera returns to their hero first.
+A player who leaves while their hero is dead keeps the stock rule, since the
+host strips only a hero its player holds. A player who rejoins starts as any
+new player does. A leave
+your own handler causes, such as a kick, is reported after that handler, when
+the hero is already gone. A mod whose players expect to rejoin a long match and
+find their hero sets `"keepLeaverHeroes": true` in
+[`mod.json`](/reference/manifest).
+
 ## Spawns
 
 `onSpawn` passes your handler the player and the hero now in play:
