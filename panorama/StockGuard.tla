@@ -29,10 +29,11 @@
 \* stream or a player the server let go.
 \*
 \* Panels are one abstract part: hidden is whether any of the guard's marks
-\* stand on a game panel. The lease's clock is the Expire action; the 0.1 s
-\* tick is Tick. A /restartmod stops the mod and starts it again, which the
-\* screen shows as a screen without claims and then one with them, both
-\* Screen steps.
+\* stand on a game panel. StockPanel.tla follows one panel's visibility under
+\* the guard and the game's own style sheets together. The lease's clock is
+\* the Expire action; the 0.1 s tick is Tick. A /restartmod stops the mod and
+\* starts it again, which the screen shows as a screen without claims and then
+\* one with them, both Screen steps.
 EXTENDS Naturals
 
 CONSTANT Design

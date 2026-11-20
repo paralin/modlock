@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Record once: the first hide's reading stands while the game shows the panel",
+    "replace": [
+      [
+        "IF visible THEN \"shown\" ELSE IF mark = \"none\" THEN \"unseen\" ELSE mark",
+        "IF mark # \"none\" THEN mark ELSE IF visible THEN \"shown\" ELSE \"unseen\""
+      ]
+    ],
+    "expect": "HiddenOnlyUnderShown"
+  },
+  {
+    "name": "Restore without a write: the mark goes and the panel stays hidden",
+    "replace": [
+      [
+        "visible' = IF mark = \"shown\" THEN TRUE ELSE visible",
+        "visible' = visible"
+      ]
+    ],
+    "expect": "ShownWhenUnmarked"
+  },
+  {
+    "name": "Hide without looking: every tick writes false, shown or not",
+    "replace": [
+      [
+        "IF visible THEN \"shown\" ELSE IF mark = \"none\" THEN \"unseen\" ELSE mark",
+        "IF mark = \"none\" THEN \"unseen\" ELSE mark"
+      ]
+    ],
+    "expect": "HiddenOnlyUnderShown"
+  }
+]
