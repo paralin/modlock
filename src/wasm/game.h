@@ -346,9 +346,9 @@ class Game : public HostService {
   // blocks stay for the next world.
   void WorldEnding();
 
-  // WorldReady resolves at map load what the first pawn, hero selection and
-  // modifier state calls would otherwise look up in the server module, so
-  // none of those first calls stalls a frame with players in it.
+  // WorldReady resolves at map load what a mod's calls would otherwise look
+  // up in the server module on first use, every recorded signature included,
+  // so no first call stalls a frame with players in it.
   void WorldReady();
 
   // Leave forgets what the mod set for the player in slot, who left, so the

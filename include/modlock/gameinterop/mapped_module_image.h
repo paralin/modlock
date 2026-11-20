@@ -21,6 +21,8 @@ class MODLOCK_API MappedModuleImage final : public ModuleImage {
 
   std::span<const uint8_t> image_bytes() const override { return bytes_; }
 
+  bool loaded() const override { return true; }
+
  private:
   MappedModuleImage(std::uintptr_t base, std::span<const uint8_t> bytes)
       : base_(base), bytes_(bytes) {}

@@ -42,9 +42,12 @@ struct VirtualSlot {
 [[nodiscard]] MODLOCK_API const VirtualSlot* FindVirtualSlot(std::string_view id);
 
 // FindVtable returns the image offset of class_name's primary dispatch table,
-// found through its MSVC RTTI: the type descriptor named ".?AV<class_name>@@",
-// the complete object locator that places it at offset zero, and the table
-// that follows the pointer to that locator.
+// found through its MSVC RTTI: the complete object locator that places the
+// type descriptor named ".?AV<class_name>@@" at offset zero, and the table
+// that follows the pointer to that locator. The class must have exactly one
+// such locator and one such table. A loaded module's type information is
+// indexed by the first lookup in it and kept for the life of the process;
+// any other image is read through for each lookup.
 [[nodiscard]] MODLOCK_API std::expected<size_t, std::string> FindVtable(
     const ModuleImage& image, std::string_view class_name);
 

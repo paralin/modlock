@@ -31,6 +31,11 @@ class MODLOCK_API ModuleImage {
   // such as dispatch table entries, count from: the load base once the loader
   // has relocated the image, the preferred base in an unrelocated file.
   virtual std::uintptr_t pointer_base() const { return base(); }
+
+  // loaded reports whether the image is a module the loader mapped into this
+  // process. Such a module keeps its base and its code for the life of the
+  // process, so a lookup in it is made once and its answer kept.
+  virtual bool loaded() const { return false; }
 };
 
 // GameModule is one game binary that carries scanned code. The values are
@@ -119,9 +124,16 @@ struct GameSignatureLoad {
     const ModuleImage& image, const GameSignature& signature);
 
 // ResolveSignature resolves the recorded signature with id. An unknown id is
-// an error.
+// an error. In a loaded image the address is found once and kept for the life
+// of the process, so only the first lookup of an id scans the module; a
+// failure is not kept, and the next lookup scans again.
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> ResolveSignature(
     const ModuleImage& image, std::string_view id);
+
+// ResolveModuleSignatures resolves every recorded signature of module in
+// image and returns how many did not resolve. Run on a loaded image before
+// play, it moves each scan out of the first call that needs the address.
+MODLOCK_API size_t ResolveModuleSignatures(const ModuleImage& image, GameModule module);
 
 // SignatureCall names a recorded signature and the pointer its address fills,
 // usually a function pointer in a table of resolved calls.
