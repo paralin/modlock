@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
+#include <map>
+#include <mutex>
 #include <optional>
 
 #include "modlock/gameinterop/signature.h"
@@ -41,6 +44,62 @@ bool IsRipRelativeLoad(std::span<const uint8_t> bytes, size_t site) {
   const uint8_t opcode = bytes[site + 1];
   const uint8_t modrm = bytes[site + 2];
   return (rex & 0xF8) == 0x48 && (opcode == 0x8D || opcode == 0x8B) && (modrm & 0xC7) == 0x05;
+}
+
+// ResolvedSignatures keeps the address of each signature found in a loaded
+// module, for the life of the process. A module's code does not move, and an
+// address found before a hook rewrote its function's entry stays right where
+// a second scan would no longer match.
+class ResolvedSignatures {
+ public:
+  // Find returns the address kept for id in the module at base.
+  std::optional<void*> Find(std::uintptr_t base, std::string_view id) {
+    // Look in the module's addresses, when it has any.
+    const std::lock_guard lock(mu_);
+    const auto module = modules_.find(base);
+    if (module == modules_.end()) {
+      return std::nullopt;
+    }
+    const auto found = module->second.find(id);
+    if (found == module->second.end()) {
+      return std::nullopt;
+    }
+    return found->second;
+  }
+
+  // Keep records the address of id in the module at base.
+  void Keep(std::uintptr_t base, std::string_view id, void* address) {
+    const std::lock_guard lock(mu_);
+    modules_[base].emplace(id, address);
+  }
+
+ private:
+  // mu_ guards modules_.
+  std::mutex mu_;
+  // modules_ holds each module's addresses by signature id, keyed by its base.
+  std::map<std::uintptr_t, std::map<std::string, void*, std::less<>>> modules_;
+};
+
+// ResolveKept resolves signature in image, scanning a loaded image only until
+// the signature is found there once. The scan runs outside the lock, so two
+// threads may both scan for one id; they find the same address.
+std::expected<void*, std::string> ResolveKept(const ModuleImage& image,
+                                              const GameSignature& signature) {
+  // Only a loaded module keeps its addresses.
+  if (!image.loaded()) {
+    return ResolveSignature(image, signature);
+  }
+
+  // Answer from an earlier scan, or scan and keep the address.
+  static ResolvedSignatures resolved;
+  if (const auto kept = resolved.Find(image.base(), signature.id)) {
+    return *kept;
+  }
+  const auto address = ResolveSignature(image, signature);
+  if (address) {
+    resolved.Keep(image.base(), signature.id, *address);
+  }
+  return address;
 }
 
 }  // namespace
@@ -112,7 +171,17 @@ std::expected<void*, std::string> ResolveSignature(const ModuleImage& image, std
   if (signature == nullptr) {
     return std::unexpected("signature '" + std::string(id) + "' is not recorded");
   }
-  return ResolveSignature(image, *signature);
+  return ResolveKept(image, *signature);
+}
+
+size_t ResolveModuleSignatures(const ModuleImage& image, GameModule module) {
+  size_t unresolved = 0;
+  for (const auto& signature : GameSignatures()) {
+    if (signature.In(module) && !ResolveKept(image, signature)) {
+      ++unresolved;
+    }
+  }
+  return unresolved;
 }
 
 std::expected<void, std::string> ResolveSignatures(const ModuleImage& image,

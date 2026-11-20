@@ -8,6 +8,7 @@
 #include <map>
 #include <mutex>
 #include <optional>
+#include <unordered_map>
 
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/native_memory.h"
@@ -20,6 +21,10 @@ namespace {
 // kMaxEntries bounds a table walk; the largest game table holds a few hundred.
 constexpr size_t kMaxEntries = 4096;
 
+// kMaxTypeName bounds a decorated type name; the longest in the game's
+// modules, a nested template, runs to a few hundred bytes.
+constexpr size_t kMaxTypeName = 4096;
+
 template <typename T>
 std::optional<T> Read(std::span<const uint8_t> bytes, size_t at) {
   if (at > bytes.size() || bytes.size() - at < sizeof(T)) {
@@ -28,21 +33,6 @@ std::optional<T> Read(std::span<const uint8_t> bytes, size_t at) {
   T value;
   std::memcpy(&value, bytes.data() + at, sizeof(T));
   return value;
-}
-
-// Find returns the offset of needle's only occurrence in bytes.
-std::expected<size_t, std::string> Find(std::span<const uint8_t> bytes,
-                                        std::span<const uint8_t> needle, std::string_view what) {
-  // The needle must appear exactly once.
-  const std::boyer_moore_horspool_searcher searcher(needle.begin(), needle.end());
-  const auto first = std::search(bytes.begin(), bytes.end(), searcher);
-  if (first == bytes.end()) {
-    return std::unexpected(std::string(what) + " not found");
-  }
-  if (std::search(first + 1, bytes.end(), searcher) != bytes.end()) {
-    return std::unexpected(std::string(what) + " found more than once");
-  }
-  return static_cast<size_t>(first - bytes.begin());
 }
 
 // Executable reports whether offset falls in a section the PE headers mark
@@ -80,46 +70,165 @@ bool Executable(std::span<const uint8_t> bytes, size_t offset) {
   return false;
 }
 
-// Bytes views value's object representation.
-template <typename T>
-std::span<const uint8_t> Bytes(const T& value) {
-  return {reinterpret_cast<const uint8_t*>(&value), sizeof(value)};
+// LocatorClass returns the class named by the primary object locator at image
+// offset at, or nothing when the bytes there are not one. The caller leaves
+// room for the locator's first four words.
+std::string_view LocatorClass(std::span<const uint8_t> bytes, size_t at) {
+  // A primary table's locator opens with signature 1, offset zero and no
+  // constructor displacement.
+  static constexpr uint32_t kHead[] = {1, 0, 0};
+  if (std::memcmp(bytes.data() + at, kHead, sizeof(kHead)) != 0) {
+    return {};
+  }
+
+  // Its next word is the image offset of the type descriptor, which holds a
+  // vtable pointer and a spare word before its NUL-terminated decorated name.
+  uint32_t descriptor = 0;
+  std::memcpy(&descriptor, bytes.data() + at + sizeof(kHead), sizeof(descriptor));
+  const size_t name = size_t{descriptor} + 16;
+  if (name >= bytes.size()) {
+    return {};
+  }
+  const auto* text = reinterpret_cast<const char*>(bytes.data() + name);
+  const size_t room = std::min(bytes.size() - name, kMaxTypeName);
+  const auto* end = static_cast<const char*>(std::memchr(text, '\0', room));
+  if (!end) {
+    return {};
+  }
+
+  // A class's decorated name is .?AV<class>@@.
+  const std::string_view decorated(text, end);
+  if (decorated.size() <= 6 || !decorated.starts_with(".?AV") || !decorated.ends_with("@@")) {
+    return {};
+  }
+  return decorated.substr(4, decorated.size() - 6);
 }
+
+// ClassTables is what an image's type information records for one class name.
+struct ClassTables {
+  // locators counts the primary object locators that name the class.
+  size_t locators = 0;
+  // tables counts the stored pointers to those locators.
+  size_t tables = 0;
+  // table is the image offset of the dispatch table that follows the last of
+  // those pointers.
+  size_t table = 0;
+};
+
+// TypeIndex maps each class in an image to its primary dispatch table. It
+// reads the image's MSVC RTTI in two passes over its bytes, one for the
+// object locators and one for the pointers to them, so a lookup after that
+// costs no search of the image.
+class TypeIndex {
+ public:
+  // The index views image's bytes, which must outlive it.
+  explicit TypeIndex(const ModuleImage& image);
+
+  // Table returns the image offset of class_name's primary dispatch table.
+  // A class with no locator, or with more than one locator or table, is an
+  // error naming the class.
+  std::expected<size_t, std::string> Table(std::string_view class_name) const;
+
+ private:
+  // classes_ is keyed by class names that view the image's bytes.
+  std::unordered_map<std::string_view, ClassTables> classes_;
+};
+
+TypeIndex::TypeIndex(const ModuleImage& image) {
+  // Record each primary locator under its class, keyed by the pointer the
+  // image stores to it. A locator is aligned as its 32-bit fields are.
+  const auto bytes = image.image_bytes();
+  std::unordered_map<uint64_t, ClassTables*> locators;
+  uint64_t lowest = UINT64_MAX;
+  uint64_t highest = 0;
+  for (size_t at = 0; at + 4 * sizeof(uint32_t) <= bytes.size(); at += sizeof(uint32_t)) {
+    // Most offsets hold no locator.
+    const auto name = LocatorClass(bytes, at);
+    if (name.empty()) {
+      continue;
+    }
+    ClassTables& tables = classes_[name];
+    ++tables.locators;
+
+    // Remember the pointer and widen the range the pointers span.
+    const uint64_t pointer = image.pointer_base() + at;
+    locators.emplace(pointer, &tables);
+    lowest = std::min(lowest, pointer);
+    highest = std::max(highest, pointer);
+  }
+
+  // A table starts one pointer past the aligned pointer to its locator. The
+  // range test skips the lookup for every pointer that cannot be one.
+  for (size_t at = 0; at + sizeof(uint64_t) <= bytes.size(); at += sizeof(uint64_t)) {
+    // Read the pointer and keep one that reaches a locator.
+    uint64_t pointer = 0;
+    std::memcpy(&pointer, bytes.data() + at, sizeof(pointer));
+    if (pointer < lowest || pointer > highest) {
+      continue;
+    }
+    const auto found = locators.find(pointer);
+    if (found == locators.end()) {
+      continue;
+    }
+
+    // Count the table under its class.
+    ++found->second->tables;
+    found->second->table = at + sizeof(uint64_t);
+  }
+}
+
+std::expected<size_t, std::string> TypeIndex::Table(std::string_view class_name) const {
+  // The class needs exactly one primary locator.
+  const std::string named = "class " + std::string(class_name);
+  const auto found = classes_.find(class_name);
+  if (found == classes_.end()) {
+    return std::unexpected(named + " object locator not found");
+  }
+  const ClassTables& tables = found->second;
+  if (tables.locators > 1) {
+    return std::unexpected(named + " object locator found more than once");
+  }
+
+  // Exactly one table points to it.
+  if (tables.tables == 0) {
+    return std::unexpected(named + " dispatch table not found");
+  }
+  if (tables.tables > 1) {
+    return std::unexpected(named + " dispatch table found more than once");
+  }
+  return tables.table;
+}
+
+// LoadedTypes keeps the type index of each loaded module for the life of the
+// process, built by the first lookup in that module.
+class LoadedTypes {
+ public:
+  // Table returns the offset of class_name's dispatch table in the loaded
+  // module image.
+  std::expected<size_t, std::string> Table(const ModuleImage& image, std::string_view class_name) {
+    const std::lock_guard lock(mu_);
+    const auto index = indexes_.try_emplace(image.base(), image).first;
+    return index->second.Table(class_name);
+  }
+
+ private:
+  // mu_ guards indexes_, and is held while a module is indexed so a second
+  // caller waits for that index instead of building its own.
+  std::mutex mu_;
+  // indexes_ holds each loaded module's index by its base.
+  std::map<std::uintptr_t, TypeIndex> indexes_;
+};
 
 }  // namespace
 
 std::expected<size_t, std::string> FindVtable(const ModuleImage& image,
                                               std::string_view class_name) {
-  // Read the image and name the class for errors.
-  const auto bytes = image.image_bytes();
-  const std::string named = "class " + std::string(class_name);
-
-  // The type descriptor holds a vtable pointer and a spare word before its
-  // NUL-terminated decorated name.
-  const std::string decorated = ".?AV" + std::string(class_name) + "@@";
-  const auto name =
-      Find(bytes, {reinterpret_cast<const uint8_t*>(decorated.c_str()), decorated.size() + 1},
-           named + " type descriptor");
-  if (!name) {
-    return std::unexpected(name.error());
+  // A loaded module is indexed once; any other image, for this lookup.
+  if (!image.loaded()) {
+    return TypeIndex(image).Table(class_name);
   }
-  const auto descriptor = static_cast<uint32_t>(*name - 16);
-
-  // The primary table's locator has signature 1, offset zero, no constructor
-  // displacement, and the descriptor's image offset.
-  const uint32_t locator_head[] = {1, 0, 0, descriptor};
-  const auto locator = Find(bytes, Bytes(locator_head), named + " object locator");
-  if (!locator) {
-    return std::unexpected(locator.error());
-  }
-
-  // The table starts one pointer past the stored pointer to its locator.
-  const uint64_t locator_pointer = image.pointer_base() + *locator;
-  const auto table = Find(bytes, Bytes(locator_pointer), named + " dispatch table");
-  if (!table) {
-    return std::unexpected(table.error());
-  }
-  return *table + sizeof(uint64_t);
+  static LoadedTypes loaded;
+  return loaded.Table(image, class_name);
 }
 
 std::string ObjectClassName(const void* object) {

@@ -23,6 +23,7 @@ using modlock::gameinterop::GameSignatures;
 using modlock::gameinterop::GameVirtualSlots;
 using modlock::gameinterop::LoadGameSignatures;
 using modlock::gameinterop::ModuleImage;
+using modlock::gameinterop::ResolveModuleSignatures;
 using modlock::gameinterop::ResolveSignature;
 using modlock::gameinterop::SignatureTarget;
 
@@ -33,6 +34,23 @@ class Image final : public ModuleImage {
   std::span<const uint8_t> image_bytes() const override { return bytes; }
 
   std::array<uint8_t, 32> bytes{};
+};
+
+// LoadedImage reports itself loaded, as a module mapped at base does.
+class LoadedImage final : public ModuleImage {
+ public:
+  explicit LoadedImage(std::uintptr_t base) : base_(base) {}
+
+  std::uintptr_t base() const override { return base_; }
+
+  std::span<const uint8_t> image_bytes() const override { return bytes; }
+
+  bool loaded() const override { return true; }
+
+  std::array<uint8_t, 32> bytes{};
+
+ private:
+  std::uintptr_t base_;
 };
 
 GameSignature Match(std::string_view pattern) {
@@ -235,6 +253,48 @@ TEST(GameSignatureLoad, UnreadableFilesKeepTheSignatures) {
   EXPECT_FALSE(
       LoadGameSignatures(std::filesystem::temp_directory_path() / "modlock-missing.txtpb"));
   EXPECT_NE(FindGameSignature("kept"), nullptr);
+}
+
+TEST(GameSignatureLoad, LoadedImagesKeepEachAddress) {
+  // Record one signature for each module.
+  ASSERT_TRUE(LoadGameSignatures(GameDataFile(R"(
+signatures { id: "a.server" modules: GAME_MODULE_SERVER pattern: "CC" shape: "a match" }
+signatures { id: "b.engine" modules: GAME_MODULE_ENGINE pattern: "DD" shape: "a match" }
+)")));
+
+  // A failure is not kept: the signature resolves once its bytes are there.
+  LoadedImage loaded(0x2000);
+  EXPECT_FALSE(ResolveSignature(loaded, "a.server"));
+  loaded.bytes[4] = 0xcc;
+  const auto found = ResolveSignature(loaded, "a.server");
+  ASSERT_TRUE(found) << found.error();
+  EXPECT_EQ(*found, reinterpret_cast<void*>(0x2004));
+
+  // The address is kept, so a hook that rewrites the entry does not lose it.
+  loaded.bytes[4] = 0xe9;
+  const auto kept = ResolveSignature(loaded, "a.server");
+  ASSERT_TRUE(kept) << kept.error();
+  EXPECT_EQ(*kept, reinterpret_cast<void*>(0x2004));
+
+  // An image that is not loaded is scanned on every lookup.
+  Image image;
+  image.bytes[4] = 0xcc;
+  EXPECT_TRUE(ResolveSignature(image, "a.server"));
+  image.bytes[4] = 0xe9;
+  EXPECT_FALSE(ResolveSignature(image, "a.server"));
+
+  // Resolving a module's signatures counts the ones that miss.
+  LoadedImage module(0x3000);
+  module.bytes[8] = 0xdd;
+  EXPECT_EQ(ResolveModuleSignatures(module, GameModule::kServer), 1);
+  module.bytes[4] = 0xcc;
+  EXPECT_EQ(ResolveModuleSignatures(module, GameModule::kServer), 0);
+
+  // It keeps the module's addresses and leaves another module's alone.
+  module.bytes[4] = 0xe9;
+  module.bytes[8] = 0;
+  EXPECT_TRUE(ResolveSignature(module, "a.server"));
+  EXPECT_FALSE(ResolveSignature(module, "b.engine"));
 }
 
 TEST(GameSignatureLoad, ShippedFileLoadsWhole) {

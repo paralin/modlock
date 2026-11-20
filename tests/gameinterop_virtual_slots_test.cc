@@ -50,12 +50,18 @@ class Image final : public ModuleImage {
 
   std::span<const uint8_t> image_bytes() const override { return bytes; }
 
- private:
+  bool loaded() const override { return mapped; }
+
+  // Put writes value at image offset at.
   template <typename T>
   void Put(size_t at, T value) {
     std::memcpy(bytes.data() + at, &value, sizeof(value));
   }
 
+  // mapped makes the image report itself loaded.
+  bool mapped = false;
+
+ private:
   void Section(size_t index, uint32_t address, uint32_t size, uint32_t flags) {
     const size_t header = 0x40 + 24 + index * 40;
     Put(header + 8, size);
@@ -87,7 +93,35 @@ TEST(VirtualSlots, FindsTableThroughTypeInformation) {
 TEST(VirtualSlots, MissingClassIsAnError) {
   const auto table = FindVtable(Image{}, "CMissing");
   ASSERT_FALSE(table);
-  EXPECT_EQ(table.error(), "class CMissing type descriptor not found");
+  EXPECT_EQ(table.error(), "class CMissing object locator not found");
+}
+
+TEST(VirtualSlots, TableNeedsOneLocatorAndOnePointerToIt) {
+  // A second pointer to the locator leaves two candidate tables.
+  Image pointers;
+  pointers.Put<uint64_t>(0x300, kBase + 0x240);
+  const auto table = FindVtable(pointers, "CThing");
+  ASSERT_FALSE(table);
+  EXPECT_EQ(table.error(), "class CThing dispatch table found more than once");
+
+  // So does a second locator for the class.
+  Image locators;
+  locators.Put<uint32_t>(0x340, 1);
+  locators.Put<uint32_t>(0x34C, 0x200);
+  const auto located = FindVtable(locators, "CThing");
+  ASSERT_FALSE(located);
+  EXPECT_EQ(located.error(), "class CThing object locator found more than once");
+}
+
+TEST(VirtualSlots, LoadedImageIsIndexedOnce) {
+  // A loaded image answers a later lookup from its index, not its bytes.
+  Image image;
+  image.mapped = true;
+  ASSERT_TRUE(FindVtable(image, "CThing"));
+  image.Put<uint64_t>(kTable - 8, 0);
+  const auto table = FindVtable(image, "CThing");
+  ASSERT_TRUE(table) << table.error();
+  EXPECT_EQ(*table, kTable);
 }
 
 TEST(VirtualSlots, ReportsEveryMatchingIndex) {

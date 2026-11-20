@@ -34,6 +34,8 @@ void Game::Frame() {
   ApplyHolds();
   HoldClock();
   TickRestores();
+
+  // Follow what moved or left since the last frame.
   TrackProjectiles();
   PruneAudiences();
   RebuildPanels();
@@ -50,11 +52,14 @@ void Game::Frame() {
 }
 
 void Game::ApplyHolds() {
+  // Set each held state again and drop the ones that no longer apply.
   std::erase_if(
       held_, [this](const auto& hold) { return !SetModifierState(hold.first, hold.second, true); });
   for (const auto& [slot, key] : held_modifiers_) {
     static_cast<void>(RenewModifier(slot, key));
   }
+
+  // Renew each entity's modifiers and release those of an entity that is gone.
   std::vector<std::pair<uint32_t, std::string>> gone;
   for (const auto& [entity, key] : held_entity_modifiers_) {
     if (!Entity(entity)) {
@@ -179,6 +184,12 @@ void Game::WorldReady() {
   static_cast<void>(services_.Modifiers());
   static_cast<void>(services_.ModifierState("MODIFIER_STATE_HOLDING_IDOL"));
   observer_.Prepare();
+
+  // Find every recorded server function now. Each is a scan of the whole
+  // module, which would otherwise run inside the first call that needs it.
+  if (const auto image = services_.Image()) {
+    gameinterop::ResolveModuleSignatures(**image, gameinterop::GameModule::kServer);
+  }
 }
 
 void Game::WorldEnding() {
