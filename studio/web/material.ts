@@ -88,11 +88,22 @@ const fragment: Record<string, string> = {
     #endif
     diffuseColor.rgb = s2Albedo;
 
-    // Opaque surfaces keep metalness in the color's alpha.
+    // Opaque physically based surfaces keep metalness in the color's
+    // alpha, and every opaque surface covers what is behind it whatever its
+    // color's alpha holds.
     #ifdef S2_METALNESS_TEXTURE
       float s2Metal = texture2D(s2Metalness, vMapUv).x;
     #else
       float s2Metal = sampledDiffuseColor.a;
+    #endif
+    #ifndef S2_SEE_THROUGH
+      diffuseColor.a = opacity;
+    #endif
+  `,
+  alphatest_fragment: /* glsl */ `
+    // A cut out surface covers fully where it is kept.
+    #ifdef USE_ALPHATEST
+      if (diffuseColor.a < alphaTest) discard;
       diffuseColor.a = opacity;
     #endif
   `,
@@ -224,6 +235,7 @@ export function createMaterial(
   drawn.defines = {}
   if (selfIllum) drawn.defines.S2_SELF_ILLUM = ''
   if (metalnessTexture) drawn.defines.S2_METALNESS_TEXTURE = ''
+  if (blends || alphaTest) drawn.defines.S2_SEE_THROUGH = ''
   if (baked) Object.assign(drawn.defines, baked.defines)
   drawn.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms)

@@ -182,6 +182,16 @@ export class TextureCache {
     return load
   }
 
+  // settled resolves once every texture asked for so far, and any asked for
+  // while those load, has loaded or failed.
+  async settled() {
+    let count = -1
+    while (count !== this.loads.size) {
+      count = this.loads.size
+      await Promise.all(this.loads.values())
+    }
+  }
+
   // dispose frees every texture loaded.
   dispose() {
     for (const load of this.loads.values())

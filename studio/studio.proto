@@ -335,3 +335,49 @@ message Sound {
   // Unavailable explains why this sound cannot be previewed, or is empty.
   string unavailable = 5;
 }
+
+// RenderJob is a list of pictures for the page to draw and send back, one
+// model alone on a transparent ground in each.
+message RenderJob {
+  // Shots are the pictures to draw, in order.
+  repeated Shot shots = 1;
+}
+
+// Shot is one picture of a model: its default meshes, lit by a fixed rig
+// that turns with the camera, so every shot of a set is lit from the same
+// side.
+message Shot {
+  // Model is the archive path of the model, such as
+  // "models/props/barrel_01.vmdl_c".
+  string model = 1;
+
+  // Yaw is the camera's angle in degrees around the model's up axis,
+  // counterclockwise seen from above; zero looks at the model's front, down
+  // its -X axis.
+  float yaw = 2;
+
+  // Pitch is the camera's angle in degrees above the model's horizon.
+  float pitch = 3;
+
+  // Fov is the camera's vertical field of view in degrees.
+  float fov = 4;
+
+  // Size is the picture's longer side in pixels.
+  uint32 size = 5;
+
+  // Margin is the empty border around the model on the picture's longer
+  // side, as a fraction of that side.
+  float margin = 6;
+}
+
+// ShotResult is the page's answer for one shot.
+message ShotResult {
+  // Png is the picture, with straight alpha, empty when the shot failed.
+  bytes png = 1;
+
+  // Error says why the shot failed, or is empty.
+  string error = 2;
+
+  // Missing lists each texture the shot drew without, with why.
+  repeated string missing = 3;
+}

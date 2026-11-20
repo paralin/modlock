@@ -1725,3 +1725,217 @@ export const Sound: MessageType<Sound> =
       },
     },
   )
+
+/**
+ * RenderJob is a list of pictures for the page to draw and send back, one
+ * model alone on a transparent ground in each.
+ *
+ * @generated from message modlock.studio.RenderJob
+ */
+export interface RenderJob {
+  /**
+   * Shots are the pictures to draw, in order.
+   */
+  shots?: Shot[]
+}
+
+export const RenderJob: MessageType<RenderJob> =
+  /* @__PURE__ */ createMessageType<RenderJob>(
+    'modlock.studio.RenderJob',
+    () => [[1, 'shots', 11, 1, Shot.codec]],
+    {
+      decode: (r: BinaryReader, end: number, m: RenderJob): RenderJob => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.shots ??= []).push(Shot.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: RenderJob, w: Writer): void => {
+        {
+          const a = m.shots
+          if (a != null) for (const e of a) Shot.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Shot is one picture of a model: its default meshes, lit by a fixed rig
+ * that turns with the camera, so every shot of a set is lit from the same
+ * side.
+ *
+ * @generated from message modlock.studio.Shot
+ */
+export interface Shot {
+  /**
+   * Model is the archive path of the model, such as
+   * "models/props/barrel_01.vmdl_c".
+   */
+  model?: string
+  /**
+   * Yaw is the camera's angle in degrees around the model's up axis,
+   * counterclockwise seen from above; zero looks at the model's front, down
+   * its -X axis.
+   */
+  yaw?: number
+  /**
+   * Pitch is the camera's angle in degrees above the model's horizon.
+   */
+  pitch?: number
+  /**
+   * Fov is the camera's vertical field of view in degrees.
+   */
+  fov?: number
+  /**
+   * Size is the picture's longer side in pixels.
+   */
+  size?: number
+  /**
+   * Margin is the empty border around the model on the picture's longer
+   * side, as a fraction of that side.
+   */
+  margin?: number
+}
+
+export const Shot: MessageType<Shot> = /* @__PURE__ */ createMessageType<Shot>(
+  'modlock.studio.Shot',
+  () => [
+    [1, 'model', 9],
+    [2, 'yaw', 2],
+    [3, 'pitch', 2],
+    [4, 'fov', 2],
+    [5, 'size', 13],
+    [6, 'margin', 2],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: Shot): Shot => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            m.model = r.string()
+            break
+          case 2:
+            m.yaw = r.float()
+            break
+          case 3:
+            m.pitch = r.float()
+            break
+          case 4:
+            m.fov = r.float()
+            break
+          case 5:
+            m.size = r.uint32()
+            break
+          case 6:
+            m.margin = r.float()
+            break
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: Shot, w: Writer): void => {
+      {
+        const v = m.model
+        if (v) w.uint32(10).string(v)
+      }
+      {
+        const v = m.yaw
+        if (v != null && v !== 0) w.uint32(21).float(v)
+      }
+      {
+        const v = m.pitch
+        if (v != null && v !== 0) w.uint32(29).float(v)
+      }
+      {
+        const v = m.fov
+        if (v != null && v !== 0) w.uint32(37).float(v)
+      }
+      {
+        const v = m.size
+        if (v) w.uint32(40).uint32(v)
+      }
+      {
+        const v = m.margin
+        if (v != null && v !== 0) w.uint32(53).float(v)
+      }
+    },
+  },
+)
+
+/**
+ * ShotResult is the page's answer for one shot.
+ *
+ * @generated from message modlock.studio.ShotResult
+ */
+export interface ShotResult {
+  /**
+   * Png is the picture, with straight alpha, empty when the shot failed.
+   */
+  png?: Uint8Array
+  /**
+   * Error says why the shot failed, or is empty.
+   */
+  error?: string
+  /**
+   * Missing lists each texture the shot drew without, with why.
+   */
+  missing?: string[]
+}
+
+export const ShotResult: MessageType<ShotResult> =
+  /* @__PURE__ */ createMessageType<ShotResult>(
+    'modlock.studio.ShotResult',
+    () => [
+      [1, 'png', 12],
+      [2, 'error', 9],
+      [3, 'missing', 9, 1],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ShotResult): ShotResult => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.png = r.bytes()
+              break
+            case 2:
+              m.error = r.string()
+              break
+            case 3:
+              ;(m.missing ??= []).push(r.string())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ShotResult, w: Writer): void => {
+        {
+          const v = m.png
+          if (v != null && v.length !== 0) w.uint32(10).bytes(v)
+        }
+        {
+          const v = m.error
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const a = m.missing
+          if (a != null) for (const e of a) w.uint32(26).string(e)
+        }
+      },
+    },
+  )

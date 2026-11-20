@@ -1018,6 +1018,136 @@ func (x *Sound) GetUnavailable() string {
 	return ""
 }
 
+// RenderJob is a list of pictures for the page to draw and send back, one
+// model alone on a transparent ground in each.
+type RenderJob struct {
+	unknownFields []byte
+	// Shots are the pictures to draw, in order.
+	Shots []*Shot `protobuf:"bytes,1,rep,name=shots,proto3" json:"shots,omitempty"`
+}
+
+func (x *RenderJob) Reset() {
+	*x = RenderJob{}
+}
+
+func (*RenderJob) ProtoMessage() {}
+
+func (x *RenderJob) GetShots() []*Shot {
+	if x != nil {
+		return x.Shots
+	}
+	return nil
+}
+
+// Shot is one picture of a model: its default meshes, lit by a fixed rig
+// that turns with the camera, so every shot of a set is lit from the same
+// side.
+type Shot struct {
+	unknownFields []byte
+	// Model is the archive path of the model, such as
+	// "models/props/barrel_01.vmdl_c".
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// Yaw is the camera's angle in degrees around the model's up axis,
+	// counterclockwise seen from above; zero looks at the model's front, down
+	// its -X axis.
+	Yaw float32 `protobuf:"fixed32,2,opt,name=yaw,proto3" json:"yaw,omitempty"`
+	// Pitch is the camera's angle in degrees above the model's horizon.
+	Pitch float32 `protobuf:"fixed32,3,opt,name=pitch,proto3" json:"pitch,omitempty"`
+	// Fov is the camera's vertical field of view in degrees.
+	Fov float32 `protobuf:"fixed32,4,opt,name=fov,proto3" json:"fov,omitempty"`
+	// Size is the picture's longer side in pixels.
+	Size uint32 `protobuf:"varint,5,opt,name=size,proto3" json:"size,omitempty"`
+	// Margin is the empty border around the model on the picture's longer
+	// side, as a fraction of that side.
+	Margin float32 `protobuf:"fixed32,6,opt,name=margin,proto3" json:"margin,omitempty"`
+}
+
+func (x *Shot) Reset() {
+	*x = Shot{}
+}
+
+func (*Shot) ProtoMessage() {}
+
+func (x *Shot) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *Shot) GetYaw() float32 {
+	if x != nil {
+		return x.Yaw
+	}
+	return 0
+}
+
+func (x *Shot) GetPitch() float32 {
+	if x != nil {
+		return x.Pitch
+	}
+	return 0
+}
+
+func (x *Shot) GetFov() float32 {
+	if x != nil {
+		return x.Fov
+	}
+	return 0
+}
+
+func (x *Shot) GetSize() uint32 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *Shot) GetMargin() float32 {
+	if x != nil {
+		return x.Margin
+	}
+	return 0
+}
+
+// ShotResult is the page's answer for one shot.
+type ShotResult struct {
+	unknownFields []byte
+	// Png is the picture, with straight alpha, empty when the shot failed.
+	Png []byte `protobuf:"bytes,1,opt,name=png,proto3" json:"png,omitempty"`
+	// Error says why the shot failed, or is empty.
+	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	// Missing lists each texture the shot drew without, with why.
+	Missing []string `protobuf:"bytes,3,rep,name=missing,proto3" json:"missing,omitempty"`
+}
+
+func (x *ShotResult) Reset() {
+	*x = ShotResult{}
+}
+
+func (*ShotResult) ProtoMessage() {}
+
+func (x *ShotResult) GetPng() []byte {
+	if x != nil {
+		return x.Png
+	}
+	return nil
+}
+
+func (x *ShotResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *ShotResult) GetMissing() []string {
+	if x != nil {
+		return x.Missing
+	}
+	return nil
+}
+
 type Model_MaterialsEntry struct {
 	unknownFields []byte
 	Key           string    `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1549,6 +1679,61 @@ func (m *Sound) CloneVT() *Sound {
 }
 
 func (m *Sound) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *RenderJob) CloneVT() *RenderJob {
+	if m == nil {
+		return (*RenderJob)(nil)
+	}
+	r := new(RenderJob)
+	r.Shots = protobuf_go_lite.CloneVTSlice(m.Shots)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *RenderJob) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Shot) CloneVT() *Shot {
+	if m == nil {
+		return (*Shot)(nil)
+	}
+	r := new(Shot)
+	r.Model = m.Model
+	r.Yaw = m.Yaw
+	r.Pitch = m.Pitch
+	r.Fov = m.Fov
+	r.Size = m.Size
+	r.Margin = m.Margin
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Shot) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ShotResult) CloneVT() *ShotResult {
+	if m == nil {
+		return (*ShotResult)(nil)
+	}
+	r := new(ShotResult)
+	r.Error = m.Error
+	r.Png = protobuf_go_lite.CloneBytes(m.Png)
+	r.Missing = protobuf_go_lite.CloneSlice(m.Missing)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ShotResult) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -2098,6 +2283,87 @@ func (this *Sound) EqualVT(that *Sound) bool {
 
 func (this *Sound) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Sound)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *RenderJob) EqualVT(that *RenderJob) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Shots, that.Shots, func() *Shot { return &Shot{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *RenderJob) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*RenderJob)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Shot) EqualVT(that *Shot) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Model != that.Model {
+		return false
+	}
+	if this.Yaw != that.Yaw {
+		return false
+	}
+	if this.Pitch != that.Pitch {
+		return false
+	}
+	if this.Fov != that.Fov {
+		return false
+	}
+	if this.Size != that.Size {
+		return false
+	}
+	if this.Margin != that.Margin {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Shot) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Shot)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ShotResult) EqualVT(that *ShotResult) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Png, that.Png) {
+		return false
+	}
+	if this.Error != that.Error {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Missing, that.Missing) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ShotResult) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ShotResult)
 	if !ok {
 		return false
 	}
@@ -4134,6 +4400,213 @@ func (x *Sound) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the RenderJob message to JSON.
+func (x *RenderJob) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Shots) > 0 || s.HasField("shots") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("shots")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Shots {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("shots"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the RenderJob to JSON.
+func (x *RenderJob) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the RenderJob message from JSON.
+func (x *RenderJob) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "shots":
+			s.AddField("shots")
+			if s.ReadNil() {
+				x.Shots = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Shots = append(x.Shots, nil)
+					return
+				}
+				v := &Shot{}
+				v.UnmarshalProtoJSON(s.WithField("shots", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Shots = append(x.Shots, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the RenderJob from JSON.
+func (x *RenderJob) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Shot message to JSON.
+func (x *Shot) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Model != "" || s.HasField("model") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("model")
+		s.WriteString(x.Model)
+	}
+	if x.Yaw != 0 || s.HasField("yaw") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("yaw")
+		s.WriteFloat32(x.Yaw)
+	}
+	if x.Pitch != 0 || s.HasField("pitch") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("pitch")
+		s.WriteFloat32(x.Pitch)
+	}
+	if x.Fov != 0 || s.HasField("fov") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("fov")
+		s.WriteFloat32(x.Fov)
+	}
+	if x.Size != 0 || s.HasField("size") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("size")
+		s.WriteUint32(x.Size)
+	}
+	if x.Margin != 0 || s.HasField("margin") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("margin")
+		s.WriteFloat32(x.Margin)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Shot to JSON.
+func (x *Shot) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Shot message from JSON.
+func (x *Shot) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "model":
+			s.AddField("model")
+			x.Model = s.ReadString()
+		case "yaw":
+			s.AddField("yaw")
+			x.Yaw = s.ReadFloat32()
+		case "pitch":
+			s.AddField("pitch")
+			x.Pitch = s.ReadFloat32()
+		case "fov":
+			s.AddField("fov")
+			x.Fov = s.ReadFloat32()
+		case "size":
+			s.AddField("size")
+			x.Size = s.ReadUint32()
+		case "margin":
+			s.AddField("margin")
+			x.Margin = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Shot from JSON.
+func (x *Shot) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ShotResult message to JSON.
+func (x *ShotResult) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Png) > 0 || s.HasField("png") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("png")
+		s.WriteBytes(x.Png)
+	}
+	if x.Error != "" || s.HasField("error") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("error")
+		s.WriteString(x.Error)
+	}
+	if len(x.Missing) > 0 || s.HasField("missing") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("missing")
+		s.WriteStringArray(x.Missing)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ShotResult to JSON.
+func (x *ShotResult) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ShotResult message from JSON.
+func (x *ShotResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "png":
+			s.AddField("png")
+			x.Png = s.ReadBytes()
+		case "error":
+			s.AddField("error")
+			x.Error = s.ReadString()
+		case "missing":
+			s.AddField("missing")
+			if s.ReadNil() {
+				x.Missing = nil
+				return
+			}
+			x.Missing = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ShotResult from JSON.
+func (x *ShotResult) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *Listing) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -5318,6 +5791,161 @@ func (m *Sound) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *RenderJob) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RenderJob) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *RenderJob) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Shots) > 0 {
+		for iNdEx := len(m.Shots) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Shots[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Shot) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Shot) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Shot) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Margin != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Margin))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.Size != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Size))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.Fov != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Fov))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Pitch != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Pitch))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Yaw != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Yaw))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if len(m.Model) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Model)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ShotResult) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ShotResult) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ShotResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Missing) > 0 {
+		for iNdEx := len(m.Missing) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Missing[iNdEx])
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Error) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Error)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Png) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Png)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Listing) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -5656,6 +6284,49 @@ func (m *Sound) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Channels)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Duration)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Unavailable)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *RenderJob) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Shots {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Shot) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Model)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Yaw)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Pitch)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Fov)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Size)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Margin)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ShotResult) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Png)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Error)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Missing)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6480,6 +7151,88 @@ func (x *Sound) MarshalProtoText() string {
 }
 
 func (x *Sound) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *RenderJob) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "RenderJob")
+	if len(x.Shots) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "shots")
+		for i, v := range x.Shots {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Shot{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *RenderJob) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Shot) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Shot")
+	if x.Model != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "model")
+		protobuf_go_lite.TextWriteString(&sb, x.Model)
+	}
+	if x.Yaw != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "yaw")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Yaw)
+	}
+	if x.Pitch != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "pitch")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Pitch)
+	}
+	if x.Fov != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "fov")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Fov)
+	}
+	if x.Size != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "size")
+		protobuf_go_lite.TextWriteUint(&sb, x.Size)
+	}
+	if x.Margin != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "margin")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Margin)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Shot) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ShotResult) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ShotResult")
+	if len(x.Png) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "png")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Png)
+	}
+	if x.Error != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "error")
+		protobuf_go_lite.TextWriteString(&sb, x.Error)
+	}
+	if len(x.Missing) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "missing")
+		for i, v := range x.Missing {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ShotResult) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -8549,6 +9302,243 @@ func (m *Sound) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Unavailable = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *RenderJob) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RenderJob: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RenderJob: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Shots", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Shots = append(m.Shots, &Shot{})
+			if err := m.Shots[len(m.Shots)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Shot) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Shot: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Shot: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Model", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Model = v
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Yaw", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Yaw = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pitch", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Pitch = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fov", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Fov = float32(math.Float32frombits(v))
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size", wireType)
+			}
+			m.Size = 0
+			m.Size, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Margin", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Margin = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ShotResult) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ShotResult: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ShotResult: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Png", wireType)
+			}
+			m.Png, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Png, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Error = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Missing", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Missing = append(m.Missing, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

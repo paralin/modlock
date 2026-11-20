@@ -17,11 +17,14 @@ var webSources embed.FS
 
 // Handler returns the page in the directory page and the API of every
 // workspace. Without assets, the page still serves and says why it has no
-// archive to show.
-func Handler(page string, assets *Assets) http.Handler {
+// archive to show. With a render, the page at RenderPage draws its shots.
+func Handler(page string, assets *Assets, render *Render) http.Handler {
 	mux := http.NewServeMux()
 	if assets != nil {
 		assets.routes(mux)
+	}
+	if render != nil {
+		render.routes(mux)
 	}
 	mux.Handle("GET /", http.FileServerFS(os.DirFS(page)))
 	return mux

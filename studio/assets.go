@@ -159,6 +159,28 @@ func (a *Assets) buildListing() ([]byte, error) {
 	return out.Bytes(), nil
 }
 
+// Match returns the archive's files that match pattern, in path.Match's
+// syntax where * stops at a slash, sorted and without repeats.
+func (a *Assets) Match(pattern string) ([]string, error) {
+	if a.err != nil {
+		return nil, a.err
+	}
+	pattern = strings.ToLower(pattern)
+	if _, err := path.Match(pattern, ""); err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, archive := range a.archives {
+		for _, name := range archive.Names() {
+			if ok, _ := path.Match(pattern, name); ok {
+				names = append(names, name)
+			}
+		}
+	}
+	slices.Sort(names)
+	return slices.Compact(names), nil
+}
+
 // archiveOf returns the archive holding name, or the game's own when none
 // does, which then reports the file missing.
 func (a *Assets) archiveOf(name string) *vpk.Archive {

@@ -15,6 +15,7 @@ import { Icon } from './icons.js'
 import { collisionCounts, hasCollision, hasMeshes } from './models.js'
 import { Outliner } from './outliner.js'
 import { Properties } from './properties.js'
+import { runRender } from './render.js'
 import { formatName, Unavailable, Viewer, type Shading } from './scene.js'
 import {
   initial,
@@ -443,4 +444,11 @@ function StatusBar(props: { studio: Studio }) {
   )
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+// The page draws the server's render job at RenderPage, and browses
+// otherwise.
+const root = document.getElementById('root')!
+if (new URLSearchParams(location.search).has('render'))
+  void runRender(root).catch((error: Error) => {
+    root.textContent = error.message
+  })
+else createRoot(root).render(<App />)

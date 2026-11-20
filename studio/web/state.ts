@@ -282,7 +282,7 @@ function reduceAsset(asset: Asset, event: Event): Asset {
 
 // defaultGroups returns the mesh groups the game draws by default, or null
 // for a model that names none.
-function defaultGroups(model: Model): bigint | null {
+export function defaultGroups(model: Model): bigint | null {
   // An empty default mask means every group.
   const count = model.groups?.length ?? 0
   if (count === 0) return null

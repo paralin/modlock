@@ -65,7 +65,7 @@ func TestSoundArchive(t *testing.T) {
 	if assets.Err() != nil {
 		t.Fatal(assets.Err())
 	}
-	handler := Handler(t.TempDir(), assets)
+	handler := Handler(t.TempDir(), assets, nil)
 	count := 0
 	for _, name := range assets.archives[0].Names() {
 		if !strings.HasSuffix(name, ".vsnd_c") {
