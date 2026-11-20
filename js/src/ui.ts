@@ -935,11 +935,16 @@ export function change(
   }
 }
 
-/** tick advances the clock to the frame at seconds and fades expiring notices. */
+/**
+ * tick advances the clock to the frame at seconds and fades expiring notices.
+ * It redraws a player only on the frame one of their notices expires, since
+ * the renderer animates the fade itself; a frame with no expiry renders
+ * nothing.
+ */
 export function tick(seconds: number): void {
   now = seconds
   for (const current of views.values()) {
-    if (current.notices.length === 0) {
+    if (!current.notices.some((notice) => notice.until <= now)) {
       continue
     }
     current.notices = current.notices.filter((notice) => notice.until > now)

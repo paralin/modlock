@@ -108,6 +108,26 @@ test('a callback that throws ends only its own timer', () => {
   expect(logged.length).toBeGreaterThan(0)
 })
 
+test('timers due in one frame run by due time, then schedule order', () => {
+  // Fifty timers come due in a scrambled order, ten of them at the same time.
+  const runs: number[] = []
+  frame(0)
+  const delays: number[] = []
+  for (let i = 0; i < 50; i++) {
+    const delay = i < 10 ? 1 : ((i * 37) % 40) / 40 + 0.01
+    delays.push(delay)
+    after(delay, () => runs.push(i))
+  }
+
+  // A late frame runs them all, earliest first and ties as scheduled.
+  frame(2)
+  const expected = delays
+    .map((delay, i) => ({ delay, i }))
+    .sort((a, b) => a.delay - b.delay || a.i - b.i)
+    .map(({ i }) => i)
+  expect(runs).toEqual(expected)
+})
+
 test('a timer made in a callback waits for the next frame', () => {
   // The outer timer makes another that is due at once.
   const runs: string[] = []
