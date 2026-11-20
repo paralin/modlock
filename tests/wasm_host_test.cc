@@ -35,8 +35,9 @@ using Contact = modlock::wasm::PlayerScope::Contact;
 // Events records what happens to the host's mods.
 class Events final : public WasmHostObserver {
  public:
-  void Started(std::string_view, bool reloaded) override {
+  void Started(std::string_view, const std::filesystem::path& path, bool reloaded) override {
     seen.push_back(reloaded ? "reloaded" : "started");
+    paths.push_back(path);
   }
 
   void Logged(std::string_view, std::string_view) override {}
@@ -69,6 +70,8 @@ class Events final : public WasmHostObserver {
   }
 
   std::vector<std::string> seen;
+  // paths keeps the build path of each start, in order.
+  std::vector<std::filesystem::path> paths;
   std::vector<size_t> halted;
   modlock::wasm::profile::CallProfile calls;
 };
@@ -381,25 +384,39 @@ TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {
   ASSERT_TRUE(plugin) << plugin.error();
   ASSERT_TRUE((*plugin)->Start());
 
+  // Two builds of the mod at their own paths.
+  const auto builds = std::filesystem::temp_directory_path() / "modlock-held-builds";
+  const auto first = builds / "first" / "extension-go.wasm";
+  const auto second = builds / "second" / "extension-go.wasm";
+  for (const auto& build : {first, second}) {
+    std::filesystem::create_directories(build.parent_path());
+    std::filesystem::copy_file(EXTENSION_GO_WASM, build,
+                               std::filesystem::copy_options::overwrite_existing);
+  }
+
   // A reload of a held mod succeeds but leaves the running build in place.
   ASSERT_TRUE(host.Call("extension-go", "hold", "take", ""));
   EXPECT_TRUE(host.Held("extension-go"));
-  ASSERT_TRUE(host.Reload(EXTENSION_GO_WASM));
+  ASSERT_TRUE(host.Reload(first));
+  ASSERT_TRUE(host.Reload(second));
   EXPECT_EQ(events.seen, (std::vector<std::string>{"started", "held"}));
 
-  // The waiting build replaces the running one on the frame after release,
-  // and starts without a hold.
+  // The newest waiting build replaces the running one on the frame after
+  // release, starts without a hold, and its start names its own path.
   ASSERT_TRUE(host.Call("extension-go", "hold", "release", ""));
   EXPECT_EQ(events.seen, (std::vector<std::string>{"started", "held", "released"}));
   (*plugin)->Tick();
   EXPECT_EQ(events.seen, (std::vector<std::string>{"started", "held", "released", "reloaded"}));
+  EXPECT_EQ(events.paths, (std::vector<std::filesystem::path>{EXTENSION_GO_WASM, second}));
   EXPECT_FALSE(host.Held("extension-go"));
 
   // Without a hold, a reload applies at once.
-  ASSERT_TRUE(host.Reload(EXTENSION_GO_WASM));
+  ASSERT_TRUE(host.Reload(first));
   EXPECT_EQ(events.seen.back(), "reloaded");
+  EXPECT_EQ(events.paths.back(), first);
   (*plugin)->Stop();
   host.Unobserve(&events);
+  std::filesystem::remove_all(builds);
 }
 
 TEST(WasmHost, StoppedModWaitsForRestart) {

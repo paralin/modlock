@@ -162,6 +162,7 @@ class WasmPlugin final : public Plugin {
   void Attach(std::unique_ptr<wasm::Instance> instance, Build build) {
     // Take the instance and the build it runs.
     instance_ = std::move(instance);
+    path_ = std::move(build.path);
     module_ = std::move(build.module);
     source_ = std::move(build.source);
     manifest_ = std::move(build.manifest);
@@ -410,6 +411,8 @@ class WasmPlugin final : public Plugin {
   const bool enforce_required_services_;
   std::vector<std::string> args_;
   std::unique_ptr<wasm::Instance> instance_;
+  // path_ is where the running build was read from.
+  std::filesystem::path path_;
   // module_ is the running build's WebAssembly, which a restart instantiates
   // again; source_ is its interpreted entry, sent at each start.
   std::vector<uint8_t> module_;

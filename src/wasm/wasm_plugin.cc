@@ -311,7 +311,7 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
     return std::unexpected(started.error());
   }
   wants_ = std::move(*started);
-  host_.Notify([&](WasmHostObserver& observer) { observer.Started(name_, reloaded); });
+  host_.Notify([&](WasmHostObserver& observer) { observer.Started(name_, path_, reloaded); });
   if (map_) {
     ListenToPlayers();
     ListenToCombat();

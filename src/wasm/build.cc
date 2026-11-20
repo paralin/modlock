@@ -61,7 +61,7 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
     if (!IsSlug(path.stem().string())) {
       return std::unexpected(path.string() + ": invalid slug");
     }
-    return Build{.name = path.stem().string(), .module = std::move(*module)};
+    return Build{.name = path.stem().string(), .path = path, .module = std::move(*module)};
   }
 
   // Parse the manifest, tolerating fields a newer command line writes.
@@ -92,7 +92,7 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
   if (!entry) {
     return std::unexpected(entry.error());
   }
-  Build build{.name = manifest.slug(), .data = path / "data"};
+  Build build{.name = manifest.slug(), .path = path, .data = path / "data"};
   if (manifest.movement().model() == wasm::Movement::MODEL_QUAKEWORLD) {
     auto collision = ReadFile(path / "maps" / (manifest.map() + ".bsp"));
     if (!collision) {

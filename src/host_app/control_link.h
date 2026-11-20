@@ -54,7 +54,7 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   void Forward(std::string_view mod, std::string_view service, std::string_view method,
                std::string_view payload, WasmReply reply);
 
-  void Started(std::string_view mod, bool reloaded) override;
+  void Started(std::string_view mod, const std::filesystem::path& path, bool reloaded) override;
   void Logged(std::string_view mod, std::string_view text) override;
   void Failed(std::string_view mod, std::string_view error) override;
   void Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) override;
