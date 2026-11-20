@@ -128,6 +128,7 @@ func studioRenderCommand(out *printer) *cli.Command {
 			served := make(chan error, 1)
 			go func() { served <- serveStudio(ctx, listener, studio.Handler(page, assets, render)) }()
 			browserDone := make(chan error, 1)
+			browsing := false
 			if browser := c.String("browser"); browser == "none" {
 				out.field("open", address)
 			} else {
@@ -135,13 +136,24 @@ func studioRenderCommand(out *printer) *cli.Command {
 				if err != nil {
 					return err
 				}
+				browsing = true
 				go func() { browserDone <- runHeadless(ctx, exe, address) }()
 			}
+
+			// On every return, stop the browser and wait until it has exited
+			// and its profile is removed, so none outlives the command.
+			defer func() {
+				cancel()
+				if browsing {
+					<-browserDone
+				}
+			}()
 
 			// Wait for every shot, the browser leaving early or an interrupt.
 			select {
 			case <-render.Done():
 			case err := <-browserDone:
+				browsing = false
 				return errors.Wrap(orExited(err), "the browser left before every shot was drawn")
 			case err := <-served:
 				return err
