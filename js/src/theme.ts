@@ -177,6 +177,12 @@ export const objectiveBarBottom = 220
 export const fpsReadoutBottom = 68
 
 /**
+ * minimapTop is where the stock minimap starts, in pixels on a 1080 high HUD:
+ * the bottom right corner's 440 square, 15px off the bottom.
+ */
+export const minimapTop = 625
+
+/**
  * sounds are the game's interface sound events for the kit's controls: the
  * main menu's hover tick and press.
  */

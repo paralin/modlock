@@ -18,7 +18,7 @@ goes to the back again, and each part of that has its calls:
 | Who fights next, and on which side   | `nextMatch`, `afterMatch`                   |
 | An even share of heroes              | `leastUsed`                                 |
 | The result                           | `settle`, `ratingChange`                    |
-| The leaderboard                      | `leaderboard`, `Roster`, `rosterRows`       |
+| The leaderboard                      | `leaderboard`, `Roster`                     |
 | Heroes left behind by a swap         | `Strays`                                    |
 
 The rotation calls are TypeScript only. Each is pure: your mod keeps the line
@@ -182,7 +182,11 @@ line = afterMatch(line, [...winners, ...losers])
 
 `leaderboard(players, standing, rows, viewer)` ranks by wins, then rating,
 and returns the first `rows`, keeping the viewer on the last row if they would
-fall off. `Roster` draws each row's hero, avatar and a line of activity:
+fall off. `Roster` draws each row's hero, avatar and a line of activity. Its
+`groups` put players under headings, such as one per team, and its rows shrink
+and then run in columns as players join, so every row fits between `top` and
+`bottom`. `rosterBottom` takes the same props and gives the line where the
+roster ends, for a panel drawn under it:
 
 ```ts
 const rows = leaderboard(line, (each) => each.standing, 8, viewer)

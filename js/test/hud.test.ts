@@ -13,14 +13,15 @@ import { findHero, heroes } from '../src/heroes.js'
 import {
   Pips,
   Roster,
+  rosterBottom,
   rosterKey,
-  rosterRows,
   Score,
   Tag,
   Text,
   TopStrip,
 } from '../src/hud.js'
 import {
+  fpsReadoutBottom,
   objectiveBarBottom,
   pillEdge,
   shades,
@@ -121,36 +122,42 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     color: tones.onAccent,
   })
 
-  // The roster shows at most its rows.
+  // The roster shows every row while they fit, at full size.
   const wraith = heroes.find((h) => h.name === 'hero_wraith')!
-  const rows = Array.from({ length: 8 }, (_, i) => ({
+  const rows = Array.from({ length: 4 }, (_, i) => ({
+    key: i,
     name: `player ${i}`,
     self: i === 0,
     hero: i === 1 ? 0 : wraith.id,
-    steamId: i === 0 ? 76561198000000001n : undefined,
+    steamId: i === 0 || i === 1 ? 76561198000000001n : undefined,
     activity: 'Free roam',
   }))
   const roster = Roster({ rows })!
-  expect(kids(roster)).toHaveLength(rosterRows)
+  const group = (r: UiElement, at = 0) => kids(kids(r)[at]!).filter(Boolean)
+  expect(group(roster)).toHaveLength(4)
 
   // Each row's portrait edge is accented on the viewer's own row, holds the
-  // hero's portrait with the player's avatar, and is empty without a hero.
-  const edge = (row: number) => kids(kids(roster)[row]!)[1]!
+  // hero's portrait with the player's avatar, the avatar alone without a
+  // hero, and the hero alone without an account.
+  const edge = (row: number) => kids(group(roster)[row]!)[1]!
+  expect(edge(0).props.style?.width).toBe(44)
   expect(edge(0).props.style?.background).toBe(tones.accent)
   expect(edge(2).props.style?.background).toBe(shades.dim)
   expect(kids(kids(edge(2))[0]!)[0]!.props).toMatchObject({
     src: wraith.portrait,
   })
-  expect(kids(kids(edge(1))[0]!)).toHaveLength(0)
   expect(kids(kids(edge(0))[0]!).map((child) => child.type)).toEqual([
     'image',
     'avatar',
   ])
+  expect(kids(kids(edge(1))[0]!).map((child) => child.type)).toEqual(['avatar'])
+  expect(kids(kids(edge(3))[0]!).map((child) => child.type)).toEqual(['image'])
+  expect(group(roster)[2]!.key).toBe('row-2')
 
   // A row with onPress is a button that runs it.
   let pressed = 0
   const pressable = { ...rows[2]!, onPress: () => pressed++, selected: true }
-  const picked = kids(Roster({ rows: [pressable] })!)[0]!
+  const picked = group(Roster({ rows: [pressable] })!)[0]!
   expect(picked.type).toBe('button')
   ;(picked.props as { onPress: (player: Player) => void }).onPress(
     new Player(1),
@@ -159,8 +166,84 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
 
   // Only the selected row's edge takes the accent, and the key follows both.
   expect(kids(picked)[1]!.props.style?.background).toBe(tones.accent)
-  expect(kids(kids(roster)[2]!)[1]!.props.style?.background).toBe(shades.dim)
-  expect(rosterKey([pressable])).not.toBe(rosterKey([rows[2]!]))
+  const one = (row: (typeof rows)[number]) => [{ key: 'p', rows: [row] }]
+  expect(rosterKey(one(pressable))).not.toBe(rosterKey(one(rows[2]!)))
+
+  // Groups head their rows, and empty groups draw nothing. As players join,
+  // rows shrink, then run in columns, and every player stays on screen above
+  // the minimap.
+  const team = (n: number, from: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      key: from + i,
+      name: `player ${from + i}`,
+      hero: wraith.id,
+      out: i === 0,
+    }))
+  const teams = (seekers: number, hiders: number) =>
+    Roster({
+      groups: [
+        {
+          key: 'seekers',
+          title: 'Seekers',
+          tone: 'amber',
+          rows: team(seekers, 0),
+        },
+        {
+          key: 'hiders',
+          title: 'Hiders',
+          tone: 'sapphire',
+          rows: team(hiders, 100),
+        },
+        { key: 'watching', title: 'Watching', rows: [] },
+      ],
+    })!
+  const small = teams(2, 6)
+  expect(kids(small)).toHaveLength(2)
+  expect(kids(kids(kids(small)[0]!)[0]!)[0]!.props.children).toBe('Seekers')
+  const portraitOf = (r: UiElement) => {
+    const first = group(r)[1]!
+    const row = first.key?.startsWith('line-') ? kids(first)[0]! : first
+    return kids(row)[1]!.props.style?.width
+  }
+  expect(portraitOf(small)).toBe(44)
+  expect(portraitOf(teams(3, 9))).toBe(32)
+  const crowd = teams(8, 24)
+  expect(portraitOf(crowd)).toBe(24)
+  expect(group(crowd, 1)[1]!.key).toBe('line-0')
+  const shown = (r: UiElement) =>
+    kids(r)
+      .flatMap((g) => kids(g).filter(Boolean).slice(1))
+      .flatMap((l) => (l.key?.startsWith('line-') ? kids(l) : [l]))
+  expect(shown(crowd)).toHaveLength(32)
+  // An out player's row dims.
+  expect(shown(crowd)[0]!.props.style?.opacity).toBe(0.55)
+
+  // A band too short for every player keeps a line for each group and counts
+  // the rest.
+  const cramped = Roster({
+    top: 100,
+    bottom: 300,
+    groups: [
+      { key: 'seekers', title: 'Seekers', rows: team(8, 0) },
+      { key: 'hiders', title: 'Hiders', rows: team(24, 100) },
+    ],
+  })!
+  const rest = shown(cramped).filter((cell) => cell.key === 'rest')
+  expect(rest).toHaveLength(2)
+  expect(shown(cramped).length < 32).toBe(true)
+
+  // A panel under the roster starts where its rows end, inside the band.
+  const crampedEnd = rosterBottom({
+    top: 100,
+    bottom: 300,
+    groups: [
+      { key: 'seekers', title: 'Seekers', rows: team(8, 0) },
+      { key: 'hiders', title: 'Hiders', rows: team(24, 100) },
+    ],
+  })
+  expect(crampedEnd <= 288).toBe(true)
+  expect(rosterBottom({ rows: team(4, 0) })).toBe(fpsReadoutBottom + 4 * 52)
+  expect(rosterBottom({ top: 90, rows: [] })).toBe(90)
 
   // Without rows the roster draws nothing.
   expect(Roster({ rows: [] })).toBeNull()

@@ -1,7 +1,8 @@
 // The HUD kit: components that draw a mod's HUD in the stock HUD's look, from
 // the tokens in theme.ts. Text sets VALVEPulp capitals over a soft shadow,
 // plates and pills hold text over a bright sky, and pips count as the stock
-// round counter does. The roster lists the players down the top right corner.
+// round counter does. The roster lists the players down the right side, in
+// groups such as teams, shrinking its rows as players join so all of them fit.
 // Actions are the game's menu buttons, with its hover and press sounds, and a
 // meter fills toward its value.
 //
@@ -13,6 +14,7 @@ import {
   emptyPip,
   motion,
   fpsReadoutBottom,
+  minimapTop,
   objectiveBarBottom,
   pillEdge,
   pipRings,
@@ -339,15 +341,36 @@ export function Score(props: ScoreProps): UiElement {
 
 /** RosterRow is one player as the roster shows them. */
 export interface RosterRow {
+  /**
+   * key names the player across draws, such as their slot, so their row
+   * keeps its panels as others join, leave or change places; the row's index
+   * in its group otherwise.
+   */
+  key?: string | number
   name: string
   /** self marks the viewing player's own row. */
   self?: boolean
-  /** hero is the player's hero as Pawn.hero gives it, or 0 without one. */
+  /**
+   * hero is the player's hero as Pawn.hero gives it, or 0 to show none, as
+   * for a player without one or whose hero this viewer may not know.
+   */
   hero: number
-  /** activity is the line under the name, such as "Free roam". */
-  activity: string
-  /** steamId badges the portrait's corner with the player's Steam avatar. */
+  /**
+   * activity is the line under the name, such as "Free roam". It shows only
+   * while the roster has room for it, so a row's state must not depend on it
+   * alone; out does that.
+   */
+  activity?: string
+  /**
+   * steamId is the player's Steam account. Its avatar badges the corner of
+   * the hero's portrait, or fills the square when no hero shows.
+   */
   steamId?: bigint
+  /**
+   * out marks a player who is out of play, such as eliminated or
+   * spectating: the row dims and its picture loses its color.
+   */
+  out?: boolean
   /**
    * onPress makes the row a button the viewer presses while they have a
    * cursor, such as to open a card about that player.
@@ -357,48 +380,239 @@ export interface RosterRow {
   selected?: boolean
 }
 
-/** rosterRows is the most players the roster shows, above the minimap. */
-export const rosterRows = 6
+/** RosterGroup is one category of players under a heading, such as a team. */
+export interface RosterGroup {
+  /** key names the group across draws, so it keeps its panels. */
+  key: string
+  /** title heads the group, such as "Seekers"; without one the rows stand alone. */
+  title?: string
+  /** tone colors the title, such as the team's color; muted by default. */
+  tone?: Tone
+  /** note follows the title in muted text, such as a count. */
+  note?: string
+  rows: readonly RosterRow[]
+}
+
+/**
+ * RosterDensity is one size the roster draws its rows at: the portrait's
+ * side, the distance from one row's top to the next, the name's size, whether
+ * the activity line shows, the avatar badge's side (0 for none), and the most
+ * columns of rows it may lay side by side.
+ */
+interface RosterDensity {
+  readonly portrait: number
+  readonly pitch: number
+  readonly nameSize: number
+  readonly activity: boolean
+  readonly badge: number
+  readonly columns: number
+}
+
+/**
+ * rosterDensities are the roster's sizes, largest first. The roster takes the
+ * first that fits its height in the fewest columns, so each row gets smaller
+ * as players join: the full row with its activity line, then a compact row
+ * with the name alone, then a dense row that may run in up to three columns.
+ */
+const rosterDensities: readonly RosterDensity[] = [
+  {
+    portrait: 44,
+    pitch: 52,
+    nameSize: 15,
+    activity: true,
+    badge: 18,
+    columns: 1,
+  },
+  {
+    portrait: 32,
+    pitch: 38,
+    nameSize: 15,
+    activity: false,
+    badge: 14,
+    columns: 1,
+  },
+  {
+    portrait: 24,
+    pitch: 27,
+    nameSize: 13,
+    activity: false,
+    badge: 0,
+    columns: 3,
+  },
+]
 
 /** rosterName is the most characters a roster name shows. */
 const rosterName = 24
 
-/** portraitSize is the portrait square's side, its 1px edge included. */
-const portraitSize = 44
+/**
+ * rosterCell is a dense row's width, its name included, so the rows of each
+ * column line up whatever the names.
+ */
+const rosterCell = 150
 
-/** badgeSize is the side of the avatar badge on a portrait's corner. */
-const badgeSize = 18
+/** rosterHeading is a group heading's height, its gap to the rows included. */
+const rosterHeading = 24
+
+/** rosterGroupGap is the space above every group but the first. */
+const rosterGroupGap = 10
+
+/** rosterGap is the space between the roster's end and what it must clear. */
+const rosterGap = 12
 
 /** portraits maps each hero's id to its small portrait. */
 const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
 /** rosterKey is what the roster shows, to redraw only when it changes. */
-export function rosterKey(rows: readonly RosterRow[]): string {
-  return rows
-    .slice(0, rosterRows)
+export function rosterKey(groups: readonly RosterGroup[]): string {
+  return groups
     .map(
-      (row) =>
-        `${row.self ? '*' : ''}${row.selected ? '+' : ''}${row.onPress ? '>' : ''}${row.name}\t${row.hero}\t${row.activity}\t${row.steamId ?? ''}`,
+      (group) =>
+        `${group.key}\t${group.title ?? ''}\t${group.tone ?? ''}\t${group.note ?? ''}\n${group.rows
+          .map(
+            (row) =>
+              `${row.key ?? ''}\t${row.self ? '*' : ''}${row.selected ? '+' : ''}${row.out ? '-' : ''}${row.onPress ? '>' : ''}${row.name}\t${row.hero}\t${row.activity ?? ''}\t${row.steamId ?? ''}`,
+          )
+          .join('\n')}`,
     )
-    .join('\n')
+    .join('\n\n')
 }
 
-/** RosterProps list the players and where the roster starts. */
+/** RosterProps list the players and the band of the screen the roster fits in. */
 export interface RosterProps {
-  rows: readonly RosterRow[]
+  /** rows are one group of players without a heading. */
+  rows?: readonly RosterRow[]
+  /** groups are categories of players, each under its heading, in order. */
+  groups?: readonly RosterGroup[]
   /** top is the roster's top margin, under the FPS readout unless set. */
   top?: number
+  /**
+   * bottom is how far down the screen the roster must end, in pixels on a
+   * 1080 high HUD: above the minimap unless set. A mode with its own panel
+   * on the right passes that panel's top.
+   */
+  bottom?: number
+}
+
+/** RosterLayout is the density and columns a roster draws at, and how many lines each group keeps. */
+interface RosterLayout {
+  density: RosterDensity
+  columns: number
+  /** lines is each group's lines of rows; a group cut short ends in a count of the rest. */
+  lines: readonly number[]
+  /** height is the roster's drawn height, headings and gaps included. */
+  height: number
+}
+
+/** linesOf is how many lines a group's rows take in columns. */
+function linesOf(rows: number, columns: number): number {
+  return Math.ceil(rows / columns)
 }
 
 /**
- * Roster stacks up to rosterRows players down the top right corner, each
- * one's hero portrait at the edge with their name and a line, such as what
- * they are doing or their score, to its left. It shows nothing without rows.
- * A mode that hides the stock scoreboard's heroes shows who else is here with
- * it.
+ * rosterLayout picks the largest density, in the fewest columns, whose rows
+ * fit the height. When even the smallest does not fit, each group keeps a
+ * line and the rest of the lines go round the groups one at a time, so the
+ * roster always ends above bottom and no group crowds out another.
+ */
+function rosterLayout(
+  groups: readonly RosterGroup[],
+  height: number,
+): RosterLayout {
+  // The headings and the gaps between groups take their height first.
+  const chrome = groups.reduce(
+    (sum, group, index) =>
+      sum +
+      (group.title === undefined ? 0 : rosterHeading) +
+      (index > 0 ? rosterGroupGap : 0),
+    0,
+  )
+
+  // The first density and column count whose lines fit wins.
+  for (const density of rosterDensities) {
+    for (let columns = 1; columns <= density.columns; columns++) {
+      const lines = groups.map((group) => linesOf(group.rows.length, columns))
+      const total = lines.reduce((sum, count) => sum + count, 0)
+      if (chrome + total * density.pitch <= height) {
+        return {
+          density,
+          columns,
+          lines,
+          height: chrome + total * density.pitch,
+        }
+      }
+    }
+  }
+
+  // Nothing fits, so the smallest density in its most columns gives each
+  // group one line and shares out the lines left.
+  const density = rosterDensities[rosterDensities.length - 1]!
+  const columns = density.columns
+  const wanted = groups.map((group) => linesOf(group.rows.length, columns))
+  const lines = groups.map(() => 1)
+  let spare =
+    Math.max(groups.length, Math.floor((height - chrome) / density.pitch)) -
+    groups.length
+
+  // The spare lines go round the groups that want more, one at a time.
+  while (spare > 0 && lines.some((count, at) => count < wanted[at]!)) {
+    for (let at = 0; at < lines.length && spare > 0; at++) {
+      if (lines[at]! < wanted[at]!) {
+        lines[at] = lines[at]! + 1
+        spare -= 1
+      }
+    }
+  }
+  const total = lines.reduce((sum, count) => sum + count, 0)
+  return { density, columns, lines, height: chrome + total * density.pitch }
+}
+
+/** RosterPlan is what a roster draws: its nonempty groups, where, and how. */
+interface RosterPlan {
+  groups: readonly RosterGroup[]
+  top: number
+  layout: RosterLayout
+}
+
+/** rosterPlan lays out props, or is null when no group has a row. */
+function rosterPlan(props: RosterProps): RosterPlan | null {
+  // Rows alone are one group without a heading; empty groups draw nothing.
+  const groups = (
+    props.groups ?? [{ key: 'players', rows: props.rows ?? [] }]
+  ).filter((group) => group.rows.length > 0)
+  if (groups.length === 0) return null
+
+  // The band between top and bottom sets the density.
+  const top = props.top ?? fpsReadoutBottom
+  const bottom = (props.bottom ?? minimapTop) - rosterGap
+  return { groups, top, layout: rosterLayout(groups, bottom - top) }
+}
+
+/**
+ * rosterBottom is how far down the screen the roster of props ends, so a
+ * panel can sit under it; it is top when the roster draws nothing.
+ */
+export function rosterBottom(props: RosterProps): number {
+  const plan = rosterPlan(props)
+  return plan ? plan.top + plan.layout.height : (props.top ?? fpsReadoutBottom)
+}
+
+/**
+ * Roster lists the players down the right side of the screen, under the FPS
+ * readout and above the minimap, so a mode that hides the stock top bar still
+ * shows who is here. Each row is the player's hero portrait at the edge with
+ * their name and a line, such as what they are doing, to its left. Groups put
+ * the players under headings, such as one per team. Rows shrink as players
+ * join, then run in columns, so every player fits between top and bottom; if
+ * they still cannot, each group shows as many as fit and a count of the rest.
+ * It shows nothing without rows.
  */
 export function Roster(props: RosterProps): UiElement | null {
-  if (props.rows.length === 0) return null
+  // Without a row there is nothing to draw.
+  const plan = rosterPlan(props)
+  if (!plan) return null
+
+  // The groups stack down the right edge.
+  const { groups, top, layout } = plan
   return element(
     'panel',
     {
@@ -407,56 +621,160 @@ export function Roster(props: RosterProps): UiElement | null {
       flow: 'down',
       horizontalAlign: 'right',
       verticalAlign: 'top',
-      margin: [props.top ?? fpsReadoutBottom, 24, 0, 0],
+      margin: [top, 24, 0, 0],
     },
-    props.rows.slice(0, rosterRows).map(rosterRow),
+    groups.map((group, index) =>
+      rosterGroup(group, index, layout, layout.lines[index]!),
+    ),
+  )
+}
+
+/**
+ * rosterGroup is one group: its heading, then its rows, laid in lines of
+ * the layout's columns. One column puts the rows straight in the group, so
+ * the common case keeps each row's panels as its neighbors come and go.
+ */
+function rosterGroup(
+  group: RosterGroup,
+  index: number,
+  layout: RosterLayout,
+  lines: number,
+): UiElement {
+  // A group with less room than rows ends in a count of the rest.
+  const { density, columns } = layout
+  const room = lines * columns
+  const cut = group.rows.length > room
+  const shown = cut ? group.rows.slice(0, room - 1) : group.rows
+  const cells: UiElement[] = shown.map((row, at) =>
+    rosterRow(row, at, density, columns > 1),
+  )
+  if (cut) cells.push(rosterRest(group.rows.length - shown.length, density))
+
+  // In columns, the cells go in lines of fixed width cells, right aligned.
+  const body =
+    columns === 1
+      ? cells
+      : Array.from({ length: lines }, (_, line) =>
+          element(
+            'panel',
+            { flow: 'right', horizontalAlign: 'right' },
+            cells.slice(line * columns, (line + 1) * columns),
+            `line-${line}`,
+          ),
+        )
+  const heading =
+    group.title === undefined
+      ? false
+      : element(
+          'panel',
+          {
+            flow: 'right',
+            horizontalAlign: 'right',
+            height: rosterHeading,
+          },
+          [
+            Text({
+              role: 'label',
+              tone: group.tone ?? 'muted',
+              style: { letterSpacing: 1, horizontalAlign: undefined },
+              children: group.title,
+            }),
+            group.note !== undefined &&
+              Text({
+                role: 'label',
+                tone: 'muted',
+                style: { margin: [0, 0, 0, 8], horizontalAlign: undefined },
+                children: group.note,
+              }),
+          ],
+        )
+  return element(
+    'panel',
+    {
+      flow: 'down',
+      horizontalAlign: 'right',
+      margin: [index > 0 ? rosterGroupGap : 0, 0, 0, 0],
+    },
+    [heading, ...body],
+    `group-${group.key}`,
   )
 }
 
 /**
  * rosterRow is one player: name and activity, then the portrait, whose edge
- * reads in the accent on the viewing player's own row.
+ * reads in the accent on the viewing player's own row. A row in columns has
+ * a fixed width, so the columns line up.
  */
-function rosterRow(row: RosterRow, index: number): UiElement {
+function rosterRow(
+  row: RosterRow,
+  index: number,
+  density: RosterDensity,
+  cell: boolean,
+): UiElement {
   // The name and its line align right, against the portrait.
   const right = { horizontalAlign: 'right', textAlign: 'right' } as const
+  const nameWidth = cell ? rosterCell - density.portrait - 8 : undefined
   const text = element(
     'panel',
-    { flow: 'down', verticalAlign: 'center', margin: [0, 12, 0, 0] },
+    { flow: 'down', verticalAlign: 'center', margin: [0, 8, 0, 0] },
     [
       Text({
         role: 'label',
-        tone: 'text',
-        style: right,
+        tone: row.out ? 'muted' : 'text',
+        style: {
+          ...right,
+          fontSize: density.nameSize,
+          ...(nameWidth === undefined
+            ? {}
+            : { width: nameWidth, noWrap: true, textOverflow: 'ellipsis' }),
+        },
         children: clip(row.name.toUpperCase(), rosterName),
       }),
-      Text({
-        role: 'caption',
-        tone: 'muted',
-        style: { ...right, margin: [1, 0, 0, 0] },
-        children: row.activity,
-      }),
+      density.activity &&
+        row.activity !== undefined &&
+        row.activity !== '' &&
+        Text({
+          role: 'caption',
+          tone: 'muted',
+          style: { ...right, margin: [1, 0, 0, 0] },
+          children: row.activity,
+        }),
     ],
   )
 
-  // The portrait sits in a 1px edge on a raised square, empty without a hero,
-  // with the player's avatar on its lower left corner.
+  // The portrait sits in a 1px edge on a raised square: the hero with the
+  // player's avatar on its lower left corner, the avatar alone without a
+  // hero, or empty without either. An out player's picture loses its color.
   const src = portraits.get(row.hero)
-  const badge = row.steamId === undefined ? false : avatarBadge(row.steamId)
-  const image = src === undefined ? false : portraitImage(src)
+  const picture =
+    src !== undefined
+      ? [
+          portraitImage(src),
+          density.badge > 0 &&
+            row.steamId !== undefined &&
+            avatarBadge(row.steamId, density.badge),
+        ]
+      : row.steamId !== undefined
+        ? [avatarFill(row.steamId)]
+        : []
   const portrait = element(
     'panel',
     {
-      width: portraitSize,
-      height: portraitSize,
+      width: density.portrait,
+      height: density.portrait,
       padding: 1,
       verticalAlign: 'center',
       background: row.self || row.selected ? tones.accent : shades.dim,
     },
     element(
       'panel',
-      { width: '100%', height: '100%', background: shades.raised },
-      [image, badge],
+      {
+        width: '100%',
+        height: '100%',
+        background: shades.raised,
+        saturation: row.out ? 0 : 1,
+      },
+      picture,
     ),
   )
 
@@ -465,8 +783,11 @@ function rosterRow(row: RosterRow, index: number): UiElement {
   const style: Style = {
     flow: 'right',
     horizontalAlign: 'right',
-    margin: [0, 0, 8, 0],
+    height: density.pitch,
+    opacity: row.out ? 0.55 : 1,
+    ...(cell ? { width: rosterCell } : {}),
   }
+  const key = `row-${row.key ?? index}`
   const line: UiElement = row.onPress
     ? {
         type: 'button',
@@ -482,10 +803,30 @@ function rosterRow(row: RosterRow, index: number): UiElement {
           onPress: row.onPress,
           children: [text, portrait],
         },
-        key: `row-${index}`,
+        key,
       }
-    : element('panel', style, [text, portrait], `row-${index}`)
+    : element('panel', style, [text, portrait], key)
   return arriving(line, { translate: [16, 0] })
+}
+
+/** rosterRest is the count of a group's players the roster had no room for. */
+function rosterRest(count: number, density: RosterDensity): UiElement {
+  return element(
+    'panel',
+    { height: density.pitch, width: rosterCell, horizontalAlign: 'right' },
+    Text({
+      role: 'label',
+      tone: 'muted',
+      style: {
+        fontSize: density.nameSize,
+        horizontalAlign: 'right',
+        verticalAlign: 'center',
+        textAlign: 'right',
+      },
+      children: `+${count} more`,
+    }),
+    'rest',
+  )
 }
 
 /**
@@ -501,18 +842,26 @@ function portraitImage(src: string): UiElement {
   }
 }
 
+/** avatarFill is a player's avatar filling the portrait's square. */
+function avatarFill(steamId: bigint): UiElement {
+  return {
+    type: 'avatar',
+    props: { steamId, style: { width: '100%', height: '100%' } },
+  }
+}
+
 /** avatarBadge is a player's avatar on the lower left corner of a portrait. */
-function avatarBadge(steamId: bigint): UiElement {
+function avatarBadge(steamId: bigint, side: number): UiElement {
   return {
     type: 'avatar',
     props: {
       steamId,
       style: {
-        width: badgeSize,
-        height: badgeSize,
+        width: side,
+        height: side,
         horizontalAlign: 'left',
         verticalAlign: 'bottom',
-        borderRadius: badgeSize / 2,
+        borderRadius: side / 2,
         borderWidth: 1,
         borderColor: shades.dim,
       },
