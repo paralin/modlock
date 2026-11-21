@@ -5,8 +5,8 @@
 // clear of the crosshair, newest at the bottom.
 //
 // Each line is the speaker's portrait, their name in their team's color and
-// the line itself, on a dark band. At most four show; a speaker's next line
-// replaces their last, and older lines dim. A team line reads only to the
+// the line itself, on a slim, translucent band. At most four show; a
+// speaker's next line replaces their last, and older lines dim. A team line reads only to the
 // speaker's team; a line for all reads to everyone. A command, such as /help,
 // is for the mod and is not shown.
 //
@@ -168,20 +168,20 @@ const abilityBarTop = 190
 
 /**
  * bandWidth is the widest a subtitle's band grows, centred on a 1080 screen:
- * its left edge, at 560, stays clear of the stamina meter, which ends at 530
- * left of the crosshair. The name and the line share it, and a longer line
- * wraps inside it.
+ * its left edge, at 640, stays well clear of the stamina meter, which ends
+ * at 530 left of the crosshair. The name and the line share it, and a longer
+ * line wraps inside it.
  */
-const bandWidth = 800
+const bandWidth = 640
 
 /** nameWidth is the most of the band a speaker's name takes. */
-const nameWidth = 240
+const nameWidth = 180
 
 /**
  * lineWidth is the band left for the line: the band less its padding, the
  * portrait, the name and their gaps.
  */
-const lineWidth = bandWidth - (7 + 16) - 34 - 10 - nameWidth - 12
+const lineWidth = bandWidth - (4 + 10) - 24 - 7 - nameWidth - 9
 
 /** fades is each line's opacity by its age, newest first. */
 const fades = [1, 0.85, 0.7]
@@ -197,7 +197,7 @@ const words: Style = {
   face: 'body',
   weight: 'bold',
   verticalAlign: 'top',
-  lineHeight: 30,
+  lineHeight: 23,
   textAlign: 'left',
 }
 
@@ -206,7 +206,7 @@ const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
 /**
  * subtitle is one line as viewer sees it: the portrait, the name and the
- * text at 24 pixels on a dark band, dimmer with age.
+ * text at 18 pixels on a slim, translucent band, dimmer with age.
  */
 function subtitle(line: Line, viewer: Player, age: number): UiElement {
   // The speaker's look: the mod's say, else their hero and team.
@@ -228,10 +228,10 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     type: 'panel',
     props: {
       style: {
-        width: 34,
-        height: 34,
+        width: 24,
+        height: 24,
         verticalAlign: 'top',
-        borderRadius: 3,
+        borderRadius: 2,
         background: shades.raised,
         saturation: seen.out ? 0 : 1,
       },
@@ -248,9 +248,9 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 22,
+        fontSize: 16,
         color,
-        margin: [3, 0, 0, 10],
+        margin: [1, 0, 0, 7],
         maxWidth: nameWidth,
       },
       children: name,
@@ -261,9 +261,9 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 24,
+        fontSize: 18,
         color: tones.text,
-        margin: [1, 0, 0, 12],
+        margin: [0, 0, 0, 9],
         maxWidth: lineWidth,
       },
       children: line.text,
@@ -276,14 +276,14 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
       style: {
         flow: 'right',
         horizontalAlign: 'center',
-        background: '#10130dd9',
-        borderRadius: 4,
-        padding: [6, 16, 7, 7],
-        margin: [0, 0, 6, 0],
+        background: '#10130d9e',
+        borderRadius: 3,
+        padding: [3, 10, 4, 4],
+        margin: [0, 0, 4, 0],
         opacity: fades[age] ?? fades[fades.length - 1],
         transition: { seconds: 0.25, easing: 'out' },
       },
-      enter: { opacity: 0, translate: [0, 12] },
+      enter: { opacity: 0, translate: [0, 8] },
       exit: { opacity: 0 },
       children: [portrait, speaker, said],
     },
