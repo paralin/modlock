@@ -13,8 +13,12 @@
 namespace modlock::wasm {
 
 // kEpochTick is how often the runtime advances the engine epoch; instance
-// budgets are rounded up to whole ticks.
-inline constexpr std::chrono::milliseconds kEpochTick{10};
+// budgets are rounded up to whole ticks, and a sliced call yields within one
+// tick of its slice's end.
+inline constexpr std::chrono::milliseconds kEpochTick{1};
+
+// kSampleTick is how often a call past its sample threshold is sampled.
+inline constexpr std::chrono::milliseconds kSampleTick{10};
 
 // Runtime holds what every mod shares: one Wasmtime engine with epoch
 // interruption, the ticker thread that advances its epoch, and the compiled

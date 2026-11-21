@@ -560,6 +560,29 @@ class WasmPlugin final : public Plugin {
   // them, slowest_ is the slowest frame since then, slowest_report_
   // describes where that frame's processor time went, and slowest_frame_
   // holds the same with the stacks sampled during it.
+  // Probe of sliced frames. With MODLOCK_TICK_SLICE_MS set, a frame runs in
+  // slices of that many milliseconds, one per server frame, and a parked
+  // frame resumes on the next instead of skipping frames to repay it.
+  // frame_slice_end_ is the running frame's slice end, for Send. With
+  // MODLOCK_TICK_BENCH=N, each cheap frame is delivered N more times
+  // synchronously and N more times sliced, and the mean of each is logged.
+  struct SliceStats {
+    int begun = 0;
+    int finished = 0;
+    int resumes = 0;
+    std::chrono::nanoseconds tick_max{};
+    std::chrono::nanoseconds tick_sum{};
+    int ticks = 0;
+    std::chrono::nanoseconds sync_sum{};
+    std::chrono::nanoseconds async_sum{};
+    int bench_events = 0;
+    std::chrono::steady_clock::time_point logged;
+  };
+  void SlicedFrame(std::chrono::nanoseconds slice);
+  void Bench(const wasm::Call& call);
+  void LogSlices(std::chrono::steady_clock::time_point now);
+  std::optional<std::chrono::steady_clock::time_point> frame_slice_end_;
+  SliceStats slices_;
   std::chrono::steady_clock::time_point frames_resume_;
   std::chrono::steady_clock::time_point shed_logged_;
   int skipped_ = 0;

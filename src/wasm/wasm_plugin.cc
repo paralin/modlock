@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <chrono>
 #include <format>
 #include <iostream>
@@ -615,6 +616,17 @@ void WasmPlugin::Tick() {
     return;
   }
 
+  // The probe of sliced frames replaces repaying slow frames.
+  static const auto slice = [] {
+    const char* milliseconds = std::getenv("MODLOCK_TICK_SLICE_MS");
+    return std::chrono::nanoseconds(
+        milliseconds ? static_cast<int64_t>(std::atof(milliseconds) * 1e6) : 0);
+  }();
+  if (slice > slice.zero()) {
+    SlicedFrame(slice);
+    return;
+  }
+
   // A mod that ran a slow frame skips frames until as much time passed, so
   // it keeps at most half of the engine thread and no player times out. A mod
   // reads the game clock, so a skipped frame delays its work without losing it.
@@ -656,6 +668,93 @@ void WasmPlugin::Tick() {
     slowest_ = {};
     shed_logged_ = ended;
   }
+}
+
+void WasmPlugin::SlicedFrame(std::chrono::nanoseconds slice) {
+  // Resume a parked frame, or deliver a new one, for one slice.
+  const auto began = std::chrono::steady_clock::now();
+  if (instance_->Parked()) {
+    ++slices_.resumes;
+    auto resumed = instance_->Resume(began + slice);
+    if (!resumed) {
+      if (instance_->Failure()) {
+        Failed("stopped: " + resumed.error());
+        Halt();
+        Stopped();
+        return;
+      }
+    } else if (*resumed) {
+      ++slices_.finished;
+    }
+  } else {
+    wasm::FrameEvent frame;
+    if (GameOpen()) {
+      Observe(frame);
+    }
+    frame_slice_end_ = began + slice;
+    static_cast<void>(mod_.Frame(frame));
+    frame_slice_end_.reset();
+    ++slices_.begun;
+    if (instance_ && !instance_->Parked()) {
+      ++slices_.finished;
+    }
+  }
+  const auto ended = std::chrono::steady_clock::now();
+  const auto spent = std::chrono::duration_cast<std::chrono::nanoseconds>(ended - began);
+  slices_.tick_max = std::max(slices_.tick_max, spent);
+  slices_.tick_sum += spent;
+  ++slices_.ticks;
+  LogSlices(ended);
+}
+
+void WasmPlugin::Bench(const wasm::Call& call) {
+  // Time the same cheap frame delivered synchronously and sliced.
+  static const int count = [] {
+    const char* events = std::getenv("MODLOCK_TICK_BENCH");
+    return events ? std::atoi(events) : 0;
+  }();
+  if (count <= 0) {
+    return;
+  }
+  const auto far = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  auto began = std::chrono::steady_clock::now();
+  for (int i = 0; i < count; ++i) {
+    static_cast<void>(instance_->Deliver(call));
+  }
+  auto ended = std::chrono::steady_clock::now();
+  slices_.sync_sum += ended - began;
+  began = ended;
+  for (int i = 0; i < count; ++i) {
+    static_cast<void>(instance_->DeliverSliced(call, far));
+  }
+  ended = std::chrono::steady_clock::now();
+  slices_.async_sum += ended - began;
+  slices_.bench_events += count;
+  LogSlices(ended);
+}
+
+void WasmPlugin::LogSlices(std::chrono::steady_clock::time_point now) {
+  // Report the window's slices and bench once every five seconds.
+  if (now - slices_.logged < std::chrono::seconds(5)) {
+    return;
+  }
+  auto micros = [](std::chrono::nanoseconds time) {
+    return std::chrono::duration<double, std::micro>(time).count();
+  };
+  if (slices_.ticks > 0) {
+    Log(std::format("slices: {} ticks, {} frames begun, {} finished, {} resumes; mod time per "
+                    "tick mean {:.0f} us, max {:.0f} us",
+                    slices_.ticks, slices_.begun, slices_.finished, slices_.resumes,
+                    micros(slices_.tick_sum) / slices_.ticks, micros(slices_.tick_max)));
+  }
+  if (slices_.bench_events > 0) {
+    Log(std::format("bench: {} events each; sync {:.2f} us, sliced {:.2f} us per event",
+                    slices_.bench_events, micros(slices_.sync_sum) / slices_.bench_events,
+                    micros(slices_.async_sum) / slices_.bench_events));
+  }
+  const auto logged = now;
+  slices_ = {};
+  slices_.logged = logged;
 }
 
 void WasmPlugin::Stop() {

@@ -9,6 +9,8 @@
 #include <utility>
 #include <variant>
 
+#include <wasmtime/async.h>
+
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -66,6 +68,27 @@ std::optional<std::span<uint8_t>> CallerBytes(wasmtime::Caller& caller, uint32_t
 
 }  // namespace
 
+// ParkedCall is a sliced call in flight. Wasmtime borrows args, results and
+// the trap and error slots until the future is deleted, so they live here.
+struct Instance::ParkedCall {
+  ~ParkedCall() {
+    if (future) {
+      wasmtime_call_future_delete(future);
+    }
+    if (trap) {
+      wasm_trap_delete(trap);
+    }
+    if (error) {
+      wasmtime_error_delete(error);
+    }
+  }
+  wasmtime_call_future_t* future = nullptr;
+  wasmtime_val_t args[1]{};
+  wasmtime_val_t results[1]{};
+  wasm_trap_t* trap = nullptr;
+  wasmtime_error_t* error = nullptr;
+};
+
 Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
     : runtime_(runtime),
       limits_(limits),
@@ -85,6 +108,11 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
           return wasmtime::Error("the time budget is spent");
         }
         Sample(context);
+        // A sliced call past its slice's end yields to the next tick.
+        if (slice_end_ && std::chrono::steady_clock::now() >= *slice_end_) {
+          delta = 1;
+          return wasmtime::DeadlineKind::Yield;
+        }
         delta = NextTicks();
         return wasmtime::DeadlineKind::Continue;
       });
@@ -225,9 +253,78 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
     return std::unexpected(Stop(called.err().message()));
   }
   FinishSamples();
+  return Decode(called.ok());
+}
 
+std::expected<std::optional<Reply>, std::string> Instance::DeliverSliced(
+    const Call& call, std::chrono::steady_clock::time_point slice_end) {
+  // Handle one event at a time, and none after a failure.
+  if (failure_) {
+    return std::unexpected(*failure_);
+  }
+  if (busy_) {
+    return std::unexpected("the mod is already handling an event");
+  }
+
+  // Start the call on a fiber, timing the mod within its budget.
+  call.SerializeToString(&pending_);
+  slice_end_ = slice_end;
+  SetBudget(call.method(), limits_.event_budget);
+  busy_ = true;
+  parked_ = std::make_unique<ParkedCall>();
+  parked_->args[0].kind = WASMTIME_I32;
+  parked_->args[0].of.i32 = static_cast<int32_t>(pending_.size());
+  parked_->future =
+      wasmtime_func_call_async(store_.context().capi(), &event_->capi(), parked_->args, 1,
+                               parked_->results, 1, &parked_->trap, &parked_->error);
+  return Poll(slice_end);
+}
+
+std::expected<std::optional<Reply>, std::string> Instance::Resume(
+    std::chrono::steady_clock::time_point slice_end) {
+  if (!parked_) {
+    return std::unexpected("no call is parked");
+  }
+  // The thread's time while the call was parked is not the call's.
+  const auto away = ThreadTime() - parked_at_;
+  budget_.began += away;
+  last_sample_ += away;
+  return Poll(slice_end);
+}
+
+std::expected<std::optional<Reply>, std::string> Instance::Poll(
+    std::chrono::steady_clock::time_point slice_end) {
+  // Run the call until it returns or yields at the slice's end.
+  slice_end_ = slice_end;
+  ArmDeadline();
+  const bool done = wasmtime_call_future_poll(parked_->future);
+  slice_end_.reset();
+  if (!done) {
+    parked_at_ = ThreadTime();
+    return std::nullopt;
+  }
+
+  // The call returned: free the future and read its result.
+  auto parked = std::move(parked_);
+  busy_ = false;
+  budget_.spent = ThreadTime() - budget_.began;
+  pending_.clear();
+  if (parked->trap) {
+    return std::unexpected(Stop(wasmtime::Trap(std::exchange(parked->trap, nullptr)).message()));
+  }
+  if (parked->error) {
+    return std::unexpected(Stop(wasmtime::Error(std::exchange(parked->error, nullptr)).message()));
+  }
+  FinishSamples();
+  auto reply = Decode(static_cast<uint64_t>(parked->results[0].of.i64));
+  if (!reply) {
+    return std::unexpected(reply.error());
+  }
+  return std::optional<Reply>(std::move(*reply));
+}
+
+std::expected<Reply, std::string> Instance::Decode(uint64_t packed) {
   // Decode the reply the mod left in its memory.
-  const uint64_t packed = called.ok();
   Reply reply;
   if (packed == 0) {
     return reply;
@@ -311,12 +408,16 @@ uint64_t Instance::Ticks(std::chrono::nanoseconds left) {
 uint64_t Instance::NextTicks() const {
   // Wake for the sample when the call is not due one yet, and on every tick
   // once it is.
-  const auto ticks = Ticks(Left());
+  auto ticks = Ticks(Left());
+  if (slice_end_) {
+    ticks = std::min(ticks, Ticks(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                   *slice_end_ - std::chrono::steady_clock::now())));
+  }
   if (limits_.sample_after <= limits_.sample_after.zero()) {
     return ticks;
   }
   const auto until = limits_.sample_after - (ThreadTime() - budget_.began);
-  return std::min(ticks, std::max<uint64_t>(Ticks(until), 1));
+  return std::min(ticks, std::max<uint64_t>(Ticks(until), Ticks(kSampleTick)));
 }
 
 void Instance::ArmDeadline() {

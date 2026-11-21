@@ -80,6 +80,20 @@ class Instance {
   // failing the instance.
   [[nodiscard]] std::expected<Reply, std::string> Deliver(const Call& call);
 
+  // DeliverSliced hands call to the mod as Deliver does, but runs it on a
+  // fiber that yields once the steady clock passes slice_end. It returns the
+  // reply when the call finished within the slice, or nullopt when the call
+  // is parked; Resume runs a parked call on for another slice. While a call
+  // is parked, Deliver and DeliverSliced refuse every other event, and the
+  // budget counts only the time the call runs.
+  [[nodiscard]] std::expected<std::optional<Reply>, std::string> DeliverSliced(
+      const Call& call, std::chrono::steady_clock::time_point slice_end);
+  [[nodiscard]] std::expected<std::optional<Reply>, std::string> Resume(
+      std::chrono::steady_clock::time_point slice_end);
+
+  // Parked reports whether a sliced call is waiting for Resume.
+  [[nodiscard]] bool Parked() const { return parked_ != nullptr; }
+
   // Failure returns the reason the instance stopped, or nullopt while it runs.
   [[nodiscard]] const std::optional<std::string>& Failure() const { return failure_; }
 
@@ -105,6 +119,12 @@ class Instance {
                                                             uint32_t size);
   wasmtime::Result<std::monostate, wasmtime::Trap> HostReadImport(wasmtime::Caller caller,
                                                                   uint32_t data, uint32_t size);
+
+  // Poll runs the parked call until it finishes or its slice ends.
+  std::expected<std::optional<Reply>, std::string> Poll(
+      std::chrono::steady_clock::time_point slice_end);
+  // Decode reads the Reply the mod packed into its memory.
+  std::expected<Reply, std::string> Decode(uint64_t packed);
 
   // Budget is the running call's processor time limit and how its host calls
   // spent it. began is the thread's processor time when the call started,
@@ -174,8 +194,15 @@ class Instance {
   // pending_ holds the encoded message host_read copies next.
   std::string pending_;
   Budget budget_;
-  // busy_ is true while a call into the mod is running.
+  // busy_ is true while a call into the mod is running or parked.
   bool busy_ = false;
+  // ParkedCall holds a sliced call's future and the values it borrows.
+  struct ParkedCall;
+  std::unique_ptr<ParkedCall> parked_;
+  // slice_end_ is when the running sliced call yields; parked_at_ is the
+  // thread's processor time when it last parked.
+  std::optional<std::chrono::steady_clock::time_point> slice_end_;
+  std::chrono::nanoseconds parked_at_{};
   std::optional<std::string> failure_;
 };
 

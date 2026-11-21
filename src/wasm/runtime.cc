@@ -2,7 +2,10 @@
 
 #include "wasm/runtime.h"
 
+#include <wasmtime/async.h>
+
 #include <condition_variable>
+#include <cstdlib>
 #include <mutex>
 #include <string_view>
 #include <utility>
@@ -21,6 +24,13 @@ wasmtime::Engine EpochEngine() {
   wasmtime::Config config;
   config.epoch_interruption(true);
   config.wasm_exceptions(true);
+  // A sliced call runs on a fiber whose stack also holds the host calls it
+  // makes into the engine. MODLOCK_ASYNC_STACK_MB sizes it; Wasmtime's
+  // default is 2 MiB, of which the Wasm stack may take 512 KiB.
+  if (const char* megabytes = std::getenv("MODLOCK_ASYNC_STACK_MB")) {
+    wasmtime_config_async_stack_size_set(config.capi(),
+                                         static_cast<size_t>(std::atoi(megabytes)) << 20);
+  }
   static_cast<void>(config.cache_load_default());
   return wasmtime::Engine(std::move(config));
 }

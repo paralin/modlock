@@ -53,7 +53,27 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
     return wasm::Reply();
   }
   const bool nested = std::exchange(sending_, true);
-  auto reply = instance_->Deliver(call);
+  std::expected<wasm::Reply, std::string> reply;
+  if (frame_slice_end_ && call.method() == "Frame") {
+    // A sliced frame that parks answers later, through Resume.
+    auto sliced = instance_->DeliverSliced(call, *frame_slice_end_);
+    if (sliced && !*sliced) {
+      sending_ = nested;
+      return wasm::Reply();
+    }
+    if (sliced) {
+      reply = std::move(**sliced);
+    } else {
+      reply = std::unexpected(sliced.error());
+    }
+  } else {
+    const auto began = std::chrono::steady_clock::now();
+    reply = instance_->Deliver(call);
+    if (reply && call.method() == "Frame" &&
+        std::chrono::steady_clock::now() - began < std::chrono::milliseconds(2)) {
+      Bench(call);
+    }
+  }
   sending_ = nested;
   if (!reply) {
     // A failed mod stops alone; a refused nested event leaves it running.
