@@ -2938,6 +2938,20 @@ export interface PingResult {
    * sound, voice line and chat line.
    */
   block: boolean
+  /**
+   * muteVoice lists the players, by slot, who get a ping that is not blocked
+   * without its voice line: they still see its marker and hear its sound.
+   * The other recipients get it whole.
+   */
+  muteVoice?: readonly number[]
+}
+
+/** toPingResult encodes a PingResult. */
+function toPingResult(value: PingResult): wasmPb.PingResult {
+  return {
+    block: value.block,
+    muteVoice: value.muteVoice?.map((v) => int32(v)),
+  }
 }
 
 /** CommandResult answers whether the mod handled a command. */
@@ -4419,7 +4433,7 @@ export interface ModHandlers {
   /**
    * ping offers each ping a player the mod serves sends, before the server
    * shows it to anyone, while the mod asked for pings. The mod's answer may
-   * drop it for every recipient.
+   * drop it for every recipient or mute its voice line for some.
    */
   ping(event: PingEvent): PingResult
   /**
@@ -4552,7 +4566,7 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         handlers.chat(fromChatEvent(wasmPb.ChatEvent.fromBinary(input)))
         return reply()
       case 'Ping':
-        return reply(wasmPb.PingResult.toBinary(handlers.ping(fromPingEvent(wasmPb.PingEvent.fromBinary(input)))))
+        return reply(wasmPb.PingResult.toBinary(toPingResult(handlers.ping(fromPingEvent(wasmPb.PingEvent.fromBinary(input))))))
       case 'World':
         handlers.world(fromWorldEvent(wasmPb.WorldEvent.fromBinary(input)))
         return reply()

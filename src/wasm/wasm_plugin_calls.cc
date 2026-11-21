@@ -198,7 +198,7 @@ void WasmPlugin::Chat(const gameinterop::NativeChatHook::Message& line) {
   static_cast<void>(mod_.Chat(event));
 }
 
-bool WasmPlugin::Ping(const gameinterop::NativePingFilter::Ping& ping) {
+bool WasmPlugin::Ping(const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted) {
   wasm::PingEvent event;
   event.set_player(ping.slot);
   switch (ping.kind) {
@@ -221,7 +221,15 @@ bool WasmPlugin::Ping(const gameinterop::NativePingFilter::Ping& ping) {
   // A ping that arrives while the mod runs, or that a mod which cannot
   // answer hears, goes out unchanged.
   auto result = mod_.Ping(event);
-  return result && result->block();
+  if (!result) {
+    return false;
+  }
+  for (const auto slot : result->mute_voice()) {
+    if (gameinterop::IsPlayerSlot(slot)) {
+      voice_muted |= uint64_t{1} << slot;
+    }
+  }
+  return result->block();
 }
 
 void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {

@@ -1764,6 +1764,10 @@ export type PingResult = {
 	-- block drops the ping for every player, the sender included: its marker,
 	-- sound, voice line and chat line.
 	block: boolean,
+	-- muteVoice lists the players, by slot, who get a ping that is not blocked
+	-- without its voice line: they still see its marker and hear its sound.
+	-- The other recipients get it whole.
+	muteVoice: { number }?,
 }
 
 -- CommandResult answers whether the mod handled a command.
@@ -4202,6 +4206,7 @@ schema.PingEvent = {
 }
 schema.PingResult = {
 	{ number = 1, name = "block", kind = "bool" },
+	{ number = 2, name = "muteVoice", kind = "int32", repeated = true },
 }
 schema.CommandResult = {
 	{ number = 1, name = "claimed", kind = "bool" },
@@ -4931,7 +4936,7 @@ export type ModHandlers = {
 	chat: (event: ChatEvent) -> (),
 	-- ping offers each ping a player the mod serves sends, before the server
 	-- shows it to anyone, while the mod asked for pings. The mod's answer may
-	-- drop it for every recipient.
+	-- drop it for every recipient or mute its voice line for some.
 	ping: (event: PingEvent) -> PingResult,
 	-- world follows each world load, and start when a world has already
 	-- loaded. Objects and bots from an earlier world are gone by then.
@@ -6318,9 +6323,11 @@ end
 
 -- onPing calls handler with each ping a player sends, from the comms wheel, a
 -- quick ping key, the map or an ability, before anyone sees it, so it can
--- block the ping. A blocked ping reaches nobody, the sender included: no
--- marker, sound, voice line or chat line. The handler runs inside the
--- server's ping, so it decides at once and defers other work to a frame.
+-- block the ping or mute its voice line. A blocked ping reaches nobody, the
+-- sender included: no marker, sound, voice line or chat line. The players a
+-- handler lists in muteVoice, by slot, get the ping without its voice line.
+-- The handler runs inside the server's ping, so it decides at once and defers
+-- other work to a frame.
 function modlock.onPing(handler: (ping: PingEvent) -> PingResult?)
 	table.insert(pings, handler)
 end
@@ -6531,14 +6538,23 @@ local handlers: ModHandlers = {
 	end,
 
 	ping = function(event)
-		-- The first handler that blocks the ping ends its dispatch.
+		-- The first handler that blocks the ping ends its dispatch; the others
+		-- add the players they mute its voice line for.
+		local muted: { [number]: boolean } = {}
+		local muteVoice: { number } = {}
 		for _, handler in pings do
 			local result = handler(event)
 			if result and result.block then
 				return { block = true }
 			end
+			for _, slot in (result and result.muteVoice) or {} do
+				if not muted[slot] then
+					muted[slot] = true
+					table.insert(muteVoice, slot)
+				end
+			end
 		end
-		return { block = false }
+		return { block = false, muteVoice = muteVoice }
 	end,
 
 	damaged = function(event)

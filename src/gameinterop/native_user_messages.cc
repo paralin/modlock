@@ -3,9 +3,7 @@
 #include <atomic>
 #include <bit>
 #include <cstddef>
-#include <cstring>
-#include <memory>
-#include <vector>
+#include <span>
 
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/io/zero_copy_stream_impl_lite.h"
@@ -101,28 +99,6 @@ std::string PackSoundFields(const NativeUserMessages::SoundFields& fields) {
   add("public.pitch_adjust", fields.pitch);
   return packed;
 }
-
-#if defined(_WIN32)
-
-// BitReader matches the installed networksystem's bf_read. Unserialize checks
-// data bits at +12 and cursor at +16 before reading the length-prefixed proto.
-// The native serializer and message own protobuf allocation, parsing, and
-// deallocation.
-struct BitReader {
-  const uint8_t* data;
-  int32_t bytes;
-  int32_t bits;
-  int32_t cursor = 0;
-  const char* debug_name = "modlock user message";
-  bool overflow = false;
-  bool assert_overflow = false;
-};
-
-static_assert(offsetof(BitReader, cursor) == 16);
-static_assert(offsetof(BitReader, debug_name) == 24);
-static_assert(sizeof(BitReader) == 40);
-
-#endif
 
 }  // namespace
 
@@ -272,27 +248,7 @@ std::expected<void, std::string> NativeUserMessages::Post(
     return std::unexpected("native user message serializer unavailable");
   }
 
-  // Allocate the engine's message.
-  using Allocate = void* (*)();
-  Allocate allocate = nullptr;
-  std::memcpy(&allocate, static_cast<std::byte*>(serializer) + kSerializerAllocateOffset,
-              sizeof(allocate));
-  if (!allocate) {
-    return std::unexpected("native user message allocator unavailable");
-  }
-  auto* native_message = allocate();
-  if (!native_message) {
-    return std::unexpected("native user message allocation failed");
-  }
-
-  // The message's scalar deleting destructor frees it with the game's allocator.
-  const auto release = [](void* value) {
-    using Destroy = void* (*)(void*, uint32_t);
-    reinterpret_cast<Destroy>((*static_cast<void***>(value))[0])(value, 1);
-  };
-  const std::unique_ptr<void, decltype(release)> owned_message(native_message, release);
-
-  // Encode the message after its length.
+  // Encode the message after its length, then parse it into the engine's own.
   std::string encoded;
   {
     google::protobuf::io::StringOutputStream output(&encoded);
@@ -302,17 +258,10 @@ std::expected<void, std::string> NativeUserMessages::Post(
       return std::unexpected("native user message serialization failed");
     }
   }
-
-  // The bit reader can fetch the final word; padding is addressable but is not
-  // part of the declared stream length.
-  std::vector<uint8_t> bytes(encoded.size() + 4);
-  std::memcpy(bytes.data(), encoded.data(), encoded.size());
-  BitReader reader{bytes.data(), static_cast<int32_t>(encoded.size()),
-                   static_cast<int32_t>(encoded.size() * 8)};
-  using Unserialize = bool (*)(void*, BitReader&, void*, void*);
-  if (!NetworkMessagesMethod<Unserialize>(messages_, *unserialize_slot)(messages_, reader,
-                                                                        native_message, nullptr) ||
-      reader.overflow || reader.cursor != reader.bits) {
+  const auto native_message = ParseNetworkMessage(
+      messages_, *unserialize_slot, serializer,
+      std::span(reinterpret_cast<const uint8_t*>(encoded.data()), encoded.size()));
+  if (!native_message) {
     return std::unexpected("native user message decoding failed");
   }
 
@@ -325,7 +274,7 @@ std::expected<void, std::string> NativeUserMessages::Post(
   // The client count is the mask's bit extent, including unselected lower slots.
   const auto clients = static_cast<int32_t>(std::bit_width(recipients));
   reinterpret_cast<PostEvent>(event_methods[*post_slot])(events_, -1, false, clients, &recipients,
-                                                         serializer, native_message, 0, 1);
+                                                         serializer, native_message.get(), 0, 1);
   return {};
 #else
   (void)id;

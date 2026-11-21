@@ -798,12 +798,21 @@ export interface PingResult {
    * sound, voice line and chat line.
    */
   block?: boolean
+  /**
+   * MuteVoice lists the players, by slot, who get a ping that is not blocked
+   * without its voice line: they still see its marker and hear its sound.
+   * The other recipients get it whole.
+   */
+  muteVoice?: number[]
 }
 
 export const PingResult: MessageType<PingResult> =
   /* @__PURE__ */ createMessageType<PingResult>(
     'modlock.wasm.PingResult',
-    () => [[1, 'block', 8]],
+    () => [
+      [1, 'block', 8],
+      [2, 'mute_voice', 5, 3],
+    ],
     {
       decode: (r: BinaryReader, end: number, m: PingResult): PingResult => {
         while (r.pos < end) {
@@ -812,6 +821,10 @@ export const PingResult: MessageType<PingResult> =
           switch (t >>> 3) {
             case 1:
               m.block = r.bool()
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.muteVoice ??= []); r.pos < e;)
+                a.push(r.int32())
               break
             default:
               r.skip(t)
@@ -823,6 +836,14 @@ export const PingResult: MessageType<PingResult> =
         {
           const v = m.block
           if (v) w.uint32(8).bool(v)
+        }
+        {
+          const a = m.muteVoice
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
         }
       },
     },

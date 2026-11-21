@@ -2,6 +2,7 @@
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/unknown_field_set.h>
 #include <gtest/gtest.h>
 
 #include <span>
@@ -63,6 +64,55 @@ TEST(NativePingFilter, RefusesOtherMessagesAndBadSenders) {
   EXPECT_FALSE(NativePingFilter::Decode(kPingWheelMessageId, EncodePing(engine::PingMessage{})));
   EXPECT_FALSE(
       NativePingFilter::Decode(kPingWheelMessageId, std::span(bytes.data(), bytes.size() - 1)));
+}
+
+engine::PingMessage ParseWire(std::span<const uint8_t> wire) {
+  // Strip the length the filter frames each message with.
+  google::protobuf::io::CodedInputStream input(wire.data(), static_cast<int>(wire.size()));
+  uint32_t size = 0;
+  EXPECT_TRUE(input.ReadVarint32(&size));
+  EXPECT_EQ(size, wire.size() - input.CurrentPosition());
+  engine::PingMessage message;
+  EXPECT_TRUE(
+      message.ParseFromArray(wire.data() + input.CurrentPosition(), static_cast<int>(size)));
+  return message;
+}
+
+TEST(NativePingFilter, MutesTheVoiceLineAndKeepsTheMarker) {
+  // The game's location (2) and animation (9) are fields this build does not
+  // name; the marker needs them.
+  auto message = WheelPing(3, 12);
+  auto* common = message.mutable_ping_data();
+  common->set_response_chosen("hero_ping_enemy_here_03");
+  common->mutable_unknown_fields()->AddLengthDelimited(2, "location");
+  common->mutable_unknown_fields()->AddVarint(9, 4);
+
+  const auto voiceless = NativePingFilter::WithoutVoice(kPingWheelMessageId, EncodePing(message));
+  ASSERT_TRUE(voiceless);
+  const auto result = ParseWire(*voiceless);
+  EXPECT_FALSE(result.ping_data().has_speech_concept());
+  EXPECT_FALSE(result.ping_data().has_response_chosen());
+  EXPECT_EQ(result.ping_data().sender_player_slot(), 3);
+  EXPECT_EQ(result.ping_wheel_option_id(), 12U);
+  const auto& kept = result.ping_data().unknown_fields();
+  ASSERT_EQ(kept.field_count(), 2);
+  EXPECT_EQ(kept.field(0).number(), 2);
+  EXPECT_EQ(kept.field(0).length_delimited(), "location");
+  EXPECT_EQ(kept.field(1).number(), 9);
+  EXPECT_EQ(kept.field(1).varint(), 4U);
+
+  // The rewrite still reads as the same player's ping, now with no line.
+  const auto ping = NativePingFilter::Decode(kPingWheelMessageId, *voiceless);
+  ASSERT_TRUE(ping);
+  EXPECT_EQ(ping->slot, 3);
+  EXPECT_EQ(ping->concept_value, 0);
+}
+
+TEST(NativePingFilter, RefusesToRewriteWhatItCannotRead) {
+  const auto bytes = EncodePing(WheelPing(3, 12));
+  EXPECT_FALSE(NativePingFilter::WithoutVoice(118, bytes));
+  EXPECT_FALSE(
+      NativePingFilter::WithoutVoice(kMapPingMessageId, std::span(bytes.data(), bytes.size() - 1)));
 }
 
 }  // namespace

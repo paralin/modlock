@@ -400,9 +400,10 @@ class WasmPlugin final : public Plugin {
   bool Command(int32_t slot, std::string_view line);
   // Chat delivers one chat line to a mod that asked for chat.
   void Chat(const gameinterop::NativeChatHook::Message& line);
-  // Ping offers one player's ping to a mod that asked for pings, and reports
-  // whether the mod blocks it.
-  bool Ping(const gameinterop::NativePingFilter::Ping& ping);
+  // Ping offers one player's ping to a mod that asked for pings, reports
+  // whether the mod blocks it, and adds the slots it mutes the voice line
+  // for to voice_muted.
+  bool Ping(const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted);
   void ShowUi(int32_t slot, const ui::Change& change);
   // Leave drops the player in slot from the mod, which hears them leave if
   // they joined. reason is the engine's disconnect reason when they leave

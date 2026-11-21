@@ -2893,8 +2893,27 @@ class MODLOCK_API PingResult final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kMuteVoiceFieldNumber = 2,
     kBlockFieldNumber = 1,
   };
+  // repeated int32 mute_voice = 2;
+  int mute_voice_size() const;
+  private:
+  int _internal_mute_voice_size() const;
+
+  public:
+  void clear_mute_voice() ;
+  ::int32_t mute_voice(int index) const;
+  void set_mute_voice(int index, ::int32_t value);
+  void add_mute_voice(::int32_t value);
+  const ::google::protobuf::RepeatedField<::int32_t>& mute_voice() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL mutable_mute_voice();
+
+  private:
+  const ::google::protobuf::RepeatedField<::int32_t>& _internal_mute_voice() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_mute_voice();
+
+  public:
   // bool block = 1;
   void clear_block() ;
   bool block() const;
@@ -2909,7 +2928,7 @@ class MODLOCK_API PingResult final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 1,
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
                                    0, 0,
                                    2>
       _table_;
@@ -2931,6 +2950,8 @@ class MODLOCK_API PingResult final : public ::google::protobuf::Message
         const PingResult& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::int32_t> mute_voice_;
+    ::google::protobuf::internal::CachedSize _mute_voice_cached_byte_size_;
     bool block_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -5909,7 +5930,7 @@ inline void PingResult::clear_block() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.block_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000001U);
+                  0x00000002U);
 }
 inline bool PingResult::block() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.PingResult.block)
@@ -5917,7 +5938,7 @@ inline bool PingResult::block() const {
 }
 inline void PingResult::set_block(bool value) {
   _internal_set_block(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:modlock.wasm.PingResult.block)
 }
 inline bool PingResult::_internal_block() const {
@@ -5927,6 +5948,56 @@ inline bool PingResult::_internal_block() const {
 inline void PingResult::_internal_set_block(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.block_ = value;
+}
+
+// repeated int32 mute_voice = 2;
+inline int PingResult::_internal_mute_voice_size() const {
+  return _internal_mute_voice().size();
+}
+inline int PingResult::mute_voice_size() const {
+  return _internal_mute_voice_size();
+}
+inline void PingResult::clear_mute_voice() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mute_voice_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t PingResult::mute_voice(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.PingResult.mute_voice)
+  return _internal_mute_voice().Get(index);
+}
+inline void PingResult::set_mute_voice(int index, ::int32_t value) {
+  _internal_mutable_mute_voice()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.PingResult.mute_voice)
+}
+inline void PingResult::add_mute_voice(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_mute_voice()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.PingResult.mute_voice)
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>& PingResult::mute_voice() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.PingResult.mute_voice)
+  return _internal_mute_voice();
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL PingResult::mutable_mute_voice()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.PingResult.mute_voice)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_mute_voice();
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>&
+PingResult::_internal_mute_voice() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.mute_voice_;
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
+PingResult::_internal_mutable_mute_voice() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.mute_voice_;
 }
 
 // -------------------------------------------------------------------

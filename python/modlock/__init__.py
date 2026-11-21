@@ -2369,6 +2369,10 @@ class PingResult:
     # block drops the ping for every player, the sender included: its marker,
     # sound, voice line and chat line.
     block: bool = False
+    # mute_voice lists the players, by slot, who get a ping that is not blocked
+    # without its voice line: they still see its marker and hear its sound.
+    # The other recipients get it whole.
+    mute_voice: list[int] = dataclasses.field(default_factory=lambda: list[int]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -4967,6 +4971,7 @@ _SCHEMA: wire.Schema = {
         PingResult,
         [
             wire.Field(1, "block", "bool"),
+            wire.Field(2, "mute_voice", "int32", repeated=True),
         ],
     ),
     "CommandResult": (
@@ -6802,9 +6807,10 @@ def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
 def on_ping[F: Callable[[PingEvent], PingResult | None]](handler: F) -> F:
     """on_ping calls handler with each ping a player sends, from the comms
     wheel, a quick ping key, the map or an ability, before anyone sees it,
-    so it can block the ping. A blocked ping reaches nobody, the sender
-    included. The handler runs inside the server's ping, so it decides at
-    once and defers other work to a frame.
+    so it can block the ping or mute its voice line. A blocked ping reaches
+    nobody, the sender included; the players a handler lists in mute_voice,
+    by slot, get it without its voice line. The handler runs inside the
+    server's ping, so it decides at once and defers other work to a frame.
 
     Annotate the handler's parameters, since a checker and an editor's
     completion read their types from there:
@@ -7143,12 +7149,17 @@ def _chat(event: ChatEvent) -> None:
 
 
 def _ping(event: PingEvent) -> PingResult:
-    # The first handler that blocks the ping ends its dispatch.
+    # The first handler that blocks the ping ends its dispatch; the others
+    # add the players they mute its voice line for.
+    mute_voice: dict[int, None] = {}
     for handler in _pings:
         result = handler(event)
-        if result is not None and result.block:
+        if result is None:
+            continue
+        if result.block:
             return PingResult(block=True)
-    return PingResult(block=False)
+        mute_voice.update(dict.fromkeys(result.mute_voice))
+    return PingResult(block=False, mute_voice=list(mute_voice))
 
 
 def _world(event: WorldEvent) -> None:

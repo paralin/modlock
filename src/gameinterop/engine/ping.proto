@@ -15,6 +15,10 @@ message PingCommonData {
 
   // SpeechConcept is the voice line the ping speaks, or zero for none.
   optional int32 speech_concept = 5;
+
+  // ResponseChosen names the line the server's response rules chose for the
+  // concept, which each recipient plays in the sender's voice.
+  optional string response_chosen = 6;
 }
 
 // PingMessage matches the fields CCitadelUserMsg_MapPing (303),

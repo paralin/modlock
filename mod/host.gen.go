@@ -1981,7 +1981,7 @@ type modHandlers interface {
 	Chat(event *ChatEvent) error
 	// Ping offers each ping a player the mod serves sends, before the server
 	// shows it to anyone, while the mod asked for pings. The mod's answer may
-	// drop it for every recipient.
+	// drop it for every recipient or mute its voice line for some.
 	Ping(event *PingEvent) (*PingResult, error)
 	// World follows each world load, and start when a world has already
 	// loaded. Objects and bots from an earlier world are gone by then.
