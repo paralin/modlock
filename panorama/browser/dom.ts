@@ -887,6 +887,22 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
       css.border = value === '0px none' ? '' : value
       return
     }
+    case 'preTransformRotate2d': {
+      // CSS's rotate turns before the transform, as the game's does.
+      css.rotate = value
+      return
+    }
+    case 'transitionProperty': {
+      css.transitionProperty = value.replace(
+        /pre-transform-rotate2d/g,
+        'rotate',
+      )
+      return
+    }
+    case 'clip': {
+      clip(element, value)
+      return
+    }
     case 'washColor':
     case 'soundOut':
       return
@@ -896,6 +912,29 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
         value,
       )
   }
+}
+
+// clip draws an element inside the game's clip shape: rect( top, right,
+// bottom, left ), each a percent from the top or left edge, as a CSS inset,
+// or radial( x y, start, sweep ) as a conic mask sweeping clockwise from
+// start. Any other value clears both.
+function clip(element: HTMLElement, value: string): void {
+  // Read the shape's numbers in order, whatever their units.
+  const css = element.style
+  css.clipPath = ''
+  css.maskImage = ''
+  const shape = /^\s*(rect|radial)\(/.exec(value)?.[1]
+  const numbers = (value.match(/-?[\d.]+/g) ?? []).map(Number)
+  if (shape === 'rect' && numbers.length === 4) {
+    const [top = 0, right = 100, bottom = 100, left = 0] = numbers
+    css.clipPath = `inset(${top}% ${100 - right}% ${100 - bottom}% ${left}%)`
+    return
+  }
+  if (shape !== 'radial' || numbers.length !== 4) return
+
+  // Show the slice from start through sweep, clockwise from the top.
+  const [x = 50, y = 50, start = 0, sweep = 0] = numbers
+  css.maskImage = `conic-gradient(from ${start}deg at ${x}% ${y}%, #000 ${sweep}deg, transparent 0)`
 }
 
 // lineRatio sets the line height ratio of an element's font family. Panorama
