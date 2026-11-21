@@ -29,7 +29,11 @@ message Node {
   string text = 4;
 
   // Image is an image's path in the game's content, such as
-  // "file://{images}/heroes/wraith_card.psd".
+  // "file://{images}/heroes/wraith_card.psd". The renderer writes the name of
+  // the mod's content addon in place of "{addon}", so a mod names its own
+  // pictures as "file://{images}/{addon}/mark.png" without knowing the name
+  // the host mounted them under; a renderer that knows no addon for the mod
+  // draws the image empty.
   string image = 5;
 
   // Style lays out and paints the node.
@@ -194,6 +198,47 @@ message Node {
   // ability window for them, and gives the game's own back once the screen
   // stops asking or it may no longer hold the HUD. Only the root's rows count.
   repeated AbilityRow ability_display = 38;
+
+  // Clock runs a label's time in the player's game, so the tree stays the
+  // same while the time changes. The label shows the time in place of its
+  // text, or fills its token's {s:clock} place with it.
+  Clock clock = 39;
+}
+
+// Clock is a time a label counts in the player's game.
+message Clock {
+  // Seconds is the time the clock shows as the renderer first draws it.
+  double seconds = 1;
+
+  // Up counts up from seconds; otherwise the clock counts down and stops at
+  // zero.
+  bool up = 2;
+
+  // Paused holds the clock at seconds.
+  bool paused = 3;
+
+  // Format writes the time.
+  ClockFormat format = 4;
+
+  // Run names one run of the clock. The renderer starts counting again from
+  // seconds when any of the clock's fields change, so a mod changes run to
+  // restart a clock at the same time, such as each round's opening. A
+  // renderer that first draws a running clock later, as after a reload,
+  // starts it from seconds.
+  uint32 run = 5;
+}
+
+// ClockFormat writes a clock's time.
+enum ClockFormat {
+  // CLOCK_FORMAT_MINUTES writes minutes and seconds, such as "4:05".
+  CLOCK_FORMAT_MINUTES = 0;
+
+  // CLOCK_FORMAT_SECONDS writes whole seconds, such as "245".
+  CLOCK_FORMAT_SECONDS = 1;
+
+  // CLOCK_FORMAT_TENTHS writes seconds and tenths, such as "9.4", with
+  // minutes before them from a minute up, such as "1:05.3".
+  CLOCK_FORMAT_TENTHS = 2;
 }
 
 // AbilityRow is one player's abilities, as AbilityDisplay shows them.
@@ -244,6 +289,12 @@ message Cue {
   // Seconds cuts the sound after that long, keeping only its start; zero
   // plays it out.
   float seconds = 3;
+
+  // Delay is how long the renderer waits before it plays the sound, in
+  // seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
+  // draw. A cue whose mod leaves or clears its interface before then does
+  // not play.
+  float delay = 4;
 }
 
 // Scaling fits a picture into its node's box.
@@ -349,6 +400,19 @@ enum HudPart {
   // player's whole view, such as a draft before the match. The mods' own
   // interfaces, Hyperline's, the game's tooltips and its chat stay.
   HUD_PART_ALL = 12;
+
+  // HUD_PART_MINIMAP_PLAYERS is every player's icon on the minimap, the
+  // player's own included. The map, its objectives and its hints stay.
+  HUD_PART_MINIMAP_PLAYERS = 13;
+
+  // HUD_PART_INVENTORY is the player's purchased items at the lower right of
+  // their stats. The stats, souls and status icons stay.
+  HUD_PART_INVENTORY = 14;
+
+  // HUD_PART_CROSSHAIR is the crosshair with what the game draws in it: the
+  // reticle, the clip ring and ammo count, and the stamina pips. The ammo
+  // warnings stay.
+  HUD_PART_CROSSHAIR = 15;
 }
 
 // Kind selects the panel a node draws.
@@ -586,6 +650,55 @@ message Style {
   // Transition animates each change to the node's style, and the move to and
   // from its hover style, instead of snapping to it.
   Transition transition = 45;
+
+  // Clip draws only the part of the node and its children inside a shape.
+  // A transition does not ease it: a new clip shows at once, so a mod that
+  // fills a ring over time draws it again as it goes. Dropping a clip makes
+  // the node's panel anew.
+  Clip clip = 46;
+
+  // Turn turns the node clockwise, in degrees, before its transform, as one
+  // angle: a transition eases the angle itself, so a turn from 0 to 720
+  // spins the node twice, where a transform's rotate eases the shortest way
+  // between two orientations. It turns about the transform's origin.
+  float turn = 47;
+}
+
+// Clip is the shape a node is drawn inside.
+message Clip {
+  // Shape selects the shape.
+  oneof shape {
+    // Rect is a box inside the node.
+    ClipRect rect = 1;
+
+    // Radial is a slice of a circle about a point in the node.
+    ClipRadial radial = 2;
+  }
+}
+
+// ClipRect is a box inside a node, each side a percent of the node's size
+// from its top or left edge.
+message ClipRect {
+  float top = 1;
+  float right = 2;
+  float bottom = 3;
+  float left = 4;
+}
+
+// ClipRadial is the slice of the node swept about a center from start
+// through sweep degrees, as the game's radial clip draws a cooldown ring; a
+// sweep of 360 draws the whole node.
+message ClipRadial {
+  // CenterX and CenterY are the slice's center, as percents of the node's
+  // size; unset is its center.
+  optional float center_x = 1;
+  optional float center_y = 2;
+
+  // Start is where the slice begins, in degrees.
+  float start = 3;
+
+  // Sweep is the slice's angle, in degrees.
+  float sweep = 4;
 }
 
 // Overflow decides what happens to children that do not fit a node.
@@ -730,6 +843,20 @@ message Transition {
 
   // Easing shapes the change's speed over its time.
   Easing easing = 3;
+
+  // Curve shapes the change's speed in place of easing, as a cubic Bezier
+  // curve from (0, 0) to (1, 1) through two control points: x is the share
+  // of the time and y the share of the change.
+  Curve curve = 4;
+}
+
+// Curve is a cubic Bezier easing curve's two control points. Each x is from 0
+// to 1; a y outside 0 to 1 overshoots.
+message Curve {
+  float x1 = 1;
+  float y1 = 2;
+  float x2 = 3;
+  float y2 = 4;
 }
 
 // Easing shapes an animation's speed over its time.

@@ -99,22 +99,22 @@ Luau spells each call as TypeScript does, Python in `snake_case`, and Go
 capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 `Sound`.
 
-| Call                                    | Effect                                                                                              |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                                            |
-| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                                            |
-| `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` stops it early.                  |
-| `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` shows them again.             |
-| `hideHudForAll(parts)`                  | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.          |
-| `showChatLines(options?)`               | Show each player's chat line beside their hero portrait, as the top bar does. TypeScript only.      |
-| `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming. |
-| `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                  |
-| `abilityDisplay(viewer, rows?)`         | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.    |
-| `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                                   |
-| `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.                          |
-| `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view.              |
-| `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                                 |
-| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`; see [Layouts](/guides/layouts).                  |
+| Call                                           | Effect                                                                                                                                             |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `show(player, element)`, `hide(player)`        | Show a player an interface written in JSX, or remove it.                                                                                           |
+| `toast(player, text, seconds?)`                | Show a player a short notice that fades.                                                                                                           |
+| `uiSound(player, sound, { seconds?, delay? })` | Play a game sound event to one player once, hero or not; `seconds` stops it early and `delay` plays it later, so one draw can time a run of ticks. |
+| `hideHud(player, parts)`                       | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'` or `'all'`; `[]` shows them again. |
+| `hideHudForAll(parts)`                         | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.                                                         |
+| `showChatLines(options?)`                      | Show each player's chat line beside their hero portrait, as the top bar does. TypeScript only.                                                     |
+| `freeCursor(player, free)`                     | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                |
+| `abilityBarPresses(player, onPress?)`          | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                 |
+| `abilityDisplay(viewer, rows?)`                | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                   |
+| `cursorFree(player)`                           | Read whether the player's cursor is up now, however it got there.                                                                                  |
+| `items`, `item(name)`                          | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.                                                                         |
+| `player.screenEffect(effect, timing?)`         | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view.                                                             |
+| `player.clearScreenEffect(effect)`             | End that effect, such as lifting a black screen at a round's start.                                                                                |
+| `route(player, name, value)`                   | Hand every layout of the mod `value` under `name`; see [Layouts](/guides/layouts).                                                                 |
 
 ## The cursor
 
@@ -155,29 +155,31 @@ leaves those parts hidden.
 
 Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
 
-| Group  | Properties                                                                                                                                                                                                                                                                                     |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Layout | `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`, `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`), `overflow`, `overflowX`, `overflowY` (`'squish'`, `'clip'`, `'scroll'`, `'show'`) |
-| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`                                                                                                               |
-| Text   | `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`, `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`, `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`, `textShadow`      |
-| Motion | `translate`, `scale`, `rotate`, `origin`, `transition` (seconds or `{ seconds, delay, easing }`); a change to a property the game animates eases instead of jumping                                                                                                                            |
+| Group  | Properties                                                                                                                                                                                                                                                                                                                                                                         |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout | `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`, `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`), `overflow`, `overflowX`, `overflowY` (`'squish'`, `'clip'`, `'scroll'`, `'show'`)                                                                                     |
+| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`, `clip` (a box `{ rect: [top, right, bottom, left] }` in percents, or a slice `{ center?, start, sweep }` in degrees, such as a cooldown ring; it does not ease)                                  |
+| Text   | `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`, `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`, `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`, `textShadow`                                                                                          |
+| Motion | `translate`, `scale`, `rotate`, `turn`, `origin`, `transition` (seconds or `{ seconds, delay, easing, curve }`); a change to a property the game animates eases instead of jumping. `turn` eases the angle itself, so 0 to 720 spins twice, where `rotate` takes the short way. `curve` is a cubic Bezier `[x1, y1, x2, y2]`, as CSS's `cubic-bezier`, and a `y` past 1 overshoots |
 
 ## Elements and props
 
-| Prop or element         | On       | Does                                                                                                                                                 |
-| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `hover`                 | any      | A style laid over the element's own while the pointer is on it.                                                                                      |
-| `tooltip`               | any      | Text the game shows beside it.                                                                                                                       |
-| `item`                  | any      | An item's class name. The game shows the item's shop card in the element's place.                                                                    |
-| `ability`               | any      | `{ name, player }`. The game shows its window for that ability in the element's place, in the player's language with the numbers of `player`'s hero. |
-| `hoverSound`            | any      | A game sound event, such as `'UI.MainMenu.Hover'`.                                                                                                   |
-| `enter`, `exit`         | any      | Styles it eases from as it appears and to before it goes, with its `transition`.                                                                     |
-| `cycle`                 | any      | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                                        |
-| `sound`, `disabled`     | `button` | A sound played on a press; `disabled` stops presses.                                                                                                 |
-| `scaling`               | `image`  | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                                              |
-| `<hero hero={15} look>` |          | The game's picture of a hero: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                            |
-| `token`, `variables`    | `label`  | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                                     |
-| `<avatar steamId>`      |          | A player's Steam picture, from an entry of `players()`.                                                                                              |
+| Prop or element         | On       | Does                                                                                                                                                                                                                                                                          |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hover`                 | any      | A style laid over the element's own while the pointer is on it.                                                                                                                                                                                                               |
+| `tooltip`               | any      | Text the game shows beside it.                                                                                                                                                                                                                                                |
+| `item`                  | any      | An item's class name. The game shows the item's shop card in the element's place.                                                                                                                                                                                             |
+| `ability`               | any      | `{ name, player }`. The game shows its window for that ability in the element's place, in the player's language with the numbers of `player`'s hero.                                                                                                                          |
+| `hoverSound`            | any      | A game sound event, such as `'UI.MainMenu.Hover'`.                                                                                                                                                                                                                            |
+| `enter`, `exit`         | any      | Styles it eases from as it appears and to before it goes, with its `transition`.                                                                                                                                                                                              |
+| `cycle`                 | any      | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                                                                                                                                                                 |
+| `sound`, `disabled`     | `button` | A sound played on a press; `disabled` stops presses.                                                                                                                                                                                                                          |
+| `scaling`               | `image`  | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                                                                                                                                                                       |
+| `src`                   | `image`  | A game picture, or one of the mod's own with `{addon}` for its addon, such as `'file://{images}/{addon}/mark.png'`.                                                                                                                                                           |
+| `<hero hero={15} look>` |          | The game's picture of a hero: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                                                                                                                                                     |
+| `token`, `variables`    | `label`  | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                                                                                                                                                              |
+| `clock`                 | `label`  | `{ seconds, up?, paused?, format?, run? }`: a time the player's game counts, down to zero or up, as `'minutes'`, `'seconds'` or `'tenths'`. The mod draws it once; a change to it, such as a new `run`, starts it again from `seconds`. With a `token`, it fills `{s:clock}`. |
+| `<avatar steamId>`      |          | A player's Steam picture, from an entry of `players()`.                                                                                                                                                                                                                       |
 
 An interface cannot load pages, styles or scripts from outside the game.
 

@@ -2821,6 +2821,12 @@ local HudPart: { [any]: any } = {
 	brokerCountdown = 11,
 	[12] = "all",
 	all = 12,
+	[13] = "minimapPlayers",
+	minimapPlayers = 13,
+	[14] = "inventory",
+	inventory = 14,
+	[15] = "crosshair",
+	crosshair = 15,
 }
 
 -- Scaling holds the wire names of the interface enum Scaling.
@@ -2855,6 +2861,16 @@ local HeroLook: { [any]: any } = {
 	topBar = 4,
 	[5] = "minimap",
 	minimap = 5,
+}
+
+-- ClockFormat holds the wire names of the interface enum ClockFormat.
+local ClockFormat: { [any]: any } = {
+	[0] = "minutes",
+	minutes = 0,
+	[1] = "seconds",
+	seconds = 1,
+	[2] = "tenths",
+	tenths = 2,
 }
 
 -- Window holds the wire names of the service enum Window.
@@ -3878,10 +3894,18 @@ schema.Node = {
 	{ number = 36, name = "cues", kind = "message", repeated = true, message = "Cue" },
 	{ number = 37, name = "abilityBarPresses", kind = "bool" },
 	{ number = 38, name = "abilityDisplay", kind = "message", repeated = true, message = "AbilityRow" },
+	{ number = 39, name = "clock", kind = "message", message = "Clock" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
 	{ number = 2, name = "value", kind = "string" },
+}
+schema.Clock = {
+	{ number = 1, name = "seconds", kind = "double" },
+	{ number = 2, name = "up", kind = "bool" },
+	{ number = 3, name = "paused", kind = "bool" },
+	{ number = 4, name = "format", kind = "enum", enum = ClockFormat },
+	{ number = 5, name = "run", kind = "uint32" },
 }
 schema.AbilityRow = {
 	{ number = 1, name = "player", kind = "uint32", class = Player, key = "slot" },
@@ -3899,6 +3923,7 @@ schema.Cue = {
 	{ number = 1, name = "number", kind = "uint32" },
 	{ number = 2, name = "sound", kind = "string" },
 	{ number = 3, name = "seconds", kind = "float" },
+	{ number = 4, name = "delay", kind = "float" },
 }
 schema.TextEntry = {
 	{ number = 1, name = "text", kind = "string" },
@@ -3974,6 +3999,24 @@ schema.Style = {
 	{ number = 43, name = "decoration", kind = "enum", enum = Decoration },
 	{ number = 44, name = "transform", kind = "message", message = "Transform" },
 	{ number = 45, name = "transition", kind = "message", message = "Transition" },
+	{ number = 46, name = "clip", kind = "message", message = "Clip" },
+	{ number = 47, name = "turn", kind = "float" },
+}
+schema.Clip = {
+	{ number = 1, name = "rect", kind = "message", optional = true, message = "ClipRect" },
+	{ number = 2, name = "radial", kind = "message", optional = true, message = "ClipRadial" },
+}
+schema.ClipRect = {
+	{ number = 1, name = "top", kind = "float" },
+	{ number = 2, name = "right", kind = "float" },
+	{ number = 3, name = "bottom", kind = "float" },
+	{ number = 4, name = "left", kind = "float" },
+}
+schema.ClipRadial = {
+	{ number = 1, name = "centerX", kind = "float", optional = true },
+	{ number = 2, name = "centerY", kind = "float", optional = true },
+	{ number = 3, name = "start", kind = "float" },
+	{ number = 4, name = "sweep", kind = "float" },
 }
 schema.Gradient = {
 	{ number = 1, name = "shape", kind = "enum", enum = GradientShape },
@@ -4004,6 +4047,13 @@ schema.Transition = {
 	{ number = 1, name = "seconds", kind = "float" },
 	{ number = 2, name = "delay", kind = "float" },
 	{ number = 3, name = "easing", kind = "enum", enum = Easing },
+	{ number = 4, name = "curve", kind = "message", message = "Curve" },
+}
+schema.Curve = {
+	{ number = 1, name = "x1", kind = "float" },
+	{ number = 2, name = "y1", kind = "float" },
+	{ number = 3, name = "x2", kind = "float" },
+	{ number = 4, name = "y2", kind = "float" },
 }
 schema.Length = {
 	{ number = 1, name = "pixels", kind = "float", optional = true },

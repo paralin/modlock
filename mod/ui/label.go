@@ -7,7 +7,8 @@ import (
 )
 
 // Label shows text: Text, or the game's text for Token in the player's
-// language, with each {s:name} place in it filled from Variables.
+// language, with each {s:name} place in it filled from Variables. A Clock's
+// time stands in for Text, or fills Token's {s:clock} place.
 type Label struct {
 	// Key keeps the label's node in a list while the list changes.
 	Key string
@@ -37,6 +38,21 @@ type Label struct {
 	Token string
 	// Variables fill each {s:name} place in Token's text.
 	Variables map[string]string
+	// Clock counts a time in the player's game.
+	Clock *Clock
+}
+
+// Clock counts a label's time in the player's game, so the mod draws it once
+// and not every second. It starts at Seconds as the player first sees it and
+// counts down to zero, or up when Up is set, unless Paused. A change to any of
+// its fields starts the count again from Seconds; change Run to restart the
+// same clock, such as at each round.
+type Clock struct {
+	Seconds float64
+	Up      bool
+	Paused  bool
+	Format  ClockFormat
+	Run     uint32
 }
 
 // Render returns the label itself.
@@ -58,4 +74,5 @@ func (e Label) draw(_ *layout, n *uipb.Node, _ string) {
 	n.Text = e.Text
 	n.Token = e.Token
 	n.Variables = maps.Clone(e.Variables)
+	n.Clock = clock(e.Clock)
 }

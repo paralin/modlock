@@ -66,11 +66,13 @@ addEventListener('resize', fit)
 fit()
 
 // A mod's layouts load from its latest build, so each build names them anew
-// and the drawing loads them again.
+// and the drawing loads them again. A browser reads none of the game's
+// content, so an image from the mod's addon draws empty.
 let build = 0
 const layouts: Layouts = {
   url: (mod, path) =>
     `/layout/${encodeURIComponent(mod)}/${path}?build=${build}`,
+  addon: () => null,
   unloaded() {},
 }
 

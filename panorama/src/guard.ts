@@ -157,6 +157,15 @@ export const finders: Partial<Record<HudPart, Finder>> = {
     const countdown = popup?.FindChildTraverse('Countdown')
     return countdown ? [countdown] : []
   },
+  // Each player's minimap icon, and the player's own view cone, carry the
+  // player class (hud_minimap.xml's MinimapPlayerSnippet).
+  [HudPart.MINIMAP_PLAYERS]: (hud) =>
+    hud
+      .FindChildTraverse('minimap_persp')
+      ?.FindChildrenWithClassTraverse('player') ?? [],
+  [HudPart.INVENTORY]: (hud) => ownPanel(hud, 'ModsContainer'),
+  // The ammo warnings sit beside the crosshair, not in it.
+  [HudPart.CROSSHAIR]: (hud) => ownPanel(hud, 'crosshair'),
   [HudPart.ALL]: (hud, scope) => everything(hud, scope),
 }
 

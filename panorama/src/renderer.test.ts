@@ -1,5 +1,5 @@
 import type { JsonObject } from '@aptre/protobuf-es-lite'
-import { beforeEach, expect, test } from 'bun:test'
+import { beforeEach, expect, setSystemTime, test } from 'bun:test'
 
 import { HudPart, Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
@@ -690,7 +690,10 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
     new FakePanel('Panel', 'ModlockUi'),
     () => {},
   )
-  const cues = (generation: number, ...list: [number, string, number?][]) =>
+  const cues = (
+    generation: number,
+    ...list: [number, string, number?, number?][]
+  ) =>
     Screen.fromJson({
       trees: [
         {
@@ -699,10 +702,11 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
           nodes: [
             {
               id: '',
-              cues: list.map(([number, sound, seconds]) => ({
+              cues: list.map(([number, sound, seconds, delay]) => ({
                 number,
                 sound,
                 seconds: seconds ?? 0,
+                delay: delay ?? 0,
               })),
             },
           ],
@@ -749,6 +753,66 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
   drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed']))
   drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed'], [4, 'Last']))
   expect(sounds).toEqual(['play Next 6', 'stop 6', 'play Last 7'])
+
+  // A delayed cue plays once its time comes; one whose mod leaves first
+  // never plays.
+  sounds.length = 0
+  drawing.draw(cues(2, [4, 'Last'], [5, 'Tick', 0, 0.2]))
+  expect(sounds).toEqual([])
+  runScheduled()
+  expect(sounds).toEqual(['play Tick 8'])
+  drawing.draw(cues(2, [5, 'Tick', 0, 0.2], [6, 'Late', 0, 0.2]))
+  drawing.draw(null)
+  runScheduled()
+  expect(sounds).toEqual(['play Tick 8', 'stop 7', 'stop 8'])
+})
+
+test("runs a label's clock in the game and restarts it when the mod changes it", () => {
+  // Draw a countdown from 65 seconds and a count up in tenths.
+  setSystemTime(new Date(1_000_000))
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  const clocks = (run: number) =>
+    screen(
+      { id: '', children: ['down', 'up', 'token'] },
+      {
+        id: 'down',
+        kind: 'KIND_LABEL',
+        clock: { seconds: 65, run },
+      },
+      {
+        id: 'up',
+        kind: 'KIND_LABEL',
+        clock: { seconds: 59.95, up: true, format: 'CLOCK_FORMAT_TENTHS' },
+      },
+      {
+        id: 'token',
+        kind: 'KIND_LABEL',
+        token: '#Round',
+        clock: { seconds: 3, format: 'CLOCK_FORMAT_SECONDS', paused: true },
+      },
+    )
+  drawing.draw(clocks(1))
+  const [down, up, token] = root.children[0]!.children
+  expect(down!.text).toBe('1:05')
+  expect(up!.text).toBe('59.9')
+  expect(token!.dialog).toEqual({ clock: '3' })
+
+  // The game ticks it on its own; a countdown shows zero only at its end.
+  setSystemTime(new Date(1_000_000 + 64_500))
+  runScheduled()
+  expect(down!.text).toBe('0:01')
+  expect(up!.text).toBe('2:04.4')
+  setSystemTime(new Date(1_000_000 + 70_000))
+  runScheduled()
+  expect(down!.text).toBe('0:00')
+
+  // The same clock drawn again keeps counting; a new run starts over.
+  drawing.draw(clocks(1))
+  expect(down!.text).toBe('0:00')
+  drawing.draw(clocks(2))
+  expect(down!.text).toBe('1:05')
+  setSystemTime()
 })
 
 test('draws inputs, avatars and game text, and sends edits', () => {
@@ -1621,6 +1685,7 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   let unloaded = 0
   const drawing = new Drawing($, root, () => {}, {
     url: (mod, path) => (mod === 'arena' ? `file://arena/${path}` : null),
+    addon: (mod) => (mod === 'arena' ? 'arena' : null),
     unloaded: () => unloaded++,
   })
   const layout = (path: string, data: string) =>
@@ -1726,6 +1791,7 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   const sheeted = new FakePanel('Panel', 'ModlockUi')
   const styled = new Drawing($, sheeted, () => {}, {
     url: (mod, path) => `file://${mod}/${path}`,
+    addon: (mod) => mod,
     unloaded: () => {},
   })
   const sheets = (list: string[], classes: string[], flow?: string) =>
@@ -1779,6 +1845,7 @@ test("hands a mod's routes to each of its layouts", () => {
   const root = new FakePanel('Panel', 'ModlockUi')
   const drawing = new Drawing($, root, () => {}, {
     url: (mod, path) => `file://${mod}/${path}`,
+    addon: (mod) => mod,
     unloaded: () => {},
   })
   const route = (name: string, data: string) => ({

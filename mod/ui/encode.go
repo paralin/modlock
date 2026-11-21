@@ -57,6 +57,8 @@ func wireStyle(style *Style) *uipb.Style {
 		TextOverflow:    textOverflow(style.TextOverflow),
 		Decoration:      decoration(style.Decoration),
 		Transform:       transform(style),
+		Turn:            style.Turn,
+		Clip:            clip(style.Clip),
 		Transition:      transition(style.Transition),
 	}
 	if w.EqualVT(emptyStyle) {
@@ -215,7 +217,43 @@ func transition(value *Transition) *uipb.Transition {
 	if value == nil {
 		return nil
 	}
-	return &uipb.Transition{Seconds: value.Seconds, Delay: value.Delay, Easing: easing(value.Easing)}
+	t := &uipb.Transition{Seconds: value.Seconds, Delay: value.Delay, Easing: easing(value.Easing)}
+	if len(value.Curve) == 4 {
+		t.Curve = &uipb.Curve{X1: value.Curve[0], Y1: value.Curve[1], X2: value.Curve[2], Y2: value.Curve[3]}
+	}
+	return t
+}
+
+// clip encodes a clip: a box when Rect is set, otherwise a slice.
+func clip(value *Clipping) *uipb.Clip {
+	if value == nil {
+		return nil
+	}
+	if len(value.Rect) == 4 {
+		return &uipb.Clip{Shape: &uipb.Clip_Rect{Rect: &uipb.ClipRect{
+			Top: value.Rect[0], Right: value.Rect[1], Bottom: value.Rect[2], Left: value.Rect[3],
+		}}}
+	}
+	slice := &uipb.ClipRadial{Start: value.Start, Sweep: value.Sweep}
+	if len(value.Center) == 2 {
+		slice.CenterX, slice.CenterY = new(value.Center[0]), new(value.Center[1])
+	}
+	return &uipb.Clip{Shape: &uipb.Clip_Radial{Radial: slice}}
+}
+
+// clock encodes a label's clock.
+func clock(value *Clock) *uipb.Clock {
+	if value == nil {
+		return nil
+	}
+	c := &uipb.Clock{Seconds: value.Seconds, Up: value.Up, Paused: value.Paused, Run: value.Run}
+	switch value.Format {
+	case ClockSeconds:
+		c.Format = uipb.ClockFormat_CLOCK_FORMAT_SECONDS
+	case ClockTenths:
+		c.Format = uipb.ClockFormat_CLOCK_FORMAT_TENTHS
+	}
+	return c
 }
 
 // flow encodes a flow.
@@ -406,6 +444,12 @@ func hudPart(value HudPart) uipb.HudPart {
 		return uipb.HudPart_HUD_PART_HERO_PICKER
 	case BrokerCountdown:
 		return uipb.HudPart_HUD_PART_BROKER_COUNTDOWN
+	case MinimapPlayers:
+		return uipb.HudPart_HUD_PART_MINIMAP_PLAYERS
+	case Inventory:
+		return uipb.HudPart_HUD_PART_INVENTORY
+	case Crosshair:
+		return uipb.HudPart_HUD_PART_CROSSHAIR
 	case All:
 		return uipb.HudPart_HUD_PART_ALL
 	}
