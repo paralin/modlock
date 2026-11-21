@@ -13,6 +13,7 @@
 #include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/hero_initialization.h"
 #include "modlock/gameinterop/native_chat_hook.h"
+#include "modlock/gameinterop/native_ping_filter.h"
 #include "modlock/gameinterop/native_trace.h"
 #include "modlock/gameinterop/stamina_observer.h"
 #include "modlock/host_app/game_paths.h"
@@ -44,9 +45,11 @@ class MODLOCK_API EngineHost {
   const std::expected<int, std::string>& Result() const;
 
   // Event subscriptions dispatch in registration order. A true command,
-  // damage, or respawn decision claims that operation and ends its dispatch.
+  // damage, ping or respawn decision claims that operation and ends its
+  // dispatch; a claimed ping is dropped for every recipient.
   std::expected<Subscription, std::string> OnFrame(std::function<void()> callback);
   std::expected<Subscription, std::string> OnChat(gameinterop::NativeChatHook::Handler callback);
+  std::expected<Subscription, std::string> OnPing(gameinterop::NativePingFilter::Handler callback);
   std::expected<Subscription, std::string> OnCommand(
       std::function<bool(int32_t, std::string_view)> callback);
   std::expected<Subscription, std::string> OnCombat(

@@ -276,6 +276,7 @@ local restoreds: { (player: Player, error: string?) -> () } = {}
 local npcsRestoreds: { (error: string?) -> () } = {}
 local damages: { (hit: DamageEvent) -> DamageResult? } = {}
 local damageds: { (hit: DamagedEvent) -> () } = {}
+local pings: { (ping: PingEvent) -> PingResult? } = {}
 local kills: { (kill: KillEvent) -> () } = {}
 local abilityCasts: { (cast: AbilityCastEvent) -> () } = {}
 local heals: { (heal: HealEvent) -> () } = {}
@@ -1244,6 +1245,15 @@ local function respawned(player: Player)
 	end
 end
 
+-- onPing calls handler with each ping a player sends, from the comms wheel, a
+-- quick ping key, the map or an ability, before anyone sees it, so it can
+-- block the ping. A blocked ping reaches nobody, the sender included: no
+-- marker, sound, voice line or chat line. The handler runs inside the
+-- server's ping, so it decides at once and defers other work to a frame.
+function modlock.onPing(handler: (ping: PingEvent) -> PingResult?)
+	table.insert(pings, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -1354,6 +1364,7 @@ local handlers: ModHandlers = {
 			levels = #levels ~= 0,
 			melees = #melees ~= 0,
 			parries = #parries ~= 0,
+			pings = #pings ~= 0,
 			modifierEvents = watched,
 		}
 	end,
@@ -1446,6 +1457,17 @@ local handlers: ModHandlers = {
 
 		-- Answer nothing when no handler changed the hit.
 		return if amount == event.amount then {} else { amount = amount }
+	end,
+
+	ping = function(event)
+		-- The first handler that blocks the ping ends its dispatch.
+		for _, handler in pings do
+			local result = handler(event)
+			if result and result.block then
+				return { block = true }
+			end
+		end
+		return { block = false }
 	end,
 
 	damaged = function(event)

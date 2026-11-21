@@ -36,6 +36,8 @@ import {
   type ModifierFiredEvent,
   type ParryEvent,
   type Pawn,
+  type PingEvent,
+  type PingResult,
   Player,
   type PlayerJoinedEvent,
   type PlayerLeftEvent,
@@ -552,6 +554,17 @@ export function onDamage(
   damages.push(handler)
 }
 
+/**
+ * onPing calls handler with each ping a player sends, from the comms wheel, a
+ * quick ping key, the map or an ability, before anyone sees it, so it can
+ * block the ping. A blocked ping reaches nobody, the sender included: no
+ * marker, sound, voice line or chat line. The handler runs inside the
+ * server's ping, so it decides at once and defers other work to a frame.
+ */
+export function onPing(handler: (ping: PingEvent) => PingResult | void): void {
+  pings.push(handler)
+}
+
 /** onDamaged calls handler on the frame after each hit lands. */
 export function onDamaged(handler: (hit: DamagedEvent) => void): void {
   damageds.push(handler)
@@ -705,6 +718,7 @@ const restoreds: ((player: Player, error: string | undefined) => void)[] = []
 const npcsRestoreds: ((error: string | undefined) => void)[] = []
 const damages: ((hit: DamageEvent) => DamageResult | void)[] = []
 const damageds: ((hit: DamagedEvent) => void)[] = []
+const pings: ((ping: PingEvent) => PingResult | void)[] = []
 const kills: ((kill: KillEvent) => void)[] = []
 const abilityCasts: ((cast: AbilityCastEvent) => void)[] = []
 const heals: ((heal: HealEvent) => void)[] = []
@@ -745,6 +759,7 @@ const handlers: ModHandlers = {
       levels: levels.length !== 0,
       melees: melees.length !== 0,
       parries: parries.length !== 0,
+      pings: pings.length !== 0,
       modifierEvents: [
         ...new Set([
           ...modifierEvents.keys(),
@@ -794,6 +809,16 @@ const handlers: ModHandlers = {
         handler(event)
       }
     })
+  },
+
+  ping(event): PingResult {
+    // The first handler that blocks the ping ends its dispatch.
+    for (const handler of pings) {
+      if (handler(event)?.block) {
+        return { block: true }
+      }
+    }
+    return { block: false }
   },
 
   world(event) {

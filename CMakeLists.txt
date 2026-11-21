@@ -158,6 +158,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/keyvalues.cc
   src/gameinterop/match_clock.cc
   src/gameinterop/native_chat_hook.cc
+  src/gameinterop/native_ping_filter.cc
   src/gameinterop/native_damage.cc
   src/gameinterop/native_trace.cc
   src/gameinterop/native_user_messages.cc
@@ -632,6 +633,9 @@ if(BUILD_TESTING)
   add_executable(native_chat_hook_test tests/native_chat_hook_test.cc)
   target_link_libraries(native_chat_hook_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME native_chat_hook_test COMMAND native_chat_hook_test)
+  add_executable(native_ping_filter_test tests/native_ping_filter_test.cc)
+  target_link_libraries(native_ping_filter_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME native_ping_filter_test COMMAND native_ping_filter_test)
   add_executable(net_listen_boot_test tests/net_listen_boot_test.cc)
   target_link_libraries(net_listen_boot_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME net_listen_boot_test COMMAND net_listen_boot_test)
