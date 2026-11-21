@@ -5,7 +5,7 @@ description: Every field of mod.json.
 
 The manifest is the `mod.json` file at a project's root. It has the mod's
 slug, name, version and language, and may add its map, movement, definition
-changes, settings, metrics and boards. The smallest manifest has the four
+changes, settings, metrics, boards and records. The smallest manifest has the four
 required fields:
 
 ```json
@@ -30,7 +30,8 @@ required fields:
 | `settings`    |          | [Choices](/reference/manifest#settings) each player makes about the mod.                                              |
 | `metrics`     |          | Running [totals](/reference/manifest#metrics) for each player, which the mod adds to.                                 |
 | `boards`      |          | [Rankings](/reference/manifest#boards) the mod reports scores to.                                                     |
-| `persist`     |          | [Records](/reference/manifest#persist) the mod keeps for each player across sessions.                                 |
+| `records`     |          | [Kinds of record](/reference/manifest#records) the mod keeps, one row per round or event.                             |
+| `persist`     |          | [Data](/reference/manifest#persist) the mod keeps for each player across sessions.                                    |
 | `services`    |          | [Services](/reference/manifest#services) the mod calls, each needed or optional.                                      |
 | `freeForAll`  |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
 
@@ -248,6 +249,43 @@ values, the lower `tiebreak` ranks first. The host's scores service ranks the
 scores, decides who may report and how far it trusts each server. Under
 `modlock dev`, where no such service runs, the host checks each score against
 its board and logs it, and the mod logs any score the host does not accept.
+
+## Records
+
+```json
+"records": [
+  {
+    "name": "round",
+    "fields": [
+      { "name": "round", "type": "TYPE_INTEGER" },
+      { "name": "area", "type": "TYPE_TEXT", "values": ["docks", "market"] },
+      { "name": "winner", "type": "TYPE_PLAYER" },
+      { "name": "seconds", "type": "TYPE_NUMBER" },
+      { "name": "seekers_won", "type": "TYPE_BOOL" }
+    ]
+  }
+]
+```
+
+| Field    | Value                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| `name`   | The kind's name: a lowercase letter, then up to 31 lowercase letters, digits and underscores.                |
+| `fields` | Up to 32 fields, each with a `name` by the same rule, a `type` from the table below and, for text, `values`. |
+
+| Type           | Value                                                                     |
+| -------------- | ------------------------------------------------------------------------- |
+| `TYPE_INTEGER` | A whole number up to 64 bits.                                             |
+| `TYPE_NUMBER`  | Any finite number.                                                        |
+| `TYPE_TEXT`    | Up to 64 bytes of text. With `values`, one of up to 64 listed texts.      |
+| `TYPE_BOOL`    | True or false.                                                            |
+| `TYPE_PLAYER`  | A player in the game, which the host stores as their SteamID; a bot is 0. |
+
+A mod declares up to 16 kinds. A field may not be named `id`, `at`, `version`,
+`game`, `seq`, `lobby` or `tier`, which the host adds to every record. A field
+keeps its type across releases: to change what it holds, give it a new name.
+The host leaves out of a record each field the kind does not declare or whose
+value does not fit, and keeps the rest. Under `modlock dev` the host checks
+each record and logs it.
 
 ## Services
 

@@ -1,11 +1,12 @@
 ---
-title: Settings, metrics and boards
-description: Let players choose, count what they do and rank them.
+title: Settings, metrics, boards and records
+description: Let players choose, count what they do, rank them and keep each round.
 ---
 
 A setting is a value a player chooses, a metric is a count of what players do,
-and a board is a ranking of players. You declare each in the manifest and the
-host stores them, so your mod needs no database of its own.
+a board is a ranking of players, and a record is one row for each round or
+event of a game. You declare each in the manifest and the host stores them, so
+your mod needs no database of its own.
 
 ## Settings
 
@@ -234,3 +235,49 @@ for that player and board in the game.
 Python spells them in `snake_case` with keyword options. Go spells them
 `Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's
 error where the others return false.
+
+## Records
+
+A record keeps one row for a round, a match or another event, so you can later
+ask how your game plays: which area seekers win in, how long a round lasts,
+which prop hiders pick. Declare each kind in
+[`mod.json`](/reference/manifest#records), then add a record when the event
+happens. The call returns at once; the host delivers the record later.
+
+<Samples>
+
+```ts
+import { record } from 'modlock'
+
+record('round', {
+  round: 3,
+  area: 'docks',
+  winner: seeker,
+  seconds: 184.5,
+  seekers_won: true,
+})
+```
+
+```luau
+modlock.record("round", { round = 3, area = "docks", winner = seeker, seconds = 184.5, seekers_won = true })
+```
+
+```python
+modlock.record("round", round=3, area="docks", winner=seeker, seconds=184.5, seekers_won=True)
+```
+
+```go
+mod.Record("round", mod.Fields{"round": 3, "area": "docks", "winner": seeker, "seconds": 184.5, "seekers_won": true})
+```
+
+</Samples>
+
+Pass a player as the player object; the host stores their SteamID. A field
+left out, or given no value, is unknown in that row. The host leaves out a
+field the kind does not declare or whose value does not fit its type, logs
+what it left out and keeps the rest of the record.
+
+`record` reports whether a records service took the record. Under
+`modlock dev` the host checks each record and logs it. A host with no records
+service stores nothing, and the mod logs each record instead. Go returns
+`mod.ErrNoRecords` there.

@@ -4956,6 +4956,31 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "resources", "string", repeated=True),
         ],
     ),
+    "RecordValue": (
+        None,
+        [
+            wire.Field(1, "integer", "int64", optional=True),
+            wire.Field(2, "number", "double", optional=True),
+            wire.Field(3, "text", "string", optional=True),
+            wire.Field(4, "bool", "bool", optional=True),
+            wire.Field(5, "player", "int32", optional=True, cls=Player, key="slot"),
+            wire.Field(6, "steam_id", "fixed64", optional=True),
+        ],
+    ),
+    "GameRecord": (
+        None,
+        [
+            wire.Field(1, "kind", "string"),
+            wire.Field(2, "fields", "message", repeated=True, map=True, message="GameRecord_FieldsEntry"),
+        ],
+    ),
+    "GameRecord_FieldsEntry": (
+        None,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "value", "message", optional=True, message="RecordValue"),
+        ],
+    ),
     "ScoreConnection": (
         None,
         [
@@ -6245,6 +6270,57 @@ def set_orbit_camera(player: Player, enabled: bool) -> bool:
     flag = write_field(pawn.entity, "CCitadelPlayerPawn", "m_bInHideoutZone", "bool", enabled)
     zoom = hold_modifier_state(pawn.entity, "MODIFIER_STATE_HIDEOUT_ZONE", enabled)
     return flag and zoom
+
+
+# _RECORDS names the host service that takes records.
+_RECORDS = "records"
+
+# RecordValue is one field of a record; None leaves the field out.
+type RecordValue = int | float | str | bool | Player | None
+
+
+def _record_value(value: RecordValue) -> dict[str, object] | None:
+    """_record_value encodes one field's value in the case its type takes: an
+    int as an integer and a float as a number. The wire sends a Player as its
+    slot, which the host stores as the player's SteamID."""
+    if isinstance(value, bool):
+        return {"bool": value}
+    if isinstance(value, int):
+        return {"integer": value}
+    if isinstance(value, float):
+        return {"number": value}
+    if isinstance(value, str):
+        return {"text": value}
+    if isinstance(value, Player):
+        return {"player": value}
+    return None
+
+
+def _describe_record_value(value: RecordValue) -> str:
+    """_describe_record_value writes one value as the log line shows it."""
+    if isinstance(value, Player):
+        return f"player {value.slot}"
+    if isinstance(value, str):
+        return f'"{value}"'
+    return str(value).lower() if isinstance(value, bool) else str(value)
+
+
+def record(kind: str, **fields: RecordValue) -> bool:
+    """record adds one record of a kind mod.json declares, such as one per
+    round. The host leaves out a field the kind does not declare or whose
+    value does not fit, and logs it. It returns whether a records service took
+    the record; a host without one takes none, and the mod logs the record
+    instead.
+
+        modlock.record("round", round=3, area="docks", winner="seekers", seconds=184.5)
+    """
+    values = {name: v for name, value in fields.items() if (v := _record_value(value)) is not None}
+    payload = wire.encode(_SCHEMA, "GameRecord", {"kind": kind, "fields": values})
+    if call_service(_RECORDS, "Add", payload) is not None:
+        return True
+    line = " ".join(f"{name}={_describe_record_value(fields[name])}" for name in sorted(values))
+    log(f"record {kind}: {line} (not stored: this host keeps no records)")
+    return False
 
 
 # _SCORES names the host service that keeps scores.

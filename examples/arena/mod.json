@@ -18,5 +18,17 @@
     { "name": "arena.kills", "kind": "KIND_COUNT" },
     { "name": "arena.streak", "kind": "KIND_MAX" },
     { "name": "arena.wins", "kind": "KIND_COUNT" }
+  ],
+  "records": [
+    {
+      "name": "match",
+      "fields": [
+        { "name": "fighters", "type": "TYPE_INTEGER" },
+        { "name": "seconds", "type": "TYPE_NUMBER" },
+        { "name": "winner", "type": "TYPE_PLAYER" },
+        { "name": "kills", "type": "TYPE_INTEGER" },
+        { "name": "draw", "type": "TYPE_BOOL" }
+      ]
+    }
   ]
 }

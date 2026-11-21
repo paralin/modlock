@@ -195,6 +195,7 @@ export {
   type ScoreOptions,
   type ScorePlayer,
 } from './scores.js'
+export { record, type RecordFields, type RecordValue } from './records.js'
 export {
   decodeSpot,
   encodeSpot,

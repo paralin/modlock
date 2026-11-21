@@ -92,6 +92,67 @@ function modlock.setOrbitCamera(player: Player, enabled: boolean): boolean
 	return flag and zoom
 end
 
+-- recordsService names the host service that takes records.
+local recordsService = "records"
+
+-- RecordValue is one field of a record: a number, a string, a boolean or a
+-- Player.
+export type RecordValue = number | string | boolean | Player
+
+-- recordValue encodes one field's value in the case its type takes: a whole
+-- number as an integer and any other number as a number. The wire sends a
+-- Player as its slot, which the host stores as the player's SteamID.
+local function recordValue(value: RecordValue): { [string]: any }?
+	if type(value) == "number" then
+		if value == math.floor(value) and math.abs(value) <= 2 ^ 53 then
+			return { integer = value }
+		end
+		return { number = value }
+	elseif type(value) == "string" then
+		return { text = value }
+	elseif type(value) == "boolean" then
+		return { bool = value }
+	elseif type(value) == "table" and getmetatable(value :: any) == Player then
+		return { player = value }
+	end
+	return nil
+end
+
+-- record adds one record of a kind mod.json declares, such as one per
+-- round. The host leaves out a field the kind does not declare or whose
+-- value does not fit, and logs it. It returns whether a records service took
+-- the record; a host without one takes none, and the mod logs the record
+-- instead.
+--
+--   modlock.record("round", { round = 3, area = "docks", winner = "seekers", seconds = 184.5 })
+function modlock.record(kind: string, fields: { [string]: RecordValue }): boolean
+	-- Encode each field, in name order for the log line.
+	local values = {}
+	local names = {}
+	for name, value in fields do
+		local encoded = recordValue(value)
+		if encoded ~= nil then
+			values[name] = encoded
+			table.insert(names, name)
+		end
+	end
+	table.sort(names)
+
+	-- Hand the record to the host, or log it when no service takes it.
+	local payload = wire.encode(schema, "GameRecord", { kind = kind, fields = values })
+	if modlock.callService(recordsService, "Add", payload) ~= nil then
+		return true
+	end
+	local parts = {}
+	for _, name in names do
+		local value = fields[name]
+		local text = if type(value) == "table" then "player " .. tostring((value :: Player).slot) elseif type(value) == "string" then string.format("%q", value) else tostring(value)
+		table.insert(parts, name .. "=" .. text)
+	end
+	modlock.log("record " .. kind .. ": " .. table.concat(parts, " ") .. " (not stored: this host keeps no records)")
+	return false
+end
+
 -- scoresService names the host service that keeps scores.
 local scoresService = "scores"
 

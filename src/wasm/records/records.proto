@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package modlock.wasm.records;
+
+option go_package = "github.com/paralin/modlock/src/wasm/records;records";
+
+// RecordKind declares one kind of record a mod keeps in its manifest, such as
+// one record per round. A host that serves the records service stores each
+// record as one row, which a query reads as a row of a table named for the
+// kind.
+message RecordKind {
+  // Name names the kind in the mod's code and in queries: a lowercase letter
+  // followed by up to 31 lowercase letters, digits and underscores.
+  string name = 1;
+
+  // Fields are the values a record of this kind may carry, up to 32.
+  repeated RecordField fields = 2;
+}
+
+// RecordField declares one field of a kind of record. A field keeps its type
+// across releases; to change its meaning, give it a new name.
+message RecordField {
+  // Type is the kind of value a field holds.
+  enum Type {
+    // TYPE_UNKNOWN is an unset or unsupported type.
+    TYPE_UNKNOWN = 0;
+
+    // TYPE_INTEGER is a whole number up to 64 bits.
+    TYPE_INTEGER = 1;
+
+    // TYPE_NUMBER is any finite number; a whole number fits too.
+    TYPE_NUMBER = 2;
+
+    // TYPE_TEXT is up to 64 bytes of text; with values, one of them.
+    TYPE_TEXT = 3;
+
+    // TYPE_BOOL is true or false.
+    TYPE_BOOL = 4;
+
+    // TYPE_PLAYER is a player in the game, stored as their SteamID; a bot is
+    // stored as 0.
+    TYPE_PLAYER = 5;
+  }
+
+  // Name names the field, by the same rule as a kind's name. It may not take
+  // a column the host adds to every row: id, at, version, game, seq, lobby or
+  // tier.
+  string name = 1;
+
+  // Type is the kind of value the field holds.
+  Type type = 2;
+
+  // Values are the texts a TYPE_TEXT field allows, up to 64; empty allows any
+  // text. Only a TYPE_TEXT field lists values.
+  repeated string values = 3;
+}
+
+// RecordValue is one field's value.
+message RecordValue {
+  // Value is the field's value, in the case its type takes.
+  oneof value {
+    // Integer is a whole number, for a TYPE_INTEGER or TYPE_NUMBER field.
+    int64 integer = 1;
+
+    // Number is a number with a fraction, for a TYPE_NUMBER field.
+    double number = 2;
+
+    // Text is the value of a TYPE_TEXT field.
+    string text = 3;
+
+    // Bool is the value of a TYPE_BOOL field.
+    bool bool = 4;
+
+    // Player is the server slot of the player a TYPE_PLAYER field names, as
+    // the mod passes it; the host replaces it with steam_id.
+    int32 player = 5;
+
+    // SteamId is the player a TYPE_PLAYER field names, which the host
+    // resolved when the record was added; 0 for a bot or an empty slot.
+    fixed64 steam_id = 6;
+  }
+}
+
+// GameRecord is one record a mod adds, the request of the records service's
+// Add method. The service answers at once and does not wait for delivery.
+message GameRecord {
+  // Kind names a record kind the manifest declares.
+  string kind = 1;
+
+  // Fields maps field names to values; a field left out is unknown.
+  map<string, RecordValue> fields = 2;
+}

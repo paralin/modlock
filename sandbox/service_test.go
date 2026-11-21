@@ -5,6 +5,7 @@ import (
 
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm"
+	recordspb "github.com/paralin/modlock/src/wasm/records"
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 )
 
@@ -53,5 +54,27 @@ func TestCallService(t *testing.T) {
 	page := &scorespb.BoardPage{}
 	if reply.GetError() != "" || answer.UnmarshalVT(reply.GetResponse()) != nil || page.UnmarshalVT(answer.GetPayload()) != nil || len(page.GetRows()) != 0 {
 		t.Fatalf("read %v, want an empty page", reply)
+	}
+
+	// Log a record with the field its kind leaves out named, and refuse an
+	// undeclared kind.
+	build.Manifest.Records = []*recordspb.RecordKind{{Name: "round", Fields: []*recordspb.RecordField{
+		{Name: "area", Type: recordspb.RecordField_TYPE_TEXT, Values: []string{"docks"}},
+		{Name: "seconds", Type: recordspb.RecordField_TYPE_NUMBER},
+	}}}
+	logged = nil
+	round := &recordspb.GameRecord{Kind: "round", Fields: map[string]*recordspb.RecordValue{
+		"area":    {Value: &recordspb.RecordValue_Text{Text: "docks"}},
+		"seconds": {Value: &recordspb.RecordValue_Number{Number: 184.5}},
+		"team":    {Value: &recordspb.RecordValue_Text{Text: "amber"}},
+	}}
+	if reply := serve("records", "Add", round); reply.GetError() != "" {
+		t.Fatalf("record refused: %s", reply.GetError())
+	}
+	if want := `record round: area="docks" seconds=184.5; left out team (not declared)`; len(logged) != 1 || logged[0] != want {
+		t.Fatalf("logged %q, want %q", logged, want)
+	}
+	if reply := serve("records", "Add", &recordspb.GameRecord{Kind: "find"}); reply.GetError() == "" {
+		t.Fatal("an undeclared kind was accepted")
 	}
 }

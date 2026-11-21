@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/paralin/modlock/persist"
+	"github.com/paralin/modlock/records"
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
@@ -71,7 +72,7 @@ func (s *Sandbox) provide(path string, build *Build) error {
 		switch {
 		case err != nil:
 			return err
-		case provider == nil && name == scoresService:
+		case provider == nil && (name == scoresService || name == records.Service):
 			s.log(mod, "service "+name+": the sandbox")
 		case provider == nil && name == persist.Service && build.records != nil:
 		case provider != nil:
@@ -187,11 +188,14 @@ type serviceCalls struct {
 }
 
 // callService answers request from the provider of its service: the
-// sandbox's scores or the mod's fixture. It is nil when nobody provides the
+// sandbox's scores or records, or the mod's fixture. It is nil when nobody provides the
 // service.
 func (s *Sandbox) callService(build *Build, request *wasm.ServiceCall) *wasm.Reply {
 	if request.GetService() == scoresService {
 		return s.scores(build.Manifest, request)
+	}
+	if request.GetService() == records.Service {
+		return s.records(build.Manifest, request)
 	}
 	if request.GetService() == persist.Service && build.records != nil {
 		return s.persist(build, request)

@@ -6,6 +6,7 @@ import { Setting } from './settings/settings.pb.js'
 import { Metric } from './metrics/metrics.pb.js'
 import { Board } from './scores/scores.pb.js'
 import { RecordType } from './persist/persist.pb.js'
+import { RecordKind } from './records/records.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType, newMap } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -104,6 +105,11 @@ export interface Manifest {
    * host's persist service, such as stats or unlocks, up to 8.
    */
   persist?: RecordType[]
+  /**
+   * Records are the kinds of record the mod adds with Record through the
+   * host's records service, such as one per round, up to 16.
+   */
+  records?: RecordKind[]
 }
 
 export const Manifest: MessageType<Manifest> =
@@ -126,6 +132,7 @@ export const Manifest: MessageType<Manifest> =
       [14, 'boards', 11, 1, Board.codec],
       [15, 'services', 11, 1, Service.codec],
       [16, 'persist', 11, 1, RecordType.codec],
+      [17, 'records', 11, 1, RecordKind.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Manifest): Manifest => {
@@ -182,6 +189,9 @@ export const Manifest: MessageType<Manifest> =
               break
             case 16:
               ;(m.persist ??= []).push(RecordType.decode(r, r.delimited(), {}))
+              break
+            case 17:
+              ;(m.records ??= []).push(RecordKind.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -253,6 +263,10 @@ export const Manifest: MessageType<Manifest> =
         {
           const a = m.persist
           if (a != null) for (const e of a) RecordType.writeField(w, 16, e)
+        }
+        {
+          const a = m.records
+          if (a != null) for (const e of a) RecordKind.writeField(w, 17, e)
         }
       },
     },

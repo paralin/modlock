@@ -42,7 +42,10 @@ const schemaFile = modulePath + "/src/wasm/wasm.proto"
 // serviceFiles declare the messages of the services a host provides outside
 // Modlock, which the handwritten Luau and Python libraries encode for
 // callService.
-var serviceFiles = []string{modulePath + "/src/wasm/scores/scores.proto"}
+var serviceFiles = []string{
+	modulePath + "/src/wasm/records/records.proto",
+	modulePath + "/src/wasm/scores/scores.proto",
+}
 
 // outputs are the generated files and the writer of each, relative to the
 // repository root.

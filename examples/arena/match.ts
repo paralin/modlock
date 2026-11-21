@@ -9,6 +9,7 @@ import {
   holdModifierState,
   log,
   type Player,
+  record,
   toast,
 } from 'modlock'
 import { apply, arena } from 'modlock/console'
@@ -334,6 +335,16 @@ export class Match {
 
   /** finish ends the match with winner, or a draw without one. */
   private finish(winner: Fighter | undefined): void {
+    // Record the match: one row per match, which a query groups by the
+    // number of fighters.
+    record('match', {
+      fighters: this.entrants().length,
+      seconds: this.now - (this.deadline - matchSeconds),
+      winner: winner?.player,
+      kills: winner?.kills,
+      draw: winner === undefined,
+    })
+
     // Hold the result on screen until the arena waits again.
     this.phase = 'results'
     this.deadline = this.now + resultSeconds

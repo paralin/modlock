@@ -92,6 +92,7 @@ var heroFields = []string{
 // serviceMessages are the requests and responses of the services a host
 // provides outside Modlock that the handwritten libraries call, by full name.
 var serviceMessages = []string{
+	".modlock.wasm.records.GameRecord",
 	".modlock.wasm.scores.ScoreReport",
 	".modlock.wasm.scores.MatchReport",
 	".modlock.wasm.scores.BoardQuery",

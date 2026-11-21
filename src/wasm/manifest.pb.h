@@ -38,6 +38,7 @@
 #include "google/protobuf/unknown_field_set.h"
 #include "metrics/metrics.pb.h"
 #include "persist/persist.pb.h"
+#include "records/records.pb.h"
 #include "scores/scores.pb.h"
 #include "settings/settings.pb.h"
 // @@protoc_insertion_point(includes)
@@ -1376,6 +1377,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     kBoardsFieldNumber = 14,
     kServicesFieldNumber = 15,
     kPersistFieldNumber = 16,
+    kRecordsFieldNumber = 17,
     kSlugFieldNumber = 1,
     kNameFieldNumber = 2,
     kVersionFieldNumber = 3,
@@ -1489,6 +1491,23 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
   const ::modlock::wasm::persist::RecordType& persist(int index) const;
   ::modlock::wasm::persist::RecordType* PROTOBUF_NONNULL add_persist();
   const ::google::protobuf::RepeatedPtrField<::modlock::wasm::persist::RecordType>& persist() const;
+  // repeated .modlock.wasm.records.RecordKind records = 17;
+  int records_size() const;
+  private:
+  int _internal_records_size() const;
+
+  public:
+  void clear_records() ;
+  ::modlock::wasm::records::RecordKind* PROTOBUF_NONNULL mutable_records(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>* PROTOBUF_NONNULL mutable_records();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>& _internal_records() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>* PROTOBUF_NONNULL _internal_mutable_records();
+  public:
+  const ::modlock::wasm::records::RecordKind& records(int index) const;
+  ::modlock::wasm::records::RecordKind* PROTOBUF_NONNULL add_records();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>& records() const;
   // string slug = 1;
   void clear_slug() ;
   const ::std::string& slug() const;
@@ -1628,8 +1647,8 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 16,
-                                   7, 82,
+  static const ::google::protobuf::internal::TcParseTable<5, 17,
+                                   8, 82,
                                    2>
       _table_;
 
@@ -1656,6 +1675,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::scores::Board > boards_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::Service > services_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::persist::RecordType > persist_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::records::RecordKind > records_;
     ::google::protobuf::internal::ArenaStringPtr slug_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::google::protobuf::internal::ArenaStringPtr version_;
@@ -1695,7 +1715,7 @@ inline void Manifest::clear_slug() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.slug_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000040U);
+                  0x00000080U);
 }
 inline const ::std::string& Manifest::slug() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1705,13 +1725,13 @@ inline const ::std::string& Manifest::slug() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_slug(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   _impl_.slug_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.slug)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_slug()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   ::std::string* _s = _internal_mutable_slug();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.slug)
   return _s;
@@ -1731,10 +1751,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_slug() {
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_slug() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.slug)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000040U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000080U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   auto* released = _impl_.slug_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.slug_.Set("", GetArena());
@@ -1744,9 +1764,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_slug() {
 inline void Manifest::set_allocated_slug(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   }
   _impl_.slug_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.slug_.IsDefault()) {
@@ -1760,7 +1780,7 @@ inline void Manifest::clear_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000080U);
+                  0x00000100U);
 }
 inline const ::std::string& Manifest::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1770,13 +1790,13 @@ inline const ::std::string& Manifest::name() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.name)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   ::std::string* _s = _internal_mutable_name();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.name)
   return _s;
@@ -1796,10 +1816,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_name() {
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.name)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000080U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000100U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.name_.Set("", GetArena());
@@ -1809,9 +1829,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_name() {
 inline void Manifest::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   }
   _impl_.name_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
@@ -1825,7 +1845,7 @@ inline void Manifest::clear_version() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.version_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000100U);
+                  0x00000200U);
 }
 inline const ::std::string& Manifest::version() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1835,13 +1855,13 @@ inline const ::std::string& Manifest::version() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_version(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   _impl_.version_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.version)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_version()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   ::std::string* _s = _internal_mutable_version();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.version)
   return _s;
@@ -1861,10 +1881,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_version() {
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_version() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.version)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000100U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000200U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   auto* released = _impl_.version_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.version_.Set("", GetArena());
@@ -1874,9 +1894,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_version() {
 inline void Manifest::set_allocated_version(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   }
   _impl_.version_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.version_.IsDefault()) {
@@ -1890,7 +1910,7 @@ inline void Manifest::clear_language() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.language_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00002000U);
+                  0x00004000U);
 }
 inline ::modlock::wasm::Manifest_Language Manifest::language() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.Manifest.language)
@@ -1898,7 +1918,7 @@ inline ::modlock::wasm::Manifest_Language Manifest::language() const {
 }
 inline void Manifest::set_language(::modlock::wasm::Manifest_Language value) {
   _internal_set_language(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.language)
 }
 inline ::modlock::wasm::Manifest_Language Manifest::_internal_language() const {
@@ -1915,7 +1935,7 @@ inline void Manifest::clear_runtime() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.runtime_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00004000U);
+                  0x00008000U);
 }
 inline ::modlock::wasm::Manifest_Runtime Manifest::runtime() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.Manifest.runtime)
@@ -1923,7 +1943,7 @@ inline ::modlock::wasm::Manifest_Runtime Manifest::runtime() const {
 }
 inline void Manifest::set_runtime(::modlock::wasm::Manifest_Runtime value) {
   _internal_set_runtime(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.runtime)
 }
 inline ::modlock::wasm::Manifest_Runtime Manifest::_internal_runtime() const {
@@ -1940,7 +1960,7 @@ inline void Manifest::clear_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entry_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000200U);
+                  0x00000400U);
 }
 inline const ::std::string& Manifest::entry() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1950,13 +1970,13 @@ inline const ::std::string& Manifest::entry() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_entry(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   _impl_.entry_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.entry)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_entry()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   ::std::string* _s = _internal_mutable_entry();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.entry)
   return _s;
@@ -1976,10 +1996,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_entry() {
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.entry)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000200U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   auto* released = _impl_.entry_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.entry_.Set("", GetArena());
@@ -1989,9 +2009,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_entry() {
 inline void Manifest::set_allocated_entry(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   }
   _impl_.entry_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.entry_.IsDefault()) {
@@ -2005,7 +2025,7 @@ inline void Manifest::clear_map() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.map_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000400U);
+                  0x00000800U);
 }
 inline const ::std::string& Manifest::map() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -2015,13 +2035,13 @@ inline const ::std::string& Manifest::map() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_map(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   _impl_.map_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.map)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_map()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::std::string* _s = _internal_mutable_map();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.map)
   return _s;
@@ -2041,10 +2061,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_map() {
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_map() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.map)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000800U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   auto* released = _impl_.map_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.map_.Set("", GetArena());
@@ -2054,9 +2074,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_map() {
 inline void Manifest::set_allocated_map(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   }
   _impl_.map_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.map_.IsDefault()) {
@@ -2067,7 +2087,7 @@ inline void Manifest::set_allocated_map(::std::string* PROTOBUF_NULLABLE value) 
 
 // .modlock.wasm.Movement movement = 8;
 inline bool Manifest::has_movement() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00001000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00002000U);
   PROTOBUF_ASSUME(!value || _impl_.movement_ != nullptr);
   return value;
 }
@@ -2075,7 +2095,7 @@ inline void Manifest::clear_movement() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.movement_ != nullptr) _impl_.movement_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00001000U);
+                  0x00002000U);
 }
 inline const ::modlock::wasm::Movement& Manifest::_internal_movement() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -2094,16 +2114,16 @@ inline void Manifest::unsafe_arena_set_allocated_movement(
   }
   _impl_.movement_ = reinterpret_cast<::modlock::wasm::Movement*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.Manifest.movement)
 }
 inline ::modlock::wasm::Movement* PROTOBUF_NULLABLE Manifest::release_movement() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::modlock::wasm::Movement* released = _impl_.movement_;
   _impl_.movement_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -2123,7 +2143,7 @@ inline ::modlock::wasm::Movement* PROTOBUF_NULLABLE Manifest::unsafe_arena_relea
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.movement)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::modlock::wasm::Movement* temp = _impl_.movement_;
   _impl_.movement_ = nullptr;
   return temp;
@@ -2138,7 +2158,7 @@ inline ::modlock::wasm::Movement* PROTOBUF_NONNULL Manifest::_internal_mutable_m
 }
 inline ::modlock::wasm::Movement* PROTOBUF_NONNULL Manifest::mutable_movement()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::modlock::wasm::Movement* _msg = _internal_mutable_movement();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.movement)
   return _msg;
@@ -2155,9 +2175,9 @@ inline void Manifest::set_allocated_movement(::modlock::wasm::Movement* PROTOBUF
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
 
   _impl_.movement_ = reinterpret_cast<::modlock::wasm::Movement*>(value);
@@ -2325,7 +2345,7 @@ inline void Manifest::clear_free_for_all() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.free_for_all_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00008000U);
+                  0x00010000U);
 }
 inline bool Manifest::free_for_all() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.Manifest.free_for_all)
@@ -2333,7 +2353,7 @@ inline bool Manifest::free_for_all() const {
 }
 inline void Manifest::set_free_for_all(bool value) {
   _internal_set_free_for_all(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.free_for_all)
 }
 inline bool Manifest::_internal_free_for_all() const {
@@ -2350,7 +2370,7 @@ inline void Manifest::clear_content_addon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.content_addon_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000800U);
+                  0x00001000U);
 }
 inline const ::std::string& Manifest::content_addon() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -2360,13 +2380,13 @@ inline const ::std::string& Manifest::content_addon() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Manifest::set_content_addon(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   _impl_.content_addon_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.content_addon)
 }
 inline ::std::string* PROTOBUF_NONNULL Manifest::mutable_content_addon()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   ::std::string* _s = _internal_mutable_content_addon();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.content_addon)
   return _s;
@@ -2386,10 +2406,10 @@ inline ::std::string* PROTOBUF_NONNULL Manifest::_internal_mutable_content_addon
 inline ::std::string* PROTOBUF_NULLABLE Manifest::release_content_addon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.Manifest.content_addon)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000800U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00001000U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   auto* released = _impl_.content_addon_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.content_addon_.Set("", GetArena());
@@ -2399,9 +2419,9 @@ inline ::std::string* PROTOBUF_NULLABLE Manifest::release_content_addon() {
 inline void Manifest::set_allocated_content_addon(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   }
   _impl_.content_addon_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.content_addon_.IsDefault()) {
@@ -2564,6 +2584,56 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::persist::RecordType
 Manifest::_internal_mutable_persist() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.persist_;
+}
+
+// repeated .modlock.wasm.records.RecordKind records = 17;
+inline int Manifest::_internal_records_size() const {
+  return _internal_records().size();
+}
+inline int Manifest::records_size() const {
+  return _internal_records_size();
+}
+inline ::modlock::wasm::records::RecordKind* PROTOBUF_NONNULL Manifest::mutable_records(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.Manifest.records)
+  return _internal_mutable_records()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>* PROTOBUF_NONNULL Manifest::mutable_records()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.Manifest.records)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_records();
+}
+inline const ::modlock::wasm::records::RecordKind& Manifest::records(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.Manifest.records)
+  return _internal_records().Get(index);
+}
+inline ::modlock::wasm::records::RecordKind* PROTOBUF_NONNULL Manifest::add_records()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::records::RecordKind* _add =
+      _internal_mutable_records()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.Manifest.records)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>& Manifest::records() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.Manifest.records)
+  return _internal_records();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>&
+Manifest::_internal_records() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.records_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::records::RecordKind>* PROTOBUF_NONNULL
+Manifest::_internal_mutable_records() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.records_;
 }
 
 // -------------------------------------------------------------------
