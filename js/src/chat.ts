@@ -37,6 +37,14 @@ export interface ChatLinesOptions {
    */
   readonly bottom?: number
   /**
+   * scale sizes each line, its text, portrait, band and spacing together,
+   * against the default of 1: 0.8 draws the text at 13 pixels on a band at
+   * most 448 wide. Sizes round to whole pixels.
+   */
+  readonly scale?: number
+  /** portraits shows each speaker's portrait before their name; true unless set. */
+  readonly portraits?: boolean
+  /**
    * speaker says how viewer sees a line's speaker, for a mode whose sides are
    * not the game's teams or that keeps a hero secret. Unset fields, and an
    * unset speaker, keep the defaults: the speaker's hero, and their name in
@@ -143,6 +151,7 @@ export function chatLines(viewer: Player): Child {
   }
   if (readable.length === 0) return undefined
   const kept = readable.slice(-(shown.lines ?? 4))
+  const size = sizesFor(shown.scale ?? 1, shown.portraits ?? true)
 
   // The lane is centred above the ability bar and gives way to the game's
   // chat box; each line keeps its speaker's key, so a new line adds one
@@ -158,7 +167,7 @@ export function chatLines(viewer: Player): Child {
         margin: [0, 0, shown.bottom ?? laneBottom, 0],
       },
       children: kept.map((line, at) =>
-        subtitle(line, viewer, kept.length - 1 - at),
+        subtitle(line, viewer, kept.length - 1 - at, size),
       ),
     },
   }
@@ -172,24 +181,55 @@ export function chatLines(viewer: Player): Child {
 const laneBottom = 230
 
 /**
- * bandWidth is the widest a subtitle's band grows, centred on a 1080 screen:
- * its left edge, at 680, stays well clear of the stamina meter, which ends
- * at 530 left of the crosshair. The name and the line share it, and a longer
- * line wraps inside it.
+ * Sizes are a subtitle's measures at a scale, in pixels on a 1080 screen.
+ * At scale 1 the band grows at most 560 wide, centred: its left edge, at 680,
+ * stays well clear of the stamina meter, which ends at 530 left of the
+ * crosshair. The name and the line share it, and a longer line wraps inside
+ * it, in the width left after the padding, the portrait, the name and their
+ * gaps.
  */
-const bandWidth = 560
+interface Sizes {
+  readonly text: number
+  readonly name: number
+  readonly lineHeight: number
+  /** portrait is the side of the speaker's square portrait, 0 for none. */
+  readonly portrait: number
+  /** nameWidth is the most of the band a speaker's name takes. */
+  readonly nameWidth: number
+  /** lineWidth is the most of the band the line takes before it wraps. */
+  readonly lineWidth: number
+  /** pad is the band's padding: top, right, bottom, left. */
+  readonly pad: readonly [number, number, number, number]
+  /** gap is the space after the portrait, then after the name. */
+  readonly gap: readonly [number, number]
+  /** space is the gap between lines. */
+  readonly space: number
+  readonly radius: number
+}
 
-/** portraitSize is the side of the speaker's square portrait. */
-const portraitSize = 20
-
-/** nameWidth is the most of the band a speaker's name takes. */
-const nameWidth = 160
-
-/**
- * lineWidth is the band left for the line: the band less its padding, the
- * portrait, the name and their gaps.
- */
-const lineWidth = bandWidth - (3 + 8) - portraitSize - 6 - nameWidth - 7
+/** sizesFor is the subtitle's measures at scale, with or without portraits. */
+function sizesFor(scale: number, portraits: boolean): Sizes {
+  // Each measure at scale 1, scaled and rounded; without a portrait the band
+  // pads its left as its right and drops the portrait's gap.
+  const px = (n: number) => Math.max(1, Math.round(n * scale))
+  const portrait = portraits ? px(20) : 0
+  const pad = [px(2), px(8), px(3), portraits ? px(3) : px(8)] as const
+  const gap = [portraits ? px(6) : 0, px(7)] as const
+  const nameWidth = px(160)
+  return {
+    text: px(16),
+    name: px(14),
+    lineHeight: px(20),
+    portrait,
+    nameWidth,
+    lineWidth:
+      px(560) - pad[1] - pad[3] - portrait - gap[0] - nameWidth - gap[1],
+    pad,
+    gap,
+    space: px(3),
+    radius: px(3),
+  }
+}
 
 /** fades is each line's opacity by its age, newest first. */
 const fades = [1, 0.85, 0.7]
@@ -205,7 +245,6 @@ const words: Style = {
   face: 'body',
   weight: 'bold',
   verticalAlign: 'top',
-  lineHeight: 20,
   textAlign: 'left',
 }
 
@@ -214,9 +253,14 @@ const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
 /**
  * subtitle is one line as viewer sees it: the portrait, the name and the
- * text at 16 pixels on a slim, translucent band, dimmer with age.
+ * text, 16 pixels at scale 1, on a slim, translucent band, dimmer with age.
  */
-function subtitle(line: Line, viewer: Player, age: number): UiElement {
+function subtitle(
+  line: Line,
+  viewer: Player,
+  age: number,
+  size: Sizes,
+): UiElement {
   // The speaker's look: the mod's say, else their hero and team.
   const pawn = line.speaker.pawn()
   const seen = shown?.speaker?.(line.speaker, viewer) ?? {}
@@ -236,10 +280,10 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     type: 'panel',
     props: {
       style: {
-        width: portraitSize,
-        height: portraitSize,
+        width: size.portrait,
+        height: size.portrait,
         verticalAlign: 'top',
-        borderRadius: 2,
+        borderRadius: Math.max(1, size.radius - 1),
         background: shades.raised,
         saturation: seen.out ? 0 : 1,
       },
@@ -262,10 +306,11 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 14,
+        fontSize: size.name,
+        lineHeight: size.lineHeight,
         color,
-        margin: [1, 0, 0, 6],
-        maxWidth: nameWidth,
+        margin: [1, 0, 0, size.gap[0]],
+        maxWidth: size.nameWidth,
       },
       children: name,
     },
@@ -275,10 +320,11 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 16,
+        fontSize: size.text,
+        lineHeight: size.lineHeight,
         color: tones.text,
-        margin: [0, 0, 0, 7],
-        maxWidth: lineWidth,
+        margin: [0, 0, 0, size.gap[1]],
+        maxWidth: size.lineWidth,
       },
       children: line.text,
     },
@@ -291,15 +337,15 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
         flow: 'right',
         horizontalAlign: 'center',
         background: '#10130d9e',
-        borderRadius: 3,
-        padding: [2, 8, 3, 3],
-        margin: [0, 0, 3, 0],
+        borderRadius: size.radius,
+        padding: [...size.pad],
+        margin: [0, 0, size.space, 0],
         opacity: fades[age] ?? fades[fades.length - 1],
         transition: { seconds: 0.25, easing: 'out' },
       },
       enter: { opacity: 0, translate: [0, 8] },
       exit: { opacity: 0 },
-      children: [portrait, speaker, said],
+      children: size.portrait > 0 ? [portrait, speaker, said] : [speaker, said],
     },
   }
 }

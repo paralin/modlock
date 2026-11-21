@@ -151,7 +151,9 @@ speaker's next line replaces their last. A long line wraps. A team line reads
 only to the speaker's team and a line to all reads to everyone. A command such
 as `/help` is not shown. `{ seconds }` sets how long a line stays, 6 unless set,
 `{ lines }` how many show, and `{ bottom }` moves the lane up from the bottom
-edge. A mode whose sides are not the game's teams passes
+edge. `{ scale }` sizes each line, its text, portrait, band and spacing
+together, so `0.8` draws the text at 13 pixels on a band at most 448 wide, and
+`{ portraits: false }` leaves the portraits out. A mode whose sides are not the game's teams passes
 `{ speaker(speaker, viewer) }`, which returns the name's `color`, the portrait's
 `hero` (0 hides it), a `note` after the name and whether the speaker is `out`.
 
