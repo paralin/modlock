@@ -138,9 +138,10 @@ export {
   startingRating,
 } from './rotation.js'
 export {
-  baronessHotel,
   bystanderStates,
   holdBystander,
+  parkedStates,
+  parkHeight,
   spectateFrom,
 } from './bystander.js'
 export { Strays, strayGraceSeconds } from './strays.js'

@@ -287,15 +287,16 @@ _ = p.Heal(250)
 
 A player who is out of the round can watch it while keeping their hero, so the
 game still counts them as playing. `spectateFrom` holds the hero as a
-[bystander](/mechanics/rotation#the-stands), parks it in the Baroness Hotel, the
-closed hall under Midtown that no one else sees into, and gives the player the
-free camera from a position you choose. The movement keys and the mouse fly
-the camera, not the hero. The function it returns ends the view: the player
-returns to their hero, the hold ends, and the hero goes back where it stood,
-unless you pass `false` because the mod respawns or moves it itself. Pass a
-fourth argument to park the hero somewhere else, such as on another map.
+[bystander](/mechanics/rotation#the-stands), hides its model, health bar and
+minimap icon, and freezes it 4,000 units above where it stood, over the roofs
+and out of reach on any map, then gives the player the free camera from a
+position you choose. The movement keys and the mouse fly the camera, not the
+hero. The function it returns ends the view: the player returns to their hero,
+the freeze and the hold end, and the hero goes back where it stood, unless you
+pass `false` because the mod respawns or moves it itself. Pass a fourth
+argument to park the hero at a spot of your own.
 `spectateFrom` is TypeScript only; in other languages, compose it from
-`holdModifierState`, `teleport`, `freeCamera` and `unwatch`.
+`holdModifierState`, `teleport`, `freeze`, `freeCamera` and `unwatch`.
 
 ```ts
 import { type Player, spectateFrom } from 'modlock'
