@@ -52,6 +52,7 @@ constexpr size_t kCommandButtons = 0x78;
 
 safetyhook::InlineHook* g_hook = nullptr;
 CommandHook::Decide* g_decide = nullptr;
+CommandHook::Observe* g_observe = nullptr;
 // g_held is each slot's buttons in the last command driven, so a button that
 // goes up or down reads as changed.
 std::array<uint64_t, kMaxPlayerSlots> g_held{};
@@ -124,6 +125,21 @@ std::optional<std::array<float, 3>> Camera(const std::byte* commands, int count)
   return std::nullopt;
 }
 
+// Observe reports the buttons the batch pressed and released, folded in order.
+void Observe(int32_t slot, const std::byte* commands, int count) {
+  uint64_t pressed = 0;
+  uint64_t released = 0;
+  for (int i = 0; i < count; ++i) {
+    const auto buttons = Load<std::array<uint64_t, 3>>(
+        commands + static_cast<size_t>(i) * kCommandStride, kCommandButtons);
+    pressed |= buttons[0] & buttons[1];
+    released |= ~buttons[0] & buttons[1];
+  }
+  if (pressed || released) {
+    (*g_observe)(slot, pressed, released);
+  }
+}
+
 int ProcessThunk(void* controller, std::byte* commands, int count, bool paused, float margin) {
   const auto handle = controller ? ReferenceHandleOf(controller) : std::nullopt;
   const int32_t slot = handle ? static_cast<int32_t>(EntityIndexOf(*handle)) - 1 : -1;
@@ -144,6 +160,7 @@ int ProcessThunk(void* controller, std::byte* commands, int count, bool paused, 
     } else {
       g_held[slot] = 0;
     }
+    Observe(slot, commands, count);
   }
   const int result = g_hook->call<int>(controller, commands, count, paused, margin);
 
@@ -166,6 +183,7 @@ struct CommandHook::Impl {
 #if defined(_WIN32)
   safetyhook::InlineHook hook;
   Decide decide;
+  Observe observe;
 
   ~Impl() {
     // Only the installed hook clears the shared state.
@@ -175,6 +193,7 @@ struct CommandHook::Impl {
     hook.reset();
     g_hook = nullptr;
     g_decide = nullptr;
+    g_observe = nullptr;
     g_held = {};
     g_cameras = {};
     g_angles_vtable = nullptr;
@@ -189,10 +208,10 @@ CommandHook& CommandHook::operator=(CommandHook&&) noexcept = default;
 CommandHook::~CommandHook() = default;
 
 std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& server,
-                                                             Decide decide) {
+                                                             Decide decide, Observe observe) {
 #if defined(_WIN32)
   // Install once.
-  if (g_hook || !decide) {
+  if (g_hook || !decide || !observe) {
     return std::unexpected("command hook is already installed or unbound");
   }
 
@@ -211,8 +230,10 @@ std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& 
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(hook);
   impl->decide = std::move(decide);
+  impl->observe = std::move(observe);
   g_hook = &impl->hook;
   g_decide = &impl->decide;
+  g_observe = &impl->observe;
   const auto table = FindVtable(server, "CMsgQAngle");
   g_angles_vtable = table ? reinterpret_cast<const void*>(server.base() + *table) : nullptr;
   if (auto enabled = impl->hook.enable(); !enabled) {
@@ -224,6 +245,7 @@ std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& 
   // Other platforms have no native server.
   (void)server;
   (void)decide;
+  (void)observe;
   return std::unexpected("native bot control requires the Windows host");
 #endif
 }
