@@ -151,7 +151,11 @@ export {
   stragglerConnectSeconds,
   type StragglersOptions,
 } from './stragglers.js'
-export { type ChatLinesOptions, showChatLines } from './chat.js'
+export {
+  type ChatLinesOptions,
+  type ChatSpeaker,
+  showChatLines,
+} from './chat.js'
 export { type Check, ProbeRun } from './probe.js'
 export {
   poseAt,

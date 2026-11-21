@@ -522,7 +522,15 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
     })),
   )
   const [ada, bebop] = [Player.of(2), Player.of(3)]
-  show(bebop, jsx('label', { children: 'Bebop only' }))
+  // The style counts each time the library lays out Bebop's own tree.
+  let laidOut = 0
+  const counted = {
+    get color() {
+      laidOut++
+      return '#ffffff'
+    },
+  }
+  show(bebop, jsx('label', { style: counted, children: 'Bebop only' }))
   const latest = (slot: number) =>
     sent.filter((request) => request.player === slot).at(-1)!.change!
   const texts = (slot: number) =>
@@ -539,10 +547,21 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
   showChatLines({ seconds: 5 })
   tick(100)
   heard({ player: ada, text: '/help', all: true, lane: 0 })
-  expect(texts(3).includes('“/help”')).toBe(false)
+  expect(texts(3).includes('/help')).toBe(false)
   heard({ player: ada, text: 'over here', all: true, lane: 0 })
-  expect(texts(3).includes('“over here”')).toBe(true)
-  expect(texts(2).includes('“over here”')).toBe(true)
+  expect(texts(3).includes('over here')).toBe(true)
+  expect(texts(2).includes('over here')).toBe(true)
+  const before = laidOut
+
+  // A line is its own layer: it sends the root and the subtitle's nodes, and
+  // none of the mod's own tree. A long line arrives whole, and the speaker's
+  // next line replaces it in place.
+  const long = 'x'.repeat(130)
+  heard({ player: ada, text: long, all: true, lane: 0 })
+  expect(texts(3)).toEqual([long])
+  expect(latest(3).set!.length).toBeLessThanOrEqual(2)
+  expect(latest(3).removed ?? []).toEqual([])
+  expect(laidOut).toBe(before)
 
   // The speaker leaves: their line goes, and the next person in Bebop's slot
   // starts with nothing of Bebop's but what every player gets.
@@ -556,7 +575,7 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
 
   // A line past its time goes on the next frame.
   heard({ player: bebop, text: 'hi', all: true, lane: 0 })
-  expect(texts(2).includes('“hi”')).toBe(true)
+  expect(texts(2).includes('hi')).toBe(true)
   const count = sent.length
   tick(104)
   expect(sent.length).toBe(count)

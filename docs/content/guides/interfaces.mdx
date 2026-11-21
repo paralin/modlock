@@ -106,7 +106,7 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 | `uiSound(player, sound, { seconds?, delay? })` | Play a game sound event to one player once, hero or not; `seconds` stops it early and `delay` plays it later, so one draw can time a run of ticks. |
 | `hideHud(player, parts)`                       | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'` or `'all'`; `[]` shows them again. |
 | `hideHudForAll(parts)`                         | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.                                                         |
-| `showChatLines(options?)`                      | Show each player's chat line beside their hero portrait, as the top bar does. TypeScript only.                                                     |
+| `showChatLines(options?)`                      | Show chat lines as subtitles above the ability bar, with the speaker's portrait and name. TypeScript only.                                         |
 | `freeCursor(player, free)`                     | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                |
 | `abilityBarPresses(player, onPress?)`          | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                 |
 | `abilityDisplay(viewer, rows?)`                | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                   |
@@ -133,8 +133,10 @@ or a timer.
 
 The game's top bar shows each player's portrait and their chat line under it
 for a few seconds. A mode that hides the top bar for its own score keeps the
-chat lines with `showChatLines`, which draws them in the HUD kit's
-[roster](#the-hud-kit) at the top right. Call both when the mod loads:
+chat lines with `showChatLines`, which draws them as subtitles: centred low on
+the screen above the ability bar, each the speaker's portrait, their name in
+their team's color and the line itself on a dark band. Call both when the mod
+loads:
 
 ```ts
 import { hideHudForAll, showChatLines } from 'modlock'
@@ -143,13 +145,20 @@ hideHudForAll(['topBar'])
 showChatLines()
 ```
 
-The library draws the lines over whatever interface the mod shows each player,
-as it draws toasts, so the mod does not redraw for them. A team line reads only
-to the speaker's team and a line to all reads to everyone. A command such as
-`/help` is not shown. `{ seconds }` sets how long a line stays, 6 unless set,
-and `{ top }` moves the lines down to clear a roster of the mod's own. A
-player's own `hideHud` list adds to the parts hidden from everyone, and `hide`
-leaves those parts hidden.
+At most four lines show, newest at the bottom and older ones dimmer, and a
+speaker's next line replaces their last. A long line wraps. A team line reads
+only to the speaker's team and a line to all reads to everyone. A command such
+as `/help` is not shown. `{ seconds }` sets how long a line stays, 6 unless set,
+`{ lines }` how many show, and `{ bottom }` moves the lane up from the bottom
+edge. A mode whose sides are not the game's teams passes
+`{ speaker(speaker, viewer) }`, which returns the name's `color`, the portrait's
+`hero` (0 hides it), a `note` after the name and whether the speaker is `out`.
+
+The library draws the lines as a layer of its own over whatever interface the
+mod shows each player, as it draws toasts: a line arriving or leaving redraws
+only the lines, and the mod does not redraw for them. A player's own `hideHud`
+list adds to the parts hidden from everyone, and `hide` leaves those parts
+hidden.
 
 ## Style it
 
