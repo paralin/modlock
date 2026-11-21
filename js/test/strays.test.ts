@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { HoldModifierStateRequest } from '../../src/wasm/abilities/abilities.pb.js'
-import { HitOptions } from '../../src/wasm/combat/combat.pb.js'
+import { KillOptions } from '../../src/wasm/combat/combat.pb.js'
 import { EntitiesResponse } from '../../src/wasm/entities/entities.pb.js'
 import {
   FieldResponse,
@@ -50,8 +50,8 @@ test('disconnected controllers do not retain abandoned heroes while joining hero
         )
         break
       }
-      case 'Damage':
-        hits.push(HitOptions.fromBinary(call.request).victim ?? 0)
+      case 'KillEntity':
+        hits.push(KillOptions.fromBinary(call.request).victim ?? 0)
         break
       case 'HoldModifierState':
         held.push(HoldModifierStateRequest.fromBinary(call.request))
@@ -78,9 +78,12 @@ test('disconnected controllers do not retain abandoned heroes while joining hero
     { entity: 5, state: 'MODIFIER_STATE_MELEE_DISABLED', active: false },
   ])
 
-  // A controller that reconnects during the grace period retains its hero.
+  // A controller that reconnects retains its hero, and a stray the kill
+  // left standing is not hit again: only its respawn is held.
   hits.length = 0
+  respawns.length = 0
   states[3] = 2
   strays.sweep(4)
-  expect(hits).toEqual([5])
+  expect(hits).toEqual([])
+  expect(respawns).toEqual([5])
 })
