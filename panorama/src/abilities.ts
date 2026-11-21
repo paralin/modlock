@@ -236,7 +236,7 @@ export class AbilityDisplay {
     // Cover the icon, so the hover is the display's wherever it rests.
     let cover = icon.icon.FindChildTraverse(DISPLAY_COVER)
     if (!cover) {
-      cover = this.host.create('Panel', icon.icon, DISPLAY_COVER)
+      cover = this.host.create('Panel', icon.icon, DISPLAY_COVER, {})
       cover.style.width = '100%'
       cover.style.height = '100%'
       cover.style.ignoreParentFlow = 'true'
