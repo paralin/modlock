@@ -170,7 +170,7 @@ const (
 	HudPart_HUD_PART_BROKER_COUNTDOWN HudPart = 11
 	// HUD_PART_ALL is the whole of the game's HUD, for a screen that takes the
 	// player's whole view, such as a draft before the match. The mods' own
-	// interfaces, Hyperline's and the game's tooltips stay.
+	// interfaces, Hyperline's, the game's tooltips and its chat stay.
 	HudPart_HUD_PART_ALL HudPart = 12
 )
 
