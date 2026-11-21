@@ -450,6 +450,9 @@ const rosterName = 24
  */
 const rosterCell = 150
 
+/** rosterColumnGap is the space a dense cell keeps clear on its left, between its name and the column before it. */
+const rosterColumnGap = 12
+
 /** rosterHeading is a group heading's height, its gap to the rows included. */
 const rosterHeading = 24
 
@@ -713,7 +716,9 @@ function rosterRow(
 ): UiElement {
   // The name and its line align right, against the portrait.
   const right = { horizontalAlign: 'right', textAlign: 'right' } as const
-  const nameWidth = cell ? rosterCell - density.portrait - 8 : undefined
+  const nameWidth = cell
+    ? rosterCell - density.portrait - 8 - rosterColumnGap
+    : undefined
   const text = element(
     'panel',
     { flow: 'down', verticalAlign: 'center', margin: [0, 8, 0, 0] },
