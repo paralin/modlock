@@ -254,6 +254,19 @@ message PawnResponse {
   Pawn pawn = 1;
 }
 
+// PawnsResponse answers Pawns.
+message PawnsResponse {
+  repeated PlayerPawn pawns = 1;
+}
+
+// PlayerPawn is one player's pawn.
+message PlayerPawn {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  Pawn pawn = 2;
+}
+
 // Pawn is one player's pawn this frame: their hero, or the game's placeholder
 // before a hero is selected.
 message Pawn {

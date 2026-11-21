@@ -577,6 +577,19 @@ class WasmPlugin final : public Plugin {
   // they went to the observers.
   wasm::CallProfile calls_;
   std::chrono::steady_clock::time_point calls_reported_;
+
+  // Section is one part of the host's own frame work, timed since
+  // calls_reported_: Play runs on every open frame, Observe on each frame
+  // the mod receives. ReportCalls logs both and starts them afresh.
+  struct Section {
+    uint32_t frames = 0;
+    std::chrono::steady_clock::duration total{};
+    std::chrono::steady_clock::duration slowest{};
+    void Add(std::chrono::steady_clock::duration spent);
+  };
+
+  Section play_;
+  Section observe_;
 };
 
 }  // namespace modlock::wasm
