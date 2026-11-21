@@ -1386,6 +1386,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     kLanguageFieldNumber = 4,
     kRuntimeFieldNumber = 5,
     kFreeForAllFieldNumber = 12,
+    kKeepLeaverHeroesFieldNumber = 17,
   };
   // repeated .modlock.wasm.Definition definitions = 9;
   int definitions_size() const;
@@ -1624,11 +1625,21 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
   void _internal_set_free_for_all(bool value);
 
   public:
+  // bool keep_leaver_heroes = 17;
+  void clear_keep_leaver_heroes() ;
+  bool keep_leaver_heroes() const;
+  void set_keep_leaver_heroes(bool value);
+
+  private:
+  bool _internal_keep_leaver_heroes() const;
+  void _internal_set_keep_leaver_heroes(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.Manifest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 16,
+  static const ::google::protobuf::internal::TcParseTable<5, 17,
                                    7, 82,
                                    2>
       _table_;
@@ -1666,6 +1677,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     int language_;
     int runtime_;
     bool free_for_all_;
+    bool keep_leaver_heroes_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2564,6 +2576,31 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::persist::RecordType
 Manifest::_internal_mutable_persist() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.persist_;
+}
+
+// bool keep_leaver_heroes = 17;
+inline void Manifest::clear_keep_leaver_heroes() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.keep_leaver_heroes_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00010000U);
+}
+inline bool Manifest::keep_leaver_heroes() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.Manifest.keep_leaver_heroes)
+  return _internal_keep_leaver_heroes();
+}
+inline void Manifest::set_keep_leaver_heroes(bool value) {
+  _internal_set_keep_leaver_heroes(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.Manifest.keep_leaver_heroes)
+}
+inline bool Manifest::_internal_keep_leaver_heroes() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.keep_leaver_heroes_;
+}
+inline void Manifest::_internal_set_keep_leaver_heroes(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.keep_leaver_heroes_ = value;
 }
 
 // -------------------------------------------------------------------

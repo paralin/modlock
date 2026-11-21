@@ -222,6 +222,25 @@ void Game::WorldEnding() {
   observer_.Invalidate();
 }
 
+void Game::RemoveHero(int32_t slot) {
+  // Removal is one feature: a build without it keeps the hero and plays on.
+  auto selection = services_.Selection();
+  if (!selection) {
+    std::cerr << "[modlock] a leaver's hero stays in the world: " << selection.error() << "\n";
+    return;
+  }
+
+  // A player watching through a camera of their own goes back to a living
+  // hero first, so the hero is bound for its strip and the camera is removed
+  // with it. A player with no camera, or a dead hero, is left as it is.
+  players::PlayerRequest request;
+  request.set_player(slot);
+  static_cast<void>(Unwatch(request));
+  if (auto removed = observer_.RemoveHero(slot, **selection); !removed) {
+    std::cerr << "[modlock] a leaver's hero stays in the world: " << removed.error() << "\n";
+  }
+}
+
 void Game::Leave(int32_t slot) {
   // Forget the slot's movement, input and visibility.
   seat_failed_.erase(slot);

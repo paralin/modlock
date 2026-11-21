@@ -131,97 +131,148 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   EXPECT_EQ(observer_spawns, 1);
 }
 
-TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
-  // Seat a player on team 2.
-  static Fixture* active = nullptr;
-  static std::vector<std::string> steps;
+// BoundHero seats a player on team 2 with a hero, and records in order each
+// native call that releasing the hero makes.
+struct BoundHero {
+  static constexpr uint32_t kHeroId = 13, kPregameId = 7;
+  static inline BoundHero* active = nullptr;
+  static inline std::vector<std::string> steps;
+  static inline void* removed = nullptr;
+
   Fixture fixture;
-  active = &fixture;
-  steps.clear();
-  fixture.occupied = true;
-  fixture.generation = 3;
-  fixture.controller[kTeamField] = 2;
-
-  // Bind them to a hero.
   Instance hero{};
-  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
-  fixture.image.SetIdentity(2, hero.data(), 7, 0);
-  const auto hero_handle = HandleOf(2, 7);
-  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
-  std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
-
-  // Keep both hero identifiers visible while changing teams.
-  const uint32_t hero_id = 13, pregame_id = 7;
-  std::memcpy(fixture.controller.data() + kPlayerHeroIdField, &hero_id, sizeof(hero_id));
-  std::memcpy(fixture.controller.data() + kPregameHeroIdField, &pregame_id, sizeof(pregame_id));
-
-  // The controller records each native call in order.
+  Instance camera{};
   std::array<void*, 106> table{};
-  table[28] = reinterpret_cast<void*>(+[](void*, const void*) { steps.push_back("notify"); });
-  table[105] = reinterpret_cast<void*>(+[](void*, int team) {
-    EXPECT_EQ(team, 1);
-    steps.push_back("team");
-  });
-  auto* table_ptr = table.data();
-  std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
-
-  // The hero records its strip, which must see the old team and the binding.
   std::array<void*, 108> hero_table{};
-  hero_table[107] = reinterpret_cast<void*>(+[](void*, int old_team, int new_team) {
-    // Observe the old binding before the strip changes the hero fields.
-    EXPECT_EQ(old_team, 2);
-    EXPECT_EQ(new_team, 1);
-    uint32_t bound = 0;
-    std::memcpy(&bound, active->controller.data() + kHeroHandleField, sizeof(bound));
-    EXPECT_EQ(bound, HandleOf(2, 7));
-    std::memset(active->controller.data() + kPlayerHeroIdField, 0, 8);
-    steps.push_back("strip");
-  });
-  auto* hero_table_ptr = hero_table.data();
-  std::memcpy(hero.data(), &hero_table_ptr, sizeof(hero_table_ptr));
-
-  // Record native removal and pawn unbinding after the strip.
   modlock::gameinterop::PlayerSelectionCalls calls;
-  static void* removed = nullptr;
-  removed = nullptr;
-  calls.remove = +[](void* entity) {
-    removed = entity;
-    steps.push_back("remove");
-  };
-  calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
-    // Unbind the pawn and keep its team.
-    EXPECT_EQ(controller, active->controller.data());
-    EXPECT_EQ(pawn, nullptr);
-    EXPECT_TRUE(retain_old_pawn_team);
-    const uint32_t none = 0xffffffff;
-    std::memcpy(static_cast<char*>(controller) + kPawnHandleField, &none, sizeof(none));
-    steps.push_back("unbind");
-  };
-  calls.spawn_observer = +[](void*) -> void* {
-    steps.push_back("observer");
-    return nullptr;
-  };
 
+  BoundHero() {
+    // Seat the player on team 2.
+    active = this;
+    steps.clear();
+    removed = nullptr;
+    fixture.occupied = true;
+    fixture.generation = 3;
+    fixture.controller[kTeamField] = 2;
+
+    // Bind them to a hero.
+    fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+    fixture.image.SetIdentity(2, hero.data(), 7, 0);
+    const auto hero_handle = HandleOf(2, 7);
+    std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+    std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+
+    // Give the controller both hero identifiers, which a release must keep.
+    const uint32_t hero_id = kHeroId, pregame_id = kPregameId;
+    std::memcpy(fixture.controller.data() + kPlayerHeroIdField, &hero_id, sizeof(hero_id));
+    std::memcpy(fixture.controller.data() + kPregameHeroIdField, &pregame_id, sizeof(pregame_id));
+
+    // The controller records each native call in order.
+    table[28] = reinterpret_cast<void*>(+[](void*, const void*) { steps.push_back("notify"); });
+    table[105] = reinterpret_cast<void*>(+[](void*, int team) {
+      EXPECT_EQ(team, 1);
+      steps.push_back("team");
+    });
+    auto* table_ptr = table.data();
+    std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
+
+    // The hero records its strip, which must see the old team and the binding.
+    hero_table[107] = reinterpret_cast<void*>(+[](void*, int old_team, int new_team) {
+      // Observe the old binding before the strip changes the hero fields.
+      EXPECT_EQ(old_team, 2);
+      EXPECT_EQ(new_team, 1);
+      uint32_t bound = 0;
+      std::memcpy(&bound, active->fixture.controller.data() + kHeroHandleField, sizeof(bound));
+      EXPECT_EQ(bound, HandleOf(2, 7));
+      std::memset(active->fixture.controller.data() + kPlayerHeroIdField, 0, 8);
+      steps.push_back("strip");
+    });
+    auto* hero_table_ptr = hero_table.data();
+    std::memcpy(hero.data(), &hero_table_ptr, sizeof(hero_table_ptr));
+
+    // Record native removal and pawn unbinding after the strip.
+    calls.remove = +[](void* entity) {
+      removed = entity;
+      steps.push_back("remove");
+    };
+    calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool,
+                         bool) {
+      // Unbind the pawn and keep its team.
+      EXPECT_EQ(controller, active->fixture.controller.data());
+      EXPECT_EQ(pawn, nullptr);
+      EXPECT_TRUE(retain_old_pawn_team);
+      const uint32_t none = 0xffffffff;
+      std::memcpy(static_cast<char*>(controller) + kPawnHandleField, &none, sizeof(none));
+      steps.push_back("unbind");
+    };
+    calls.spawn_observer = +[](void*) -> void* {
+      steps.push_back("observer");
+      return nullptr;
+    };
+  }
+
+  ~BoundHero() { active = nullptr; }
+
+  // ExpectReleased checks that the controller holds no hero, that the hero
+  // was removed, and that the hero IDs the strip cleared are back: the client
+  // reads its hero's record by them when the release is published.
+  void ExpectReleased() {
+    uint32_t released = 0, kept = 0, kept_pregame = 0;
+    std::memcpy(&released, fixture.controller.data() + kHeroHandleField, sizeof(released));
+    std::memcpy(&kept, fixture.controller.data() + kPlayerHeroIdField, sizeof(kept));
+    std::memcpy(&kept_pregame, fixture.controller.data() + kPregameHeroIdField,
+                sizeof(kept_pregame));
+    EXPECT_EQ(released, 0xffffffffu);
+    EXPECT_EQ(kept, kHeroId);
+    EXPECT_EQ(kept_pregame, kPregameId);
+    EXPECT_EQ(removed, hero.data());
+  }
+};
+
+TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   // The hero is stripped while bound; its handle is cleared and published,
   // the pawn unbound and removed, before the team changes and the observer
   // spawns.
-  PawnObserver observer{HeroSeamsFor(fixture)};
-  EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
-  uint32_t released = 0;
-  std::memcpy(&released, fixture.controller.data() + kHeroHandleField, sizeof(released));
-  EXPECT_EQ(released, 0xffffffffu);
-  EXPECT_EQ(steps,
+  BoundHero bound;
+  PawnObserver observer{HeroSeamsFor(bound.fixture)};
+  EXPECT_FALSE(observer.SelectPlayer(0, bound.fixture.xuid, 3, 1, nullptr, bound.calls));
+  EXPECT_EQ(BoundHero::steps,
             (std::vector<std::string>{"strip", "notify", "unbind", "remove", "team", "observer"}));
+  bound.ExpectReleased();
+}
 
-  // The client reads its hero's record by these IDs, so the ones the strip
-  // cleared are back before the release is published.
-  uint32_t kept = 0, kept_pregame = 0;
-  std::memcpy(&kept, fixture.controller.data() + kPlayerHeroIdField, sizeof(kept));
-  std::memcpy(&kept_pregame, fixture.controller.data() + kPregameHeroIdField, sizeof(kept_pregame));
-  EXPECT_EQ(kept, hero_id);
-  EXPECT_EQ(kept_pregame, pregame_id);
-  EXPECT_EQ(removed, hero.data());
-  active = nullptr;
+TEST(PawnObserver, RemovingAHeroReleasesItAndLeavesThePlayerOnTheirTeam) {
+  // A leaver's hero goes the same way, with no team change and no observer.
+  BoundHero bound;
+  PawnObserver observer{HeroSeamsFor(bound.fixture)};
+  const auto removed = observer.RemoveHero(0, bound.calls);
+  ASSERT_TRUE(removed) << removed.error();
+  EXPECT_TRUE(*removed);
+  EXPECT_EQ(BoundHero::steps, (std::vector<std::string>{"strip", "notify", "unbind", "remove"}));
+  bound.ExpectReleased();
+  EXPECT_EQ(bound.fixture.controller[kTeamField], 2);
+
+  // A player who holds no hero leaves nothing to remove.
+  BoundHero::steps.clear();
+  const auto again = observer.RemoveHero(0, bound.calls);
+  ASSERT_TRUE(again) << again.error();
+  EXPECT_FALSE(*again);
+  EXPECT_TRUE(BoundHero::steps.empty());
+}
+
+TEST(PawnObserver, RemovingAHeroLeavesOneThePlayerIsNotBoundTo) {
+  // A dead hero's player watches through the game's camera, and the strip
+  // runs only on a bound hero, so the hero stays untouched.
+  BoundHero bound;
+  bound.fixture.image.SetIdentity(3, bound.camera.data(), 9, 0);
+  const auto camera_handle = HandleOf(3, 9);
+  std::memcpy(bound.fixture.controller.data() + kPawnHandleField, &camera_handle,
+              sizeof(camera_handle));
+  PawnObserver observer{HeroSeamsFor(bound.fixture)};
+  const auto removed = observer.RemoveHero(0, bound.calls);
+  EXPECT_FALSE(removed);
+  EXPECT_TRUE(BoundHero::steps.empty());
+  EXPECT_EQ(BoundHero::removed, nullptr);
 }
 
 PawnObserver::Seams SeatingSeamsFor(Fixture& fixture, bool play_state = true) {

@@ -241,8 +241,10 @@ Read the hero back from the cast rather than asking the game again:
 ## Clear stragglers
 
 A player who stops loading keeps their slot, listed with `ready` false, until
-the network gives up on them. The game can keep a disconnected player's hero
-standing in the world, and revives it on its own timer with no player.
+the network gives up on them. The host already
+[removes the hero](/guides/events#joins-and-leaves) of a player who
+disconnects while it lives; a hero can still lose its player another way, such
+as a death before the leave.
 `Stragglers` kicks a human still joining after `connectSeconds` and
 lays down each hero no player holds, as [`Strays`](/mechanics/rotation#heroes-left-behind)
 does. Keep one and call `sweep(now)` each frame:

@@ -265,6 +265,12 @@ type Manifest struct {
 	// Persist are the record types the mod keeps for each player through the
 	// host's persist service, such as stats or unlocks, up to 8.
 	Persist []*persist.RecordType `protobuf:"bytes,16,rep,name=persist,proto3" json:"persist,omitempty"`
+	// KeepLeaverHeroes leaves the hero of a player who disconnects standing in
+	// the world, as the stock game does, so a player who rejoins a long match
+	// finds their hero, items and place. By default the host removes the hero
+	// with its abilities and items as the player leaves, after the mod's
+	// PlayerLeft, and a player who rejoins starts as any new player does.
+	KeepLeaverHeroes bool `protobuf:"varint,17,opt,name=keep_leaver_heroes,json=keepLeaverHeroes,proto3" json:"keepLeaverHeroes,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -383,6 +389,13 @@ func (x *Manifest) GetPersist() []*persist.RecordType {
 		return x.Persist
 	}
 	return nil
+}
+
+func (x *Manifest) GetKeepLeaverHeroes() bool {
+	if x != nil {
+		return x.KeepLeaverHeroes
+	}
+	return false
 }
 
 // Service names one service a mod calls.
@@ -643,6 +656,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Map = m.Map
 	r.FreeForAll = m.FreeForAll
 	r.ContentAddon = m.ContentAddon
+	r.KeepLeaverHeroes = m.KeepLeaverHeroes
 	r.Movement = protobuf_go_lite.CloneVTValue(m.Movement)
 	r.Definitions = protobuf_go_lite.CloneVTSlice(m.Definitions)
 	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
@@ -767,6 +781,9 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Persist, that.Persist, func() *persist.RecordType { return &persist.RecordType{} }) {
+		return false
+	}
+	if this.KeepLeaverHeroes != that.KeepLeaverHeroes {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1065,6 +1082,11 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.KeepLeaverHeroes || s.HasField("keepLeaverHeroes") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("keepLeaverHeroes")
+		s.WriteBool(x.KeepLeaverHeroes)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1224,6 +1246,9 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Persist = append(x.Persist, v)
 			})
+		case "keep_leaver_heroes", "keepLeaverHeroes":
+			s.AddField("keep_leaver_heroes")
+			x.KeepLeaverHeroes = s.ReadBool()
 		}
 	})
 }
@@ -1784,6 +1809,13 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.KeepLeaverHeroes {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.KeepLeaverHeroes)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x88
+	}
 	if len(m.Persist) > 0 {
 		for iNdEx := len(m.Persist) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Persist[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -2145,6 +2177,7 @@ func (m *Manifest) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.KeepLeaverHeroes)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2331,6 +2364,10 @@ func (x *Manifest) MarshalProtoText() string {
 			}
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.KeepLeaverHeroes != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "keep_leaver_heroes")
+		protobuf_go_lite.TextWriteBool(&sb, x.KeepLeaverHeroes)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -2722,6 +2759,16 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 17:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KeepLeaverHeroes", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.KeepLeaverHeroes = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
