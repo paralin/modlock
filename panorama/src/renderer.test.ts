@@ -1509,26 +1509,39 @@ test("hides the hero picker and the Broker's countdown", () => {
 
 test('hides the whole HUD but the interfaces and tooltips that stay', () => {
   // The HUD holds Modlock's root, the layout that reads the screens beside
-  // one of the game's panels, Hyperline's panel and the game's tooltips.
+  // one of the game's panels, Hyperline's panel, the game's tooltips, its
+  // chat, and the top bar with the chat bubbles beside its clock.
   const hud = gameHud()
   const host = clock()
   const layouts = hud.add(hud.game, 'HudLayouts')
   const layout = hud.add(layouts, '')
   const inner = hud.add(layout, '')
   const beside = hud.add(layouts, 'GameLayout')
+  const bar = hud.add(hud.game, 'TopBar')
+  const clockPanel = hud.add(bar, 'GameClock')
+  const bubbles = hud.add(bar, '')
   const stays = [
     hud.add(hud.game, 'ModlockUi'),
     hud.add(hud.game, 'HyperlineResident'),
     hud.add(hud.game, 'TooltipManager'),
+    hud.add(hud.game, 'Chat'),
+    hud.add(bubbles, 'Team1Chat'),
+    hud.add(bubbles, 'Team2Chat'),
     layout,
   ]
   const stock = new StockGuard(hud.game, host, [layout])
 
   // Everything else hides, and the way down to the layout shows.
   stock.screen(parts('HUD_PART_ALL'))
-  for (const panel of [hud.health, hud.announcements, hud.souls, beside])
+  for (const panel of [
+    hud.health,
+    hud.announcements,
+    hud.souls,
+    beside,
+    clockPanel,
+  ])
     expect(panel.visible).toBe(false)
-  for (const panel of [...stays, layouts, inner])
+  for (const panel of [...stays, layouts, inner, bar, bubbles])
     expect(panel.visible).toBe(true)
 
   // A panel the game adds hides once the kept walk is old, not each tick.
