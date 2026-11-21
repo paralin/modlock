@@ -422,75 +422,96 @@ std::expected<players::PawnResponse, std::string> Game::Pawn(
   // pawn.
   players::PawnResponse response;
   const auto sample = Live(request.player());
-  if (!sample) {
-    return response;
+  if (sample) {
+    FillPawn(request.player(), *sample, response.mutable_pawn());
   }
+  return response;
+}
 
+std::expected<players::PawnsResponse, std::string> Game::Pawns() {
+  // One sample per occupied slot with a live hero, in slot order: the same
+  // pawn Pawn answers for each, in one reply.
+  players::PawnsResponse response;
+  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
+    if (!gameinterop::ConnectionTracker::StateForSlot(slot).occupied) {
+      continue;
+    }
+    const auto sample = Live(slot);
+    if (!sample) {
+      continue;
+    }
+    auto* entry = response.add_pawns();
+    entry->set_player(slot);
+    FillPawn(slot, *sample, entry->mutable_pawn());
+  }
+  return response;
+}
+
+void Game::FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample,
+                    players::Pawn* pawn) {
   // Copy the pawn's identity and health.
-  auto* pawn = response.mutable_pawn();
-  pawn->set_entity(sample->pawn_handle);
-  pawn->set_hero(sample->hero_id);
-  pawn->set_team(sample->team);
-  pawn->set_health(sample->health);
-  pawn->set_max_health(sample->max_health);
-  if (sample->effective_max_health) {
-    pawn->set_effective_max_health(*sample->effective_max_health);
+  pawn->set_entity(sample.pawn_handle);
+  pawn->set_hero(sample.hero_id);
+  pawn->set_team(sample.team);
+  pawn->set_health(sample.health);
+  pawn->set_max_health(sample.max_health);
+  if (sample.effective_max_health) {
+    pawn->set_effective_max_health(*sample.effective_max_health);
   }
 
   // Copy the pawn's position and view.
-  pawn->mutable_position()->set_x(sample->x);
-  pawn->mutable_position()->set_y(sample->y);
-  pawn->mutable_position()->set_z(sample->z);
-  SetAngles(pawn->mutable_eye_angles(), sample->eye_angles);
-  SetAngles(pawn->mutable_camera_angles(), sample->camera_angles);
+  pawn->mutable_position()->set_x(sample.x);
+  pawn->mutable_position()->set_y(sample.y);
+  pawn->mutable_position()->set_z(sample.z);
+  SetAngles(pawn->mutable_eye_angles(), sample.eye_angles);
+  SetAngles(pawn->mutable_camera_angles(), sample.camera_angles);
 
   // Copy the optional readings the sample carries.
-  if (sample->stamina) {
-    pawn->set_stamina(sample->stamina->current);
-    pawn->set_max_stamina(sample->stamina->max);
+  if (sample.stamina) {
+    pawn->set_stamina(sample.stamina->current);
+    pawn->set_max_stamina(sample.stamina->max);
   }
-  pawn->set_generation(sample->session_generation);
-  if (sample->currencies) {
-    pawn->set_souls((*sample->currencies)[0]);
-    pawn->set_ability_points((*sample->currencies)[1]);
-    pawn->set_ability_unlocks((*sample->currencies)[2]);
+  pawn->set_generation(sample.session_generation);
+  if (sample.currencies) {
+    pawn->set_souls((*sample.currencies)[0]);
+    pawn->set_ability_points((*sample.currencies)[1]);
+    pawn->set_ability_unlocks((*sample.currencies)[2]);
   }
 
   // Copy the pawn's eye and velocity when the sample has them.
-  if (sample->eye_position) {
-    SetVector(pawn->mutable_eye_position(), *sample->eye_position);
+  if (sample.eye_position) {
+    SetVector(pawn->mutable_eye_position(), *sample.eye_position);
   }
-  if (const auto camera = services_.CameraPosition(request.player())) {
+  if (const auto camera = services_.CameraPosition(slot)) {
     SetVector(pawn->mutable_camera_position(), *camera);
   }
-  if (sample->movement && sample->movement->abs_velocity) {
-    SetVector(pawn->mutable_velocity(), *sample->movement->abs_velocity);
+  if (sample.movement && sample.movement->abs_velocity) {
+    SetVector(pawn->mutable_velocity(), *sample.movement->abs_velocity);
   }
 
   // Copy the hero's scoreboard line.
-  if (sample->score) {
+  if (sample.score) {
     // Copy the scoreboard.
     auto* score = pawn->mutable_score();
-    score->set_kills(sample->score->kills);
-    score->set_deaths(sample->score->deaths);
-    score->set_assists(sample->score->assists);
-    score->set_last_hits(sample->score->last_hits);
+    score->set_kills(sample.score->kills);
+    score->set_deaths(sample.score->deaths);
+    score->set_assists(sample.score->assists);
+    score->set_last_hits(sample.score->last_hits);
 
     // Then denies, damage, healing and net worth.
-    score->set_denies(sample->score->denies);
-    score->set_hero_damage(sample->score->hero_damage);
-    score->set_hero_healing(sample->score->hero_healing);
-    score->set_net_worth(sample->score->net_worth);
+    score->set_denies(sample.score->denies);
+    score->set_hero_damage(sample.score->hero_damage);
+    score->set_hero_healing(sample.score->hero_healing);
+    score->set_net_worth(sample.score->net_worth);
   }
 
   // The game marks the hero carrying the urn with its holding-idol state.
   abilities::ModifierStateRequest holding;
-  holding.set_entity(sample->pawn_handle);
+  holding.set_entity(sample.pawn_handle);
   holding.set_state("MODIFIER_STATE_HOLDING_IDOL");
   if (const auto carrying = ModifierState(holding)) {
     pawn->set_carrying_urn(carrying->active());
   }
-  return response;
 }
 
 std::expected<gameinterop::WorldEntities*, std::string> Game::World() {

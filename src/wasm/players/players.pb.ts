@@ -968,6 +968,98 @@ export const PawnResponse: MessageType<PawnResponse> =
   )
 
 /**
+ * PawnsResponse answers Pawns.
+ *
+ * @generated from message modlock.wasm.players.PawnsResponse
+ */
+export interface PawnsResponse {
+  pawns?: PlayerPawn[]
+}
+
+export const PawnsResponse: MessageType<PawnsResponse> =
+  /* @__PURE__ */ createMessageType<PawnsResponse>(
+    'modlock.wasm.players.PawnsResponse',
+    () => [[1, 'pawns', 11, 1, PlayerPawn.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: PawnsResponse,
+      ): PawnsResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.pawns ??= []).push(PlayerPawn.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: PawnsResponse, w: Writer): void => {
+        {
+          const a = m.pawns
+          if (a != null) for (const e of a) PlayerPawn.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * PlayerPawn is one player's pawn.
+ *
+ * @generated from message modlock.wasm.players.PlayerPawn
+ */
+export interface PlayerPawn {
+  /**
+   * Player is the player's server slot.
+   */
+  player?: number
+  pawn?: Pawn
+}
+
+export const PlayerPawn: MessageType<PlayerPawn> =
+  /* @__PURE__ */ createMessageType<PlayerPawn>(
+    'modlock.wasm.players.PlayerPawn',
+    () => [
+      [1, 'player', 5],
+      [2, 'pawn', 11, 0, Pawn.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: PlayerPawn): PlayerPawn => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.pawn = Pawn.decode(r, r.delimited(), m.pawn ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: PlayerPawn, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.pawn
+          if (v != null) Pawn.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
  * Pawn is one player's pawn this frame: their hero, or the game's placeholder
  * before a hero is selected.
  *

@@ -1878,6 +1878,15 @@ class Connection:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerPawn:
+    """PlayerPawn is one player's pawn."""
+
+    # player is the player's server slot.
+    player: Player
+    pawn: Pawn
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class Pawn:
     """Pawn is one player's pawn this frame: their hero, or the game's placeholder
     before a hero is selected.
@@ -4204,6 +4213,19 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "pawn", "message", optional=True, message="Pawn"),
         ],
     ),
+    "PawnsResponse": (
+        None,
+        [
+            wire.Field(1, "pawns", "message", repeated=True, message="PlayerPawn"),
+        ],
+    ),
+    "PlayerPawn": (
+        PlayerPawn,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "pawn", "message", message="Pawn"),
+        ],
+    ),
     "Pawn": (
         Pawn,
         [
@@ -5077,6 +5099,18 @@ def precache(options: PrecacheOptions) -> bool:
     hero whose abilities ReplaceAbility gives, with their particles.
     """
     return _call("Precache", "PrecacheOptions", options) is not None
+
+
+def pawns() -> list[PlayerPawn]:
+    """pawns returns every player's pawn this frame in one reply, in slot order,
+    each as Pawn returns it: a mode that reads every hero each frame makes
+    one call instead of one per player. A slot Pawn answers nothing for is
+    left out.
+    """
+    response = _call("Pawns", "Empty", {}, "PawnsResponse")
+    if response is None:
+        return []
+    return response["pawns"]
 
 
 def read_file(path: str) -> str | None:

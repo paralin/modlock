@@ -105,6 +105,14 @@ class HostService {
     return std::unexpected("this host does not support Pawn");
   }
 
+  // Pawns returns every player's pawn this frame in one reply, in slot order,
+  // each as Pawn returns it: a mode that reads every hero each frame makes
+  // one call instead of one per player. A slot Pawn answers nothing for is
+  // left out.
+  virtual std::expected<players::PawnsResponse, std::string> Pawns() {
+    return std::unexpected("this host does not support Pawns");
+  }
+
   // PlayerSetting returns the player's value of a setting the manifest
   // declares: the value they chose, or the setting's default. A bot has the
   // defaults.
@@ -1152,6 +1160,11 @@ class HostService {
              return detail::Fail("the Pawn request is malformed");
            }
            return detail::Answer(host.Pawn(request));
+         }},
+        {"Pawns",
+         [](HostService& host, const std::string& bytes) {
+           static_cast<void>(bytes);
+           return detail::Answer(host.Pawns());
          }},
         {"PlayerSetting",
          [](HostService& host, const std::string& bytes) {

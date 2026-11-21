@@ -108,6 +108,12 @@ service Host {
   // made a pawn. The pawn's entity changes whenever the game replaces it.
   rpc Pawn(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.players.PawnResponse);
 
+  // Pawns returns every player's pawn this frame in one reply, in slot order,
+  // each as Pawn returns it: a mode that reads every hero each frame makes
+  // one call instead of one per player. A slot Pawn answers nothing for is
+  // left out.
+  rpc Pawns(Empty) returns (modlock.wasm.players.PawnsResponse);
+
   // PlayerSetting returns the player's value of a setting the manifest
   // declares: the value they chose, or the setting's default. A bot has the
   // defaults.

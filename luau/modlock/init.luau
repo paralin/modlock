@@ -1343,6 +1343,13 @@ export type Connection = {
 	roles: { ModRole },
 }
 
+-- PlayerPawn is one player's pawn.
+export type PlayerPawn = {
+	-- player is the player's server slot.
+	player: Player,
+	pawn: Pawn,
+}
+
 -- Pawn is one player's pawn this frame: their hero, or the game's placeholder
 -- before a hero is selected.
 export type Pawn = {
@@ -3661,6 +3668,13 @@ schema.Connection = {
 schema.PawnResponse = {
 	{ number = 1, name = "pawn", kind = "message", optional = true, message = "Pawn" },
 }
+schema.PawnsResponse = {
+	{ number = 1, name = "pawns", kind = "message", repeated = true, message = "PlayerPawn" },
+}
+schema.PlayerPawn = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "pawn", kind = "message", message = "Pawn" },
+}
 schema.Pawn = {
 	{ number = 1, name = "entity", kind = "uint32" },
 	{ number = 2, name = "hero", kind = "uint32" },
@@ -4266,6 +4280,18 @@ end
 -- hero whose abilities ReplaceAbility gives, with their particles.
 function modlock.precache(options: PrecacheOptions): boolean
 	return call("Precache", "PrecacheOptions", options) ~= nil
+end
+
+-- pawns returns every player's pawn this frame in one reply, in slot order,
+-- each as Pawn returns it: a mode that reads every hero each frame makes
+-- one call instead of one per player. A slot Pawn answers nothing for is
+-- left out.
+function modlock.pawns(): { PlayerPawn }
+	local response = call("Pawns", "Empty", {}, "PawnsResponse")
+	if response == nil then
+		return {}
+	end
+	return response.pawns
 end
 
 -- readFile reads one of the mod's files: the host's copy, which the mod

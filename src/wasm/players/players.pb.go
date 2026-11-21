@@ -825,6 +825,53 @@ func (x *PawnResponse) GetPawn() *Pawn {
 	return nil
 }
 
+// PawnsResponse answers Pawns.
+type PawnsResponse struct {
+	unknownFields []byte
+	Pawns         []*PlayerPawn `protobuf:"bytes,1,rep,name=pawns,proto3" json:"pawns,omitempty"`
+}
+
+func (x *PawnsResponse) Reset() {
+	*x = PawnsResponse{}
+}
+
+func (*PawnsResponse) ProtoMessage() {}
+
+func (x *PawnsResponse) GetPawns() []*PlayerPawn {
+	if x != nil {
+		return x.Pawns
+	}
+	return nil
+}
+
+// PlayerPawn is one player's pawn.
+type PlayerPawn struct {
+	unknownFields []byte
+	// Player is the player's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	Pawn   *Pawn `protobuf:"bytes,2,opt,name=pawn,proto3" json:"pawn,omitempty"`
+}
+
+func (x *PlayerPawn) Reset() {
+	*x = PlayerPawn{}
+}
+
+func (*PlayerPawn) ProtoMessage() {}
+
+func (x *PlayerPawn) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *PlayerPawn) GetPawn() *Pawn {
+	if x != nil {
+		return x.Pawn
+	}
+	return nil
+}
+
 // Pawn is one player's pawn this frame: their hero, or the game's placeholder
 // before a hero is selected.
 type Pawn struct {
@@ -2572,6 +2619,39 @@ func (m *PawnResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *PawnsResponse) CloneVT() *PawnsResponse {
+	if m == nil {
+		return (*PawnsResponse)(nil)
+	}
+	r := new(PawnsResponse)
+	r.Pawns = protobuf_go_lite.CloneVTSlice(m.Pawns)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PawnsResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *PlayerPawn) CloneVT() *PlayerPawn {
+	if m == nil {
+		return (*PlayerPawn)(nil)
+	}
+	r := new(PlayerPawn)
+	r.Player = m.Player
+	r.Pawn = protobuf_go_lite.CloneVTValue(m.Pawn)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PlayerPawn) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *Pawn) CloneVT() *Pawn {
 	if m == nil {
 		return (*Pawn)(nil)
@@ -3510,6 +3590,49 @@ func (this *PawnResponse) EqualVT(that *PawnResponse) bool {
 
 func (this *PawnResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*PawnResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *PawnsResponse) EqualVT(that *PawnsResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Pawns, that.Pawns, func() *PlayerPawn { return &PlayerPawn{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PawnsResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PawnsResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *PlayerPawn) EqualVT(that *PlayerPawn) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Pawn, that.Pawn) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PlayerPawn) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PlayerPawn)
 	if !ok {
 		return false
 	}
@@ -5345,6 +5468,123 @@ func (x *PawnResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the PawnResponse from JSON.
 func (x *PawnResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PawnsResponse message to JSON.
+func (x *PawnsResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Pawns) > 0 || s.HasField("pawns") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("pawns")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Pawns {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("pawns"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PawnsResponse to JSON.
+func (x *PawnsResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PawnsResponse message from JSON.
+func (x *PawnsResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "pawns":
+			s.AddField("pawns")
+			if s.ReadNil() {
+				x.Pawns = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Pawns = append(x.Pawns, nil)
+					return
+				}
+				v := &PlayerPawn{}
+				v.UnmarshalProtoJSON(s.WithField("pawns", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Pawns = append(x.Pawns, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PawnsResponse from JSON.
+func (x *PawnsResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PlayerPawn message to JSON.
+func (x *PlayerPawn) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Pawn != nil || s.HasField("pawn") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("pawn")
+		x.Pawn.MarshalProtoJSON(s.WithField("pawn"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PlayerPawn to JSON.
+func (x *PlayerPawn) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PlayerPawn message from JSON.
+func (x *PlayerPawn) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "pawn":
+			if s.ReadNil() {
+				x.Pawn = nil
+				return
+			}
+			x.Pawn = &Pawn{}
+			x.Pawn.UnmarshalProtoJSON(s.WithField("pawn", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PlayerPawn from JSON.
+func (x *PlayerPawn) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -8192,6 +8432,97 @@ func (m *PawnResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *PawnsResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PawnsResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PawnsResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Pawns) > 0 {
+		for iNdEx := len(m.Pawns) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Pawns[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlayerPawn) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlayerPawn) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PlayerPawn) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Pawn != nil {
+		size, err := m.Pawn.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Pawn) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -10196,6 +10527,35 @@ func (m *PawnResponse) SizeVT() (n int) {
 	return n
 }
 
+func (m *PawnsResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Pawns {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *PlayerPawn) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Pawn != nil {
+		l = m.Pawn.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *Pawn) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -11051,6 +11411,46 @@ func (x *PawnResponse) MarshalProtoText() string {
 }
 
 func (x *PawnResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *PawnsResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PawnsResponse")
+	if len(x.Pawns) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "pawns")
+		for i, v := range x.Pawns {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &PlayerPawn{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PawnsResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *PlayerPawn) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PlayerPawn")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Pawn != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "pawn")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Pawn)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PlayerPawn) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -12603,6 +13003,129 @@ func (m *PawnResponse) UnmarshalVT(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pawn", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Pawn == nil {
+				m.Pawn = &Pawn{}
+			}
+			if err := m.Pawn.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *PawnsResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PawnsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PawnsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pawns", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Pawns = append(m.Pawns, &PlayerPawn{})
+			if err := m.Pawns[len(m.Pawns)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *PlayerPawn) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlayerPawn: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlayerPawn: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pawn", wireType)
 			}

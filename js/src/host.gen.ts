@@ -2145,6 +2145,21 @@ function fromConnection(message: playersPb.Connection): Connection {
   }
 }
 
+/** PlayerPawn is one player's pawn. */
+export interface PlayerPawn {
+  /** player is the player's server slot. */
+  readonly player: Player
+  readonly pawn: Pawn
+}
+
+/** fromPlayerPawn decodes a PlayerPawn. */
+function fromPlayerPawn(message: playersPb.PlayerPawn): PlayerPawn {
+  return {
+    player: Player.of(message.player ?? 0),
+    pawn: fromPawn(message.pawn ?? {}),
+  }
+}
+
 /**
  * Pawn is one player's pawn this frame: their hero, or the game's placeholder
  * before a hero is selected.
@@ -3663,6 +3678,19 @@ export function serverCommand(command: string): boolean {
  */
 export function precache(options: PrecacheOptions): boolean {
   return call('Precache', wasmPb.PrecacheOptions.toBinary(toPrecacheOptions(options))) !== undefined
+}
+
+/**
+ * pawns returns every player's pawn this frame in one reply, in slot order,
+ * each as Pawn returns it: a mode that reads every hero each frame makes
+ * one call instead of one per player. A slot Pawn answers nothing for is
+ * left out.
+ */
+export function pawns(): PlayerPawn[] {
+  const reply = call('Pawns', new Uint8Array())
+  if (reply === undefined) return []
+  const response = playersPb.PawnsResponse.fromBinary(reply)
+  return (response.pawns ?? []).map((v) => fromPlayerPawn(v))
 }
 
 /**
