@@ -539,6 +539,10 @@ type PingResult struct {
 	// Block drops the ping for every player, the sender included: its marker,
 	// sound, voice line and chat line.
 	Block bool `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
+	// MuteVoice lists the players, by slot, who get a ping that is not blocked
+	// without its voice line: they still see its marker and hear its sound.
+	// The other recipients get it whole.
+	MuteVoice []int32 `protobuf:"varint,2,rep,packed,name=mute_voice,json=muteVoice,proto3" json:"muteVoice,omitempty"`
 }
 
 func (x *PingResult) Reset() {
@@ -552,6 +556,13 @@ func (x *PingResult) GetBlock() bool {
 		return x.Block
 	}
 	return false
+}
+
+func (x *PingResult) GetMuteVoice() []int32 {
+	if x != nil {
+		return x.MuteVoice
+	}
+	return nil
 }
 
 // CommandResult answers whether the mod handled a command.
@@ -1018,6 +1029,7 @@ func (m *PingResult) CloneVT() *PingResult {
 	}
 	r := new(PingResult)
 	r.Block = m.Block
+	r.MuteVoice = protobuf_go_lite.CloneSlice(m.MuteVoice)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1459,6 +1471,9 @@ func (this *PingResult) EqualVT(that *PingResult) bool {
 		return false
 	}
 	if this.Block != that.Block {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.MuteVoice, that.MuteVoice) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2409,6 +2424,11 @@ func (x *PingResult) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("block")
 		s.WriteBool(x.Block)
 	}
+	if len(x.MuteVoice) > 0 || s.HasField("muteVoice") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("muteVoice")
+		s.WriteInt32Array(x.MuteVoice)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2429,6 +2449,13 @@ func (x *PingResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "block":
 			s.AddField("block")
 			x.Block = s.ReadBool()
+		case "mute_voice", "muteVoice":
+			s.AddField("mute_voice")
+			if s.ReadNil() {
+				x.MuteVoice = nil
+				return
+			}
+			x.MuteVoice = s.ReadInt32Array()
 		}
 	})
 }
@@ -3436,6 +3463,11 @@ func (m *PingResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.MuteVoice) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.MuteVoice)
+		i--
+		dAtA[i] = 0x12
+	}
 	if m.Block {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Block)
 		i--
@@ -3997,6 +4029,7 @@ func (m *PingResult) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Block)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.MuteVoice)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4380,6 +4413,14 @@ func (x *PingResult) MarshalProtoText() string {
 	if x.Block != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "block")
 		protobuf_go_lite.TextWriteBool(&sb, x.Block)
+	}
+	if len(x.MuteVoice) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "mute_voice")
+		for i, v := range x.MuteVoice {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5346,6 +5387,36 @@ func (m *PingResult) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Block = bool(v)
+		case 2:
+			if wireType == 0 {
+				var v int32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.MuteVoice = append(m.MuteVoice, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.MuteVoice) == 0 {
+					m.MuteVoice = make([]int32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v int32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.MuteVoice = append(m.MuteVoice, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field MuteVoice", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

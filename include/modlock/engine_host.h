@@ -46,7 +46,8 @@ class MODLOCK_API EngineHost {
 
   // Event subscriptions dispatch in registration order. A true command,
   // damage, ping or respawn decision claims that operation and ends its
-  // dispatch; a claimed ping is dropped for every recipient.
+  // dispatch; a claimed ping is dropped for every recipient. Ping handlers
+  // that pass add to the slots that get the ping without its voice line.
   std::expected<Subscription, std::string> OnFrame(std::function<void()> callback);
   std::expected<Subscription, std::string> OnChat(gameinterop::NativeChatHook::Handler callback);
   std::expected<Subscription, std::string> OnPing(gameinterop::NativePingFilter::Handler callback);

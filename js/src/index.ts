@@ -557,9 +557,11 @@ export function onDamage(
 /**
  * onPing calls handler with each ping a player sends, from the comms wheel, a
  * quick ping key, the map or an ability, before anyone sees it, so it can
- * block the ping. A blocked ping reaches nobody, the sender included: no
- * marker, sound, voice line or chat line. The handler runs inside the
- * server's ping, so it decides at once and defers other work to a frame.
+ * block the ping or mute its voice line. A blocked ping reaches nobody, the
+ * sender included: no marker, sound, voice line or chat line. The players a
+ * handler lists in muteVoice, by slot, get the ping without its voice line.
+ * The handler runs inside the server's ping, so it decides at once and defers
+ * other work to a frame.
  */
 export function onPing(handler: (ping: PingEvent) => PingResult | void): void {
   pings.push(handler)
@@ -812,13 +814,19 @@ const handlers: ModHandlers = {
   },
 
   ping(event): PingResult {
-    // The first handler that blocks the ping ends its dispatch.
+    // The first handler that blocks the ping ends its dispatch; the others
+    // add the players they mute its voice line for.
+    const muteVoice = new Set<number>()
     for (const handler of pings) {
-      if (handler(event)?.block) {
+      const result = handler(event)
+      if (result?.block) {
         return { block: true }
       }
+      for (const slot of result?.muteVoice ?? []) {
+        muteVoice.add(slot)
+      }
     }
-    return { block: false }
+    return { block: false, muteVoice: [...muteVoice] }
   },
 
   world(event) {

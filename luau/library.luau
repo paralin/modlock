@@ -1247,9 +1247,11 @@ end
 
 -- onPing calls handler with each ping a player sends, from the comms wheel, a
 -- quick ping key, the map or an ability, before anyone sees it, so it can
--- block the ping. A blocked ping reaches nobody, the sender included: no
--- marker, sound, voice line or chat line. The handler runs inside the
--- server's ping, so it decides at once and defers other work to a frame.
+-- block the ping or mute its voice line. A blocked ping reaches nobody, the
+-- sender included: no marker, sound, voice line or chat line. The players a
+-- handler lists in muteVoice, by slot, get the ping without its voice line.
+-- The handler runs inside the server's ping, so it decides at once and defers
+-- other work to a frame.
 function modlock.onPing(handler: (ping: PingEvent) -> PingResult?)
 	table.insert(pings, handler)
 end
@@ -1460,14 +1462,23 @@ local handlers: ModHandlers = {
 	end,
 
 	ping = function(event)
-		-- The first handler that blocks the ping ends its dispatch.
+		-- The first handler that blocks the ping ends its dispatch; the others
+		-- add the players they mute its voice line for.
+		local muted: { [number]: boolean } = {}
+		local muteVoice: { number } = {}
 		for _, handler in pings do
 			local result = handler(event)
 			if result and result.block then
 				return { block = true }
 			end
+			for _, slot in (result and result.muteVoice) or {} do
+				if not muted[slot] then
+					muted[slot] = true
+					table.insert(muteVoice, slot)
+				end
+			end
 		end
-		return { block = false }
+		return { block = false, muteVoice = muteVoice }
 	end,
 
 	damaged = function(event)

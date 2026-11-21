@@ -2158,7 +2158,7 @@ class ModClient {
 
   // Ping offers each ping a player the mod serves sends, before the server
   // shows it to anyone, while the mod asked for pings. The mod's answer may
-  // drop it for every recipient.
+  // drop it for every recipient or mute its voice line for some.
   std::expected<PingResult, std::string> Ping(const PingEvent& event) {
     return Send<PingResult>("Ping", event);
   }

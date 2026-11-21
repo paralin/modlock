@@ -107,7 +107,7 @@ Python spells each as a `snake_case` decorator, such as
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                        |
 | `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                               |
-| `onPing(handler)`                                   | Before each ping reaches anyone, to block it; see [Pings](#pings).                        |
+| `onPing(handler)`                                   | Before each ping reaches anyone, to block it or mute its voice; see [Pings](#pings).      |
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                  |
 | `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                    |
 | `onFrame(handler)`                                  | Once per server frame.                                                                    |
@@ -488,8 +488,93 @@ mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
 
 </Samples>
 
+A handler can instead mute the ping's voice line for some players and leave
+them its marker and sound: `muteVoice` lists them by slot. The game names the
+line in the ping and each player's game speaks it, so a muted player hears
+nothing of it while the others hear it as usual. This mod lets each player
+mute the pings of a player who spams them:
+
+<Samples>
+
+```ts
+import { command, onPing, players } from 'modlock'
+
+// muted maps each player to the players whose ping voices they muted.
+const muted = new Map<number, Set<number>>()
+
+command('mutepings', (player, args) => {
+  const target = players().find((other) => other.name === args.trim())?.player
+  if (target) {
+    muted.set(
+      target.slot,
+      (muted.get(target.slot) ?? new Set()).add(player.slot),
+    )
+  }
+})
+
+onPing(({ player }) => ({
+  block: false,
+  muteVoice: [...(muted.get(player.slot) ?? [])],
+}))
+```
+
+```luau
+local muted: { [number]: { number } } = {}
+
+modlock.command("mutepings", function(player, args)
+	for _, other in modlock.players() do
+		if other.name == args then
+			local slot = other.player.slot
+			muted[slot] = muted[slot] or {}
+			table.insert(muted[slot], player.slot)
+		end
+	end
+end)
+
+modlock.onPing(function(ping)
+	return { block = false, muteVoice = muted[ping.player.slot] }
+end)
+```
+
+```python
+muted: dict[int, list[int]] = {}
+
+
+@modlock.command("mutepings")
+def mute(player: modlock.Player, args: str) -> None:
+    for other in modlock.players():
+        if other.name == args.strip():
+            muted.setdefault(other.player.slot, []).append(player.slot)
+
+
+@modlock.on_ping
+def ping(event: modlock.PingEvent) -> modlock.PingResult | None:
+    return modlock.PingResult(mute_voice=muted.get(event.player.slot, []))
+```
+
+```go
+muted := map[int32][]int32{}
+
+mod.Command("mutepings", func(p mod.Player, args string) {
+	roster, _ := mod.Players()
+	for _, other := range roster {
+		if other.GetName() == strings.TrimSpace(args) {
+			muted[other.GetPlayer()] = append(muted[other.GetPlayer()], p.Slot())
+		}
+	}
+})
+
+mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
+	return &mod.PingResult{MuteVoice: muted[ping.GetPlayer()]}
+})
+```
+
+</Samples>
+
 The handler runs inside the server's ping, so it answers at once; put other
-work, such as a message to the player, in a timer.
+work, such as a message to the player, in a timer. When several handlers
+answer, the first that blocks the ping decides, and otherwise each player any
+handler mutes gets the ping without its voice.
 
 | Field     | Meaning                                                                     |
 | --------- | --------------------------------------------------------------------------- |
