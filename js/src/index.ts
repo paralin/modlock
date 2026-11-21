@@ -48,7 +48,9 @@ import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
-import { change, press, tick } from './ui.js'
+import { chatShown } from './chat.js'
+import { Stragglers, type StragglersOptions } from './stragglers.js'
+import { change, heard, joined, left, press, tick } from './ui.js'
 export * as vector from './vector.js'
 
 export { Buttons, Layers } from './bits.js'
@@ -142,6 +144,7 @@ export {
   stragglerConnectSeconds,
   type StragglersOptions,
 } from './stragglers.js'
+export { type ChatLinesOptions, showChatLines } from './chat.js'
 export { type Check, ProbeRun } from './probe.js'
 export {
   poseAt,
@@ -203,6 +206,7 @@ export {
   type HeroProps,
   hide,
   hideHud,
+  hideHudForAll,
   cursorFree,
   freeCursor,
   abilityBarPresses,
@@ -474,6 +478,16 @@ function respawned(player: Player): void {
   }
 }
 
+/**
+ * sweepStragglers runs a Stragglers sweep each frame for as long as the mod
+ * runs: it kicks a human still joining after options.connectSeconds and lays
+ * down each hero no player holds, such as the hero of a player who left.
+ * Only the first call's options apply.
+ */
+export function sweepStragglers(options: StragglersOptions = {}): void {
+  stragglers ??= new Stragglers(options)
+}
+
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
@@ -698,19 +712,24 @@ const landeds: ((landing: LandedEvent) => void)[] = []
 const settingChanges: ((player: Player, key: string, value: string) => void)[] =
   []
 
+/** stragglers sweeps each frame once the mod calls sweepStragglers. */
+let stragglers: Stragglers | undefined
+
 /** handlers delivers each event to the handlers the mod registered. */
 const handlers: ModHandlers = {
   start(event) {
     for (const handler of starts) {
       handler(event.args)
     }
-    // Frames also fade the notices toast shows, so the library always takes them.
+    // Frames also fade the notices toast shows, so the library always takes
+    // them. Joins and leaves also start and clear what the library shows
+    // each player, so it takes them too.
     return {
       frames: true,
       damage: damages.length !== 0,
       damaged: damageds.length !== 0,
-      chat: chats.length !== 0,
-      joins: joins.length !== 0 || leaves.length !== 0,
+      chat: chats.length !== 0 || chatShown(),
+      joins: true,
       casts: abilityCasts.length !== 0,
       kills: kills.length !== 0,
       heals: heals.length !== 0,
@@ -731,6 +750,7 @@ const handlers: ModHandlers = {
     tick(event.timeSeconds)
     advance(event.timeSeconds)
     advancePuppets(event.timeSeconds)
+    stragglers?.sweep(event.timeSeconds)
 
     // Count the frame, then tell the mod.
     frameCount++
@@ -760,6 +780,7 @@ const handlers: ModHandlers = {
     // A line arrives under the same CPU budget as a command, so its handlers
     // run with the next frame.
     after(0, () => {
+      heard(event)
       for (const handler of chats) {
         handler(event)
       }
@@ -909,15 +930,19 @@ const handlers: ModHandlers = {
 
   // A join and a leave run at once, so the leaving player's hero still reads.
   playerJoined(event) {
+    joined(event.connection.player)
     for (const handler of joins) {
       handler(event)
     }
   },
 
+  // The library forgets what it showed a player who left once the mod has
+  // heard the leave.
   playerLeft(event) {
     for (const handler of leaves) {
       handler(event)
     }
+    if (event.disconnected) left(event.connection.player)
   },
 }
 

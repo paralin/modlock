@@ -254,6 +254,15 @@ const stragglers = new Stragglers({ connectSeconds: 120 })
 onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
 ```
 
+`sweepStragglers(options?)` does the same in one line, with the library calling
+`sweep` each frame for as long as the mod runs:
+
+```ts
+import { sweepStragglers } from 'modlock'
+
+sweepStragglers()
+```
+
 | Option           | Default | Does                                                                                            |
 | ---------------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `connectSeconds` | 120     | Kicks a human still joining this long after the sweep first saw them. Zero or less never kicks. |

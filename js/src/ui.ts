@@ -56,7 +56,8 @@
 //
 // hideHud hides parts of the game's own HUD from a player, such as their
 // health bar or the notice for each boon, until the mod lists them no more,
-// hides the player's interface, or stops. Modlock gives them back on its own
+// hides the player's interface, or stops. hideHudForAll hides parts from
+// every player, those who join later included, on top of each player's own. Modlock gives them back on its own
 // when the player leaves, by the menu, to the hideout or with a server that
 // goes away, so a mod has nothing to clean up.
 //
@@ -105,8 +106,14 @@ import {
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
+import { chatLines, expireChat, forgetChat, hearChat } from './chat.js'
 import { heroes } from './heroes.js'
-import { type Player, readField, type Wheel } from './host.gen.js'
+import {
+  type ChatEvent,
+  type Player,
+  readField,
+  type Wheel,
+} from './host.gen.js'
 import { call } from './host.js'
 import { players } from './players.js'
 
@@ -648,6 +655,16 @@ export function hideHud(player: Player, parts: readonly HudPart[]): boolean {
 }
 
 /**
+ * hideHudForAll hides parts of the game's own HUD from every player, now and
+ * as each joins, until the next call; an empty list shows them all again. A
+ * player's own hideHud list adds to it.
+ */
+export function hideHudForAll(parts: readonly HudPart[]): void {
+  everyoneHud = parts
+  drawAll()
+}
+
+/**
  * freeCursor shows player's mouse cursor without Tab held while free is true,
  * so they can click the mod's panels, such as a pick screen; false gives the
  * mouse back to aiming. Each call with true shows the cursor again, even when
@@ -836,11 +853,39 @@ export function route(player: Player, name: string, value: unknown): boolean {
 /** routeName matches the name of a route, as the renderer accepts it. */
 const routeName = /^[\w.-]+$/
 
-/** hide removes the interface, the routes and the notices the mod shows player. */
+/**
+ * hide removes the interface, the routes and the notices the mod shows
+ * player. What the mod shows every player, such as hideHudForAll's parts,
+ * stays.
+ */
 export function hide(player: Player): boolean {
   views.delete(player.slot)
   screens.delete(player.slot)
-  return send(player.slot, { reset: true })
+  if (!send(player.slot, { reset: true })) return false
+  return everyoneHud.length === 0 || draw(player)
+}
+
+/**
+ * joined draws what the mod shows every player for a player who joined,
+ * such as hideHudForAll's parts.
+ */
+export function joined(player: Player): void {
+  if (everyoneHud.length !== 0) draw(player)
+}
+
+/**
+ * left forgets what the mod showed the player who left, so the next person
+ * in the slot starts with nothing of theirs, and takes down their chat line.
+ */
+export function left(player: Player): void {
+  views.delete(player.slot)
+  screens.delete(player.slot)
+  if (forgetChat(player.slot)) drawAll()
+}
+
+/** heard shows a chat line to every player who may read it, if the mod shows chat lines. */
+export function heard(line: ChatEvent): void {
+  if (hearChat(line, now)) drawAll()
 }
 
 /**
@@ -943,6 +988,7 @@ export function change(
  */
 export function tick(seconds: number): void {
   now = seconds
+  if (expireChat(now)) drawAll()
   for (const current of views.values()) {
     if (!current.notices.some((notice) => notice.until <= now)) {
       continue
@@ -981,6 +1027,9 @@ interface Notice {
 
 /** views holds what the mod shows each player, by slot. */
 const views = new Map<number, View>()
+
+/** everyoneHud is the parts of the game's HUD hidden from every player. */
+let everyoneHud: readonly HudPart[] = []
 
 /** now is the game clock at the last frame, in seconds. */
 let now = 0
@@ -1031,10 +1080,11 @@ function draw(player: Player): boolean {
   const current = view(player)
   const root = [
     current.root,
+    chatLines(player),
     current.notices.length !== 0 && notices(current.notices),
   ]
   const previous = screens.get(player.slot)
-  const hud = current.hud.map((part) => hudParts[part])
+  const hud = hiddenParts(current.hud)
   const display = displayRows(player, current.display)
   const next = render(
     previous,
@@ -1074,6 +1124,24 @@ function draw(player: Player): boolean {
   // Keep the screen the player now holds.
   screens.set(player.slot, next)
   return true
+}
+
+/** drawAll draws every player in the game, as after a change all of them see. */
+function drawAll(): void {
+  for (const { player } of players()) {
+    draw(player)
+  }
+}
+
+/** hiddenParts is the wire list of the parts hidden from every player and in own. */
+function hiddenParts(own: readonly HudPart[]): WireHudPart[] {
+  const parts: WireHudPart[] = []
+  for (const part of everyoneHud) parts.push(hudParts[part])
+  for (const part of own) {
+    const wire = hudParts[part]
+    if (!parts.includes(wire)) parts.push(wire)
+  }
+  return parts
 }
 
 /**

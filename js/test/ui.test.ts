@@ -25,15 +25,17 @@ import {
   Action,
   freeCursor,
   hideHud,
+  hideHudForAll,
   itemId,
   jsx,
   sheet,
   show,
+  showChatLines,
   uiSound,
 } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
 import { keepPlayers } from '../src/players.js'
-import { change, press } from '../src/ui.js'
+import { change, heard, joined, left, press, tick } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
 // records it. The stand-in game's pawns are slot 2's Atlas and slot 3's Bebop.
@@ -501,4 +503,65 @@ test('inputs carry their values and hand changes to the mod', () => {
     .change!.set!.find((node) => node.kind === Kind.INPUT)!
   change(player, disabled.id!, { delta: 1, fraction: 0.5 })
   expect(wheels).toEqual([-0.25, 0])
+})
+
+test('chat lines and the parts hidden for all reach each player, and a leave clears its slot', () => {
+  // Slots 2 and 3 are in the game; slot 3 shows a screen of its own.
+  keepPlayers(
+    [
+      [2, 'Ada'],
+      [3, 'Bebop'],
+    ].map(([slot, name]) => ({
+      player: Player.of(slot as number),
+      steamId: 0n,
+      name: name as string,
+      bot: false,
+      ready: true,
+      generation: 0,
+      roles: [],
+    })),
+  )
+  const [ada, bebop] = [Player.of(2), Player.of(3)]
+  show(bebop, jsx('label', { children: 'Bebop only' }))
+  const latest = (slot: number) =>
+    sent.filter((request) => request.player === slot).at(-1)!.change!
+  const texts = (slot: number) =>
+    latest(slot).set!.flatMap((node) => (node.text ? [node.text] : []))
+
+  // A part hidden for all reaches every player, along with their own parts.
+  hideHud(bebop, ['minimap'])
+  hideHudForAll(['topBar'])
+  expect(latest(2).set![0]!.hideHud).toEqual([HudPart.TOP_BAR])
+  expect(latest(3).set![0]!.hideHud).toEqual([HudPart.TOP_BAR, HudPart.MINIMAP])
+
+  // A line to all reads beside its speaker's name for everyone; a command
+  // does not show.
+  showChatLines({ seconds: 5 })
+  tick(100)
+  heard({ player: ada, text: '/help', all: true, lane: 0 })
+  expect(texts(3).includes('“/help”')).toBe(false)
+  heard({ player: ada, text: 'over here', all: true, lane: 0 })
+  expect(texts(3).includes('“over here”')).toBe(true)
+  expect(texts(2).includes('“over here”')).toBe(true)
+
+  // The speaker leaves: their line goes, and the next person in Bebop's slot
+  // starts with nothing of Bebop's but what every player gets.
+  left(ada)
+  expect(latest(3).removed!.length).toBeGreaterThan(0)
+  left(bebop)
+  joined(bebop)
+  expect(latest(3).reset).toBe(true)
+  expect(latest(3).set![0]!.hideHud).toEqual([HudPart.TOP_BAR])
+  expect(texts(3).includes('Bebop only')).toBe(false)
+
+  // A line past its time goes on the next frame.
+  heard({ player: bebop, text: 'hi', all: true, lane: 0 })
+  expect(texts(2).includes('“hi”')).toBe(true)
+  const count = sent.length
+  tick(104)
+  expect(sent.length).toBe(count)
+  tick(105)
+  expect(sent.length).toBeGreaterThan(count)
+  expect(latest(2).removed!.length).toBeGreaterThan(0)
+  hideHudForAll([])
 })

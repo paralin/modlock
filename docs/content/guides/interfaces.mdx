@@ -105,6 +105,8 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                                            |
 | `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` stops it early.                  |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` shows them again.             |
+| `hideHudForAll(parts)`                  | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.          |
+| `showChatLines(options?)`               | Show each player's chat line beside their hero portrait, as the top bar does. TypeScript only.      |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming. |
 | `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                  |
 | `abilityDisplay(viewer, rows?)`         | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.    |
@@ -126,6 +128,28 @@ then stays away while the screen changes, until the next
 the cursor is up, and nothing while the player has no hero. A mod that wants the
 cursor back calls `freeCursor` again when `cursorFree` reports false, on a press
 or a timer.
+
+## Replace the top bar
+
+The game's top bar shows each player's portrait and their chat line under it
+for a few seconds. A mode that hides the top bar for its own score keeps the
+chat lines with `showChatLines`, which draws them in the HUD kit's
+[roster](#the-hud-kit) at the top right. Call both when the mod loads:
+
+```ts
+import { hideHudForAll, showChatLines } from 'modlock'
+
+hideHudForAll(['topBar'])
+showChatLines()
+```
+
+The library draws the lines over whatever interface the mod shows each player,
+as it draws toasts, so the mod does not redraw for them. A team line reads only
+to the speaker's team and a line to all reads to everyone. A command such as
+`/help` is not shown. `{ seconds }` sets how long a line stays, 6 unless set,
+and `{ top }` moves the lines down to clear a roster of the mod's own. A
+player's own `hideHud` list adds to the parts hidden from everyone, and `hide`
+leaves those parts hidden.
 
 ## Style it
 
