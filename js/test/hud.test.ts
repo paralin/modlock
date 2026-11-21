@@ -15,6 +15,7 @@ import {
   Roster,
   rosterBottom,
   rosterKey,
+  type RosterRow,
   Score,
   Tag,
   Text,
@@ -166,7 +167,9 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
 
   // Only the selected row's edge takes the accent, and the key follows both.
   expect(kids(picked)[1]!.props.style?.background).toBe(tones.accent)
-  const one = (row: (typeof rows)[number]) => [{ key: 'p', rows: [row] }]
+  // RosterRow, not the narrower type of rows: scriptc copies a record into a
+  // narrower shape and drops the fields that shape lacks.
+  const one = (row: RosterRow) => [{ key: 'p', rows: [row] }]
   expect(rosterKey(one(pressable))).not.toBe(rosterKey(one(rows[2]!)))
 
   // Groups head their rows, and empty groups draw nothing. As players join,
