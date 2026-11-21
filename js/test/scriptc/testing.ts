@@ -96,6 +96,10 @@ class Expectation {
     this.check((this.actual as number) > than, `to be above ${than}`)
   }
 
+  toBeLessThanOrEqual(than: number): void {
+    this.check((this.actual as number) <= than, `to be at most ${than}`)
+  }
+
   toBeCloseTo(want: number): void {
     const gap = Math.abs((this.actual as number) - want)
     this.check(gap < 0.005, `to be close to ${want}`)

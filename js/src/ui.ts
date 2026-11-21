@@ -1239,7 +1239,11 @@ function compose(
     abilityBarPresses: current.bar !== undefined,
     abilityDisplay: displayRows(player, current.display),
   }
-  screen.root = { node: root, encoded: JSON.stringify(root) }
+
+  // unknown to JSON.stringify, as Part.add explains: scriptc stringifies
+  // unknown but not Node's full record type. The root carries no Steam id.
+  const value: unknown = root
+  screen.root = { node: root, encoded: JSON.stringify(value) }
   return screen
 }
 
