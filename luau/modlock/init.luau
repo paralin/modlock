@@ -458,6 +458,19 @@ local CameraParam: { [any]: any } = {
 	horizontalOffset = 4,
 }
 
+-- PingKind is how a player pinged.
+export type PingKind = "map" | "wheel" | "quickResponse" | "ability"
+local PingKind: { [any]: any } = {
+	[0] = "map",
+	map = 0,
+	[1] = "wheel",
+	wheel = 1,
+	[2] = "quickResponse",
+	quickResponse = 2,
+	[3] = "ability",
+	ability = 3,
+}
+
 -- ServiceFailure says why a service call ended without an answer.
 export type ServiceFailure = "none" | "refused" | "timeout" | "unavailable"
 local ServiceFailure: { [any]: any } = {
@@ -1680,6 +1693,8 @@ export type StartResult = {
 	melees: boolean,
 	-- parries asks for a Parried event after each parry that catches a swing.
 	parries: boolean,
+	-- pings asks for a Ping event before each ping a player sends.
+	pings: boolean,
 }
 
 -- FrameEvent identifies one server frame.
@@ -1720,6 +1735,28 @@ export type ChatEvent = {
 	-- lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
 	-- green, 4 blue, 6 purple, or 0 for none.
 	lane: number,
+}
+
+-- PingEvent carries one ping a player sent, before anyone sees it.
+export type PingEvent = {
+	-- player is the player who pinged.
+	player: Player,
+	-- kind is how they pinged.
+	kind: PingKind?,
+	-- option is the comms wheel line for a wheel ping, the
+	-- m_unPingWheelOptionID of the game's scripts/ping_wheel_messages.vdata,
+	-- and zero for another kind.
+	option: number,
+	-- concept is the voice line the ping speaks, a CitadelConcept_t value, or
+	-- zero for none.
+	concept: number,
+}
+
+-- PingResult answers a Ping event.
+export type PingResult = {
+	-- block drops the ping for every player, the sender included: its marker,
+	-- sound, voice line and chat line.
+	block: boolean,
 }
 
 -- CommandResult answers whether the mod handled a command.
@@ -4122,6 +4159,7 @@ schema.StartResult = {
 	{ number = 10, name = "levels", kind = "bool" },
 	{ number = 11, name = "melees", kind = "bool" },
 	{ number = 12, name = "parries", kind = "bool" },
+	{ number = 13, name = "pings", kind = "bool" },
 }
 schema.FrameEvent = {
 	{ number = 1, name = "tick", kind = "uint64" },
@@ -4138,6 +4176,15 @@ schema.ChatEvent = {
 	{ number = 2, name = "text", kind = "string" },
 	{ number = 3, name = "all", kind = "bool" },
 	{ number = 4, name = "lane", kind = "int32" },
+}
+schema.PingEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "kind", kind = "enum", enum = PingKind },
+	{ number = 3, name = "option", kind = "uint32" },
+	{ number = 4, name = "concept", kind = "int32" },
+}
+schema.PingResult = {
+	{ number = 1, name = "block", kind = "bool" },
 }
 schema.CommandResult = {
 	{ number = 1, name = "claimed", kind = "bool" },
@@ -4852,6 +4899,10 @@ export type ModHandlers = {
 	-- chat reports each chat line the server accepted from a player the mod
 	-- serves, while the mod asked for chat, before the line's command.
 	chat: (event: ChatEvent) -> (),
+	-- ping offers each ping a player the mod serves sends, before the server
+	-- shows it to anyone, while the mod asked for pings. The mod's answer may
+	-- drop it for every recipient.
+	ping: (event: PingEvent) -> PingResult,
 	-- world follows each world load, and start when a world has already
 	-- loaded. Objects and bots from an earlier world are gone by then.
 	world: (event: WorldEvent) -> (),
@@ -4932,6 +4983,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Frame = { request = "FrameEvent", response = "Empty", handler = "frame" },
 	Command = { request = "CommandEvent", response = "CommandResult", handler = "command" },
 	Chat = { request = "ChatEvent", response = "Empty", handler = "chat" },
+	Ping = { request = "PingEvent", response = "PingResult", handler = "ping" },
 	World = { request = "WorldEvent", response = "Empty", handler = "world" },
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
@@ -5257,6 +5309,7 @@ local restoreds: { (player: Player, error: string?) -> () } = {}
 local npcsRestoreds: { (error: string?) -> () } = {}
 local damages: { (hit: DamageEvent) -> DamageResult? } = {}
 local damageds: { (hit: DamagedEvent) -> () } = {}
+local pings: { (ping: PingEvent) -> PingResult? } = {}
 local kills: { (kill: KillEvent) -> () } = {}
 local abilityCasts: { (cast: AbilityCastEvent) -> () } = {}
 local heals: { (heal: HealEvent) -> () } = {}
@@ -6225,6 +6278,15 @@ local function respawned(player: Player)
 	end
 end
 
+-- onPing calls handler with each ping a player sends, from the comms wheel, a
+-- quick ping key, the map or an ability, before anyone sees it, so it can
+-- block the ping. A blocked ping reaches nobody, the sender included: no
+-- marker, sound, voice line or chat line. The handler runs inside the
+-- server's ping, so it decides at once and defers other work to a frame.
+function modlock.onPing(handler: (ping: PingEvent) -> PingResult?)
+	table.insert(pings, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -6335,6 +6397,7 @@ local handlers: ModHandlers = {
 			levels = #levels ~= 0,
 			melees = #melees ~= 0,
 			parries = #parries ~= 0,
+			pings = #pings ~= 0,
 			modifierEvents = watched,
 		}
 	end,
@@ -6427,6 +6490,17 @@ local handlers: ModHandlers = {
 
 		-- Answer nothing when no handler changed the hit.
 		return if amount == event.amount then {} else { amount = amount }
+	end,
+
+	ping = function(event)
+		-- The first handler that blocks the ping ends its dispatch.
+		for _, handler in pings do
+			local result = handler(event)
+			if result and result.block then
+				return { block = true }
+			end
+		end
+		return { block = false }
 	end,
 
 	damaged = function(event)

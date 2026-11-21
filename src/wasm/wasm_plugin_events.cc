@@ -206,6 +206,14 @@ void WasmPlugin::ListenToPlayers() {
   } else {
     Log(std::string("console commands are unavailable: ") + commands.error());
   }
+  if (wants_.pings()) {
+    if (auto pings = engine_->OnPing(
+            [this](const gameinterop::NativePingFilter::Ping& ping) { return Ping(ping); })) {
+      players_.Add(std::move(*pings));
+    } else {
+      Log(std::string("pings are unavailable: ") + pings.error());
+    }
+  }
   if (auto departures = engine_->OnConnection(std::make_shared<Departures>(
           [this](int32_t slot, int32_t reason) { Leave(slot, reason); }))) {
     players_.Add(std::move(*departures));

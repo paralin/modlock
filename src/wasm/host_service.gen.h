@@ -2156,6 +2156,13 @@ class ModClient {
     return Send<void>("Chat", event);
   }
 
+  // Ping offers each ping a player the mod serves sends, before the server
+  // shows it to anyone, while the mod asked for pings. The mod's answer may
+  // drop it for every recipient.
+  std::expected<PingResult, std::string> Ping(const PingEvent& event) {
+    return Send<PingResult>("Ping", event);
+  }
+
   // World follows each world load, and start when a world has already
   // loaded. Objects and bots from an earlier world are gone by then.
   std::expected<void, std::string> World(const WorldEvent& event) {
