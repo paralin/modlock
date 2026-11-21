@@ -283,6 +283,41 @@ _ = p.Heal(250)
 
 </Samples>
 
+## Spectate without leaving
+
+A player who is out of the round can watch it while keeping their hero, so the
+game still counts them as playing. `spectateFrom` holds the hero as a
+[bystander](/mechanics/rotation#the-stands), parks it in the Baroness Hotel, the
+closed hall under Midtown that no one else sees into, and gives the player the
+free camera from a position you choose. The movement keys and the mouse fly
+the camera, not the hero. The function it returns ends the view: the player
+returns to their hero, the hold ends, and the hero goes back where it stood,
+unless you pass `false` because the mod respawns or moves it itself. Pass a
+fourth argument to park the hero somewhere else, such as on another map.
+`spectateFrom` is TypeScript only; in other languages, compose it from
+`holdModifierState`, `teleport`, `freeCamera` and `unwatch`.
+
+```ts
+import { type Player, spectateFrom } from 'modlock'
+
+const watching = new Map<number, (restore?: boolean) => void>()
+
+function knockOut(player: Player) {
+  const back = spectateFrom(
+    player,
+    { x: 0, y: 0, z: 2400 },
+    { pitch: 60, yaw: 90, roll: 0 },
+  )
+  if (back !== undefined) watching.set(player.slot, back)
+}
+
+function bringBack(player: Player) {
+  watching.get(player.slot)?.(false)
+  watching.delete(player.slot)
+  player.respawn()
+}
+```
+
 ## Add bots
 
 A bot is a player like any other, and fills a seat for testing or play.
@@ -334,6 +369,7 @@ Python spells each call in `snake_case`, and Go capitalizes it.
 | `player.zipline(lane)`                                                                                                            | Put the hero on the yellow, green, blue or purple lane's zipline.                |
 | `player.spectate()`                                                                                                               | Move the player to the spectators, without a hero.                               |
 | `player.watch(target, chase?)`, `freeCamera(position, facing)`, `unwatch()`                                                       | Watch a hero, chase it or fly freely, and return to the hero.                    |
+| `spectateFrom(player, position, facing, park?)`                                                                                   | Park the hero out of sight and fly the free camera, until the returned call.     |
 | `player.moveCamera(options)`, `clearCamera(context?)`                                                                             | Pull back, widen, offset or aim the camera, as abilities do.                     |
 | `player.clearItems`, `giveItem(item, imbue?)`, `buyItem(item, imbue?, source?)`, `restoreStamina`, `setStamina`, `refreshAbility` | Change what the hero carries; see [Abilities and items](/guides/abilities).      |
 | `player.abilities()`, `setAbility`, `replaceAbility`, `trainAbility`, `giveModifier`, `holdModifier`                              | Read, change or train abilities, their timers and charges, modifiers.            |

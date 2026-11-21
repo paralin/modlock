@@ -137,7 +137,12 @@ export {
   Standings,
   startingRating,
 } from './rotation.js'
-export { bystanderStates, holdBystander } from './bystander.js'
+export {
+  baronessHotel,
+  bystanderStates,
+  holdBystander,
+  spectateFrom,
+} from './bystander.js'
 export { Strays, strayGraceSeconds } from './strays.js'
 export {
   Stragglers,
