@@ -3,6 +3,7 @@
 #include "wasm/runtime.h"
 
 #include <condition_variable>
+#include <future>
 #include <mutex>
 #include <string_view>
 #include <utility>
@@ -45,26 +46,52 @@ Runtime::Runtime() : engine_(EpochEngine()) {
 
 Runtime::~Runtime() = default;
 
-std::expected<std::shared_ptr<const wasmtime::Module>, std::string> Runtime::Compile(
-    std::span<const uint8_t> bytes) {
-  // Reuse the module a live instance already holds.
+Runtime::Compiled Runtime::Compile(std::span<const uint8_t> bytes) {
+  // Reuse the module someone holds, join the compile under way, or start one.
   const std::string_view key(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-  if (auto found = modules_.find(key); found != modules_.end()) {
-    if (auto module = found->second.lock()) {
-      return module;
+  std::promise<Compiled> promise;
+  std::shared_future<Compiled> compiling;
+  {
+    std::lock_guard lock(mu_);
+    if (auto found = modules_.find(key); found != modules_.end()) {
+      if (auto module = found->second.module.lock()) {
+        return module;
+      }
+      compiling = found->second.compiling;
+    }
+    if (!compiling.valid()) {
+      std::erase_if(modules_, [](const auto& entry) {
+        return !entry.second.compiling.valid() && entry.second.module.expired();
+      });
+      modules_.insert_or_assign(std::string(key),
+                                Module{.compiling = promise.get_future().share()});
     }
   }
-  std::erase_if(modules_, [](const auto& entry) { return entry.second.expired(); });
-
-  // Compile the bytes; Wasmtime only reads them.
-  auto compiled = wasmtime::Module::compile(
-      engine_, wasmtime::Span<uint8_t>(const_cast<uint8_t*>(bytes.data()), bytes.size()));
-  if (!compiled) {
-    return std::unexpected("cannot compile the mod: " + compiled.err().message());
+  if (compiling.valid()) {
+    return compiling.get();
   }
-  auto module = std::make_shared<const wasmtime::Module>(std::move(compiled.ok_ref()));
-  modules_.insert_or_assign(std::string(key), module);
-  return module;
+
+  // Compile the bytes outside the lock; Wasmtime only reads them.
+  auto result = wasmtime::Module::compile(
+      engine_, wasmtime::Span<uint8_t>(const_cast<uint8_t*>(bytes.data()), bytes.size()));
+  Compiled compiled =
+      result ? Compiled(std::make_shared<const wasmtime::Module>(std::move(result.ok_ref())))
+             : std::unexpected("cannot compile the mod: " + result.err().message());
+
+  // Publish the module, or forget the bytes so a later call tries again, and
+  // wake the callers that joined.
+  {
+    std::lock_guard lock(mu_);
+    if (auto found = modules_.find(key); found != modules_.end()) {
+      if (compiled) {
+        found->second = Module{.module = *compiled};
+      } else {
+        modules_.erase(found);
+      }
+    }
+  }
+  promise.set_value(compiled);
+  return compiled;
 }
 
 }  // namespace modlock::wasm
