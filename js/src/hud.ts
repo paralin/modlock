@@ -29,7 +29,7 @@ import {
   types,
 } from './theme.js'
 import type { Player } from './host.gen.js'
-import type { Child, Style, UiElement } from './ui.js'
+import type { Child, Clock, Style, UiElement } from './ui.js'
 
 /**
  * element builds a panel or label for the kit's components; a later style
@@ -73,6 +73,8 @@ export interface TextProps {
    * plate a shadow only smears the glyphs.
    */
   plated?: boolean
+  /** clock counts the text's time in the player's game in place of children. */
+  clock?: Clock
   style?: Style
   children?: Child
 }
@@ -80,7 +82,7 @@ export interface TextProps {
 /** Text is one label in a type role, over the soft shadow unless plated. */
 export function Text(props: TextProps): UiElement {
   const type = types[props.role]
-  return element(
+  const text = element(
     'label',
     {
       face: type.face,
@@ -94,6 +96,9 @@ export function Text(props: TextProps): UiElement {
     },
     props.children,
   )
+  return props.clock
+    ? { ...text, props: { ...text.props, clock: props.clock } }
+    : text
 }
 
 /** BoxProps lay out a plate's or pill's children. */

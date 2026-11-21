@@ -203,6 +203,8 @@ export {
 export {
   type ButtonProps,
   type Child,
+  type Clip,
+  type Clock,
   type Component,
   type Edges,
   type ElementProps,
