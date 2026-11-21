@@ -114,6 +114,8 @@ class PluginGame final : public wasm::Game {
       const wasm::players::PlayerRequest& request) override;
   std::expected<wasm::ReadFileResponse, std::string> ReadFile(
       const wasm::ReadFileRequest& request) override;
+  std::expected<wasm::ReadFileBytesResponse, std::string> ReadFileBytes(
+      const wasm::ReadFileRequest& request) override;
   std::expected<void, std::string> WriteFile(const wasm::WriteFileRequest& request) override;
   void Impacted(const wasm::combat::ImpactEvent& event) override;
 

@@ -19,6 +19,13 @@ message ReadFileResponse {
   optional string text = 1;
 }
 
+// ReadFileBytesResponse holds a file's bytes.
+message ReadFileBytesResponse {
+  // Data is the file's bytes, as stored, or unset when neither directory
+  // holds the file.
+  optional bytes data = 1;
+}
+
 // WriteFileRequest replaces one of the mod's files.
 message WriteFileRequest {
   // Path is the file's path, as ReadFileRequest names it.

@@ -56,6 +56,27 @@ func (x *ReadFileResponse) GetText() string {
 	return ""
 }
 
+// ReadFileBytesResponse holds a file's bytes.
+type ReadFileBytesResponse struct {
+	unknownFields []byte
+	// Data is the file's bytes, as stored, or unset when neither directory
+	// holds the file.
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3,oneof" json:"data,omitempty"`
+}
+
+func (x *ReadFileBytesResponse) Reset() {
+	*x = ReadFileBytesResponse{}
+}
+
+func (*ReadFileBytesResponse) ProtoMessage() {}
+
+func (x *ReadFileBytesResponse) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 // WriteFileRequest replaces one of the mod's files.
 type WriteFileRequest struct {
 	unknownFields []byte
@@ -117,6 +138,22 @@ func (m *ReadFileResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ReadFileBytesResponse) CloneVT() *ReadFileBytesResponse {
+	if m == nil {
+		return (*ReadFileBytesResponse)(nil)
+	}
+	r := new(ReadFileBytesResponse)
+	r.Data = protobuf_go_lite.CloneBytes(m.Data)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ReadFileBytesResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *WriteFileRequest) CloneVT() *WriteFileRequest {
 	if m == nil {
 		return (*WriteFileRequest)(nil)
@@ -168,6 +205,26 @@ func (this *ReadFileResponse) EqualVT(that *ReadFileResponse) bool {
 
 func (this *ReadFileResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ReadFileResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ReadFileBytesResponse) EqualVT(that *ReadFileBytesResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytesPresent(this.Data, that.Data) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ReadFileBytesResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ReadFileBytesResponse)
 	if !ok {
 		return false
 	}
@@ -283,6 +340,52 @@ func (x *ReadFileResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ReadFileResponse from JSON.
 func (x *ReadFileResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ReadFileBytesResponse message to JSON.
+func (x *ReadFileBytesResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Data != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("data")
+		s.WriteBytes(x.Data)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ReadFileBytesResponse to JSON.
+func (x *ReadFileBytesResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ReadFileBytesResponse message from JSON.
+func (x *ReadFileBytesResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "data":
+			s.AddField("data")
+			if s.ReadNil() {
+				x.Data = nil
+				return
+			}
+			x.Data = s.ReadBytes()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ReadFileBytesResponse from JSON.
+func (x *ReadFileBytesResponse) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -410,6 +513,43 @@ func (m *ReadFileResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ReadFileBytesResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ReadFileBytesResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ReadFileBytesResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Data != nil {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Data)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *WriteFileRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -474,6 +614,17 @@ func (m *ReadFileResponse) SizeVT() (n int) {
 	return n
 }
 
+func (m *ReadFileBytesResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBytesPresent(1, m.Data)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *WriteFileRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -511,6 +662,20 @@ func (x *ReadFileResponse) MarshalProtoText() string {
 }
 
 func (x *ReadFileResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ReadFileBytesResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ReadFileBytesResponse")
+	if x.Data != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "data")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Data)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ReadFileBytesResponse) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -615,6 +780,57 @@ func (m *ReadFileResponse) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Text = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ReadFileBytesResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReadFileBytesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReadFileBytesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			m.Data, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Data, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

@@ -93,6 +93,7 @@ func init() {
 | Call                    | Effect                                                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `readFile(name)`        | Returns the file's text. The host looks for its own copy first, then for the one in the build's `data/`, and returns `undefined` when it finds neither. |
+| `readFileBytes(name)`   | Returns the file's bytes, from the same places as `readFile`. Use it for a file that is not text.                                                       |
 | `writeFile(name, text)` | Writes the whole file to the host's copy, or nothing if the write fails partway. Returns `false` when the host refuses the write.                       |
 
 A file name is a relative path such as `maps/dl_midtown.json`, with `/`
@@ -137,4 +138,21 @@ command('savearea', (player) => {
   if (!writeFile('areas.yaml', stringify(areas)))
     player.chat('The area was not saved.')
 })
+```
+
+## Binary files
+
+`readFileBytes` returns a file as a `Uint8Array` with no text decoding, so a
+mod can ship a table it built offline and view it in place with typed arrays,
+instead of parsing text at load. The host reads the whole file during the call,
+so the frame that makes it waits for the read. A view such as a
+`Float64Array` needs its offset to be a multiple of its element size, and the
+array `readFileBytes` returns may start at any offset, so copy it with
+`slice()` before making views that need alignment.
+
+```ts
+import { readFileBytes } from 'modlock'
+
+const bytes = readFileBytes('table.bin')
+const table = bytes && new Float64Array(bytes.slice().buffer)
 ```

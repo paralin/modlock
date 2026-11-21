@@ -3693,6 +3693,12 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "text", "string", optional=True),
         ],
     ),
+    "ReadFileBytesResponse": (
+        None,
+        [
+            wire.Field(1, "data", "bytes", optional=True),
+        ],
+    ),
     "WriteFileRequest": (
         None,
         [
@@ -5081,6 +5087,18 @@ def read_file(path: str) -> str | None:
     if response is None:
         return None
     return response["text"]
+
+
+def read_file_bytes(path: str) -> bytes | None:
+    """read_file_bytes reads one of the mod's files from the same places as
+    ReadFile, as bytes that need not be text, such as a packed table the mod
+    views in place. A file in neither reads as unset. The host reads the
+    whole file during the call.
+    """
+    response = _call("ReadFileBytes", "ReadFileRequest", {"path": path}, "ReadFileBytesResponse")
+    if response is None:
+        return None
+    return response["data"]
 
 
 def write_file(path: str, text: str) -> bool:

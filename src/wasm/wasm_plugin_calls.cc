@@ -489,14 +489,15 @@ uint64_t WasmPlugin::SteamId(int32_t slot) {
 
 bool PluginGame::AnswersWithoutGame(std::string_view method) {
   // Keep this list to the host calls this class overrides.
-  static constexpr std::array<std::string_view, 14> kMethods = {
+  static constexpr std::array<std::string_view, 15> kMethods = {
       "Log",           "Ui",
       "CallService",   "StartServiceCall",
       "PlayerSetting", "SetPlayerSetting",
       "AddMetric",     "HoldReload",
       "Handoff",       "HandedOff",
       "PlayerHandoff", "PlayerHandedOff",
-      "ReadFile",      "WriteFile",
+      "ReadFile",      "ReadFileBytes",
+      "WriteFile",
   };
   return std::ranges::find(kMethods, method) != kMethods.end();
 }
@@ -611,6 +612,20 @@ std::expected<wasm::ReadFileResponse, std::string> PluginGame::ReadFile(
   wasm::ReadFileResponse response;
   if (*text) {
     response.set_text(std::move(**text));
+  }
+  return response;
+}
+
+std::expected<wasm::ReadFileBytesResponse, std::string> PluginGame::ReadFileBytes(
+    const wasm::ReadFileRequest& request) {
+  // Read the file and wrap it, leaving the bytes unset for a missing file.
+  auto data = plugin_.Files().Read(request.path());
+  if (!data) {
+    return std::unexpected(data.error());
+  }
+  wasm::ReadFileBytesResponse response;
+  if (*data) {
+    response.set_data(std::move(**data));
   }
   return response;
 }

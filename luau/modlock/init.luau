@@ -3338,6 +3338,9 @@ schema.ReadFileRequest = {
 schema.ReadFileResponse = {
 	{ number = 1, name = "text", kind = "string", optional = true },
 }
+schema.ReadFileBytesResponse = {
+	{ number = 1, name = "data", kind = "bytes", optional = true },
+}
 schema.WriteFileRequest = {
 	{ number = 1, name = "path", kind = "string" },
 	{ number = 2, name = "text", kind = "string" },
@@ -4272,6 +4275,18 @@ function modlock.readFile(path: string): string?
 		return nil
 	end
 	return response.text
+end
+
+-- readFileBytes reads one of the mod's files from the same places as
+-- ReadFile, as bytes that need not be text, such as a packed table the mod
+-- views in place. A file in neither reads as unset. The host reads the
+-- whole file during the call.
+function modlock.readFileBytes(path: string): string?
+	local response = call("ReadFileBytes", "ReadFileRequest", { path = path }, "ReadFileBytesResponse")
+	if response == nil then
+		return nil
+	end
+	return response.data
 end
 
 -- writeFile replaces one of the mod's files in the host's copy, which
