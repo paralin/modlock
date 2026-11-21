@@ -19,6 +19,7 @@ export interface GuardPanel {
   readonly paneltype: string
   visible: boolean
   hittest: boolean
+  hittestchildren: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
   FindChildTraverse(id: string): GuardPanel | null
@@ -42,9 +43,9 @@ export interface GuardHost extends AbilityHost {
 }
 
 /**
- * HIDDEN_MARK names the attribute on each panel the guard hid: "shown" when
- * the panel showed before, "unseen" when it did not. The mark outlives the
- * script, so a guard that starts again shows what an earlier one hid.
+ * HIDDEN_MARK names the attribute on each panel the guard hid, holding what
+ * hidePanel needs to give it back. The mark outlives the script, so a guard
+ * that starts again shows what an earlier one hid.
  */
 export const HIDDEN_MARK = 'modlock_hidden'
 
@@ -229,31 +230,55 @@ function ownPanel(hud: GuardPanel, id: string): GuardPanel[] {
 }
 
 /**
- * hidePanel hides one panel by its visible, marking whether it showed. A
- * panel the game shows again meanwhile is hidden again and marked shown.
- * Visible, unlike an inline visibility, comes back at once when set again.
+ * VEIL_MARK starts the mark hidePanel writes: "veil:" and the panel's own
+ * hittest and hittestchildren, as "h" or "-" each, for restorePanel to put
+ * back.
+ */
+const VEIL_MARK = 'veil:'
+
+/**
+ * hidePanel hides one panel by a veil: an inline opacity 0 with hit testing
+ * off, written once and marked. The game's own visible writes leave a veil in
+ * place, so a hidden panel needs no hiding again, and a panel without the mark
+ * is one the game built since. Never by visible: the game shows some of these
+ * panels again on its own events, and hiding them back by visible tears down
+ * and rebuilds the particle scenes inside them each time, which leaks scene
+ * entities until the client runs out of non-networkable entities and closes.
  */
 export function hidePanel(panel: GuardPanel): void {
-  if (panel.visible) {
-    panel.SetAttributeString(HIDDEN_MARK, 'shown')
-    panel.visible = false
-  } else if (panel.GetAttributeString(HIDDEN_MARK, '') === '') {
-    panel.SetAttributeString(HIDDEN_MARK, 'unseen')
-  }
+  // A marked panel is veiled already; record its hit testing, then veil it.
+  if (panel.GetAttributeString(HIDDEN_MARK, '') !== '') return
+  panel.SetAttributeString(
+    HIDDEN_MARK,
+    VEIL_MARK +
+      (panel.hittest ? 'h' : '-') +
+      (panel.hittestchildren ? 'h' : '-'),
+  )
+  panel.style.opacity = '0'
+  panel.hittest = false
+  panel.hittestchildren = false
 }
 
 /**
- * restorePanel undoes what a guard's mark on panel records. A panel that
- * showed comes back; one that did not is left to the game, since setting
- * visible overrides its style sheets: gameplay_hud stays collapsed until a
- * player joins a team. An inline collapse from Modlock's renderer before the
- * guard goes too.
+ * restorePanel undoes what a guard's mark on panel records: a veil's inline
+ * opacity goes, handing the panel's opacity back to its style sheets, with its
+ * hit testing as it was. An earlier guard's "shown" mark, from a hide by
+ * visible, shows the panel; its "unseen" leaves the panel to the game, since
+ * setting visible overrides its style sheets: gameplay_hud stays collapsed
+ * until a player joins a team. An inline collapse from Modlock's renderer
+ * before the guard goes too.
  */
 export function restorePanel(panel: GuardPanel): void {
   const mark = panel.GetAttributeString(HIDDEN_MARK, '')
   if (mark !== '') {
     panel.SetAttributeString(HIDDEN_MARK, '')
-    if (mark === 'shown') panel.visible = true
+    if (mark.startsWith(VEIL_MARK)) {
+      panel.style.opacity = null
+      panel.hittest = mark[VEIL_MARK.length] === 'h'
+      panel.hittestchildren = mark[VEIL_MARK.length + 1] === 'h'
+    } else if (mark === 'shown') {
+      panel.visible = true
+    }
   }
   if (panel.style.visibility === 'collapse') panel.style.visibility = null
 }

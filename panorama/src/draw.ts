@@ -85,6 +85,7 @@ export interface Panel {
   readonly id: string
   readonly paneltype: string
   hittest: boolean
+  hittestchildren: boolean
   enabled: boolean
   text: string
   /** value is a native slider's position from 0 to 1. */

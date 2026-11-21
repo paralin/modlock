@@ -5,6 +5,7 @@ interface Panel {
   readonly id: string
   readonly paneltype: string
   hittest: boolean
+  hittestchildren: boolean
   enabled: boolean
   text: string
   value: number
