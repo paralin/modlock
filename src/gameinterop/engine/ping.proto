@@ -1,0 +1,31 @@
+syntax = "proto2";
+
+// These messages copy the game's own, with its field numbers, from GameTracking:
+// https://github.com/SteamTracking/GameTracking-Deadlock/blob/master/Protobufs/citadel_usermessages.proto
+
+package modlock.gameinterop.engine;
+
+option go_package = "github.com/paralin/modlock/src/gameinterop/engine;engine";
+
+// PingCommonData matches the part of the game's PingCommonData every ping
+// message carries as its field 1.
+message PingCommonData {
+  // SenderPlayerSlot is the zero-based client slot of the player who pinged.
+  optional int32 sender_player_slot = 4 [default = -1];
+
+  // SpeechConcept is the voice line the ping speaks, or zero for none.
+  optional int32 speech_concept = 5;
+}
+
+// PingMessage matches the fields CCitadelUserMsg_MapPing (303),
+// CCitadelUserMsg_PingWheel (312), CCitadelUserMsg_QuickResponse (315) and
+// CCitadelUserMsg_AbilityPing (331) share. Field 2 differs between them, so
+// the decoder reads it as PingWheel's option only for message 312.
+message PingMessage {
+  // PingData names the sender.
+  optional PingCommonData ping_data = 1;
+
+  // PingWheelOptionId is the comms wheel line, a PingWheelOptionID_t, in
+  // CCitadelUserMsg_PingWheel.
+  optional uint32 ping_wheel_option_id = 2;
+}

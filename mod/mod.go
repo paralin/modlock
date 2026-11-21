@@ -60,6 +60,7 @@ type handlers struct {
 	restoreds     []func(p Player, err error)
 	npcsRestoreds []func(err error)
 	damages       []func(*DamageEvent) *DamageResult
+	pings         []func(*PingEvent) *PingResult
 	damageds      []func(*DamagedEvent)
 	kills         []func(*KillEvent)
 	casts         []func(*AbilityCastEvent)
@@ -208,6 +209,15 @@ func OnDamage(handler func(hit *DamageEvent) *DamageResult) {
 	registered.damages = append(registered.damages, handler)
 }
 
+// OnPing calls handler with each ping a player sends, from the comms wheel, a
+// quick ping key, the map or an ability, before anyone sees it, so it can
+// block the ping. A blocked ping reaches nobody, the sender included: no
+// marker, sound, voice line or chat line. The handler runs inside the
+// server's ping, so it decides at once and defers other work to a frame.
+func OnPing(handler func(ping *PingEvent) *PingResult) {
+	registered.pings = append(registered.pings, handler)
+}
+
 // OnDamaged calls handler on the frame after each hit lands.
 func OnDamaged(handler func(hit *DamagedEvent)) {
 	registered.damageds = append(registered.damageds, handler)
@@ -330,6 +340,7 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Levels:  len(h.levels) != 0,
 		Melees:  len(h.melees) != 0,
 		Parries: len(h.parries) != 0,
+		Pings:   len(h.pings) != 0,
 
 		ModifierEvents: h.modifierEvents(),
 	}, nil
@@ -444,6 +455,17 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 		return &DamageResult{}, nil
 	}
 	return &DamageResult{Amount: &hit.Amount}, nil
+}
+
+// Ping offers the ping to each ping handler, stopping at the first that
+// blocks it.
+func (h *handlers) Ping(event *PingEvent) (*PingResult, error) {
+	for _, handler := range h.pings {
+		if handler(event).GetBlock() {
+			return &PingResult{Block: true}, nil
+		}
+	}
+	return &PingResult{}, nil
 }
 
 // Damaged runs the damaged handlers.

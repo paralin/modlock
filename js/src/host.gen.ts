@@ -513,6 +513,21 @@ const cameraParamValues: Record<CameraParam, playersPb.CameraParam> = {
   horizontalOffset: 4,
 }
 
+/** PingKind is how a player pinged. */
+export type PingKind =
+  | 'map'
+  | 'wheel'
+  | 'quickResponse'
+  | 'ability'
+
+/** pingKindNames decodes each PingKind; an unknown value has no name. */
+const pingKindNames: Partial<Record<number, PingKind>> = {
+  0: 'map',
+  1: 'wheel',
+  2: 'quickResponse',
+  3: 'ability',
+}
+
 /** ServiceFailure says why a service call ended without an answer. */
 export type ServiceFailure =
   | 'none'
@@ -2784,6 +2799,8 @@ export interface StartResult {
    * parries asks for a Parried event after each parry that catches a swing.
    */
   parries: boolean
+  /** pings asks for a Ping event before each ping a player sends. */
+  pings: boolean
 }
 
 /** toStartResult encodes a StartResult. */
@@ -2801,6 +2818,7 @@ function toStartResult(value: StartResult): wasmPb.StartResult {
     levels: value.levels,
     melees: value.melees,
     parries: value.parries,
+    pings: value.pings,
   }
 }
 
@@ -2882,6 +2900,44 @@ function fromChatEvent(message: wasmPb.ChatEvent): ChatEvent {
     all: message.all ?? false,
     lane: message.lane ?? 0,
   }
+}
+
+/** PingEvent carries one ping a player sent, before anyone sees it. */
+export interface PingEvent {
+  /** player is the player who pinged. */
+  readonly player: Player
+  /** kind is how they pinged. */
+  readonly kind?: PingKind
+  /**
+   * option is the comms wheel line for a wheel ping, the
+   * m_unPingWheelOptionID of the game's scripts/ping_wheel_messages.vdata,
+   * and zero for another kind.
+   */
+  readonly option: number
+  /**
+   * concept is the voice line the ping speaks, a CitadelConcept_t value, or
+   * zero for none.
+   */
+  readonly concept: number
+}
+
+/** fromPingEvent decodes a PingEvent. */
+function fromPingEvent(message: wasmPb.PingEvent): PingEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    kind: pingKindNames[message.kind ?? 0],
+    option: message.option ?? 0,
+    concept: message.concept ?? 0,
+  }
+}
+
+/** PingResult answers a Ping event. */
+export interface PingResult {
+  /**
+   * block drops the ping for every player, the sender included: its marker,
+   * sound, voice line and chat line.
+   */
+  block: boolean
 }
 
 /** CommandResult answers whether the mod handled a command. */
@@ -4361,6 +4417,12 @@ export interface ModHandlers {
    */
   chat(event: ChatEvent): void
   /**
+   * ping offers each ping a player the mod serves sends, before the server
+   * shows it to anyone, while the mod asked for pings. The mod's answer may
+   * drop it for every recipient.
+   */
+  ping(event: PingEvent): PingResult
+  /**
    * world follows each world load, and start when a world has already
    * loaded. Objects and bots from an earlier world are gone by then.
    */
@@ -4489,6 +4551,8 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
       case 'Chat':
         handlers.chat(fromChatEvent(wasmPb.ChatEvent.fromBinary(input)))
         return reply()
+      case 'Ping':
+        return reply(wasmPb.PingResult.toBinary(handlers.ping(fromPingEvent(wasmPb.PingEvent.fromBinary(input)))))
       case 'World':
         handlers.world(fromWorldEvent(wasmPb.WorldEvent.fromBinary(input)))
         return reply()

@@ -853,6 +853,20 @@ _Align: dict[Any, Any] = {
 }
 
 
+# PingKind is how a player pinged.
+type PingKind = Literal["map", "wheel", "quick_response", "ability"]
+_PingKind: dict[Any, Any] = {
+    0: "map",
+    "map": 0,
+    1: "wheel",
+    "wheel": 1,
+    2: "quick_response",
+    "quick_response": 2,
+    3: "ability",
+    "ability": 3,
+}
+
+
 # ServiceFailure says why a service call ended without an answer.
 type ServiceFailure = Literal["none", "refused", "timeout", "unavailable"]
 _ServiceFailure: dict[Any, Any] = {
@@ -2279,6 +2293,8 @@ class StartResult:
     melees: bool = False
     # parries asks for a Parried event after each parry that catches a swing.
     parries: bool = False
+    # pings asks for a Ping event before each ping a player sends.
+    pings: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2327,6 +2343,32 @@ class ChatEvent:
     # lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
     # green, 4 blue, 6 purple, or 0 for none.
     lane: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PingEvent:
+    """PingEvent carries one ping a player sent, before anyone sees it."""
+
+    # player is the player who pinged.
+    player: Player
+    # kind is how they pinged.
+    kind: PingKind | None = None
+    # option is the comms wheel line for a wheel ping, the
+    # m_unPingWheelOptionID of the game's scripts/ping_wheel_messages.vdata,
+    # and zero for another kind.
+    option: int = 0
+    # concept is the voice line the ping speaks, a CitadelConcept_t value, or
+    # zero for none.
+    concept: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PingResult:
+    """PingResult answers a Ping event."""
+
+    # block drops the ping for every player, the sender included: its marker,
+    # sound, voice line and chat line.
+    block: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -4884,6 +4926,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(10, "levels", "bool"),
             wire.Field(11, "melees", "bool"),
             wire.Field(12, "parries", "bool"),
+            wire.Field(13, "pings", "bool"),
         ],
     ),
     "FrameEvent": (
@@ -4909,6 +4952,21 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "text", "string"),
             wire.Field(3, "all", "bool"),
             wire.Field(4, "lane", "int32"),
+        ],
+    ),
+    "PingEvent": (
+        PingEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "kind", "enum", enum=_PingKind),
+            wire.Field(3, "option", "uint32"),
+            wire.Field(4, "concept", "int32"),
+        ],
+    ),
+    "PingResult": (
+        PingResult,
+        [
+            wire.Field(1, "block", "bool"),
         ],
     ),
     "CommandResult": (
@@ -5719,6 +5777,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Frame": ("FrameEvent", "Empty", "frame"),
     "Command": ("CommandEvent", "CommandResult", "command"),
     "Chat": ("ChatEvent", "Empty", "chat"),
+    "Ping": ("PingEvent", "PingResult", "ping"),
     "World": ("WorldEvent", "Empty", "world"),
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
@@ -5878,6 +5937,7 @@ _restoreds: list[Callable[[Player, str | None], object]] = []
 _npcs_restoreds: list[Callable[[str | None], object]] = []
 _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
+_pings: list[Callable[[PingEvent], PingResult | None]] = []
 _kills: list[Callable[[KillEvent], object]] = []
 _ability_casts: list[Callable[[AbilityCastEvent], object]] = []
 _heals: list[Callable[[HealEvent], object]] = []
@@ -6739,6 +6799,23 @@ def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
     return handler
 
 
+def on_ping[F: Callable[[PingEvent], PingResult | None]](handler: F) -> F:
+    """on_ping calls handler with each ping a player sends, from the comms
+    wheel, a quick ping key, the map or an ability, before anyone sees it,
+    so it can block the ping. A blocked ping reaches nobody, the sender
+    included. The handler runs inside the server's ping, so it decides at
+    once and defers other work to a frame.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_ping
+        def ping(ping: modlock.PingEvent) -> modlock.PingResult | None: ...
+    """
+    _pings.append(handler)
+    return handler
+
+
 def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
     """on_chat calls handler with each chat line a player writes, commands
     included, on the next server frame.
@@ -6995,6 +7072,7 @@ def _start(event: StartEvent) -> StartResult:
         levels=bool(_levels),
         melees=bool(_melees),
         parries=bool(_parries),
+        pings=bool(_pings),
         modifier_events=list(
             _modifier_events.keys() | ({_RESPAWNED} if _spawns else set())
         ),
@@ -7062,6 +7140,15 @@ def _chat(event: ChatEvent) -> None:
             handler(event)
 
     after(0, run)
+
+
+def _ping(event: PingEvent) -> PingResult:
+    # The first handler that blocks the ping ends its dispatch.
+    for handler in _pings:
+        result = handler(event)
+        if result is not None and result.block:
+            return PingResult(block=True)
+    return PingResult(block=False)
 
 
 def _world(event: WorldEvent) -> None:
@@ -7277,6 +7364,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "frame": _frame,
     "command": _command,
     "chat": _chat,
+    "ping": _ping,
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,

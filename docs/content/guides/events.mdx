@@ -107,6 +107,7 @@ Python spells each as a `snake_case` decorator, such as
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                        |
 | `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                               |
+| `onPing(handler)`                                   | Before each ping reaches anyone, to block it; see [Pings](#pings).                        |
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                  |
 | `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                    |
 | `onFrame(handler)`                                  | Once per server frame.                                                                    |
@@ -412,6 +413,90 @@ such as `heal.GetTargetPlayer()`.
 | `attackerPlayer` | melee, parry | The player whose hero swung, or slot -1.                                          |
 | `heavy`          | melee        | True for a charged swing, false for a light one.                                  |
 | `hits`           | melee        | The entities the swing struck, empty for a miss.                                  |
+
+## Pings
+
+Your mod hears each ping a player sends, from the comms wheel, a quick ping
+key, the minimap or an ability, before anyone sees it, and can block it. A
+blocked ping reaches nobody, its sender included: no marker, sound, voice line
+or chat line. This mod silences the comms wheel of each player who typed
+`/quiet`:
+
+<Samples>
+
+```ts
+import { command, onPing } from 'modlock'
+
+const quiet = new Set<number>()
+
+command('quiet', (player) => {
+  quiet.add(player.slot)
+})
+
+onPing(({ player, kind }) => {
+  if (kind === 'wheel' && quiet.has(player.slot)) {
+    return { block: true }
+  }
+})
+```
+
+```luau
+local quiet: { [number]: boolean } = {}
+
+modlock.command("quiet", function(player)
+	quiet[player.slot] = true
+end)
+
+modlock.onPing(function(ping)
+	if ping.kind == "wheel" and quiet[ping.player.slot] then
+		return { block = true }
+	end
+	return nil
+end)
+```
+
+```python
+quiet: set[int] = set()
+
+
+@modlock.command("quiet")
+def silence(player: modlock.Player, args: str) -> None:
+    quiet.add(player.slot)
+
+
+@modlock.on_ping
+def ping(event: modlock.PingEvent) -> modlock.PingResult | None:
+    if event.kind == "wheel" and event.player.slot in quiet:
+        return modlock.PingResult(block=True)
+    return None
+```
+
+```go
+quiet := map[int32]bool{}
+
+mod.Command("quiet", func(p mod.Player, args string) {
+	quiet[p.Slot()] = true
+})
+
+mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
+	if ping.GetKind() == mod.PingKindWheel && quiet[ping.GetPlayer()] {
+		return &mod.PingResult{Block: true}
+	}
+	return nil
+})
+```
+
+</Samples>
+
+The handler runs inside the server's ping, so it answers at once; put other
+work, such as a message to the player, in a timer.
+
+| Field     | Meaning                                                                     |
+| --------- | --------------------------------------------------------------------------- |
+| `player`  | The player who pinged.                                                      |
+| `kind`    | `map`, `wheel`, `quickResponse` or `ability`.                               |
+| `option`  | The comms wheel option's id from `scripts/ping_wheel_messages.vdata`, or 0. |
+| `concept` | The game's `EPingConcept` value for the ping, which names its voice line.   |
 
 ## Where next
 

@@ -788,6 +788,11 @@ service Mod {
   // serves, while the mod asked for chat, before the line's command.
   rpc Chat(ChatEvent) returns (Empty);
 
+  // Ping offers each ping a player the mod serves sends, before the server
+  // shows it to anyone, while the mod asked for pings. The mod's answer may
+  // drop it for every recipient.
+  rpc Ping(PingEvent) returns (PingResult);
+
   // World follows each world load, and start when a world has already
   // loaded. Objects and bots from an earlier world are gone by then.
   rpc World(WorldEvent) returns (Empty);
@@ -944,6 +949,9 @@ message StartResult {
 
   // Parries asks for a Parried event after each parry that catches a swing.
   bool parries = 12;
+
+  // Pings asks for a Ping event before each ping a player sends.
+  bool pings = 13;
 }
 
 // FrameEvent identifies one server frame.
@@ -991,6 +999,43 @@ message ChatEvent {
   // Lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
   // green, 4 blue, 6 purple, or 0 for none.
   int32 lane = 4;
+}
+
+// PingKind is how a player pinged.
+enum PingKind {
+  // PING_KIND_MAP is a ping on a place, a unit or the minimap.
+  PING_KIND_MAP = 0;
+  // PING_KIND_WHEEL is a line from the comms wheel or a quick ping key.
+  PING_KIND_WHEEL = 1;
+  // PING_KIND_QUICK_RESPONSE answers another player's ping.
+  PING_KIND_QUICK_RESPONSE = 2;
+  // PING_KIND_ABILITY pings one of the player's abilities or items.
+  PING_KIND_ABILITY = 3;
+}
+
+// PingEvent carries one ping a player sent, before anyone sees it.
+message PingEvent {
+  // Player is the player who pinged.
+  int32 player = 1;
+
+  // Kind is how they pinged.
+  PingKind kind = 2;
+
+  // Option is the comms wheel line for a wheel ping, the
+  // m_unPingWheelOptionID of the game's scripts/ping_wheel_messages.vdata,
+  // and zero for another kind.
+  uint32 option = 3;
+
+  // Concept is the voice line the ping speaks, a CitadelConcept_t value, or
+  // zero for none.
+  int32 concept = 4;
+}
+
+// PingResult answers a Ping event.
+message PingResult {
+  // Block drops the ping for every player, the sender included: its marker,
+  // sound, voice line and chat line.
+  bool block = 1;
 }
 
 // CommandResult answers whether the mod handled a command.

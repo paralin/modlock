@@ -313,6 +313,21 @@ const (
 	CameraParamHorizontalOffset = playerspb.CameraParam_CAMERA_PARAM_HORIZONTAL_OFFSET
 )
 
+// PingKind is how a player pinged.
+type PingKind = wasmpb.PingKind
+
+// The values of PingKind.
+const (
+	// PingKindMap is a ping on a place, a unit or the minimap.
+	PingKindMap = wasmpb.PingKind_PING_KIND_MAP
+	// PingKindWheel is a line from the comms wheel or a quick ping key.
+	PingKindWheel = wasmpb.PingKind_PING_KIND_WHEEL
+	// PingKindQuickResponse answers another player's ping.
+	PingKindQuickResponse = wasmpb.PingKind_PING_KIND_QUICK_RESPONSE
+	// PingKindAbility pings one of the player's abilities or items.
+	PingKindAbility = wasmpb.PingKind_PING_KIND_ABILITY
+)
+
 // ServiceFailure says why a service call ended without an answer.
 type ServiceFailure = wasmpb.ServiceFailure
 
@@ -602,6 +617,12 @@ type CommandEvent = wasmpb.CommandEvent
 // ChatEvent carries one chat line as the server accepted it, commands
 // included.
 type ChatEvent = wasmpb.ChatEvent
+
+// PingEvent carries one ping a player sent, before anyone sees it.
+type PingEvent = wasmpb.PingEvent
+
+// PingResult answers a Ping event.
+type PingResult = wasmpb.PingResult
 
 // CommandResult answers whether the mod handled a command.
 type CommandResult = wasmpb.CommandResult
@@ -1958,6 +1979,10 @@ type modHandlers interface {
 	// Chat reports each chat line the server accepted from a player the mod
 	// serves, while the mod asked for chat, before the line's command.
 	Chat(event *ChatEvent) error
+	// Ping offers each ping a player the mod serves sends, before the server
+	// shows it to anyone, while the mod asked for pings. The mod's answer may
+	// drop it for every recipient.
+	Ping(event *PingEvent) (*PingResult, error)
 	// World follows each world load, and start when a world has already
 	// loaded. Objects and bots from an earlier world are gone by then.
 	World(event *WorldEvent) error
@@ -2059,6 +2084,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.Chat(event))
+	case "Ping":
+		event := &PingEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(handlers.Ping(event))
 	case "World":
 		event := &WorldEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

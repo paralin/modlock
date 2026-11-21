@@ -114,6 +114,7 @@ _restoreds: list[Callable[[Player, str | None], object]] = []
 _npcs_restoreds: list[Callable[[str | None], object]] = []
 _damages: list[Callable[[DamageEvent], DamageResult | None]] = []
 _damageds: list[Callable[[DamagedEvent], object]] = []
+_pings: list[Callable[[PingEvent], PingResult | None]] = []
 _kills: list[Callable[[KillEvent], object]] = []
 _ability_casts: list[Callable[[AbilityCastEvent], object]] = []
 _heals: list[Callable[[HealEvent], object]] = []
@@ -1010,6 +1011,23 @@ def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
     return handler
 
 
+def on_ping[F: Callable[[PingEvent], PingResult | None]](handler: F) -> F:
+    """on_ping calls handler with each ping a player sends, from the comms
+    wheel, a quick ping key, the map or an ability, before anyone sees it,
+    so it can block the ping. A blocked ping reaches nobody, the sender
+    included. The handler runs inside the server's ping, so it decides at
+    once and defers other work to a frame.
+
+    Annotate the handler's parameters, since a checker and an editor's
+    completion read their types from there:
+
+        @modlock.on_ping
+        def ping(ping: modlock.PingEvent) -> modlock.PingResult | None: ...
+    """
+    _pings.append(handler)
+    return handler
+
+
 def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
     """on_chat calls handler with each chat line a player writes, commands
     included, on the next server frame.
@@ -1266,6 +1284,7 @@ def _start(event: StartEvent) -> StartResult:
         levels=bool(_levels),
         melees=bool(_melees),
         parries=bool(_parries),
+        pings=bool(_pings),
         modifier_events=list(
             _modifier_events.keys() | ({_RESPAWNED} if _spawns else set())
         ),
@@ -1333,6 +1352,15 @@ def _chat(event: ChatEvent) -> None:
             handler(event)
 
     after(0, run)
+
+
+def _ping(event: PingEvent) -> PingResult:
+    # The first handler that blocks the ping ends its dispatch.
+    for handler in _pings:
+        result = handler(event)
+        if result is not None and result.block:
+            return PingResult(block=True)
+    return PingResult(block=False)
 
 
 def _world(event: WorldEvent) -> None:
@@ -1548,6 +1576,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "frame": _frame,
     "command": _command,
     "chat": _chat,
+    "ping": _ping,
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,

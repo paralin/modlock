@@ -198,6 +198,32 @@ void WasmPlugin::Chat(const gameinterop::NativeChatHook::Message& line) {
   static_cast<void>(mod_.Chat(event));
 }
 
+bool WasmPlugin::Ping(const gameinterop::NativePingFilter::Ping& ping) {
+  wasm::PingEvent event;
+  event.set_player(ping.slot);
+  switch (ping.kind) {
+    case gameinterop::NativePingFilter::Kind::kMap:
+      event.set_kind(wasm::PING_KIND_MAP);
+      break;
+    case gameinterop::NativePingFilter::Kind::kWheel:
+      event.set_kind(wasm::PING_KIND_WHEEL);
+      break;
+    case gameinterop::NativePingFilter::Kind::kQuickResponse:
+      event.set_kind(wasm::PING_KIND_QUICK_RESPONSE);
+      break;
+    case gameinterop::NativePingFilter::Kind::kAbility:
+      event.set_kind(wasm::PING_KIND_ABILITY);
+      break;
+  }
+  event.set_option(ping.option);
+  event.set_concept_(ping.concept_value);
+
+  // A ping that arrives while the mod runs, or that a mod which cannot
+  // answer hears, goes out unchanged.
+  auto result = mod_.Ping(event);
+  return result && result->block();
+}
+
 void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
   host_.Notify([&](WasmHostObserver& observer) { observer.Ui(name_, slot, change); });
 }

@@ -184,22 +184,6 @@ uint32_t StaminaEvidenceTracker::ConsumeHeadshots() {
 
 struct StaminaObserver::Impl {
 #if defined(_WIN32)
-  // Windows bf_write layout from sourcesdk/public/tier1/bitbuf.h. The current
-  // networksystem serializer writes a varint byte count before the protobuf.
-  struct BitWriter {
-    uint8_t* data;
-    int32_t bytes;
-    int32_t bits;
-    int32_t cursor = 0;
-    const char* debug_name = "modlock stamina";
-    bool overflow = false;
-    bool assert_overflow = false;
-    bool aligned = true;
-  };
-
-  static_assert(offsetof(BitWriter, debug_name) == 24);
-  static_assert(offsetof(BitWriter, overflow) == 32);
-  static_assert(sizeof(BitWriter) == 40);
   using PostEvent = void (*)(void*, int32_t, bool, int32_t, const uint64_t*, void*, const void*,
                              unsigned long, int32_t);
   static inline std::mutex mutex;
@@ -268,12 +252,8 @@ struct StaminaObserver::Impl {
 
     // Serialize the message back to its wire bytes.
     alignas(8) std::array<uint8_t, 1024> bytes{};
-    BitWriter writer{bytes.data(), static_cast<int32_t>(bytes.size()),
-                     static_cast<int32_t>(bytes.size() * 8)};
-    using Serialize = bool (*)(void*, BitWriter&, const void*);
-    if (!NetworkMessagesMethod<Serialize>(messages, serialize_slot)(messages, writer, message) ||
-        writer.overflow || writer.cursor <= 0 ||
-        writer.cursor > static_cast<int32_t>(bytes.size() * 8) || writer.cursor % 8 != 0) {
+    const auto size = SerializeNetworkMessage(messages, serialize_slot, message, bytes);
+    if (!size) {
       Trace("native event serialization failed");
       if (id == kStaminaConsumedMessageId) {
         tracker.Invalidate();
@@ -282,7 +262,7 @@ struct StaminaObserver::Impl {
     }
 
     // Pass the bytes to the tracker.
-    const auto serialized = std::span(bytes.data(), static_cast<size_t>(writer.cursor / 8));
+    const auto serialized = std::span(bytes.data(), *size);
     Trace(id == kStaminaConsumedMessageId ? "stamina receipt" : "damage receipt", serialized);
     if (id == kStaminaConsumedMessageId) {
       tracker.Record(serialized);

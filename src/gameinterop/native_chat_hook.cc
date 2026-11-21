@@ -29,23 +29,6 @@ constexpr std::array<std::string_view, 10> kPlayerChatAudiences{
     "Cstrike_Chat_T_Loc",   "Cstrike_Chat_Spec"};
 
 #if defined(_WIN32)
-// Source SDK networksystem/inetworkmessages.h and tier1/bitbuf.h define the
-// serialize slot and this bf_write. Installed message IDs are 32-bit.
-// The engine serializes its own protobuf; only bytes cross the protobuf ABI.
-struct BitWriter {
-  uint8_t* data;
-  int32_t bytes;
-  int32_t bits;
-  int32_t cursor = 0;
-  const char* debug_name = "modlock chat";
-  bool overflow = false;
-  bool assert_overflow = false;
-};
-
-static_assert(offsetof(BitWriter, cursor) == 16);
-static_assert(offsetof(BitWriter, debug_name) == 24);
-static_assert(sizeof(BitWriter) == 40);
-
 using Post = void (*)(void*, int32_t, bool, int32_t, const uint64_t*, void*, const void*,
                       unsigned long, int32_t);
 Post g_original = nullptr;
@@ -78,16 +61,12 @@ std::optional<NativeChatHook::Message> ReadChat(void* serializer, const void* na
 
   // Serialize the message and decode it.
   std::array<uint8_t, kMaxUserMessageSize> bytes{};
-  BitWriter writer{bytes.data(), static_cast<int32_t>(bytes.size()),
-                   static_cast<int32_t>(bytes.size() * 8)};
-  using Serialize = bool (*)(void*, BitWriter&, const void*);
-  if (!NetworkMessagesMethod<Serialize>(g_messages, g_serialize_slot)(g_messages, writer,
-                                                                      native_message) ||
-      writer.overflow || writer.cursor <= 0 || writer.cursor > writer.bits || writer.cursor % 8) {
+  const auto size = SerializeNetworkMessage(g_messages, g_serialize_slot, native_message, bytes);
+  if (!size) {
     std::fprintf(stderr, "[modlock] native chat serialization failed\n");
     return {};
   }
-  return NativeChatHook::Decode(id, std::span(bytes.data(), writer.cursor / 8));
+  return NativeChatHook::Decode(id, std::span(bytes.data(), *size));
 }
 
 void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t clients,

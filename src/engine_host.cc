@@ -66,6 +66,7 @@ struct EngineHost::Impl {
 
   Callbacks<void()> frames;
   Callbacks<void(const gameinterop::NativeChatHook::Message&)> chats;
+  Callbacks<bool(const gameinterop::NativePingFilter::Ping&)> pings;
   Callbacks<bool(int32_t, std::string_view)> commands;
   Callbacks<void(const gameinterop::CombatEvent&)> combat;
   Callbacks<bool(const gameinterop::DamageContactEvent&)> damage;
@@ -81,6 +82,7 @@ struct EngineHost::Impl {
 
   std::optional<gameinterop::EngineFrameHook> frame_hook;
   std::optional<gameinterop::NativeChatHook> chat_hook;
+  std::optional<gameinterop::NativePingFilter> ping_filter;
   std::optional<gameinterop::ClientCommandHook> command_hook;
   std::optional<gameinterop::CombatEventsHook> combat_hook;
   std::optional<gameinterop::ConnectionTracker> connection_hook;
@@ -222,6 +224,25 @@ std::expected<Subscription, std::string> EngineHost::OnChat(
     impl_->chat_hook.emplace(std::move(*hook));
   }
   return impl_->chats.Add(std::move(callback));
+}
+
+std::expected<Subscription, std::string> EngineHost::OnPing(
+    gameinterop::NativePingFilter::Handler callback) {
+  // The filter reads each sender's connection from the tracker.
+  if (auto tracked = EnsureConnectionHook(); !tracked) {
+    return std::unexpected(tracked.error());
+  }
+  if (!impl_->ping_filter) {
+    auto filter = gameinterop::NativePingFilter::Install(
+        [this](const gameinterop::NativePingFilter::Ping& ping) {
+          return impl_->pings.Dispatch(ping);
+        });
+    if (!filter) {
+      return std::unexpected(filter.error());
+    }
+    impl_->ping_filter.emplace(std::move(*filter));
+  }
+  return impl_->pings.Add(std::move(callback));
 }
 
 std::expected<Subscription, std::string> EngineHost::OnCommand(
