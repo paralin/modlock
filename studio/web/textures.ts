@@ -89,7 +89,8 @@ export async function loadTexture(
   const data = await fetchBytes(route(`mips/${from}`, name), signal)
 
   // Split the range, which runs smallest mip first, into levels largest
-  // first.
+  // first. A mip holds each face of a cube map or slice of a volume in
+  // turn; the page draws the first.
   const levels: THREE.CompressedTexture['mipmaps'] = []
   let end = data.length
   for (let mip = from; mip < mips; mip++) {
@@ -97,8 +98,10 @@ export async function loadTexture(
     const bytes = block
       ? Math.ceil(width / 4) * Math.ceil(height / 4) * block[2]
       : width * height * 4
-    levels.push({ data: data.subarray(end - bytes, end), width, height })
-    end -= bytes
+    const layers = header.cube ? 6 : Math.max(1, (header.depth ?? 1) >> mip)
+    const start = end - bytes * layers
+    levels.push({ data: data.subarray(start, start + bytes), width, height })
+    end = start
   }
   const { width, height } = levels[0]!
 

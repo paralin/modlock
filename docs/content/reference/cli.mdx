@@ -67,18 +67,19 @@ Once a day at most, `modlock` checks in the background for a newer release and t
 
 These commands read and write the game's own file formats, and they work without the game or Valve's tools installed.
 
-| Command                                    | Effect                                                                                                                 |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`), scripts (`.js`) and style sheets (`.css`) under `DIR/panorama/` into `DIR.vpk`. |
-| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, a script (`.vjs_c`) as its source, or a style sheet (`.vcss_c`) as CSS.    |
-| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                                               |
-| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                                                     |
-| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive. Equal directories pack to equal bytes.                                               |
-| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON. `--blocks` lists its blocks.                                      |
-| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                          |
-| `modlock studio render [NAME=]MODEL...`    | Render models from the game's archive to PNG files with a transparent background.                                      |
+| Command                                    | Effect                                                                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`), scripts (`.js`) and style sheets (`.css`) under `DIR/panorama/` into `DIR.vpk`.                            |
+| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, a script (`.vjs_c`) as its source, or a style sheet (`.vcss_c`) as CSS.                               |
+| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                                                                          |
+| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`. `--decompile` writes Panorama files as source and textures as PNG beside them. |
+| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive. Equal directories pack to equal bytes.                                                                          |
+| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON. `--blocks` lists its blocks.                                                                 |
+| `modlock texture FILE`                     | Decode a compiled texture (`.vtex_c`) to a PNG of its largest mip; `-o` names the file.                                                           |
+| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                                                     |
+| `modlock studio render [NAME=]MODEL...`    | Render models from the game's archive to PNG files with a transparent background.                                                                 |
 
-`panorama compile` copies every other file in `DIR` into the archive unchanged, so compiled resources such as images go in beside the layouts. `-o` writes to another archive, or to a directory. A style sheet's `url()` can point to an image or another sheet in the game's files, written as `s2r://`, `file://{images}/` or `file://{resources}/`. The compiler rewrites it to the path of the resource the game loads: `file://{images}/icons/mark.png` becomes `s2r://panorama/images/icons/mark_png.vtex`. The compiler refuses any other URL and reports its line. `decompile` and `kv3` take `--archive` to read `FILE` from inside an archive, including the game's split `game/citadel/pak01_dir.vpk`:
+`panorama compile` copies every other file in `DIR` into the archive unchanged, so compiled resources such as images go in beside the layouts. `-o` writes to another archive, or to a directory. A style sheet's `url()` can point to an image or another sheet in the game's files, written as `s2r://`, `file://{images}/` or `file://{resources}/`. The compiler rewrites it to the path of the resource the game loads: `file://{images}/icons/mark.png` becomes `s2r://panorama/images/icons/mark_png.vtex`. The compiler refuses any other URL and reports its line. `decompile`, `kv3` and `texture` take `--archive` to read `FILE` from inside an archive, including the game's split `game/citadel/pak01_dir.vpk`:
 
 ```sh
 modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c

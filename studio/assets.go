@@ -17,6 +17,7 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/paralin/modlock/source2/kv3"
 	"github.com/paralin/modlock/source2/resource"
+	"github.com/paralin/modlock/source2/texture"
 	"github.com/paralin/modlock/source2/vpk"
 	"github.com/pkg/errors"
 )
@@ -639,111 +640,53 @@ func unzstd(data []byte) ([]byte, error) {
 	return decoder.DecodeAll(data, nil)
 }
 
-// textureHeader is the fixed part of a texture's DATA block.
-type textureHeader struct {
-	width, height, depth int
-	format, mips, flags  int
-	// pixels is where the mips start in the file, smallest mip first.
-	pixels int
-}
-
-// cube is the texture flag of a cube map.
-const cube = 4
-
-// readTexture reads a texture's header and the file holding its mips.
-func (a *Assets) readTexture(name string) ([]byte, textureHeader, error) {
-	data, blocks, err := a.read(name)
+// readTexture reads a texture's header and locates its mips.
+func (a *Assets) readTexture(name string) (*texture.Texture, error) {
+	data, err := a.archiveOf(name).ReadFile(name)
 	if err != nil {
-		return nil, textureHeader{}, err
+		return nil, err
 	}
-	d, ok := resource.Find(blocks, "DATA")
-	if !ok || len(d) < 40 {
-		return nil, textureHeader{}, errors.New("no texture header")
-	}
-	header := textureHeader{
-		flags:  int(binary.LittleEndian.Uint16(d[2:])),
-		width:  int(binary.LittleEndian.Uint16(d[20:])),
-		height: int(binary.LittleEndian.Uint16(d[22:])),
-		depth:  max(1, int(binary.LittleEndian.Uint16(d[24:]))),
-		format: int(d[26]),
-		mips:   max(1, int(d[27])),
-		// The DATA block aliases data, so its end is where the mips start.
-		pixels: len(data) - cap(d) + len(d),
-	}
-	return data, header, nil
+	return texture.Read(data)
 }
 
 // texture answers a texture's header.
 func (a *Assets) texture(w http.ResponseWriter, r *http.Request) {
-	_, header, err := a.readTexture(r.PathValue("name"))
+	t, err := a.readTexture(r.PathValue("name"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	_, served := mipSize(header, 0)
+	_, served := t.MipSize(0)
 	writeMessage(w, &Texture{
-		Width:  uint32(header.width),
-		Height: uint32(header.height),
-		Depth:  uint32(header.depth),
-		Format: uint32(header.format),
-		Mips:   uint32(header.mips),
-		Cube:   header.flags&cube != 0,
+		Width:  uint32(t.Width),
+		Height: uint32(t.Height),
+		Depth:  uint32(t.Depth),
+		Format: uint32(t.Format),
+		Mips:   uint32(t.Mips),
+		Cube:   t.Flags&texture.FlagCube != 0,
 		Served: served,
 	})
-}
-
-// mipSize returns the bytes one mip of the texture takes, and false for a
-// format the page cannot upload as stored.
-func mipSize(header textureHeader, mip int) (int, bool) {
-	w, h := max(1, header.width>>mip), max(1, header.height>>mip)
-	d := max(1, header.depth>>mip)
-	if header.flags&cube != 0 {
-		d *= 6
-	}
-	blocks := func(bytes int) int { return (w + 3) / 4 * ((h + 3) / 4) * bytes * d }
-	switch header.format {
-	case 1, 27: // DXT1, ATI1N (BC4)
-		return blocks(8), true
-	case 2, 19, 20, 21: // DXT5, BC6H, BC7, ATI2N (BC5)
-		return blocks(16), true
-	case 4, 28: // RGBA8888, BGRA8888
-		return w * h * d * 4, true
-	default:
-		return 0, false
-	}
 }
 
 // mips answers the stored bytes of every mip from the given one down to the
 // smallest, smallest first as the file stores them: one range of the file,
 // read in place.
 func (a *Assets) mips(w http.ResponseWriter, r *http.Request) {
-	// Read the header and check the mip and its format.
+	// Read the header.
 	from, _ := strconv.Atoi(r.PathValue("from"))
-	data, header, err := a.readTexture(r.PathValue("name"))
+	t, err := a.readTexture(r.PathValue("name"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	if from < 0 || from >= header.mips {
-		http.Error(w, "no such mip", http.StatusNotFound)
-		return
-	}
-	if _, ok := mipSize(header, from); !ok {
-		http.Error(w, "format "+strconv.Itoa(header.format)+" is not served yet", http.StatusUnprocessableEntity)
-		return
-	}
 
-	// The mips are stored smallest first, so the range starts at the pixels.
-	size := 0
-	for mip := from; mip < header.mips; mip++ {
-		s, _ := mipSize(header, mip)
-		size += s
-	}
-	if header.pixels+size > len(data) {
-		http.Error(w, "the texture is shorter than its mips", http.StatusUnprocessableEntity)
+	// Answer the range, or why the mip cannot be served.
+	stored, err := t.Stored(from)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	writeBytes(w, "application/octet-stream", data[header.pixels:header.pixels+size])
+	writeBytes(w, "application/octet-stream", stored)
 }
 
 // resource answers a resource's block tags and its KeyValues3 blocks as

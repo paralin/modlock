@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io/fs"
 	"os"
 	"path"
@@ -14,6 +15,7 @@ import (
 	"github.com/paralin/modlock/source2/kv3"
 	"github.com/paralin/modlock/source2/panorama"
 	"github.com/paralin/modlock/source2/resource"
+	"github.com/paralin/modlock/source2/texture"
 	"github.com/paralin/modlock/source2/vpk"
 	"github.com/pkg/errors"
 )
@@ -76,32 +78,16 @@ func panoramaCommand(out *printer) *cli.Command {
 					"archive, as in: modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c",
 				Flags: []cli.Flag{archiveFlag},
 				Action: func(c *cli.Context) error {
-					// Read the resource.
+					// Read the resource and print its source.
 					data, err := readInput(c)
 					if err != nil {
 						return err
 					}
-
-					// A script stores its source; a style sheet prints from its
-					// text and a layout from its tree.
-					var text string
-					switch path.Ext(c.Args().First()) {
-					case ".vjs_c":
-						source, err := resource.ReadBlock(data, "DATA")
-						if err != nil {
-							return err
-						}
-						_, err = os.Stdout.Write(source)
-						return err
-					case ".vcss_c":
-						text, err = panorama.DecompileStyle(data)
-					default:
-						text, err = panorama.Decompile(data)
-					}
+					source, err := panorama.DecompileFile(c.Args().First(), data)
 					if err != nil {
 						return err
 					}
-					_, err = os.Stdout.WriteString(text)
+					_, err = os.Stdout.Write(source)
 					return err
 				},
 			},
@@ -154,7 +140,14 @@ func vpkCommand(out *printer) *cli.Command {
 				ArgsUsage: "ARCHIVE DIRECTORY [PATH...]",
 				Description: "ARCHIVE may be a directory of numbered parts, such as Deadlock's\n" +
 					"game/citadel/pak01_dir.vpk. Each PATH names a file or a directory inside it,\n" +
-					"such as panorama/layout.",
+					"such as panorama/layout.\n\n" +
+					"With --decompile, each Panorama layout, style sheet and script is written as\n" +
+					"the source modlock panorama compile builds it from, such as hud.xml for\n" +
+					"hud.vxml_c, and each texture also as a PNG beside it, such as icon_png.png\n" +
+					"beside icon_png.vtex_c, to read an addon's interface and look at its art.",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "decompile", Usage: "write Panorama sources in place of their compiled resources, and a PNG beside each texture"},
+				},
 				Action: func(c *cli.Context) error {
 					// Open the archive and choose its files.
 					if c.NArg() < 2 {
@@ -175,12 +168,25 @@ func vpkCommand(out *printer) *cli.Command {
 						return errors.Errorf("%s holds nothing under %s", c.Args().First(), strings.Join(paths, ", "))
 					}
 
-					// Write each one.
+					// Write each one, decompiled when asked. A texture that cannot
+					// be decoded keeps only its compiled file.
 					dir := c.Args().Get(1)
+					decompile := c.Bool("decompile")
 					for _, name := range chosen {
 						data, err := archive.ReadFile(name)
 						if err != nil {
 							return err
+						}
+						if source, ok := panorama.Source(name); ok && decompile {
+							if data, err = panorama.DecompileFile(name, data); err != nil {
+								return errors.Wrap(err, name)
+							}
+							name = source
+						}
+						if strings.HasSuffix(name, ".vtex_c") && decompile {
+							if err := writePNG(filepath.Join(dir, filepath.FromSlash(strings.TrimSuffix(name, ".vtex_c")+".png")), data); err != nil {
+								out.note("kept", name, "compiled:", err)
+							}
 						}
 						if err := writeFile(filepath.Join(dir, filepath.FromSlash(name)), data); err != nil {
 							return err
@@ -251,6 +257,67 @@ func kv3Command() *cli.Command {
 			return errors.New("no block of the resource holds KeyValues3; list them with --blocks")
 		},
 	}
+}
+
+// textureCommand describes a compiled texture and decodes it to a PNG.
+func textureCommand(out *printer) *cli.Command {
+	return &cli.Command{
+		Name:      "texture",
+		Usage:     "describe a compiled texture and write its image as a PNG",
+		ArgsUsage: "FILE",
+		Description: "FILE is a .vtex_c resource. The PNG holds its largest mip, the first face of a\n" +
+			"cube map, cropped to the size it was made at. DXT1, DXT5, BC4, BC5, BC7, RGBA8888\n" +
+			"and BGRA8888 decode; BC6H, which holds HDR color, does not. With --archive,\n" +
+			"FILE names it inside the archive, as in:\n" +
+			"modlock texture --archive pak01_dir.vpk panorama/images/hud/icon_png.vtex_c",
+		Flags: []cli.Flag{
+			archiveFlag,
+			&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "the PNG to write (default: FILE's name with .png, in this directory)"},
+		},
+		Action: func(c *cli.Context) error {
+			// Read the texture and describe it.
+			data, err := readInput(c)
+			if err != nil {
+				return err
+			}
+			t, err := texture.Read(data)
+			if err != nil {
+				return err
+			}
+			out.note(fmt.Sprintf("%s %dx%d, %d mips", t.Format, t.Width, t.Height, t.Mips))
+
+			// Write its image.
+			output := c.String("output")
+			if output == "" {
+				output = strings.TrimSuffix(path.Base(filepath.ToSlash(c.Args().First())), ".vtex_c") + ".png"
+			}
+			if err := writePNG(output, data); err != nil {
+				return err
+			}
+			out.note("wrote", output)
+			return nil
+		},
+	}
+}
+
+// writePNG decodes a compiled texture and writes its image to path as a PNG.
+func writePNG(path string, compiled []byte) error {
+	// Decode the texture.
+	t, err := texture.Read(compiled)
+	if err != nil {
+		return err
+	}
+	img, err := t.Image()
+	if err != nil {
+		return err
+	}
+
+	// Encode and write it.
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, img); err != nil {
+		return err
+	}
+	return writeFile(path, encoded.Bytes())
 }
 
 // readInput reads the file named by the first argument, from inside the

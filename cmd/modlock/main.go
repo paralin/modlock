@@ -72,6 +72,7 @@ func main() {
 			panoramaCommand(out),
 			vpkCommand(out),
 			kv3Command(),
+			textureCommand(out),
 			lfsCommand(out),
 			configCommand(out),
 			daemonCommand(out),

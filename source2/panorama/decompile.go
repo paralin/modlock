@@ -9,6 +9,34 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Source returns the source path of a compiled Panorama resource path, such
+// as panorama/layout/hud.xml for panorama/layout/hud.vxml_c, and whether
+// DecompileFile prints that kind of resource. It inverts Compiled.
+func Source(compiled string) (string, bool) {
+	for _, ext := range []string{".xml", ".js", ".css"} {
+		if suffix := ".v" + ext[1:] + "_c"; strings.HasSuffix(compiled, suffix) {
+			return strings.TrimSuffix(compiled, suffix) + ext, true
+		}
+	}
+	return "", false
+}
+
+// DecompileFile prints the compiled resource at path as the source Compile
+// builds it from: a layout as XML, a style sheet as CSS and a script as its
+// stored text.
+func DecompileFile(path string, compiled []byte) ([]byte, error) {
+	switch {
+	case strings.HasSuffix(path, ".vjs_c"):
+		return resource.ReadBlock(compiled, "DATA")
+	case strings.HasSuffix(path, ".vcss_c"):
+		text, err := DecompileStyle(compiled)
+		return []byte(text), err
+	default:
+		text, err := Decompile(compiled)
+		return []byte(text), err
+	}
+}
+
 // Decompile prints a compiled .vxml_c layout as XML that Compile builds back
 // to the same tree, apart from source positions. A layout is the only
 // Panorama resource that needs it; a compiled script's DATA block is its
