@@ -1,14 +1,14 @@
 // Chat lines: what players just said, shown as subtitles low in the middle of
 // the screen. The game's top bar shows a fresh chat line under the speaker's
 // portrait; a mod that hides the top bar loses those lines, and showChatLines
-// puts them back where the eye already rests: centred above the ability bar,
-// clear of the crosshair, newest at the bottom.
+// puts them back where the eye already rests: centred a little above the
+// ability bar, clear of the crosshair, newest at the bottom.
 //
 // Each line is the speaker's portrait, their name in their team's color and
 // the line itself, on a slim, translucent band. At most four show; a
-// speaker's next line replaces their last, and older lines dim. A team line reads only to the
-// speaker's team; a line for all reads to everyone. A command, such as /help,
-// is for the mod and is not shown.
+// speaker's next line replaces their last, and older lines dim. A team line
+// reads only to the speaker's team; a line for all reads to everyone. A
+// command, such as /help, is for the mod and is not shown.
 //
 // The interface library draws the lines as their own layer of every player's
 // interface, so a line arriving or leaving redraws only the lines, never the
@@ -31,7 +31,7 @@ export interface ChatLinesOptions {
   readonly lines?: number
   /**
    * bottom is the lane's distance from the bottom of the screen, in pixels on
-   * a 1080 screen; unless set, it sits just above the ability bar.
+   * a 1080 screen; unless set, it sits a little above the ability bar.
    */
   readonly bottom?: number
   /**
@@ -151,7 +151,7 @@ export function chatLines(viewer: Player): Child {
         flow: 'down',
         horizontalAlign: 'center',
         verticalAlign: 'bottom',
-        margin: [0, 0, shown.bottom ?? abilityBarTop, 0],
+        margin: [0, 0, shown.bottom ?? laneBottom, 0],
       },
       children: kept.map((line, at) =>
         subtitle(line, viewer, kept.length - 1 - at),
@@ -161,27 +161,31 @@ export function chatLines(viewer: Player): Child {
 }
 
 /**
- * abilityBarTop is the ability bar's top on a 1080 screen, with room for its
- * upgrade pips, from the bottom edge.
+ * laneBottom is the lane's distance from the bottom of a 1080 screen: the
+ * ability bar's top, with room for its upgrade pips, at 190, and a gap of 40
+ * above it, so the lines read apart from the bar.
  */
-const abilityBarTop = 190
+const laneBottom = 230
 
 /**
  * bandWidth is the widest a subtitle's band grows, centred on a 1080 screen:
- * its left edge, at 640, stays well clear of the stamina meter, which ends
+ * its left edge, at 680, stays well clear of the stamina meter, which ends
  * at 530 left of the crosshair. The name and the line share it, and a longer
  * line wraps inside it.
  */
-const bandWidth = 640
+const bandWidth = 560
+
+/** portraitSize is the side of the speaker's square portrait. */
+const portraitSize = 20
 
 /** nameWidth is the most of the band a speaker's name takes. */
-const nameWidth = 180
+const nameWidth = 160
 
 /**
  * lineWidth is the band left for the line: the band less its padding, the
  * portrait, the name and their gaps.
  */
-const lineWidth = bandWidth - (4 + 10) - 24 - 7 - nameWidth - 9
+const lineWidth = bandWidth - (3 + 8) - portraitSize - 6 - nameWidth - 7
 
 /** fades is each line's opacity by its age, newest first. */
 const fades = [1, 0.85, 0.7]
@@ -197,7 +201,7 @@ const words: Style = {
   face: 'body',
   weight: 'bold',
   verticalAlign: 'top',
-  lineHeight: 23,
+  lineHeight: 20,
   textAlign: 'left',
 }
 
@@ -206,7 +210,7 @@ const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
 /**
  * subtitle is one line as viewer sees it: the portrait, the name and the
- * text at 18 pixels on a slim, translucent band, dimmer with age.
+ * text at 16 pixels on a slim, translucent band, dimmer with age.
  */
 function subtitle(line: Line, viewer: Player, age: number): UiElement {
   // The speaker's look: the mod's say, else their hero and team.
@@ -228,8 +232,8 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     type: 'panel',
     props: {
       style: {
-        width: 24,
-        height: 24,
+        width: portraitSize,
+        height: portraitSize,
         verticalAlign: 'top',
         borderRadius: 2,
         background: shades.raised,
@@ -254,9 +258,9 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 16,
+        fontSize: 14,
         color,
-        margin: [1, 0, 0, 7],
+        margin: [1, 0, 0, 6],
         maxWidth: nameWidth,
       },
       children: name,
@@ -267,9 +271,9 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
     props: {
       style: {
         ...words,
-        fontSize: 18,
+        fontSize: 16,
         color: tones.text,
-        margin: [0, 0, 0, 9],
+        margin: [0, 0, 0, 7],
         maxWidth: lineWidth,
       },
       children: line.text,
@@ -284,8 +288,8 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
         horizontalAlign: 'center',
         background: '#10130d9e',
         borderRadius: 3,
-        padding: [3, 10, 4, 4],
-        margin: [0, 0, 4, 0],
+        padding: [2, 8, 3, 3],
+        margin: [0, 0, 3, 0],
         opacity: fades[age] ?? fades[fades.length - 1],
         transition: { seconds: 0.25, easing: 'out' },
       },
