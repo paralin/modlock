@@ -13,13 +13,15 @@
 
 namespace modlock::gameinterop {
 
-// CommandHook reads every hero's commands and replaces a bot's input with a
-// session's. Every hero's commands reach movement through
+// CommandHook reads every player's commands and replaces a bot's input with a
+// session's. Every player's commands reach movement through
 // CBasePlayerController::ProcessUsercmds, a bot's as one command its brain
 // built this tick, so a command rewritten there runs as a player's own:
-// movement, movement abilities, casts and animation all follow it. Retain it
-// until the engine stops. The callback runs on the engine thread and must
-// outlive the hook; only one may be installed.
+// movement, movement abilities, casts and animation all follow it. The
+// commands arrive there whatever pawn the player controls, so a spectating or
+// dead player's buttons are read there too. Retain it until the engine stops.
+// The callbacks run on the engine thread and must outlive the hook; only one
+// may be installed.
 class MODLOCK_API CommandHook {
  public:
   // Command is a player's controls for one command.
@@ -39,7 +41,13 @@ class MODLOCK_API CommandHook {
   // leave its own.
   using Decide = std::function<std::optional<Command>(int32_t slot)>;
 
-  static std::expected<CommandHook, std::string> Install(const ModuleImage& server, Decide decide);
+  // Observe receives the buttons one batch of the player in slot's commands
+  // pressed and released, after any drive rewrote them. It runs only for a
+  // batch that changed a button.
+  using Observe = std::function<void(int32_t slot, uint64_t pressed, uint64_t released)>;
+
+  static std::expected<CommandHook, std::string> Install(const ModuleImage& server, Decide decide,
+                                                         Observe observe);
 
   // CameraPosition is where the camera of the player in slot was when the
   // client built its latest commands: the origin the reticle's ray starts
