@@ -495,4 +495,37 @@ TEST(WasmHost, LoadsOnlyABuildNamedByASlug) {
   std::filesystem::remove_all(build);
 }
 
+TEST(WasmHost, PreparesABuildOffTheCallingThread) {
+  // Prepare compiles in the background and reports ready, and the load that
+  // follows reuses the compiled module.
+  WasmHost host({});
+  auto ready = host.Prepare(EXTENSION_GO_WASM);
+  ASSERT_TRUE(ready) << ready.error();
+  EXPECT_FALSE(*ready);
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+  while (ready && !*ready && std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ready = host.Prepare(EXTENSION_GO_WASM);
+  }
+  ASSERT_TRUE(ready) << ready.error();
+  ASSERT_TRUE(*ready);
+  const auto started = std::chrono::steady_clock::now();
+  auto plugin = host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true});
+  ASSERT_TRUE(plugin) << plugin.error();
+  EXPECT_LT(std::chrono::steady_clock::now() - started, std::chrono::seconds(1));
+
+  // A build that cannot be read fails once, and the next call tries again.
+  const auto missing = std::filesystem::temp_directory_path() / "modlock-prepare-missing";
+  ASSERT_TRUE(host.Prepare(missing).value_or(true) == false);
+  auto failed = host.Prepare(missing);
+  while (failed && !*failed) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    failed = host.Prepare(missing);
+  }
+  ASSERT_FALSE(failed);
+  auto again = host.Prepare(missing);
+  ASSERT_TRUE(again);
+  EXPECT_FALSE(*again);
+}
+
 }  // namespace

@@ -157,6 +157,16 @@ class MODLOCK_API WasmHost {
   // replaces it on the first frame after the mod releases the hold.
   [[nodiscard]] std::expected<void, std::string> Reload(const std::filesystem::path& path);
 
+  // Prepare compiles the module of the build at path on a background thread,
+  // so that a later Load or Reload of it does not compile on the calling
+  // thread; compiling a large module takes seconds, which the engine thread
+  // cannot spare. It returns false while the module compiles and true once it
+  // is ready, and an error when the build cannot be read or compiled; the
+  // error is returned once, and the next call tries again. The host keeps the
+  // newest prepared module of each mod until it is destroyed. Builds compile
+  // one at a time, in the order they were first prepared.
+  [[nodiscard]] std::expected<bool, std::string> Prepare(const std::filesystem::path& path);
+
   // Held reports whether the running mod named mod holds its build through
   // reloads and restarts.
   [[nodiscard]] bool Held(std::string_view mod) const;
