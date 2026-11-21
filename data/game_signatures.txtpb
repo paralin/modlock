@@ -794,6 +794,20 @@ slots {
   shape: "void ISource2Server::GameFrame(bool simulating, bool first_tick, bool last_tick)"
 }
 
+# The game holds a disconnected human's client in its slot for their reconnect
+# while the client's reservation (CServerSideClient +0x9c) is set: Disconnect
+# then keeps its address, and only the same player can take the slot. This
+# writes the reservation as !released for a human client (0 or 1) and leaves a
+# fake client's (2) alone.
+slots {
+  id: "network-game-server.set-client-released"
+  module: "engine2.dll"
+  class_name: "CNetworkGameServer"
+  index: 52
+  pattern: "85 D2 78 ?? 3B 91 68 02 00 00 7D ?? 48 8B 81 70 02 00 00 4C 63 CA 4A 8B 14 C8 8B 8A 9C 00 00 00"
+  shape: "void INetworkGameServer::SetClientReleased(CPlayerSlot slot, bool released)"
+}
+
 # The Deadlock SDK's public/iserver.h declares Shutdown fifth.
 slots {
   id: "network-game-server.shutdown"

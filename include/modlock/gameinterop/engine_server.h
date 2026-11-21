@@ -51,7 +51,11 @@ class MODLOCK_API EngineServer {
   // internal_reason, the text the server logs
   // (IVEngineServer2::DisconnectClient). A client the engine is processing
   // leaves once that work ends, so the slot can stay held after the call.
-  // Returns false when the interface or its slot is unavailable.
+  // The call frees the slot: it first clears the reservation the game may
+  // hold there for the player's reconnect, so a removed player keeps no slot,
+  // and on a slot still held for a player who already left it frees that
+  // slot for anyone. Returns false when the interface or its slot is
+  // unavailable.
   [[nodiscard]] bool DisconnectClient(int32_t slot, int32_t reason,
                                       const char* internal_reason) const;
 

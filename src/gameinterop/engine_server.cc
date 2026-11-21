@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "modlock/gameinterop/mapped_module_image.h"
+#include "modlock/gameinterop/startup_server_probe.h"
 #include "modlock/gameinterop/virtual_slots.h"
 
 namespace modlock::gameinterop {
@@ -15,6 +16,44 @@ namespace {
 void** DispatchTableOf(void* instance) {
   return *static_cast<void***>(instance);
 }
+
+#if defined(_WIN32)
+// ReleaseReservation clears the engine's reconnect reservation on slot.
+//
+// The game can ask the network game server to hold a human's client in its
+// slot after they disconnect, so the same player gets it back on reconnect.
+// The client then keeps its address and Steam ID, the slot accepts only that
+// player again, and every other joiner is refused as server full once all
+// slots are held this way. Disconnect frees the slot only when the client is
+// not reserved, so clearing the reservation first makes a disconnect free the
+// slot, and a second disconnect of a slot already held for a departed player
+// frees it too. Fake clients carry a reservation the call leaves unchanged.
+void ReleaseReservation(int32_t slot) {
+  // Find the network game server.
+  const auto service = ResolveEngineInterface(L"engine2.dll", kNetworkServerServiceVersion);
+  const auto game_server_slot = ResolveVirtualSlot("network-server-service.game-server");
+  const auto release_slot = ResolveVirtualSlot("network-game-server.set-client-released");
+  if (!service || !game_server_slot || !release_slot) {
+    return;
+  }
+  auto** service_table = DispatchTableOf(*service);
+  if (!service_table || !service_table[*game_server_slot]) {
+    return;
+  }
+  void* server = reinterpret_cast<void* (*)(void*)>(service_table[*game_server_slot])(*service);
+  if (!server) {
+    return;
+  }
+  auto** server_table = DispatchTableOf(server);
+  if (!server_table || !server_table[*release_slot]) {
+    return;
+  }
+
+  // Release the slot. The engine checks the slot against its client list.
+  using SetClientReleasedFn = void (*)(void* self, int32_t slot, bool released);
+  reinterpret_cast<SetClientReleasedFn>(server_table[*release_slot])(server, slot, true);
+}
+#endif
 
 }  // namespace
 
@@ -127,7 +166,9 @@ bool EngineServer::DisconnectClient(int32_t slot, int32_t reason,
     return false;
   }
 
-  // Call it. The engine checks the slot against its client list.
+  // Release the slot's reservation, then disconnect. Without the release the
+  // engine keeps a removed human's slot held for their reconnect.
+  ReleaseReservation(slot);
   using DisconnectClientFn = void (*)(void* self, int32_t slot, int32_t reason, const char* text);
   reinterpret_cast<DisconnectClientFn>(table[*index])(instance_, slot, reason, internal_reason);
   return true;
