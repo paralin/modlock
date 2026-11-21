@@ -3678,6 +3678,19 @@ export function readFile(path: string): string | undefined {
 }
 
 /**
+ * readFileBytes reads one of the mod's files from the same places as
+ * ReadFile, as bytes that need not be text, such as a packed table the mod
+ * views in place. A file in neither reads as unset. The host reads the
+ * whole file during the call.
+ */
+export function readFileBytes(path: string): Uint8Array | undefined {
+  const reply = call('ReadFileBytes', filesPb.ReadFileRequest.toBinary({ path }))
+  if (reply === undefined) return undefined
+  const response = filesPb.ReadFileBytesResponse.fromBinary(reply)
+  return response.data
+}
+
+/**
  * writeFile replaces one of the mod's files in the host's copy, which
  * outlives a restart and an update of the mod; the files the mod ships stay
  * as they are. The write is whole or not at all, and the host refuses one

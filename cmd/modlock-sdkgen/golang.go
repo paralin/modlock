@@ -387,7 +387,9 @@ func (w *goWriter) goType(f *field) string {
 	switch {
 	case f.repeated:
 		return "[]" + w.goBase(f)
-	case f.optional && f.message == nil:
+	case f.optional && f.message == nil && f.kind != descriptorpb.FieldDescriptorProto_TYPE_BYTES:
+		// protoc-gen-go gives an optional bytes field a plain []byte, nil
+		// when unset, so it has no pointer to add.
 		return "*" + w.goBase(f)
 	}
 	return w.goBase(f)

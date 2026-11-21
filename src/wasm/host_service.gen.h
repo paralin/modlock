@@ -137,6 +137,15 @@ class HostService {
     return std::unexpected("this host does not support ReadFile");
   }
 
+  // ReadFileBytes reads one of the mod's files from the same places as
+  // ReadFile, as bytes that need not be text, such as a packed table the mod
+  // views in place. A file in neither reads as unset. The host reads the
+  // whole file during the call.
+  virtual std::expected<ReadFileBytesResponse, std::string> ReadFileBytes(
+      const ReadFileRequest& /*request*/) {
+    return std::unexpected("this host does not support ReadFileBytes");
+  }
+
   // WriteFile replaces one of the mod's files in the host's copy, which
   // outlives a restart and an update of the mod; the files the mod ships stay
   // as they are. The write is whole or not at all, and the host refuses one
@@ -1173,6 +1182,14 @@ class HostService {
              return detail::Fail("the ReadFile request is malformed");
            }
            return detail::Answer(host.ReadFile(request));
+         }},
+        {"ReadFileBytes",
+         [](HostService& host, const std::string& bytes) {
+           ReadFileRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the ReadFileBytes request is malformed");
+           }
+           return detail::Answer(host.ReadFileBytes(request));
          }},
         {"WriteFile",
          [](HostService& host, const std::string& bytes) {

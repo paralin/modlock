@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iterator>
 #include <system_error>
 
 namespace modlock::wasm {
@@ -63,17 +62,26 @@ std::expected<std::filesystem::path, std::string> Resolve(const std::filesystem:
   return path;
 }
 
-// ReadText returns the text of path, or nullopt when there is no such file.
-std::expected<std::optional<std::string>, std::string> ReadText(const std::filesystem::path& path) {
+// ReadContents returns the contents of path, or nullopt when there is no
+// such file. It sizes the string once and reads the file in one call, since a
+// mod may read a file of many megabytes while its frame waits.
+std::expected<std::optional<std::string>, std::string> ReadContents(
+    const std::filesystem::path& path) {
   std::error_code error;
   if (!std::filesystem::is_regular_file(path, error)) {
     return std::nullopt;
   }
-  std::ifstream file(path, std::ios::binary);
-  if (!file) {
+  // Size the open file itself, which a write replacing the path cannot change.
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  const auto size = file.tellg();
+  if (!file || size < 0 || !file.seekg(0)) {
     return std::unexpected("cannot read " + path.string());
   }
-  return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+  std::string contents(static_cast<size_t>(size), '\0');
+  if (!file.read(contents.data(), size)) {
+    return std::unexpected("cannot read " + path.string());
+  }
+  return contents;
 }
 
 // Used returns the bytes the files below dir hold, apart from skip.
@@ -101,7 +109,7 @@ std::expected<std::optional<std::string>, std::string> ModFiles::Read(std::strin
     if (!path) {
       return std::unexpected(path.error());
     }
-    auto text = ReadText(*path);
+    auto text = ReadContents(*path);
     if (!text || *text) {
       return text;
     }

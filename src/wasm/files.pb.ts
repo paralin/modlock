@@ -101,6 +101,51 @@ export const ReadFileResponse: MessageType<ReadFileResponse> =
   )
 
 /**
+ * ReadFileBytesResponse holds a file's bytes.
+ *
+ * @generated from message modlock.wasm.ReadFileBytesResponse
+ */
+export interface ReadFileBytesResponse {
+  /**
+   * Data is the file's bytes, as stored, or unset when neither directory
+   * holds the file.
+   */
+  data?: Uint8Array
+}
+
+export const ReadFileBytesResponse: MessageType<ReadFileBytesResponse> =
+  /* @__PURE__ */ createMessageType<ReadFileBytesResponse>(
+    'modlock.wasm.ReadFileBytesResponse',
+    () => [[1, 'data', 12, 4]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ReadFileBytesResponse,
+      ): ReadFileBytesResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.data = r.bytes()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ReadFileBytesResponse, w: Writer): void => {
+        {
+          const v = m.data
+          if (v != null) w.uint32(10).bytes(v)
+        }
+      },
+    },
+  )
+
+/**
  * WriteFileRequest replaces one of the mod's files.
  *
  * @generated from message modlock.wasm.WriteFileRequest

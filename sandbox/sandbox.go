@@ -533,7 +533,7 @@ func (s *Sandbox) answer(build *Build, calls *serviceCalls, call *wasm.Call) *wa
 		}
 	case "Handoff", "HandedOff", "PlayerHandoff", "PlayerHandedOff":
 		return s.handOff(mod, call)
-	case "ReadFile", "WriteFile":
+	case "ReadFile", "ReadFileBytes", "WriteFile":
 		return s.file(build, call)
 	case "CallService":
 		request := &wasm.ServiceCall{}
@@ -615,7 +615,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 		mod.Written = filepath.Join(s.config.Files, build.Manifest.GetSlug())
 	}
 
-	// Write the file, or read it and leave the text unset when it is missing.
+	// Write the file, or read it and leave its contents unset when it is missing.
 	if call.GetMethod() == "WriteFile" {
 		request := &wasm.WriteFileRequest{}
 		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
@@ -634,11 +634,20 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 	if err != nil {
 		return &wasm.Reply{Error: err.Error()}
 	}
-	response := &wasm.ReadFileResponse{}
-	if found {
-		response.Text = &text
+	var data []byte
+	if call.GetMethod() == "ReadFileBytes" {
+		response := &wasm.ReadFileBytesResponse{}
+		if found {
+			response.Data = []byte(text)
+		}
+		data, _ = response.MarshalVT()
+	} else {
+		response := &wasm.ReadFileResponse{}
+		if found {
+			response.Text = &text
+		}
+		data, _ = response.MarshalVT()
 	}
-	data, _ := response.MarshalVT()
 	return &wasm.Reply{Response: data}
 }
 

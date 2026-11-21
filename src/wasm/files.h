@@ -24,8 +24,8 @@ struct ModFiles {
   std::filesystem::path written;
   std::filesystem::path data;
 
-  // Read returns the text of the file name, from written when it holds one
-  // and from data otherwise, or nullopt when neither does.
+  // Read returns the contents of the file name, from written when it holds
+  // one and from data otherwise, or nullopt when neither does.
   std::expected<std::optional<std::string>, std::string> Read(std::string_view name) const;
 
   // Write replaces the file name in written with text, whole or not at all,

@@ -817,6 +817,19 @@ func ReadFile(path string) (*string, error) {
 	return response.Text, nil
 }
 
+// ReadFileBytes reads one of the mod's files from the same places as
+// ReadFile, as bytes that need not be text, such as a packed table the mod
+// views in place. A file in neither reads as unset. The host reads the
+// whole file during the call.
+func ReadFileBytes(path string) ([]byte, error) {
+	request := &wasmpb.ReadFileRequest{Path: path}
+	response := &wasmpb.ReadFileBytesResponse{}
+	if err := invoke("ReadFileBytes", request, response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
+}
+
 // WriteFile replaces one of the mod's files in the host's copy, which
 // outlives a restart and an update of the mod; the files the mod ships stay
 // as they are. The write is whole or not at all, and the host refuses one
