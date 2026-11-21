@@ -31,9 +31,15 @@ A restart starts the same build in a new instance, as a reload does.
 A frame handler has a much smaller allowance than an event: past 8 ms the mod
 skips frames to repay it. See [The frame budget](/performance/frame-budget).
 
+## Restart a running mod
+
+A program that hosts mods can restart one in place with `WasmHost::Restart(mod)`, without restarting the server, as when a mod's frames have grown slow over a long game. The restart runs on the mod's next frame: a new instance of the running build starts, every value its code kept is gone, and it hears the loaded world and the players as a fresh start does. Its handoff state, scope and players' settings carry over, as through a reload. A stopped mod starts again.
+
+A restart honors the mod's [reload hold](#hold-a-reload): while the mod holds its build, the restart waits and runs on the first frame after the release. `Restart(mod, true)` restarts it despite the hold. Asking again while a restart waits changes nothing, except that `true` stops it waiting. `Held(mod)` reports whether the mod holds its build, and `Restarting(mod)` whether a restart waits.
+
 ## Hold a reload
 
-When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits, and the newest build replaces the running one on the next frame after you release the hold. A mod that stops also releases its hold.
+When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits, and the newest build replaces the running one on the next frame after you release the hold. A restart the host asks for waits the same way, unless it forces one. A mod that stops also releases its hold.
 
 <Samples>
 

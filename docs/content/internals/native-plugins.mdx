@@ -105,7 +105,10 @@ one removes its callback and frees what it captured.
 that hosts games of its own, such as game modes published as sandboxed mods,
 loads them there, provides them services with `Provide` and calls theirs with
 `Call`. The plugin itself drives each of these mods through its `Start`, `Tick`
-and `Stop` calls.
+and `Stop` calls. `Restart` starts one of them again in a fresh instance, as
+[Reloads and failures](/guides/reloads#restart-a-running-mod) describes, and
+`Held` and `Restarting` report whether it holds its build and whether a restart
+waits.
 
 **Dispatch.** Callbacks run on the engine thread in the order they were
 registered. For a command, damage, or respawn decision, the first callback that

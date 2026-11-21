@@ -1,13 +1,15 @@
 // Contract tests for extension services: the host calls a service a mod
 // serves, the mod calls a service the host provides, and each error reaches
 // the caller. A mod that holds its running build keeps it through a reload
-// until it releases the hold. A mod that stops stays stopped until a player
+// until it releases the hold, and a restart the host asks for waits for the
+// same release unless forced. A mod that stops stays stopped until a player
 // or a reload restarts it. A mod limited to some players reaches only them,
 // changes the whole server only while it holds the world, which one limited
 // mod holds at a time, and rules only the hits of its players. A mod hears
 // exactly one leave for each player it heard join.
 #include "modlock/wasm_host.h"
 
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <expected>
@@ -414,6 +416,33 @@ TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {
   ASSERT_TRUE(host.Reload(first));
   EXPECT_EQ(events.seen.back(), "reloaded");
   EXPECT_EQ(events.paths.back(), first);
+
+  // A restart of a held mod waits, a second request is the same one, and
+  // the first frame after the release restarts it once.
+  ASSERT_TRUE(host.Call("extension-go", "hold", "take", ""));
+  ASSERT_TRUE(host.Restart("extension-go"));
+  ASSERT_TRUE(host.Restart("extension-go"));
+  EXPECT_TRUE(host.Restarting("extension-go"));
+  (*plugin)->Tick();
+  EXPECT_EQ(events.seen.back(), "held");
+  ASSERT_TRUE(host.Call("extension-go", "hold", "release", ""));
+  (*plugin)->Tick();
+  EXPECT_EQ(events.seen.back(), "reloaded");
+  EXPECT_EQ(events.paths.back(), first);
+  EXPECT_FALSE(host.Restarting("extension-go"));
+  (*plugin)->Tick();
+  EXPECT_EQ(events.seen.back(), "reloaded");
+  EXPECT_EQ(std::ranges::count(events.seen, "reloaded"), 3);
+
+  // A forced restart goes despite the hold, and the new instance holds
+  // nothing.
+  ASSERT_TRUE(host.Call("extension-go", "hold", "take", ""));
+  ASSERT_TRUE(host.Restart("extension-go", true));
+  (*plugin)->Tick();
+  EXPECT_EQ(events.seen.back(), "reloaded");
+  EXPECT_FALSE(host.Held("extension-go"));
+  EXPECT_FALSE(host.Restarting("extension-go"));
+  EXPECT_FALSE(host.Restart("no-such-mod"));
   (*plugin)->Stop();
   host.Unobserve(&events);
   std::filesystem::remove_all(builds);

@@ -417,7 +417,11 @@ void WasmPlugin::Slowed(std::string_view report) {
 
 void WasmPlugin::Stopped() {
   // A restart runs the mod's start on the engine thread, which a mod that
-  // keeps failing would hold, so the players choose when it happens.
+  // keeps failing would hold, so the players choose when it happens. A
+  // restart already asked for still runs on the next frame.
+  if (Restarting()) {
+    return;
+  }
   offer_ = StoppedOffer{};
   Log(std::format("stays stopped until a player types /{}", kRestartCommand));
   Warn(std::format("stopped. Type /{} to start it again.", kRestartCommand));
@@ -452,6 +456,18 @@ bool WasmPlugin::AskRestart() {
   return offered;
 }
 
+void WasmPlugin::RequestRestart(bool force) {
+  // A hold delays the restart unless forced, and force stops a pending one
+  // waiting.
+  if (force || !held_) {
+    offer_ = RestartAsked{};
+  } else if (!std::holds_alternative<RestartAsked>(offer_)) {
+    offer_ = RestartHeld{};
+  }
+  Log(std::holds_alternative<RestartHeld>(offer_) ? "restarts once it releases its hold"
+                                                  : "restarts on the next frame");
+}
+
 void WasmPlugin::Withdraw() {
   offer_ = std::monostate{};
 }
@@ -461,6 +477,21 @@ void WasmPlugin::Restart() {
   Withdraw();
   if (successor_) {
     return;
+  }
+
+  // A build that waits for a forced-out hold starts in its place, so the mod
+  // starts once and runs its newest build.
+  if (waiting_) {
+    auto build = std::move(*waiting_);
+    waiting_.reset();
+    auto instance = Instantiate(build.module);
+    if (instance) {
+      if (auto started = Succeed(std::move(*instance), std::move(build)); !started) {
+        Log("did not restart: " + started.error());
+      }
+      return;
+    }
+    Log("the waiting build did not load: " + instance.error());
   }
 
   // A build that no longer instantiates stays stopped, still offered, and
@@ -545,8 +576,10 @@ void WasmPlugin::Tick() {
     }
   }
 
-  // Restart a stopped mod when asked, or remind players it stopped.
-  if (std::holds_alternative<RestartAsked>(offer_)) {
+  // Restart the mod when asked and no hold delays it, or remind players a
+  // stopped mod stopped.
+  if (std::holds_alternative<RestartAsked>(offer_) ||
+      (std::holds_alternative<RestartHeld>(offer_) && !held_)) {
     Restart();
   } else if (std::holds_alternative<StoppedOffer>(offer_) &&
              std::chrono::steady_clock::now() - warned_at_ >= kWarnPeriod) {

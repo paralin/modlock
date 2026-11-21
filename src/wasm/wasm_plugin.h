@@ -212,6 +212,20 @@ class WasmPlugin final : public Plugin {
   // slow event. It reports whether the restart was offered.
   bool AskRestart();
 
+  // RequestRestart restarts the mod in a new instance on the next frame,
+  // whether or not a restart is offered. While the running instance holds
+  // itself the restart waits for the first frame after its release, unless
+  // force is true. A request while one is pending is the same request; force
+  // stops it waiting.
+  void RequestRestart(bool force);
+
+  // Restarting reports whether a requested restart waits for the next frame
+  // or for the hold's release.
+  bool Restarting() const {
+    return std::holds_alternative<RestartAsked>(offer_) ||
+           std::holds_alternative<RestartHeld>(offer_);
+  }
+
   // Press delivers a press on a button the mod shows the player in slot.
   std::expected<void, std::string> Press(int32_t slot, std::string_view node);
 
@@ -455,12 +469,18 @@ class WasmPlugin final : public Plugin {
   // asks for it.
   struct StoppedOffer {};
 
-  // RestartAsked is a player's request, which the next frame carries out.
+  // RestartAsked is a player's or the host's request, which the next frame
+  // carries out.
   struct RestartAsked {};
 
-  // Offer is the restart the players may ask for: none, a slow event's, a
-  // stopped instance's, or one already asked for.
-  using Offer = std::variant<std::monostate, SlowOffer, StoppedOffer, RestartAsked>;
+  // RestartHeld is the host's request made while the running instance held
+  // itself, which the first frame after the hold's release carries out.
+  struct RestartHeld {};
+
+  // Offer is where a restart stands: none offered, a slow event's or a
+  // stopped instance's offer, or one already asked for, due now or after the
+  // hold.
+  using Offer = std::variant<std::monostate, SlowOffer, StoppedOffer, RestartAsked, RestartHeld>;
 
   // offer_ is the current restart offer, and warned_at_ the players' last
   // warning. restart_command_ hears the request once it is active.

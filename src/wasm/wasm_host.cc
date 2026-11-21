@@ -74,6 +74,20 @@ bool WasmHost::Held(std::string_view mod) const {
   return found != impl_->plugins.end() && found->second->Held();
 }
 
+std::expected<void, std::string> WasmHost::Restart(std::string_view mod, bool force) {
+  auto found = impl_->plugins.find(mod);
+  if (found == impl_->plugins.end()) {
+    return std::unexpected("no running mod is named " + std::string(mod));
+  }
+  found->second->RequestRestart(force);
+  return {};
+}
+
+bool WasmHost::Restarting(std::string_view mod) const {
+  const auto found = impl_->plugins.find(mod);
+  return found != impl_->plugins.end() && found->second->Restarting();
+}
+
 std::optional<uint32_t> WasmHost::BoardVersion(std::string_view mod, std::string_view board) const {
   const auto found = impl_->plugins.find(mod);
   if (found == impl_->plugins.end()) {
