@@ -235,10 +235,16 @@ function subtitle(line: Line, viewer: Player, age: number): UiElement {
         background: shades.raised,
         saturation: seen.out ? 0 : 1,
       },
-      children: src !== undefined && {
-        type: 'image',
-        props: { src, style: { width: '100%', height: '100%' } },
-      },
+      // A ternary to undefined, not a && to false: the WebAssembly build traps
+      // on `src !== undefined && { ... }` here, as a value not representable
+      // in the child union, where QuickJS draws it.
+      children:
+        src === undefined
+          ? undefined
+          : {
+              type: 'image',
+              props: { src, style: { width: '100%', height: '100%' } },
+            },
     },
   }
 
