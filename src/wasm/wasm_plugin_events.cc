@@ -207,8 +207,9 @@ void WasmPlugin::ListenToPlayers() {
     Log(std::string("console commands are unavailable: ") + commands.error());
   }
   if (wants_.pings()) {
-    if (auto pings = engine_->OnPing(
-            [this](const gameinterop::NativePingFilter::Ping& ping) { return Ping(ping); })) {
+    if (auto pings =
+            engine_->OnPing([this](const gameinterop::NativePingFilter::Ping& ping,
+                                   uint64_t& voice_muted) { return Ping(ping, voice_muted); })) {
       players_.Add(std::move(*pings));
     } else {
       Log(std::string("pings are unavailable: ") + pings.error());

@@ -7,6 +7,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <vector>
 
 #include "modlock/export.h"
 
@@ -17,7 +18,10 @@ namespace modlock::gameinterop {
 // quick response or an ability ping. The handler runs synchronously on the
 // installing engine thread and returns true to drop the ping for every
 // recipient, the sender included, with its marker, sound, voice line and chat
-// line. Destruction restores dispatch after the engine thread has quiesced.
+// line. Otherwise it may set the bits of player slots in voice_muted: those
+// recipients get the ping without its voice line, since the server names the
+// line in the ping and each client speaks it, and the rest get it unchanged.
+// Destruction restores dispatch after the engine thread has quiesced.
 class MODLOCK_API NativePingFilter {
  public:
   // Kind is the ping's user message.
@@ -34,11 +38,18 @@ class MODLOCK_API NativePingFilter {
     int32_t concept_value = 0;
   };
 
-  using Handler = std::function<bool(const Ping&)>;
+  using Handler = std::function<bool(const Ping&, uint64_t& voice_muted)>;
 
   // Decode reads one length-prefixed ping user message. The live filter
   // separately verifies the decoded slot's current authenticated connection.
   static std::optional<Ping> Decode(int32_t message_id, std::span<const uint8_t> serialized);
+
+  // WithoutVoice rewrites one length-prefixed ping user message without its
+  // voice line, clearing the speech concept and the chosen response and
+  // keeping every other field, the ones this build does not know included.
+  // It returns nothing for bytes Decode would refuse.
+  static std::optional<std::vector<uint8_t>> WithoutVoice(int32_t message_id,
+                                                          std::span<const uint8_t> serialized);
 
   // Install borrows GameEventSystemServerV001 after world initialization.
   static std::expected<NativePingFilter, std::string> Install(Handler handler);

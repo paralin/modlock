@@ -782,7 +782,7 @@ service Mod {
 
   // Ping offers each ping a player the mod serves sends, before the server
   // shows it to anyone, while the mod asked for pings. The mod's answer may
-  // drop it for every recipient.
+  // drop it for every recipient or mute its voice line for some.
   rpc Ping(PingEvent) returns (PingResult);
 
   // World follows each world load, and start when a world has already
@@ -1028,6 +1028,11 @@ message PingResult {
   // Block drops the ping for every player, the sender included: its marker,
   // sound, voice line and chat line.
   bool block = 1;
+
+  // MuteVoice lists the players, by slot, who get a ping that is not blocked
+  // without its voice line: they still see its marker and hear its sound.
+  // The other recipients get it whole.
+  repeated int32 mute_voice = 2;
 }
 
 // CommandResult answers whether the mod handled a command.

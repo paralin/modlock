@@ -224,9 +224,26 @@ class MODLOCK_API PingCommonData final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kResponseChosenFieldNumber = 6,
     kSpeechConceptFieldNumber = 5,
     kSenderPlayerSlotFieldNumber = 4,
   };
+  // optional string response_chosen = 6;
+  bool has_response_chosen() const;
+  void clear_response_chosen() ;
+  const ::std::string& response_chosen() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_response_chosen(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_response_chosen();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_response_chosen();
+  void set_allocated_response_chosen(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_response_chosen() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_response_chosen(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_response_chosen();
+
+  public:
   // optional int32 speech_concept = 5;
   bool has_speech_concept() const;
   void clear_speech_concept() ;
@@ -253,7 +270,7 @@ class MODLOCK_API PingCommonData final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 0,
                                    2>
       _table_;
@@ -275,6 +292,7 @@ class MODLOCK_API PingCommonData final : public ::google::protobuf::Message
         const PingCommonData& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr response_chosen_;
     ::int32_t speech_concept_;
     ::int32_t sender_player_slot_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -511,14 +529,14 @@ MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PingMessage
 
 // optional int32 sender_player_slot = 4 [default = -1];
 inline bool PingCommonData::has_sender_player_slot() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   return value;
 }
 inline void PingCommonData::clear_sender_player_slot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.sender_player_slot_ = -1;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::int32_t PingCommonData::sender_player_slot() const {
   // @@protoc_insertion_point(field_get:modlock.gameinterop.engine.PingCommonData.sender_player_slot)
@@ -526,7 +544,7 @@ inline ::int32_t PingCommonData::sender_player_slot() const {
 }
 inline void PingCommonData::set_sender_player_slot(::int32_t value) {
   _internal_set_sender_player_slot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.gameinterop.engine.PingCommonData.sender_player_slot)
 }
 inline ::int32_t PingCommonData::_internal_sender_player_slot() const {
@@ -540,14 +558,14 @@ inline void PingCommonData::_internal_set_sender_player_slot(::int32_t value) {
 
 // optional int32 speech_concept = 5;
 inline bool PingCommonData::has_speech_concept() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
   return value;
 }
 inline void PingCommonData::clear_speech_concept() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.speech_concept_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000001U);
+                  0x00000002U);
 }
 inline ::int32_t PingCommonData::speech_concept() const {
   // @@protoc_insertion_point(field_get:modlock.gameinterop.engine.PingCommonData.speech_concept)
@@ -555,7 +573,7 @@ inline ::int32_t PingCommonData::speech_concept() const {
 }
 inline void PingCommonData::set_speech_concept(::int32_t value) {
   _internal_set_speech_concept(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:modlock.gameinterop.engine.PingCommonData.speech_concept)
 }
 inline ::int32_t PingCommonData::_internal_speech_concept() const {
@@ -565,6 +583,75 @@ inline ::int32_t PingCommonData::_internal_speech_concept() const {
 inline void PingCommonData::_internal_set_speech_concept(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.speech_concept_ = value;
+}
+
+// optional string response_chosen = 6;
+inline bool PingCommonData::has_response_chosen() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  return value;
+}
+inline void PingCommonData::clear_response_chosen() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.response_chosen_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& PingCommonData::response_chosen() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.gameinterop.engine.PingCommonData.response_chosen)
+  return _internal_response_chosen();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PingCommonData::set_response_chosen(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.response_chosen_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.gameinterop.engine.PingCommonData.response_chosen)
+}
+inline ::std::string* PROTOBUF_NONNULL PingCommonData::mutable_response_chosen()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_response_chosen();
+  // @@protoc_insertion_point(field_mutable:modlock.gameinterop.engine.PingCommonData.response_chosen)
+  return _s;
+}
+inline const ::std::string& PingCommonData::_internal_response_chosen() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.response_chosen_.Get();
+}
+inline void PingCommonData::_internal_set_response_chosen(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.response_chosen_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL PingCommonData::_internal_mutable_response_chosen() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.response_chosen_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE PingCommonData::release_response_chosen() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.gameinterop.engine.PingCommonData.response_chosen)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.response_chosen_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.response_chosen_.Set("", GetArena());
+  }
+  return released;
+}
+inline void PingCommonData::set_allocated_response_chosen(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.response_chosen_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.response_chosen_.IsDefault()) {
+    _impl_.response_chosen_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.gameinterop.engine.PingCommonData.response_chosen)
 }
 
 // -------------------------------------------------------------------

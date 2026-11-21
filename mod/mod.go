@@ -211,9 +211,11 @@ func OnDamage(handler func(hit *DamageEvent) *DamageResult) {
 
 // OnPing calls handler with each ping a player sends, from the comms wheel, a
 // quick ping key, the map or an ability, before anyone sees it, so it can
-// block the ping. A blocked ping reaches nobody, the sender included: no
-// marker, sound, voice line or chat line. The handler runs inside the
-// server's ping, so it decides at once and defers other work to a frame.
+// block the ping or mute its voice line. A blocked ping reaches nobody, the
+// sender included: no marker, sound, voice line or chat line. The players a
+// handler lists in MuteVoice, by slot, get the ping without its voice line.
+// The handler runs inside the server's ping, so it decides at once and defers
+// other work to a frame.
 func OnPing(handler func(ping *PingEvent) *PingResult) {
 	registered.pings = append(registered.pings, handler)
 }
@@ -458,14 +460,21 @@ func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
 }
 
 // Ping offers the ping to each ping handler, stopping at the first that
-// blocks it.
+// blocks it; the others add the players they mute its voice line for.
 func (h *handlers) Ping(event *PingEvent) (*PingResult, error) {
+	var muteVoice []int32
 	for _, handler := range h.pings {
-		if handler(event).GetBlock() {
+		result := handler(event)
+		if result.GetBlock() {
 			return &PingResult{Block: true}, nil
 		}
+		for _, slot := range result.GetMuteVoice() {
+			if !slices.Contains(muteVoice, slot) {
+				muteVoice = append(muteVoice, slot)
+			}
+		}
 	}
-	return &PingResult{}, nil
+	return &PingResult{MuteVoice: muteVoice}, nil
 }
 
 // Damaged runs the damaged handlers.

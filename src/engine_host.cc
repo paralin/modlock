@@ -66,7 +66,7 @@ struct EngineHost::Impl {
 
   Callbacks<void()> frames;
   Callbacks<void(const gameinterop::NativeChatHook::Message&)> chats;
-  Callbacks<bool(const gameinterop::NativePingFilter::Ping&)> pings;
+  Callbacks<bool(const gameinterop::NativePingFilter::Ping&, uint64_t&)> pings;
   Callbacks<bool(int32_t, std::string_view)> commands;
   Callbacks<void(const gameinterop::CombatEvent&)> combat;
   Callbacks<bool(const gameinterop::DamageContactEvent&)> damage;
@@ -234,8 +234,8 @@ std::expected<Subscription, std::string> EngineHost::OnPing(
   }
   if (!impl_->ping_filter) {
     auto filter = gameinterop::NativePingFilter::Install(
-        [this](const gameinterop::NativePingFilter::Ping& ping) {
-          return impl_->pings.Dispatch(ping);
+        [this](const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted) {
+          return impl_->pings.Dispatch(ping, voice_muted);
         });
     if (!filter) {
       return std::unexpected(filter.error());

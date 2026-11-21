@@ -33,6 +33,9 @@ namespace engine {
 inline constexpr PingCommonData::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
+        response_chosen_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
         speech_concept_{0},
         sender_player_slot_{-1} {}
 
@@ -93,9 +96,11 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::PingCommonData, _impl_._has_bits_),
-        5, // hasbit index offset
+        6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::PingCommonData, _impl_.sender_player_slot_),
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::PingCommonData, _impl_.speech_concept_),
+        PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::PingCommonData, _impl_.response_chosen_),
+        2,
         1,
         0,
         0x081, // bitmap
@@ -110,7 +115,7 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::gameinterop::engine::PingCommonData)},
-        {7, sizeof(::modlock::gameinterop::engine::PingMessage)},
+        {9, sizeof(::modlock::gameinterop::engine::PingMessage)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::gameinterop::engine::_PingCommonData_default_instance_._instance,
@@ -120,19 +125,19 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fga
     protodesc_cold) = {
     "\n<github.com/paralin/modlock/src/gameint"
     "erop/engine/ping.proto\022\032modlock.gameinte"
-    "rop.engine\"H\n\016PingCommonData\022\036\n\022sender_p"
+    "rop.engine\"a\n\016PingCommonData\022\036\n\022sender_p"
     "layer_slot\030\004 \001(\005:\002-1\022\026\n\016speech_concept\030\005"
-    " \001(\005\"j\n\013PingMessage\022=\n\tping_data\030\001 \001(\0132*"
-    ".modlock.gameinterop.engine.PingCommonDa"
-    "ta\022\034\n\024ping_wheel_option_id\030\002 \001(\rB:Z8gith"
-    "ub.com/paralin/modlock/src/gameinterop/e"
-    "ngine;engine"
+    " \001(\005\022\027\n\017response_chosen\030\006 \001(\t\"j\n\013PingMes"
+    "sage\022=\n\tping_data\030\001 \001(\0132*.modlock.gamein"
+    "terop.engine.PingCommonData\022\034\n\024ping_whee"
+    "l_option_id\030\002 \001(\rB:Z8github.com/paralin/"
+    "modlock/src/gameinterop/engine;engine"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fping_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fping_2eproto = {
     false,
     false,
-    332,
+    357,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fping_2eproto,
     "github.com/paralin/modlock/src/gameinterop/engine/ping.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fping_2eproto_once,
@@ -167,21 +172,42 @@ PingCommonData::PingCommonData(::google::protobuf::Arena* PROTOBUF_NULLABLE aren
   SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:modlock.gameinterop.engine.PingCommonData)
 }
+PROTOBUF_NDEBUG_INLINE PingCommonData::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::gameinterop::engine::PingCommonData& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        response_chosen_(arena, from.response_chosen_) {}
+
 PingCommonData::PingCommonData(
-    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PingCommonData& from)
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PingCommonData& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, PingCommonData_class_data_.base()),
+    : ::google::protobuf::Message(arena, PingCommonData_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena),
+    : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(from._impl_) {
+  PingCommonData* const _this = this;
+  (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, speech_concept_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, speech_concept_),
+           offsetof(Impl_, sender_player_slot_) -
+               offsetof(Impl_, speech_concept_) +
+               sizeof(Impl_::sender_player_slot_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.gameinterop.engine.PingCommonData)
 }
 PROTOBUF_NDEBUG_INLINE PingCommonData::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
+        response_chosen_(arena),
         sender_player_slot_{-1} {}
 
 inline void PingCommonData::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -199,6 +225,7 @@ inline void PingCommonData::SharedDtor(MessageLite& self) {
   }
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.response_chosen_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -245,16 +272,16 @@ PingCommonData::GetClassData() const {
   return PingCommonData_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
 PingCommonData::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_._has_bits_),
     0, // no _extensions_
-    5, 8,  // max_field_number, fast_idx_mask
+    6, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967271,  // skipmap
+    4294967239,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     PingCommonData_class_data_.base(),
@@ -265,20 +292,27 @@ PingCommonData::_table_ = {
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // optional int32 sender_player_slot = 4 [default = -1];
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PingCommonData, _impl_.sender_player_slot_), 1>(),
-     {32, 1, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PingCommonData, _impl_.sender_player_slot_), 2>(),
+     {32, 2, 0,
       PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.sender_player_slot_)}},
     // optional int32 speech_concept = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PingCommonData, _impl_.speech_concept_), 0>(),
-     {40, 0, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PingCommonData, _impl_.speech_concept_), 1>(),
+     {40, 1, 0,
       PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.speech_concept_)}},
+    // optional string response_chosen = 6;
+    {::_pbi::TcParser::FastBS1,
+     {50, 0, 0,
+      PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.response_chosen_)}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // optional int32 sender_player_slot = 4 [default = -1];
-    {PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.sender_player_slot_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.sender_player_slot_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // optional int32 speech_concept = 5;
-    {PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.speech_concept_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.speech_concept_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // optional string response_chosen = 6;
+    {PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.response_chosen_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kBytes | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
@@ -292,7 +326,10 @@ PROTOBUF_NOINLINE void PingCommonData::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.response_chosen_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
     _impl_.speech_concept_ = 0;
     _impl_.sender_player_slot_ = -1;
   }
@@ -320,17 +357,23 @@ PROTOBUF_NOINLINE void PingCommonData::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // optional int32 sender_player_slot = 4 [default = -1];
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target =
         ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
             stream, this_._internal_sender_player_slot(), target);
   }
 
   // optional int32 speech_concept = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     target =
         ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<5>(
             stream, this_._internal_speech_concept(), target);
+  }
+
+  // optional string response_chosen = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    const ::std::string& _s = this_._internal_response_chosen();
+    target = stream->WriteStringMaybeAliased(6, _s, target);
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -358,14 +401,19 @@ PROTOBUF_NOINLINE void PingCommonData::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
-    // optional int32 speech_concept = 5;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // optional string response_chosen = 6;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                      this_._internal_response_chosen());
+    }
+    // optional int32 speech_concept = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
           this_._internal_speech_concept());
     }
     // optional int32 sender_player_slot = 4 [default = -1];
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
           this_._internal_sender_player_slot());
     }
@@ -388,11 +436,14 @@ void PingCommonData::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      _this->_impl_.speech_concept_ = from._impl_.speech_concept_;
+      _this->_internal_set_response_chosen(from._internal_response_chosen());
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _this->_impl_.speech_concept_ = from._impl_.speech_concept_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       _this->_impl_.sender_player_slot_ = from._impl_.sender_player_slot_;
     }
   }
@@ -411,8 +462,11 @@ void PingCommonData::CopyFrom(const PingCommonData& from) {
 
 void PingCommonData::InternalSwap(PingCommonData* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.response_chosen_, &other->_impl_.response_chosen_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(PingCommonData, _impl_.sender_player_slot_)
       + sizeof(PingCommonData::_impl_.sender_player_slot_)
