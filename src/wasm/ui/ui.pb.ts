@@ -907,6 +907,14 @@ export interface Node {
    */
   clock?: Clock
   /**
+   * HideInChat hides the node while the player has the game's chat box open,
+   * which then shows the chat history itself, so a node that repeats chat,
+   * such as a lane of chat lines, gives way to it. The renderer reads the
+   * chat box's state in the player's game; a renderer that finds no chat box
+   * always shows the node.
+   */
+  hideInChat?: boolean
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -966,6 +974,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [37, 'ability_bar_presses', 8],
     [38, 'ability_display', 11, 1, AbilityRow.codec],
     [39, 'clock', 11, 0, Clock.codec],
+    [40, 'hide_in_chat', 8],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1128,6 +1137,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 39:
             m.clock = Clock.decode(r, r.delimited(), m.clock ?? {})
+            break
+          case 40:
+            m.hideInChat = r.bool()
             break
           default:
             r.skip(t)
@@ -1305,6 +1317,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.clock
         if (v != null) Clock.writeField(w, 39, v)
+      }
+      {
+        const v = m.hideInChat
+        if (v) w.uint32(320).bool(v)
       }
     },
   },

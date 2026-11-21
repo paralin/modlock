@@ -3898,6 +3898,7 @@ schema.Node = {
 	{ number = 37, name = "abilityBarPresses", kind = "bool" },
 	{ number = 38, name = "abilityDisplay", kind = "message", repeated = true, message = "AbilityRow" },
 	{ number = 39, name = "clock", kind = "message", message = "Clock" },
+	{ number = 40, name = "hideInChat", kind = "bool" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },

@@ -6,6 +6,7 @@ import { Bridge } from './bridge.js'
 import {
   actionCommand,
   AddonLayouts,
+  CHAT_OPEN,
   Drawing,
   type InputValue,
   inputCommand,
@@ -1149,6 +1150,43 @@ test('frees the cursor a root asks for and hands the keyboard back when it captu
 })
 
 /** gameHud builds the game's HUD with a panel for each part a test hides. */
+test("hides a node that hides in chat while the game's chat box is open", () => {
+  // Draw a lane that hides in chat beside a label that does not, in a HUD
+  // whose chat box is closed.
+  const game = new FakePanel('CitadelHud', 'Hud')
+  const box = $.CreatePanel('CitadelChat', game, 'Chat') as unknown as FakePanel
+  const root = $.CreatePanel('Panel', game, 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  const lane = { id: 'lane', hideInChat: true, children: ['line'] }
+  const line = { id: 'line', kind: 'KIND_LABEL', text: 'over here' }
+  const score = { id: 'score', kind: 'KIND_LABEL', text: '3' }
+  drawing.draw(
+    screen({ id: '', children: ['lane', 'score'] }, lane, line, score),
+  )
+  const [lanePanel, scorePanel] = (root as unknown as FakePanel).children[0]!
+    .children
+  expect(lanePanel!.visible).toBe(true)
+
+  // The player opens the chat box: the lane hides at the next read, the
+  // label stays, and a line drawn meanwhile stays hidden in it.
+  box.classes.push(CHAT_OPEN)
+  runScheduled()
+  expect(lanePanel!.visible).toBe(false)
+  expect(scorePanel!.visible).toBe(true)
+  drawing.draw(
+    screen({ id: '', children: ['lane', 'score'] }, lane, line, score),
+  )
+  expect(lanePanel!.visible).toBe(false)
+
+  // Closing it shows the lane again; once the lane leaves, nothing is read.
+  box.classes.length = 0
+  runScheduled()
+  expect(lanePanel!.visible).toBe(true)
+  drawing.draw(screen({ id: '', children: ['score'] }, score))
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+})
+
 function gameHud() {
   const game = new FakePanel('CitadelHud', 'Hud')
   const add = (parent: FakePanel, id: string, ...classes: string[]) => {

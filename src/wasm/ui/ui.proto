@@ -203,6 +203,13 @@ message Node {
   // same while the time changes. The label shows the time in place of its
   // text, or fills its token's {s:clock} place with it.
   Clock clock = 39;
+
+  // HideInChat hides the node while the player has the game's chat box open,
+  // which then shows the chat history itself, so a node that repeats chat,
+  // such as a lane of chat lines, gives way to it. The renderer reads the
+  // chat box's state in the player's game; a renderer that finds no chat box
+  // always shows the node.
+  bool hide_in_chat = 40;
 }
 
 // Clock is a time a label counts in the player's game.

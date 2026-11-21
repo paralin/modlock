@@ -919,6 +919,12 @@ type Node struct {
 	// same while the time changes. The label shows the time in place of its
 	// text, or fills its token's {s:clock} place with it.
 	Clock *Clock `protobuf:"bytes,39,opt,name=clock,proto3" json:"clock,omitempty"`
+	// HideInChat hides the node while the player has the game's chat box open,
+	// which then shows the chat history itself, so a node that repeats chat,
+	// such as a lane of chat lines, gives way to it. The renderer reads the
+	// chat box's state in the player's game; a renderer that finds no chat box
+	// always shows the node.
+	HideInChat bool `protobuf:"varint,40,opt,name=hide_in_chat,json=hideInChat,proto3" json:"hideInChat,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1205,6 +1211,13 @@ func (x *Node) GetClock() *Clock {
 		return x.Clock
 	}
 	return nil
+}
+
+func (x *Node) GetHideInChat() bool {
+	if x != nil {
+		return x.HideInChat
+	}
+	return false
 }
 
 type isNode_Input interface {
@@ -3107,6 +3120,7 @@ func (m *Node) CloneVT() *Node {
 	r.FreeCursor = m.FreeCursor
 	r.FreeCursorAsks = m.FreeCursorAsks
 	r.AbilityBarPresses = m.AbilityBarPresses
+	r.HideInChat = m.HideInChat
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -4030,6 +4044,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Clock, that.Clock) {
+		return false
+	}
+	if this.HideInChat != that.HideInChat {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6079,6 +6096,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("clock")
 		x.Clock.MarshalProtoJSON(s.WithField("clock"))
 	}
+	if x.HideInChat || s.HasField("hideInChat") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hideInChat")
+		s.WriteBool(x.HideInChat)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6318,6 +6340,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Clock = &Clock{}
 			x.Clock.UnmarshalProtoJSON(s.WithField("clock", true))
+		case "hide_in_chat", "hideInChat":
+			s.AddField("hide_in_chat")
+			x.HideInChat = s.ReadBool()
 		}
 	})
 }
@@ -8829,6 +8854,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if m.HideInChat {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.HideInChat)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xc0
+	}
 	if m.Clock != nil {
 		size, err := m.Clock.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -11321,6 +11353,7 @@ func (m *Node) SizeVT() (n int) {
 		l = m.Clock.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.HideInChat)
 	n += len(m.unknownFields)
 	return n
 }
@@ -12308,6 +12341,10 @@ func (x *Node) MarshalProtoText() string {
 	if x.Clock != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "clock")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Clock)
+	}
+	if x.HideInChat != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hide_in_chat")
+		protobuf_go_lite.TextWriteBool(&sb, x.HideInChat)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -13802,6 +13839,16 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 40:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HideInChat", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.HideInChat = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

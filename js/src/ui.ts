@@ -427,6 +427,7 @@ export interface Props {
   readonly enter?: Style
   readonly exit?: Style
   readonly cycle?: Cycle
+  readonly hideInChat?: boolean
   readonly token?: string
   readonly variables?: Readonly<Record<string, string | number>>
   readonly clock?: Clock
@@ -469,6 +470,11 @@ export interface ElementProps {
   exit?: Style
   /** cycle swings the element to another style and back while it shows. */
   cycle?: Cycle
+  /**
+   * hideInChat hides the element while the player has the game's chat box
+   * open, which then shows the chat history itself.
+   */
+  hideInChat?: boolean
 }
 
 /**
@@ -1457,6 +1463,7 @@ function place(layout: Layout, child: Child, at: string): string[] {
     exit: wireStyle(props.exit),
     cycle: cycle(props.cycle),
     classes: classes(props.class),
+    hideInChat: props.hideInChat || undefined,
   }
   switch (child.type) {
     case 'label':

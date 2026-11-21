@@ -21,6 +21,10 @@
 // one before, so the mod's classes match only its own panels and a later
 // sheet wins. A node's classes change one by one, so a sheet's transitions
 // run.
+// A node that hides in chat hides while the game's chat box is open, which
+// shows the chat history itself. The game marks the open box with a class
+// and says nothing as it opens, so the drawing reads the class each tenth of
+// a second while such a node shows.
 // A route node draws nothing and hands its value to each of the mod's
 // layouts. The drawing reaches the game only through the Panorama it is
 // given, so a host's own interface script may draw the screens it receives
@@ -100,6 +104,9 @@ export interface Panel {
   visible: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
+  /** GetParent and BHasClass find and read the game's chat box. */
+  GetParent?(): Panel | null
+  BHasClass?(name: string): boolean
   GetChild(index: number): Panel | null
   FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
@@ -429,6 +436,32 @@ interface Ticking {
 /** clockTick is how often a running clock writes its label, in seconds. */
 const clockTick = 0.1
 
+/**
+ * chatTick is how often the drawing reads the chat box's state while a node
+ * that hides in chat shows, in seconds.
+ */
+const chatTick = 0.1
+
+/** CHAT_BOX is the id of the game's chat box, a CitadelChat, in its HUD. */
+const CHAT_BOX = 'Chat'
+
+/**
+ * CHAT_OPEN is the class the game keeps on its chat box while the player
+ * types in it and reads its history.
+ */
+export const CHAT_OPEN = 'ChatExpanded'
+
+/**
+ * findChatBox returns the game's chat box in the interface panel sits in, or
+ * null where there is none.
+ */
+function findChatBox(panel: Panel): Panel | null {
+  let top = panel
+  for (let up = top.GetParent?.(); up; up = up.GetParent?.()) top = up
+  const box = top.FindChildTraverse(CHAT_BOX)
+  return box?.paneltype === 'CitadelChat' ? box : null
+}
+
 /** now returns the wall time in seconds. */
 function now(): number {
   return Date.now() / 1000
@@ -540,6 +573,7 @@ interface Drawn {
   nested: Panel[]
   classes: string[]
   clock: Ticking | null
+  hideInChat: boolean
 }
 
 /**
@@ -573,6 +607,15 @@ export class Drawing {
 
   /** ticking is true while a clock's next tick is scheduled. */
   private ticking = false
+
+  /** chatBox is the game's chat box, once found. */
+  private chatBox: Panel | null = null
+
+  /** inChat holds the panels of the drawn nodes that hide in chat. */
+  private inChat: Panel[] = []
+
+  /** following is true while the chat box's next read is scheduled. */
+  private following = false
 
   constructor(
     private readonly panorama: Panorama,
@@ -655,6 +698,41 @@ export class Drawing {
       this.unloaded = false
       this.layouts?.unloaded()
     }
+
+    // Hide the nodes that hide in chat while the chat box is open.
+    this.inChat = []
+    for (const { nodes } of this.mods.values()) {
+      for (const each of nodes.values()) {
+        if (each.hideInChat) this.inChat.push(each.panel)
+      }
+    }
+    this.followChat()
+  }
+
+  /**
+   * followChat shows or hides the panels that hide in chat by the chat box's
+   * state, and reads it again shortly while any of them shows and the box is
+   * found.
+   */
+  private followChat(): void {
+    // Nothing hides in chat: nothing to read.
+    const panels = this.inChat.filter((panel) => panel.IsValid())
+    if (panels.length === 0) return
+
+    // Read the chat box, finding it again once the game rebuilt it.
+    if (!this.chatBox?.IsValid()) this.chatBox = findChatBox(this.parent)
+    const open = this.chatBox?.BHasClass?.(CHAT_OPEN) ?? false
+    for (const panel of panels) {
+      if (panel.visible === open) panel.visible = !open
+    }
+
+    // Read it again shortly, while a box is there to read.
+    if (this.following || !this.chatBox || !this.panorama.Schedule) return
+    this.following = true
+    this.panorama.Schedule(chatTick, () => {
+      this.following = false
+      this.followChat()
+    })
   }
 
   /** drawTree draws one mod's nodes from its root down, in its region. */
@@ -1453,8 +1531,12 @@ export class Drawing {
         kind === Kind.LABEL && node.clock
           ? windClock(node, fresh ? null : old.clock)
           : null,
+      hideInChat: !!node.hideInChat,
     }
     drawn.set(id, each)
+
+    // A kept panel that no longer hides in chat shows again.
+    if (!fresh && old.hideInChat && !each.hideInChat) panel.visible = true
 
     // Write the node's content and the style properties that changed. A
     // layout's own root decides whether it takes the pointer; a node takes it

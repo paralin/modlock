@@ -551,6 +551,7 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
   heard({ player: ada, text: 'over here', all: true, lane: 0 })
   expect(texts(3).includes('over here')).toBe(true)
   expect(texts(2).includes('over here')).toBe(true)
+  expect(latest(3).set!.some((node) => node.hideInChat)).toBe(true)
   const before = laidOut
 
   // A line is its own layer: it sends the root and the subtitle's nodes, and

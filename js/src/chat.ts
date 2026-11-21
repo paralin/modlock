@@ -8,7 +8,9 @@
 // the line itself, on a slim, translucent band. At most four show; a
 // speaker's next line replaces their last, and older lines dim. A team line
 // reads only to the speaker's team; a line for all reads to everyone. A
-// command, such as /help, is for the mod and is not shown.
+// command, such as /help, is for the mod and is not shown. The lines give way
+// while the player has the game's chat box open, which shows the chat history
+// itself.
 //
 // The interface library draws the lines as their own layer of every player's
 // interface, so a line arriving or leaving redraws only the lines, never the
@@ -142,11 +144,13 @@ export function chatLines(viewer: Player): Child {
   if (readable.length === 0) return undefined
   const kept = readable.slice(-(shown.lines ?? 4))
 
-  // The lane is centred above the ability bar; each line keeps its speaker's
-  // key, so a new line adds one subtitle and dims the rest in place.
+  // The lane is centred above the ability bar and gives way to the game's
+  // chat box; each line keeps its speaker's key, so a new line adds one
+  // subtitle and dims the rest in place.
   return {
     type: 'panel',
     props: {
+      hideInChat: true,
       style: {
         flow: 'down',
         horizontalAlign: 'center',
