@@ -161,6 +161,10 @@ class PawnResponse;
 struct PawnResponseDefaultTypeInternal;
 MODLOCK_API extern PawnResponseDefaultTypeInternal _PawnResponse_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PawnResponse_class_data_;
+class PawnsResponse;
+struct PawnsResponseDefaultTypeInternal;
+MODLOCK_API extern PawnsResponseDefaultTypeInternal _PawnsResponse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PawnsResponse_class_data_;
 class PlayerJoinedEvent;
 struct PlayerJoinedEventDefaultTypeInternal;
 MODLOCK_API extern PlayerJoinedEventDefaultTypeInternal _PlayerJoinedEvent_default_instance_;
@@ -169,6 +173,10 @@ class PlayerLeftEvent;
 struct PlayerLeftEventDefaultTypeInternal;
 MODLOCK_API extern PlayerLeftEventDefaultTypeInternal _PlayerLeftEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerLeftEvent_class_data_;
+class PlayerPawn;
+struct PlayerPawnDefaultTypeInternal;
+MODLOCK_API extern PlayerPawnDefaultTypeInternal _PlayerPawn_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerPawn_class_data_;
 class PlayerRequest;
 struct PlayerRequestDefaultTypeInternal;
 MODLOCK_API extern PlayerRequestDefaultTypeInternal _PlayerRequest_default_instance_;
@@ -533,7 +541,7 @@ class MODLOCK_API WatchRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const WatchRequest*>(
         &_WatchRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(WatchRequest& a, WatchRequest& b) { a.Swap(&b); }
   inline void Swap(WatchRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -748,7 +756,7 @@ class MODLOCK_API TimerTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const TimerTarget*>(
         &_TimerTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 36;
+  static constexpr int kIndexInFileMessages = 38;
   friend void swap(TimerTarget& a, TimerTarget& b) { a.Swap(&b); }
   inline void Swap(TimerTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1002,7 +1010,7 @@ class MODLOCK_API StartingSoulsRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const StartingSoulsRequest*>(
         &_StartingSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(StartingSoulsRequest& a, StartingSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(StartingSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1204,7 +1212,7 @@ class MODLOCK_API SetStaminaRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetStaminaRequest*>(
         &_SetStaminaRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(SetStaminaRequest& a, SetStaminaRequest& b) { a.Swap(&b); }
   inline void Swap(SetStaminaRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1411,7 +1419,7 @@ class MODLOCK_API SelectHeroRequest final : public ::google::protobuf::Message
     kHeroId = 3,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(SelectHeroRequest& a, SelectHeroRequest& b) { a.Swap(&b); }
   inline void Swap(SelectHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1655,7 +1663,7 @@ class MODLOCK_API Score final : public ::google::protobuf::Message
     return *reinterpret_cast<const Score*>(
         &_Score_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(Score& a, Score& b) { a.Swap(&b); }
   inline void Swap(Score* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2136,7 +2144,7 @@ class MODLOCK_API ResetHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ResetHeroRequest*>(
         &_ResetHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(ResetHeroRequest& a, ResetHeroRequest& b) { a.Swap(&b); }
   inline void Swap(ResetHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2528,7 +2536,7 @@ class MODLOCK_API HeroResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroResponse*>(
         &_HeroResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(HeroResponse& a, HeroResponse& b) { a.Swap(&b); }
   inline void Swap(HeroResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2718,7 +2726,7 @@ class MODLOCK_API HealRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HealRequest*>(
         &_HealRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(HealRequest& a, HealRequest& b) { a.Swap(&b); }
   inline void Swap(HealRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2920,7 +2928,7 @@ class MODLOCK_API FreezeRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreezeRequest*>(
         &_FreezeRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 26;
+  static constexpr int kIndexInFileMessages = 28;
   friend void swap(FreezeRequest& a, FreezeRequest& b) { a.Swap(&b); }
   inline void Swap(FreezeRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3123,7 +3131,7 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const EquipmentTarget*>(
         &_EquipmentTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 35;
+  static constexpr int kIndexInFileMessages = 37;
   friend void swap(EquipmentTarget& a, EquipmentTarget& b) { a.Swap(&b); }
   inline void Swap(EquipmentTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3839,7 +3847,7 @@ class MODLOCK_API ClearCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClearCameraRequest*>(
         &_ClearCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 26;
   friend void swap(ClearCameraRequest& a, ClearCameraRequest& b) { a.Swap(&b); }
   inline void Swap(ClearCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4047,7 +4055,7 @@ class MODLOCK_API ChangeTeamRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChangeTeamRequest*>(
         &_ChangeTeamRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 25;
+  static constexpr int kIndexInFileMessages = 27;
   friend void swap(ChangeTeamRequest& a, ChangeTeamRequest& b) { a.Swap(&b); }
   inline void Swap(ChangeTeamRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4249,7 +4257,7 @@ class MODLOCK_API CameraLag final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLag*>(
         &_CameraLag_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(CameraLag& a, CameraLag& b) { a.Swap(&b); }
   inline void Swap(CameraLag* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4492,7 +4500,7 @@ class MODLOCK_API CameraHold final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraHold*>(
         &_CameraHold_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(CameraHold& a, CameraHold& b) { a.Swap(&b); }
   inline void Swap(CameraHold* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4683,7 +4691,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 38;
+  static constexpr int kIndexInFileMessages = 40;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4873,7 +4881,7 @@ class MODLOCK_API AdjustSoulsRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const AdjustSoulsRequest*>(
         &_AdjustSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 27;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(AdjustSoulsRequest& a, AdjustSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(AdjustSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5088,7 +5096,7 @@ class MODLOCK_API AdjustAbilityPointsRequest final : public ::google::protobuf::
     return *reinterpret_cast<const AdjustAbilityPointsRequest*>(
         &_AdjustAbilityPointsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(AdjustAbilityPointsRequest& a, AdjustAbilityPointsRequest& b) { a.Swap(&b); }
   inline void Swap(AdjustAbilityPointsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6347,7 +6355,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     return *reinterpret_cast<const Pawn*>(
         &_Pawn_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(Pawn& a, Pawn& b) { a.Swap(&b); }
   inline void Swap(Pawn* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6804,7 +6812,7 @@ class MODLOCK_API HeroTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroTarget*>(
         &_HeroTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 36;
   friend void swap(HeroTarget& a, HeroTarget& b) { a.Swap(&b); }
   inline void Swap(HeroTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7158,7 +7166,7 @@ class MODLOCK_API FreeCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreeCameraRequest*>(
         &_FreeCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(FreeCameraRequest& a, FreeCameraRequest& b) { a.Swap(&b); }
   inline void Swap(FreeCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7387,7 +7395,7 @@ class MODLOCK_API CameraValue final : public ::google::protobuf::Message
     kPosition = 2,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(CameraValue& a, CameraValue& b) { a.Swap(&b); }
   inline void Swap(CameraValue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7614,7 +7622,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 37;
+  static constexpr int kIndexInFileMessages = 39;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7880,7 +7888,7 @@ class MODLOCK_API RestoreHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreHeroRequest*>(
         &_RestoreHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(RestoreHeroRequest& a, RestoreHeroRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8030,6 +8038,213 @@ class MODLOCK_API RestoreHeroRequest final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull RestoreHeroRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API PlayerPawn final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.PlayerPawn) */ {
+ public:
+  inline PlayerPawn() : PlayerPawn(nullptr) {}
+  ~PlayerPawn() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerPawn* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerPawn));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerPawn(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerPawn(const PlayerPawn& from) : PlayerPawn(nullptr, from) {}
+  inline PlayerPawn(PlayerPawn&& from) noexcept
+      : PlayerPawn(nullptr, ::std::move(from)) {}
+  inline PlayerPawn& operator=(const PlayerPawn& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerPawn& operator=(PlayerPawn&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerPawn& default_instance() {
+    return *reinterpret_cast<const PlayerPawn*>(
+        &_PlayerPawn_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 11;
+  friend void swap(PlayerPawn& a, PlayerPawn& b) { a.Swap(&b); }
+  inline void Swap(PlayerPawn* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerPawn* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerPawn* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerPawn>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerPawn& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerPawn& from) { PlayerPawn::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerPawn* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.PlayerPawn"; }
+
+  explicit PlayerPawn(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerPawn(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerPawn& from);
+  PlayerPawn(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerPawn&& from) noexcept
+      : PlayerPawn(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPawnFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+  };
+  // .modlock.wasm.players.Pawn pawn = 2;
+  bool has_pawn() const;
+  void clear_pawn() ;
+  const ::modlock::wasm::players::Pawn& pawn() const;
+  [[nodiscard]] ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE release_pawn();
+  ::modlock::wasm::players::Pawn* PROTOBUF_NONNULL mutable_pawn();
+  void set_allocated_pawn(::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_pawn(::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE unsafe_arena_release_pawn();
+
+  private:
+  const ::modlock::wasm::players::Pawn& _internal_pawn() const;
+  ::modlock::wasm::players::Pawn* PROTOBUF_NONNULL _internal_mutable_pawn();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.PlayerPawn)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerPawn& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE pawn_;
+    ::int32_t player_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerPawn_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API PawnResponse final : public ::google::protobuf::Message
@@ -8282,7 +8497,7 @@ class MODLOCK_API CameraSpring final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraSpring*>(
         &_CameraSpring_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(CameraSpring& a, CameraSpring& b) { a.Swap(&b); }
   inline void Swap(CameraSpring* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8516,7 +8731,7 @@ class MODLOCK_API CameraLerp final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLerp*>(
         &_CameraLerp_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(CameraLerp& a, CameraLerp& b) { a.Swap(&b); }
   inline void Swap(CameraLerp* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8767,7 +8982,7 @@ class MODLOCK_API CameraApproach final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraApproach*>(
         &_CameraApproach_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(CameraApproach& a, CameraApproach& b) { a.Swap(&b); }
   inline void Swap(CameraApproach* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8972,6 +9187,203 @@ class MODLOCK_API CameraApproach final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull CameraApproach_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API PawnsResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.PawnsResponse) */ {
+ public:
+  inline PawnsResponse() : PawnsResponse(nullptr) {}
+  ~PawnsResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PawnsResponse* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PawnsResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PawnsResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline PawnsResponse(const PawnsResponse& from) : PawnsResponse(nullptr, from) {}
+  inline PawnsResponse(PawnsResponse&& from) noexcept
+      : PawnsResponse(nullptr, ::std::move(from)) {}
+  inline PawnsResponse& operator=(const PawnsResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PawnsResponse& operator=(PawnsResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PawnsResponse& default_instance() {
+    return *reinterpret_cast<const PawnsResponse*>(
+        &_PawnsResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 10;
+  friend void swap(PawnsResponse& a, PawnsResponse& b) { a.Swap(&b); }
+  inline void Swap(PawnsResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PawnsResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PawnsResponse* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PawnsResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PawnsResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PawnsResponse& from) { PawnsResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PawnsResponse* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.PawnsResponse"; }
+
+  explicit PawnsResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PawnsResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PawnsResponse& from);
+  PawnsResponse(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PawnsResponse&& from) noexcept
+      : PawnsResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPawnsFieldNumber = 1,
+  };
+  // repeated .modlock.wasm.players.PlayerPawn pawns = 1;
+  int pawns_size() const;
+  private:
+  int _internal_pawns_size() const;
+
+  public:
+  void clear_pawns() ;
+  ::modlock::wasm::players::PlayerPawn* PROTOBUF_NONNULL mutable_pawns(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>* PROTOBUF_NONNULL mutable_pawns();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>& _internal_pawns() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>* PROTOBUF_NONNULL _internal_mutable_pawns();
+  public:
+  const ::modlock::wasm::players::PlayerPawn& pawns(int index) const;
+  ::modlock::wasm::players::PlayerPawn* PROTOBUF_NONNULL add_pawns();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>& pawns() const;
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.PawnsResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PawnsResponse& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::players::PlayerPawn > pawns_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PawnsResponse_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API CameraMotion final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.players.CameraMotion) */ {
  public:
@@ -9035,7 +9447,7 @@ class MODLOCK_API CameraMotion final : public ::google::protobuf::Message
     kLag = 5,
     MOTION_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(CameraMotion& a, CameraMotion& b) { a.Swap(&b); }
   inline void Swap(CameraMotion* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9331,7 +9743,7 @@ class MODLOCK_API CameraOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraOptions*>(
         &_CameraOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(CameraOptions& a, CameraOptions& b) { a.Swap(&b); }
   inline void Swap(CameraOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10716,6 +11128,194 @@ inline void PawnResponse::set_allocated_pawn(::modlock::wasm::players::Pawn* PRO
 
   _impl_.pawn_ = reinterpret_cast<::modlock::wasm::players::Pawn*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.PawnResponse.pawn)
+}
+
+// -------------------------------------------------------------------
+
+// PawnsResponse
+
+// repeated .modlock.wasm.players.PlayerPawn pawns = 1;
+inline int PawnsResponse::_internal_pawns_size() const {
+  return _internal_pawns().size();
+}
+inline int PawnsResponse::pawns_size() const {
+  return _internal_pawns_size();
+}
+inline void PawnsResponse::clear_pawns() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pawns_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::players::PlayerPawn* PROTOBUF_NONNULL PawnsResponse::mutable_pawns(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.PawnsResponse.pawns)
+  return _internal_mutable_pawns()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>* PROTOBUF_NONNULL PawnsResponse::mutable_pawns()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.players.PawnsResponse.pawns)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_pawns();
+}
+inline const ::modlock::wasm::players::PlayerPawn& PawnsResponse::pawns(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PawnsResponse.pawns)
+  return _internal_pawns().Get(index);
+}
+inline ::modlock::wasm::players::PlayerPawn* PROTOBUF_NONNULL PawnsResponse::add_pawns()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::players::PlayerPawn* _add =
+      _internal_mutable_pawns()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.players.PawnsResponse.pawns)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>& PawnsResponse::pawns() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.players.PawnsResponse.pawns)
+  return _internal_pawns();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>&
+PawnsResponse::_internal_pawns() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.pawns_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::PlayerPawn>* PROTOBUF_NONNULL
+PawnsResponse::_internal_mutable_pawns() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.pawns_;
+}
+
+// -------------------------------------------------------------------
+
+// PlayerPawn
+
+// int32 player = 1;
+inline void PlayerPawn::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t PlayerPawn::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerPawn.player)
+  return _internal_player();
+}
+inline void PlayerPawn::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.PlayerPawn.player)
+}
+inline ::int32_t PlayerPawn::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void PlayerPawn::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// .modlock.wasm.players.Pawn pawn = 2;
+inline bool PlayerPawn::has_pawn() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.pawn_ != nullptr);
+  return value;
+}
+inline void PlayerPawn::clear_pawn() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.pawn_ != nullptr) _impl_.pawn_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::modlock::wasm::players::Pawn& PlayerPawn::_internal_pawn() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::players::Pawn* p = _impl_.pawn_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::players::Pawn&>(::modlock::wasm::players::_Pawn_default_instance_);
+}
+inline const ::modlock::wasm::players::Pawn& PlayerPawn::pawn() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerPawn.pawn)
+  return _internal_pawn();
+}
+inline void PlayerPawn::unsafe_arena_set_allocated_pawn(
+    ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.pawn_);
+  }
+  _impl_.pawn_ = reinterpret_cast<::modlock::wasm::players::Pawn*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.players.PlayerPawn.pawn)
+}
+inline ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE PlayerPawn::release_pawn() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Pawn* released = _impl_.pawn_;
+  _impl_.pawn_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE PlayerPawn::unsafe_arena_release_pawn() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.players.PlayerPawn.pawn)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Pawn* temp = _impl_.pawn_;
+  _impl_.pawn_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::players::Pawn* PROTOBUF_NONNULL PlayerPawn::_internal_mutable_pawn() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.pawn_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::Pawn>(GetArena());
+    _impl_.pawn_ = reinterpret_cast<::modlock::wasm::players::Pawn*>(p);
+  }
+  return _impl_.pawn_;
+}
+inline ::modlock::wasm::players::Pawn* PROTOBUF_NONNULL PlayerPawn::mutable_pawn()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Pawn* _msg = _internal_mutable_pawn();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.PlayerPawn.pawn)
+  return _msg;
+}
+inline void PlayerPawn::set_allocated_pawn(::modlock::wasm::players::Pawn* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.pawn_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.pawn_ = reinterpret_cast<::modlock::wasm::players::Pawn*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.PlayerPawn.pawn)
 }
 
 // -------------------------------------------------------------------

@@ -469,6 +469,7 @@ class Game : public HostService {
   std::expected<void, std::string> Precache(const PrecacheOptions& request) override;
   std::expected<players::PawnResponse, std::string> Pawn(
       const players::PlayerRequest& request) override;
+  std::expected<players::PawnsResponse, std::string> Pawns() override;
   std::expected<players::HeroResponse, std::string> SelectHero(
       const players::SelectHeroRequest& request) override;
   std::expected<void, std::string> Spectate(const players::PlayerRequest& request) override;
@@ -835,6 +836,9 @@ class Game : public HostService {
   // sample, for a call that only acts on the hero. The pointer is borrowed for
   // the call.
   std::expected<void*, std::string> LivePawn(int32_t slot) const;
+  // FillPawn copies the player's sampled hero into pawn, as Pawn and Pawns
+  // answer it.
+  void FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample, players::Pawn* pawn);
 
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);

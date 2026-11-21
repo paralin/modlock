@@ -506,6 +506,9 @@ type PlayerLeftEvent = playerspb.PlayerLeftEvent
 // Connection is one occupied player slot.
 type Connection = playerspb.Connection
 
+// PlayerPawn is one player's pawn.
+type PlayerPawn = playerspb.PlayerPawn
+
 // Pawn is one player's pawn this frame: their hero, or the game's placeholder
 // before a hero is selected.
 type Pawn = playerspb.Pawn
@@ -776,6 +779,18 @@ func (p Player) Pawn() (*Pawn, error) {
 		return nil, err
 	}
 	return response.GetPawn(), nil
+}
+
+// Pawns returns every player's pawn this frame in one reply, in slot order,
+// each as Pawn returns it: a mode that reads every hero each frame makes
+// one call instead of one per player. A slot Pawn answers nothing for is
+// left out.
+func Pawns() ([]*PlayerPawn, error) {
+	response := &playerspb.PawnsResponse{}
+	if err := invoke("Pawns", &wasmpb.Empty{}, response); err != nil {
+		return nil, err
+	}
+	return response.GetPawns(), nil
 }
 
 // Setting returns the player's value of a setting the manifest
