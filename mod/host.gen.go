@@ -1517,13 +1517,15 @@ func (p Player) RemoveBot() error {
 }
 
 // BlockInput withholds buttons from every player's hero until called
-// again. Stopping the mod releases them.
+// again, and the spectator buttons from a spectating player's commands.
+// Stopping the mod releases them.
 func BlockInput(buttons uint64) error {
 	return invoke("BlockInput", &wasmpb.InputRequest{Buttons: buttons}, nil)
 }
 
 // BlockInput withholds buttons from the player's hero until called
-// again, on top of the block on everyone. Zero releases the player.
+// again, and the spectator buttons from their commands while they
+// spectate, on top of the block on everyone. Zero releases the player.
 func (p Player) BlockInput(buttons uint64) error {
 	return invoke("BlockPlayerInput", &wasmpb.PlayerInputRequest{Player: p.Slot(), Buttons: buttons}, nil)
 }

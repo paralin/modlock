@@ -125,8 +125,9 @@ std::optional<std::array<float, 3>> Camera(const std::byte* commands, int count)
   return std::nullopt;
 }
 
-// Observe reports the buttons the batch pressed and released, folded in order.
-void Observe(int32_t slot, const std::byte* commands, int count) {
+// Observe reports the buttons the batch pressed and released, folded in order,
+// then clears the buttons the observer withholds from every command in it.
+void Observe(int32_t slot, std::byte* commands, int count) {
   uint64_t pressed = 0;
   uint64_t released = 0;
   for (int i = 0; i < count; ++i) {
@@ -135,8 +136,14 @@ void Observe(int32_t slot, const std::byte* commands, int count) {
     pressed |= buttons[0] & buttons[1];
     released |= ~buttons[0] & buttons[1];
   }
-  if (pressed || released) {
-    (*g_observe)(slot, pressed, released);
+  const uint64_t withheld = (*g_observe)(slot, pressed, released);
+  for (int i = 0; withheld && i < count; ++i) {
+    auto* command = commands + static_cast<size_t>(i) * kCommandStride;
+    auto buttons = Load<std::array<uint64_t, 3>>(command, kCommandButtons);
+    for (auto& mask : buttons) {
+      mask &= ~withheld;
+    }
+    Store(command, kCommandButtons, buttons);
   }
 }
 

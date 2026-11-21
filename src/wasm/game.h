@@ -197,8 +197,9 @@ class GameServices {
 
   // Observed records a player's button changes from their commands, which
   // arrive whatever their hero does: dead, spectating, or parked while the
-  // player watches through another camera.
-  void Observed(int32_t slot, uint64_t pressed, uint64_t released);
+  // player watches through another camera. It returns the spectator buttons
+  // the games block for the player, which the commands then withhold.
+  uint64_t Observed(int32_t slot, uint64_t pressed, uint64_t released);
 
   // Record queues a player's button changes for every game, once: a change
   // the other path (the input hook or the commands) recorded in the last two

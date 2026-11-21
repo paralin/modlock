@@ -744,13 +744,15 @@ class HostService {
   }
 
   // BlockInput withholds buttons from every player's hero until called
-  // again. Stopping the mod releases them.
+  // again, and the spectator buttons from a spectating player's commands.
+  // Stopping the mod releases them.
   virtual std::expected<void, std::string> BlockInput(const InputRequest& /*request*/) {
     return std::unexpected("this host does not support BlockInput");
   }
 
   // BlockPlayerInput withholds buttons from the player's hero until called
-  // again, on top of the block on everyone. Zero releases the player.
+  // again, and the spectator buttons from their commands while they
+  // spectate, on top of the block on everyone. Zero releases the player.
   virtual std::expected<void, std::string> BlockPlayerInput(const PlayerInputRequest& /*request*/) {
     return std::unexpected("this host does not support BlockPlayerInput");
   }

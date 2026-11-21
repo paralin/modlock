@@ -3438,7 +3438,8 @@ export class Player {
 
   /**
    * blockInput withholds buttons from the player's hero until called
-   * again, on top of the block on everyone. Zero releases the player.
+   * again, and the spectator buttons from their commands while they
+   * spectate, on top of the block on everyone. Zero releases the player.
    */
   blockInput(buttons: bigint): boolean {
     return call('BlockPlayerInput', inputPb.PlayerInputRequest.toBinary({ player: this.slot, buttons })) !== undefined
@@ -3981,7 +3982,8 @@ export function addBot(options: BotOptions): Player | undefined {
 
 /**
  * blockInput withholds buttons from every player's hero until called
- * again. Stopping the mod releases them.
+ * again, and the spectator buttons from a spectating player's commands.
+ * Stopping the mod releases them.
  */
 export function blockInput(buttons: bigint): boolean {
   return call('BlockInput', inputPb.InputRequest.toBinary({ buttons })) !== undefined

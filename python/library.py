@@ -58,6 +58,14 @@ class Buttons(enum.IntFlag):
     ULTIMATE = 1 << 36
     # PARRY is the melee parry button.
     PARRY = 1 << 42
+    # SPEC_NEXT to SPEC_TOGGLE_TEAM are the buttons a player's client sends in
+    # place of the others while they spectate, with no hero of their own in
+    # play: SPEC_NEXT and SPEC_PREV cycle the watched player, SPEC_MODE changes
+    # the camera mode, and SPEC_TOGGLE_TEAM is the jump key, Space by default.
+    SPEC_NEXT = 1 << 49
+    SPEC_PREV = 1 << 50
+    SPEC_MODE = 1 << 51
+    SPEC_TOGGLE_TEAM = 1 << 52
 
 
 class Layers(enum.IntFlag):

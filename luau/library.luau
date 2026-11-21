@@ -44,6 +44,14 @@ modlock.Buttons = {
 	ultimate = 2 ^ 36,
 	-- parry is the melee parry button.
 	parry = 2 ^ 42,
+	-- specNext to specToggleTeam are the buttons a player's client sends in
+	-- place of the others while they spectate, with no hero of their own in
+	-- play: specNext and specPrev cycle the watched player, specMode changes
+	-- the camera mode, and specToggleTeam is the jump key, Space by default.
+	specNext = 2 ^ 49,
+	specPrev = 2 ^ 50,
+	specMode = 2 ^ 51,
+	specToggleTeam = 2 ^ 52,
 }
 
 -- Layers names collision layers for trace, as bits.

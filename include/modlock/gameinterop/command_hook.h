@@ -42,9 +42,10 @@ class MODLOCK_API CommandHook {
   using Decide = std::function<std::optional<Command>(int32_t slot)>;
 
   // Observe receives the buttons one batch of the player in slot's commands
-  // pressed and released, after any drive rewrote them. It runs only for a
-  // batch that changed a button.
-  using Observe = std::function<void(int32_t slot, uint64_t pressed, uint64_t released)>;
+  // pressed and released, after any drive rewrote them, and returns the
+  // buttons to withhold from the batch before the game reads it. It runs for
+  // every batch; pressed and released are zero when no button changed.
+  using Observe = std::function<uint64_t(int32_t slot, uint64_t pressed, uint64_t released)>;
 
   static std::expected<CommandHook, std::string> Install(const ModuleImage& server, Decide decide,
                                                          Observe observe);

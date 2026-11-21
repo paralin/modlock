@@ -543,11 +543,13 @@ service Host {
   rpc RemoveBot(modlock.wasm.players.PlayerRequest) returns (Empty);
 
   // BlockInput withholds buttons from every player's hero until called
-  // again. Stopping the mod releases them.
+  // again, and the spectator buttons from a spectating player's commands.
+  // Stopping the mod releases them.
   rpc BlockInput(modlock.wasm.InputRequest) returns (Empty);
 
   // BlockPlayerInput withholds buttons from the player's hero until called
-  // again, on top of the block on everyone. Zero releases the player.
+  // again, and the spectator buttons from their commands while they
+  // spectate, on top of the block on everyone. Zero releases the player.
   rpc BlockPlayerInput(modlock.wasm.PlayerInputRequest) returns (Empty);
 
   // Press presses buttons at the player's next input, even through a block.

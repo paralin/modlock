@@ -2775,7 +2775,8 @@ class Player:
 
     def block_input(self, buttons: int) -> bool:
         """block_input withholds buttons from the player's hero until called
-        again, on top of the block on everyone. Zero releases the player.
+        again, and the spectator buttons from their commands while they
+        spectate, on top of the block on everyone. Zero releases the player.
         """
         return _call("BlockPlayerInput", "PlayerInputRequest", {"player": self, "buttons": buttons}) is not None
 
@@ -5371,7 +5372,8 @@ def add_bot(options: BotOptions) -> Player | None:
 
 def block_input(buttons: int) -> bool:
     """block_input withholds buttons from every player's hero until called
-    again. Stopping the mod releases them.
+    again, and the spectator buttons from a spectating player's commands.
+    Stopping the mod releases them.
     """
     return _call("BlockInput", "InputRequest", {"buttons": buttons}) is not None
 
@@ -5786,6 +5788,14 @@ class Buttons(enum.IntFlag):
     ULTIMATE = 1 << 36
     # PARRY is the melee parry button.
     PARRY = 1 << 42
+    # SPEC_NEXT to SPEC_TOGGLE_TEAM are the buttons a player's client sends in
+    # place of the others while they spectate, with no hero of their own in
+    # play: SPEC_NEXT and SPEC_PREV cycle the watched player, SPEC_MODE changes
+    # the camera mode, and SPEC_TOGGLE_TEAM is the jump key, Space by default.
+    SPEC_NEXT = 1 << 49
+    SPEC_PREV = 1 << 50
+    SPEC_MODE = 1 << 51
+    SPEC_TOGGLE_TEAM = 1 << 52
 
 
 class Layers(enum.IntFlag):

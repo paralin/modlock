@@ -30,6 +30,16 @@ export const Buttons = {
   ultimate: 1n << 36n,
   /** parry is the melee parry button. */
   parry: 1n << 42n,
+  /**
+   * specNext to specToggleTeam are the buttons a player's client sends in
+   * place of the others while they spectate, with no hero of their own in
+   * play: specNext and specPrev cycle the watched player, specMode changes the
+   * camera mode, and specToggleTeam is the jump key, Space by default.
+   */
+  specNext: 1n << 49n,
+  specPrev: 1n << 50n,
+  specMode: 1n << 51n,
+  specToggleTeam: 1n << 52n,
 } as const
 
 /** Layers names collision layers for trace, as bits. */

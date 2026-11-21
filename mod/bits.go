@@ -30,6 +30,15 @@ const (
 	ButtonUltimate uint64 = 1 << 36
 	// ButtonParry is the melee parry button.
 	ButtonParry uint64 = 1 << 42
+	// ButtonSpecNext to ButtonSpecToggleTeam are the buttons a player's client
+	// sends in place of the others while they spectate, with no hero of their
+	// own in play: ButtonSpecNext and ButtonSpecPrev cycle the watched player,
+	// ButtonSpecMode changes the camera mode, and ButtonSpecToggleTeam is the
+	// jump key, Space by default.
+	ButtonSpecNext       uint64 = 1 << 49
+	ButtonSpecPrev       uint64 = 1 << 50
+	ButtonSpecMode       uint64 = 1 << 51
+	ButtonSpecToggleTeam uint64 = 1 << 52
 )
 
 // Layer bits name collision layers for Trace.

@@ -1985,7 +1985,8 @@ export type Player = {
 	-- removeBot removes a bot the mod added.
 	removeBot: (self: Player) -> boolean,
 	-- blockInput withholds buttons from the player's hero until called
-	-- again, on top of the block on everyone. Zero releases the player.
+	-- again, and the spectator buttons from their commands while they
+	-- spectate, on top of the block on everyone. Zero releases the player.
 	blockInput: (self: Player, buttons: number) -> boolean,
 	-- press presses buttons at the player's next input, even through a block.
 	-- A bot presses them as a player would.
@@ -2412,7 +2413,8 @@ function Player.removeBot(self: Player): boolean
 end
 
 -- blockInput withholds buttons from the player's hero until called
--- again, on top of the block on everyone. Zero releases the player.
+-- again, and the spectator buttons from their commands while they
+-- spectate, on top of the block on everyone. Zero releases the player.
 function Player.blockInput(self: Player, buttons: number): boolean
 	return call("BlockPlayerInput", "PlayerInputRequest", { player = self, buttons = buttons }) ~= nil
 end
@@ -4551,7 +4553,8 @@ function modlock.addBot(options: BotOptions): Player?
 end
 
 -- blockInput withholds buttons from every player's hero until called
--- again. Stopping the mod releases them.
+-- again, and the spectator buttons from a spectating player's commands.
+-- Stopping the mod releases them.
 function modlock.blockInput(buttons: number): boolean
 	return call("BlockInput", "InputRequest", { buttons = buttons }) ~= nil
 end
@@ -5026,6 +5029,14 @@ modlock.Buttons = {
 	ultimate = 2 ^ 36,
 	-- parry is the melee parry button.
 	parry = 2 ^ 42,
+	-- specNext to specToggleTeam are the buttons a player's client sends in
+	-- place of the others while they spectate, with no hero of their own in
+	-- play: specNext and specPrev cycle the watched player, specMode changes
+	-- the camera mode, and specToggleTeam is the jump key, Space by default.
+	specNext = 2 ^ 49,
+	specPrev = 2 ^ 50,
+	specMode = 2 ^ 51,
+	specToggleTeam = 2 ^ 52,
 }
 
 -- Layers names collision layers for trace, as bits.
