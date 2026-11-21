@@ -603,7 +603,9 @@ void WasmPlugin::Tick() {
 
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {
+    const auto played = std::chrono::steady_clock::now();
     Play();
+    play_.Add(std::chrono::steady_clock::now() - played);
   }
 
   // A mod that wants joins but not frames hears them on the frame they
@@ -626,6 +628,7 @@ void WasmPlugin::Tick() {
   wasm::FrameEvent frame;
   if (GameOpen()) {
     Observe(frame);
+    observe_.Add(std::chrono::steady_clock::now() - began);
   }
   static_cast<void>(mod_.Frame(frame));
 
@@ -675,11 +678,34 @@ void WasmPlugin::Stop() {
   handoff_players_.clear();
 }
 
+void WasmPlugin::Section::Add(std::chrono::steady_clock::duration spent) {
+  ++frames;
+  total += spent;
+  slowest = std::max(slowest, spent);
+}
+
 void WasmPlugin::ReportCalls() {
   calls_reported_ = std::chrono::steady_clock::now();
   if (auto calls = calls_.Take()) {
     host_.Notify([&](WasmHostObserver& observer) { observer.Called(name_, *calls); });
   }
+
+  // Log the host's own frame work around the mod since the last report.
+  if (play_.frames > 0) {
+    const auto ms = [](std::chrono::steady_clock::duration d) {
+      return std::chrono::duration<double, std::milli>(d).count();
+    };
+    const auto mean = [&](const Section& s) {
+      return s.frames == 0 ? 0.0 : ms(s.total) / s.frames;
+    };
+    std::cerr << std::format(
+        "[{}] host frame work: play {} frames mean {:.2f} max {:.2f} ms, observe {} frames mean "
+        "{:.2f} max {:.2f} ms\n",
+        name_, play_.frames, mean(play_), ms(play_.slowest), observe_.frames, mean(observe_),
+        ms(observe_.slowest));
+  }
+  play_ = {};
+  observe_ = {};
 }
 
 void WasmPlugin::Log(std::string_view text) {
