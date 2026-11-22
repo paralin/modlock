@@ -242,7 +242,7 @@ func rendererFiles(citadel string, renderer *Renderer, bridge string) (fstest.Ma
 		"panorama/layout/modlock/ui.xml":     {Data: panorama.Layout},
 		"panorama/scripts/modlock/ui.js":     {Data: renderer.Script},
 		"panorama/scripts/modlock/layout.js": {Data: renderer.Layout},
-	})
+	}, stock.ReadFile)
 }
 
 // ReadContent returns the content addons of the mods built at mods: their

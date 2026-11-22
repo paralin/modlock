@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/aperturerobotics/cli"
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/session"
+	"github.com/paralin/modlock/source2/vpk"
 	"github.com/paralin/modlock/studio"
 )
 
@@ -95,6 +97,21 @@ func serveStudio(ctx context.Context, listener net.Listener, handler http.Handle
 	}
 	return nil
 }
+
+// stockFiles returns a reader of the installed game's archive, or nil when no
+// Deadlock install is found. The archive opens once per process.
+var stockFiles = sync.OnceValue(func() func(name string) ([]byte, error) {
+	// Find the install and open its archive.
+	dir, err := deadlockDir()
+	if err != nil {
+		return nil
+	}
+	archive, err := vpk.OpenArchive(filepath.Join(dir, "game", "citadel", "pak01_dir.vpk"))
+	if err != nil {
+		return nil
+	}
+	return archive.ReadFile
+})
 
 // deadlockDir returns the Deadlock install directory: DEADLOCK_DIR, or the
 // one in the Steam libraries.

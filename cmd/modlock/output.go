@@ -457,7 +457,12 @@ func (p *printer) emit(event *cli.Event) {
 // build builds the project in mode, reporting the build's start and result.
 // Tool output goes to standard error.
 func (p *printer) build(ctx context.Context, opened *project.Project, mode project.Mode) error {
+	// Build with the installed game's files, so the project's style sheets
+	// record the stock images they name.
 	p.building(opened.Dir)
+	if opened.Stock == nil {
+		opened.Stock = stockFiles()
+	}
 	err := opened.Build(ctx, os.Stderr, mode)
 	p.built(opened.Dir, err)
 	return err

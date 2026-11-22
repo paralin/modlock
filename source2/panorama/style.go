@@ -15,24 +15,41 @@ import (
 
 // style compiles a style sheet to its .vcss_c resource: the minified text
 // with each url() rewritten to the compiled resource the game loads, a table
-// of those resources, and a source map from the text back to the sheet's
-// lines.
-func style(addon, file string, source []byte) ([]byte, error) {
+// of the images it names, and a source map from the text back to the sheet's
+// lines. read returns a compiled resource by its path, such as
+// panorama/images/x_png.vtex_c, from the mod's files or the game's; nil reads
+// none.
+func style(addon, file string, source []byte, read func(name string) ([]byte, error)) ([]byte, error) {
+	// Minify the sheet, collecting the images it names.
 	sheet, err := minify(source)
 	if err != nil {
 		return nil, errors.Wrap(err, file)
 	}
 
-	// The data block holds the source's checksum, then each referenced
-	// resource with an image's width and height and a hash this compiler
-	// leaves zero, then the text.
+	// The data block holds the source's checksum, then an entry for each
+	// image the sheet names, then the text. An image read cannot find or
+	// parse, such as a stock image when no game is installed, gets no entry:
+	// the game then sizes it from the texture when it loads, as it does an
+	// image a Modlock layout names. A guessed entry would be worse, since
+	// the game keeps the first size a sheet gives an image for every panel
+	// that draws it.
+	var table []byte
+	var count uint16
+	for _, name := range sheet.images {
+		entry, ok := findImage(read, name)
+		if !ok {
+			continue
+		}
+		table = append(append(table, name...), 0)
+		table = binary.LittleEndian.AppendUint16(table, entry.width)
+		table = binary.LittleEndian.AppendUint16(table, entry.height)
+		table = binary.LittleEndian.AppendUint32(table, entry.crc)
+		count++
+	}
 	crc := crc32.ChecksumIEEE(source)
 	data := binary.LittleEndian.AppendUint32(nil, crc)
-	data = binary.LittleEndian.AppendUint16(data, uint16(len(sheet.references)))
-	for _, reference := range sheet.references {
-		data = append(append(data, reference...), 0)
-		data = append(data, make([]byte, 8)...)
-	}
+	data = binary.LittleEndian.AppendUint16(data, count)
+	data = append(data, table...)
 	data = append(data, sheet.text...)
 
 	// The source map holds, for each selector and declaration, its offset in
@@ -50,6 +67,7 @@ func style(addon, file string, source []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	// The edit record names the sheet's source and compiled resource.
 	red2, err := editInfo([]kv3.Object{
 		dependency(addon, file, crc, true),
 		dependency(addon, strings.TrimSuffix(file, ".css")+".vcss", 0, false),
@@ -65,9 +83,9 @@ func style(addon, file string, source []byte) ([]byte, error) {
 type compiledSheet struct {
 	// text is the minified sheet.
 	text []byte
-	// references are the resources its url()s name, without the s2r://
-	// scheme, in order of first use.
-	references []string
+	// images are the images its url()s name, without the s2r:// scheme, in
+	// order of first use.
+	images []string
 	// spans are the offset in text, the 1-based line and the 0-based column
 	// in the source of each selector and declaration.
 	spans [][3]int
@@ -78,7 +96,7 @@ type compiledSheet struct {
 // rewrites each url() to the compiled resource. A rule or declaration keeps
 // its text otherwise, so the game reads what the author wrote.
 func minify(source []byte) (*compiledSheet, error) {
-	m := &minifier{source: source, line: 1}
+	m := &minifier{source: source, line: 1, named: map[string]bool{}}
 	if err := m.block(0); err != nil {
 		return nil, err
 	}
@@ -92,6 +110,8 @@ type minifier struct {
 	// position, line 1-based and column 0-based.
 	at, line, column int
 	sheet            compiledSheet
+	// named holds each image in sheet.images.
+	named map[string]bool
 }
 
 // syntaxError returns an error at a line of the source.
@@ -247,7 +267,7 @@ func selector(text string) string {
 }
 
 // urls rewrites each url() in a declaration or @import to the compiled
-// resource the game loads, and adds it to the sheet's references.
+// resource the game loads, and adds each image it names to the sheet's.
 func (m *minifier) urls(line int, text string) (string, error) {
 	var out strings.Builder
 	for {
@@ -268,8 +288,9 @@ func (m *minifier) urls(line int, text string) (string, error) {
 		}
 		out.WriteString(text[:start])
 		out.WriteString(`url("` + compiled + `")`)
-		if name, ok := strings.CutPrefix(compiled, "s2r://"); ok && !slices.Contains(m.sheet.references, name) {
-			m.sheet.references = append(m.sheet.references, name)
+		if name, ok := strings.CutPrefix(compiled, "s2r://"); ok && isImage(name) && !m.named[name] {
+			m.named[name] = true
+			m.sheet.images = append(m.sheet.images, name)
 		}
 		text = text[end+1:]
 	}
@@ -330,7 +351,7 @@ func isSpace(c byte) bool {
 // DecompileStyle prints a compiled .vcss_c style sheet with one declaration
 // per line, which Compile builds back to the same text.
 func DecompileStyle(compiled []byte) (string, error) {
-	// Skip the checksum and the table of referenced resources.
+	// Skip the checksum and the table of images.
 	data, err := resource.ReadBlock(compiled, "DATA")
 	if err != nil {
 		return "", err
@@ -342,7 +363,7 @@ func DecompileStyle(compiled []byte) (string, error) {
 	for range binary.LittleEndian.Uint16(data[4:]) {
 		end := bytes.IndexByte(data[at:], 0)
 		if end < 0 || at+end+9 > len(data) {
-			return "", errors.New("The style sheet's resource table is cut short")
+			return "", errors.New("The style sheet's image table is cut short")
 		}
 		at += end + 9
 	}

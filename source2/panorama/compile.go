@@ -32,15 +32,17 @@ func Compiled(source string) (string, bool) {
 // panorama/scripts/hud.js or panorama/styles/hud.css inside the addon named
 // addon, into its compiled resource. A layout is parsed into the tree the game
 // reads, a style sheet is minified with its paths rewritten, and a script is
-// stored as it is.
-func Compile(addon, path string, source []byte) ([]byte, error) {
+// stored as it is. read returns a compiled resource by its path, such as
+// panorama/images/x_png.vtex_c, so a sheet records the size of each image it
+// names; a nil read records none, which the game accepts.
+func Compile(addon, path string, source []byte, read func(name string) ([]byte, error)) ([]byte, error) {
 	switch {
 	case strings.HasSuffix(path, ".xml"):
 		return layout(addon, path, source)
 	case strings.HasSuffix(path, ".js"):
 		return script(addon, path, source)
 	case strings.HasSuffix(path, ".css"):
-		return style(addon, path, source)
+		return style(addon, path, source, read)
 	default:
 		return nil, errors.Errorf("%s is not a Panorama layout, script or style sheet", path)
 	}

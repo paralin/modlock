@@ -17,7 +17,7 @@ func TestScriptServesTheBuiltSource(t *testing.T) {
 	// Build one script into a mod's content addon.
 	built := t.TempDir()
 	source := []byte("Modlock.data((value) => $.Msg(value))\n")
-	compiled, err := panorama.Compile("arena-1a2b", "panorama/scripts/board.js", source)
+	compiled, err := panorama.Compile("arena-1a2b", "panorama/scripts/board.js", source, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

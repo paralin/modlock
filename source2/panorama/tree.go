@@ -14,8 +14,20 @@ import (
 // script and style sheet under panorama/ becomes its compiled resource, and
 // every other file is kept as it is, so already compiled resources, such as
 // images, ship beside them. Each style sheet under panorama/styles/<dir>/ also
-// gets its sheet layout (see SheetLayout).
-func CompileTree(addon string, tree fs.FS) (fstest.MapFS, error) {
+// gets its sheet layout (see SheetLayout). game reads a file from the game's
+// own archive, such as panorama/images/x_png.vtex_c, so a sheet that names a
+// stock image records its size as the game's sheets do; nil reads none.
+func CompileTree(addon string, tree fs.FS, game func(name string) ([]byte, error)) (fstest.MapFS, error) {
+	// A sheet's images are the addon's own compiled images, then the game's.
+	read := func(name string) ([]byte, error) {
+		data, err := fs.ReadFile(tree, name)
+		if err == nil || game == nil {
+			return data, err
+		}
+		return game(name)
+	}
+
+	// Collect the output, refusing a name written twice.
 	out := fstest.MapFS{}
 	add := func(name string, data []byte) error {
 		if _, exists := out[name]; exists {
@@ -41,7 +53,7 @@ func CompileTree(addon string, tree fs.FS) (fstest.MapFS, error) {
 		}
 
 		// Compile the source, and a sheet's layout beside a sheet.
-		if data, err = Compile(addon, name, data); err != nil {
+		if data, err = Compile(addon, name, data, read); err != nil {
 			return err
 		}
 		if err := add(compiled, data); err != nil {
@@ -51,7 +63,7 @@ func CompileTree(addon string, tree fs.FS) (fstest.MapFS, error) {
 		if !ok {
 			return nil
 		}
-		if data, err = Compile(addon, wrapper, source); err != nil {
+		if data, err = Compile(addon, wrapper, source, read); err != nil {
 			return err
 		}
 		compiled, _ = Compiled(wrapper)

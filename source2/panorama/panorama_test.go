@@ -3,6 +3,8 @@ package panorama
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"io/fs"
 	"reflect"
 	"strings"
 	"testing"
@@ -40,7 +42,7 @@ const source = `<?xml version="1.0" encoding="utf-8"?>
 // same tree; and compiles a script to a resource holding its text.
 func TestLayout(t *testing.T) {
 	// Compile the layout and read its tree.
-	compiled, err := Compile("mymod", "panorama/layout/menu.xml", []byte(source))
+	compiled, err := Compile("mymod", "panorama/layout/menu.xml", []byte(source), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +57,7 @@ func TestLayout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	again, err := Compile("mymod", "panorama/layout/menu.xml", []byte(text))
+	again, err := Compile("mymod", "panorama/layout/menu.xml", []byte(text), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestLayout(t *testing.T) {
 
 	// A script stores its text.
 	script := []byte(`$.Msg("hello");`)
-	compiled, err = Compile("mymod", "panorama/scripts/menu.js", script)
+	compiled, err = Compile("mymod", "panorama/scripts/menu.js", script, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +76,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	// A layout that does not close names its error.
-	if _, err := Compile("mymod", "panorama/layout/bad.xml", []byte("<root><Panel></root>")); err == nil {
+	if _, err := Compile("mymod", "panorama/layout/bad.xml", []byte("<root><Panel></root>"), nil); err == nil {
 		t.Fatal("compiled a layout that does not close")
 	}
 }
@@ -132,10 +134,12 @@ const sheet = `/* A board. */
 
 // TestStyle compiles a sheet to Valve's minified text with its URLs rewritten,
 // decompiles it to the same text, refuses a URL outside the game's files, and
-// compiles a sheet in a tree.
+// compiles a sheet in a tree, recording the size and source checksum of each
+// image it names, from the addon's files or the game's, as Valve's compiler
+// does.
 func TestStyle(t *testing.T) {
 	// Compile the sheet and read its text.
-	compiled, err := Compile("mymod", "panorama/styles/board.css", []byte(sheet))
+	compiled, err := Compile("mymod", "panorama/styles/board.css", []byte(sheet), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,13 +153,18 @@ func TestStyle(t *testing.T) {
 	if text != want {
 		t.Fatalf("compiled text\n%s\nwant\n%s", text, want)
 	}
+	// With nothing to read the images from, the sheet records none, since
+	// the game keeps the first size a sheet gives an image.
+	if table := styleTable(t, compiled); len(table) != 0 {
+		t.Fatalf("a sheet compiled without its images records %v", table)
+	}
 
 	// The decompiled sheet compiles to the same text.
 	decompiled, err := DecompileStyle(compiled)
 	if err != nil {
 		t.Fatal(err)
 	}
-	again, err := Compile("mymod", "panorama/styles/board.css", []byte(decompiled))
+	again, err := Compile("mymod", "panorama/styles/board.css", []byte(decompiled), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +175,7 @@ func TestStyle(t *testing.T) {
 	// A URL outside the game's files is refused with its line.
 	for _, url := range []string{"https://example.com/x.png", "file://C:/x.png", "file://{images}/../../x.png"} {
 		bad := ".A\n{\n\tbackground-image: url(\"" + url + "\");\n}\n"
-		_, err := Compile("mymod", "panorama/styles/bad.css", []byte(bad))
+		_, err := Compile("mymod", "panorama/styles/bad.css", []byte(bad), nil)
 		if err == nil || !strings.Contains(err.Error(), "line 3") {
 			t.Fatalf("compiling url(%s): %v", url, err)
 		}
@@ -174,16 +183,32 @@ func TestStyle(t *testing.T) {
 
 	// A tree compiles its sheets beside its layouts, and gives a sheet in an
 	// addon's styles directory a sheet layout that includes it.
+	// The texture is the addon's and the vector image the game's; the
+	// imported sheet is no image, so the table leaves it out.
+	game := func(name string) ([]byte, error) {
+		if name != "panorama/images/icons/x.vsvg_c" {
+			return nil, fs.ErrNotExist
+		}
+		return testImage(t, "panorama/images/icons/x.svg", 0x9fa7acae, nil), nil
+	}
 	tree, err := CompileTree("mymod", fstest.MapFS{
-		"panorama/styles/board.css":       {Data: []byte(sheet)},
-		"panorama/styles/mymod/board.css": {Data: []byte(sheet)},
-	})
+		"panorama/styles/board.css":             {Data: []byte(sheet)},
+		"panorama/styles/mymod/board.css":       {Data: []byte(sheet)},
+		"panorama/images/icons/mark_png.vtex_c": {Data: testImage(t, "panorama/images/icons/mark.png", 0xbe09869e, []uint16{537, 583})},
+	}, game)
 	if err != nil {
 		t.Fatal(err)
+	}
+	wantTable := []string{
+		"panorama/images/icons/mark_png.vtex 537x583 be09869e",
+		"panorama/images/icons/x.vsvg 0x0 9fa7acae",
 	}
 	for _, name := range []string{"panorama/styles/board.vcss_c", "panorama/styles/mymod/board.vcss_c"} {
 		if file := tree[name]; file == nil || styleText(t, file.Data) != want {
 			t.Fatalf("the tree holds %v", tree)
+		}
+		if table := styleTable(t, tree[name].Data); !reflect.DeepEqual(table, wantTable) {
+			t.Fatalf("%s records %v, want %v", name, table, wantTable)
 		}
 	}
 	if tree["panorama/layout/board.css.vxml_c"] != nil {
@@ -202,9 +227,33 @@ func TestStyle(t *testing.T) {
 	}
 }
 
-// styleText returns a compiled sheet's text, after its checksum and resource
+// styleText returns a compiled sheet's text, after its checksum and image
 // table.
 func styleText(t *testing.T, compiled []byte) string {
+	t.Helper()
+	data, at := styleData(t, compiled)
+	return string(data[at:])
+}
+
+// styleTable returns a compiled sheet's image table, one "name WxH crc" line
+// per image.
+func styleTable(t *testing.T, compiled []byte) []string {
+	t.Helper()
+	data, _ := styleData(t, compiled)
+	var table []string
+	at := 6
+	for range binary.LittleEndian.Uint16(data[4:]) {
+		end := at + bytes.IndexByte(data[at:], 0)
+		entry := data[end+1:]
+		table = append(table, fmt.Sprintf("%s %dx%d %08x", data[at:end],
+			binary.LittleEndian.Uint16(entry), binary.LittleEndian.Uint16(entry[2:]), binary.LittleEndian.Uint32(entry[4:])))
+		at = end + 9
+	}
+	return table
+}
+
+// styleData returns a compiled sheet's data block and the offset of its text.
+func styleData(t *testing.T, compiled []byte) ([]byte, int) {
 	t.Helper()
 	data, err := resource.ReadBlock(compiled, "DATA")
 	if err != nil {
@@ -214,5 +263,28 @@ func styleText(t *testing.T, compiled []byte) string {
 	for range binary.LittleEndian.Uint16(data[4:]) {
 		at += bytes.IndexByte(data[at:], 0) + 9
 	}
-	return string(data[at:])
+	return data, at
+}
+
+// testImage builds a compiled image whose edit record names source with crc:
+// a texture of the given width and height, or a vector image when size is
+// nil.
+func testImage(t *testing.T, source string, crc uint32, size []uint16) []byte {
+	t.Helper()
+	red2, err := editInfo([]kv3.Object{dependency("mymod", source, crc, true)}, "CompileTexture", "Texture Compiler Version", 11)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := []byte("<svg/>")
+	if size != nil {
+		data = binary.LittleEndian.AppendUint16(nil, 1)
+		data = append(data, make([]byte, 18)...)
+		data = binary.LittleEndian.AppendUint16(data, size[0])
+		data = binary.LittleEndian.AppendUint16(data, size[1])
+	}
+	image, err := resource.Write(1, []resource.Block{{Tag: "RED2", Data: red2}, {Tag: "DATA", Data: data}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return image
 }

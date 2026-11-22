@@ -30,6 +30,11 @@ type Project struct {
 	Dir string
 	// Manifest is the project's mod.json.
 	Manifest *wasm.Manifest
+	// Stock reads a file from the game's own archive, such as
+	// panorama/images/x_png.vtex_c, so the content build records the size of
+	// each stock image a style sheet names. Nil builds without the game's
+	// files, and such a sheet then records no size for a stock image.
+	Stock func(name string) ([]byte, error)
 }
 
 // Open reads the project in dir.

@@ -53,7 +53,7 @@ func panoramaCommand(out *printer) *cli.Command {
 					if addon == "" {
 						addon = filepath.Base(dir)
 					}
-					files, err := panorama.CompileTree(addon, os.DirFS(dir))
+					files, err := panorama.CompileTree(addon, os.DirFS(dir), stockFiles())
 					if err != nil {
 						return err
 					}

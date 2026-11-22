@@ -123,7 +123,7 @@ func (p *Project) buildContent() error {
 		}
 		sources[place] = &fstest.MapFile{Data: data}
 	}
-	compiled, err := panorama.CompileTree(addon, sources)
+	compiled, err := panorama.CompileTree(addon, sources, p.Stock)
 	if err != nil {
 		return err
 	}
