@@ -564,7 +564,8 @@ class MODLOCK_API PawnObserver {
 
   // ReturnToHero binds a player whose camera is bound in place of their living
   // hero back to it, whichever connection bound the camera, and returns the
-  // handle of the camera to remove, or zero when there is none.
+  // handle of the camera to remove, or zero when there is none. Only a camera
+  // this observer recorded is returned for removal, never the game's own.
   std::expected<uint32_t, std::string> ReturnToHero(int32_t slot,
                                                     const PlayerSelectionCalls& calls);
 
