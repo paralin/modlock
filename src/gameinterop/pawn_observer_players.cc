@@ -152,9 +152,12 @@ std::expected<void*, std::string> PawnObserver::CameraPawnForSlot(
 
 std::expected<uint32_t, std::string> PawnObserver::ReturnToHero(int32_t slot,
                                                                 const PlayerSelectionCalls& calls) {
-  // The controller's binding decides, not the record: a camera bound by an
-  // earlier connection in the slot, or one whose watch failed partway, still
-  // returns to a living hero.
+  // The controller's binding decides whether to return, and the record decides
+  // what to remove: any pawn bound in place of a living hero returns the player
+  // to it, but only a camera this observer recorded is handed back for removal.
+  // Right after a respawn the hero has health while the controller can still be
+  // bound to the game's own camera; removing that pawn mid-respawn leaves the
+  // player with a hero that never finishes spawning.
   const auto camera = cameras_.find(slot);
   const uint32_t owned = camera == cameras_.end() ? 0 : camera->second;
   auto current = ControllerOfSlot(slot);
@@ -192,7 +195,7 @@ std::expected<uint32_t, std::string> PawnObserver::ReturnToHero(int32_t slot,
   }
   calls.set_pawn(controller, pawn, false, false, false, false);
   cameras_.erase(slot);
-  return handle;
+  return owned == handle ? handle : 0;
 }
 
 std::vector<int32_t> PawnObserver::WatchingSlots() const {

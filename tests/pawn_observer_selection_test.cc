@@ -493,14 +493,22 @@ TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
   EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(1), 0u);
   EXPECT_TRUE(observer.WatchingSlots().empty());
 
-  // A camera still bound after the player reconnects, or after the runtime
-  // forgot it, returns the player to their living hero all the same.
+  // A camera still bound after the player reconnects returns the player to
+  // their living hero and is removed, since the observer recorded it.
   const auto camera_handle = HandleOf(3, 8);
-  std::memcpy(fixture.controller.data() + kPawnHandleField, &camera_handle, sizeof(camera_handle));
+  ASSERT_TRUE(observer.CameraPawnForSlot(0, calls));
   fixture.generation = 4;
   rebound = nullptr;
+  EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(0), camera_handle);
+  EXPECT_EQ(rebound, hero.data());
+
+  // A pawn the observer did not record, such as the game's own camera while a
+  // respawned hero already has health, returns the player to the hero but is
+  // never handed back for removal.
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &camera_handle, sizeof(camera_handle));
+  rebound = nullptr;
   PawnObserver restarted{HeroSeamsFor(fixture)};
-  EXPECT_EQ(restarted.ReturnToHero(0, calls).value_or(0), camera_handle);
+  EXPECT_EQ(restarted.ReturnToHero(0, calls).value_or(1), 0u);
   EXPECT_EQ(rebound, hero.data());
   active = nullptr;
 }
