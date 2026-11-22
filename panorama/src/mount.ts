@@ -4,16 +4,20 @@
 // Percentages and alignment resolve against the HUD, and the layer draws in
 // the HUD's own stacking order beside its stock parts.
 
+/** TreePanel is the part of a game panel that finds the HUD above it. */
+export interface TreePanel {
+  readonly paneltype?: string
+  GetParent(): TreePanel | null
+}
+
 /** MountPanel is the part of a game panel mounting reads and sets. */
-export interface MountPanel {
-  readonly paneltype: string
+export interface MountPanel extends TreePanel {
   hittest: boolean
   readonly style: Record<string, string | null>
-  GetParent(): MountPanel | null
 }
 
 /** gameHud returns the game's HUD panel above panel, or the tree's top. */
-export function gameHud<P extends MountPanel>(panel: P): P {
+export function gameHud<P extends TreePanel>(panel: P): P {
   let top = panel
   for (let at: P | null = panel; at; at = at.GetParent() as P | null) {
     if (at.paneltype === 'CitadelHud') return at
