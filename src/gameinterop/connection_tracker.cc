@@ -189,12 +189,14 @@ void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback&
 void ConnectionTracker::DispatchDisconnect(int32_t slot, int32_t reason,
                                            const EngineCallback& original,
                                            std::shared_ptr<ConnectionEventSink> sink) {
-  // Trace the disconnect.
-  if (InteropTraceEnabled()) {
-    std::fprintf(stderr, "[modlock] interop trace: ClientDisconnect slot %d reason %d\n", slot,
-                 reason);
-    std::fflush(stderr);
-  }
+  // Every disconnect is logged with the engine's reason, an
+  // ENetworkDisconnectionReason, since no other record names why a client was
+  // dropped. A client still loading never reaches a mod's leave event, so this
+  // line is the only record of its reason. One line per disconnect.
+  const auto leaving = StateForSlot(slot);
+  std::fprintf(stderr, "[modlock] ClientDisconnect slot %d reason %d%s\n", slot, reason,
+               leaving.occupied && !leaving.fully_connected ? " before fully connecting" : "");
+  std::fflush(stderr);
 
   // A slot with no client runs the engine call, clearing the slot unless a client arrived
   // meanwhile.
