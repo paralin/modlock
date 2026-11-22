@@ -1,6 +1,8 @@
 // Contract tests for the connection tracker's engine callback order. The
 // vtable slots follow the native interface; these tests exercise dispatch
 // ordering independently of the installed game.
+#include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <memory>
@@ -39,6 +41,11 @@ class RecordingSink final : public ConnectionEventSink {
     if (entity_live_ != nullptr) {
       EXPECT_TRUE(*entity_live_);
     }
+  }
+
+  void OnSeatEnded(int32_t slot, uint64_t xuid, int32_t reason) override {
+    events_.push_back("ended:" + std::to_string(slot) + ":" + std::to_string(xuid) + ":" +
+                      std::to_string(reason));
   }
 
  private:
@@ -268,16 +275,82 @@ TEST(ConnectionTracker, InstallRequiresRetainedSink) {
   EXPECT_EQ(result.error(), "connection tracker requires an event sink");
 }
 
-TEST(ConnectionTracker, SameXuidReconnectAdvancesGeneration) {
-  // Seat, disconnect and reseat the same player.
-  ConnectionTracker::ApplyPutInServer(9, 99, false, "p9");
+TEST(ConnectionTracker, ReturnKeepsTheSeatAndANewPlayerStartsOne) {
+  // A human who disconnects leaves an away seat with their generation.
+  std::vector<std::string> events;
+  auto sink = std::make_shared<RecordingSink>(events);
+  ConnectionTracker::DispatchPutInServer(9, 99, ClientType::kPlayer, "p9", {}, sink);
   const auto first = ConnectionTracker::StateForSlot(9);
+  ConnectionTracker::DispatchDisconnect(9, 2, {}, sink);
+  const auto away = ConnectionTracker::StateForSlot(9);
+  EXPECT_FALSE(away.occupied);
+  EXPECT_TRUE(away.away);
+  EXPECT_EQ(away.xuid, 99u);
+  EXPECT_EQ(away.generation, first.generation);
+
+  // Their return is the same seat: no end, the same generation.
+  ConnectionTracker::DispatchPutInServer(9, 99, ClientType::kPlayer, "p9", {}, sink);
+  const auto back = ConnectionTracker::StateForSlot(9);
+  EXPECT_TRUE(back.occupied);
+  EXPECT_FALSE(back.away);
+  EXPECT_EQ(back.generation, first.generation);
+
+  // Another player taking the away slot ends the owner's seat first.
+  ConnectionTracker::DispatchDisconnect(9, 2, {}, sink);
+  events.clear();
+  ConnectionTracker::DispatchPutInServer(9, 98, ClientType::kPlayer, "q9", {}, sink);
+  EXPECT_EQ(events, (std::vector<std::string>{"ended:9:99:0", "connected:9:98:human:q9"}));
+  EXPECT_GT(ConnectionTracker::StateForSlot(9).generation, first.generation);
   ConnectionTracker::ApplyDisconnect(9);
-  ConnectionTracker::ApplyPutInServer(9, 99, false, "p9");
-  const auto second = ConnectionTracker::StateForSlot(9);
-  EXPECT_TRUE(second.occupied);
-  EXPECT_EQ(second.xuid, first.xuid);
-  EXPECT_GT(second.generation, first.generation);
+  ConnectionTracker::DispatchRelease(9, 0, nullptr);
+}
+
+TEST(ConnectionTracker, BotsAndReleasedSeatsEndAtTheirDisconnect) {
+  // A bot's seat ends with its connection.
+  std::vector<std::string> events;
+  auto sink = std::make_shared<RecordingSink>(events);
+  ConnectionTracker::DispatchPutInServer(30, 0, ClientType::kBot, "bot", {}, sink);
+  events.clear();
+  ConnectionTracker::DispatchDisconnect(30, 3, {}, sink);
+  EXPECT_EQ(events, (std::vector<std::string>{"disconnecting:30:0:3", "ended:30:0:3"}));
+  EXPECT_FALSE(ConnectionTracker::StateForSlot(30).away);
+
+  // A connected human the host releases ends at the disconnect that follows.
+  ConnectionTracker::DispatchPutInServer(31, 310, ClientType::kPlayer, "p31", {}, sink);
+  events.clear();
+  ConnectionTracker::DispatchRelease(31, kDisconnectKicked, sink);
+  EXPECT_TRUE(events.empty());
+  ConnectionTracker::DispatchDisconnect(31, kDisconnectKicked, {}, sink);
+  EXPECT_EQ(events, (std::vector<std::string>{"disconnecting:31:310:39", "ended:31:310:39"}));
+  EXPECT_FALSE(ConnectionTracker::StateForSlot(31).away);
+  EXPECT_FALSE(ConnectionTracker::StateForSlot(31).occupied);
+
+  // An away seat the host releases ends at once, and only once.
+  ConnectionTracker::DispatchPutInServer(32, 320, ClientType::kPlayer, "p32", {}, sink);
+  ConnectionTracker::DispatchDisconnect(32, 2, {}, sink);
+  events.clear();
+  const auto revision = ConnectionTracker::Revision();
+  ConnectionTracker::DispatchRelease(32, kDisconnectKicked, sink);
+  ConnectionTracker::DispatchRelease(32, kDisconnectKicked, sink);
+  EXPECT_EQ(events, (std::vector<std::string>{"ended:32:320:39"}));
+  EXPECT_NE(ConnectionTracker::Revision(), revision);
+  EXPECT_FALSE(ConnectionTracker::StateForSlot(32).away);
+}
+
+TEST(ConnectionTracker, AwaySeatsExpireAfterTheGamesLimit) {
+  // A seat away for less than the limit is kept; one away for it expires.
+  const auto then = std::chrono::steady_clock::now();
+  ConnectionTracker::ApplyPutInServer(33, 330, false, "p33");
+  ConnectionTracker::ApplyDisconnect(33, then);
+  const auto limit = std::chrono::seconds(modlock::gameinterop::kAwaySeconds);
+  const auto before = ConnectionTracker::ExpiredAway(then + limit - std::chrono::seconds(1));
+  EXPECT_EQ(std::ranges::count(before, 33), 0);
+  const auto after = ConnectionTracker::ExpiredAway(then + limit);
+  EXPECT_EQ(std::ranges::count(after, 33), 1);
+
+  // A released seat no longer expires.
+  ConnectionTracker::DispatchRelease(33, kDisconnectKicked, nullptr);
+  EXPECT_EQ(std::ranges::count(ConnectionTracker::ExpiredAway(then + limit), 33), 0);
 }
 
 TEST(ConnectionTracker, UnoccupiedDisconnectCannotEraseReconnectFromOriginal) {

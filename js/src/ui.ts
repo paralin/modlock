@@ -941,6 +941,20 @@ export function joined(player: Player): void {
 }
 
 /**
+ * away forgets the screen of a player whose client disconnected, since the
+ * client lost it; returned sends it whole again when they come back. What
+ * the mod shows them, such as their notices, stays.
+ */
+export function away(player: Player): void {
+  screens.delete(player.slot)
+}
+
+/** returned draws the whole screen of a player who came back. */
+export function returned(player: Player): void {
+  draw(player)
+}
+
+/**
  * left forgets what the mod showed the player who left, so the next person
  * in the slot starts with nothing of theirs, and takes down their chat line.
  */
@@ -1192,8 +1206,8 @@ function draw(player: Player, changed: readonly Layer[] = layers): boolean {
  * laying out only the changed layers.
  */
 function drawAll(changed: readonly Layer[] = layers): void {
-  for (const { player } of players()) {
-    draw(player, changed)
+  for (const { player, away } of players()) {
+    if (!away) draw(player, changed)
   }
 }
 

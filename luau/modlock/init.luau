@@ -1308,7 +1308,8 @@ export type RestoredEvent = {
 	error: string,
 }
 
--- PlayersChangedEvent holds every occupied player slot, as Players lists them.
+-- PlayersChangedEvent holds every player slot with a seat, connected or
+-- away, as Players lists them.
 export type PlayersChangedEvent = {
 	players: { Connection },
 }
@@ -1318,6 +1319,22 @@ export type PlayersChangedEvent = {
 -- the mod starts or begins to serve them.
 export type PlayerJoinedEvent = {
 	-- connection is the player as Players lists them.
+	connection: Connection,
+}
+
+-- PlayerAwayEvent reports a joined player whose client disconnected while the
+-- server holds their seat. Their controller and hero stay in the game, and the
+-- player may return to them.
+export type PlayerAwayEvent = {
+	-- connection is the player as Players lists them, away.
+	connection: Connection,
+}
+
+-- PlayerReturnedEvent reports an away player who reconnected to their seat
+-- and finished joining again. The seat, its generation and its hero are the
+-- ones they left.
+export type PlayerReturnedEvent = {
+	-- connection is the player as Players lists them, ready again.
 	connection: Connection,
 }
 
@@ -1346,14 +1363,19 @@ export type Connection = {
 	-- bot is true for a bot player.
 	bot: boolean,
 	-- ready is true once a human has finished joining; bots are always ready.
+	-- An away player is not ready.
 	ready: boolean,
-	-- generation changes each time a new connection takes the slot.
+	-- generation identifies the seat: it changes when a new player or bot takes
+	-- the slot, and stays the same when an away player returns.
 	generation: number,
 	-- roles are what the player is to the running mods, as the program that
 	-- runs the host grants them. A role decides what a mod shows, such as an
 	-- unfinished feature for its testers; the platform that keeps a mod's
 	-- shared data checks its own writers.
 	roles: { ModRole },
+	-- away is true while the player's client is disconnected and the server
+	-- holds their seat for them to return.
+	away: boolean,
 }
 
 -- PlayerPawn is one player's pawn.
@@ -1679,6 +1701,7 @@ export type StartResult = {
 	-- chat asks for a chat event for each chat line.
 	chat: boolean,
 	-- joins asks for a PlayerJoined event as each player the mod serves joins,
+	-- PlayerAway and PlayerReturned events as they disconnect and come back,
 	-- and a PlayerLeft event as each leaves.
 	joins: boolean,
 	-- casts asks for an AbilityCast event after each ability the game
@@ -3689,6 +3712,12 @@ schema.PlayersChangedEvent = {
 schema.PlayerJoinedEvent = {
 	{ number = 1, name = "connection", kind = "message", message = "Connection" },
 }
+schema.PlayerAwayEvent = {
+	{ number = 1, name = "connection", kind = "message", message = "Connection" },
+}
+schema.PlayerReturnedEvent = {
+	{ number = 1, name = "connection", kind = "message", message = "Connection" },
+}
 schema.PlayerLeftEvent = {
 	{ number = 1, name = "connection", kind = "message", message = "Connection" },
 	{ number = 2, name = "disconnected", kind = "bool" },
@@ -3705,6 +3734,7 @@ schema.Connection = {
 	{ number = 5, name = "ready", kind = "bool" },
 	{ number = 6, name = "generation", kind = "uint32" },
 	{ number = 7, name = "roles", kind = "enum", repeated = true, enum = ModRole },
+	{ number = 8, name = "away", kind = "bool" },
 }
 schema.PawnResponse = {
 	{ number = 1, name = "pawn", kind = "message", optional = true, message = "Pawn" },
@@ -5000,15 +5030,29 @@ export type ModHandlers = {
 	-- human who finished joining, a bot once added, and at start each player
 	-- already in the game. It follows the PlayersChanged that lists them.
 	playerJoined: (event: PlayerJoinedEvent) -> (),
-	-- playerLeft reports each joined player leaving the mod, once. A player who
-	-- disconnects is reported before the engine removes them, so their slot
-	-- and hero still read, and before the PlayersChanged that drops them. A
+	-- playerAway reports a joined human whose client disconnected while the
+	-- server holds their seat. The player is not gone: their controller and
+	-- hero stay, and they may return to them, so a mod keeps their seat as it
+	-- stands. It follows the PlayersChanged that lists them away.
+	playerAway: (event: PlayerAwayEvent) -> (),
+	-- playerReturned reports an away player who reconnected to their seat and
+	-- finished joining again. It follows the PlayersChanged that lists them
+	-- ready.
+	playerReturned: (event: PlayerReturnedEvent) -> (),
+	-- playerLeft reports each joined player leaving the mod, once, when their
+	-- seat ends: a bot removed, a human kicked or released by the program that
+	-- runs the host, or a human away past the game's limit. A human whose
+	-- client merely disconnects is away first. The leave arrives before the
+	-- engine frees the slot, so the slot and hero still read, and before the
+	-- PlayersChanged that drops them. Modlock then clears what the seat left:
+	-- its hero is killed and kept down, and its controller leaves its team. A
 	-- disconnect the mod causes during its own event, such as removing a bot,
 	-- arrives after that event returns.
 	playerLeft: (event: PlayerLeftEvent) -> (),
-	-- playersChanged reports the occupied player slots before the first event
-	-- after Start, and again before the next event whenever a player joins,
-	-- finishes joining or leaves, so a mod lists players without a call.
+	-- playersChanged reports the player slots with a seat, connected or away,
+	-- before the first event after Start, and again before the next event
+	-- whenever a player joins, finishes joining, goes away, returns or leaves,
+	-- so a mod lists players without a call.
 	playersChanged: (event: PlayersChangedEvent) -> (),
 }
 
@@ -5041,6 +5085,8 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Landed = { request = "LandedEvent", response = "Empty", handler = "landed" },
 	SettingChanged = { request = "SettingChangedEvent", response = "Empty", handler = "settingChanged" },
 	PlayerJoined = { request = "PlayerJoinedEvent", response = "Empty", handler = "playerJoined" },
+	PlayerAway = { request = "PlayerAwayEvent", response = "Empty", handler = "playerAway" },
+	PlayerReturned = { request = "PlayerReturnedEvent", response = "Empty", handler = "playerReturned" },
 	PlayerLeft = { request = "PlayerLeftEvent", response = "Empty", handler = "playerLeft" },
 	PlayersChanged = { request = "PlayersChangedEvent", response = "Empty", handler = "playersChanged" },
 }
@@ -5346,6 +5392,8 @@ local frames: { (frame: FrameEvent) -> () } = {}
 local chats: { (line: ChatEvent) -> () } = {}
 local joins: { (joined: PlayerJoinedEvent) -> () } = {}
 local leaves: { (left: PlayerLeftEvent) -> () } = {}
+local aways: { (away: PlayerAwayEvent) -> () } = {}
+local returns: { (returned: PlayerReturnedEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -6175,10 +6223,29 @@ function modlock.onPlayerJoin(handler: (joined: PlayerJoinedEvent) -> ())
 	table.insert(joins, handler)
 end
 
+-- onPlayerAway calls handler once each time a joined human's client
+-- disconnects while the server holds their seat. They have not left: their
+-- hero and controller stay in the game, and onPlayerReturn follows if they
+-- come back, so keep their seat as it stands rather than clear it.
+function modlock.onPlayerAway(handler: (away: PlayerAwayEvent) -> ())
+	table.insert(aways, handler)
+end
+
+-- onPlayerReturn calls handler once each time an away player reconnects to
+-- their seat and finishes joining again, with the same Player, generation and
+-- hero they left.
+function modlock.onPlayerReturn(handler: (returned: PlayerReturnedEvent) -> ())
+	table.insert(returns, handler)
+end
+
 -- onPlayerLeave calls handler once for each joined player who leaves the mod,
--- with the reason the server dropped them when it gave one. A player who
--- disconnects still has their slot and hero during the call. A player the
--- mod stops serving leaves too, with disconnected false.
+-- with the reason the server dropped them when it gave one. A seat ends, and
+-- its player leaves, when a bot is removed, a human is kicked or released by
+-- the program that runs the host, or a human stays away past the game's
+-- limit; a human who only disconnects is away first. The slot and hero still
+-- read during the call, and afterwards Modlock kills the hero, keeps it down
+-- and takes the controller off its team, so the mod need not clear them. A
+-- player the mod stops serving leaves too, with disconnected false.
 function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
@@ -6435,7 +6502,7 @@ local handlers: ModHandlers = {
 			damage = #damages ~= 0,
 			damaged = #damageds ~= 0,
 			chat = #chats ~= 0,
-			joins = #joins ~= 0 or #leaves ~= 0,
+			joins = #joins ~= 0 or #leaves ~= 0 or #aways ~= 0 or #returns ~= 0,
 			casts = #abilityCasts ~= 0,
 			kills = #kills ~= 0,
 			heals = #heals ~= 0,
@@ -6674,6 +6741,18 @@ local handlers: ModHandlers = {
 	-- A join and a leave run at once, so the leaving player's hero still reads.
 	playerJoined = function(event)
 		for _, handler in joins do
+			handler(event)
+		end
+	end,
+
+	playerAway = function(event)
+		for _, handler in aways do
+			handler(event)
+		end
+	end,
+
+	playerReturned = function(event)
+		for _, handler in returns do
 			handler(event)
 		end
 	end,

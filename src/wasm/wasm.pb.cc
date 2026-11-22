@@ -1147,7 +1147,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".abilities.HoldEntityModifierRequest\032\023.m"
     "odlock.wasm.Empty\022\\\n\022GiveEntityModifier\022"
     "1.modlock.wasm.abilities.GiveEntityModif"
-    "ierRequest\032\023.modlock.wasm.Empty2\256\017\n\003Mod\022"
+    "ierRequest\032\023.modlock.wasm.Empty2\312\020\n\003Mod\022"
     "<\n\005Start\022\030.modlock.wasm.StartEvent\032\031.mod"
     "lock.wasm.StartResult\0226\n\005Frame\022\030.modlock"
     ".wasm.FrameEvent\032\023.modlock.wasm.Empty\022B\n"
@@ -1193,12 +1193,16 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "tings.SettingChangedEvent\032\023.modlock.wasm"
     ".Empty\022L\n\014PlayerJoined\022\'.modlock.wasm.pl"
     "ayers.PlayerJoinedEvent\032\023.modlock.wasm.E"
-    "mpty\022H\n\nPlayerLeft\022%.modlock.wasm.player"
-    "s.PlayerLeftEvent\032\023.modlock.wasm.Empty\022P"
-    "\n\016PlayersChanged\022).modlock.wasm.players."
-    "PlayersChangedEvent\032\023.modlock.wasm.Empty"
-    "B*Z(github.com/paralin/modlock/src/wasm;"
-    "wasmb\006proto3"
+    "mpty\022H\n\nPlayerAway\022%.modlock.wasm.player"
+    "s.PlayerAwayEvent\032\023.modlock.wasm.Empty\022P"
+    "\n\016PlayerReturned\022).modlock.wasm.players."
+    "PlayerReturnedEvent\032\023.modlock.wasm.Empty"
+    "\022H\n\nPlayerLeft\022%.modlock.wasm.players.Pl"
+    "ayerLeftEvent\032\023.modlock.wasm.Empty\022P\n\016Pl"
+    "ayersChanged\022).modlock.wasm.players.Play"
+    "ersChangedEvent\032\023.modlock.wasm.EmptyB*Z("
+    "github.com/paralin/modlock/src/wasm;wasm"
+    "b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fwasm_2eproto_deps[16] = {
@@ -1223,7 +1227,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fwasm_2eproto = {
     false,
     false,
-    15012,
+    15168,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fwasm_2eproto,
     "github.com/paralin/modlock/src/wasm/wasm.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fwasm_2eproto_once,

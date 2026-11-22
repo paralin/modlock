@@ -1835,7 +1835,9 @@ class RestoredEvent:
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class PlayersChangedEvent:
-    """PlayersChangedEvent holds every occupied player slot, as Players lists them."""
+    """PlayersChangedEvent holds every player slot with a seat, connected or
+    away, as Players lists them.
+    """
 
     players: list[Connection] = dataclasses.field(default_factory=lambda: list[Connection]())
 
@@ -1848,6 +1850,28 @@ class PlayerJoinedEvent:
     """
 
     # connection is the player as Players lists them.
+    connection: Connection
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerAwayEvent:
+    """PlayerAwayEvent reports a joined player whose client disconnected while the
+    server holds their seat. Their controller and hero stay in the game, and the
+    player may return to them.
+    """
+
+    # connection is the player as Players lists them, away.
+    connection: Connection
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerReturnedEvent:
+    """PlayerReturnedEvent reports an away player who reconnected to their seat
+    and finished joining again. The seat, its generation and its hero are the
+    ones they left.
+    """
+
+    # connection is the player as Players lists them, ready again.
     connection: Connection
 
 
@@ -1881,14 +1905,19 @@ class Connection:
     # bot is true for a bot player.
     bot: bool = False
     # ready is true once a human has finished joining; bots are always ready.
+    # An away player is not ready.
     ready: bool = False
-    # generation changes each time a new connection takes the slot.
+    # generation identifies the seat: it changes when a new player or bot takes
+    # the slot, and stays the same when an away player returns.
     generation: int = 0
     # roles are what the player is to the running mods, as the program that
     # runs the host grants them. A role decides what a mod shows, such as an
     # unfinished feature for its testers; the platform that keeps a mod's
     # shared data checks its own writers.
     roles: list[ModRole] = dataclasses.field(default_factory=lambda: list[ModRole]())
+    # away is true while the player's client is disconnected and the server
+    # holds their seat for them to return.
+    away: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2272,6 +2301,7 @@ class StartResult:
     # chat asks for a chat event for each chat line.
     chat: bool = False
     # joins asks for a PlayerJoined event as each player the mod serves joins,
+    # PlayerAway and PlayerReturned events as they disconnect and come back,
     # and a PlayerLeft event as each leaves.
     joins: bool = False
     # casts asks for an AbilityCast event after each ability the game
@@ -4221,6 +4251,18 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "connection", "message", message="Connection"),
         ],
     ),
+    "PlayerAwayEvent": (
+        PlayerAwayEvent,
+        [
+            wire.Field(1, "connection", "message", message="Connection"),
+        ],
+    ),
+    "PlayerReturnedEvent": (
+        PlayerReturnedEvent,
+        [
+            wire.Field(1, "connection", "message", message="Connection"),
+        ],
+    ),
     "PlayerLeftEvent": (
         PlayerLeftEvent,
         [
@@ -4251,6 +4293,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "ready", "bool"),
             wire.Field(6, "generation", "uint32"),
             wire.Field(7, "roles", "enum", repeated=True, enum=_ModRole),
+            wire.Field(8, "away", "bool"),
         ],
     ),
     "PawnResponse": (
@@ -5805,6 +5848,8 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Landed": ("LandedEvent", "Empty", "landed"),
     "SettingChanged": ("SettingChangedEvent", "Empty", "setting_changed"),
     "PlayerJoined": ("PlayerJoinedEvent", "Empty", "player_joined"),
+    "PlayerAway": ("PlayerAwayEvent", "Empty", "player_away"),
+    "PlayerReturned": ("PlayerReturnedEvent", "Empty", "player_returned"),
     "PlayerLeft": ("PlayerLeftEvent", "Empty", "player_left"),
     "PlayersChanged": ("PlayersChangedEvent", "Empty", "players_changed"),
 }
@@ -5936,6 +5981,8 @@ _frames: list[Callable[[FrameEvent], object]] = []
 _chats: list[Callable[[ChatEvent], object]] = []
 _joins: list[Callable[[PlayerJoinedEvent], object]] = []
 _leaves: list[Callable[[PlayerLeftEvent], object]] = []
+_aways: list[Callable[[PlayerAwayEvent], object]] = []
+_returns: list[Callable[[PlayerReturnedEvent], object]] = []
 _worlds: list[Callable[[str], object]] = []
 _inputs: list[Callable[[Player, Buttons, Buttons], object]] = []
 _restoreds: list[Callable[[Player, str | None], object]] = []
@@ -6851,11 +6898,41 @@ def on_player_join[F: Callable[[PlayerJoinedEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_player_away[F: Callable[[PlayerAwayEvent], object]](handler: F) -> F:
+    """on_player_away calls handler once each time a joined human's client
+    disconnects while the server holds their seat. They have not left: their
+    hero and controller stay in the game, and on_player_return follows if
+    they come back, so keep their seat as it stands rather than clear it.
+
+        @modlock.on_player_away
+        def away(away: modlock.PlayerAwayEvent) -> None: ...
+    """
+    _aways.append(handler)
+    return handler
+
+
+def on_player_return[F: Callable[[PlayerReturnedEvent], object]](handler: F) -> F:
+    """on_player_return calls handler once each time an away player
+    reconnects to their seat and finishes joining again, with the same
+    Player, generation and hero they left.
+
+        @modlock.on_player_return
+        def back(returned: modlock.PlayerReturnedEvent) -> None: ...
+    """
+    _returns.append(handler)
+    return handler
+
+
 def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
     """on_player_leave calls handler once for each joined player who leaves
-    the mod, with the reason the server dropped them when it gave one. A
-    player who disconnects still has their slot and hero during the call. A
-    player the mod stops serving leaves too, with disconnected false.
+    the mod, with the reason the server dropped them when it gave one. A seat
+    ends, and its player leaves, when a bot is removed, a human is kicked or
+    released by the program that runs the host, or a human stays away past
+    the game's limit; a human who only disconnects is away first. The slot
+    and hero still read during the call, and afterwards Modlock kills the
+    hero, keeps it down and takes the controller off its team, so the mod
+    need not clear them. A player the mod stops serving leaves too, with
+    disconnected false.
 
     Annotate the handler's parameters, since a checker and an editor's
     completion read their types from there:
@@ -7071,7 +7148,7 @@ def _start(event: StartEvent) -> StartResult:
         damage=bool(_damages),
         damaged=bool(_damageds),
         chat=bool(_chats),
-        joins=bool(_joins or _leaves),
+        joins=bool(_joins or _leaves or _aways or _returns),
         casts=bool(_ability_casts),
         kills=bool(_kills),
         heals=bool(_heals),
@@ -7364,6 +7441,16 @@ def _player_joined(event: PlayerJoinedEvent) -> None:
         handler(event)
 
 
+def _player_away(event: PlayerAwayEvent) -> None:
+    for handler in _aways:
+        handler(event)
+
+
+def _player_returned(event: PlayerReturnedEvent) -> None:
+    for handler in _returns:
+        handler(event)
+
+
 def _player_left(event: PlayerLeftEvent) -> None:
     for handler in _leaves:
         handler(event)
@@ -7399,6 +7486,8 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "setting_changed": _setting_changed,
     "players_changed": _players_changed,
     "player_joined": _player_joined,
+    "player_away": _player_away,
+    "player_returned": _player_returned,
     "player_left": _player_left,
 }
 

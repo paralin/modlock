@@ -95,6 +95,7 @@ export function players(): Connection[] {
       bot: c.bot ?? false,
       ready: c.ready ?? false,
       generation: c.generation ?? 0,
+      away: c.away ?? false,
       roles: (c.roles ?? []).flatMap((role) => roleNames[role] ?? []),
     })),
   )

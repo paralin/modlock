@@ -313,6 +313,7 @@ export interface StartResult {
   chat?: boolean
   /**
    * Joins asks for a PlayerJoined event as each player the mod serves joins,
+   * PlayerAway and PlayerReturned events as they disconnect and come back,
    * and a PlayerLeft event as each leaves.
    */
   joins?: boolean

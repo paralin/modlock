@@ -1,6 +1,7 @@
 #include "modlock/engine_host.h"
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <optional>
 #include <utility>
@@ -17,6 +18,7 @@
 #include "modlock/gameinterop/server_addons.h"
 #include "modlock/gameinterop/setpawn_observe.h"
 #include "modlock/gameinterop/startup_server_probe.h"
+#include "modlock/gameinterop/vacated_seats.h"
 #include "modlock/host_app/module_loader.h"
 
 #if defined(_WIN32)
@@ -42,8 +44,13 @@ class ConnectionDispatch final : public gameinterop::ConnectionEventSink {
     disconnecting.Dispatch(slot, xuid, reason);
   }
 
+  void OnSeatEnded(int32_t slot, uint64_t xuid, int32_t reason) override {
+    seat_ended.Dispatch(slot, xuid, reason);
+  }
+
   Callbacks<void(int32_t, uint64_t, bool, const char*)> connected;
   Callbacks<void(int32_t, uint64_t, int32_t)> disconnecting;
+  Callbacks<void(int32_t, uint64_t, int32_t)> seat_ended;
 };
 
 }  // namespace
@@ -79,6 +86,14 @@ struct EngineHost::Impl {
   Callbacks<void(void*, gameinterop::ConnectionTracker::SlotState)> heroes;
   // The tracker and host share its dispatch sink until the hook is restored.
   std::shared_ptr<ConnectionDispatch> connections = std::make_shared<ConnectionDispatch>();
+  // vacated clears what ended seats leave. seats holds the host's own
+  // subscriptions that keep seats: the seat ends, the frame that clears them
+  // and releases seats away too long, and the respawn hold on their heroes.
+  gameinterop::VacatedSeats vacated;
+  std::optional<gameinterop::EngineServer> server;
+  std::chrono::steady_clock::time_point away_checked;
+  Subscription seats;
+  bool holding_heroes = false;
 
   std::optional<gameinterop::EngineFrameHook> frame_hook;
   std::optional<gameinterop::NativeChatHook> chat_hook;
@@ -349,6 +364,10 @@ std::expected<Subscription, std::string> EngineHost::OnConnection(
       impl_->connections->disconnecting.Add([sink](int32_t slot, uint64_t xuid, int32_t reason) {
         sink->OnDisconnecting(slot, xuid, reason);
       }));
+  subscription.Add(
+      impl_->connections->seat_ended.Add([sink](int32_t slot, uint64_t xuid, int32_t reason) {
+        sink->OnSeatEnded(slot, xuid, reason);
+      }));
   return subscription;
 }
 
@@ -359,8 +378,51 @@ std::expected<void, std::string> EngineHost::EnsureConnectionHook() {
       return std::unexpected(hook.error());
     }
     impl_->connection_hook.emplace(std::move(*hook));
+
+    // Every host keeps seats: an ended seat's hero and controller are
+    // cleared, and a seat away too long is released.
+    impl_->seats.Add(impl_->connections->seat_ended.Add([this](int32_t slot, uint64_t, int32_t) {
+      impl_->vacated.Vacate(slot, std::chrono::steady_clock::now());
+    }));
+    if (auto frames = OnFrame([this] { KeepSeats(); })) {
+      impl_->seats.Add(std::move(*frames));
+    } else {
+      std::cerr << "[modlock] away seats keep their slots until the game restarts: "
+                << frames.error() << '\n';
+    }
   }
   return {};
+}
+
+void EngineHost::KeepSeats() {
+  // Clear what ended seats left, and hold their heroes down once one lies.
+  const auto now = std::chrono::steady_clock::now();
+  impl_->vacated.Clear(now);
+  if (!impl_->holding_heroes && impl_->vacated.Holding()) {
+    impl_->holding_heroes = true;
+    if (auto held = OnRespawn([this](uint32_t pawn) { return impl_->vacated.Blocked(pawn); })) {
+      impl_->seats.Add(std::move(*held));
+    } else {
+      std::cerr << "[modlock] departed players' heroes may respawn: " << held.error() << '\n';
+    }
+  }
+
+  // Once a second, release each seat away past the game's own limit.
+  if (now - impl_->away_checked < std::chrono::seconds(1)) {
+    return;
+  }
+  impl_->away_checked = now;
+  for (const int32_t slot : gameinterop::ConnectionTracker::ExpiredAway(now)) {
+    if (!impl_->server) {
+      if (auto server = gameinterop::EngineServer::Resolve()) {
+        impl_->server.emplace(*server);
+      }
+    }
+    if (!impl_->server ||
+        !impl_->server->DisconnectClient(slot, gameinterop::kDisconnectKicked, "away too long")) {
+      gameinterop::ConnectionTracker::Release(slot, gameinterop::kDisconnectKicked);
+    }
+  }
 }
 
 std::expected<void, std::string> EngineHost::EnsureWorldHook() {

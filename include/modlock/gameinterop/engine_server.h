@@ -54,8 +54,9 @@ class MODLOCK_API EngineServer {
   // The call frees the slot: it first clears the reservation the game may
   // hold there for the player's reconnect, so a removed player keeps no slot,
   // and on a slot still held for a player who already left it frees that
-  // slot for anyone. Returns false when the interface or its slot is
-  // unavailable.
+  // slot for anyone. It ends the slot's seat (ConnectionTracker::Release):
+  // the player leaves every mod for good. Returns false when the interface
+  // or its slot is unavailable.
   [[nodiscard]] bool DisconnectClient(int32_t slot, int32_t reason,
                                       const char* internal_reason) const;
 

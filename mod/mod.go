@@ -55,6 +55,8 @@ type handlers struct {
 	chats         []func(*ChatEvent)
 	joins         []func(*PlayerJoinedEvent)
 	leaves        []func(*PlayerLeftEvent)
+	aways         []func(*PlayerAwayEvent)
+	returns       []func(*PlayerReturnedEvent)
 	worlds        []func(mapName string)
 	inputs        []func(p Player, pressed, released uint64)
 	restoreds     []func(p Player, err error)
@@ -168,10 +170,29 @@ func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
 	registered.joins = append(registered.joins, handler)
 }
 
+// OnPlayerAway calls handler once each time a joined human's client
+// disconnects while the server holds their seat. They have not left: their
+// hero and controller stay in the game, and OnPlayerReturn follows if they
+// come back, so keep their seat as it stands rather than clear it.
+func OnPlayerAway(handler func(away *PlayerAwayEvent)) {
+	registered.aways = append(registered.aways, handler)
+}
+
+// OnPlayerReturn calls handler once each time an away player reconnects to
+// their seat and finishes joining again, with the same Player, generation and
+// hero they left.
+func OnPlayerReturn(handler func(returned *PlayerReturnedEvent)) {
+	registered.returns = append(registered.returns, handler)
+}
+
 // OnPlayerLeave calls handler once for each joined player who leaves the mod,
-// with the reason the server dropped them when it gave one. A player who
-// disconnects still has their slot and hero during the call. A player the mod
-// stops serving leaves too, with Disconnected false.
+// with the reason the server dropped them when it gave one. A seat ends, and
+// its player leaves, when a bot is removed, a human is kicked or released by
+// the program that runs the host, or a human stays away past the game's
+// limit; a human who only disconnects is away first. The slot and hero still
+// read during the call, and afterwards Modlock kills the hero, keeps it down
+// and takes the controller off its team, so the mod need not clear them. A
+// player the mod stops serving leaves too, with Disconnected false.
 func OnPlayerLeave(handler func(left *PlayerLeftEvent)) {
 	registered.leaves = append(registered.leaves, handler)
 }
@@ -335,7 +356,7 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Damage:  len(h.damages) != 0,
 		Damaged: len(h.damageds) != 0,
 		Chat:    len(h.chats) != 0,
-		Joins:   len(h.joins) != 0 || len(h.leaves) != 0,
+		Joins:   len(h.joins) != 0 || len(h.leaves) != 0 || len(h.aways) != 0 || len(h.returns) != 0,
 		Casts:   len(h.casts) != 0,
 		Kills:   len(h.kills) != 0,
 		Heals:   len(h.heals) != 0,
@@ -609,6 +630,14 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 
 // PlayerJoined runs the join handlers.
 func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error { return each(h.joins, event) }
+
+// PlayerAway runs the away handlers.
+func (h *handlers) PlayerAway(event *PlayerAwayEvent) error { return each(h.aways, event) }
+
+// PlayerReturned runs the return handlers.
+func (h *handlers) PlayerReturned(event *PlayerReturnedEvent) error {
+	return each(h.returns, event)
+}
 
 // PlayerLeft runs the leave handlers at once, so the leaving player's hero
 // still reads.

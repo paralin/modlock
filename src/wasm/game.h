@@ -470,8 +470,8 @@ class Game : public HostService {
   // Serves reports whether this game currently controls the player's slot.
   virtual bool Serves(int32_t) const { return true; }
 
-  // Players lists the occupied player slots; a host may add what it knows of
-  // each player.
+  // Players lists the player slots with a seat, connected or away; a host may
+  // add what it knows of each player.
   std::expected<players::PlayersResponse, std::string> Players() override;
 
   // Impacted delivers a watched projectile's impact to the mod, inside the

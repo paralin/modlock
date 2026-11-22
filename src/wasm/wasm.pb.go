@@ -230,6 +230,7 @@ type StartResult struct {
 	// Chat asks for a Chat event for each chat line.
 	Chat bool `protobuf:"varint,4,opt,name=chat,proto3" json:"chat,omitempty"`
 	// Joins asks for a PlayerJoined event as each player the mod serves joins,
+	// PlayerAway and PlayerReturned events as they disconnect and come back,
 	// and a PlayerLeft event as each leaves.
 	Joins bool `protobuf:"varint,5,opt,name=joins,proto3" json:"joins,omitempty"`
 	// Casts asks for an AbilityCast event after each ability the game

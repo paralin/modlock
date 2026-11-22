@@ -34,6 +34,7 @@ function joined(
     bot,
     ready,
     generation,
+    away: false,
     roles: [],
   }
 }

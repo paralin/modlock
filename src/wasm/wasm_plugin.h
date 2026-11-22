@@ -409,6 +409,11 @@ class WasmPlugin final : public Plugin {
   // they joined. reason is the engine's disconnect reason when they leave
   // the server, and nullopt when they stay but the mod stops serving them.
   void Leave(int32_t slot, std::optional<int32_t> reason);
+  // Away drops the interface of the player in slot, whose client disconnected
+  // while the server holds their seat.
+  void Away(int32_t slot);
+  // DropUi forgets the interface of the player in slot and resets it.
+  void DropUi(int32_t slot);
   // HandOn hands the player's metric totals to the host's metrics, or logs
   // them, and forgets them.
   void HandOn(int32_t slot);

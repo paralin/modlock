@@ -35,6 +35,7 @@ const player: Connection = {
   bot: false,
   ready: true,
   name: 'Jun',
+  away: false,
   roles: [],
 }
 

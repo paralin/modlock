@@ -20,10 +20,21 @@ inline constexpr int32_t kMaxSlots = 64;
 // Server.dll's game-clients interface version (sourcesdk public/eiface.h).
 inline constexpr char kSource2GameClientsVersion[] = "Source2GameClients001";
 
+// g_occupied[slot] is true while a client is connected there, and g_away[slot]
+// while no client is but a disconnected human's seat holds the slot, since
+// g_away_since[slot] (steady_clock ticks). g_releasing[slot] marks a connected
+// seat Release ended, which its disconnect then ends rather than sends away.
 std::array<std::atomic<bool>, kMaxSlots> g_occupied{};
+std::array<std::atomic<bool>, kMaxSlots> g_away{};
+std::array<std::atomic<int64_t>, kMaxSlots> g_away_since{};
+std::array<std::atomic<bool>, kMaxSlots> g_releasing{};
 std::array<std::atomic<bool>, kMaxSlots> g_disconnect_claimed{};
 std::array<std::atomic<uint64_t>, kMaxSlots> g_xuid{};
+// g_generation[slot] counts the seats that started in slot; g_connection[slot]
+// counts its connections, so a dispatch can tell a client that arrived during
+// its callback, a return included, from the one it began with.
 std::array<std::atomic<uint64_t>, kMaxSlots> g_generation{};
+std::array<std::atomic<uint64_t>, kMaxSlots> g_connection{};
 std::array<std::atomic<bool>, kMaxSlots> g_is_bot{};
 std::array<std::atomic<bool>, kMaxSlots> g_fully_connected{};
 // g_name[slot] is written only on the engine thread between a PutInServer and
@@ -159,7 +170,18 @@ void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, ClientT
   if (type == ClientType::kSourceTV) {
     return;
   }
+  // An away seat whose slot another player takes has ended: only its owner
+  // returns to it.
   const bool is_bot = type != ClientType::kPlayer;
+  if (ValidSlot(slot) && g_away[slot].load(std::memory_order_acquire) &&
+      (is_bot || g_xuid[slot].load(std::memory_order_relaxed) != xuid)) {
+    const uint64_t owner = g_xuid[slot].load(std::memory_order_relaxed);
+    g_away[slot].store(false, std::memory_order_release);
+    g_revision.fetch_add(1, std::memory_order_release);
+    if (sink != nullptr) {
+      sink->OnSeatEnded(slot, owner, 0);
+    }
+  }
   ApplyPutInServer(slot, xuid, is_bot, name);
   if (ValidSlot(slot) && sink != nullptr) {
     sink->OnConnected(slot, xuid, is_bot, name);
@@ -167,15 +189,22 @@ void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, ClientT
 }
 
 void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback& original) {
-  // Run the engine's call, noting the client before and after.
-  const auto before = StateForSlot(slot);
+  // Run the engine's call, noting the connection before and after.
+  if (!ValidSlot(slot)) {
+    if (original) {
+      original();
+    }
+    return;
+  }
+  const bool occupied = g_occupied[slot].load(std::memory_order_acquire);
+  const uint64_t connection = g_connection[slot].load(std::memory_order_acquire);
   if (original) {
     original();
   }
 
   // Mark it fully connected only if the same client stayed.
-  const auto after = StateForSlot(slot);
-  if (!before.occupied || !after.occupied || before.generation != after.generation) {
+  if (!occupied || !g_occupied[slot].load(std::memory_order_acquire) ||
+      g_connection[slot].load(std::memory_order_acquire) != connection) {
     return;
   }
   g_fully_connected[slot].store(true, std::memory_order_release);
@@ -198,17 +227,12 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, int32_t reason,
                leaving.occupied && !leaving.fully_connected ? " before fully connecting" : "");
   std::fflush(stderr);
 
-  // A slot with no client runs the engine call, clearing the slot unless a client arrived
-  // meanwhile.
+  // A slot with no client runs the engine call and keeps its state: an away
+  // seat stays away, and an empty slot stays empty.
   const SlotState state = StateForSlot(slot);
   if (!state.occupied || !ValidSlot(slot)) {
-    const uint64_t generation =
-        ValidSlot(slot) ? g_generation[slot].load(std::memory_order_acquire) : 0;
     if (original) {
       original();
-    }
-    if (!ValidSlot(slot) || g_generation[slot].load(std::memory_order_acquire) == generation) {
-      ApplyDisconnect(slot);
     }
     return;
   }
@@ -222,49 +246,121 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, int32_t reason,
     return;
   }
 
-  // Tell the sink, then run the engine's call.
-  const uint64_t generation = g_generation[slot].load(std::memory_order_acquire);
+  // Tell the sink, and when the seat ends with the connection, say so too;
+  // the sink may release the seat from its callback. Then run the engine's
+  // call.
+  const uint64_t connection = g_connection[slot].load(std::memory_order_acquire);
   if (sink != nullptr) {
     sink->OnDisconnecting(slot, state.xuid, reason);
+  }
+  if (sink != nullptr && (state.is_bot || g_releasing[slot].load(std::memory_order_acquire))) {
+    sink->OnSeatEnded(slot, state.xuid, reason);
   }
   if (original) {
     original();
   }
 
-  // A reconnect during the sink callback is a new generation. Do not erase
+  // A reconnect during the sink callback is a new connection. Do not erase
   // that replacement client's occupied state when the old disconnect returns.
-  if (g_generation[slot].load(std::memory_order_acquire) == generation) {
+  if (g_connection[slot].load(std::memory_order_acquire) == connection) {
     ApplyDisconnect(slot);
     g_disconnect_claimed[slot].store(false, std::memory_order_release);
   }
 }
 
-void ConnectionTracker::ApplyPutInServer(int32_t slot, uint64_t xuid, bool is_bot,
-                                         const char* name) {
-  // Record the client in its slot.
+void ConnectionTracker::Release(int32_t slot, int32_t reason) {
+  DispatchRelease(slot, reason,
+                  std::atomic_load_explicit(&g_event_sink, std::memory_order_acquire));
+}
+
+void ConnectionTracker::DispatchRelease(int32_t slot, int32_t reason,
+                                        std::shared_ptr<ConnectionEventSink> sink) {
   if (!ValidSlot(slot)) {
     return;
   }
+
+  // A connected seat ends at its disconnect, which the release precedes.
+  if (g_occupied[slot].load(std::memory_order_acquire)) {
+    g_releasing[slot].store(true, std::memory_order_release);
+    return;
+  }
+
+  // An away seat ends now. Clear it before telling the sink, so a release
+  // from the callback finds no seat to end twice.
+  if (!g_away[slot].exchange(false, std::memory_order_acq_rel)) {
+    return;
+  }
+  g_revision.fetch_add(1, std::memory_order_release);
+  std::fprintf(stderr, "[modlock] seat released: slot %d after its player left\n", slot);
+  std::fflush(stderr);
+  if (sink != nullptr) {
+    sink->OnSeatEnded(slot, g_xuid[slot].load(std::memory_order_relaxed), reason);
+  }
+}
+
+std::vector<int32_t> ConnectionTracker::ExpiredAway(std::chrono::steady_clock::time_point now) {
+  std::vector<int32_t> expired;
+  const auto window = std::chrono::steady_clock::duration(std::chrono::seconds(kAwaySeconds));
+  for (int32_t slot = 0; slot < kMaxSlots; ++slot) {
+    if (!g_away[slot].load(std::memory_order_acquire)) {
+      continue;
+    }
+    const std::chrono::steady_clock::time_point since{
+        std::chrono::steady_clock::duration(g_away_since[slot].load(std::memory_order_relaxed))};
+    if (now - since >= window) {
+      expired.push_back(slot);
+    }
+  }
+  return expired;
+}
+
+void ConnectionTracker::ApplyPutInServer(int32_t slot, uint64_t xuid, bool is_bot,
+                                         const char* name) {
+  // Record the client in its slot. The owner of an away seat returns to it,
+  // keeping its generation; any other client starts a new seat.
+  if (!ValidSlot(slot)) {
+    return;
+  }
+  const bool returning = g_away[slot].load(std::memory_order_acquire) && !is_bot &&
+                         g_xuid[slot].load(std::memory_order_relaxed) == xuid;
   g_xuid[slot].store(xuid, std::memory_order_relaxed);
   g_is_bot[slot].store(is_bot, std::memory_order_relaxed);
   g_fully_connected[slot].store(is_bot, std::memory_order_relaxed);
   g_name[slot] = (name != nullptr) ? std::string(name) : std::string();
-  g_generation[slot].fetch_add(1, std::memory_order_acq_rel);
+  if (!returning) {
+    g_generation[slot].fetch_add(1, std::memory_order_acq_rel);
+  }
+  g_connection[slot].fetch_add(1, std::memory_order_acq_rel);
 
   // A reconnect starts a new disconnect lifecycle, even when it occurs from
-  // the previous generation's OnDisconnecting callback. Publish this claim
-  // reset before occupied=true so a new disconnect cannot miss the generation.
+  // the previous connection's OnDisconnecting callback. Publish this claim
+  // reset before occupied=true so a new disconnect cannot miss the connection.
+  g_releasing[slot].store(false, std::memory_order_release);
   g_disconnect_claimed[slot].store(false, std::memory_order_release);
+  g_away[slot].store(false, std::memory_order_release);
   g_occupied[slot].store(true, std::memory_order_release);
   g_revision.fetch_add(1, std::memory_order_release);
 }
 
-void ConnectionTracker::ApplyDisconnect(int32_t slot) {
-  if (!ValidSlot(slot)) {
+void ConnectionTracker::ApplyDisconnect(int32_t slot, std::chrono::steady_clock::time_point now) {
+  if (!ValidSlot(slot) || !g_occupied[slot].load(std::memory_order_acquire)) {
     return;
   }
+
+  // The engine holds a human's row for their return, so their seat goes
+  // away; a bot's row is freed, and a released seat ends.
+  const bool ends = g_is_bot[slot].load(std::memory_order_relaxed) ||
+                    g_releasing[slot].exchange(false, std::memory_order_acq_rel);
+  if (!ends) {
+    g_away_since[slot].store(now.time_since_epoch().count(), std::memory_order_relaxed);
+  }
+  g_away[slot].store(!ends, std::memory_order_release);
   g_occupied[slot].store(false, std::memory_order_release);
   g_revision.fetch_add(1, std::memory_order_release);
+}
+
+uint64_t ConnectionTracker::SeatGeneration(int32_t slot) {
+  return ValidSlot(slot) ? g_generation[slot].load(std::memory_order_acquire) : 0;
 }
 
 uint64_t ConnectionTracker::Revision() {
@@ -272,8 +368,18 @@ uint64_t ConnectionTracker::Revision() {
 }
 
 ConnectionTracker::SlotState ConnectionTracker::StateForSlot(int32_t slot) {
-  if (!ValidSlot(slot) || !g_occupied[slot].load(std::memory_order_acquire)) {
+  if (!ValidSlot(slot)) {
     return SlotState{};
+  }
+  if (!g_occupied[slot].load(std::memory_order_acquire)) {
+    if (!g_away[slot].load(std::memory_order_acquire)) {
+      return SlotState{};
+    }
+    return SlotState{
+        .away = true,
+        .xuid = g_xuid[slot].load(std::memory_order_relaxed),
+        .generation = static_cast<uint32_t>(g_generation[slot].load(std::memory_order_acquire)),
+        .name = g_name[slot]};
   }
   return SlotState{
       .occupied = true,

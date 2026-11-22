@@ -506,13 +506,24 @@ type FogOptions = objectspb.FogOptions
 // RestoredEvent reports how a RestoreHero ended.
 type RestoredEvent = playerspb.RestoredEvent
 
-// PlayersChangedEvent holds every occupied player slot, as Players lists them.
+// PlayersChangedEvent holds every player slot with a seat, connected or
+// away, as Players lists them.
 type PlayersChangedEvent = playerspb.PlayersChangedEvent
 
 // PlayerJoinedEvent reports a player who joined the mod: a human who finished
 // joining the server, a bot once added, or a player already in the game when
 // the mod starts or begins to serve them.
 type PlayerJoinedEvent = playerspb.PlayerJoinedEvent
+
+// PlayerAwayEvent reports a joined player whose client disconnected while the
+// server holds their seat. Their controller and hero stay in the game, and the
+// player may return to them.
+type PlayerAwayEvent = playerspb.PlayerAwayEvent
+
+// PlayerReturnedEvent reports an away player who reconnected to their seat
+// and finished joining again. The seat, its generation and its hero are the
+// ones they left.
+type PlayerReturnedEvent = playerspb.PlayerReturnedEvent
 
 // PlayerLeftEvent reports a player leaving the mod, once for each
 // PlayerJoinedEvent.
@@ -2045,15 +2056,29 @@ type modHandlers interface {
 	// human who finished joining, a bot once added, and at start each player
 	// already in the game. It follows the PlayersChanged that lists them.
 	PlayerJoined(event *PlayerJoinedEvent) error
-	// PlayerLeft reports each joined player leaving the mod, once. A player who
-	// disconnects is reported before the engine removes them, so their slot
-	// and hero still read, and before the PlayersChanged that drops them. A
+	// PlayerAway reports a joined human whose client disconnected while the
+	// server holds their seat. The player is not gone: their controller and
+	// hero stay, and they may return to them, so a mod keeps their seat as it
+	// stands. It follows the PlayersChanged that lists them away.
+	PlayerAway(event *PlayerAwayEvent) error
+	// PlayerReturned reports an away player who reconnected to their seat and
+	// finished joining again. It follows the PlayersChanged that lists them
+	// ready.
+	PlayerReturned(event *PlayerReturnedEvent) error
+	// PlayerLeft reports each joined player leaving the mod, once, when their
+	// seat ends: a bot removed, a human kicked or released by the program that
+	// runs the host, or a human away past the game's limit. A human whose
+	// client merely disconnects is away first. The leave arrives before the
+	// engine frees the slot, so the slot and hero still read, and before the
+	// PlayersChanged that drops them. Modlock then clears what the seat left:
+	// its hero is killed and kept down, and its controller leaves its team. A
 	// disconnect the mod causes during its own event, such as removing a bot,
 	// arrives after that event returns.
 	PlayerLeft(event *PlayerLeftEvent) error
-	// PlayersChanged reports the occupied player slots before the first event
-	// after Start, and again before the next event whenever a player joins,
-	// finishes joining or leaves, so a mod lists players without a call.
+	// PlayersChanged reports the player slots with a seat, connected or away,
+	// before the first event after Start, and again before the next event
+	// whenever a player joins, finishes joining, goes away, returns or leaves,
+	// so a mod lists players without a call.
 	PlayersChanged(event *PlayersChangedEvent) error
 }
 
@@ -2222,6 +2247,18 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.PlayerJoined(event))
+	case "PlayerAway":
+		event := &PlayerAwayEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.PlayerAway(event))
+	case "PlayerReturned":
+		event := &PlayerReturnedEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.PlayerReturned(event))
 	case "PlayerLeft":
 		event := &PlayerLeftEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

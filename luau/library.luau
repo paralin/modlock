@@ -278,6 +278,8 @@ local frames: { (frame: FrameEvent) -> () } = {}
 local chats: { (line: ChatEvent) -> () } = {}
 local joins: { (joined: PlayerJoinedEvent) -> () } = {}
 local leaves: { (left: PlayerLeftEvent) -> () } = {}
+local aways: { (away: PlayerAwayEvent) -> () } = {}
+local returns: { (returned: PlayerReturnedEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -1107,10 +1109,29 @@ function modlock.onPlayerJoin(handler: (joined: PlayerJoinedEvent) -> ())
 	table.insert(joins, handler)
 end
 
+-- onPlayerAway calls handler once each time a joined human's client
+-- disconnects while the server holds their seat. They have not left: their
+-- hero and controller stay in the game, and onPlayerReturn follows if they
+-- come back, so keep their seat as it stands rather than clear it.
+function modlock.onPlayerAway(handler: (away: PlayerAwayEvent) -> ())
+	table.insert(aways, handler)
+end
+
+-- onPlayerReturn calls handler once each time an away player reconnects to
+-- their seat and finishes joining again, with the same Player, generation and
+-- hero they left.
+function modlock.onPlayerReturn(handler: (returned: PlayerReturnedEvent) -> ())
+	table.insert(returns, handler)
+end
+
 -- onPlayerLeave calls handler once for each joined player who leaves the mod,
--- with the reason the server dropped them when it gave one. A player who
--- disconnects still has their slot and hero during the call. A player the
--- mod stops serving leaves too, with disconnected false.
+-- with the reason the server dropped them when it gave one. A seat ends, and
+-- its player leaves, when a bot is removed, a human is kicked or released by
+-- the program that runs the host, or a human stays away past the game's
+-- limit; a human who only disconnects is away first. The slot and hero still
+-- read during the call, and afterwards Modlock kills the hero, keeps it down
+-- and takes the controller off its team, so the mod need not clear them. A
+-- player the mod stops serving leaves too, with disconnected false.
 function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
 	table.insert(leaves, handler)
 end
@@ -1367,7 +1388,7 @@ local handlers: ModHandlers = {
 			damage = #damages ~= 0,
 			damaged = #damageds ~= 0,
 			chat = #chats ~= 0,
-			joins = #joins ~= 0 or #leaves ~= 0,
+			joins = #joins ~= 0 or #leaves ~= 0 or #aways ~= 0 or #returns ~= 0,
 			casts = #abilityCasts ~= 0,
 			kills = #kills ~= 0,
 			heals = #heals ~= 0,
@@ -1606,6 +1627,18 @@ local handlers: ModHandlers = {
 	-- A join and a leave run at once, so the leaving player's hero still reads.
 	playerJoined = function(event)
 		for _, handler in joins do
+			handler(event)
+		end
+	end,
+
+	playerAway = function(event)
+		for _, handler in aways do
+			handler(event)
+		end
+	end,
+
+	playerReturned = function(event)
+		for _, handler in returns do
 			handler(event)
 		end
 	end,

@@ -230,6 +230,7 @@ test("the ability display names each row's player as Tab shows them", () => {
       bot: bot as boolean,
       ready: false,
       generation: 0,
+      away: false,
       roles: [],
     })),
   )
@@ -518,6 +519,7 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
       bot: false,
       ready: true,
       generation: 0,
+      away: false,
       roles: [],
     })),
   )

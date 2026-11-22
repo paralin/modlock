@@ -139,6 +139,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/server_addons.cc
   src/gameinterop/combat_events.cc
   src/gameinterop/connection_tracker.cc
+  src/gameinterop/vacated_seats.cc
   src/gameinterop/console_variables.cc
   src/gameinterop/engine_server.cc
   src/gameinterop/ability_owner_guard.cc

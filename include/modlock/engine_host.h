@@ -111,6 +111,8 @@ class MODLOCK_API EngineHost {
   // EnsureConnectionHook installs the tracker that chat and command hooks
   // consult to admit only connected players.
   std::expected<void, std::string> EnsureConnectionHook();
+  // KeepSeats clears ended seats and releases seats away too long, each frame.
+  void KeepSeats();
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };

@@ -7,6 +7,7 @@
 #include <limits>
 #include <string>
 
+#include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/startup_server_probe.h"
 #include "modlock/gameinterop/virtual_slots.h"
@@ -245,9 +246,11 @@ bool EngineServer::DisconnectClient(int32_t slot, int32_t reason,
     return false;
   }
 
-  // Release the slot's reservation, then disconnect. Without the release the
-  // engine keeps a removed human's slot held for their reconnect. When the
-  // release runs, log the row before the release and after the disconnect.
+  // End the slot's seat, release its reservation, then disconnect. Without
+  // the release the engine keeps a removed human's slot held for their
+  // reconnect. When the release runs, log the row before the release and
+  // after the disconnect.
+  ConnectionTracker::Release(slot, reason);
   void* server = NetworkGameServer();
   const ClientRow before = ReadClientRow(server, slot);
   const bool released = ReleaseReservation(server, slot);

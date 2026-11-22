@@ -11,17 +11,22 @@
 namespace modlock::wasm {
 
 // Attendance is the players one mod instance heard join and not yet leave, so
-// the mod hears exactly one PlayerLeft for each PlayerJoined. A connection
-// joins once it is ready and the mod serves it, and leaves when it
-// disconnects, when the mod stops serving it, or, should the host miss both,
-// when a later roster no longer lists it.
+// the mod hears exactly one PlayerLeft for each PlayerJoined. A seat joins
+// once it is ready and the mod serves it, and leaves when it ends, when the
+// mod stops serving it, or, should the host miss both, when a later roster no
+// longer lists it or lists a new seat in its slot. In between, a joined seat
+// goes away when the roster lists it away or not ready, and returns when the
+// roster lists it ready again, each heard once.
 class Attendance {
  public:
-  // Changes is what one roster changed: the joined connections it no longer
-  // lists, which left unseen, and the ready ones that join.
+  // Changes is what one roster changed: the joined seats it no longer lists,
+  // which left unseen, the ready ones that join, and the joined ones that go
+  // away or return.
   struct Changes {
     std::vector<players::PlayerLeftEvent> left;
     std::vector<players::PlayerJoinedEvent> joined;
+    std::vector<players::PlayerAwayEvent> away;
+    std::vector<players::PlayerReturnedEvent> returned;
   };
 
   // Reconcile records roster, the connections the mod serves now, and
@@ -39,8 +44,15 @@ class Attendance {
   void Clear() { joined_.clear(); }
 
  private:
-  // joined_ holds each joined connection by slot.
-  std::map<int32_t, players::Connection> joined_;
+  // Seat is a joined seat: its last listing, and whether the mod heard it
+  // go away and not yet return.
+  struct Seat {
+    players::Connection connection;
+    bool away = false;
+  };
+
+  // joined_ holds each joined seat by slot.
+  std::map<int32_t, Seat> joined_;
 };
 
 }  // namespace modlock::wasm

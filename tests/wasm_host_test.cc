@@ -375,6 +375,27 @@ TEST(Attendance, PairsEachJoinWithOneLeave) {
   EXPECT_EQ(changes.joined[0].connection().generation(), 2u);
   roster.Clear();
   EXPECT_EQ(attendance.Reconcile(roster).left.size(), 1u);
+
+  // A joined player who disconnects goes away once, keeps their seat, and
+  // returns once when ready again; the seat's end is its one leave.
+  *roster.Add() = connection(3, 1, true);
+  EXPECT_EQ(attendance.Reconcile(roster).joined.size(), 1u);
+  roster[0].set_away(true);
+  roster[0].set_ready(false);
+  changes = attendance.Reconcile(roster);
+  ASSERT_EQ(changes.away.size(), 1u);
+  EXPECT_TRUE(changes.left.empty());
+  EXPECT_TRUE(attendance.Reconcile(roster).away.empty());
+  roster[0].set_away(false);
+  EXPECT_TRUE(attendance.Reconcile(roster).returned.empty());
+  roster[0].set_ready(true);
+  changes = attendance.Reconcile(roster);
+  ASSERT_EQ(changes.returned.size(), 1u);
+  EXPECT_TRUE(changes.joined.empty());
+  roster[0].set_away(true);
+  EXPECT_EQ(attendance.Reconcile(roster).away.size(), 1u);
+  EXPECT_TRUE(attendance.Leave(3, players::DISCONNECT_REASON_KICKED));
+  EXPECT_TRUE(attendance.Reconcile(roster).joined.empty());
 }
 
 TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {

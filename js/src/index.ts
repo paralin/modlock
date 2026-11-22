@@ -41,6 +41,8 @@ import {
   Player,
   type PlayerJoinedEvent,
   type PlayerLeftEvent,
+  type PlayerAwayEvent,
+  type PlayerReturnedEvent,
   serveMod,
 } from './host.gen.js'
 import { serveEvents } from './host.js'
@@ -52,7 +54,16 @@ import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
 import { chatShown } from './chat.js'
 import { Stragglers, type StragglersOptions } from './stragglers.js'
-import { change, heard, joined, left, press, tick } from './ui.js'
+import {
+  away,
+  change,
+  heard,
+  joined,
+  left,
+  press,
+  returned,
+  tick,
+} from './ui.js'
 export * as vector from './vector.js'
 
 export { Buttons, Layers } from './bits.js'
@@ -318,10 +329,35 @@ export function onPlayerJoin(
 }
 
 /**
+ * onPlayerAway calls handler once each time a joined human's client
+ * disconnects while the server holds their seat. They have not left: their
+ * hero and controller stay in the game, and onPlayerReturn follows if they
+ * come back, so keep their seat as it stands rather than clear it.
+ */
+export function onPlayerAway(handler: (away: PlayerAwayEvent) => void): void {
+  aways.push(handler)
+}
+
+/**
+ * onPlayerReturn calls handler once each time an away player reconnects to
+ * their seat and finishes joining again, with the same Player, generation and
+ * hero they left. The library has already sent them their whole interface.
+ */
+export function onPlayerReturn(
+  handler: (returned: PlayerReturnedEvent) => void,
+): void {
+  returns.push(handler)
+}
+
+/**
  * onPlayerLeave calls handler once for each joined player who leaves the mod,
- * with the reason the server dropped them when it gave one. A player who
- * disconnects still has their slot and hero during the call. A player the
- * mod stops serving leaves too, with disconnected false.
+ * with the reason the server dropped them when it gave one. A seat ends, and
+ * its player leaves, when a bot is removed, a human is kicked or released by
+ * the program that runs the host, or a human stays away past the game's
+ * limit; a human who only disconnects is away first. The slot and hero still
+ * read during the call, and afterwards Modlock kills the hero, keeps it down
+ * and takes the controller off its team, so the mod need not clear them. A
+ * player the mod stops serving leaves too, with disconnected false.
  */
 export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
   leaves.push(handler)
@@ -716,6 +752,8 @@ const frames: ((frame: FrameEvent) => void)[] = []
 const chats: ((line: ChatEvent) => void)[] = []
 const joins: ((joined: PlayerJoinedEvent) => void)[] = []
 const leaves: ((left: PlayerLeftEvent) => void)[] = []
+const aways: ((away: PlayerAwayEvent) => void)[] = []
+const returns: ((returned: PlayerReturnedEvent) => void)[] = []
 const spawns: ((player: Player, pawn: Pawn) => void)[] = []
 const worlds: ((map: string) => void)[] = []
 const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
@@ -978,6 +1016,22 @@ const handlers: ModHandlers = {
   playerJoined(event) {
     joined(event.connection.player)
     for (const handler of joins) {
+      handler(event)
+    }
+  },
+
+  // An away player's client lost its screen; a returning one gets it whole
+  // before the mod hears them back.
+  playerAway(event) {
+    away(event.connection.player)
+    for (const handler of aways) {
+      handler(event)
+    }
+  },
+
+  playerReturned(event) {
+    returned(event.connection.player)
+    for (const handler of returns) {
       handler(event)
     }
   },

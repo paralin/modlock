@@ -103,27 +103,28 @@ Python spells each as a `snake_case` decorator, such as
 `mod.OnPlayerJoin`. A call that takes a name takes it in the decorator, as
 `@modlock.on_modifier_event("PRE_UNIT_HEALED")` does.
 
-| Call                                                | Runs the handler                                                                          |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                        |
-| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                               |
-| `onPing(handler)`                                   | Before each ping reaches anyone, to block it or mute its voice; see [Pings](#pings).      |
-| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                  |
-| `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                    |
-| `onFrame(handler)`                                  | Once per server frame.                                                                    |
-| `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined.             |
-| `onSpawn(handler)`                                  | When a player's first hero enters play and on each respawn, with the hero.                |
-| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero can still be read.                    |
-| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                             |
-| `onKill(handler)`                                   | After each hit that kills a hero or a unit; see [Damage](/guides/damage#react-to-a-kill). |
-| `onAbilityCast(handler)`                            | After each ability or item the game executes.                                             |
-| `onHeal(handler)`                                   | After each heal; see [Heals, levels and melee](#heals-levels-and-melee).                  |
-| `onLevelChange(handler)`                            | As each hero reaches a new level.                                                         |
-| `onMelee(handler)`, `onParry(handler)`              | After each melee swing; after each parry that catches one.                                |
-| `onModifierEvent(name, handler)`                    | Each time the game fires the named modifier event.                                        |
-| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                                    |
-| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                                          |
-| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.                                 |
+| Call                                                | Runs the handler                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                         |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                                |
+| `onPing(handler)`                                   | Before each ping reaches anyone, to block it or mute its voice; see [Pings](#pings).       |
+| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                   |
+| `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                     |
+| `onFrame(handler)`                                  | Once per server frame.                                                                     |
+| `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined.              |
+| `onSpawn(handler)`                                  | When a player's first hero enters play and on each respawn, with the hero.                 |
+| `onPlayerAway(handler)`, `onPlayerReturn(handler)`  | When a joined player's connection drops while the game holds their seat; when they return. |
+| `onPlayerLeave(handler)`                            | Once per joined player whose seat ends, while their hero can still be read.                |
+| `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands.                              |
+| `onKill(handler)`                                   | After each hit that kills a hero or a unit; see [Damage](/guides/damage#react-to-a-kill).  |
+| `onAbilityCast(handler)`                            | After each ability or item the game executes.                                              |
+| `onHeal(handler)`                                   | After each heal; see [Heals, levels and melee](#heals-levels-and-melee).                   |
+| `onLevelChange(handler)`                            | As each hero reaches a new level.                                                          |
+| `onMelee(handler)`, `onParry(handler)`              | After each melee swing; after each parry that catches one.                                 |
+| `onModifierEvent(name, handler)`                    | Each time the game fires the named modifier event.                                         |
+| `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.                                     |
+| `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.                                           |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.                                  |
 
 ## A player's stages
 
@@ -135,7 +136,8 @@ the hero.
 | Connecting | The player holds a slot and is still loading the map. Nothing sent to them shows yet.                  | In the [player list](/guides/players#list-the-players) with `ready` false. |
 | Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may have no hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
 | In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn.                                          |
-| Left       | The mod no longer serves the player.                                                                   | `onPlayerLeave`, once for each join.                                       |
+| Away       | The connection dropped, and the game holds the seat, hero and team for the player's return.            | `onPlayerAway`, then `onPlayerReturn` if they come back. `away` is true.   |
+| Left       | The seat ended, and the mod no longer serves the player.                                               | `onPlayerLeave`, once for each join.                                       |
 
 Between joined and in play, the player is picking a team or a hero, or the game
 has not placed the hero yet. [`player.seat`](/guides/toolkit#seat-the-players)
@@ -145,8 +147,18 @@ each respawn. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
-Each joined player leaves exactly once, before the server removes them, so
-your handler can still read their hero:
+A player whose connection drops is away, not gone: the game keeps their seat,
+hero and team for five minutes, and a player who reconnects in that time returns
+to them as the same Player. Interfaces sent while a player is away are dropped,
+and Modlock draws each one again when they return. A mod that pauses on an
+absence, such as a ready check, can listen with `onPlayerAway` and
+`onPlayerReturn`.
+
+Each joined player leaves exactly once, when their seat ends: they leave from
+the game, the mod stops serving them, a stranger takes the held slot, or the
+five minutes run out. Your handler can still read their hero. A moment later
+Modlock lays the hero down for good and takes the controller off its team, so a
+mod never has to clear what a leaver left in the world:
 
 <Samples>
 

@@ -1602,6 +1602,15 @@ function ui.route(player: Player, name: string, value: any): boolean
 	return draw(player)
 end
 
+-- A returning player's client lost its interface, so it goes whole.
+modlock.onPlayerReturn(function(returned)
+	local player = returned.connection.player
+	if views[player.slot] then
+		screens[player.slot] = nil
+		draw(player)
+	end
+end)
+
 -- hide removes the interface, the routes and the notices the mod shows
 -- player.
 function ui.hide(player: Player): boolean

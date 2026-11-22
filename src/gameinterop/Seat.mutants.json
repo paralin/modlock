@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Leave at the disconnect: the seat ends while the engine still holds the row",
+    "replace": [
+      [
+        "Disconnect == /\\ row = \"live\" /\\ row' = \"held\" /\\ seat' = \"away\"\n              /\\ heard' = IF heard = \"joined\" THEN \"away\" ELSE heard\n              /\\ UNCHANGED <<owner, hero, listed, joins, leaves>>",
+        "Disconnect == /\\ row = \"live\" /\\ row' = \"held\" /\\ seat' = \"none\" /\\ heard' = \"none\"\n              /\\ leaves' = IF heard = \"none\" THEN leaves ELSE leaves + 1\n              /\\ UNCHANGED <<owner, hero, listed, joins>>"
+      ]
+    ],
+    "expect": "AwayIsHeld"
+  },
+  {
+    "name": "Strays ignores away seats: it lays down a held hero",
+    "replace": [
+      [
+        "Sweep == /\\ hero = \"alive\" /\\ seat = \"none\"",
+        "Sweep == /\\ hero = \"alive\" /\\ seat \\in {\"none\", \"away\"}"
+      ]
+    ],
+    "expect": "HeldSeatIntact"
+  },
+  {
+    "name": "A return is a new join: the mod hears a second join without a leave",
+    "replace": [
+      [
+        "/\\ joins' = IF heard = \"none\" THEN joins + 1 ELSE joins",
+        "/\\ joins' = joins + 1"
+      ]
+    ],
+    "expect": "OneLeavePerJoin"
+  }
+]

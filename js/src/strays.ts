@@ -9,9 +9,18 @@
 // A pawn is held when a connected player's hero is it, or when its own
 // controller's hero is it: a player still joining, or watching from the
 // spectators, has a controller that names their hero before the player
-// reports it. Only a pawn both checks disown is a stray.
+// reports it. A disconnected controller's hero is held while its seat is
+// away, since the server gives that seat back to its player and a returning
+// client whose hero lies dead drops the connection. Only a pawn both checks
+// disown is a stray; an ended seat's hero Modlock lays down itself.
 
-import { damage, findEntities, log, readField, writeField } from './host.gen.js'
+import {
+  findEntities,
+  killEntity,
+  log,
+  readField,
+  writeField,
+} from './host.gen.js'
 import { holdBystander } from './bystander.js'
 import { players } from './players.js'
 
@@ -20,9 +29,6 @@ export const strayGraceSeconds = 3
 
 /** strayRespawnTime is the game time a stray's respawn is held at, past any session. */
 const strayRespawnTime = 1e9
-
-/** strayBlow is a hit no hero's resistances survive. */
-const strayBlow = 1_000_000
 
 /**
  * Strays finds and lays down stray hero pawns. A mod that swaps heroes keeps
@@ -53,7 +59,12 @@ export class Strays {
 
     // A pawn is held when any connected player's hero is it.
     const held = new Set<number>()
-    for (const { player } of players()) {
+    const away = new Set<number>()
+    for (const { player, away: gone } of players()) {
+      if (gone) {
+        away.add(player.slot)
+        continue
+      }
       const pawn = player.pawn()
       if (pawn) {
         held.add(pawn.entity)
@@ -64,7 +75,7 @@ export class Strays {
     const since = new Map<number, number>()
     const gone = new Set<number>()
     for (const entity of findEntities('player')) {
-      if (held.has(entity) || ownHero(entity, this.gone, gone)) {
+      if (held.has(entity) || ownHero(entity, away, this.gone, gone)) {
         continue
       }
       const first = this.since.get(entity) ?? now
@@ -79,12 +90,15 @@ export class Strays {
 }
 
 /**
- * ownHero reports whether the hero pawn entity is its controller's hero. A
- * pawn whose controller is gone, or names another hero, is not. It skips a
- * controller in known as gone and adds each gone controller it sees to seen.
+ * ownHero reports whether the hero pawn entity is its controller's hero, for
+ * a controller that is connected or whose slot is in away. A pawn whose
+ * controller is gone, disconnected for good, or names another hero, is not.
+ * It skips a controller in known as gone and adds each gone controller it
+ * sees to seen.
  */
 function ownHero(
   entity: number,
+  away: ReadonlySet<number>,
   known: Set<number>,
   seen: Set<number>,
 ): boolean {
@@ -103,14 +117,19 @@ function ownHero(
     return false
   }
 
-  // Disconnecting and disconnected controllers may keep naming old heroes.
+  // Disconnecting and disconnected controllers may keep naming old heroes;
+  // only an away seat's still holds one. A player controller's entity index
+  // is its slot plus one.
   const connected = readField(
     controller,
     'CBasePlayerController',
     'm_iConnected',
     'int32',
   )
-  if (connected === 3 || connected === 4) {
+  if (
+    (connected === 3 || connected === 4) &&
+    !away.has((controller & 0x7fff) - 1)
+  ) {
     return false
   }
   const hero = readField(
@@ -137,7 +156,7 @@ function layDown(entity: number): void {
   holdBystander(entity, false)
   const health = readField(entity, 'CBaseEntity', 'm_iHealth', 'int32')
   if (typeof health === 'number' && health > 0) {
-    damage({ victim: entity, amount: strayBlow })
+    killEntity({ victim: entity })
     log(`laid down a stray hero pawn ${entity}`)
   }
   writeField(

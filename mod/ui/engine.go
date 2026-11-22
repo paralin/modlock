@@ -442,6 +442,16 @@ func tick(seconds float64) {
 	}
 }
 
+// returned sends a returning player their whole interface, which their client
+// lost while they were away.
+func returned(event *mod.PlayerReturnedEvent) {
+	slot := event.GetConnection().GetPlayer()
+	if v := lib.views[slot]; v != nil {
+		delete(lib.screens, slot)
+		draw(v)
+	}
+}
+
 // forget drops the view and screen of each slot whose player left or was
 // replaced, so a new player in the slot starts with nothing shown.
 func forget(players []*mod.Connection) {

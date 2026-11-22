@@ -16,7 +16,8 @@ message RestoredEvent {
   string error = 2;
 }
 
-// PlayersChangedEvent holds every occupied player slot, as Players lists them.
+// PlayersChangedEvent holds every player slot with a seat, connected or
+// away, as Players lists them.
 message PlayersChangedEvent {
   repeated Connection players = 1;
 }
@@ -26,6 +27,22 @@ message PlayersChangedEvent {
 // the mod starts or begins to serve them.
 message PlayerJoinedEvent {
   // Connection is the player as Players lists them.
+  Connection connection = 1;
+}
+
+// PlayerAwayEvent reports a joined player whose client disconnected while the
+// server holds their seat. Their controller and hero stay in the game, and the
+// player may return to them.
+message PlayerAwayEvent {
+  // Connection is the player as Players lists them, away.
+  Connection connection = 1;
+}
+
+// PlayerReturnedEvent reports an away player who reconnected to their seat
+// and finished joining again. The seat, its generation and its hero are the
+// ones they left.
+message PlayerReturnedEvent {
+  // Connection is the player as Players lists them, ready again.
   Connection connection = 1;
 }
 
@@ -197,9 +214,11 @@ message Connection {
   bool bot = 4;
 
   // Ready is true once a human has finished joining; bots are always ready.
+  // An away player is not ready.
   bool ready = 5;
 
-  // Generation changes each time a new connection takes the slot.
+  // Generation identifies the seat: it changes when a new player or bot takes
+  // the slot, and stays the same when an away player returns.
   uint32 generation = 6;
 
   // Roles are what the player is to the running mods, as the program that
@@ -207,6 +226,10 @@ message Connection {
   // unfinished feature for its testers; the platform that keeps a mod's
   // shared data checks its own writers.
   repeated ModRole roles = 7;
+
+  // Away is true while the player's client is disconnected and the server
+  // holds their seat for them to return.
+  bool away = 8;
 }
 
 // ModRole is what a player is to the running mods.

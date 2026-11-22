@@ -2061,7 +2061,8 @@ function fromRestoredEvent(message: playersPb.RestoredEvent): RestoredEvent {
 }
 
 /**
- * PlayersChangedEvent holds every occupied player slot, as Players lists them.
+ * PlayersChangedEvent holds every player slot with a seat, connected or
+ * away, as Players lists them.
  */
 export interface PlayersChangedEvent {
   readonly players: Connection[]
@@ -2086,6 +2087,40 @@ export interface PlayerJoinedEvent {
 
 /** fromPlayerJoinedEvent decodes a PlayerJoinedEvent. */
 function fromPlayerJoinedEvent(message: playersPb.PlayerJoinedEvent): PlayerJoinedEvent {
+  return {
+    connection: fromConnection(message.connection ?? {}),
+  }
+}
+
+/**
+ * PlayerAwayEvent reports a joined player whose client disconnected while the
+ * server holds their seat. Their controller and hero stay in the game, and the
+ * player may return to them.
+ */
+export interface PlayerAwayEvent {
+  /** connection is the player as Players lists them, away. */
+  readonly connection: Connection
+}
+
+/** fromPlayerAwayEvent decodes a PlayerAwayEvent. */
+function fromPlayerAwayEvent(message: playersPb.PlayerAwayEvent): PlayerAwayEvent {
+  return {
+    connection: fromConnection(message.connection ?? {}),
+  }
+}
+
+/**
+ * PlayerReturnedEvent reports an away player who reconnected to their seat
+ * and finished joining again. The seat, its generation and its hero are the
+ * ones they left.
+ */
+export interface PlayerReturnedEvent {
+  /** connection is the player as Players lists them, ready again. */
+  readonly connection: Connection
+}
+
+/** fromPlayerReturnedEvent decodes a PlayerReturnedEvent. */
+function fromPlayerReturnedEvent(message: playersPb.PlayerReturnedEvent): PlayerReturnedEvent {
   return {
     connection: fromConnection(message.connection ?? {}),
   }
@@ -2134,9 +2169,13 @@ export interface Connection {
   readonly bot: boolean
   /**
    * ready is true once a human has finished joining; bots are always ready.
+   * An away player is not ready.
    */
   readonly ready: boolean
-  /** generation changes each time a new connection takes the slot. */
+  /**
+   * generation identifies the seat: it changes when a new player or bot takes
+   * the slot, and stays the same when an away player returns.
+   */
   readonly generation: number
   /**
    * roles are what the player is to the running mods, as the program that
@@ -2145,6 +2184,11 @@ export interface Connection {
    * shared data checks its own writers.
    */
   readonly roles: ModRole[]
+  /**
+   * away is true while the player's client is disconnected and the server
+   * holds their seat for them to return.
+   */
+  readonly away: boolean
 }
 
 /** fromConnection decodes a Connection. */
@@ -2157,6 +2201,7 @@ function fromConnection(message: playersPb.Connection): Connection {
     ready: message.ready ?? false,
     generation: message.generation ?? 0,
     roles: known(message.roles, (v) => modRoleNames[v]),
+    away: message.away ?? false,
   }
 }
 
@@ -2769,6 +2814,7 @@ export interface StartResult {
   chat: boolean
   /**
    * joins asks for a PlayerJoined event as each player the mod serves joins,
+   * PlayerAway and PlayerReturned events as they disconnect and come back,
    * and a PlayerLeft event as each leaves.
    */
   joins: boolean
@@ -4531,17 +4577,35 @@ export interface ModHandlers {
    */
   playerJoined(event: PlayerJoinedEvent): void
   /**
-   * playerLeft reports each joined player leaving the mod, once. A player who
-   * disconnects is reported before the engine removes them, so their slot
-   * and hero still read, and before the PlayersChanged that drops them. A
+   * playerAway reports a joined human whose client disconnected while the
+   * server holds their seat. The player is not gone: their controller and
+   * hero stay, and they may return to them, so a mod keeps their seat as it
+   * stands. It follows the PlayersChanged that lists them away.
+   */
+  playerAway(event: PlayerAwayEvent): void
+  /**
+   * playerReturned reports an away player who reconnected to their seat and
+   * finished joining again. It follows the PlayersChanged that lists them
+   * ready.
+   */
+  playerReturned(event: PlayerReturnedEvent): void
+  /**
+   * playerLeft reports each joined player leaving the mod, once, when their
+   * seat ends: a bot removed, a human kicked or released by the program that
+   * runs the host, or a human away past the game's limit. A human whose
+   * client merely disconnects is away first. The leave arrives before the
+   * engine frees the slot, so the slot and hero still read, and before the
+   * PlayersChanged that drops them. Modlock then clears what the seat left:
+   * its hero is killed and kept down, and its controller leaves its team. A
    * disconnect the mod causes during its own event, such as removing a bot,
    * arrives after that event returns.
    */
   playerLeft(event: PlayerLeftEvent): void
   /**
-   * playersChanged reports the occupied player slots before the first event
-   * after Start, and again before the next event whenever a player joins,
-   * finishes joining or leaves, so a mod lists players without a call.
+   * playersChanged reports the player slots with a seat, connected or away,
+   * before the first event after Start, and again before the next event
+   * whenever a player joins, finishes joining, goes away, returns or leaves,
+   * so a mod lists players without a call.
    */
   playersChanged(event: PlayersChangedEvent): void
 }
@@ -4630,6 +4694,12 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'PlayerJoined':
         handlers.playerJoined(fromPlayerJoinedEvent(playersPb.PlayerJoinedEvent.fromBinary(input)))
+        return reply()
+      case 'PlayerAway':
+        handlers.playerAway(fromPlayerAwayEvent(playersPb.PlayerAwayEvent.fromBinary(input)))
+        return reply()
+      case 'PlayerReturned':
+        handlers.playerReturned(fromPlayerReturnedEvent(playersPb.PlayerReturnedEvent.fromBinary(input)))
         return reply()
       case 'PlayerLeft':
         handlers.playerLeft(fromPlayerLeftEvent(playersPb.PlayerLeftEvent.fromBinary(input)))

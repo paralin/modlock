@@ -398,13 +398,13 @@ std::expected<void, std::string> Game::Announce(const effects::AnnounceRequest& 
 std::expected<players::PlayersResponse, std::string> Game::Players() {
   players::PlayersResponse players;
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    // List each occupied slot.
+    // List each slot with a seat, connected or away.
     const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
-    if (!state.occupied) {
+    if (!state.occupied && !state.away) {
       continue;
     }
 
-    // With its identity and readiness.
+    // With its identity, readiness and presence.
     auto* player = players.add_players();
     player->set_player(slot);
     player->set_steam_id(state.is_bot ? 0 : state.xuid);
@@ -412,6 +412,7 @@ std::expected<players::PlayersResponse, std::string> Game::Players() {
     player->set_bot(state.is_bot);
     player->set_ready(state.is_bot || state.fully_connected);
     player->set_generation(state.generation);
+    player->set_away(state.away);
   }
   return players;
 }

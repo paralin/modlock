@@ -41,7 +41,8 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
   // before it carries; a nested event is refused, so it reports nothing. The
   // report's own events go without one.
   if (!sending_ && call.method() != "Start" && call.method() != "PlayersChanged" &&
-      call.method() != "PlayerJoined" && call.method() != "PlayerLeft") {
+      call.method() != "PlayerJoined" && call.method() != "PlayerLeft" &&
+      call.method() != "PlayerAway" && call.method() != "PlayerReturned") {
     ReportPlayers();
   }
   if (!instance_) {
@@ -104,9 +105,9 @@ void WasmPlugin::ReportPlayers() {
   scope_.Keep(*players->mutable_players());
 
   // A mod that wants joins hears the players that left unseen before the
-  // report, and those that joined after it, so each leave precedes the
-  // report that drops the player and each join follows the one that adds
-  // them.
+  // report, and those that joined, went away or returned after it, so each
+  // leave precedes the report that drops the player and every other change
+  // follows the one that shows it.
   Attendance::Changes changes;
   if (wants_.joins()) {
     changes = attendance_.Reconcile(players->players());
@@ -119,6 +120,12 @@ void WasmPlugin::ReportPlayers() {
   static_cast<void>(mod_.PlayersChanged(event));
   for (const auto& joined : changes.joined) {
     static_cast<void>(mod_.PlayerJoined(joined));
+  }
+  for (const auto& away : changes.away) {
+    static_cast<void>(mod_.PlayerAway(away));
+  }
+  for (const auto& returned : changes.returned) {
+    static_cast<void>(mod_.PlayerReturned(returned));
   }
 }
 
@@ -251,11 +258,20 @@ void WasmPlugin::Leave(int32_t slot, std::optional<int32_t> reason) {
   HandOn(slot);
   handoff_players_.erase(slot);
   game_.Leave(slot);
+  DropUi(slot);
+}
+
+void WasmPlugin::Away(int32_t slot) {
+  // An away player's client lost its interface; the mod draws it again when
+  // they return. The seat keeps everything else.
+  DropUi(slot);
+}
+
+void WasmPlugin::DropUi(int32_t slot) {
+  // Forget the player's interface, and reset what observers drew of it.
   if (!ui_.Drop(slot)) {
     return;
   }
-
-  // Reset their interface.
   ui::Change reset;
   reset.set_reset(true);
   ShowUi(slot, reset);
@@ -266,13 +282,12 @@ bool PluginGame::Serves(int32_t slot) const {
 }
 
 void WasmPlugin::Scope(WasmScope scope) {
-  // Each occupied slot the old scope served and the new one does not leaves
-  // the mod.
+  // Each seat the old scope served and the new one does not leaves the mod.
   PlayerScope next;
   next.Limit(std::move(scope));
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    if (scope_.Serves(slot) && !next.Serves(slot) &&
-        gameinterop::ConnectionTracker::StateForSlot(slot).occupied) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+    if (scope_.Serves(slot) && !next.Serves(slot) && (state.occupied || state.away)) {
       Leave(slot, std::nullopt);
     }
   }

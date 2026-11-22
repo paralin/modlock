@@ -74,16 +74,21 @@ wasm::movement::Interaction InteractionOf(const gameinterop::InteractionEvent& e
 }
 
 // Departures forwards player departures to a plugin, which owns the
-// subscription that holds it.
+// subscription that holds it: each disconnect, which leaves the seat away,
+// and each seat's end.
 class Departures final : public gameinterop::ConnectionEventSink {
  public:
-  explicit Departures(std::function<void(int32_t, int32_t)> leave) : leave_(std::move(leave)) {}
+  Departures(std::function<void(int32_t)> away, std::function<void(int32_t, int32_t)> leave)
+      : away_(std::move(away)), leave_(std::move(leave)) {}
 
   void OnConnected(int32_t, uint64_t, bool, const char*) override {}
 
-  void OnDisconnecting(int32_t slot, uint64_t, int32_t reason) override { leave_(slot, reason); }
+  void OnDisconnecting(int32_t slot, uint64_t, int32_t) override { away_(slot); }
+
+  void OnSeatEnded(int32_t slot, uint64_t, int32_t reason) override { leave_(slot, reason); }
 
  private:
+  std::function<void(int32_t)> away_;
   std::function<void(int32_t, int32_t)> leave_;
 };
 
@@ -216,6 +221,7 @@ void WasmPlugin::ListenToPlayers() {
     }
   }
   if (auto departures = engine_->OnConnection(std::make_shared<Departures>(
+          [this](int32_t slot) { Away(slot); },
           [this](int32_t slot, int32_t reason) { Leave(slot, reason); }))) {
     players_.Add(std::move(*departures));
   } else {

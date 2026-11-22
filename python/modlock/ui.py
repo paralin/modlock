@@ -57,16 +57,27 @@ import json
 import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Concatenate, Literal, NewType, NotRequired, Required, TypedDict, Unpack
+from typing import (
+    Any,
+    Concatenate,
+    Literal,
+    NewType,
+    NotRequired,
+    Required,
+    TypedDict,
+    Unpack,
+)
 
 from . import (
     _SCHEMA,  # pyright: ignore[reportPrivateUsage]
     HEROES,
     Player,
+    PlayerReturnedEvent,
     Wheel,
     _call,  # pyright: ignore[reportPrivateUsage]
     _serve_ui,  # pyright: ignore[reportPrivateUsage]
     _UiHandlers,  # pyright: ignore[reportPrivateUsage]
+    on_player_return,
     players,
     read_field,
     wire,
@@ -1409,3 +1420,14 @@ def _color(value: str | None) -> int | None:
 
 
 _serve_ui(_UiHandlers(press=_press, change=_change, tick=_tick))
+
+
+@on_player_return
+def _returned(returned: PlayerReturnedEvent) -> None:
+    """_returned sends a returning player their whole interface, which their
+    client lost while they were away."""
+    slot = returned.connection.player.slot
+    if slot in _views:
+        _screens.pop(slot, None)
+        _draw(_views[slot].player)
+

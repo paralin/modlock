@@ -90,7 +90,8 @@ class HostService {
     return std::unexpected("this host does not support Precache");
   }
 
-  // Players lists the occupied player slots in slot order. The libraries
+  // Players lists the player slots with a seat, connected or away, in slot
+  // order. The libraries
   // answer from the last PlayersChanged instead, once one arrived.
   virtual std::expected<players::PlayersResponse, std::string> Players() {
     return std::unexpected("this host does not support Players");
@@ -2306,18 +2307,38 @@ class ModClient {
     return Send<void>("PlayerJoined", event);
   }
 
-  // PlayerLeft reports each joined player leaving the mod, once. A player who
-  // disconnects is reported before the engine removes them, so their slot
-  // and hero still read, and before the PlayersChanged that drops them. A
+  // PlayerAway reports a joined human whose client disconnected while the
+  // server holds their seat. The player is not gone: their controller and
+  // hero stay, and they may return to them, so a mod keeps their seat as it
+  // stands. It follows the PlayersChanged that lists them away.
+  std::expected<void, std::string> PlayerAway(const players::PlayerAwayEvent& event) {
+    return Send<void>("PlayerAway", event);
+  }
+
+  // PlayerReturned reports an away player who reconnected to their seat and
+  // finished joining again. It follows the PlayersChanged that lists them
+  // ready.
+  std::expected<void, std::string> PlayerReturned(const players::PlayerReturnedEvent& event) {
+    return Send<void>("PlayerReturned", event);
+  }
+
+  // PlayerLeft reports each joined player leaving the mod, once, when their
+  // seat ends: a bot removed, a human kicked or released by the program that
+  // runs the host, or a human away past the game's limit. A human whose
+  // client merely disconnects is away first. The leave arrives before the
+  // engine frees the slot, so the slot and hero still read, and before the
+  // PlayersChanged that drops them. Modlock then clears what the seat left:
+  // its hero is killed and kept down, and its controller leaves its team. A
   // disconnect the mod causes during its own event, such as removing a bot,
   // arrives after that event returns.
   std::expected<void, std::string> PlayerLeft(const players::PlayerLeftEvent& event) {
     return Send<void>("PlayerLeft", event);
   }
 
-  // PlayersChanged reports the occupied player slots before the first event
-  // after Start, and again before the next event whenever a player joins,
-  // finishes joining or leaves, so a mod lists players without a call.
+  // PlayersChanged reports the player slots with a seat, connected or away,
+  // before the first event after Start, and again before the next event
+  // whenever a player joins, finishes joining, goes away, returns or leaves,
+  // so a mod lists players without a call.
   std::expected<void, std::string> PlayersChanged(const players::PlayersChangedEvent& event) {
     return Send<void>("PlayersChanged", event);
   }
