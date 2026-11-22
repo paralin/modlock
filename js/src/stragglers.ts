@@ -2,7 +2,7 @@
 // stops loading keeps their slot as a connecting player until the network
 // gives up, and the game keeps a disconnected player's hero standing in the
 // world. Stragglers kicks a connection that has not finished joining by a
-// deadline and lays down the heroes Strays finds no player holding.
+// deadline and kills the heroes Strays finds no player holding.
 //
 // It sees only the slots the host lists: an attempt the engine never put in
 // the server has no slot, so no mod can see or kick it.
@@ -22,14 +22,14 @@ export interface StragglersOptions {
    */
   connectSeconds?: number
   /**
-   * heroes lays down the heroes no player holds, such as a disconnected
+   * heroes kills the heroes no player holds, such as a disconnected
    * player's, as Strays does. It is true by default.
    */
   heroes?: boolean
 }
 
 /**
- * Stragglers kicks players stuck joining and lays down heroes left without a
+ * Stragglers kicks players stuck joining and kills heroes left without a
  * player. A mod keeps one and calls sweep each frame with the game time; it
  * looks once a second.
  */
@@ -49,11 +49,11 @@ export class Stragglers {
 
   /**
    * sweep kicks each human connecting for longer than connectSeconds, once
-   * per connection, and lays down heroes no player holds, at most once a
+   * per connection, and kills heroes no player holds, at most once a
    * second.
    */
   sweep(now: number): void {
-    // Lay down heroes left without a player; Strays paces itself.
+    // Kill heroes left without a player; Strays paces itself.
     this.strays?.sweep(now)
 
     // Look for stuck joins at most once a second.

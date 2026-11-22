@@ -79,11 +79,14 @@ test('disconnected controllers do not retain abandoned heroes while joining hero
     { entity: 5, state: 'MODIFIER_STATE_MELEE_DISABLED', active: false },
   ])
 
-  // A controller that reconnects during the grace period retains its hero.
+  // A controller that reconnects retains its hero, and a stray the kill
+  // left standing is not hit again: only its respawn is held.
   hits.length = 0
+  respawns.length = 0
   states[3] = 2
   strays.sweep(4)
-  expect(hits).toEqual([5])
+  expect(hits).toEqual([])
+  expect(respawns).toEqual([5])
 })
 
 test('an away seat keeps its hero until the seat ends', () => {

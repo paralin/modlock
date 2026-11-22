@@ -1,10 +1,12 @@
-// Strays lays down hero pawns that no player holds any more. A hero swap, a
+// Strays kills hero pawns that no player holds any more. A hero swap, a
 // move to the spectators or a reload can leave the old hero standing in the
 // world, and the game revives it with no player on its own respawn timer.
 // Removing a hero pawn leaves its abilities and items networked, which closes
 // clients, and killing one alone lets the game revive it. So a stray is
 // killed once and has its respawn held off for good; a dead hero draws
-// nothing and casts nothing.
+// nothing and casts nothing. The kill is a forced death: the game drops a
+// damage hit on a disconnected player's hero. Each stray is tried once, and
+// one that still stands is reported once and left alone.
 //
 // A pawn is held when a connected player's hero is it, or when its own
 // controller's hero is it: a player still joining, or watching from the
@@ -12,7 +14,7 @@
 // reports it. A disconnected controller's hero is held while its seat is
 // away, since the server gives that seat back to its player and a returning
 // client whose hero lies dead drops the connection. Only a pawn both checks
-// disown is a stray; an ended seat's hero Modlock lays down itself.
+// disown is a stray; an ended seat's hero Modlock kills itself.
 
 import {
   findEntities,
@@ -24,14 +26,14 @@ import {
 import { holdBystander } from './bystander.js'
 import { players } from './players.js'
 
-/** strayGraceSeconds is how long a hero pawn belongs to no player before it is laid down. */
+/** strayGraceSeconds is how long a hero pawn belongs to no player before it is killed. */
 export const strayGraceSeconds = 3
 
 /** strayRespawnTime is the game time a stray's respawn is held at, past any session. */
 const strayRespawnTime = 1e9
 
 /**
- * Strays finds and lays down stray hero pawns. A mod that swaps heroes keeps
+ * Strays finds and kills stray hero pawns. A mod that swaps heroes keeps
  * one and calls sweep each frame with the game time; it looks once a second.
  */
 export class Strays {
@@ -43,12 +45,19 @@ export class Strays {
    * failed read logs on the host: a sweep reads it once.
    */
   private gone = new Set<number>()
+  /**
+   * killed holds the strays already killed, or tried, for as long as they
+   * stay strays: each is tried once, then only has its respawn held.
+   */
+  private killed = new Set<number>()
   private sweptAt = -Infinity
 
   /**
-   * sweep lays down each hero pawn that has belonged to no player for
-   * strayGraceSeconds, at most once a second. The game sets a dead pawn's
-   * respawn when it dies, so the hold repeats on each sweep.
+   * sweep kills each hero pawn that has belonged to no player for
+   * strayGraceSeconds, once per pawn, at most once a second. The game sets a
+   * dead pawn's respawn when it dies, so the hold repeats on each sweep. A
+   * pawn a player holds again is forgotten, and killed anew if it strays
+   * again.
    */
   sweep(now: number): void {
     // Look at most once a second.
@@ -71,21 +80,29 @@ export class Strays {
       }
     }
 
-    // Lay a pawn down once it has belonged to no one for the grace period.
+    // Kill a pawn once it has belonged to no one for the grace period.
     const since = new Map<number, number>()
     const gone = new Set<number>()
+    const killed = new Set<number>()
     for (const entity of findEntities('player')) {
       if (held.has(entity) || ownHero(entity, away, this.gone, gone)) {
+        continue
+      }
+      if (this.killed.has(entity)) {
+        holdRespawn(entity)
+        killed.add(entity)
         continue
       }
       const first = this.since.get(entity) ?? now
       since.set(entity, first)
       if (now - first >= strayGraceSeconds) {
-        layDown(entity)
+        killStray(entity)
+        killed.add(entity)
       }
     }
     this.since = since
     this.gone = gone
+    this.killed = killed
   }
 }
 
@@ -147,18 +164,35 @@ function ownHero(
 }
 
 /**
- * layDown kills a stray hero pawn if it stands and keeps its respawn out of
+ * killStray kills a stray hero pawn if it stands and keeps its respawn out of
  * reach. Its abilities stay: killing ability entities on a live hero pawn
- * has ended the server process.
+ * has ended the server process. A pawn the forced death leaves standing is
+ * reported once; the sweep does not try it again.
  */
-function layDown(entity: number): void {
-  // Kill it if it stands, then hold its respawn past any session.
+function killStray(entity: number): void {
+  // Release any bystander hold, which makes the hero invulnerable.
   holdBystander(entity, false)
   const health = readField(entity, 'CBaseEntity', 'm_iHealth', 'int32')
-  if (typeof health === 'number' && health > 0) {
-    killEntity({ victim: entity })
-    log(`laid down a stray hero pawn ${entity}`)
+  if (typeof health !== 'number' || health <= 0) {
+    holdRespawn(entity)
+    return
   }
+
+  // Force the death, then hold the respawn the death set.
+  killEntity({ victim: entity })
+  holdRespawn(entity)
+  const left = readField(entity, 'CBaseEntity', 'm_iHealth', 'int32')
+  if (typeof left === 'number' && left > 0) {
+    log(
+      `stray hero pawn ${entity} still stands after a forced death; left alone`,
+    )
+    return
+  }
+  log(`killed a stray hero pawn ${entity}`)
+}
+
+/** holdRespawn holds the dead hero pawn's respawn past any session. */
+function holdRespawn(entity: number): void {
   writeField(
     entity,
     'CCitadelPlayerPawn',
