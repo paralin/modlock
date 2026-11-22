@@ -42,9 +42,11 @@ export interface GuardHost extends AbilityHost {
 }
 
 /**
- * HIDDEN_MARK names the attribute on each panel the guard hid: "shown" when
- * the panel showed before, "unseen" when it did not. The mark outlives the
- * script, so a guard that starts again shows what an earlier one hid.
+ * HIDDEN_MARK names the attribute on each panel the guard hid. Its value is
+ * the inline visibility the guard's collapse replaced: "none" for no inline
+ * value, "visible" or "collapse". An earlier release wrote "shown" or
+ * "unseen" over a panel with no inline value. The mark outlives the script,
+ * so a guard that starts again gives back what an earlier one hid.
  */
 export const HIDDEN_MARK = 'modlock_hidden'
 
@@ -229,33 +231,52 @@ function ownPanel(hud: GuardPanel, id: string): GuardPanel[] {
 }
 
 /**
- * hidePanel hides one panel by its visible, marking whether it showed. A
- * panel the game shows again meanwhile is hidden again and marked shown.
- * Visible, unlike an inline visibility, comes back at once when set again.
+ * COLLAPSE is the inline visibility the guard hides a panel with.
+ *
+ * A panel draws by its inline style.visibility when one is set, and otherwise
+ * by its style sheets under the classes on its ancestors. Script's visible
+ * reads the drawn value and writes the inline one: false writes "collapse",
+ * true writes "visible", and either outlives every later class change, so a
+ * guard that wrote visible true kept a reminder the game shows by class drawn
+ * in every later game. The guard writes only the inline value and gives back
+ * the one it replaced; null hands the panel back to its sheets in the same
+ * frame. The rules are in ../StockPanel.tla.
  */
-export function hidePanel(panel: GuardPanel): void {
-  if (panel.visible) {
-    panel.SetAttributeString(HIDDEN_MARK, 'shown')
-    panel.visible = false
-  } else if (panel.GetAttributeString(HIDDEN_MARK, '') === '') {
-    panel.SetAttributeString(HIDDEN_MARK, 'unseen')
-  }
+const COLLAPSE = 'collapse'
+
+/** recorded is the inline value a mark records the guard's collapse replaced. */
+function recorded(mark: string): string | null {
+  return mark === 'visible' || mark === COLLAPSE ? mark : null
 }
 
 /**
- * restorePanel undoes what a guard's mark on panel records. A panel that
- * showed comes back; one that did not is left to the game, since setting
- * visible overrides its style sheets: gameplay_hud stays collapsed until a
- * player joins a team. An inline collapse from Modlock's renderer before the
- * guard goes too.
+ * hidePanel hides one panel by an inline collapse, marking it with the
+ * inline value it replaced. A value another writer set since the last tick
+ * is recorded in place of the older one, since it is that writer's latest.
+ */
+export function hidePanel(panel: GuardPanel): void {
+  // The guard's own collapse under a mark needs nothing; any other value is
+  // recorded, then covered.
+  const inline = panel.style.visibility ?? null
+  const mark = panel.GetAttributeString(HIDDEN_MARK, '')
+  if (inline === COLLAPSE && mark !== '') return
+  const next = inline ?? 'none'
+  if (mark !== next) panel.SetAttributeString(HIDDEN_MARK, next)
+  if (inline !== COLLAPSE) panel.style.visibility = COLLAPSE
+}
+
+/**
+ * restorePanel gives back the inline value a guard's mark on panel records,
+ * which is null for a panel the game draws by its sheets. An inline value
+ * other than the guard's collapse is a later writer's, so it stands.
  */
 export function restorePanel(panel: GuardPanel): void {
+  // Unmarked panels are not the guard's; a marked one loses its mark first.
   const mark = panel.GetAttributeString(HIDDEN_MARK, '')
-  if (mark !== '') {
-    panel.SetAttributeString(HIDDEN_MARK, '')
-    if (mark === 'shown') panel.visible = true
-  }
-  if (panel.style.visibility === 'collapse') panel.style.visibility = null
+  if (mark === '') return
+  panel.SetAttributeString(HIDDEN_MARK, '')
+  if (panel.style.visibility === COLLAPSE)
+    panel.style.visibility = recorded(mark)
 }
 
 /**

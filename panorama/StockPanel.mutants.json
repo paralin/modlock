@@ -1,32 +1,22 @@
 [
   {
-    "name": "Record once: the first hide's reading stands while the game shows the panel",
-    "replace": [
-      [
-        "IF visible THEN \"shown\" ELSE IF mark = \"none\" THEN \"unseen\" ELSE mark",
-        "IF mark # \"none\" THEN mark ELSE IF visible THEN \"shown\" ELSE \"unseen\""
-      ]
-    ],
-    "expect": "HiddenOnlyUnderShown"
+    "name": "The visible pair: restore writes visible true, which keeps a panel the game shows by class drawn after the class goes",
+    "replace": [["Layer == Design = \"layer\"", "Layer == FALSE"]],
+    "expect": "Exact"
   },
   {
-    "name": "Restore without a write: the mark goes and the panel stays hidden",
-    "replace": [
-      [
-        "visible' = IF mark = \"shown\" THEN TRUE ELSE visible",
-        "visible' = visible"
-      ]
-    ],
-    "expect": "ShownWhenUnmarked"
+    "name": "Restore to null: a value the game wrote inline before the hide is lost",
+    "replace": [["ELSE Before(mark)", "ELSE \"none\""]],
+    "expect": "Exact"
   },
   {
-    "name": "Hide without looking: every tick writes false, shown or not",
+    "name": "Record once: a value the game writes while the panel is hidden is lost",
     "replace": [
       [
-        "IF visible THEN \"shown\" ELSE IF mark = \"none\" THEN \"unseen\" ELSE mark",
-        "IF mark = \"none\" THEN \"unseen\" ELSE mark"
+        "/\\ mark' = IF inline # \"collapse\" THEN inline",
+        "/\\ mark' = IF mark = \"unmarked\" /\\ inline # \"collapse\" THEN inline"
       ]
     ],
-    "expect": "HiddenOnlyUnderShown"
+    "expect": "Recorded"
   }
 ]

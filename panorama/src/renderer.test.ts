@@ -51,7 +51,11 @@ class FakePanel {
     return { x: 100, y: 0 }
   }
   checked = false
-  visible = true
+  /**
+   * sheet is what the panel's style sheets draw under its classes: the
+   * game's own switch, which never writes the inline value.
+   */
+  sheet = true
   image = ''
   url = ''
   layout = ''
@@ -71,6 +75,18 @@ class FakePanel {
     readonly id: string,
     readonly properties?: Record<string, string>,
   ) {}
+
+  /**
+   * visible is Panorama's: it reads the inline visibility over the sheets
+   * and writes the inline value, which then outlives every class change.
+   */
+  get visible() {
+    const inline = this.style.visibility
+    return inline === 'collapse' ? false : inline === 'visible' || this.sheet
+  }
+  set visible(shown: boolean) {
+    this.style.visibility = shown ? 'visible' : 'collapse'
+  }
 
   IsValid() {
     return this.valid
@@ -1310,11 +1326,11 @@ test("hides the game's HUD parts while a live screen claims them", () => {
   const host = clock()
   const stock = new StockGuard(hud.game, host)
 
-  // Hiding the player's health hides its panels, marked as shown, and keeps
-  // the rest.
+  // Hiding the player's health hides its panels, each marked with the
+  // inline value it replaced, and keeps the rest.
   stock.screen(parts('HUD_PART_OWN_HEALTH'))
   expect(hud.bars.visible).toBe(false)
-  expect(hud.bars.attributes.get(HIDDEN_MARK)).toBe('shown')
+  expect(hud.bars.attributes.get(HIDDEN_MARK)).toBe('none')
   expect(hud.shields.visible).toBe(false)
   expect(hud.held.visible).toBe(true)
   expect(hud.boon.visible).toBe(true)
@@ -1481,29 +1497,60 @@ test('a handler an earlier script left on the bar sends nothing', () => {
   expect(host.pressed).toEqual(['arena ability:0'])
 })
 
-test('shows again a panel the guard hid only if it showed before', () => {
-  // A panel the game keeps hidden, as gameplay_hud is until a team is
-  // joined, is marked unseen and left hidden on restore.
+test('hands a restored panel back to the game', () => {
+  // A panel the game shows by class follows the class after a restore: the
+  // restore leaves no inline value behind, so a class removed later hides
+  // it. A visible = true restore would pin it shown.
   const hud = gameHud()
-  hud.minimap.visible = false
   const stock = new StockGuard(hud.game, clock())
   stock.screen(parts('HUD_PART_MINIMAP', 'HUD_PART_SOULS'))
-  expect(hud.minimap.attributes.get(HIDDEN_MARK)).toBe('unseen')
-  stock.screen([])
   expect(hud.minimap.visible).toBe(false)
+  stock.screen([])
+  expect(hud.minimap.visible).toBe(true)
+  expect(hud.minimap.style.visibility).toBeNull()
   expect(hud.minimap.attributes.get(HIDDEN_MARK)).toBe('')
+  hud.minimap.sheet = false
+  expect(hud.minimap.visible).toBe(false)
+  hud.minimap.sheet = true
+  expect(hud.minimap.visible).toBe(true)
+
+  // A panel the game hides by class, as gameplay_hud is until a team is
+  // joined, stays hidden after the restore and shows when its class does.
+  hud.souls.sheet = false
+  stock.screen(parts('HUD_PART_SOULS'))
+  stock.screen([])
+  expect(hud.souls.visible).toBe(false)
+  hud.souls.sheet = true
   expect(hud.souls.visible).toBe(true)
 })
 
-test('hides again a panel the game showed again', () => {
-  // The game showing a hidden panel again is undone on the next tick.
+test('keeps a panel the game hid inline hidden after a restore', () => {
+  // The game's own inline collapse is recorded and written back.
   const hud = gameHud()
+  hud.souls.style.visibility = 'collapse'
   const stock = new StockGuard(hud.game, clock())
   stock.screen(parts('HUD_PART_SOULS'))
-  hud.souls.visible = true
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('collapse')
+  stock.screen([])
+  expect(hud.souls.style.visibility).toBe('collapse')
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('')
+})
+
+test('hides again a panel the game showed again', () => {
+  // The game showing a hidden panel again is undone on the next tick, and
+  // its write is recorded for the restore; a later restore that finds a
+  // newer write of the game's leaves it.
+  const hud = gameHud()
+  const stock = new StockGuard(hud.game, clock())
+  stock.screen(parts('HUD_PART_SOULS', 'HUD_PART_MINIMAP'))
+  hud.souls.style.visibility = 'visible'
   runScheduled()
   expect(hud.souls.visible).toBe(false)
-  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('shown')
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('visible')
+  hud.minimap.style.visibility = 'visible'
+  stock.screen([])
+  expect(hud.souls.style.visibility).toBe('visible')
+  expect(hud.minimap.style.visibility).toBe('visible')
 })
 
 test('gives the HUD back at once when the player leaves', () => {
@@ -1565,18 +1612,23 @@ test('gives the HUD back when the titles stop for the lease', () => {
 })
 
 test('shows what an earlier guard hid, without its memory', () => {
-  // A reloaded script's guard restores every mark its predecessor left.
+  // A reloaded script's guard restores every mark its predecessor left,
+  // an earlier release's shown mark included, and leaves an unmarked
+  // collapse, which is not the guard's.
   const hud = gameHud()
   new StockGuard(hud.game, clock()).screen(
     parts('HUD_PART_SOULS', 'HUD_PART_TOP_BAR'),
   )
   scheduled.clear()
+  hud.minimap.style.visibility = 'collapse'
+  hud.minimap.attributes.set(HIDDEN_MARK, 'shown')
   hud.clip.style.visibility = 'collapse'
   new StockGuard(hud.game, clock())
   expect(hud.souls.visible).toBe(true)
   expect(hud.scores.visible).toBe(true)
   expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('')
-  expect(hud.clip.style.visibility).toBeNull()
+  expect(hud.minimap.style.visibility).toBeNull()
+  expect(hud.clip.style.visibility).toBe('collapse')
   expect(scheduled.size).toBe(0)
 })
 
