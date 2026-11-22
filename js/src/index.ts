@@ -531,8 +531,8 @@ function respawned(player: Player): void {
 
 /**
  * sweepStragglers runs a Stragglers sweep each frame for as long as the mod
- * runs: it kicks a human still joining after options.connectSeconds and lays
- * down each hero no player holds, such as the hero of a player who left.
+ * runs: it kicks a human still joining after options.connectSeconds and
+ * kills each hero no player holds, such as the hero of a player who left.
  * Only the first call's options apply.
  */
 export function sweepStragglers(options: StragglersOptions = {}): void {
