@@ -12,6 +12,10 @@
 #include "modlock/gameinterop/startup_server_probe.h"
 #include "modlock/gameinterop/virtual_slots.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 namespace modlock::gameinterop {
 namespace {
 
@@ -36,17 +40,122 @@ void* NetworkGameServer() {
   return reinterpret_cast<void* (*)(void*)>(service_table[*game_server_slot])(*service);
 }
 
-// ReleaseReservation clears the engine's reconnect reservation on slot and
-// reports whether the release call ran.
+// The server's client list is a CUtlVector of CServerSideClient pointers
+// indexed by slot, its count at +0x268 and its elements at +0x270; the
+// set-client-released signature reads both. The row fields below are those
+// the engine reads to print status and to pick a slot for a joiner (engine2
+// build 6864: the row printer at RVA 0xc2ee0, its reserved test at RVA
+// 0xc13d0, the free-client allocator at RVA 0xab7a0, and the client
+// disconnect at RVA 0xc1d30):
 //
-// The game can ask the network game server to hold a human's client in its
-// slot after they disconnect, so the same player gets it back on reconnect.
-// The client then keeps its address and Steam ID, the slot accepts only that
-// player again, and every other joiner is refused as server full once all
-// slots are held this way. Disconnect frees the slot only when the client is
-// not reserved, so clearing the reservation first makes a disconnect free the
-// slot, and a second disconnect of a slot already held for a departed player
-// frees it too. Fake clients carry a reservation the call leaves unchanged.
+//   - +0x64, the signon state: 6 active, 3 to 5 spawning, 2 connecting, and 0
+//     once the client has disconnected.
+//   - +0x9c, the reservation: 1 while the game holds the slot for its
+//     player's reconnect, 0 once released, and 2 for a fake client.
+//   - +0xcc, the stored address, a 0x20-byte record. Its first 12 bytes are a
+//     netadr_t whose first word is the netadr type (0 none, 3 IP), and the
+//     word at its +0x1c is the record's kind, 0 when the record holds that
+//     netadr_t.
+//
+// These offsets are not signature-checked. A game update that moves them
+// garbles the slot release log line, and the address clear below refuses a
+// row whose state, reservation and kind do not read as a released one.
+constexpr size_t kClientCountOffset = 0x268;
+constexpr size_t kClientsOffset = 0x270;
+constexpr size_t kSignonStateOffset = 0x64;
+constexpr size_t kReservationOffset = 0x9c;
+constexpr size_t kAddressOffset = 0xcc;
+constexpr size_t kAddressSize = 0x20;
+constexpr size_t kAddressKindOffset = 0x1c;
+
+// ClientAt returns slot's CServerSideClient from server's client list, or
+// null when the slot is out of range or empty.
+unsigned char* ClientAt(void* server, int32_t slot) {
+  auto* base = static_cast<unsigned char*>(server);
+  if (!base || slot < 0) {
+    return nullptr;
+  }
+  int32_t count = 0;
+  unsigned char** clients = nullptr;
+  std::memcpy(&count, base + kClientCountOffset, sizeof(count));
+  std::memcpy(&clients, base + kClientsOffset, sizeof(clients));
+  if (slot >= count || !clients) {
+    return nullptr;
+  }
+  return clients[slot];
+}
+
+// ClientRow is a read-only copy of one client row's fields status prints.
+struct ClientRow {
+  bool present = false;
+  int32_t state = 0;
+  int32_t reservation = 0;
+  unsigned char address[kAddressSize] = {};
+
+  // type is the stored netadr_t's type, 0 when none is set.
+  uint32_t type() const {
+    uint32_t value = 0;
+    std::memcpy(&value, address, sizeof(value));
+    return value;
+  }
+
+  // kind is the stored address record's kind, 0 when it holds a netadr_t.
+  uint32_t kind() const {
+    uint32_t value = 0;
+    std::memcpy(&value, address + kAddressKindOffset, sizeof(value));
+    return value;
+  }
+
+  // HasAddress reports whether the row remembers a player's address. The
+  // free-client allocator hands a stranger only a row without one; a row
+  // with one goes only to the player whose address it matches.
+  bool HasAddress() const { return type() != 0 || kind() != 0; }
+};
+
+// ReadClientRow copies slot's row from server's client list. It never writes.
+ClientRow ReadClientRow(void* server, int32_t slot) {
+  ClientRow row;
+  const unsigned char* client = ClientAt(server, slot);
+  if (!client) {
+    return row;
+  }
+  row.present = true;
+  std::memcpy(&row.state, client + kSignonStateOffset, sizeof(row.state));
+  std::memcpy(&row.reservation, client + kReservationOffset, sizeof(row.reservation));
+  std::memcpy(row.address, client + kAddressOffset, sizeof(row.address));
+  return row;
+}
+
+// FormatClientRow writes row as
+// "state=S(name) hold=H addr=type:T,kind:K,<hex>", where hex is the 0x20
+// bytes of the stored address record, or "addr=none" when it holds none.
+std::string FormatClientRow(const ClientRow& row) {
+  if (!row.present) {
+    return "absent";
+  }
+  const char* name = row.state == 6         ? "active"
+                     : row.state >= 3       ? "spawning"
+                     : row.state >= 2       ? "connecting"
+                     : row.reservation != 0 ? "held"
+                                            : "challenging";
+  char text[160];
+  int used =
+      std::snprintf(text, sizeof(text), "state=%d(%s) hold=%d ", row.state, name, row.reservation);
+  if (!row.HasAddress()) {
+    std::snprintf(text + used, sizeof(text) - used, "addr=none");
+    return text;
+  }
+  used += std::snprintf(text + used, sizeof(text) - used, "addr=type:%u,kind:%u,", row.type(),
+                        row.kind());
+  for (size_t i = 0; i < kAddressSize && used > 0 && size_t(used) + 2 < sizeof(text); ++i) {
+    used += std::snprintf(text + used, sizeof(text) - used, "%02x", row.address[i]);
+  }
+  return text;
+}
+
+// ReleaseReservation clears the engine's reconnect reservation on slot and
+// reports whether the release call ran. Fake clients carry a reservation the
+// call leaves unchanged.
 bool ReleaseReservation(void* server, int32_t slot) {
   const auto release_slot = ResolveVirtualSlot("network-game-server.set-client-released");
   if (!server || !release_slot) {
@@ -63,75 +172,45 @@ bool ReleaseReservation(void* server, int32_t slot) {
   return true;
 }
 
-// The server's client list is a CUtlVector of CServerSideClient pointers
-// indexed by slot, its count at +0x268 and its elements at +0x270; the
-// set-client-released signature reads both. The row fields are those status
-// prints (engine2 build 6864: the row printer at RVA 0xc2ee0 and its reserved
-// test at RVA 0xc13d0): the signon state at +0x64, which status names active
-// at 6, spawning from 3, connecting at 2, and below that reserved or
-// challenging; the reservation at +0x9c, which with a set address makes the
-// row "reserved"; and the stored address at +0xcc, a 0x20-byte record whose
-// kind is the word at its +0x1c, 0 meaning none set. These offsets are not
-// signature-checked, so a game update that moves them garbles this log line
-// and nothing else.
-constexpr size_t kClientCountOffset = 0x268;
-constexpr size_t kClientsOffset = 0x270;
-constexpr size_t kSignonStateOffset = 0x64;
-constexpr size_t kReservationOffset = 0x9c;
-constexpr size_t kAddressOffset = 0xcc;
-constexpr size_t kAddressSize = 0x20;
-constexpr size_t kAddressKindOffset = 0x1c;
-
-// ClientRow is a read-only copy of one client row's fields status prints.
-struct ClientRow {
-  bool present = false;
-  int32_t state = 0;
-  int32_t reservation = 0;
-  unsigned char address[kAddressSize] = {};
-};
-
-// ReadClientRow copies slot's row from server's client list. It reads and
-// never writes, and it is called only around a server-initiated disconnect.
-ClientRow ReadClientRow(const void* server, int32_t slot) {
-  ClientRow row;
-  const auto* base = static_cast<const unsigned char*>(server);
-  if (!base || slot < 0) {
-    return row;
+// ForgetAddress clears the stored address of slot's disconnected, released
+// client, returning the row to the state of one never used, and reports
+// whether it cleared one.
+//
+// The engine's client disconnect (RVA 0xc1d30) clears the address only when
+// the client is not reserved at that moment, and the game reserves a
+// departing human's slot from inside that disconnect, so the address stays.
+// A disconnect of a client already at signon state 0 does nothing, so no
+// later disconnect clears it either. The free-client allocator (RVA 0xab7a0)
+// reuses a row with an address only for the joiner at that address, so each
+// departed player's row is lost to everyone else, and once the list is full
+// every new joiner is refused as server full. ForgetAddress performs the
+// clear the disconnect skipped, field for field: netadr_t::Clear on the
+// netadr_t, then zero the rest of the record and its kind.
+//
+// It touches only a row at signon state 0 with no reservation and a kind of
+// 0, which is the row the disconnect's own clear would have reset, and it
+// leaves the row unchanged when tier0.dll's netadr_t::Clear does not
+// resolve.
+bool ForgetAddress(void* server, int32_t slot) {
+  const ClientRow row = ReadClientRow(server, slot);
+  if (!row.present || row.state != 0 || row.reservation != 0 || row.kind() != 0 ||
+      !row.HasAddress()) {
+    return false;
   }
-  int32_t count = 0;
-  const unsigned char* const* clients = nullptr;
-  std::memcpy(&count, base + kClientCountOffset, sizeof(count));
-  std::memcpy(&clients, base + kClientsOffset, sizeof(clients));
-  if (slot >= count || !clients || !clients[slot]) {
-    return row;
+  HMODULE tier0 = GetModuleHandleW(L"tier0.dll");
+  if (tier0 == nullptr) {
+    return false;
   }
-  const auto* client = clients[slot];
-  row.present = true;
-  std::memcpy(&row.state, client + kSignonStateOffset, sizeof(row.state));
-  std::memcpy(&row.reservation, client + kReservationOffset, sizeof(row.reservation));
-  std::memcpy(row.address, client + kAddressOffset, sizeof(row.address));
-  return row;
-}
-
-// FormatClientRow writes row as "state=S(name) hold=H addr=K:<hex>".
-std::string FormatClientRow(const ClientRow& row) {
-  if (!row.present) {
-    return "absent";
+  using NetAdrClearFn = void (*)(void* self);
+  auto clear = reinterpret_cast<NetAdrClearFn>(GetProcAddress(tier0, "?Clear@netadr_t@@QEAAXXZ"));
+  if (clear == nullptr) {
+    return false;
   }
-  const char* name = row.state == 6         ? "active"
-                     : row.state >= 3       ? "spawning"
-                     : row.state >= 2       ? "connecting"
-                     : row.reservation != 0 ? "held"
-                                            : "challenging";
-  uint32_t kind = 0;
-  std::memcpy(&kind, row.address + kAddressKindOffset, sizeof(kind));
-  char text[128];
-  int used = std::snprintf(text, sizeof(text), "state=%d(%s) hold=%d addr=%u:", row.state, name,
-                           row.reservation, kind);
-  for (size_t i = 0; i < kAddressSize && used > 0 && size_t(used) + 2 < sizeof(text); ++i) {
-    used += std::snprintf(text + used, sizeof(text) - used, "%02x", row.address[i]);
-  }
-  return text;
+  constexpr size_t kNetAdrSize = 0xc;
+  unsigned char* address = ClientAt(server, slot) + kAddressOffset;
+  clear(address);
+  std::memset(address + kNetAdrSize, 0, kAddressSize - kNetAdrSize);
+  return true;
 }
 #endif
 
@@ -246,10 +325,12 @@ bool EngineServer::DisconnectClient(int32_t slot, int32_t reason,
     return false;
   }
 
-  // End the slot's seat, release its reservation, then disconnect. Without
-  // the release the engine keeps a removed human's slot held for their
-  // reconnect. When the release runs, log the row before the release and
-  // after the disconnect.
+  // End the slot's seat and free the slot for any joiner. Releasing the
+  // reservation before the disconnect lets the engine's disconnect clear the
+  // address itself; the game reserves the slot again from inside that
+  // disconnect, so release it once more afterward and clear the address the
+  // engine kept. A slot whose client disconnected earlier takes the same two
+  // steps. Log the row before and after.
   ConnectionTracker::Release(slot, reason);
   void* server = NetworkGameServer();
   const ClientRow before = ReadClientRow(server, slot);
@@ -257,9 +338,12 @@ bool EngineServer::DisconnectClient(int32_t slot, int32_t reason,
   using DisconnectClientFn = void (*)(void* self, int32_t slot, int32_t reason, const char* text);
   reinterpret_cast<DisconnectClientFn>(table[*index])(instance_, slot, reason, internal_reason);
   if (released) {
+    ReleaseReservation(server, slot);
+    const bool forgot = ForgetAddress(server, slot);
     const ClientRow after = ReadClientRow(server, slot);
-    std::fprintf(stderr, "[modlock] slot release: slot=%d before %s after %s\n", slot,
-                 FormatClientRow(before).c_str(), FormatClientRow(after).c_str());
+    std::fprintf(stderr, "[modlock] slot release: slot=%d before %s after %s%s\n", slot,
+                 FormatClientRow(before).c_str(), FormatClientRow(after).c_str(),
+                 forgot ? " address cleared" : "");
     std::fflush(stderr);
   }
   return true;
