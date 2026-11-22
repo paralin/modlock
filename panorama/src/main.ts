@@ -8,6 +8,7 @@
 import { Bridge } from './bridge.js'
 import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
 import { StockGuard } from './guard.js'
+import { gameHud, mountInterfaceLayer } from './mount.js'
 import {
   abilityBarMods,
   abilityRows,
@@ -23,22 +24,13 @@ import {
  */
 const defaultBridge = 'https://hyperline.gg/app/relay/bridge.html'
 
-/** hud returns the game's HUD above panel, or the layout's own root. */
-function hud(panel: Panel): Panel {
-  for (let at: Panel | null = panel; at; at = at.GetParent()) {
-    if (at.paneltype === 'CitadelHud') {
-      return at
-    }
-  }
-  return panel
-}
-
 const context = $.GetContextPanel()
-const game = hud(context)
-const root = $.CreatePanel('Panel', game, 'ModlockUi')
-root.hittest = false
-root.style.width = '100%'
-root.style.height = '100%'
+const game = gameHud(context)
+const root = mountInterfaceLayer(
+  (type, parent, id) => $.CreatePanel(type, parent, id),
+  context,
+  'ModlockUi',
+)
 // The drawing reaches the game through $, and plays sounds through the game's
 // global sound call. Presses and edits go to the host as console commands, and
 // each mod's layouts load from the content addon its tree names.
