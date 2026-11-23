@@ -44,6 +44,8 @@ constexpr auto kRules = std::to_array<Rule>({
     {"load", false, Family::kFiles},
     {"autosave", true, Family::kFiles},
     {"record", false, Family::kFiles},
+    {"_record", false, Family::kFiles},
+    {"run_perftest", false, Family::kFiles},
     {"playdemo", false, Family::kFiles},
     {"timedemo", true, Family::kFiles},
     {"startdemos", false, Family::kFiles},
@@ -101,8 +103,11 @@ constexpr auto kRules = std::to_array<Rule>({
     {"tv_overridemaster", false, Family::kNetwork},
     {"tv_advertise_watchable", false, Family::kNetwork},
     {"tv_retry", false, Family::kNetwork},
-    // The process: crashes, debuggers, tools and shutdown. quit and changelevel
-    // end or replace the mod's own game and stay allowed.
+    {"sv_replay_group_id", false, Family::kNetwork},
+    // The process and its host: crashes, debuggers, tools, the clipboard and
+    // shutdown. quit and changelevel end or replace the mod's own game and stay
+    // allowed.
+    {"citadel_bot_pasterecording", false, Family::kProcess},
     {"crash", true, Family::kProcess},
     {"server_test_crash", false, Family::kProcess},
     {"test_shipping_assert", false, Family::kProcess},

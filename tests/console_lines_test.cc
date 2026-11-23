@@ -42,6 +42,14 @@ TEST(ConsoleLines, ModsChangeTheGameButNotWhatSurroundsIt) {
             "alias is a command that stores other commands, which a mod may not run");
   EXPECT_EQ(RefuseConsoleLine("log:on"),
             "log is an engine logging control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("_record ../../x"),
+            "_record is an engine file control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("run_perftest"),
+            "run_perftest is an engine file control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("sv_replay_group_id 7"),
+            "sv_replay_group_id is an engine network control, which a mod may not run");
+  EXPECT_EQ(RefuseConsoleLine("citadel_bot_pasterecording"),
+            "citadel_bot_pasterecording is an engine process control, which a mod may not run");
 
   // Entity commands reach a point_servercommand's line past the check, so
   // they are refused, as are the test script's commands, which run the
