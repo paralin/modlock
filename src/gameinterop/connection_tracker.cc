@@ -70,6 +70,8 @@ using DisconnectFn = void (*)(void* self, int32_t slot, int reason, const char* 
 
 void ConnectedThunk(void* self, int32_t slot, const char* name, uint64_t xuid,
                     const char* network_id, const char* address, bool fake) {
+  std::fprintf(stderr, "[modlock] client connecting: slot %d from %s%s\n", slot,
+               address != nullptr ? address : "(none)", fake ? " (bot)" : "");
   ConnectionTracker::ApplyConnected(slot, address);
   void* original = g_connected_original.load(std::memory_order_acquire);
   if (original != nullptr) {

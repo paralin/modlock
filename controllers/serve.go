@@ -85,6 +85,7 @@ func (s *server) want(epoch uint32) error {
 	// Answer the epoch, starting the reader if it is not running.
 	s.reader.Want(epoch)
 	if s.cancel == nil {
+		s.log.Info("controllers: reading devices", "epoch", epoch)
 		run, cancel := context.WithCancel(s.ctx)
 		s.cancel = cancel
 		go func() { s.done <- s.reader.Run(run, s.send) }()
@@ -94,10 +95,15 @@ func (s *server) want(epoch uint32) error {
 
 // stop ends a running Run, closing its devices, and returns its error.
 func (s *server) stop() error {
+	// Skip a reader that is not running.
 	if s.cancel == nil {
 		return nil
 	}
+
+	// Cancel it and wait for its devices to close.
 	s.cancel()
 	s.cancel = nil
-	return <-s.done
+	err := <-s.done
+	s.log.Info("controllers: closed devices")
+	return err
 }
