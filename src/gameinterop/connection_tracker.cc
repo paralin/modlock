@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include "modlock/gameinterop/entity_abi.h"
@@ -41,9 +42,14 @@ std::array<std::atomic<bool>, kMaxSlots> g_fully_connected{};
 // its slot's next lifecycle event; readers on other threads may observe a
 // torn or stale name, which every consumer treats as diagnostic-only.
 std::array<std::string, kMaxSlots> g_name{};
+// g_address[slot] is the address the slot's latest client connected from, as
+// OnClientConnected reports it, such as 127.0.0.1:27006. It is written on the
+// engine thread before that client's PutInServer, with g_name's tearing rule.
+std::array<std::string, kMaxSlots> g_address{};
 // g_revision counts the lifecycle events that changed a slot's state.
 std::atomic<uint64_t> g_revision{0};
 
+std::atomic<void*> g_connected_original{nullptr};
 std::atomic<void*> g_put_in_server_original{nullptr};
 std::atomic<void*> g_fully_connect_original{nullptr};
 std::atomic<void*> g_disconnect_original{nullptr};
@@ -55,10 +61,21 @@ bool ValidSlot(int32_t slot) {
 
 // Thunk signatures follow sourcesdk public/eiface.h: CPlayerSlot is a single-
 // int POD, so the x64 ABI passes it as an int register argument.
+using ConnectedFn = void (*)(void* self, int32_t slot, const char* name, uint64_t xuid,
+                            const char* network_id, const char* address, bool fake);
 using PutInServerFn = void (*)(void* self, int32_t slot, const char* name, int type, uint64_t xuid);
 using FullyConnectFn = void (*)(void* self, int32_t slot);
 using DisconnectFn = void (*)(void* self, int32_t slot, int reason, const char* name, uint64_t xuid,
                               const char* network_id);
+
+void ConnectedThunk(void* self, int32_t slot, const char* name, uint64_t xuid,
+                    const char* network_id, const char* address, bool fake) {
+  ConnectionTracker::ApplyConnected(slot, address);
+  void* original = g_connected_original.load(std::memory_order_acquire);
+  if (original != nullptr) {
+    reinterpret_cast<ConnectedFn>(original)(self, slot, name, xuid, network_id, address, fake);
+  }
+}
 
 void PutInServerThunk(void* self, int32_t slot, const char* name, int type, uint64_t xuid) {
   void* original = g_put_in_server_original.load(std::memory_order_acquire);
@@ -96,16 +113,19 @@ void DisconnectThunk(void* self, int32_t slot, int reason, const char* name, uin
 
 }  // namespace
 
-ConnectionTracker::ConnectionTracker(VtableSlotHook put_in_server, VtableSlotHook fully_connect,
+ConnectionTracker::ConnectionTracker(std::optional<VtableSlotHook> connected,
+                                     VtableSlotHook put_in_server, VtableSlotHook fully_connect,
                                      VtableSlotHook disconnect,
                                      std::shared_ptr<ConnectionEventSink> sink)
-    : put_in_server_(std::move(put_in_server)),
+    : connected_(std::move(connected)),
+      put_in_server_(std::move(put_in_server)),
       fully_connect_(std::move(fully_connect)),
       disconnect_(std::move(disconnect)),
       sink_(std::move(sink)) {}
 
 ConnectionTracker::ConnectionTracker(ConnectionTracker&& other) noexcept
-    : put_in_server_(std::move(other.put_in_server_)),
+    : connected_(std::move(other.connected_)),
+      put_in_server_(std::move(other.put_in_server_)),
       fully_connect_(std::move(other.fully_connect_)),
       disconnect_(std::move(other.disconnect_)),
       sink_(std::move(other.sink_)),
@@ -117,6 +137,7 @@ ConnectionTracker& ConnectionTracker::operator=(ConnectionTracker&& other) noexc
   if (this != &other) {
     // Release our hooks, then take the other's.
     Reset();
+    connected_ = std::move(other.connected_);
     put_in_server_ = std::move(other.put_in_server_);
     fully_connect_ = std::move(other.fully_connect_);
     disconnect_ = std::move(other.disconnect_);
@@ -144,6 +165,9 @@ void ConnectionTracker::Reset() {
 
   // VtableSlotHook::Restore has no success result. Keep displaced originals
   // callable if a thunk remains installed after a failed protection/write.
+  if (connected_) {
+    connected_->Restore();
+  }
   put_in_server_.Restore();
   fully_connect_.Restore();
   disconnect_.Restore();
@@ -314,6 +338,12 @@ std::vector<int32_t> ConnectionTracker::ExpiredAway(std::chrono::steady_clock::t
   return expired;
 }
 
+void ConnectionTracker::ApplyConnected(int32_t slot, const char* address) {
+  if (ValidSlot(slot)) {
+    g_address[slot] = (address != nullptr) ? std::string(address) : std::string();
+  }
+}
+
 void ConnectionTracker::ApplyPutInServer(int32_t slot, uint64_t xuid, bool is_bot,
                                          const char* name) {
   // Record the client in its slot. The owner of an away seat returns to it,
@@ -387,6 +417,7 @@ ConnectionTracker::SlotState ConnectionTracker::StateForSlot(int32_t slot) {
       .generation = static_cast<uint32_t>(g_generation[slot].load(std::memory_order_acquire)),
       .is_bot = g_is_bot[slot].load(std::memory_order_relaxed),
       .name = g_name[slot],
+      .address = g_address[slot],
       .fully_connected = g_fully_connected[slot].load(std::memory_order_acquire)};
 }
 
@@ -418,7 +449,20 @@ std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
     return std::unexpected(disconnect_slot.error());
   }
 
-  // Hook each slot.
+  // Hook each slot. The connect hook only reports addresses, so a build where
+  // it does not resolve tracks connections without them.
+  std::optional<VtableSlotHook> connected;
+  if (const auto slot = ResolveVirtualSlot("game-clients.on-connected"); slot) {
+    if (auto hook = VtableSlotHook::Install(clients, *slot, reinterpret_cast<void*>(&ConnectedThunk));
+        hook) {
+      g_connected_original.store(hook->Original(), std::memory_order_release);
+      connected = std::move(*hook);
+    } else {
+      std::fprintf(stderr, "[modlock] client addresses unavailable: %s\n", hook.error().c_str());
+    }
+  } else {
+    std::fprintf(stderr, "[modlock] client addresses unavailable: %s\n", slot.error().c_str());
+  }
   auto put_in_server = VtableSlotHook::Install(clients, *put_in_server_slot,
                                                reinterpret_cast<void*>(&PutInServerThunk));
   if (!put_in_server) {
@@ -440,7 +484,7 @@ std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
   g_fully_connect_original.store(fully_connect->Original(), std::memory_order_release);
   g_disconnect_original.store(disconnect->Original(), std::memory_order_release);
   std::atomic_store_explicit(&g_event_sink, sink, std::memory_order_release);
-  return ConnectionTracker(std::move(*put_in_server), std::move(*fully_connect),
+  return ConnectionTracker(std::move(connected), std::move(*put_in_server), std::move(*fully_connect),
                            std::move(*disconnect), std::move(sink));
 }
 

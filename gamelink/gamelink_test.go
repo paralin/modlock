@@ -96,7 +96,7 @@ func joinGame(ctx context.Context, t *testing.T, server *net.UDPConn, target *ne
 			upstream.Close()
 			return
 		}
-		_ = Forward(ctx, target, upstream, func() error { return AcceptGeneration(ctx, upstream.Control()) })
+		_ = Forward(ctx, target, upstream, func(*net.UDPAddr) error { return AcceptGeneration(ctx, upstream.Control()) })
 	}()
 
 	// The guest asks for that generation and opens its endpoint.

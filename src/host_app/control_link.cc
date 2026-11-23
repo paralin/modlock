@@ -403,9 +403,12 @@ void ControlLink::OnConnected(int32_t slot, uint64_t xuid, bool bot, const char*
   joined->set_slot(slot);
   joined->set_name(name ? name : "");
   joined->set_steam_id(xuid);
-  // The tracker counted this connection before calling, so its generation
-  // is the one mods see in the slot's Connection.
-  joined->set_generation(gameinterop::ConnectionTracker::StateForSlot(slot).generation);
+  // The tracker recorded this connection before calling, so its generation
+  // is the one mods see in the slot's Connection, and its address the one
+  // the client connected from.
+  const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+  joined->set_generation(state.generation);
+  joined->set_address(state.address);
   names_[slot] = joined->name();
   Push(std::move(event));
 }

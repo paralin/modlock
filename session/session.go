@@ -198,6 +198,12 @@ func (s *Session) Call(ctx context.Context, call *control.ModCall) error {
 	return s.control.Call(ctx, call)
 }
 
+// Controllers passes one player's controller frames, which the caller bound
+// to that player, to the host.
+func (s *Session) Controllers(ctx context.Context, frames *control.ControllerFrames) error {
+	return s.control.Controllers(ctx, frames)
+}
+
 // SetService installs a lobby's applied configuration before restarting its mod.
 func (s *Session) SetService(ctx context.Context, reply *control.ServiceReply) error {
 	return s.control.SetService(ctx, reply)

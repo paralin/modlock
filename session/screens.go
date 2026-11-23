@@ -22,8 +22,8 @@ type Screens struct {
 	mu sync.Mutex
 	// slot is the local player's slot, or -1 while they are not in the server.
 	slot int32
-	// players holds the Steam ID of each joined person, by slot.
-	players map[int32]uint64
+	// players holds each joined person's join, by slot.
+	players map[int32]*control.PlayerJoined
 	// trees holds each mod's tree, per slot.
 	trees map[int32]trees
 	// changed is closed and replaced whenever any player's screen changes.
@@ -35,7 +35,7 @@ func NewScreens(account uint64) *Screens {
 	return &Screens{
 		account: account,
 		slot:    -1,
-		players: make(map[int32]uint64),
+		players: make(map[int32]*control.PlayerJoined),
 		trees:   make(map[int32]trees),
 		changed: make(chan struct{}),
 	}
@@ -75,7 +75,7 @@ func (s *Screens) join(joined *control.PlayerJoined) {
 	// Record the person, who replaces whoever held the slot; a bot is no one.
 	person, slot := joined.GetSteamId(), joined.GetSlot()
 	if person != 0 {
-		s.players[slot] = person
+		s.players[slot] = joined
 	} else {
 		delete(s.players, slot)
 	}
@@ -109,8 +109,8 @@ func (s *Screens) Screen() (*ui.Screen, <-chan struct{}) {
 func (s *Screens) Player(account uint64) (*ui.Screen, bool, <-chan struct{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for slot, person := range s.players {
-		if person == account {
+	for slot, joined := range s.players {
+		if joined.GetSteamId() == account {
 			return s.trees[slot].screen(), true, s.changed
 		}
 	}
@@ -125,8 +125,7 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 	defer s.mu.Unlock()
 	var events []*control.HostEvent
 	for _, slot := range slices.Sorted(maps.Keys(s.players)) {
-		joined := &control.PlayerJoined{Slot: slot, SteamId: s.players[slot]}
-		events = append(events, &control.HostEvent{Body: &control.HostEvent_Joined{Joined: joined}})
+		events = append(events, &control.HostEvent{Body: &control.HostEvent_Joined{Joined: s.players[slot]}})
 	}
 
 	// Send every tree whole.

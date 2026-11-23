@@ -394,6 +394,7 @@ type HostEvent struct {
 	//	*HostEvent_Left
 	//	*HostEvent_Lobby
 	//	*HostEvent_Setup
+	//	*HostEvent_Controllers
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -445,6 +446,13 @@ func (x *HostEvent) GetSetup() *control.ServiceReply {
 	return nil
 }
 
+func (x *HostEvent) GetControllers() *control.ControllerFrames {
+	if x, ok := x.GetBody().(*HostEvent_Controllers); ok {
+		return x.Controllers
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -476,6 +484,12 @@ type HostEvent_Setup struct {
 	Setup *control.ServiceReply `protobuf:"bytes,5,opt,name=setup,proto3,oneof"`
 }
 
+type HostEvent_Controllers struct {
+	// controllers carries frames from a guest's controllers, bound to that
+	// guest's slot, which the caller passes to the server's control link.
+	Controllers *control.ControllerFrames `protobuf:"bytes,6,opt,name=controllers,proto3,oneof"`
+}
+
 func (*HostEvent_JoinCode) isHostEvent_Body() {}
 
 func (*HostEvent_Joined) isHostEvent_Body() {}
@@ -485,6 +499,8 @@ func (*HostEvent_Left) isHostEvent_Body() {}
 func (*HostEvent_Lobby) isHostEvent_Body() {}
 
 func (*HostEvent_Setup) isHostEvent_Body() {}
+
+func (*HostEvent_Controllers) isHostEvent_Body() {}
 
 // JoinRequest names the session to join.
 type JoinRequest struct {
@@ -1126,6 +1142,19 @@ func (m *HostEvent_Setup) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *HostEvent_Controllers) CloneVT() *HostEvent_Controllers {
+	if m == nil {
+		return (*HostEvent_Controllers)(nil)
+	}
+	r := new(HostEvent_Controllers)
+	r.Controllers = protobuf_go_lite.CloneVTValue(m.Controllers)
+	return r
+}
+
+func (m *HostEvent_Controllers) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *JoinRequest) CloneVT() *JoinRequest {
 	if m == nil {
 		return (*JoinRequest)(nil)
@@ -1751,6 +1780,23 @@ func (this *HostEvent_Setup) EqualVT(thatIface isHostEvent_Body) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Setup, that.Setup, func() *control.ServiceReply { return &control.ServiceReply{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *HostEvent_Controllers) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_Controllers)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Controllers, that.Controllers, func() *control.ControllerFrames { return &control.ControllerFrames{} }) {
 		return false
 	}
 	return true
@@ -2572,6 +2618,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("setup")
 			ov.Setup.MarshalProtoJSON(s.WithField("setup"))
+		case *HostEvent_Controllers:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("controllers")
+			ov.Controllers.MarshalProtoJSON(s.WithField("controllers"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2624,6 +2674,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Setup = &control.ServiceReply{}
 			ov.Setup.UnmarshalProtoJSON(s.WithField("setup", true))
+		case "controllers":
+			ov := &HostEvent_Controllers{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Controllers = nil
+				return
+			}
+			ov.Controllers = &control.ControllerFrames{}
+			ov.Controllers.UnmarshalProtoJSON(s.WithField("controllers", true))
 		}
 	})
 }
@@ -3683,6 +3742,30 @@ func (m *HostEvent_Setup) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HostEvent_Controllers) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_Controllers) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Controllers != nil {
+		size, err := m.Controllers.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x32
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *JoinRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4388,6 +4471,21 @@ func (m *HostEvent_Setup) SizeVT() (n int) {
 	return n
 }
 
+func (m *HostEvent_Controllers) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Controllers != nil {
+		l = m.Controllers.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *JoinRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -4779,6 +4877,13 @@ func (x *HostEvent) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &control.ServiceReply{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Setup)
+		}
+	case *HostEvent_Controllers:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "controllers")
+		if body.Controllers == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &control.ControllerFrames{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Controllers)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -5608,6 +5713,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &HostEvent_Setup{Setup: v}
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Controllers", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_Controllers); ok {
+				if err := oneof.Controllers.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &control.ControllerFrames{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_Controllers{Controllers: v}
 			}
 			iNdEx = postIndex
 		default:

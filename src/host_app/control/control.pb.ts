@@ -1137,6 +1137,12 @@ export interface PlayerJoined {
    * answers calls naming a generation refuses them all when it is zero.
    */
   generation?: number
+  /**
+   * Address is the ip:port the player's packets come from, such as
+   * 127.0.0.1:27006, which tells a controller which of its forwarded links
+   * carries the player; empty from a host that does not report it.
+   */
+  address?: string
 }
 
 export const PlayerJoined: MessageType<PlayerJoined> =
@@ -1147,6 +1153,7 @@ export const PlayerJoined: MessageType<PlayerJoined> =
       [2, 'name', 9],
       [3, 'steam_id', 6],
       [4, 'generation', 13],
+      [5, 'address', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: PlayerJoined): PlayerJoined => {
@@ -1165,6 +1172,9 @@ export const PlayerJoined: MessageType<PlayerJoined> =
               break
             case 4:
               m.generation = r.uint32()
+              break
+            case 5:
+              m.address = r.string()
               break
             default:
               r.skip(t)
@@ -1188,6 +1198,10 @@ export const PlayerJoined: MessageType<PlayerJoined> =
         {
           const v = m.generation
           if (v) w.uint32(32).uint32(v)
+        }
+        {
+          const v = m.address
+          if (v) w.uint32(42).string(v)
         }
       },
     },

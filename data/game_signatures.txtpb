@@ -757,6 +757,15 @@ slots {
 }
 
 slots {
+  id: "game-clients.on-connected"
+  module: "server.dll"
+  class_name: "CSource2GameClients"
+  index: 11
+  pattern: "48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 41 56 48 83 EC 30 48 8B 0D"
+  shape: "void ISource2GameClients::OnClientConnected(CPlayerSlot, const char* name, uint64 xuid, const char* network_id, const char* address, bool fake)"
+}
+
+slots {
   id: "game-clients.put-in-server"
   module: "server.dll"
   class_name: "CSource2GameClients"

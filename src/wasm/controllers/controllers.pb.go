@@ -510,9 +510,10 @@ type ControllerWant struct {
 	unknownFields []byte
 	// Player is the player's slot.
 	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
-	// Epoch counts the watches of this player's controllers. It starts again
-	// after no mod watched them, and the client answers each new epoch with a
-	// full frame.
+	// Epoch counts the watches of this player's slot: it grows each time a mod
+	// starts watching after none did, and never repeats while the host runs.
+	// The client answers each new epoch with a full frame, so a watch that ends
+	// and starts again before the client hears either still gets a full frame.
 	Epoch uint32 `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
 }
 

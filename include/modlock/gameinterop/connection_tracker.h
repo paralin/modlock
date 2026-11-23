@@ -5,6 +5,7 @@
 #include <expected>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -71,9 +72,10 @@ class MODLOCK_API ConnectionEventSink {
 };
 
 // ConnectionTracker records the engine's own client lifecycle for player
-// slots. It patches ISource2GameClients::ClientPutInServer (slot 13) and
-// ClientFullyConnect (slot 15) and ClientDisconnect (slot 16) on server.dll's
-// "Source2GameClients001" interface. The SDK declares these callback signatures.
+// slots. It patches ISource2GameClients::OnClientConnected (slot 11),
+// ClientPutInServer (slot 13), ClientFullyConnect (slot 15) and
+// ClientDisconnect (slot 16) on server.dll's "Source2GameClients001"
+// interface. The SDK declares these callback signatures.
 //
 // The installed tracker retains the event sink until it clears callback
 // registration before restoring the hooks.
@@ -93,6 +95,10 @@ class MODLOCK_API ConnectionTracker {
     uint32_t generation = 0;
     bool is_bot = false;
     std::string name;
+    // address is the ip:port the connected client's packets come from, empty
+    // when the engine's connect hook is unavailable. Like name, it is exact
+    // only on the engine thread.
+    std::string address;
     // Humans become ready at ClientFullyConnect; native bots have no sign-on exchange.
     bool fully_connected = false;
   };
@@ -152,6 +158,11 @@ class MODLOCK_API ConnectionTracker {
   // knows when StateForSlot answers differently for some slot.
   static uint64_t Revision();
 
+  // ApplyConnected records the address of the client connecting to slot,
+  // from one engine OnClientConnected callback, which precedes its
+  // PutInServer.
+  static void ApplyConnected(int32_t slot, const char* address);
+
   // ApplyPutInServer records one engine ClientPutInServer callback. It is the
   // recording half of PutInServerThunk; tests pin it against recorded
   // lifecycles without a live interface.
@@ -171,11 +182,13 @@ class MODLOCK_API ConnectionTracker {
 
  private:
   // Private by construction: only Install builds one, around live slot hooks.
-  ConnectionTracker(VtableSlotHook put_in_server, VtableSlotHook fully_connect,
-                    VtableSlotHook disconnect, std::shared_ptr<ConnectionEventSink> sink);
+  ConnectionTracker(std::optional<VtableSlotHook> connected, VtableSlotHook put_in_server,
+                    VtableSlotHook fully_connect, VtableSlotHook disconnect,
+                    std::shared_ptr<ConnectionEventSink> sink);
 
   void Reset();
 
+  std::optional<VtableSlotHook> connected_;
   VtableSlotHook put_in_server_;
   VtableSlotHook fully_connect_;
   VtableSlotHook disconnect_;

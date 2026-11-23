@@ -69,6 +69,12 @@ func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error
 	})
 }
 
+// Controllers passes the frames of one player's controller stream, or its
+// end, to the host, which keeps the latest state for the mods watching them.
+func (c *Control) Controllers(ctx context.Context, frames *control.ControllerFrames) error {
+	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Controllers{Controllers: frames}})
+}
+
 // Call asks the host to call one method of a service a running mod serves.
 // The host answers with a called event that carries the call's id.
 func (c *Control) Call(ctx context.Context, call *control.ModCall) error {

@@ -799,6 +799,10 @@ type PlayerJoined struct {
 	// Connection; zero from a host that does not report it. A controller that
 	// answers calls naming a generation refuses them all when it is zero.
 	Generation uint32 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Address is the ip:port the player's packets come from, such as
+	// 127.0.0.1:27006, which tells a controller which of its forwarded links
+	// carries the player; empty from a host that does not report it.
+	Address string `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (x *PlayerJoined) Reset() {
@@ -833,6 +837,13 @@ func (x *PlayerJoined) GetGeneration() uint32 {
 		return x.Generation
 	}
 	return 0
+}
+
+func (x *PlayerJoined) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
 }
 
 // PlayerLeft identifies a player who left. Bots leave too; a controller drops
@@ -1776,6 +1787,7 @@ func (m *PlayerJoined) CloneVT() *PlayerJoined {
 	r.Name = m.Name
 	r.SteamId = m.SteamId
 	r.Generation = m.Generation
+	r.Address = m.Address
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2664,6 +2676,9 @@ func (this *PlayerJoined) EqualVT(that *PlayerJoined) bool {
 		return false
 	}
 	if this.Generation != that.Generation {
+		return false
+	}
+	if this.Address != that.Address {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -3966,6 +3981,11 @@ func (x *PlayerJoined) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("generation")
 		s.WriteUint32(x.Generation)
 	}
+	if x.Address != "" || s.HasField("address") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("address")
+		s.WriteString(x.Address)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -3995,6 +4015,9 @@ func (x *PlayerJoined) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "generation":
 			s.AddField("generation")
 			x.Generation = s.ReadUint32()
+		case "address":
+			s.AddField("address")
+			x.Address = s.ReadString()
 		}
 	})
 }
@@ -5794,6 +5817,11 @@ func (m *PlayerJoined) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Address) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Address)
+		i--
+		dAtA[i] = 0x2a
+	}
 	if m.Generation != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
 		i--
@@ -6854,6 +6882,7 @@ func (m *PlayerJoined) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
 	n += protobuf_go_lite.SizeFixed64NonZero(1, m.SteamId)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Address)
 	n += len(m.unknownFields)
 	return n
 }
@@ -7418,6 +7447,10 @@ func (x *PlayerJoined) MarshalProtoText() string {
 	if x.Generation != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
 		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
+	if x.Address != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "address")
+		protobuf_go_lite.TextWriteString(&sb, x.Address)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -8958,6 +8991,16 @@ func (m *PlayerJoined) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Address = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

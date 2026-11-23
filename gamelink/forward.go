@@ -11,9 +11,11 @@ import (
 // Forward forwards an admitted guest's stream to the game server at target
 // until ctx ends or either side stops. It binds the guest a socket of its own,
 // so the server sees it as a separate client and replies cannot cross guests,
-// and calls accept, such as AcceptGeneration, once that socket is bound. It
-// owns peer even when it fails.
-func Forward(ctx context.Context, target *net.UDPAddr, peer stream.MessageStream, accept func() error) error {
+// and calls accept with that socket's address once it is bound, the address
+// the server reports the guest's client connecting from. accept, which may be
+// nil, lets packets flow, as AcceptGeneration does. Forward owns peer even
+// when it fails.
+func Forward(ctx context.Context, target *net.UDPAddr, peer stream.MessageStream, accept func(local *net.UDPAddr) error) error {
 	// Close the stream when ctx ends, even before forwarding starts.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -33,7 +35,7 @@ func Forward(ctx context.Context, target *net.UDPAddr, peer stream.MessageStream
 
 	// Let packets flow only once the socket is in place.
 	if accept != nil {
-		if err := accept(); err != nil {
+		if err := accept(socket.LocalAddr().(*net.UDPAddr)); err != nil {
 			return err
 		}
 	}

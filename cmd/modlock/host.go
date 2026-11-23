@@ -92,6 +92,11 @@ func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, m
 				out.mark("!", yellow, "lobby settings could not be applied: "+err.Error())
 			}
 		}
+		if frames := event.GetControllers(); frames != nil {
+			if err := running.(*session.Session).Controllers(c.Context, frames); err != nil {
+				return
+			}
+		}
 		shown.show(event)
 	}
 }
@@ -207,6 +212,9 @@ type hostFeed struct {
 	screens *session.Screens
 	// queue holds the events the daemon has yet to receive, once sending.
 	queue []*control.HostEvent
+	// wanted is the latest set of watched controllers, which a restarted
+	// stream needs to read the right devices.
+	wanted *control.HostEvent
 	// sending is true once send took the state.
 	sending bool
 	// wake holds a token while queue may have events.
@@ -222,7 +230,7 @@ func newHostFeed() *hostFeed {
 func (f *hostFeed) observe(event *modcli.Event) {
 	// Take only the events that change what a guest sees.
 	host := event.GetHost()
-	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil {
+	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil {
 		return
 	}
 
@@ -230,6 +238,9 @@ func (f *hostFeed) observe(event *modcli.Event) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.screens.Handle(host)
+	if host.GetControllersWanted() != nil {
+		f.wanted = host
+	}
 	if f.sending {
 		f.queue = append(f.queue, host)
 		f.signal()
@@ -250,6 +261,9 @@ func (f *hostFeed) send(ctx context.Context, stream peernet.SRPCPeerNet_HostClie
 	// Start from the state so far.
 	f.mu.Lock()
 	f.queue, f.sending = f.screens.Snapshot(), true
+	if f.wanted != nil {
+		f.queue = append(f.queue, f.wanted)
+	}
 	f.signal()
 	f.mu.Unlock()
 	defer f.stop()

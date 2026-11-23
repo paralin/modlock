@@ -222,6 +222,11 @@ message PlayerJoined {
   // Connection; zero from a host that does not report it. A controller that
   // answers calls naming a generation refuses them all when it is zero.
   uint32 generation = 4;
+
+  // Address is the ip:port the player's packets come from, such as
+  // 127.0.0.1:27006, which tells a controller which of its forwarded links
+  // carries the player; empty from a host that does not report it.
+  string address = 5;
 }
 
 // PlayerLeft identifies a player who left. Bots leave too; a controller drops

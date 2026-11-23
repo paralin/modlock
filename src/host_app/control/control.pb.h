@@ -2167,6 +2167,7 @@ class PlayerJoined final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kNameFieldNumber = 2,
+    kAddressFieldNumber = 5,
     kSlotFieldNumber = 1,
     kGenerationFieldNumber = 4,
     kSteamIdFieldNumber = 3,
@@ -2184,6 +2185,21 @@ class PlayerJoined final : public ::google::protobuf::Message
   const ::std::string& _internal_name() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
   ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // string address = 5;
+  void clear_address() ;
+  const ::std::string& address() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_address(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_address();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_address();
+  void set_allocated_address(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_address() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_address(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_address();
 
   public:
   // int32 slot = 1;
@@ -2220,8 +2236,8 @@ class PlayerJoined final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                   0, 50,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 57,
                                    2>
       _table_;
 
@@ -2243,6 +2259,7 @@ class PlayerJoined final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr address_;
     ::int32_t slot_;
     ::uint32_t generation_;
     ::uint64_t steam_id_;
@@ -9414,7 +9431,7 @@ inline void PlayerJoined::clear_slot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.slot_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::int32_t PlayerJoined::slot() const {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.slot)
@@ -9422,7 +9439,7 @@ inline ::int32_t PlayerJoined::slot() const {
 }
 inline void PlayerJoined::set_slot(::int32_t value) {
   _internal_set_slot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.slot)
 }
 inline ::int32_t PlayerJoined::_internal_slot() const {
@@ -9504,7 +9521,7 @@ inline void PlayerJoined::clear_steam_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.steam_id_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline ::uint64_t PlayerJoined::steam_id() const {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.steam_id)
@@ -9512,7 +9529,7 @@ inline ::uint64_t PlayerJoined::steam_id() const {
 }
 inline void PlayerJoined::set_steam_id(::uint64_t value) {
   _internal_set_steam_id(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.steam_id)
 }
 inline ::uint64_t PlayerJoined::_internal_steam_id() const {
@@ -9529,7 +9546,7 @@ inline void PlayerJoined::clear_generation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::uint32_t PlayerJoined::generation() const {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.generation)
@@ -9537,7 +9554,7 @@ inline ::uint32_t PlayerJoined::generation() const {
 }
 inline void PlayerJoined::set_generation(::uint32_t value) {
   _internal_set_generation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.generation)
 }
 inline ::uint32_t PlayerJoined::_internal_generation() const {
@@ -9547,6 +9564,71 @@ inline ::uint32_t PlayerJoined::_internal_generation() const {
 inline void PlayerJoined::_internal_set_generation(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = value;
+}
+
+// string address = 5;
+inline void PlayerJoined::clear_address() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.address_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& PlayerJoined::address() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.PlayerJoined.address)
+  return _internal_address();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PlayerJoined::set_address(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.address_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.PlayerJoined.address)
+}
+inline ::std::string* PROTOBUF_NONNULL PlayerJoined::mutable_address()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_address();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.PlayerJoined.address)
+  return _s;
+}
+inline const ::std::string& PlayerJoined::_internal_address() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.address_.Get();
+}
+inline void PlayerJoined::_internal_set_address(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.address_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL PlayerJoined::_internal_mutable_address() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.address_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE PlayerJoined::release_address() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.PlayerJoined.address)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.address_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.address_.Set("", GetArena());
+  }
+  return released;
+}
+inline void PlayerJoined::set_allocated_address(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.address_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.address_.IsDefault()) {
+    _impl_.address_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.PlayerJoined.address)
 }
 
 // -------------------------------------------------------------------

@@ -8,6 +8,7 @@ import (
 	context "context"
 
 	srpc "github.com/aperturerobotics/starpc/srpc"
+	controllers "github.com/paralin/modlock/src/wasm/controllers"
 )
 
 type SRPCPeerNetClient interface {
@@ -330,6 +331,12 @@ type SRPCSessionClient interface {
 	// mounts before its game starts so it draws the mods' models, materials,
 	// particles and layouts.
 	Content(ctx context.Context, in *ContentRequest) (SRPCSession_ContentClient, error)
+	// Controllers carries the guest's controllers to the player whose game
+	// connection the same peer link carries; the frames name no player, so a
+	// guest feeds only its own. The host sends that player's want each time it
+	// changes, with epoch zero while no mod watches or the guest has no slot,
+	// and the guest reads its devices only while the latest epoch is nonzero.
+	Controllers(ctx context.Context) (SRPCSession_ControllersClient, error)
 }
 
 type srpcSessionClient struct {
@@ -416,6 +423,45 @@ func (x *srpcSession_ContentClient) RecvTo(m *ContentPart) error {
 	return x.MsgRecv(m)
 }
 
+func (c *srpcSessionClient) Controllers(ctx context.Context) (SRPCSession_ControllersClient, error) {
+	stream, err := c.cc.NewStream(ctx, c.serviceID, "Controllers", nil)
+	if err != nil {
+		return nil, err
+	}
+	strm := &srpcSession_ControllersClient{stream}
+	return strm, nil
+}
+
+type SRPCSession_ControllersClient interface {
+	srpc.Stream
+	Send(*controllers.ControllerFrame) error
+	Recv() (*controllers.ControllerWant, error)
+	RecvTo(*controllers.ControllerWant) error
+}
+
+type srpcSession_ControllersClient struct {
+	srpc.Stream
+}
+
+func (x *srpcSession_ControllersClient) Send(m *controllers.ControllerFrame) error {
+	if m == nil {
+		return nil
+	}
+	return x.MsgSend(m)
+}
+
+func (x *srpcSession_ControllersClient) Recv() (*controllers.ControllerWant, error) {
+	m := new(controllers.ControllerWant)
+	if err := x.MsgRecv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (x *srpcSession_ControllersClient) RecvTo(m *controllers.ControllerWant) error {
+	return x.MsgRecv(m)
+}
+
 type SRPCSessionServer interface {
 	// Watch streams what the guest sees: whether they are in the server, what
 	// the mods show them, the whole screen first and then only what changed,
@@ -425,6 +471,12 @@ type SRPCSessionServer interface {
 	// mounts before its game starts so it draws the mods' models, materials,
 	// particles and layouts.
 	Content(*ContentRequest, SRPCSession_ContentStream) error
+	// Controllers carries the guest's controllers to the player whose game
+	// connection the same peer link carries; the frames name no player, so a
+	// guest feeds only its own. The host sends that player's want each time it
+	// changes, with epoch zero while no mod watches or the guest has no slot,
+	// and the guest reads its devices only while the latest epoch is nonzero.
+	Controllers(SRPCSession_ControllersStream) error
 }
 
 const SRPCSessionServiceID = "modlock.peernet.Session"
@@ -455,6 +507,7 @@ func (SRPCSessionHandler) GetMethodIDs() []string {
 	return []string{
 		"Watch",
 		"Content",
+		"Controllers",
 	}
 }
 
@@ -471,6 +524,8 @@ func (d *SRPCSessionHandler) InvokeMethod(
 		return true, d.InvokeMethod_Watch(d.impl, strm)
 	case "Content":
 		return true, d.InvokeMethod_Content(d.impl, strm)
+	case "Controllers":
+		return true, d.InvokeMethod_Controllers(d.impl, strm)
 	default:
 		return false, nil
 	}
@@ -492,6 +547,11 @@ func (SRPCSessionHandler) InvokeMethod_Content(impl SRPCSessionServer, strm srpc
 	}
 	serverStrm := &srpcSession_ContentStream{strm}
 	return impl.Content(req, serverStrm)
+}
+
+func (SRPCSessionHandler) InvokeMethod_Controllers(impl SRPCSessionServer, strm srpc.Stream) error {
+	clientStrm := &srpcSession_ControllersStream{strm}
+	return impl.Controllers(clientStrm)
 }
 
 type SRPCSession_WatchStream interface {
@@ -538,4 +598,41 @@ func (x *srpcSession_ContentStream) SendAndClose(m *ContentPart) error {
 		}
 	}
 	return x.CloseSend()
+}
+
+type SRPCSession_ControllersStream interface {
+	srpc.Stream
+	Send(*controllers.ControllerWant) error
+	SendAndClose(*controllers.ControllerWant) error
+	Recv() (*controllers.ControllerFrame, error)
+	RecvTo(*controllers.ControllerFrame) error
+}
+
+type srpcSession_ControllersStream struct {
+	srpc.Stream
+}
+
+func (x *srpcSession_ControllersStream) Send(m *controllers.ControllerWant) error {
+	return x.MsgSend(m)
+}
+
+func (x *srpcSession_ControllersStream) SendAndClose(m *controllers.ControllerWant) error {
+	if m != nil {
+		if err := x.MsgSend(m); err != nil {
+			return err
+		}
+	}
+	return x.CloseSend()
+}
+
+func (x *srpcSession_ControllersStream) Recv() (*controllers.ControllerFrame, error) {
+	m := new(controllers.ControllerFrame)
+	if err := x.MsgRecv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (x *srpcSession_ControllersStream) RecvTo(m *controllers.ControllerFrame) error {
+	return x.MsgRecv(m)
 }
