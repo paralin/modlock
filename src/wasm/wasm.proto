@@ -36,6 +36,9 @@ import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 //     whether the call succeeded.
 //   - Enum values become lowerCamel names without the enum's prefix.
 //   - A message holding only a oneof is a union of its cases' types.
+//   - A method that changes nothing in the game is marked NO_SIDE_EFFECTS.
+//     Every other call may have changed it, so a library drops what it
+//     read before such a call, such as the pawns Player.pawn() keeps.
 //
 // A host profiles each mod's calls by what they name, read by field name, so
 // a request names its target with the field names CallProfile reads
@@ -101,24 +104,32 @@ service Host {
   // Players lists the player slots with a seat, connected or away, in slot
   // order. The libraries
   // answer from the last PlayersChanged instead, once one arrived.
-  rpc Players(Empty) returns (modlock.wasm.players.PlayersResponse);
+  rpc Players(Empty) returns (modlock.wasm.players.PlayersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Pawn returns the player's pawn this frame: the hero, or the game's
   // placeholder with hero 0 that a player joining on a team holds until a hero
   // is selected. It returns nothing for a spectator and before the game has
   // made a pawn. The pawn's entity changes whenever the game replaces it.
-  rpc Pawn(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.players.PawnResponse);
+  rpc Pawn(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.players.PawnResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Pawns returns every player's pawn this frame in one reply, in slot order,
   // each as Pawn returns it: a mode that reads every hero each frame makes
   // one call instead of one per player. A slot Pawn answers nothing for is
   // left out.
-  rpc Pawns(Empty) returns (modlock.wasm.players.PawnsResponse);
+  rpc Pawns(Empty) returns (modlock.wasm.players.PawnsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // PlayerSetting returns the player's value of a setting the manifest
   // declares: the value they chose, or the setting's default. A bot has the
   // defaults.
-  rpc PlayerSetting(modlock.wasm.settings.PlayerSettingRequest) returns (modlock.wasm.settings.SettingResponse);
+  rpc PlayerSetting(modlock.wasm.settings.PlayerSettingRequest) returns (modlock.wasm.settings.SettingResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // SetPlayerSetting changes the player's value of a setting the manifest
   // declares. The value follows the player to later games and other mods'
@@ -134,13 +145,17 @@ service Host {
   // wrote or the server's operator placed, else the one the mod ships under
   // data/. A file in neither reads as unset. Names that leave the mod's
   // directories are refused.
-  rpc ReadFile(modlock.wasm.ReadFileRequest) returns (modlock.wasm.ReadFileResponse);
+  rpc ReadFile(modlock.wasm.ReadFileRequest) returns (modlock.wasm.ReadFileResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // ReadFileBytes reads one of the mod's files from the same places as
   // ReadFile, as bytes that need not be text, such as a packed table the mod
   // views in place. A file in neither reads as unset. The host reads the
   // whole file during the call.
-  rpc ReadFileBytes(modlock.wasm.ReadFileRequest) returns (modlock.wasm.ReadFileBytesResponse);
+  rpc ReadFileBytes(modlock.wasm.ReadFileRequest) returns (modlock.wasm.ReadFileBytesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // WriteFile replaces one of the mod's files in the host's copy, which
   // outlives a restart and an update of the mod; the files the mod ships stay
@@ -165,7 +180,9 @@ service Host {
   rpc Handoff(modlock.wasm.HandoffRequest) returns (Empty);
 
   // HandedOff returns the game's handoff state, or empty.
-  rpc HandedOff(Empty) returns (modlock.wasm.HandedOffResponse);
+  rpc HandedOff(Empty) returns (modlock.wasm.HandedOffResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // PlayerHandoff replaces the handoff state for the player, such as the
   // panels their HUD shows. It lasts only through a reload of the mod in the
@@ -174,7 +191,9 @@ service Host {
   rpc PlayerHandoff(modlock.wasm.HandoffPlayerRequest) returns (Empty);
 
   // PlayerHandedOff returns the player's handoff state, or empty.
-  rpc PlayerHandedOff(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.HandedOffResponse);
+  rpc PlayerHandedOff(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.HandedOffResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
@@ -246,7 +265,9 @@ service Host {
 
   // Abilities lists the abilities of the player's hero in the hero's order,
   // or none without a live hero.
-  rpc Abilities(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.abilities.AbilitiesResponse);
+  rpc Abilities(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.abilities.AbilitiesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // SetAbility changes the upgrades, charges or timers of one of the hero's
   // abilities. An omitted option stays as it is.
@@ -281,7 +302,9 @@ service Host {
   // are left out, so every item returned is one GiveItem accepts. A hero
   // without a build answers with no categories. The call needs a loaded
   // world.
-  rpc HeroBuild(modlock.wasm.abilities.HeroBuildRequest) returns (modlock.wasm.abilities.HeroBuildResponse);
+  rpc HeroBuild(modlock.wasm.abilities.HeroBuildRequest) returns (modlock.wasm.abilities.HeroBuildResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // ReplaceAbility puts the ability named ability, untrained unless keep
   // carries the old one's progress, in the hero's ability slot index, as
@@ -407,7 +430,9 @@ service Host {
   // body component holds read through the entity too: CGameSceneNode, and for
   // a model entity CSkeletonInstance and CModelState, such as the uint64
   // m_MeshGroupMask of CModelState that chooses which mesh groups draw.
-  rpc ReadField(modlock.wasm.fields.ReadFieldRequest) returns (modlock.wasm.fields.FieldResponse);
+  rpc ReadField(modlock.wasm.fields.ReadFieldRequest) returns (modlock.wasm.fields.FieldResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // ReadModifierField reads one schema field of a modifier the entity holds,
   // such as the int32 m_nCameraLevel of CCitadel_Modifier_OrbitCamera on a
@@ -415,7 +440,9 @@ service Host {
   // while the entity lacks the modifier. The host cannot check the modifier's
   // class, so a wrong class reads the wrong bytes, though never past readable
   // memory.
-  rpc ReadModifierField(modlock.wasm.fields.ReadModifierFieldRequest) returns (modlock.wasm.fields.FieldResponse);
+  rpc ReadModifierField(modlock.wasm.fields.ReadModifierFieldRequest) returns (modlock.wasm.fields.FieldResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // WriteField writes one schema field of a live entity and sends the change
   // to the players. The value takes the form ReadField returns for the type.
@@ -436,7 +463,9 @@ service Host {
   // ReadFieldList reads a field that holds a list, such as the m_vecBannedHeroes
   // of CCitadelGameRules. The type is the type of one element: a number, a
   // handle, a boolean or a vector. A list of structures cannot be read.
-  rpc ReadFieldList(modlock.wasm.fields.ReadFieldRequest) returns (modlock.wasm.fields.FieldListResponse);
+  rpc ReadFieldList(modlock.wasm.fields.ReadFieldRequest) returns (modlock.wasm.fields.FieldListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // WriteFieldList replaces the elements of a list field and sends the change
   // to the players, growing the list when it holds fewer elements than the
@@ -445,26 +474,36 @@ service Host {
 
   // EntityClass returns a live entity's schema class, such as
   // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
-  rpc EntityClass(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityClassResponse);
+  rpc EntityClass(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityClassResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // EntityName returns a live entity's name, the targetname a map or a spawn
   // key value gave it, or an empty name for an unnamed entity.
-  rpc EntityName(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityNameResponse);
+  rpc EntityName(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityNameResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // EntityPosition returns where a live entity stands, its absolute origin
   // and angles, as MoveEntity places it, and its velocity. Any entity with a
   // place in the world has one, such as one of the map's boxes.
-  rpc EntityPosition(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityPositionResponse);
+  rpc EntityPosition(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityPositionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // ModifierState reports whether an entity has a modifier state, such as
   // MODIFIER_STATE_PARRY_ACTIVE.
-  rpc ModifierState(modlock.wasm.abilities.ModifierStateRequest) returns (modlock.wasm.abilities.ActiveResponse);
+  rpc ModifierState(modlock.wasm.abilities.ModifierStateRequest) returns (modlock.wasm.abilities.ActiveResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Modifiers lists every modifier an entity holds, such as the stun a
   // hero's ultimate keeps on its target, with its name, class, caster,
   // ability, age, time left and stacks. An entity that holds none answers an
   // empty list.
-  rpc Modifiers(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.abilities.ModifiersResponse);
+  rpc Modifiers(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.abilities.ModifiersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
@@ -540,7 +579,9 @@ service Host {
 
   // ObjectEntity returns the entity handle of a model or particle, as traces
   // report it and particle anchors take it.
-  rpc ObjectEntity(modlock.wasm.objects.ObjectRequest) returns (modlock.wasm.entities.EntityResponse);
+  rpc ObjectEntity(modlock.wasm.objects.ObjectRequest) returns (modlock.wasm.entities.EntityResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // AddBot adds a bot player and returns it. The bot leaves when the world
   // ends or the mod stops.
@@ -637,7 +678,9 @@ service Host {
   rpc SpawnNpc(modlock.wasm.npcs.NpcOptions) returns (modlock.wasm.npcs.NpcResponse);
 
   // ReadNpc returns the unit's state, or nothing once it is gone.
-  rpc ReadNpc(modlock.wasm.npcs.NpcRequest) returns (modlock.wasm.npcs.NpcStateResponse);
+  rpc ReadNpc(modlock.wasm.npcs.NpcRequest) returns (modlock.wasm.npcs.NpcStateResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // MoveNpc places the unit and sets its velocity, which drives its walk
   // animation. It sets the pose without a teleport, which would reset the
@@ -659,7 +702,9 @@ service Host {
 
   // PickupPresent reports whether the pickup still lies in the world,
   // uncollected.
-  rpc PickupPresent(modlock.wasm.entities.PickupRequest) returns (modlock.wasm.entities.AliveResponse);
+  rpc PickupPresent(modlock.wasm.entities.PickupRequest) returns (modlock.wasm.entities.AliveResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // RemovePickup takes the pickup out of the world. It reports false when a
   // player had collected it.
@@ -667,11 +712,15 @@ service Host {
 
   // FindEntities returns the handle of every live entity of a class, such as
   // zip_line_node.
-  rpc FindEntities(modlock.wasm.entities.FindEntitiesRequest) returns (modlock.wasm.entities.EntitiesResponse);
+  rpc FindEntities(modlock.wasm.entities.FindEntitiesRequest) returns (modlock.wasm.entities.EntitiesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // FindEntitiesByName returns the handle of every live entity with a name,
   // the targetname a map or the targetname key value of CreateEntity gave it.
-  rpc FindEntitiesByName(modlock.wasm.entities.FindEntitiesByNameRequest) returns (modlock.wasm.entities.EntitiesResponse);
+  rpc FindEntitiesByName(modlock.wasm.entities.FindEntitiesByNameRequest) returns (modlock.wasm.entities.EntitiesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // RemoveEntities removes every entity of a class, such as npc_trooper,
   // without rewards, and returns how many it removed.
@@ -691,7 +740,9 @@ service Host {
 
   // Trace returns where a line first hits something, or nothing when it hits
   // nothing or the world's collision is not ready.
-  rpc Trace(modlock.wasm.combat.TraceOptions) returns (modlock.wasm.combat.TraceResponse);
+  rpc Trace(modlock.wasm.combat.TraceOptions) returns (modlock.wasm.combat.TraceResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // RestoreNpcs replaces the map's lane units and objectives with targets
   // over the next frames. Units of these classes not in the list are
@@ -705,14 +756,18 @@ service Host {
   rpc Pause(modlock.wasm.PauseRequest) returns (Empty);
 
   // MatchClock returns the match time in seconds that the scoreboard shows.
-  rpc MatchClock(Empty) returns (modlock.wasm.MatchClockResponse);
+  rpc MatchClock(Empty) returns (modlock.wasm.MatchClockResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // HoldMatchClock keeps the match time at seconds every frame until called
   // again; omitted seconds let it run.
   rpc HoldMatchClock(modlock.wasm.HoldMatchClockRequest) returns (Empty);
 
   // Rift reads the Rift objective's state.
-  rpc Rift(Empty) returns (modlock.wasm.RiftResponse);
+  rpc Rift(Empty) returns (modlock.wasm.RiftResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // StartRift opens the Rift objective at position now.
   rpc StartRift(modlock.wasm.StartRiftRequest) returns (Empty);
@@ -749,7 +804,9 @@ service Host {
 
   // Buttons returns the buttons a player holds, as Buttons bits, while the
   // player is alive or dead.
-  rpc Buttons(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.ButtonsResponse);
+  rpc Buttons(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.ButtonsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // WatchMovement adds a player's hero to the movement samples of each Frame
   // event on a new tick, or removes it.

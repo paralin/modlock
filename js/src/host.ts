@@ -31,14 +31,46 @@ export function serveEvents(d: Dispatch): void {
 }
 
 /**
+ * revision counts the moments the game may have changed under the mod: each
+ * event the host delivers, since the game runs between events, and each call
+ * that is not read-only, since the mod itself may have changed the game. Two
+ * reads made at the same revision inside one event see the same game, so a
+ * reader may keep what it read until the revision moves.
+ */
+let revision = 0
+
+/** inEvent is how many deliveries are running, nested ones included. */
+let inEvent = 0
+
+/**
+ * gameRevision returns the current revision while an event is running, or
+ * undefined outside one, where the game may change between any two calls
+ * and nothing read may be kept.
+ */
+export function gameRevision(): number | undefined {
+  return inEvent > 0 ? revision : undefined
+}
+
+/**
  * deliver answers one encoded Call from the host. The library registers its
  * dispatch when it loads, before any event can arrive.
  */
 export function deliver(call: Uint8Array): Uint8Array {
+  // Before the library loads, nothing can answer.
   if (dispatch === undefined) {
     return Reply.toBinary({ error: 'the mod library is not loaded' })
   }
-  return dispatch(call)
+
+  // The game ran since the last event and runs again after this one. An
+  // event whose handler throws fails as a whole, and the next event starts
+  // from a new revision all the same.
+  const depth = inEvent
+  revision++
+  inEvent = depth + 1
+  const reply = dispatch(call)
+  inEvent = depth
+  revision++
+  return reply
 }
 
 /** prefixes holds each method's encoded Call field 1, built on first use. */
@@ -155,9 +187,23 @@ function fallbackReply(bytes: Uint8Array): Uint8Array | undefined {
 /**
  * call calls one Host method with its encoded request and returns the
  * encoded response, or undefined when the call failed; the host logs why.
- * The response may be a view into the reply the transport returned.
+ * The response may be a view into the reply the transport returned. The call
+ * may change the game, so it moves the revision.
  */
 export function call(
+  method: string,
+  request: Uint8Array,
+): Uint8Array | undefined {
+  const reply = transport(encodeCall(method, request))
+  revision++
+  return decodeReply(reply)
+}
+
+/**
+ * callRead calls a Host method the schema marks NO_SIDE_EFFECTS, as call
+ * does, but leaves the revision where it is: the game is the same after it.
+ */
+export function callRead(
   method: string,
   request: Uint8Array,
 ): Uint8Array | undefined {

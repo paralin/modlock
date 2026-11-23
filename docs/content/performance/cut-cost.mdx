@@ -85,11 +85,20 @@ abilities or model: set it once, and again only when something changes it.
 
 Read a value once and pass it to the code that needs it. `player.pawn()` and
 `findEntities` each make a call, and `findEntities` searches the world's
-entities. Read each player's pawn once at the top of the frame; a mode that
-reads every hero calls `pawns()` instead, which answers every player's pawn in
-one call. Find the
-entities a map places, such as zipline nodes, once after the world loads, and
-keep the handles. The player list from `players()` is answered from the roster
+entities. In Go, Luau and Python, read each player's pawn once at the top of
+the frame; a mode that reads every hero calls `pawns()` instead, which answers
+every player's pawn in one call.
+
+The TypeScript library does this for `player.pawn()` itself. Within one event
+it reads the first player's pawn with its own call, every other player's with
+one `pawns()` call, and answers each later read from those, until the mod makes
+a call that may change the game, such as a teleport. A pawn whose state has not
+changed since the last read is returned as the same object, so treat a pawn as
+read-only. `setPawnCache(false)` turns this off, so every read makes its own
+call, to compare the two.
+
+Find the entities a map places, such as zipline nodes, once after the world
+loads, and keep the handles. The player list from `players()` is answered from the roster
 the host last sent, so it rarely makes a call.
 
 ## Stop asking for what fails
