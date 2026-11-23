@@ -51,6 +51,9 @@ struct PluginContext {
   // so a decision that follows is answered by the mod and not by its default.
   // It matters only with concurrent_mods.
   bool posts_in_place = true;
+  // ReplayFrames is how many windows a read stays in a mod's replay set after
+  // the mod stops making it. It matters only with concurrent_mods.
+  uint32_t replay_frames = 1;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.

@@ -78,6 +78,11 @@ struct ModThreadSettings {
   // of a window; a mod that reads more distinct requests than this hops for
   // the rest.
   size_t replay_keys = 512;
+  // replay_frames is how many windows a read the mod stopped making stays in
+  // the replay set: it leaves once it has gone unread for that many windows.
+  // One keeps only what the mod read in the window before; more keeps the reads
+  // a mod makes every few frames, at the cost of replaying them each window.
+  uint32_t replay_frames = 1;
   // write_limit is the most writes the buffer holds. A mod that outruns the
   // game thread's windows waits in a hop instead of growing memory.
   size_t write_limit = 8192;
@@ -94,6 +99,37 @@ struct DecisionCount {
   uint32_t answered = 0;
   uint32_t defaulted = 0;
   uint32_t applying = 0;
+};
+
+// MissTally counts the reads that missed the snapshot by method, and how many
+// distinct requests each method missed, to show which reads a longer replay
+// memory would have to keep.
+class MissTally {
+ public:
+  // Row is one method's misses.
+  struct Row {
+    std::string method;
+    uint64_t misses = 0;
+    size_t keys = 0;
+  };
+
+  // Add counts a miss of a request, named by its hash, of method.
+  void Add(std::string_view method, size_t key);
+  // Merge adds another tally's misses to this one's.
+  void Merge(const MissTally& other);
+  // Top returns the n methods with the most misses, most first.
+  std::vector<Row> Top(size_t n) const;
+
+ private:
+  // kMaxKeys bounds the distinct requests kept for each method.
+  static constexpr size_t kMaxKeys = 16384;
+
+  struct Method {
+    uint64_t misses = 0;
+    std::unordered_set<size_t> keys;
+  };
+
+  std::unordered_map<std::string, Method> methods_;
 };
 
 // WindowStats is what one Window did, for the host to report.
@@ -123,6 +159,9 @@ struct WindowStats {
   uint32_t in_place = 0;
   uint32_t queued = 0;
   std::vector<DecisionCount> decisions;
+  // missed counts the reads that missed the snapshot since the last window, by
+  // method.
+  MissTally missed;
   // time is how long the window lasted on the game thread, answering hops
   // included.
   std::chrono::nanoseconds time{};
@@ -327,11 +366,13 @@ class ModThread {
 
   // Entry is one replayed read: the call, the game's answer when the window
   // began, and whether the mod used it since, which keeps it for the next
-  // window.
+  // window. unread counts the windows before this one that passed without a
+  // read of it; the entry is dropped when that reaches replay_frames.
   struct Entry {
     Call call;
     Reply reply;
     mutable std::atomic<bool> used = false;
+    uint32_t unread = 0;
   };
 
   // Snapshot is the game as the window began, for the reads the mod made in the
@@ -492,6 +533,8 @@ class ModThread {
   std::atomic<size_t> buffered_ = 0;
   std::vector<Call> missed_;
   std::unordered_set<std::string> missed_keys_;
+  // missed_tally_ counts every miss, by method, until a window reports it.
+  MissTally missed_tally_;
   std::vector<Completion> completed_;
   std::optional<std::string> failure_;
 

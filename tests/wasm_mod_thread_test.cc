@@ -323,6 +323,54 @@ TEST(ModThread, RepeatedReadHitsTheSnapshotInTheNextWindow) {
   EXPECT_EQ(Text(done[1]), "0");
 }
 
+TEST(ModThread, AReadStaysInTheReplaySetForReplayFramesWindows) {
+  // The mod reads ReadField on its first frame and again on the frame named by
+  // the script's gap, and none between.
+  const auto script = [](int again) {
+    return "let frame = 0;\nconst handlers = {Frame: () => {\n  ++frame;\n  if (frame === 1 || "
+           "frame === " +
+           std::to_string(again) + ") read('ReadField');\n}};";
+  };
+
+  // One window of memory keeps what the last window read, so a read after a
+  // quiet frame misses again.
+  Rig forgetful;
+  ASSERT_TRUE(forgetful.Up(script(4)));
+  const auto first = forgetful.Tick();
+  EXPECT_EQ(first.misses, 1U);
+  const auto top = first.missed.Top(8);
+  ASSERT_EQ(top.size(), 1U);
+  EXPECT_EQ(top[0].method, "ReadField");
+  EXPECT_EQ(top[0].misses, 1U);
+  EXPECT_EQ(top[0].keys, 1U);
+  forgetful.Tick();
+  forgetful.Tick();
+  const auto again = forgetful.Tick();
+  EXPECT_EQ(again.misses, 1U);
+  EXPECT_EQ(again.hits, 0U);
+
+  // Three windows keep it through two quiet frames, but not three.
+  Rig keeps;
+  ASSERT_TRUE(keeps.Up(script(4), {.posts_in_place = false, .replay_frames = 3}));
+  keeps.Tick();
+  keeps.Tick();
+  keeps.Tick();
+  const auto kept = keeps.Tick();
+  EXPECT_EQ(kept.hits, 1U);
+  EXPECT_EQ(kept.misses, 0U);
+  EXPECT_EQ(kept.replayed, 1U);
+
+  Rig lapses;
+  ASSERT_TRUE(lapses.Up(script(5), {.posts_in_place = false, .replay_frames = 3}));
+  for (int i = 0; i < 4; ++i) {
+    lapses.Tick();
+  }
+  const auto lapsed = lapses.Tick();
+  EXPECT_EQ(lapsed.hits, 0U);
+  EXPECT_EQ(lapsed.misses, 1U);
+  EXPECT_FALSE(forgetful.game.off_thread);
+}
+
 TEST(ModThread, WritesAndHopsReachTheGameInIssueOrder) {
   Rig rig;
   ASSERT_TRUE(rig.Up(R"(

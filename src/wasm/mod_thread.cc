@@ -407,6 +407,10 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   // window, so the Frame event's writes land one tick late. Applying the buffer
   // once more here, when the window closes idle, would remove that lag.
   CountReads(&stats);
+  {
+    const std::lock_guard lock(mu_);
+    stats.missed = std::exchange(missed_tally_, {});
+  }
   stats.time = std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - began);
   game_running_.store(false);
   in_window_ = false;
@@ -636,6 +640,42 @@ void ModThread::Enqueue(Buffered entry) {
   buffered_.store(buffer_.size());
 }
 
+void MissTally::Add(std::string_view method, size_t key) {
+  auto& tally = methods_[std::string(method)];
+  ++tally.misses;
+  if (tally.keys.size() < kMaxKeys) {
+    tally.keys.insert(key);
+  }
+}
+
+void MissTally::Merge(const MissTally& other) {
+  for (const auto& [method, theirs] : other.methods_) {
+    auto& ours = methods_[method];
+    ours.misses += theirs.misses;
+    for (const size_t key : theirs.keys) {
+      if (ours.keys.size() >= kMaxKeys) {
+        break;
+      }
+      ours.keys.insert(key);
+    }
+  }
+}
+
+std::vector<MissTally::Row> MissTally::Top(size_t n) const {
+  std::vector<Row> rows;
+  rows.reserve(methods_.size());
+  for (const auto& [method, tally] : methods_) {
+    rows.push_back({.method = method, .misses = tally.misses, .keys = tally.keys.size()});
+  }
+  std::ranges::sort(rows, [](const Row& a, const Row& b) {
+    return a.misses != b.misses ? a.misses > b.misses : a.method < b.method;
+  });
+  if (rows.size() > n) {
+    rows.resize(n);
+  }
+  return rows;
+}
+
 std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
   const auto snapshot = LatestSnapshot();
   std::string key = Key(call);
@@ -664,6 +704,7 @@ std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
   // The snapshot lacks the read: remember it, so the next window replays it.
   misses_.fetch_add(1, std::memory_order_relaxed);
   std::lock_guard lock(mu_);
+  missed_tally_.Add(call.method(), std::hash<std::string>{}(key));
   if (missed_keys_.size() < settings_.replay_keys && missed_keys_.insert(key).second) {
     missed_.push_back(call);
   }
@@ -732,14 +773,19 @@ void ModThread::Replay(WindowStats* stats) {
   }
 
   // Replay what the mod used of the last snapshot, and what it asked for and
-  // the snapshot lacked, up to the limit.
+  // the snapshot lacked, up to the limit, and then what it has left unread for
+  // fewer than replay_frames windows. A read that came back keeps no count.
   std::vector<std::pair<std::string, Call>> wanted;
+  std::vector<std::pair<std::string, const Entry*>> idle;
   std::unordered_set<std::string> seen;
-  if (const auto previous = LatestSnapshot()) {
+  const auto previous = LatestSnapshot();
+  if (previous) {
     for (const auto& [key, entry] : previous->entries) {
       if (entry.used.load(std::memory_order_relaxed)) {
         wanted.emplace_back(key, entry.call);
         seen.insert(key);
+      } else if (entry.unread + 1 < settings_.replay_frames) {
+        idle.emplace_back(key, &entry);
       }
     }
   }
@@ -758,6 +804,16 @@ void ModThread::Replay(WindowStats* stats) {
       wanted.emplace_back(std::move(key), std::move(call));
     }
   }
+  std::unordered_map<std::string, uint32_t> unread;
+  for (const auto& [key, entry] : idle) {
+    if (wanted.size() >= settings_.replay_keys) {
+      break;
+    }
+    if (seen.insert(key).second) {
+      wanted.emplace_back(key, entry->call);
+      unread.emplace(key, entry->unread + 1);
+    }
+  }
 
   // The snapshot holds the game as it is now, after the mod's writes.
   auto next = std::make_shared<Snapshot>();
@@ -767,6 +823,9 @@ void ModThread::Replay(WindowStats* stats) {
     Entry& entry = next->entries[key];
     entry.reply = game_call_(call);
     entry.call = std::move(call);
+    if (const auto idled = unread.find(key); idled != unread.end()) {
+      entry.unread = idled->second;
+    }
   }
   applying_ = false;
   stats->replayed = static_cast<uint32_t>(wanted.size());

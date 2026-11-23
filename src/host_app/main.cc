@@ -52,6 +52,8 @@ void Help() {
                "  --concurrent-mods   Run each mod's events on a thread of its own\n"
                "  --queue-posts       With --concurrent-mods, queue every event instead of\n"
                "                      running an idle one at once on the engine thread\n"
+               "  --replay-frames N   With --concurrent-mods, keep a read in the replay set\n"
+               "                      until it has gone unread for N frames (default 1)\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
 }
@@ -127,6 +129,7 @@ struct Options {
   bool check_only = false;
   bool concurrent_mods = false;
   bool posts_in_place = true;
+  uint32_t replay_frames = 1;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
 };
@@ -163,6 +166,14 @@ std::expected<void, ExitCode> SetOption(Options& options, std::string_view argum
     options.dump_directory = value;
   } else if (argument == "--game-data") {
     options.game_data = value;
+  } else if (argument == "--replay-frames") {
+    uint32_t frames = 0;
+    const auto parsed = std::from_chars(value.data(), value.data() + value.size(), frames);
+    if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() || frames == 0) {
+      std::cerr << "The replay frames must be a positive integer.\n";
+      return std::unexpected(2);
+    }
+    options.replay_frames = frames;
   } else if (argument == "--game-dir") {
     options.game_dir = value;
     return {};
@@ -237,7 +248,7 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
         argument != "--map" && argument != "--engine-args" && argument != "--control" &&
         argument != "--settings" && argument != "--files" && argument != "--fixtures" &&
-        argument != "--dump" && argument != "--game-data") {
+        argument != "--dump" && argument != "--game-data" && argument != "--replay-frames") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return std::unexpected(2);
     }
@@ -350,7 +361,8 @@ int main(int argc, char** argv) {
                                        .launch = &options.launch,
                                        .wasm = &mods,
                                        .concurrent_mods = options.concurrent_mods,
-                                       .posts_in_place = options.posts_in_place};
+                                       .posts_in_place = options.posts_in_place,
+                                       .replay_frames = options.replay_frames};
   for (const auto& library : options.libraries) {
     // Load each plugin, built mod or native library.
     const auto path = std::filesystem::absolute(library);

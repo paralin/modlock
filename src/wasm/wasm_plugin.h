@@ -145,6 +145,7 @@ class WasmPlugin final : public Plugin {
         enforce_required_services_(context.enforce_required_services),
         concurrent_mods_(context.concurrent_mods),
         posts_in_place_(context.posts_in_place),
+        replay_frames_(context.replay_frames),
         mod_([this](const wasm::Call& call) { return Send(call); }),
         game_(*this, host, context.engine) {
     for (int i = 1; i < context.argc; ++i) {
@@ -461,6 +462,9 @@ class WasmPlugin final : public Plugin {
   const bool concurrent_mods_;
   // posts_in_place_ lets such a mod run an idle event on the engine thread.
   const bool posts_in_place_;
+  // replay_frames_ is how many windows a read stays in such a mod's replay set
+  // after the mod stops making it.
+  const uint32_t replay_frames_;
   std::vector<std::string> args_;
   wasm::Sandbox instance_;
   // path_ is where the running build was read from.

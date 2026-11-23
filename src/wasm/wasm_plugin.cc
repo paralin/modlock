@@ -135,6 +135,7 @@ void Total(wasm::WindowStats& total, const wasm::WindowStats& window) {
     found->defaulted += kind.defaulted;
     found->applying += kind.applying;
   }
+  total.missed.Merge(window.missed);
   total.time += window.time;
 }
 
@@ -145,7 +146,8 @@ std::expected<wasm::Sandbox, std::string> WasmPlugin::Instantiate(std::span<cons
   limits.sample_after = kFrameAllowance;
   return wasm::Sandbox::Load(
       host_.runtime, module, limits, [this](const wasm::Call& call) { return Call(call); },
-      concurrent_mods_ ? std::optional(wasm::ModThreadSettings{.posts_in_place = posts_in_place_})
+      concurrent_mods_ ? std::optional(wasm::ModThreadSettings{.posts_in_place = posts_in_place_,
+                                                               .replay_frames = replay_frames_})
                        : std::nullopt);
 }
 
@@ -833,6 +835,13 @@ void WasmPlugin::ReportCalls() {
                             kind.answered, kind.defaulted, kind.applying);
       }
       if (w.decisions.empty()) {
+        line += " none";
+      }
+      line += ", misses by method";
+      for (const auto& row : w.missed.Top(8)) {
+        line += std::format(" {} {} ({} keys)", row.method, row.misses, row.keys);
+      }
+      if (w.missed.Top(1).empty()) {
         line += " none";
       }
     }
