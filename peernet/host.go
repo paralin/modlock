@@ -95,7 +95,7 @@ type hosting struct {
 	// sessions serves the Session service to guests.
 	sessions *srpc.Server
 	// controllers binds each guest's controllers to their slot.
-	controllers *controllerHub
+	controllers *controllers.Hub
 }
 
 // GetControllerInfo identifies the hosted session.
@@ -161,7 +161,7 @@ func (h *hosting) HandleMountedStream(_ context.Context, mounted link.MountedStr
 		h.events(&HostEvent{Body: &HostEvent_Joined{Joined: guest}})
 		release := func() {}
 		_ = gamelink.Forward(h.ctx, h.target, messages, func(local *net.UDPAddr) error {
-			release = h.controllers.forward(mounted.GetPeerID(), local)
+			release = h.controllers.Forward(mounted.GetPeerID().String(), local)
 			return gamelink.AcceptGeneration(h.ctx, control)
 		})
 		release()
@@ -219,7 +219,9 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 		case <-ctx.Done():
 		}
 	}
-	hub := newControllerHub(queue)
+	hub := controllers.NewHub(func(frames *control.ControllerFrames) {
+		queue(&HostEvent{Body: &HostEvent_Controllers{Controllers: frames}})
+	})
 	manifestChanged := make(chan struct{}, 1)
 	results := make(chan *control.ServiceResult, 16)
 	go func() {
@@ -248,7 +250,7 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 			}
 			if event != nil {
 				screens.Handle(event)
-				hub.handle(event)
+				followControllers(hub, event)
 			}
 		}
 	}()
@@ -335,7 +337,7 @@ type sessionServer struct {
 	// chat holds the newest lines said.
 	chat *session.Chat
 	// controllers binds each guest's controllers to their slot.
-	controllers *controllerHub
+	controllers *controllers.Hub
 }
 
 // Watch streams what the guest sees: whether they are in the server and the
@@ -393,14 +395,14 @@ func (s *sessionServer) Controllers(strm SRPCSession_ControllersStream) error {
 	if guest == "" {
 		return errors.New("controllers come only over a guest's peer link")
 	}
-	feed := s.controllers.open(guest)
-	defer s.controllers.close(feed)
+	feed := s.controllers.Open(guest.String())
+	defer feed.Close()
 
 	// Send the wants beside the frames.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go func() {
-		_ = s.controllers.serve(ctx, feed, strm.Send)
+		_ = feed.Serve(ctx, strm.Send)
 		cancel()
 	}()
 
@@ -413,7 +415,7 @@ func (s *sessionServer) Controllers(strm SRPCSession_ControllersStream) error {
 			}
 			return err
 		}
-		s.controllers.frame(feed, frame)
+		feed.Frame(frame)
 	}
 }
 
@@ -452,13 +454,13 @@ func FeedHost(ctx context.Context, host SRPCSessionClient) {
 
 // feedLocal feeds the host's own player from this PC's controllers while the
 // mods watch them, until ctx ends.
-func feedLocal(ctx context.Context, hub *controllerHub) {
+func feedLocal(ctx context.Context, hub *controllers.Hub) {
 	// Follow the host player's want, keeping only the latest epoch.
-	feed := hub.open("")
-	defer hub.close(feed)
+	feed := hub.Open("")
+	defer feed.Close()
 	wants := make(chan uint32, 1)
 	go func() {
-		_ = hub.serve(ctx, feed, func(want *pb.ControllerWant) error {
+		_ = feed.Serve(ctx, func(want *pb.ControllerWant) error {
 			select {
 			case <-wants:
 			default:
@@ -470,7 +472,7 @@ func feedLocal(ctx context.Context, hub *controllerHub) {
 
 	// Read the devices while wanted.
 	_ = controllers.Serve(ctx, nil, wants, func(frame *pb.ControllerFrame) error {
-		hub.frame(feed, frame)
+		feed.Frame(frame)
 		return nil
 	})
 }
