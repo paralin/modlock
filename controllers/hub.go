@@ -16,30 +16,42 @@ import (
 //
 // A guest's stream feeds the slot whose client connects from one of the
 // sockets the server bound to forward that guest's game stream, as the
-// server reports when the player joins. A frame names no player, so no guest
-// can feed another's slot. The host's own player, fed by a stream with no
-// guest, is the slot connecting from a loopback address that forwards no
-// guest.
+// server reports when the player joins, or, for a game that connects to the
+// server directly, the slot whose Steam account the server's own authority
+// verified as the guest's. A frame names no player, so no guest can feed
+// another's slot. The host's own player, fed by a stream with no guest, is
+// the slot connecting from a loopback address that forwards no guest.
 //
 // The program that runs the server owns the Hub: it reports joins, leaves and
 // the watched players from the server, each forwarding socket from its game
-// links, and opens a Feed for each controller stream it accepts.
+// links, each guest's verified account when it has one, and opens a Feed for
+// each controller stream it accepts.
 type Hub struct {
 	// send receives each player's frames, and the end of their stream.
 	send func(*pb.ControllerFrames)
 
 	// mu guards the fields below.
 	mu sync.Mutex
-	// players maps each joined player's slot to the address their client
-	// connects from.
-	players map[int32]string
+	// players maps each joined player's slot to its client.
+	players map[int32]client
 	// wants maps each watched slot to its epoch.
 	wants map[int32]uint32
 	// forwards maps each guest to the addresses of the sockets that forward
 	// its game streams, each counted by its open streams.
 	forwards map[string]map[string]int
+	// members maps each guest to the Steam account the server verified as
+	// theirs.
+	members map[string]uint64
 	// feeds holds the open controller streams.
 	feeds map[*Feed]struct{}
+}
+
+// client is a joined player's client as the server reports it.
+type client struct {
+	// address is where the client connects from.
+	address string
+	// steamID is the client's Steam account, zero when unknown.
+	steamID uint64
 }
 
 // Feed is one controller stream: a guest's, or the host player's own when
@@ -61,23 +73,25 @@ type Feed struct {
 func NewHub(send func(*pb.ControllerFrames)) *Hub {
 	return &Hub{
 		send:     send,
-		players:  make(map[int32]string),
+		players:  make(map[int32]client),
 		wants:    make(map[int32]uint32),
 		forwards: make(map[string]map[string]int),
+		members:  make(map[string]uint64),
 		feeds:    make(map[*Feed]struct{}),
 	}
 }
 
 // Joined records that the client in slot connects from address, its
-// ip:port or the engine's "loopback". An empty address forgets the slot, as
-// for a bot.
-func (h *Hub) Joined(slot int32, address string) {
+// ip:port or the engine's "loopback", signed in to steamID, the account the
+// engine authenticated or zero. A bot, with neither, is forgotten, so no
+// stream may feed its slot.
+func (h *Hub) Joined(slot int32, address string, steamID uint64) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if address == "" {
+	if address == "" && steamID == 0 {
 		delete(h.players, slot)
 	} else {
-		h.players[slot] = address
+		h.players[slot] = client{address: address, steamID: steamID}
 	}
 	h.rebind()
 }
@@ -98,6 +112,23 @@ func (h *Hub) Wanted(wants *pb.ControllerWants) {
 	clear(h.wants)
 	for _, want := range wants.GetWants() {
 		h.wants[want.GetPlayer()] = want.GetEpoch()
+	}
+	h.rebind()
+}
+
+// Members replaces the guests whose Steam accounts the server's own
+// authority verified, such as its lobby's roster, with members, from guest
+// to account. A member's stream feeds the slot signed in to its account, for
+// a game that connects without a forwarding socket.
+func (h *Hub) Members(members map[string]uint64) {
+	// Replace the accounts, then rebind each feed to its slot.
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	clear(h.members)
+	for guest, steamID := range members {
+		if steamID != 0 {
+			h.members[guest] = steamID
+		}
 	}
 	h.rebind()
 }
@@ -224,18 +255,20 @@ func (h *Hub) bind(feed *Feed, slot int32) {
 }
 
 // slotOf returns the slot feed may feed, or -1: for a guest, the lowest slot
-// connecting through one of its sockets; for the host's own player, the
-// lowest connecting from loopback through no guest's socket. Callers hold mu.
+// connecting through one of its sockets or signed in to its verified
+// account; for the host's own player, the lowest connecting from loopback
+// through no guest's socket. Callers hold mu.
 func (h *Hub) slotOf(feed *Feed) int32 {
+	member := h.members[feed.guest]
 	for _, slot := range slices.Sorted(maps.Keys(h.players)) {
-		addr := h.players[slot]
+		player := h.players[slot]
 		if feed.guest != "" {
-			if h.forwards[feed.guest][addr] > 0 {
+			if h.forwards[feed.guest][player.address] > 0 || (member != 0 && player.steamID == member) {
 				return slot
 			}
 			continue
 		}
-		if h.local(addr) {
+		if h.local(player.address) {
 			return slot
 		}
 	}

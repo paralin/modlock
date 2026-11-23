@@ -21,7 +21,7 @@ func followControllers(hub *controllers.Hub, event *control.HostEvent) {
 		if joined.GetSteamId() == 0 {
 			address = ""
 		}
-		hub.Joined(joined.GetSlot(), address)
+		hub.Joined(joined.GetSlot(), address, joined.GetSteamId())
 	case event.GetLeft() != nil:
 		hub.Left(event.GetLeft().GetSlot())
 	case event.GetControllersWanted() != nil:

@@ -25,8 +25,8 @@ func TestHubBindsOwnSlot(t *testing.T) {
 	// forward socket, and slot 1 alone is watched.
 	guest, stranger := "guest", "stranger"
 	release := hub.Forward(guest, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 40002})
-	hub.Joined(1, "127.0.0.1:27005")
-	hub.Joined(2, "127.0.0.1:40002")
+	hub.Joined(1, "127.0.0.1:27005", 0)
+	hub.Joined(2, "127.0.0.1:40002", 0)
 	want(&pb.ControllerWant{Player: 1, Epoch: 7})
 	own, theirs, none := hub.Open(""), hub.Open(guest), hub.Open(stranger)
 	if slot, epoch := own.Want(); slot != 1 || epoch != 7 {
@@ -73,11 +73,43 @@ func TestHubBindsOwnSlot(t *testing.T) {
 	}
 }
 
+// TestHubBindsVerifiedAccount tries to feed a directly connected player's
+// slot: a guest the server verified as account 76 feeds the slot signed in to
+// 76, a guest naming no account and one verified as another feed nothing,
+// and dropping the member unbinds it and ends the slot's stream.
+func TestHubBindsVerifiedAccount(t *testing.T) {
+	var events []*pb.ControllerFrames
+	hub := NewHub(func(frames *pb.ControllerFrames) { events = append(events, frames) })
+	hub.Joined(4, "203.0.113.9:27005", 76)
+	hub.Joined(5, "198.51.100.2:27005", 77)
+	hub.Wanted(&pb.ControllerWants{Wants: []*pb.ControllerWant{{Player: 4, Epoch: 2}, {Player: 5, Epoch: 3}}})
+	hub.Members(map[string]uint64{"guest": 76, "other": 78})
+	theirs, stranger, other := hub.Open("guest"), hub.Open("stranger"), hub.Open("other")
+	if slot, epoch := theirs.Want(); slot != 4 || epoch != 2 {
+		t.Fatalf("member bound to %d at %d", slot, epoch)
+	}
+	for _, feed := range []*Feed{stranger, other} {
+		if slot, _ := feed.Want(); slot != -1 {
+			t.Fatalf("%s bound to %d", feed.guest, slot)
+		}
+		feed.Frame(&pb.ControllerFrame{Epoch: 3, Full: true})
+	}
+	if len(events) != 0 {
+		t.Fatalf("frames from unbound feeds: %v", events)
+	}
+
+	// Dropping the member ends slot 4's stream.
+	hub.Members(nil)
+	if slot, _ := theirs.Want(); slot != -1 || len(events) != 1 || !events[0].GetEnded() || events[0].GetPlayer() != 4 {
+		t.Fatalf("after the roster change: slot %d, events %v", slot, events)
+	}
+}
+
 // TestHubServeSendsChanges sees Serve send the current want, then
 // each change, and stop when its context ends.
 func TestHubServeSendsChanges(t *testing.T) {
 	hub := NewHub(func(*pb.ControllerFrames) {})
-	hub.Joined(3, "loopback")
+	hub.Joined(3, "loopback", 0)
 	feed := hub.Open("")
 
 	// Serve into a channel, which first sees slot 3 unwatched.
@@ -141,7 +173,7 @@ func TestFeedCarriesAGuestsDevices(t *testing.T) {
 		}
 	})
 	defer hub.Forward("guest", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 40002})()
-	hub.Joined(2, "127.0.0.1:40002")
+	hub.Joined(2, "127.0.0.1:40002", 0)
 	mux := srpc.NewMux()
 	if err := SRPCRegisterControllerFeed(mux, guestFeed{hub: hub, guest: "guest"}); err != nil {
 		t.Fatal(err)
