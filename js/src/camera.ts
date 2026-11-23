@@ -34,6 +34,7 @@ import {
   type KeyValue,
   moveEntity,
   type Player,
+  readField,
   removeEntity,
   showEntityOnlyTo,
   type Vector,
@@ -84,6 +85,9 @@ const cameraOverrideModifier = 'modifier_citadel_hideout_intro'
 const cameraOverrideExitModifier = 'modifier_citadel_hideout_intro_exit'
 const primaryCameraName = 'intro_camera'
 const preIntroCameraName = 'pre_intro_camera'
+// FL_ATCONTROLS (bit 6 of CBaseEntity.m_fFlags), set by
+// CCitadel_Modifier_HideoutIntro::OnCreated so SetupMove skips move axes.
+const flAtControls = 0x40
 
 /**
  * entityCameraSettleSeconds is how long an entity camera takes to settle
@@ -114,6 +118,15 @@ export interface EntityCameraOptions {
    * blends smoothly in from the hero over 0.5s.
    */
   instant?: boolean
+  /**
+   * keepControls clears the FL_ATCONTROLS flag that the stock camera-override
+   * modifier sets on the hero pawn, so analog left-stick and WASD movement
+   * axes (forward and left) keep reaching MovementSample.command while the
+   * camera is open. Each move clears it again when the game has set it again,
+   * as when the modifier returns to a respawned hero. Omitted, false (the stock
+   * modifier freezes movement axes, which suits cinematic cameras).
+   */
+  keepControls?: boolean
 }
 
 /** EntityCamera drives one player's 6-DOF point_camera override. */
@@ -178,6 +191,24 @@ function spawnPointCamera(
 }
 
 /**
+ * clearAtControls clears FL_ATCONTROLS on entity when set so the server's
+ * SetupMove copies CUserCmd movement axes into CMoveData instead of zeroing
+ * them.
+ */
+function clearAtControls(entity: number): void {
+  const flags = readField(entity, 'CBaseEntity', 'm_fFlags', 'uint32')
+  if (typeof flags === 'number' && (flags & flAtControls) !== 0) {
+    writeField(
+      entity,
+      'CBaseEntity',
+      'm_fFlags',
+      'uint32',
+      (flags & ~flAtControls) >>> 0,
+    )
+  }
+}
+
+/**
  * entityCamera gives player's living hero a 6-DOF point_camera view on any map
  * without modifying the game client. The stock client's camera manager reads
  * C_PointCamera origin, full 3-axis angles (including 360-degree roll and
@@ -185,10 +216,13 @@ function spawnPointCamera(
  * their living hero. Each player receives only their own camera via
  * showEntityOnlyTo.
  *
- * The stock modifier also freezes the hero's movement and view input: while
- * the camera is open the player's commands still arrive, with their buttons,
- * but forward and left read 0 and the view angles stop changing. Steer the
- * camera from buttons or another input, not the sticks.
+ * By default the stock modifier sets FL_ATCONTROLS on the hero so movement
+ * axes (forward and left) read 0 while the camera is open, which suits
+ * cinematic cameras. Pass keepControls: true to clear FL_ATCONTROLS so WASD
+ * and Steam Input left-stick analog axes keep arriving in
+ * MovementSample.command. Note that while CSimpleCamera is active the stock
+ * client skips CCitadel_ThirdPersonCamera look polling, so mouse and right-stick
+ * look do not update view angles.
  *
  * Returns undefined when the player has no living hero or a host call fails.
  */
@@ -203,7 +237,6 @@ export function entityCamera(
   // Spawn the persistent intro_camera and, for frame-1 cuts, pre_intro_camera.
   const entity = spawnPointCamera(player.slot, primaryCameraName, options)
   if (entity === undefined) return undefined
-
   let preEntity: number | undefined
   if (options.instant !== false) {
     preEntity = spawnPointCamera(player.slot, preIntroCameraName, options)
@@ -226,6 +259,11 @@ export function entityCamera(
     heldPawn = pawn.entity
   }
 
+  // Let movement axes through when asked; the modifier froze them on attach.
+  const keepControls = options.keepControls === true
+  if (keepControls) clearAtControls(pawn.entity)
+
+  // The camera settles once the game's opening blend has run out.
   let stopped = false
   let settled = false
   const settleTimer = after(entityCameraSettleSeconds, () => {
@@ -238,7 +276,17 @@ export function entityCamera(
       return settled && !stopped
     },
     move(position: Vector, facing: Angles): boolean {
+      // A stopped camera moves nothing.
       if (stopped) return false
+
+      // The modifier sets FL_ATCONTROLS each time it attaches, so check the
+      // current pawn on every move rather than once per pawn handle.
+      if (keepControls) {
+        const current = player.pawn()
+        if (current?.entity) clearAtControls(current.entity)
+      }
+
+      // pre_intro_camera follows intro_camera through the opening blend.
       const moved = moveEntity(entity, position, facing)
       if (preEntity !== undefined) moveEntity(preEntity, position, facing)
       return moved
@@ -252,9 +300,12 @@ export function entityCamera(
       return wrote
     },
     stop(): boolean {
+      // Stop once; the cameras and the settle timer end together.
       if (stopped) return true
       stopped = true
       settleTimer.cancel()
+
+      // Release the hold and take the intro and exit modifiers off the hero.
       const released =
         heldPawn === undefined
           ? player.holdModifier(cameraOverrideModifier, false)
@@ -268,6 +319,8 @@ export function entityCamera(
           text: cameraOverrideExitModifier,
         })
       }
+
+      // Remove both cameras.
       if (preEntity !== undefined) {
         removeEntity(preEntity)
         preEntity = undefined
