@@ -1897,6 +1897,19 @@ describe("CCitadelRankedBadgeProp", "CDynamicProp", {
 	m_unPackedRank = "uint8",
 })
 
+export type CCitadelRankedSeasonRewardProp = CDynamicProp & {
+	m_unAccountID: number?,
+	m_eRankedType: number?,
+	m_unRankInterval: number?,
+	m_unPackedRank: number?,
+}
+describe("CCitadelRankedSeasonRewardProp", "CDynamicProp", {
+	m_unAccountID = "uint32",
+	m_eRankedType = "uint32",
+	m_unRankInterval = "uint8",
+	m_unPackedRank = "uint8",
+})
+
 export type CCitadel_DynamicProp = CDynamicProp & {
 	m_strDefaultSkin: string?,
 	m_strFriendlySkin: string?,
@@ -11620,6 +11633,15 @@ describe("CCitadelHeroLoader", "CBaseEntity", {
 	m_hOwner = "CBaseEntity",
 })
 
+export type CCitadelHideoutOwnerRankedSeasonRewardProp = CBaseEntity & {
+	m_eRankedType: number?,
+	m_unRankInterval: number?,
+}
+describe("CCitadelHideoutOwnerRankedSeasonRewardProp", "CBaseEntity", {
+	m_eRankedType = "uint32",
+	m_unRankInterval = "uint8",
+})
+
 export type CCitadelHideoutPropSlot = CBaseEntity & {
 	m_nSlotID: number?,
 	m_nSlotType: number?,
@@ -20478,6 +20500,7 @@ type ClassName0 =
 	| "CCitadelHideoutInteractableProp"
 	| "CCitadelPregameHeroDraftButton"
 	| "CCitadelRankedBadgeProp"
+	| "CCitadelRankedSeasonRewardProp"
 	| "CCitadel_DynamicProp"
 	| "CCitadel_NewYears_Fireworks"
 	| "CCitadel_ShopProp"
@@ -20822,9 +20845,9 @@ type ClassName0 =
 	| "CNPCMaker"
 	| "CTemplateNPCMaker"
 	| "CBasePlayerController"
-	| "CCitadelPlayerController"
 
 type ClassName1 =
+	| "CCitadelPlayerController"
 	| "CBaseTrackedStatsEntity"
 	| "CMatchTrackedStatsEntity"
 	| "CPlayerTrackedStatsEntity"
@@ -21224,9 +21247,9 @@ type ClassName1 =
 	| "CCitadel_Ability_Trapper_Fear"
 	| "CCitadel_Ability_Trapper_PoisonJar"
 	| "CCitadel_Ability_Trapper_SpiderJar"
-	| "CCitadel_Ability_Trapper_WebWall"
 
 type ClassName2 =
+	| "CCitadel_Ability_Trapper_WebWall"
 	| "CCitadel_Ability_Trappers_Bolo"
 	| "CCitadel_Ability_TriggerTower"
 	| "CCitadel_Ability_TurretClone"
@@ -21408,6 +21431,7 @@ type ClassName2 =
 	| "CCitadelEventState"
 	| "CCitadelGaffer"
 	| "CCitadelHeroLoader"
+	| "CCitadelHideoutOwnerRankedSeasonRewardProp"
 	| "CCitadelHideoutPropSlot"
 	| "CCitadelLocalPlayerRankedBadgeProp"
 	| "CCitadelMinimapBoundary"
@@ -21625,10 +21649,10 @@ type ClassName2 =
 	| "CPhysLength"
 	| "CPhysPulley"
 	| "CPhysSlideConstraint"
-	| "CPhysWheelConstraint"
-	| "CRagdollConstraint"
 
 type ClassName3 =
+	| "CPhysWheelConstraint"
+	| "CRagdollConstraint"
 	| "CSplineConstraint"
 	| "CPhysMotor"
 	| "CPhysicsEntitySolver"

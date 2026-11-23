@@ -1202,6 +1202,7 @@ export interface Variables {
   /** Cheat to make that map pretend its the hideout. */
   citadel_hideout_map_enabled: boolean
   citadel_hideout_npc_debug: boolean
+  citadel_hideout_owner_ranked_season_reward_override: number
   citadel_hideout_teleport_trigger_delay: number
   citadel_hideout_tick_rate_override: number
   citadel_hitbox_body_to_headshot_debug: boolean
@@ -1352,6 +1353,7 @@ export interface Variables {
   citadel_melee_heavymelee_push_force_vs_tiny: number
   citadel_melee_heavymelee_toss_force_vs_tiny_min: number
   citadel_melee_hit_delay_max_time: number
+  citadel_melee_lagcomp_debug: boolean
   citadel_melee_shake_amplitude: number
   citadel_melee_shake_duration: number
   citadel_melee_shake_frequency: number

@@ -1928,6 +1928,19 @@ class CCitadelRankedBadgeProp(CDynamicProp):
     }
 
 
+class CCitadelRankedSeasonRewardProp(CDynamicProp):
+    m_unAccountID: int | None
+    m_eRankedType: int | None
+    m_unRankInterval: int | None
+    m_unPackedRank: int | None
+    _fields = {
+        "m_unAccountID": "uint32",
+        "m_eRankedType": "uint32",
+        "m_unRankInterval": "uint8",
+        "m_unPackedRank": "uint8",
+    }
+
+
 class CCitadel_DynamicProp(CDynamicProp):
     m_strDefaultSkin: str | None
     m_strFriendlySkin: str | None
@@ -12207,6 +12220,15 @@ class CCitadelHeroLoader(CBaseEntity):
     }
 
 
+class CCitadelHideoutOwnerRankedSeasonRewardProp(CBaseEntity):
+    m_eRankedType: int | None
+    m_unRankInterval: int | None
+    _fields = {
+        "m_eRankedType": "uint32",
+        "m_unRankInterval": "uint8",
+    }
+
+
 class CCitadelHideoutPropSlot(CBaseEntity):
     m_nSlotID: int | None
     m_nSlotType: int | None
@@ -21104,6 +21126,7 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadelHideoutInteractableProp": CCitadelHideoutInteractableProp,
     "CCitadelPregameHeroDraftButton": CCitadelPregameHeroDraftButton,
     "CCitadelRankedBadgeProp": CCitadelRankedBadgeProp,
+    "CCitadelRankedSeasonRewardProp": CCitadelRankedSeasonRewardProp,
     "CCitadel_DynamicProp": CCitadel_DynamicProp,
     "CCitadel_NewYears_Fireworks": CCitadel_NewYears_Fireworks,
     "CCitadel_ShopProp": CCitadel_ShopProp,
@@ -22030,6 +22053,7 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadelEventState": CCitadelEventState,
     "CCitadelGaffer": CCitadelGaffer,
     "CCitadelHeroLoader": CCitadelHeroLoader,
+    "CCitadelHideoutOwnerRankedSeasonRewardProp": CCitadelHideoutOwnerRankedSeasonRewardProp,
     "CCitadelHideoutPropSlot": CCitadelHideoutPropSlot,
     "CCitadelLocalPlayerRankedBadgeProp": CCitadelLocalPlayerRankedBadgeProp,
     "CCitadelMinimapBoundary": CCitadelMinimapBoundary,

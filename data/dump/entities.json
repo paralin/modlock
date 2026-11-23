@@ -1,5 +1,5 @@
 {
- "build": "6839",
+ "build": "6865",
  "classes": [
   {
    "designer_name": "abiilty_boho_channeltether",
@@ -2726,6 +2726,12 @@
    "base": "trigger"
   },
   {
+   "designer_name": "citadel_hideout_owner_ranked_season_reward_prop",
+   "class_name": "CCitadelHideoutOwnerRankedSeasonRewardProp",
+   "data_map": "CCitadelHideoutOwnerRankedSeasonRewardProp",
+   "base": "root"
+  },
+  {
    "designer_name": "citadel_hideout_prop_base",
    "class_name": "CCitadelHideoutPropBase",
    "data_map": "CCitadelHideoutPropBase",
@@ -3017,6 +3023,12 @@
    "designer_name": "citadel_ranked_badge_prop",
    "class_name": "CCitadelRankedBadgeProp",
    "data_map": "CCitadelRankedBadgeProp",
+   "base": "prop_dynamic"
+  },
+  {
+   "designer_name": "citadel_ranked_season_reward_prop",
+   "class_name": "CCitadelRankedSeasonRewardProp",
+   "data_map": "CCitadelRankedSeasonRewardProp",
    "base": "prop_dynamic"
   },
   {
@@ -10314,6 +10326,24 @@
    ]
   },
   {
+   "name": "CCitadelHideoutOwnerRankedSeasonRewardProp",
+   "base": "CBaseEntity",
+   "key_values": [
+    {
+     "name": "ranked_type",
+     "field": "m_eRankedType",
+     "type": "KEY_TYPE_INT32",
+     "count": 1
+    },
+    {
+     "name": "rank_interval",
+     "field": "m_unRankInterval",
+     "type": "KEY_TYPE_UINT8",
+     "count": 1
+    }
+   ]
+  },
+  {
    "name": "CCitadelHideoutPropBase",
    "base": "CBaseAnimGraph",
    "key_values": [
@@ -10639,6 +10669,36 @@
    "name": "CCitadelRankedBadgeProp",
    "base": "CDynamicProp",
    "key_values": [
+    {
+     "name": "packed_rank",
+     "field": "m_unPackedRank",
+     "type": "KEY_TYPE_UINT8",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "name": "CCitadelRankedSeasonRewardProp",
+   "base": "CDynamicProp",
+   "key_values": [
+    {
+     "name": "account_id",
+     "field": "m_unAccountID",
+     "type": "KEY_TYPE_UINT32",
+     "count": 1
+    },
+    {
+     "name": "ranked_type",
+     "field": "m_eRankedType",
+     "type": "KEY_TYPE_INT32",
+     "count": 1
+    },
+    {
+     "name": "rank_interval",
+     "field": "m_unRankInterval",
+     "type": "KEY_TYPE_UINT8",
+     "count": 1
+    },
     {
      "name": "packed_rank",
      "field": "m_unPackedRank",
@@ -32611,6 +32671,14 @@
   {
    "entity": "citadel_hideout_button",
    "name": "OnStartTouchAll"
+  },
+  {
+   "entity": "citadel_hideout_owner_ranked_season_reward_prop",
+   "name": "OnPropDisabled"
+  },
+  {
+   "entity": "citadel_hideout_owner_ranked_season_reward_prop",
+   "name": "OnPropEnabled"
   },
   {
    "entity": "citadel_multi_capture_point",

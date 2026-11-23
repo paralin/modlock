@@ -1651,6 +1651,8 @@ var CitadelHideoutMapEnabled = Variable[bool]{"citadel_hideout_map_enabled"}
 
 var CitadelHideoutNpcDebug = Variable[bool]{"citadel_hideout_npc_debug"}
 
+var CitadelHideoutOwnerRankedSeasonRewardOverride = Variable[uint8]{"citadel_hideout_owner_ranked_season_reward_override"}
+
 var CitadelHideoutTeleportTriggerDelay = Variable[float32]{"citadel_hideout_teleport_trigger_delay"}
 
 var CitadelHideoutTickRateOverride = Variable[int32]{"citadel_hideout_tick_rate_override"}
@@ -1845,6 +1847,8 @@ var CitadelMeleeHeavymeleePushForceVsTiny = Variable[float32]{"citadel_melee_hea
 var CitadelMeleeHeavymeleeTossForceVsTinyMin = Variable[float32]{"citadel_melee_heavymelee_toss_force_vs_tiny_min"}
 
 var CitadelMeleeHitDelayMaxTime = Variable[float32]{"citadel_melee_hit_delay_max_time"}
+
+var CitadelMeleeLagcompDebug = Variable[bool]{"citadel_melee_lagcomp_debug"}
 
 var CitadelMeleeShakeAmplitude = Variable[float32]{"citadel_melee_shake_amplitude"}
 
