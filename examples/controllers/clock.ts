@@ -25,12 +25,16 @@ let reported = Date.now()
  * gamepad, recording it for slot's report, and undefined otherwise.
  */
 export function lag(slot: number, c: Controller): number | undefined {
-  // Decode the moment the client read the axis.
+  // Take only the virtual gamepad.
   if (c.info.name !== virtualPad || !c.info.gamepad) {
     return undefined
   }
+
+  // Decode the moment the client read the axis, and center the delay on
+  // zero, so a read the axis's rounding places a little after this mod's
+  // clock counts as a small negative delay rather than as nearly a period.
   const read = (c.state.gamepad.leftX + 1) * 1000
-  const delay = (Date.now() - read + period) % period
+  const delay = ((Date.now() - read + period * 1.5) % period) - period / 2
 
   // Keep it for the report.
   const list = samples.get(slot) ?? []

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/paralin/modlock/src/host_app/control"
 	pb "github.com/paralin/modlock/src/wasm/controllers"
 )
 
@@ -114,6 +115,25 @@ func (h *Hub) Wanted(wants *pb.ControllerWants) {
 		h.wants[want.GetPlayer()] = want.GetEpoch()
 	}
 	h.rebind()
+}
+
+// Follow passes hub the server events that bind controller streams: a join
+// that gives a slot's address, a leave that frees it, and the set of watched
+// players. A join with no Steam ID is a bot, whose slot no stream may feed.
+func (h *Hub) Follow(event *control.HostEvent) {
+	switch {
+	case event.GetJoined() != nil:
+		joined := event.GetJoined()
+		address := joined.GetAddress()
+		if joined.GetSteamId() == 0 {
+			address = ""
+		}
+		h.Joined(joined.GetSlot(), address, joined.GetSteamId())
+	case event.GetLeft() != nil:
+		h.Left(event.GetLeft().GetSlot())
+	case event.GetControllersWanted() != nil:
+		h.Wanted(event.GetControllersWanted())
+	}
 }
 
 // Members replaces the guests whose Steam accounts the server's own

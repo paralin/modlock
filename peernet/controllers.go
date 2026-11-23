@@ -5,29 +5,8 @@ import (
 	"errors"
 
 	"github.com/paralin/modlock/controllers"
-	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/s4wave/spacewave/net/peer"
 )
-
-// followControllers passes the server events that bind controller streams to
-// hub: a join that gives a slot's address, a leave that frees it, and the set
-// of watched players. A join with no Steam ID is a bot, whose slot no stream
-// may feed.
-func followControllers(hub *controllers.Hub, event *control.HostEvent) {
-	switch {
-	case event.GetJoined() != nil:
-		joined := event.GetJoined()
-		address := joined.GetAddress()
-		if joined.GetSteamId() == 0 {
-			address = ""
-		}
-		hub.Joined(joined.GetSlot(), address, joined.GetSteamId())
-	case event.GetLeft() != nil:
-		hub.Left(event.GetLeft().GetSlot())
-	case event.GetControllersWanted() != nil:
-		hub.Wanted(event.GetControllersWanted())
-	}
-}
 
 // feedServer serves the hosted session's ControllerFeed, binding each stream
 // to the guest whose peer link it came over.

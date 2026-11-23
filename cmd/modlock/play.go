@@ -109,6 +109,7 @@ func playCommand(out *printer) *cli.Command {
 
 			// Capture guest interfaces before starting the server.
 			feed := observeHosting(c, out)
+			feedControllers := observeControllers(c, out, feed)
 
 			// Run the session until the server stops.
 			cache, err := os.UserCacheDir()
@@ -120,6 +121,7 @@ func playCommand(out *printer) *cli.Command {
 				return err
 			}
 			defer running.Stop()
+			feedControllers(running)
 			if feed != nil {
 				go hostSession(c, out, running, feed, mods)
 			}

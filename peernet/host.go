@@ -251,7 +251,7 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 			}
 			if event != nil {
 				screens.Handle(event)
-				followControllers(hub, event)
+				hub.Follow(event)
 			}
 		}
 	}()

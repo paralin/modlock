@@ -81,6 +81,7 @@ func runDev(c *cli.Context, out *printer, command string) error {
 
 	// Keep every player's interface from the first event, for guests.
 	feed := observeHosting(c, out)
+	feedControllers := observeControllers(c, out, feed)
 
 	// Build now and, when watching, after each save. The first good
 	// build starts the server and each later one reloads the mod; a
@@ -149,6 +150,7 @@ func runDev(c *cli.Context, out *printer, command string) error {
 		}
 	}
 	defer running.Stop()
+	feedControllers(running)
 	if feed != nil {
 		go hostSession(c, out, running, feed, []string{opened.Output()})
 	}
