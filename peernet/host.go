@@ -271,7 +271,7 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 	if err != nil {
 		return err
 	}
-	go feedLocal(ctx, hub)
+	go controllers.FeedLocal(ctx, hub)
 	release, err := s.node.GetBus().AddController(ctx, h, nil)
 	if err != nil {
 		return err
@@ -387,31 +387,6 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 			return nil
 		}
 	}
-}
-
-// feedLocal feeds the host's own player from this PC's controllers while the
-// mods watch them, until ctx ends.
-func feedLocal(ctx context.Context, hub *controllers.Hub) {
-	// Follow the host player's want, keeping only the latest epoch.
-	feed := hub.Open("")
-	defer feed.Close()
-	wants := make(chan uint32, 1)
-	go func() {
-		_ = feed.Serve(ctx, func(want *pb.ControllerWant) error {
-			select {
-			case <-wants:
-			default:
-			}
-			wants <- want.GetEpoch()
-			return nil
-		})
-	}()
-
-	// Read the devices while wanted.
-	_ = controllers.Serve(ctx, nil, wants, func(frame *pb.ControllerFrame) error {
-		feed.Frame(frame)
-		return nil
-	})
 }
 
 // contentPart is the most of a file one ContentPart carries, well under the

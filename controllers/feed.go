@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	pb "github.com/paralin/modlock/src/wasm/controllers"
 	"github.com/s4wave/spacewave/net/protocol"
 )
 
@@ -74,4 +75,30 @@ func FeedHost(ctx context.Context, host SRPCControllerFeedClient) {
 
 	// Read the devices while wanted.
 	_ = Serve(ctx, nil, wants, strm.Send)
+}
+
+// FeedLocal streams this PC's controllers to the host's own player on the
+// game server this program runs, reading them only while the server's mods
+// watch, until ctx ends.
+func FeedLocal(ctx context.Context, hub *Hub) {
+	// Follow the host player's want, keeping only the latest epoch.
+	feed := hub.Open("")
+	defer feed.Close()
+	wants := make(chan uint32, 1)
+	go func() {
+		_ = feed.Serve(ctx, func(want *pb.ControllerWant) error {
+			select {
+			case <-wants:
+			default:
+			}
+			wants <- want.GetEpoch()
+			return nil
+		})
+	}()
+
+	// Read the devices while wanted.
+	_ = Serve(ctx, nil, wants, func(frame *pb.ControllerFrame) error {
+		feed.Frame(frame)
+		return nil
+	})
 }
