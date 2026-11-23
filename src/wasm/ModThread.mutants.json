@@ -1,0 +1,148 @@
+[
+  {
+    "name": "Borrow without claiming the store: the game thread runs a decision while the mod is inside an event",
+    "replace": [
+      [
+        "ph = \"Engine\" /\\ mod = \"Idle\" /\\ owner = \"None\" /\\ queue = <<>>",
+        "ph = \"Engine\" /\\ queue = <<>>"
+      ]
+    ],
+    "expect": "StoreExclusive"
+  },
+  {
+    "name": "A hop's engine call runs on the mod thread",
+    "replace": [
+      [
+        "<<Perform(issued[Len(issued)], \"Game\")>>",
+        "<<Perform(issued[Len(issued)], \"Mod\")>>"
+      ]
+    ],
+    "expect": "EngineOnGame"
+  },
+  {
+    "name": "Serve the hop before the buffer: the hop overtakes the writes before it",
+    "replace": [
+      [
+        "applied' = applied \\o Performs(buf)\n                \\o <<Perform(issued[Len(issued)], \"Game\")>>\n  /\\ buf' = <<>> /\\ mod' = \"Running\"",
+        "applied' = applied \\o <<Perform(issued[Len(issued)], \"Game\")>>\n  /\\ UNCHANGED buf /\\ mod' = \"Running\""
+      ]
+    ],
+    "expect": "WriteOrder"
+  },
+  {
+    "name": "Borrow without applying the buffer: the decision's own writes overtake the mod's buffered ones",
+    "replace": [
+      [
+        "applied' = applied \\o Performs(batch \\o buf)\n  /\\ buf' = <<>> /\\ batch' = <<>>",
+        "UNCHANGED <<applied, buf, batch>>"
+      ]
+    ],
+    "expect": "WriteOrder"
+  },
+  {
+    "name": "Strict mode off in the guard: a read after the mod's write is answered from the old snapshot",
+    "replace": [["/\\ ~Strict \\/ Writes(issued) = snapW\n", ""]],
+    "expect": "StrictReads"
+  },
+  {
+    "name": "The design note's rule: strict reads hop only after a write in the same event, so a later event reads a snapshot without the mod's earlier write",
+    "replace": [
+      [
+        "  ndec       \\* decisions raised so far\n",
+        "  ndec,      \\* decisions raised so far\n  evW        \\* writes made when the running event began\n"
+      ],
+      ["hist == <<staleAns, borrows>>", "hist == <<staleAns, borrows, evW>>"],
+      [
+        "pend, posted, late, staleAns, borrows, nev, ndec>>",
+        "pend, posted, late, staleAns, borrows, nev, ndec, evW>>"
+      ],
+      ["nev = 0 /\\ ndec = 0\n", "nev = 0 /\\ ndec = 0 /\\ evW = 0\n"],
+      [
+        "/\\ mod' = \"Running\" /\\ owner' = \"Mod\" /\\ queue' = Tail(queue)\n  /\\ UNCHANGED <<ph, stop, bufs, calls, snapW, pend, clock, hist, budget>>",
+        "/\\ mod' = \"Running\" /\\ owner' = \"Mod\" /\\ queue' = Tail(queue)\n  /\\ evW' = Writes(issued)\n  /\\ UNCHANGED <<ph, stop, bufs, calls, snapW, pend, clock, staleAns, borrows, budget>>"
+      ],
+      [
+        "/\\ ~Strict \\/ Writes(issued) = snapW\n",
+        "/\\ ~Strict \\/ Writes(issued) = evW\n"
+      ],
+      ["clock, staleAns, budget>>", "clock, staleAns, evW, budget>>"],
+      [
+        "snapW, pend, clock, borrows, budget>>",
+        "snapW, pend, clock, borrows, evW, budget>>"
+      ]
+    ],
+    "expect": "StrictReads"
+  },
+  {
+    "name": "Borrow while the window applies the mod's own commands",
+    "replace": [
+      [
+        "ph = \"Engine\" /\\ mod = \"Idle\" /\\ owner = \"None\" /\\ queue = <<>>",
+        "ph \\in {\"Engine\", \"Applying\"} /\\ mod = \"Idle\" /\\ owner = \"None\" /\\ queue = <<>>"
+      ]
+    ],
+    "expect": "DecisionBorrow"
+  },
+  {
+    "name": "Borrow ahead of a queued event: the decision overtakes the event before it",
+    "replace": [
+      [
+        "ph = \"Engine\" /\\ mod = \"Idle\" /\\ owner = \"None\" /\\ queue = <<>>",
+        "ph = \"Engine\" /\\ mod = \"Idle\" /\\ owner = \"None\""
+      ]
+    ],
+    "expect": "DecisionBorrow"
+  },
+  {
+    "name": "Wait for the mod: a decision with the mod busy waits until the mod is idle",
+    "replace": [
+      ["pend /\\ ~CanBorrow", "pend /\\ ~CanBorrow /\\ mod = \"Idle\""]
+    ],
+    "expect": "DecisionAnswered"
+  },
+  {
+    "name": "A queued Frame is not replaced: Frames pile up behind a slow mod",
+    "replace": [
+      [
+        "ELSE Append(SelectSeq(queue, NotFrame), \"Frame\")",
+        "ELSE Append(queue, \"Frame\")"
+      ]
+    ],
+    "expect": "QueueCoalesced"
+  },
+  {
+    "name": "Stop does not wake the hop waiter: the join waits on a hop nobody serves",
+    "replace": [
+      [
+        "ph = \"Joining\" /\\ mod = \"WaitingHop\"",
+        "FALSE /\\ mod = \"WaitingHop\""
+      ]
+    ],
+    "expect": "StopJoins"
+  },
+  {
+    "name": "No epoch check: a running call never traps after the stop",
+    "replace": [["/\\ mod = \"Running\" /\\ stop\n", "/\\ FALSE /\\ stop\n"]],
+    "expect": "StopJoins"
+  },
+  {
+    "name": "A failed mod is never joined",
+    "replace": [
+      [
+        "/\\ ph = \"Engine\" /\\ ~pend /\\ mod = \"Done\"\n",
+        "/\\ FALSE /\\ mod = \"Done\"\n"
+      ]
+    ],
+    "expect": "FailJoins"
+  },
+  {
+    "name": "No deadline: the window stays open while the mod computes",
+    "replace": [["/\\ late \\/ (mod \\in", "/\\ (mod \\in"]],
+    "expect": "WindowEnds"
+  },
+  {
+    "name": "Weak fairness on hops: every window's deadline can pass before its hop is served",
+    "replace": [["SF_vars(ServeHop)", "WF_vars(ServeHop)"]],
+    "expect": "HopAnswered"
+  }
+]
