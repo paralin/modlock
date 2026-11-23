@@ -15,7 +15,8 @@ import (
 // typeScriptPreamble opens the generated module with the vector types and
 // their readers.
 const typeScriptPreamble = `import { heroNamed } from './heroes.js'
-import { call } from './host.js'
+import { call, callRead } from './host.js'
+import { pawnOf } from './pawns.js'
 
 /** Vector is a position or direction in the world, in game units. */
 export interface Vector {
@@ -87,6 +88,9 @@ type tsWriter struct {
 	// imports maps the alias of each generated module the file names to its
 	// path.
 	imports map[string]string
+	// decoders holds module functions the class methods call, written after
+	// the classes.
+	decoders bytes.Buffer
 }
 
 // pb returns the TypeScript name of name, a type declared in file, importing
@@ -120,6 +124,7 @@ func writeTypeScript(s *schema) ([]byte, error) {
 			return nil, err
 		}
 	}
+	w.out.Write(w.decoders.Bytes())
 	for _, c := range calls {
 		if c.class == nil {
 			if err := w.writeCall(c, ""); err != nil {
@@ -448,7 +453,20 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 		return err
 	}
 	body := indent + "  "
+	if c.method.name == "Pawn" {
+		// Player.pawn() reads through pawns.ts, which answers an event's
+		// repeated reads from one Pawns call and keeps unchanged pawns.
+		fmt.Fprintf(&w.out, "%sreturn pawnOf(this.slot, decodePawn)\n%s}\n", body, indent)
+		f := c.result
+		writeDoc(&w.decoders, "", "decodePawn decodes one encoded Pawn for pawnOf.")
+		fmt.Fprintf(&w.decoders, "function decodePawn(bytes: Uint8Array): %s {\n  return %s\n}\n\n",
+			w.tsBase(f), w.fromValue(f, w.pb(f.message.file, f.message.name)+".fromBinary(bytes)"))
+		return nil
+	}
 	send := fmt.Sprintf("call('%s', %s)", c.method.name, request)
+	if c.method.readOnly {
+		send = fmt.Sprintf("callRead('%s', %s)", c.method.name, request)
+	}
 	if c.result == nil {
 		fmt.Fprintf(&w.out, "%sreturn %s !== undefined\n%s}\n", body, send, indent)
 		if indent == "" {

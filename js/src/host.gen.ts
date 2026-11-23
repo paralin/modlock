@@ -18,7 +18,8 @@ import * as settingsPb from '../../src/wasm/settings/settings.pb.js'
 import * as uiPb from '../../src/wasm/ui/ui.pb.js'
 import * as wasmPb from '../../src/wasm/wasm.pb.js'
 import { heroNamed } from './heroes.js'
-import { call } from './host.js'
+import { call, callRead } from './host.js'
+import { pawnOf } from './pawns.js'
 
 /** Vector is a position or direction in the world, in game units. */
 export interface Vector {
@@ -3150,10 +3151,7 @@ export class Player {
    * made a pawn. The pawn's entity changes whenever the game replaces it.
    */
   pawn(): Pawn | undefined {
-    const reply = call('Pawn', playersPb.PlayerRequest.toBinary({ player: this.slot }))
-    if (reply === undefined) return undefined
-    const response = playersPb.PawnResponse.fromBinary(reply)
-    return response.pawn === undefined ? undefined : fromPawn(response.pawn)
+    return pawnOf(this.slot, decodePawn)
   }
 
   /**
@@ -3162,7 +3160,7 @@ export class Player {
    * defaults.
    */
   setting(key: string): string | undefined {
-    const reply = call('PlayerSetting', settingsPb.PlayerSettingRequest.toBinary({ player: this.slot, key }))
+    const reply = callRead('PlayerSetting', settingsPb.PlayerSettingRequest.toBinary({ player: this.slot, key }))
     if (reply === undefined) return undefined
     const response = settingsPb.SettingResponse.fromBinary(reply)
     return response.value ?? ''
@@ -3198,7 +3196,7 @@ export class Player {
 
   /** handedOff returns the player's handoff state, or empty. */
   handedOff(): string | undefined {
-    const reply = call('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: this.slot }))
+    const reply = callRead('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: this.slot }))
     if (reply === undefined) return undefined
     const response = handoffPb.HandedOffResponse.fromBinary(reply)
     return response.text ?? ''
@@ -3332,7 +3330,7 @@ export class Player {
    * or none without a live hero.
    */
   abilities(): Ability[] {
-    const reply = call('Abilities', playersPb.PlayerRequest.toBinary({ player: this.slot }))
+    const reply = callRead('Abilities', playersPb.PlayerRequest.toBinary({ player: this.slot }))
     if (reply === undefined) return []
     const response = abilitiesPb.AbilitiesResponse.fromBinary(reply)
     return (response.abilities ?? []).map((v) => fromAbility(v))
@@ -3599,7 +3597,7 @@ export class Player {
    * player is alive or dead.
    */
   buttons(): bigint | undefined {
-    const reply = call('Buttons', playersPb.PlayerRequest.toBinary({ player: this.slot }))
+    const reply = callRead('Buttons', playersPb.PlayerRequest.toBinary({ player: this.slot }))
     if (reply === undefined) return undefined
     const response = inputPb.ButtonsResponse.fromBinary(reply)
     return response.buttons ?? 0n
@@ -3678,7 +3676,7 @@ export class WorldObject {
    * report it and particle anchors take it.
    */
   entity(): number | undefined {
-    const reply = call('ObjectEntity', objectsPb.ObjectRequest.toBinary({ object: this.id }))
+    const reply = callRead('ObjectEntity', objectsPb.ObjectRequest.toBinary({ object: this.id }))
     if (reply === undefined) return undefined
     const response = entitiesPb.EntityResponse.fromBinary(reply)
     return response.entity ?? 0
@@ -3696,7 +3694,7 @@ export class Npc {
 
   /** read returns the unit's state, or nothing once it is gone. */
   read(): NpcState | undefined {
-    const reply = call('ReadNpc', npcsPb.NpcRequest.toBinary({ npc: this.entity }))
+    const reply = callRead('ReadNpc', npcsPb.NpcRequest.toBinary({ npc: this.entity }))
     if (reply === undefined) return undefined
     const response = npcsPb.NpcStateResponse.fromBinary(reply)
     return response.state === undefined ? undefined : fromNpcState(response.state)
@@ -3752,7 +3750,7 @@ export class Pickup {
    * uncollected.
    */
   present(): boolean {
-    const reply = call('PickupPresent', entitiesPb.PickupRequest.toBinary({ pickup: this.entity }))
+    const reply = callRead('PickupPresent', entitiesPb.PickupRequest.toBinary({ pickup: this.entity }))
     if (reply === undefined) return false
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
@@ -3768,6 +3766,11 @@ export class Pickup {
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
   }
+}
+
+/** decodePawn decodes one encoded Pawn for pawnOf. */
+function decodePawn(bytes: Uint8Array): Pawn {
+  return fromPawn(playersPb.Pawn.fromBinary(bytes))
 }
 
 /** log writes one line to the server log under the mod's name. */
@@ -3803,7 +3806,7 @@ export function precache(options: PrecacheOptions): boolean {
  * left out.
  */
 export function pawns(): PlayerPawn[] {
-  const reply = call('Pawns', new Uint8Array())
+  const reply = callRead('Pawns', new Uint8Array())
   if (reply === undefined) return []
   const response = playersPb.PawnsResponse.fromBinary(reply)
   return (response.pawns ?? []).map((v) => fromPlayerPawn(v))
@@ -3816,7 +3819,7 @@ export function pawns(): PlayerPawn[] {
  * directories are refused.
  */
 export function readFile(path: string): string | undefined {
-  const reply = call('ReadFile', filesPb.ReadFileRequest.toBinary({ path }))
+  const reply = callRead('ReadFile', filesPb.ReadFileRequest.toBinary({ path }))
   if (reply === undefined) return undefined
   const response = filesPb.ReadFileResponse.fromBinary(reply)
   return response.text
@@ -3829,7 +3832,7 @@ export function readFile(path: string): string | undefined {
  * whole file during the call.
  */
 export function readFileBytes(path: string): Uint8Array | undefined {
-  const reply = call('ReadFileBytes', filesPb.ReadFileRequest.toBinary({ path }))
+  const reply = callRead('ReadFileBytes', filesPb.ReadFileRequest.toBinary({ path }))
   if (reply === undefined) return undefined
   const response = filesPb.ReadFileBytesResponse.fromBinary(reply)
   return response.data
@@ -3871,7 +3874,7 @@ export function handoff(text: string): boolean {
 
 /** handedOff returns the game's handoff state, or empty. */
 export function handedOff(): string | undefined {
-  const reply = call('HandedOff', new Uint8Array())
+  const reply = callRead('HandedOff', new Uint8Array())
   if (reply === undefined) return undefined
   const response = handoffPb.HandedOffResponse.fromBinary(reply)
   return response.text ?? ''
@@ -3885,7 +3888,7 @@ export function handedOff(): string | undefined {
  * world.
  */
 export function heroBuild(hero: string): BuildCategory[] {
-  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero: heroName(hero) }))
+  const reply = callRead('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero: heroName(hero) }))
   if (reply === undefined) return []
   const response = abilitiesPb.HeroBuildResponse.fromBinary(reply)
   return (response.categories ?? []).map((v) => fromBuildCategory(v))
@@ -3913,7 +3916,7 @@ export function silenceVoice(concepts?: readonly string[]): boolean {
  * m_MeshGroupMask of CModelState that chooses which mesh groups draw.
  */
 export function readField(entity: number, className: string, field: string, type: FieldType): FieldValue | undefined {
-  const reply = call('ReadField', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] }))
+  const reply = callRead('ReadField', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] }))
   if (reply === undefined) return undefined
   const response = fieldsPb.FieldResponse.fromBinary(reply)
   return fromFieldValue(response.value)
@@ -3928,7 +3931,7 @@ export function readField(entity: number, className: string, field: string, type
  * memory.
  */
 export function readModifierField(entity: number, modifier: string, className: string, field: string, type: FieldType): FieldValue | undefined {
-  const reply = call('ReadModifierField', fieldsPb.ReadModifierFieldRequest.toBinary({ entity, modifier, className, field, type: fieldTypeValues[type] }))
+  const reply = callRead('ReadModifierField', fieldsPb.ReadModifierFieldRequest.toBinary({ entity, modifier, className, field, type: fieldTypeValues[type] }))
   if (reply === undefined) return undefined
   const response = fieldsPb.FieldResponse.fromBinary(reply)
   return fromFieldValue(response.value)
@@ -3960,7 +3963,7 @@ export function writeField(entity: number, className: string, field: string, typ
  * handle, a boolean or a vector. A list of structures cannot be read.
  */
 export function readFieldList(entity: number, className: string, field: string, type: FieldType): FieldValue[] {
-  const reply = call('ReadFieldList', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] }))
+  const reply = callRead('ReadFieldList', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] }))
   if (reply === undefined) return []
   const response = fieldsPb.FieldListResponse.fromBinary(reply)
   return known(response.values, (v) => fromFieldValue(v))
@@ -3980,7 +3983,7 @@ export function writeFieldList(entity: number, className: string, field: string,
  * CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
  */
 export function entityClass(entity: number): EntityClassName | undefined {
-  const reply = call('EntityClass', entitiesPb.EntityRequest.toBinary({ entity }))
+  const reply = callRead('EntityClass', entitiesPb.EntityRequest.toBinary({ entity }))
   if (reply === undefined) return undefined
   const response = entitiesPb.EntityClassResponse.fromBinary(reply)
   return response.name === undefined ? undefined : fromEntityClassName(response.name)
@@ -3991,7 +3994,7 @@ export function entityClass(entity: number): EntityClassName | undefined {
  * key value gave it, or an empty name for an unnamed entity.
  */
 export function entityName(entity: number): string | undefined {
-  const reply = call('EntityName', entitiesPb.EntityRequest.toBinary({ entity }))
+  const reply = callRead('EntityName', entitiesPb.EntityRequest.toBinary({ entity }))
   if (reply === undefined) return undefined
   const response = entitiesPb.EntityNameResponse.fromBinary(reply)
   return response.name ?? ''
@@ -4003,7 +4006,7 @@ export function entityName(entity: number): string | undefined {
  * place in the world has one, such as one of the map's boxes.
  */
 export function entityPosition(entity: number): EntityPlacement | undefined {
-  const reply = call('EntityPosition', entitiesPb.EntityRequest.toBinary({ entity }))
+  const reply = callRead('EntityPosition', entitiesPb.EntityRequest.toBinary({ entity }))
   if (reply === undefined) return undefined
   const response = entitiesPb.EntityPositionResponse.fromBinary(reply)
   return response.placement === undefined ? undefined : fromEntityPlacement(response.placement)
@@ -4014,7 +4017,7 @@ export function entityPosition(entity: number): EntityPlacement | undefined {
  * MODIFIER_STATE_PARRY_ACTIVE.
  */
 export function modifierState(entity: number, state: string): boolean {
-  const reply = call('ModifierState', abilitiesPb.ModifierStateRequest.toBinary({ entity, state }))
+  const reply = callRead('ModifierState', abilitiesPb.ModifierStateRequest.toBinary({ entity, state }))
   if (reply === undefined) return false
   const response = abilitiesPb.ActiveResponse.fromBinary(reply)
   return response.active ?? false
@@ -4027,7 +4030,7 @@ export function modifierState(entity: number, state: string): boolean {
  * empty list.
  */
 export function modifiers(entity: number): Modifier[] {
-  const reply = call('Modifiers', entitiesPb.EntityRequest.toBinary({ entity }))
+  const reply = callRead('Modifiers', entitiesPb.EntityRequest.toBinary({ entity }))
   if (reply === undefined) return []
   const response = abilitiesPb.ModifiersResponse.fromBinary(reply)
   return (response.modifiers ?? []).map((v) => fromModifier(v))
@@ -4276,7 +4279,7 @@ export function createPickup(kind: PickupKind, position: Vector): Pickup | undef
  * zip_line_node.
  */
 export function findEntities(className: string): number[] {
-  const reply = call('FindEntities', entitiesPb.FindEntitiesRequest.toBinary({ className }))
+  const reply = callRead('FindEntities', entitiesPb.FindEntitiesRequest.toBinary({ className }))
   if (reply === undefined) return []
   const response = entitiesPb.EntitiesResponse.fromBinary(reply)
   return response.entities ?? []
@@ -4287,7 +4290,7 @@ export function findEntities(className: string): number[] {
  * the targetname a map or the targetname key value of CreateEntity gave it.
  */
 export function findEntitiesByName(name: string): number[] {
-  const reply = call('FindEntitiesByName', entitiesPb.FindEntitiesByNameRequest.toBinary({ name }))
+  const reply = callRead('FindEntitiesByName', entitiesPb.FindEntitiesByNameRequest.toBinary({ name }))
   if (reply === undefined) return []
   const response = entitiesPb.EntitiesResponse.fromBinary(reply)
   return response.entities ?? []
@@ -4333,7 +4336,7 @@ export function killEntity(options: KillOptions): boolean {
  * nothing or the world's collision is not ready.
  */
 export function trace(options: TraceOptions): TraceHit | undefined {
-  const reply = call('Trace', combatPb.TraceOptions.toBinary(toTraceOptions(options)))
+  const reply = callRead('Trace', combatPb.TraceOptions.toBinary(toTraceOptions(options)))
   if (reply === undefined) return undefined
   const response = combatPb.TraceResponse.fromBinary(reply)
   return response.hit === undefined ? undefined : fromTraceHit(response.hit)
@@ -4360,7 +4363,7 @@ export function pause(paused: boolean): boolean {
 
 /** matchClock returns the match time in seconds that the scoreboard shows. */
 export function matchClock(): number | undefined {
-  const reply = call('MatchClock', new Uint8Array())
+  const reply = callRead('MatchClock', new Uint8Array())
   if (reply === undefined) return undefined
   const response = matchPb.MatchClockResponse.fromBinary(reply)
   return response.seconds ?? 0
@@ -4376,7 +4379,7 @@ export function holdMatchClock(seconds?: number): boolean {
 
 /** rift reads the Rift objective's state. */
 export function rift(): RiftState | undefined {
-  const reply = call('Rift', new Uint8Array())
+  const reply = callRead('Rift', new Uint8Array())
   if (reply === undefined) return undefined
   const response = matchPb.RiftResponse.fromBinary(reply)
   return response.state === undefined ? undefined : fromRiftState(response.state)

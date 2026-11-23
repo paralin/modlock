@@ -141,6 +141,9 @@ type method struct {
 	doc      string
 	request  *message
 	response *message
+	// readOnly is set for a method marked NO_SIDE_EFFECTS, which changes
+	// nothing in the game, so a reader may keep what it read before it.
+	readOnly bool
 }
 
 // readSchema builds the schema from a compiled descriptor set that includes
@@ -282,6 +285,7 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 				doc:      serviceDocs[fmt.Sprint(6, ".", i, ".2.", j)],
 				request:  s.messages[md.GetInputType()],
 				response: s.messages[md.GetOutputType()],
+				readOnly: md.GetOptions().GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS,
 			}
 			if m.request == nil || m.response == nil || md.GetClientStreaming() || md.GetServerStreaming() {
 				return nil, fmt.Errorf("method %s.%s needs unary messages", svc.name, m.name)

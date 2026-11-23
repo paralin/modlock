@@ -4,9 +4,17 @@ import {
   EntityOptions,
   EntityResponse,
 } from '../../src/wasm/entities/entities.pb.js'
+import {
+  PawnResponse,
+  PawnsResponse,
+  PlayerRequest,
+} from '../../src/wasm/players/players.pb.js'
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
 import { CCitadel_BreakableProp, create } from '../src/entities.js'
-import { bind, call } from '../src/host.js'
+import { type Pawn, Player } from '../src/host.gen.js'
+import { bind, call, deliver } from '../src/host.js'
+import { onFrame } from '../src/index.js'
+import { setPawnCache } from '../src/pawns.js'
 
 /** answer is what the bound transport replies with next. */
 let answer = Reply.toBinary({})
@@ -77,4 +85,130 @@ test('create types each key by its own table or a base, and fills the subclass',
     { key: 'gravity', value: { value: { case: 'number', value: 0.5 } } },
   ])
   answer = Reply.toBinary({})
+})
+
+test('a pawn read keeps what its event read until the game may change', () => {
+  // The stand-in game holds each slot's hero health and answers Pawn and
+  // Pawns from it; SetStamina stands for any call that may write.
+  const health = new Map([
+    [1, 100],
+    [2, 200],
+  ])
+  let pawnsFails = false
+  const pawn = (slot: number) => {
+    const h = health.get(slot)
+    return h === undefined ? undefined : { entity: 10 + slot, health: h }
+  }
+  bind((bytes) => {
+    const c = Call.fromBinary(bytes)
+    sent.push({
+      method: c.method ?? '',
+      request: c.request ?? new Uint8Array(),
+    })
+    switch (c.method) {
+      case 'Pawn': {
+        const slot =
+          PlayerRequest.fromBinary(c.request ?? new Uint8Array()).player ?? 0
+        return Reply.toBinary({
+          response: PawnResponse.toBinary({ pawn: pawn(slot) }),
+        })
+      }
+      case 'Pawns':
+        if (pawnsFails) return Reply.toBinary({ error: 'busy' })
+        return Reply.toBinary({
+          response: PawnsResponse.toBinary({
+            pawns: [...health.keys()].map((player) => ({
+              player,
+              pawn: pawn(player),
+            })),
+          }),
+        })
+    }
+    return Reply.toBinary({})
+  })
+  const methods = () => sent.splice(0).map((s) => s.method)
+  const one = Player.of(1)
+  const two = Player.of(2)
+  const three = Player.of(3)
+  let inside: () => void = () => {}
+  onFrame(() => inside())
+  const event = (body: () => void) => {
+    inside = () => {
+      sent.length = 0
+      body()
+    }
+    deliver(Call.toBinary({ method: 'Frame' }))
+    inside = () => {}
+  }
+  sent.length = 0
+
+  // Outside an event every read reaches the host.
+  one.pawn()
+  one.pawn()
+  expect(methods()).toEqual(['Pawn', 'Pawn'])
+
+  let first: Pawn | undefined
+  event(() => {
+    // The first slot takes its own call and is answered again after it.
+    first = one.pawn()
+    expect(one.pawn()).toBe(first)
+    expect(methods()).toEqual(['Pawn'])
+
+    // A second slot reads every slot at once, and the batch answers the rest,
+    // a slot with no pawn included.
+    expect(two.pawn()?.health).toBe(200)
+    expect(three.pawn()).toBeUndefined()
+    expect(one.pawn()).toBe(first)
+    expect(methods()).toEqual(['Pawns'])
+
+    // A call that may write drops the reads; unchanged bytes keep their Pawn,
+    // and changed ones decode anew.
+    health.set(2, 150)
+    one.setStamina(50)
+    expect(one.pawn()).toBe(first)
+    expect(two.pawn()?.health).toBe(150)
+    expect(methods()).toEqual(['SetStamina', 'Pawn', 'Pawns'])
+  })
+
+  // The next event reads again, since the game ran between them.
+  health.set(1, 90)
+  event(() => {
+    expect(one.pawn()?.health).toBe(90)
+    expect(one.pawn()).not.toBe(first)
+    expect(methods()).toEqual(['Pawn'])
+  })
+
+  // A failed Pawns leaves the rest of its event to single reads, and the
+  // next event batches again.
+  pawnsFails = true
+  event(() => {
+    one.pawn()
+    two.pawn()
+    one.setStamina(50)
+    one.pawn()
+    two.pawn()
+    expect(methods()).toEqual([
+      'Pawn',
+      'Pawns',
+      'Pawn',
+      'SetStamina',
+      'Pawn',
+      'Pawn',
+    ])
+  })
+  pawnsFails = false
+  event(() => {
+    one.pawn()
+    two.pawn()
+    expect(methods()).toEqual(['Pawn', 'Pawns'])
+  })
+
+  // With the cache off, every read in an event reaches the host.
+  setPawnCache(false)
+  event(() => {
+    one.pawn()
+    one.pawn()
+    expect(methods()).toEqual(['Pawn', 'Pawn'])
+  })
+  setPawnCache(true)
 })

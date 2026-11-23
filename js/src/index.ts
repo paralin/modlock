@@ -138,6 +138,7 @@ export {
   raceGateResources,
 } from './racegate.js'
 export { connection, players } from './players.js'
+export { setPawnCache } from './pawns.js'
 export {
   afterMatch,
   fewestPlayed,
