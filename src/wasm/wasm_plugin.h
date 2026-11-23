@@ -32,6 +32,7 @@
 #include "wasm/metrics.h"
 #include "wasm/player_scope.h"
 #include "wasm/runtime.h"
+#include "wasm/sandbox.h"
 #include "wasm/service_calls.h"
 #include "wasm/settings.h"
 #include "wasm/ui.h"
@@ -142,6 +143,7 @@ class WasmPlugin final : public Plugin {
         engine_(context.engine),
         check_only_(context.check_only),
         enforce_required_services_(context.enforce_required_services),
+        concurrent_mods_(context.concurrent_mods),
         mod_([this](const wasm::Call& call) { return Send(call); }),
         game_(*this, host, context.engine) {
     for (int i = 1; i < context.argc; ++i) {
@@ -157,12 +159,13 @@ class WasmPlugin final : public Plugin {
   }
 
   // Instantiate loads module, answering its host calls through this plugin.
-  std::expected<std::unique_ptr<wasm::Instance>, std::string> Instantiate(
-      std::span<const uint8_t> module);
+  // The mod runs on a thread of its own when the host's context asked for
+  // concurrent mods.
+  std::expected<wasm::Sandbox, std::string> Instantiate(std::span<const uint8_t> module);
 
-  // Attach takes the first loaded instance and the build it runs.
-  void Attach(std::unique_ptr<wasm::Instance> instance, Build build) {
-    // Take the instance and the build it runs.
+  // Attach takes the first loaded sandbox and the build it runs.
+  void Attach(wasm::Sandbox instance, Build build) {
+    // Take the sandbox and the build it runs.
     instance_ = std::move(instance);
     path_ = std::move(build.path);
     module_ = std::move(build.module);
@@ -329,8 +332,7 @@ class WasmPlugin final : public Plugin {
   void Restart();
   // Succeed halts the running instance and starts instance, with build when
   // a reload brought one, once the bots the halted instance removed have left.
-  std::expected<void, std::string> Succeed(std::unique_ptr<wasm::Instance> instance,
-                                           std::optional<Build> build);
+  std::expected<void, std::string> Succeed(wasm::Sandbox instance, std::optional<Build> build);
   // Arrive starts the instance that Succeed holds back, when its
   // predecessor's bots have left or kDepartWait passed.
   std::expected<void, std::string> Arrive();
@@ -343,6 +345,22 @@ class WasmPlugin final : public Plugin {
   // Send is the transport of mod_: it delivers one event and stops a mod
   // whose instance failed.
   std::expected<wasm::Reply, std::string> Send(const wasm::Call& call);
+  // Settle takes what a delivered event left behind: it stops a mod that
+  // failed, logs the error the mod's handler returned and offers a restart
+  // for a slow event. slow is the slow event's report. It returns reply.
+  std::expected<wasm::Reply, std::string> Settle(std::string_view method,
+                                                 std::expected<wasm::Reply, std::string> reply,
+                                                 const std::optional<std::string>& slow);
+  // RunWindow is a tick's turn of a mod on a thread of its own: it posts the
+  // frame, lets the mod run until it is idle or the frame allowance passes,
+  // and settles the events that finished.
+  void RunWindow();
+  // Drain settles the events the mod finished on its own thread, and stops
+  // a mod that failed.
+  void Drain();
+  // ReportSkipped logs the frames skipped to repay slow ones, at most once a
+  // period, and counts afresh.
+  void ReportSkipped(std::chrono::steady_clock::time_point now);
   // ReportPlayers delivers PlayersChanged when the player slots changed
   // since the instance last heard of them.
   void ReportPlayers();
@@ -434,8 +452,10 @@ class WasmPlugin final : public Plugin {
   bool check_only_;
   // Admission policy is fixed for this plugin, including reloads.
   const bool enforce_required_services_;
+  // concurrent_mods_ runs each instance's events on a thread of its own.
+  const bool concurrent_mods_;
   std::vector<std::string> args_;
-  std::unique_ptr<wasm::Instance> instance_;
+  wasm::Sandbox instance_;
   // path_ is where the running build was read from.
   std::filesystem::path path_;
   // module_ is the running build's WebAssembly, which a restart instantiates
@@ -464,7 +484,7 @@ class WasmPlugin final : public Plugin {
   // predecessor removed to leave, so it starts without seeing them as
   // players.
   struct Successor {
-    std::unique_ptr<wasm::Instance> instance;
+    wasm::Sandbox instance;
     std::optional<Build> build;
     std::chrono::steady_clock::time_point until;
   };
@@ -599,6 +619,11 @@ class WasmPlugin final : public Plugin {
 
   Section play_;
   Section observe_;
+  // window_ times the windows of a mod on its own thread, and
+  // window_totals_ adds up what they did.
+  Section window_;
+  wasm::WindowStats window_totals_;
+  uint32_t windows_idle_ = 0;
 };
 
 }  // namespace modlock::wasm

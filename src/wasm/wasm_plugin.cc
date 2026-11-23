@@ -25,6 +25,10 @@ namespace {
 // frames to repay it: half of a 64-tick frame.
 constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
 
+// kWindowSlack is how long past its deadline a mod's window may run, for the
+// game call it answered last, before the window counts as over its allowance.
+constexpr auto kWindowSlack = std::chrono::milliseconds(1);
+
 // kShedLogPeriod is how often the log reports the frames a slow mod skipped.
 constexpr auto kShedLogPeriod = std::chrono::minutes(1);
 
@@ -107,14 +111,29 @@ void Untune(wasm::DefinitionUndo& undo) {
   undo.Restore();
 }
 
+// Total adds what one window did to the counts of the windows before it,
+// except whether it ended idle.
+void Total(wasm::WindowStats& total, const wasm::WindowStats& window) {
+  total.hops += window.hops;
+  total.writes += window.writes;
+  total.failed += window.failed;
+  total.replayed += window.replayed;
+  total.hits += window.hits;
+  total.misses += window.misses;
+  total.stale += window.stale;
+  total.spins += window.spins;
+  total.sleeps += window.sleeps;
+  total.time += window.time;
+}
+
 }  // namespace
 
-std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
-    std::span<const uint8_t> module) {
+std::expected<wasm::Sandbox, std::string> WasmPlugin::Instantiate(std::span<const uint8_t> module) {
   wasm::Limits limits;
   limits.sample_after = kFrameAllowance;
-  return wasm::Instance::Load(host_.runtime, module, limits,
-                              [this](const wasm::Call& call) { return Call(call); });
+  return wasm::Sandbox::Load(
+      host_.runtime, module, limits, [this](const wasm::Call& call) { return Call(call); },
+      concurrent_mods_);
 }
 
 bool WasmPlugin::Start() {
@@ -188,7 +207,7 @@ std::expected<void, std::string> WasmPlugin::Reload(Build build) {
   return Succeed(std::move(*instance), std::move(build));
 }
 
-std::expected<void, std::string> WasmPlugin::Succeed(std::unique_ptr<wasm::Instance> instance,
+std::expected<void, std::string> WasmPlugin::Succeed(wasm::Sandbox instance,
                                                      std::optional<Build> build) {
   if (instance_) {
     Halt();
@@ -360,7 +379,7 @@ void WasmPlugin::Halt() {
   }
 
   // Release the instance last, since the steps above may still reach it.
-  instance_.reset();
+  instance_.Reset();
 }
 
 void WasmPlugin::ListenForRestart() {
@@ -613,6 +632,10 @@ void WasmPlugin::Tick() {
   if (wants_.joins() && !wants_.frames()) {
     ReportPlayers();
   }
+  if (instance_.Concurrent()) {
+    RunWindow();
+    return;
+  }
   if (!wants_.frames() || !instance_) {
     return;
   }
@@ -639,15 +662,19 @@ void WasmPlugin::Tick() {
   const auto spent = ended - began;
   if (spent > slowest_ && instance_) {
     slowest_ = spent;
-    slowest_report_ = instance_->Report();
-    slowest_frame_ = instance_->Describe();
+    slowest_report_ = instance_.Report();
+    slowest_frame_ = instance_.Describe();
   }
   if (spent > kFrameAllowance) {
     frames_resume_ = ended + spent;
   }
 
+  ReportSkipped(ended);
+}
+
+void WasmPlugin::ReportSkipped(std::chrono::steady_clock::time_point now) {
   // Log the skipped frames at most once a period.
-  if (skipped_ > 0 && ended - shed_logged_ >= kShedLogPeriod) {
+  if (skipped_ > 0 && now - shed_logged_ >= kShedLogPeriod) {
     // Report the count and the slowest frame, then count afresh.
     const auto slowest = std::chrono::duration_cast<std::chrono::milliseconds>(slowest_);
     slowest_frame_.set_skipped(skipped_);
@@ -657,7 +684,82 @@ void WasmPlugin::Tick() {
     slowest_frame_.Clear();
     skipped_ = 0;
     slowest_ = {};
-    shed_logged_ = ended;
+    shed_logged_ = now;
+  }
+}
+
+void WasmPlugin::RunWindow() {
+  // A mod on its own thread runs on every tick, whether or not it wants
+  // frames: what it has queued and the calls it waits on move only inside a
+  // window. A window over its allowance is repaid like a slow frame, by
+  // skipping the ticks until as much time has passed; the mod keeps running
+  // on its thread meanwhile, up to its next call into the game.
+  const auto began = std::chrono::steady_clock::now();
+  if (began < frames_resume_) {
+    ++skipped_;
+    Drain();
+    return;
+  }
+
+  // The frame follows the report of the players it sees, and carries the
+  // game's clock and the heroes' movement.
+  std::optional<wasm::Call> frame;
+  if (wants_.frames()) {
+    wasm::FrameEvent event;
+    if (GameOpen()) {
+      Observe(event);
+      observe_.Add(std::chrono::steady_clock::now() - began);
+    }
+    ReportPlayers();
+    frame.emplace();
+    frame->set_method("Frame");
+    frame->set_request(event.SerializeAsString());
+  }
+
+  // Run the mod until it is idle or has used the frame allowance. The events
+  // it sends back to the game run inside, so a leave that comes meanwhile
+  // waits for the next report, as it does during a synchronous event.
+  const auto deadline = began + kFrameAllowance;
+  const bool nested = std::exchange(sending_, true);
+  const auto stats = instance_.Window(deadline, std::move(frame));
+  sending_ = nested;
+
+  // Charge a window that kept the game thread past its allowance to the ticks
+  // after it. A window that ended at its deadline with the mod still running
+  // took only its allowance, and is not charged.
+  const auto ended = std::chrono::steady_clock::now();
+  const auto spent = ended - began;
+  window_.Add(spent);
+  windows_idle_ += stats.idle ? 1 : 0;
+  Total(window_totals_, stats);
+  if (spent > slowest_) {
+    slowest_ = spent;
+    slowest_report_ = std::format("Window took {} hops, {} spins and {} sleeps", stats.hops,
+                                  stats.spins, stats.sleeps);
+  }
+  if (ended - deadline > kWindowSlack) {
+    frames_resume_ = ended + spent;
+  }
+  Drain();
+  ReportSkipped(ended);
+}
+
+void WasmPlugin::Drain() {
+  // Take what the mod finished as Send takes what an event leaves, until one
+  // stops the mod.
+  for (auto& done : instance_.Completed()) {
+    if (!instance_) {
+      break;
+    }
+    Settle(done.method, std::move(done.reply),
+           done.slow ? std::optional(std::move(done.report)) : std::nullopt);
+  }
+  // A mod that failed with no event to name it, or whose last event is not
+  // yet taken, stops at the next drain.
+  if (instance_ && instance_.Failure()) {
+    Failed("stopped: " + *instance_.Failure());
+    Halt();
+    Stopped();
   }
 }
 
@@ -690,22 +792,35 @@ void WasmPlugin::ReportCalls() {
     host_.Notify([&](WasmHostObserver& observer) { observer.Called(name_, *calls); });
   }
 
-  // Log the host's own frame work around the mod since the last report.
-  if (play_.frames > 0) {
+  // Log the host's own frame work around the mod since the last report, and
+  // for a mod on its own thread the windows it ran in.
+  if (play_.frames > 0 || window_.frames > 0) {
     const auto ms = [](std::chrono::steady_clock::duration d) {
       return std::chrono::duration<double, std::milli>(d).count();
     };
     const auto mean = [&](const Section& s) {
       return s.frames == 0 ? 0.0 : ms(s.total) / s.frames;
     };
-    std::cerr << std::format(
+    std::string line = std::format(
         "[{}] host frame work: play {} frames mean {:.2f} max {:.2f} ms, observe {} frames mean "
-        "{:.2f} max {:.2f} ms\n",
+        "{:.2f} max {:.2f} ms",
         name_, play_.frames, mean(play_), ms(play_.slowest), observe_.frames, mean(observe_),
         ms(observe_.slowest));
+    if (window_.frames > 0) {
+      const auto& w = window_totals_;
+      line += std::format(
+          ", window {} mean {:.2f} max {:.2f} ms ({} idle), hops {}, writes {} ({} failed), "
+          "replayed {}, reads hit {} miss {} stale {}, waits spun {} slept {}",
+          window_.frames, mean(window_), ms(window_.slowest), windows_idle_, w.hops, w.writes,
+          w.failed, w.replayed, w.hits, w.misses, w.stale, w.spins, w.sleeps);
+    }
+    std::cerr << line << '\n';
   }
   play_ = {};
   observe_ = {};
+  window_ = {};
+  window_totals_ = {};
+  windows_idle_ = 0;
 }
 
 void WasmPlugin::Log(std::string_view text) {

@@ -1,3 +1,5 @@
+//go:build deps_only
+
 #include "wasm/mod_thread.h"
 
 #include <algorithm>
@@ -146,22 +148,6 @@ inline void Relax() {
 #endif
 }
 
-// SpinUntil watches ready() with a pause between looks until it holds or the
-// clock reaches until, and returns ready(). It reads the clock every sixteenth
-// look, so a handoff that lands at once does not pay for it.
-template <typename Ready>
-bool SpinUntil(Ready& ready, std::chrono::steady_clock::time_point until) {
-  for (uint32_t look = 1;; ++look) {
-    Relax();
-    if (ready()) {
-      return true;
-    }
-    if ((look & 15) == 0 && std::chrono::steady_clock::now() >= until) {
-      return false;
-    }
-  }
-}
-
 // current is the ModThread whose thread this is, or null on any other.
 thread_local const ModThread* current = nullptr;
 
@@ -186,28 +172,55 @@ CallClass ClassOf(std::string_view method) {
 }
 
 template <typename Ready>
-bool ModThread::Bell::Wait(Ready ready, std::chrono::microseconds spin,
+bool ModThread::Bell::Wait(Ready ready, bool spin, const std::atomic<bool>& partner,
+                           std::atomic<bool>* self,
                            std::optional<std::chrono::steady_clock::time_point> deadline) {
   using Clock = std::chrono::steady_clock;
   if (ready()) {
     return true;
   }
 
-  // Watch the condition for the spin time, or until the deadline.
-  auto until = Clock::now() + spin;
-  if (deadline && *deadline < until) {
-    until = *deadline;
-  }
-  if (spin > spin.zero() && SpinUntil(ready, until)) {
-    waits_.spins.fetch_add(1, std::memory_order_relaxed);
-    return true;
+  // Watch the condition while the partner runs. Once its flag clears, give it
+  // the grace for a change already on its way, and stop at the deadline. The
+  // clock is read every sixteenth look while the partner runs, and at every
+  // look once it does not, so a handoff that lands at once does not pay for it.
+  if (spin) {
+    std::optional<Clock::time_point> cleared;
+    for (uint32_t look = 1;; ++look) {
+      Relax();
+      if (ready()) {
+        waits_.spins.fetch_add(1, std::memory_order_relaxed);
+        return true;
+      }
+      if (partner.load()) {
+        cleared.reset();
+        if ((look & 15) == 0 && deadline && Clock::now() >= *deadline) {
+          break;
+        }
+        continue;
+      }
+      const auto now = Clock::now();
+      if (!cleared) {
+        cleared = now;
+      }
+      if (now - *cleared >= kPartnerGrace || (deadline && now >= *deadline)) {
+        break;
+      }
+    }
   }
   if (deadline && Clock::now() >= *deadline) {
     return ready();
   }
 
   waits_.sleeps.fetch_add(1, std::memory_order_relaxed);
-  return Sleep(ready, deadline);
+  if (self) {
+    self->store(false);
+  }
+  const bool satisfied = Sleep(ready, deadline);
+  if (self) {
+    self->store(true);
+  }
+  return satisfied;
 }
 
 template <typename Ready>
@@ -330,6 +343,7 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
     return stats;
   }
   in_window_ = true;
+  game_running_.store(true);
 
   // Bring the game up to date with what the mod wrote, and the snapshot with
   // the game, and only then wake the mod, so its Frame reads the new snapshot.
@@ -346,17 +360,14 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   }
 
   // Answer hops until the mod is idle with nothing queued, or time is up. The
-  // game thread spins, never sleeps: a handoff to a sleeper costs microseconds,
-  // and the deadline bounds the spin.
+  // game thread watches while the mod runs and sleeps only when the mod does,
+  // and the deadline bounds the wait.
   const auto ready = [this] {
     return hop_.load() == HopState::kPosted || pending_.load() == 0 || done_.load();
   };
   while (Clock::now() < deadline) {
-    if (!ready()) {
-      if (!SpinUntil(ready, deadline)) {
-        break;
-      }
-      waits_.spins.fetch_add(1, std::memory_order_relaxed);
+    if (!to_game_.Wait(ready, settings_.spin, mod_running_, nullptr, deadline)) {
+      break;
     }
     if (hop_.load() != HopState::kPosted) {
       stats.idle = true;
@@ -370,6 +381,7 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   // once more here, when the window closes idle, would remove that lag.
   CountReads(&stats);
   stats.time = std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - began);
+  game_running_.store(false);
   in_window_ = false;
   return stats;
 }
@@ -408,8 +420,11 @@ void ModThread::Run() {
   const auto ready = [&] {
     return stopping_.load() || TakeEvent(call);
   };
+  mod_running_.store(true);
   while (!stopping_.load()) {
+    mod_running_.store(false);
     to_mod_.Sleep(ready, std::nullopt);
+    mod_running_.store(true);
     if (stopping_.load()) {
       break;
     }
@@ -420,13 +435,16 @@ void ModThread::Run() {
       completed_.push_back(std::move(done));
     }
     pending_.fetch_sub(1);
+    to_game_.Notify();
     if (failed) {
       break;
     }
   }
 
   // A failed or stopped mod runs no more events; the game thread's wait ends.
+  mod_running_.store(false);
   done_.store(true);
+  to_game_.Notify();
   current = nullptr;
 }
 
@@ -520,7 +538,7 @@ bool ModThread::BufferWrite(const Call& call) {
 }
 
 std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
-  const auto snapshot = snapshot_.load();
+  const auto snapshot = LatestSnapshot();
   std::string key = Key(call);
   const Entry* entry = nullptr;
   if (snapshot) {
@@ -565,13 +583,13 @@ Reply ModThread::Hop(const Call& call, bool changes) {
   hop_call_ = call;
   hop_changes_ = changes;
   hop_.store(HopState::kPosted);
+  to_game_.Notify();
 
-  // Wait for the game thread's answer, or for the stop that ends the wait. The
-  // game thread spins on hop_, so posting needs no wake-up.
+  // Wait for the game thread's answer, or for the stop that ends the wait.
   const auto answered = [this] {
     return hop_.load() == HopState::kAnswered || stopping_.load();
   };
-  to_mod_.Wait(answered, settings_.spin, std::nullopt);
+  to_mod_.Wait(answered, settings_.spin, game_running_, &mod_running_, std::nullopt);
   if (hop_.load() == HopState::kAnswered) {
     reply = std::move(hop_reply_);
   } else {
@@ -615,7 +633,7 @@ void ModThread::Replay(WindowStats* stats) {
   // the snapshot lacked, up to the limit.
   std::vector<std::pair<std::string, Call>> wanted;
   std::unordered_set<std::string> seen;
-  if (const auto previous = snapshot_.load()) {
+  if (const auto previous = LatestSnapshot()) {
     for (const auto& [key, entry] : previous->entries) {
       if (entry.used.load(std::memory_order_relaxed)) {
         wanted.emplace_back(key, entry.call);
@@ -650,7 +668,10 @@ void ModThread::Replay(WindowStats* stats) {
   }
   applying_ = false;
   stats->replayed = static_cast<uint32_t>(wanted.size());
-  snapshot_.store(std::move(next));
+  {
+    const std::lock_guard lock(snapshot_mutex_);
+    snapshot_ = std::move(next);
+  }
 }
 
 void ModThread::Serve(WindowStats* stats) {

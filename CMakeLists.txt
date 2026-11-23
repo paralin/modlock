@@ -196,6 +196,8 @@ add_library(modlock_sdk SHARED
   src/render/world_effect_game_factory.cc
   src/render/world_text_game_factory.cc
   src/wasm/instance.cc
+  src/wasm/mod_thread.cc
+  src/wasm/sandbox.cc
   src/wasm/stack_samples.cc
   src/wasm/runtime.cc
   src/wasm/definition_changes.cc
@@ -687,8 +689,7 @@ if(BUILD_TESTING)
     PYTHON_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/python/modlock")
   target_link_libraries(wasm_instance_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   add_test(NAME wasm_instance_test COMMAND wasm_instance_test)
-  add_executable(wasm_mod_thread_test tests/wasm_mod_thread_test.cc src/wasm/mod_thread.cc
-    src/wasm/instance.cc src/wasm/stack_samples.cc src/wasm/runtime.cc)
+  add_executable(wasm_mod_thread_test tests/wasm_mod_thread_test.cc)
   add_dependencies(wasm_mod_thread_test quickjs_runtime)
   target_include_directories(wasm_mod_thread_test PRIVATE src)
   target_compile_definitions(wasm_mod_thread_test PRIVATE QUICKJS_WASM="${quickjs_wasm}")
@@ -714,7 +715,7 @@ if(BUILD_TESTING)
   add_dependencies(wasm_host_test extension_go_wasm)
   target_include_directories(wasm_host_test PRIVATE src)
   target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
-  target_link_libraries(wasm_host_test PRIVATE modlock::sdk gtest_main)
+  target_link_libraries(wasm_host_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   add_test(NAME wasm_host_test COMMAND wasm_host_test)
   # host_fixtures_test runs the same mod against needed services and the
   # host's fixtures, and its forwarded calls over the control link.

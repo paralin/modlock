@@ -41,6 +41,11 @@ struct PluginContext {
   // Hosts upgrading a format that ignored service declarations can retain that
   // admission policy. Calls to unavailable services still fail normally.
   bool enforce_required_services = true;
+  // ConcurrentMods runs each sandboxed mod's events on a thread of its own,
+  // while every call the mod makes into the game still runs on the engine
+  // thread. Off, a mod runs on the engine thread. The host reads it as it loads
+  // a mod.
+  bool concurrent_mods = false;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.

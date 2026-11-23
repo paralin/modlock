@@ -11,7 +11,10 @@
 // which panics and so stops the mod; and the later service, whose "start"
 // starts a call to the service, method and payload its payload names,
 // separated by "|", with a timeout in milliseconds after them, and whose
-// "ended" lists the calls that ended so far, one line each.
+// "ended" lists the calls that ended so far, one line each; and the trace
+// service, whose "frame" makes the next frame log, read, create and call a
+// service in a fixed order, and whose "impact" makes the next
+// projectile impact call a service.
 package main
 
 import (
@@ -36,6 +39,23 @@ func hostRead(data unsafe.Pointer, size uint32)
 
 // ended lists the later service's calls that ended, in order.
 var ended []string
+
+// framing and impacting are true until the next frame or impact the trace
+// service asked for has run its calls.
+var framing, impacting bool
+
+// traceFrame runs the calls of a traced frame: writes, a read, a creation and
+// a service call, interleaved so that their order and results show in the log.
+func traceFrame() {
+	mod.Log("frame-1")
+	text, _ := mod.ReadFile("trace.txt")
+	mod.Log("read:", text == nil)
+	_, err := mod.CreateText(&mod.TextOptions{})
+	mod.Log("create:", err)
+	mod.Log("frame-2")
+	_, _ = mod.CallService("shout", "frame", []byte("hop"))
+	mod.Log("frame-3")
+}
 
 // init registers the service before the host starts the mod.
 func init() {
@@ -90,6 +110,29 @@ func init() {
 	})
 	mod.Serve("crash", func(string, []byte) ([]byte, error) {
 		panic("crash")
+	})
+	mod.Serve("trace", func(method string, _ []byte) ([]byte, error) {
+		switch method {
+		case "frame":
+			framing = true
+		case "impact":
+			impacting = true
+		default:
+			return nil, errors.New("the trace service has no method " + method)
+		}
+		return nil, nil
+	})
+	mod.OnFrame(func(*mod.FrameEvent) {
+		if framing {
+			framing = false
+			traceFrame()
+		}
+	})
+	mod.OnImpact(func(*mod.ImpactEvent) {
+		if impacting {
+			impacting = false
+			_, _ = mod.CallService("shout", "impact", []byte("hop"))
+		}
 	})
 }
 

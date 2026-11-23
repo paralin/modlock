@@ -49,6 +49,7 @@ void Help() {
                "  --dump DIRECTORY    Start the server, write its schemas, entity classes and\n"
                "                      console to DIRECTORY as JSON, and quit\n"
                "  --check-plugin      Check library compatibility and lifecycle without a game\n"
+               "  --concurrent-mods   Run each mod's events on a thread of its own\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
 }
@@ -122,6 +123,7 @@ struct Options {
   std::filesystem::path game_data;
   modlock::net::LaunchConfig launch;
   bool check_only = false;
+  bool concurrent_mods = false;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
 };
@@ -212,6 +214,10 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     }
     if (argument == "--check-plugin") {
       options.check_only = true;
+      continue;
+    }
+    if (argument == "--concurrent-mods") {
+      options.concurrent_mods = true;
       continue;
     }
     if (argument == "--") {
@@ -335,7 +341,8 @@ int main(int argc, char** argv) {
                                        .argv = options.plugin_argv,
                                        .check_only = options.check_only,
                                        .launch = &options.launch,
-                                       .wasm = &mods};
+                                       .wasm = &mods,
+                                       .concurrent_mods = options.concurrent_mods};
   for (const auto& library : options.libraries) {
     // Load each plugin, built mod or native library.
     const auto path = std::filesystem::absolute(library);

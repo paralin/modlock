@@ -6,7 +6,10 @@
 // or a reload restarts it. A mod limited to some players reaches only them,
 // changes the whole server only while it holds the world, which one limited
 // mod holds at a time, and rules only the hits of its players. A mod hears
-// exactly one leave for each player it heard join.
+// exactly one leave for each player it heard join. A mod that runs on a thread
+// of its own makes the same calls in the same order as one that runs on the
+// engine thread, every engine call on the engine thread, takes the default of
+// a decision while it is busy, and stops cleanly in the middle of a call.
 #include "modlock/wasm_host.h"
 
 #include <algorithm>
@@ -25,6 +28,7 @@
 #include "wasm/attendance.h"
 #include "wasm/call_profile.h"
 #include "wasm/player_scope.h"
+#include "wasm/wasm_plugin.h"
 
 namespace {
 
@@ -42,7 +46,12 @@ class Events final : public WasmHostObserver {
     paths.push_back(path);
   }
 
-  void Logged(std::string_view, std::string_view) override {}
+  // Logged adds the mod's log lines to trace, when there is one.
+  void Logged(std::string_view, std::string_view text) override {
+    if (trace) {
+      trace->push_back("log:" + std::string(text));
+    }
+  }
 
   void Failed(std::string_view, std::string_view error) override {
     seen.push_back("failed: " + std::string(error));
@@ -72,6 +81,8 @@ class Events final : public WasmHostObserver {
   }
 
   std::vector<std::string> seen;
+  // trace, when set, receives each log line, in the order the host heard it.
+  std::vector<std::string>* trace = nullptr;
   // paths keeps the build path of each start, in order.
   std::vector<std::filesystem::path> paths;
   std::vector<size_t> halted;
@@ -547,6 +558,141 @@ TEST(WasmHost, PreparesABuildOffTheCallingThread) {
   auto again = host.Prepare(missing);
   ASSERT_TRUE(again);
   EXPECT_FALSE(*again);
+}
+
+// Tracing is a host whose shout service writes each call into one trace with
+// the mod's log lines, and keeps the threads that answered.
+struct Tracing {
+  explicit Tracing(bool concurrent)
+      : plugin_context{.check_only = true, .concurrent_mods = concurrent} {
+    observer.trace = &trace;
+    host.Observe(&observer);
+    host.Provide("shout",
+                 [this](std::string_view, std::string_view method,
+                        std::string_view payload) -> std::expected<std::string, std::string> {
+                   trace.push_back("shout:" + std::string(method) + ":" + std::string(payload));
+                   threads.insert(std::this_thread::get_id());
+                   return std::string(method) + ":" + std::string(payload);
+                 });
+  }
+
+  ~Tracing() { host.Unobserve(&observer); }
+
+  // Load starts the test mod, and returns it as a plugin of the host.
+  modlock::wasm::WasmPlugin& Load() {
+    auto loaded = host.Load(EXTENSION_GO_WASM, plugin_context);
+    EXPECT_TRUE(loaded) << loaded.error();
+    plugin = std::move(*loaded);
+    EXPECT_TRUE(plugin->Start());
+    return static_cast<modlock::wasm::WasmPlugin&>(*plugin);
+  }
+
+  // Impact posts a projectile impact to the mod.
+  void Impact() {
+    modlock::wasm::combat::ImpactEvent impact;
+    static_cast<modlock::wasm::WasmPlugin&>(*plugin).Impacted(impact);
+  }
+
+  WasmHost host{{}};
+  Events observer;
+  PluginContext plugin_context;
+  std::vector<std::string> trace;
+  std::set<std::thread::id> threads;
+  std::unique_ptr<modlock::Plugin> plugin;
+};
+
+// Ticks runs the plugin's ticks until done holds or the time passes.
+template <typename Done>
+bool TickUntil(modlock::Plugin& plugin, Done done) {
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+  while (!done()) {
+    if (std::chrono::steady_clock::now() >= deadline) {
+      return false;
+    }
+    plugin.Tick();
+  }
+  return true;
+}
+
+// RunFrame arms the test mod's traced frame, runs the ticks that carry it out
+// and returns the calls and log lines in the order the host heard them.
+std::vector<std::string> RunFrame(bool concurrent, std::set<std::thread::id>& threads) {
+  Tracing tracing(concurrent);
+  tracing.Load();
+  auto armed = tracing.host.Call("extension-go", "trace", "frame", "");
+  EXPECT_TRUE(armed) << armed.error();
+  tracing.trace.clear();
+
+  // The frame's last write reaches the host with a later tick than the call
+  // before it, so run until the whole frame is in.
+  EXPECT_TRUE(TickUntil(*tracing.plugin, [&] {
+    return !tracing.trace.empty() && tracing.trace.back() == "log:frame-3";
+  }));
+  threads = tracing.threads;
+  return tracing.trace;
+}
+
+TEST(WasmHost, ConcurrentModMakesTheSameCallsInTheSameOrder) {
+  // One frame writes, reads, creates and calls a service: the host hears the
+  // same calls in the same order whether the mod runs on the engine thread or
+  // on a thread of its own.
+  std::set<std::thread::id> synchronous;
+  std::set<std::thread::id> concurrent;
+  const auto before = RunFrame(false, synchronous);
+  const auto after = RunFrame(true, concurrent);
+  EXPECT_EQ(before,
+            (std::vector<std::string>{"log:frame-1", "log:read:true", "log:no game is running",
+                                      "log:create:no game is running", "log:frame-2",
+                                      "shout:frame:hop", "log:frame-3"}));
+  EXPECT_EQ(after, before);
+
+  // Every call reached the host's service on the engine thread.
+  EXPECT_EQ(concurrent, (std::set<std::thread::id>{std::this_thread::get_id()}));
+  EXPECT_EQ(synchronous, concurrent);
+}
+
+TEST(WasmHost, ConcurrentModBusyAnswersADecisionWithItsDefault) {
+  // An event the mod has not finished keeps it busy: the mod waits on a call
+  // to a service, which only the next tick answers.
+  Tracing tracing(true);
+  tracing.Load();
+  ASSERT_TRUE(tracing.host.Call("extension-go", "trace", "impact", ""));
+  tracing.Impact();
+
+  // A service call is a decision, and a busy mod gives its default: the call
+  // fails at once and the mod is not asked.
+  auto busy = tracing.host.Call("extension-go", "echo", "say", "hi");
+  ASSERT_FALSE(busy);
+  EXPECT_EQ(busy.error(), "the mod is busy");
+  EXPECT_TRUE(tracing.trace.empty());
+
+  // The tick answers the mod's call, the event ends and the mod decides again.
+  ASSERT_TRUE(TickUntil(*tracing.plugin, [&] {
+    return std::ranges::find(tracing.trace, "shout:impact:hop") != tracing.trace.end();
+  }));
+  std::expected<std::string, std::string> answer = std::unexpected("not asked");
+  ASSERT_TRUE(TickUntil(*tracing.plugin, [&] {
+    answer = tracing.host.Call("extension-go", "echo", "say", "hi");
+    return answer.has_value();
+  }));
+  EXPECT_EQ(*answer, "say:hi");
+}
+
+TEST(WasmHost, ConcurrentModStopsInTheMiddleOfACall) {
+  // The mod waits on a call to a service that no tick answers.
+  Tracing tracing(true);
+  tracing.Load();
+  ASSERT_TRUE(tracing.host.Call("extension-go", "trace", "impact", ""));
+  tracing.Impact();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Stopping the mod ends the call with an error and joins its thread, and
+  // the host never answered the call.
+  tracing.plugin->Stop();
+  EXPECT_EQ(tracing.observer.halted.size(), 1u);
+  EXPECT_TRUE(tracing.trace.empty());
+  EXPECT_FALSE(tracing.host.Call("extension-go", "echo", "say", "hi"));
+  tracing.plugin.reset();
 }
 
 }  // namespace

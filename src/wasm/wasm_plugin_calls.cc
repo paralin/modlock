@@ -54,11 +54,17 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
     return wasm::Reply();
   }
   const bool nested = std::exchange(sending_, true);
-  auto reply = instance_->Deliver(call);
+  auto reply = instance_.Deliver(call);
   sending_ = nested;
+  return Settle(call.method(), std::move(reply), instance_.SlowReport());
+}
+
+std::expected<wasm::Reply, std::string> WasmPlugin::Settle(
+    std::string_view method, std::expected<wasm::Reply, std::string> reply,
+    const std::optional<std::string>& slow) {
   if (!reply) {
     // A failed mod stops alone; a refused nested event leaves it running.
-    if (instance_->Failure()) {
+    if (instance_.Failure()) {
       Failed("stopped: " + reply.error());
       Halt();
       Stopped();
@@ -69,11 +75,11 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
   // A handler's error goes to the service's caller, or else to the log. A
   // build from before PlayersChanged answers that it has no such method,
   // which it says at every report, so the report's error is not logged.
-  if (!reply->error().empty() && call.method() != "Serve" && call.method() != "PlayersChanged") {
+  if (!reply->error().empty() && method != "Serve" && method != "PlayersChanged") {
     Log(reply->error());
   }
-  if (instance_->Slow()) {
-    Slowed(instance_->Report());
+  if (slow) {
+    Slowed(*slow);
   }
   return reply;
 }

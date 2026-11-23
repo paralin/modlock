@@ -458,10 +458,10 @@ void MeasureHops(const char* label, ModThreadSettings settings, bool direct) {
 
 TEST(ModThread, HopRoundTripBenchmark) {
   ModThreadSettings sleeping;
-  sleeping.spin = 0us;
+  sleeping.spin = false;
   MeasureHops("direct on the game thread", {}, true);
-  MeasureHops("hop, mod spins 50 us", {}, false);
-  MeasureHops("hop, mod sleeps at once", sleeping, false);
+  MeasureHops("hop, partners spin", {}, false);
+  MeasureHops("hop, waits sleep at once", sleeping, false);
 }
 
 }  // namespace

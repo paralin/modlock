@@ -46,12 +46,12 @@ enum class CallClass {
 // wasm.proto.
 [[nodiscard]] CallClass ClassOf(std::string_view method);
 
-// kHopSpin is how long a mod thread waiting on the game thread watches an
-// atomic before it sleeps on a condition variable. A handoff between two
-// spinning threads costs tens of nanoseconds, and one that wakes a sleeper
-// costs microseconds, so the wait spins as long as the game thread usually
-// takes to answer.
-inline constexpr std::chrono::microseconds kHopSpin{50};
+// kPartnerGrace is how long a waiter keeps watching after its partner's
+// running flag clears, before it sleeps. A partner that just cleared the flag
+// is usually about to answer, and a handoff between two threads that both run
+// costs tens of nanoseconds, where waking a sleeper costs microseconds. With
+// no grace both threads sleep on every round trip.
+inline constexpr std::chrono::microseconds kPartnerGrace{5};
 
 // ModThreadSettings are the knobs of one ModThread. A probe sets them to
 // compare the designs.
@@ -65,10 +65,9 @@ struct ModThreadSettings {
   // that changes the game since the snapshot was taken, so every read sees the
   // mod's own writes. Off, a read sees the game as the window started.
   bool strict = true;
-  // spin is how long the mod thread waits on a handoff, watching an atomic,
-  // before it sleeps on a condition variable. The game thread never sleeps in
-  // a window: it spins until the mod answers or the deadline passes.
-  std::chrono::microseconds spin = kHopSpin;
+  // spin makes a waiter watch an atomic while its partner runs, before it
+  // sleeps on a condition variable. Off, a waiter sleeps at once.
+  bool spin = true;
   // replay_keys is the most distinct reads the game thread replays at the start
   // of a window; a mod that reads more distinct requests than this hops for
   // the rest.
@@ -138,9 +137,17 @@ struct Completion {
 //     thread answers it inside Window after applying every buffered write
 //     before it, so the game sees the mod's calls in the order it made them.
 //
-// A hop is a handoff on one atomic that the waiting side watches for the
-// spin setting before it sleeps, so a window that answers a burst of hops
-// costs each a cache line transfer in each direction, not a thread switch.
+// A hop is a handoff on one atomic that the waiting side watches while its
+// partner runs, so a window that answers a burst of hops costs each a cache
+// line transfer in each direction, not a thread switch. Each thread keeps a
+// flag that says it runs: the mod thread sets its own except while it sleeps,
+// and the game thread sets its own for the whole of a window. A waiter spins
+// only while its partner's flag is set, then waits kPartnerGrace for a change
+// already on its way, and then sleeps. A hop issued outside a window thus
+// sleeps at once instead of spinning for a game thread that is not there. The
+// spin has no limit while the flag stays set, so a partner the system
+// preempted keeps its waiter spinning; a progress counter that the spinner
+// watches would end that, and is not built.
 // Calls from the game thread itself, which run Start and a decision, go
 // straight to the game after the buffer is applied.
 class ModThread {
@@ -224,12 +231,14 @@ class ModThread {
    public:
     explicit Bell(Waits& waits) : waits_(waits) {}
 
-    // Wait returns true once ready() holds, or false at deadline. It spins for
-    // spin first. ready reads state the notifier changed before Notify, with
-    // sequentially consistent atomics, so a change made while the waiter goes
-    // to sleep is never lost.
+    // Wait returns true once ready() holds, or false at deadline. When spin
+    // is set it watches ready while partner is set and for kPartnerGrace after
+    // it clears, and then sleeps; self, when given, is cleared while the
+    // waiter sleeps and set when it wakes. ready reads state the notifier
+    // changed before Notify, with sequentially consistent atomics, so a change
+    // made while the waiter goes to sleep is never lost.
     template <typename Ready>
-    bool Wait(Ready ready, std::chrono::microseconds spin,
+    bool Wait(Ready ready, bool spin, const std::atomic<bool>& partner, std::atomic<bool>* self,
               std::optional<std::chrono::steady_clock::time_point> deadline);
 
     // Sleep waits on the condition variable at once, and is not counted: it is
@@ -296,6 +305,14 @@ class ModThread {
   // ReadSnapshot answers a read from the snapshot, or returns nullopt after
   // noting the miss for the next window to replay.
   std::optional<Reply> ReadSnapshot(const Call& call);
+
+  // LatestSnapshot returns the latest snapshot, or null before the first window
+  // built one.
+  std::shared_ptr<const Snapshot> LatestSnapshot() const {
+    const std::lock_guard lock(snapshot_mutex_);
+    return snapshot_;
+  }
+
   // Hop asks the game thread to answer call and waits for its reply. A call
   // that changes the game counts toward the epoch that strict mode compares.
   Reply Hop(const Call& call, bool changes);
@@ -359,18 +376,28 @@ class ModThread {
   Call hop_call_;
   bool hop_changes_ = false;
   Reply hop_reply_;
-  // to_mod_ wakes the mod thread for an event, an answer or a stop. The game
-  // thread has no bell: inside a window it spins on hop_, pending_ and done_.
+  // to_mod_ wakes the mod thread for an event, an answer or a stop. to_game_
+  // wakes the game thread, inside a window, for a hop, the end of the mod's
+  // last event or the mod's exit.
   Waits waits_;
   Bell to_mod_{waits_};
+  Bell to_game_{waits_};
+  // mod_running_ is set while the mod thread runs or spins, and clear while it
+  // sleeps; game_running_ is set for the whole of a window.
+  std::atomic<bool> mod_running_ = false;
+  std::atomic<bool> game_running_ = false;
   // pending_ counts the events posted and not yet finished.
   std::atomic<uint32_t> pending_ = 0;
   std::atomic<bool> stopping_ = false;
   // done_ is set by the mod thread as it exits, after a failure or a stop, so
   // a wait on it ends.
   std::atomic<bool> done_ = false;
-  // snapshot_ is the latest snapshot, replaced whole by the game thread.
-  std::atomic<std::shared_ptr<const Snapshot>> snapshot_;
+  // snapshot_ is the latest snapshot, replaced whole by the game thread under
+  // snapshot_mutex_ once a window, and held for a pointer copy by the mod
+  // thread's reads. std::atomic<std::shared_ptr> is not available in every
+  // standard library the host builds with.
+  mutable std::mutex snapshot_mutex_;
+  std::shared_ptr<const Snapshot> snapshot_;
   // hits_, misses_ and stale_ count the mod's reads by outcome.
   std::atomic<uint64_t> hits_ = 0;
   std::atomic<uint64_t> misses_ = 0;
