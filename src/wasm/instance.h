@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <expected>
 #include <functional>
+#include <future>
 #include <memory>
 #include <optional>
 #include <span>
@@ -39,10 +40,12 @@ struct Limits {
   // preemption or paging on a machine short of memory, spends none of it,
   // since stopping the mod would not end it.
   std::chrono::milliseconds event_budget{5000};
-  // sample_after is the processor time a call may run before the instance
-  // samples where it is: on every epoch tick from then on, about every 10 ms.
-  // A call that ends sooner is not sampled, and pays at most two extra epoch
-  // callbacks. Zero never samples.
+  // sample_after is the time a call may run before the instance samples
+  // where it is: on every epoch tick from then on, about every 10 ms. A call
+  // is due once both its processor time and its steady clock time pass it,
+  // since Wine steps processor time by 10 ms and would otherwise make a call
+  // that just began look due. A call that ends sooner is not sampled, and
+  // pays at most two extra epoch callbacks. Zero never samples.
   std::chrono::milliseconds sample_after{0};
 };
 
@@ -55,7 +58,8 @@ struct Limits {
 // later deliveries return that failure.
 //
 // All methods run on one thread at a time, normally the engine thread. The
-// runtime's epoch ticker is the only other thread.
+// runtime's epoch ticker is the only other thread, apart from the one that
+// builds the next guest sampler.
 class Instance {
  public:
   // HostCall answers one call from the mod. It runs inside Deliver or Load on
@@ -108,13 +112,15 @@ class Instance {
 
   // Budget is the running call's processor time limit and how its host calls
   // spent it. began is the thread's processor time when the call started,
-  // and spent is the time the call took once it returned. host and
+  // started the steady clock then, and spent is the time the call took once
+  // it returned. host and
   // slowest_time are the host calls' steady clock time, which Wine measures
   // finer than processor time.
   struct Budget {
     std::string call;
     std::chrono::milliseconds limit{};
     std::chrono::nanoseconds began{};
+    std::chrono::steady_clock::time_point started{};
     std::chrono::nanoseconds spent{};
     std::chrono::nanoseconds host{};
     std::string slowest;
@@ -125,6 +131,9 @@ class Instance {
   void SetBudget(std::string call, std::chrono::milliseconds limit);
   // Left returns the processor time left in budget_, below zero once spent.
   std::chrono::nanoseconds Left() const;
+  // Ran returns the time the running call has run by the lesser of its
+  // processor time and its steady clock time, the time sample_after counts.
+  std::chrono::nanoseconds Ran() const;
   // Ticks returns the epoch ticks that cover left, zero once it is spent.
   static uint64_t Ticks(std::chrono::nanoseconds left);
   // NextTicks returns the epoch ticks until the budget is spent or, once the
@@ -139,6 +148,9 @@ class Instance {
   // FinishSamples ends the sampling of the call that returned, folding what
   // was sampled into samples_.
   void FinishSamples();
+  // PrepareSampler starts building the guest sampler the next slow call
+  // takes, on its own thread.
+  void PrepareSampler();
   // Spent describes the returned call's time: spent in all, how much went to
   // host calls and the slowest of them.
   std::string Spent() const;
@@ -165,9 +177,13 @@ class Instance {
   std::optional<wasmtime::Func> samples_func_;
   // sampled_ is true once the running call took a sample. guest_ records the
   // Wasm stacks of a module that does not sample itself, and last_sample_ is
-  // the thread's processor time at its last sample.
+  // the thread's processor time at its last sample. A guest sampler indexes
+  // every function of the module, which takes milliseconds and a few
+  // megabytes for a large one, so spare_ builds the next one off the engine
+  // thread; a call due samples before it is ready skips those samples.
   bool sampled_ = false;
   std::unique_ptr<GuestSampler> guest_;
+  std::future<std::unique_ptr<GuestSampler>> spare_;
   std::chrono::nanoseconds last_sample_{};
   // samples_ holds the stacks sampled during the last call that returned.
   profile::StackSamples samples_;
