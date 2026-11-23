@@ -9,7 +9,9 @@
 // exactly one leave for each player it heard join. A mod that runs on a thread
 // of its own makes the same calls in the same order as one that runs on the
 // engine thread, every engine call on the engine thread, takes the default of
-// a decision while it is busy, and stops cleanly in the middle of a call.
+// a decision while it is busy, and stops cleanly in the middle of a call. A
+// script mod that submits calls without waiting hears their replies together in
+// one event, in either mode.
 #include "modlock/wasm_host.h"
 
 #include <algorithm>
@@ -581,9 +583,10 @@ struct Tracing {
 
   ~Tracing() { host.Unobserve(&observer); }
 
-  // Load starts the test mod, and returns it as a plugin of the host.
-  modlock::wasm::WasmPlugin& Load() {
-    auto loaded = host.Load(EXTENSION_GO_WASM, plugin_context);
+  // Load starts a test mod, the Go one unless path names another build, and
+  // returns it as a plugin of the host.
+  modlock::wasm::WasmPlugin& Load(const char* path = EXTENSION_GO_WASM) {
+    auto loaded = host.Load(path, plugin_context);
     EXPECT_TRUE(loaded) << loaded.error();
     plugin = std::move(*loaded);
     EXPECT_TRUE(plugin->Start());
@@ -596,7 +599,8 @@ struct Tracing {
     static_cast<modlock::wasm::WasmPlugin&>(*plugin).Impacted(impact);
   }
 
-  WasmHost host{{}};
+  // The host finds the QuickJS interpreter beside the built module.
+  WasmHost host{std::filesystem::path(QUICKJS_WASM).parent_path()};
   Events observer;
   PluginContext plugin_context;
   std::vector<std::string> trace;
@@ -722,3 +726,60 @@ TEST(WasmHost, ConcurrentModStopsInTheMiddleOfACall) {
 }
 
 }  // namespace
+
+// Futures is what the JS test mod's log shows of one run: every line in order,
+// and for each tick the lines that came in it.
+struct Futures {
+  std::vector<std::string> trace;
+  std::vector<std::vector<std::string>> ticks;
+};
+
+// RunFuturesMod runs the JS mod that reads two files and writes a log line
+// without waiting, until its last promise settles.
+Futures RunFuturesMod(bool concurrent) {
+  Tracing tracing(concurrent);
+  tracing.Load(FUTURES_JS_MOD);
+  Futures run;
+  size_t seen = 0;
+  EXPECT_TRUE(TickUntil(*tracing.plugin, [&] {
+    run.ticks.emplace_back(tracing.trace.begin() + static_cast<std::ptrdiff_t>(seen),
+                           tracing.trace.end());
+    seen = tracing.trace.size();
+    return seen != 0 && tracing.trace.back() == "log:all";
+  }));
+  run.trace = tracing.trace;
+  return run;
+}
+
+TEST(WasmHost, SubmittedCallsSettleTogetherInTheSameEventInEveryMode) {
+  // The first frame reads two files with the calls that wait and logs them,
+  // then starts the same reads and a log line without waiting. Each promise
+  // logs when it settles.
+  const Futures before = RunFuturesMod(false);
+  const Futures after = RunFuturesMod(true);
+  const std::vector<std::string> want = {"log:sync:alpha|beta", "log:written", "log:a:alpha",
+                                         "log:b:beta",          "log:w:true",  "log:all"};
+  EXPECT_EQ(before.trace, want);
+  EXPECT_EQ(after.trace, want);
+
+  // The three replies come in one Completed event, whose continuations all run
+  // before it returns: every settled promise logs in the tick that delivered
+  // it, and a tick delivers one event.
+  for (const Futures* run : {&before, &after}) {
+    std::vector<size_t> settled;
+    for (size_t tick = 0; tick < run->ticks.size(); ++tick) {
+      for (const auto& line : run->ticks[tick]) {
+        if (line == "log:a:alpha" || line == "log:b:beta" || line == "log:w:true" ||
+            line == "log:all") {
+          settled.push_back(tick);
+        }
+      }
+    }
+    ASSERT_EQ(settled.size(), 4u);
+    EXPECT_EQ(std::ranges::count(settled, settled.front()), 4);
+  }
+
+  // The values the calls that did not wait returned are the values the calls
+  // that wait returned.
+  EXPECT_EQ(before.trace[2] + "|" + before.trace[3], "log:a:alpha|log:b:beta");
+}

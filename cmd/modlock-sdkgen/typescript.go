@@ -125,6 +125,9 @@ func writeTypeScript(s *schema) ([]byte, error) {
 			if err := w.writeCall(c, ""); err != nil {
 				return nil, err
 			}
+			if err := w.writeTwin(c); err != nil {
+				return nil, err
+			}
 		}
 	}
 	if err := w.writeMod(); err != nil {
@@ -414,24 +417,34 @@ func (w *tsWriter) writeClass(c *class) error {
 		}
 	}
 	w.out.WriteString("}\n\n")
+
+	// The asynchronous forms follow the class as functions, because a method
+	// ships with its class whether or not a mod uses it and a function that
+	// no mod imports is dropped from the bundle.
+	for _, call := range w.calls {
+		if call.class == c {
+			if err := w.writeTwin(call); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
 // writeCall writes one call as a method when indent is set, or else as an
-// exported function, followed by its asynchronous form.
+// exported function.
 func (w *tsWriter) writeCall(c *call, indent string) error {
-	if err := w.writeForm(c, indent, false); err != nil {
-		return err
-	}
+	return w.writeForm(c, indent, false)
+}
 
+// writeTwin writes the asynchronous form of a call as an exported function.
+// A call of a class takes its receiver as the first parameter.
+func (w *tsWriter) writeTwin(c *call) error {
 	// Submit is what the asynchronous forms are made of.
 	if c.method.name == "Submit" {
 		return nil
 	}
-	if indent != "" {
-		w.out.WriteString("\n")
-	}
-	return w.writeForm(c, indent, true)
+	return w.writeForm(c, "", true)
 }
 
 // writeForm writes one form of a call: the synchronous one, which returns the
@@ -440,11 +453,22 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 // mod makes in one turn together, and decodes the reply as the synchronous
 // form does.
 func (w *tsWriter) writeForm(c *call, indent string, async bool) error {
-	// Declare the call.
+	// Declare the call. The asynchronous form of a class's call is a function
+	// of the receiver, named for the class and the call.
 	var params []string
+	receiver := "this"
+	if async && c.class != nil {
+		receiver = lowerCamel(c.class.name)
+		for _, p := range c.params {
+			if p.name == receiver {
+				receiver = "self"
+			}
+		}
+		params = append(params, fmt.Sprintf("%s: %s", receiver, c.class.name))
+	}
 	switch {
 	case c.options:
-		params = []string{"options: " + c.method.request.name}
+		params = append(params, "options: "+c.method.request.name)
 	default:
 		for _, p := range c.params {
 			mark := ""
@@ -459,9 +483,14 @@ func (w *tsWriter) writeForm(c *call, indent string, async bool) error {
 	doc := rename(c.method.doc, c.method.name, c.name)
 	send := "call"
 	if async {
+		sync := c.name
+		if c.class != nil {
+			sync = c.class.name + "." + c.name
+			name = lowerCamel(c.class.name) + strings.ToUpper(c.name[:1]) + c.name[1:]
+		}
 		name += "Async"
 		result = "Promise<" + result + ">"
-		doc += "\n\n" + fmt.Sprintf("%s starts the call without waiting and returns what %s returns, as a promise\nthat settles in a later frame. The calls a mod starts in one turn go to the host\ntogether.", name, c.name)
+		doc = fmt.Sprintf("%s starts %s without waiting and returns a promise of its result, which\nsettles in a later frame. See %s for the arguments and the result.", name, sync, sync)
 		send = "callAsync"
 	}
 	writeDoc(&w.out, indent, doc)
@@ -472,7 +501,7 @@ func (w *tsWriter) writeForm(c *call, indent string, async bool) error {
 	fmt.Fprintf(&w.out, "%s%s%s(%s): %s {\n", indent, declare, name, strings.Join(params, ", "), result)
 
 	// Encode the request.
-	request, err := w.request(c)
+	request, err := w.request(c, receiver)
 	if err != nil {
 		return err
 	}
@@ -518,8 +547,9 @@ func (w *tsWriter) writeForm(c *call, indent string, async bool) error {
 	return nil
 }
 
-// request returns the expression that encodes c's request.
-func (w *tsWriter) request(c *call) (string, error) {
+// request returns the expression that encodes c's request, which names its
+// receiver by the expression receiver.
+func (w *tsWriter) request(c *call, receiver string) (string, error) {
 	// Empty requests cross the boundary without a message allocation.
 	m := c.method.request
 	if m.isEmpty() {
@@ -527,7 +557,7 @@ func (w *tsWriter) request(c *call) (string, error) {
 	}
 	var members []string
 	if c.receiver != nil {
-		members = append(members, fmt.Sprintf("%s: this.%s", lowerCamel(c.receiver.name), c.class.key))
+		members = append(members, fmt.Sprintf("%s: %s.%s", lowerCamel(c.receiver.name), receiver, c.class.key))
 	}
 	switch {
 	case c.options && c.receiver == nil && w.converts(m):

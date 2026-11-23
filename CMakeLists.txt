@@ -713,9 +713,22 @@ if(BUILD_TESTING)
   add_custom_target(extension_go_wasm DEPENDS ${extension_go_wasm})
   add_executable(wasm_host_test tests/wasm_host_test.cc src/wasm/player_scope.cc
     src/wasm/attendance.cc)
-  add_dependencies(wasm_host_test extension_go_wasm)
+  # The futures test mod is a script mod, built from a copy with the command
+  # line's own build, which writes beside the sources it builds.
+  set(futures_js_dir ${CMAKE_CURRENT_BINARY_DIR}/futures-js)
+  file(GLOB_RECURSE futures_js_sources CONFIGURE_DEPENDS tests/wasm/futures-js/* js/src/*.ts)
+  add_custom_command(OUTPUT ${futures_js_dir}/build/mod.js
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${futures_js_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/tests/wasm/futures-js
+      ${futures_js_dir}
+    COMMAND ${MODLOCK_GO} run ./cmd/modlock build ${futures_js_dir}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${futures_js_sources} go.mod)
+  add_custom_target(futures_js_mod DEPENDS ${futures_js_dir}/build/mod.js)
+  add_dependencies(wasm_host_test extension_go_wasm futures_js_mod quickjs_runtime)
   target_include_directories(wasm_host_test PRIVATE src)
-  target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
+  target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}"
+    QUICKJS_WASM="${quickjs_wasm}" FUTURES_JS_MOD="${futures_js_dir}/build")
   target_link_libraries(wasm_host_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   add_test(NAME wasm_host_test COMMAND wasm_host_test)
   # host_fixtures_test runs the same mod against needed services and the

@@ -3188,17 +3188,6 @@ export class Player {
   }
 
   /**
-   * chat sends a server chat line to the player.
-   *
-   * chatAsync starts the call without waiting and returns what chat returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  chatAsync(text: string): Promise<boolean> {
-    return callAsync('Chat', effectsPb.ChatRequest.toBinary({ player: this.slot, text })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * centerText shows text in the middle of the player's screen until it is
    * replaced. Empty text clears it.
    */
@@ -3206,32 +3195,9 @@ export class Player {
     return call('CenterText', effectsPb.CenterTextRequest.toBinary({ player: this.slot, text })) !== undefined
   }
 
-  /**
-   * centerText shows text in the middle of the player's screen until it is
-   * replaced. Empty text clears it.
-   *
-   * centerTextAsync starts the call without waiting and returns what centerText returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  centerTextAsync(text: string): Promise<boolean> {
-    return callAsync('CenterText', effectsPb.CenterTextRequest.toBinary({ player: this.slot, text })).then((reply) => reply !== undefined)
-  }
-
   /** announce shows a game announcement with a title to the player. */
   announce(title: string, text: string): boolean {
     return call('Announce', effectsPb.AnnounceRequest.toBinary({ player: this.slot, title, text })) !== undefined
-  }
-
-  /**
-   * announce shows a game announcement with a title to the player.
-   *
-   * announceAsync starts the call without waiting and returns what announce returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  announceAsync(title: string, text: string): Promise<boolean> {
-    return callAsync('Announce', effectsPb.AnnounceRequest.toBinary({ player: this.slot, title, text })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3248,24 +3214,6 @@ export class Player {
   }
 
   /**
-   * pawn returns the player's pawn this frame: the hero, or the game's
-   * placeholder with hero 0 that a player joining on a team holds until a hero
-   * is selected. It returns nothing for a spectator and before the game has
-   * made a pawn. The pawn's entity changes whenever the game replaces it.
-   *
-   * pawnAsync starts the call without waiting and returns what pawn returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  pawnAsync(): Promise<Pawn | undefined> {
-    return callAsync('Pawn', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = playersPb.PawnResponse.fromBinary(reply)
-      return response.pawn === undefined ? undefined : fromPawn(response.pawn)
-    })
-  }
-
-  /**
    * setting returns the player's value of a setting the manifest
    * declares: the value they chose, or the setting's default. A bot has the
    * defaults.
@@ -3278,42 +3226,12 @@ export class Player {
   }
 
   /**
-   * setting returns the player's value of a setting the manifest
-   * declares: the value they chose, or the setting's default. A bot has the
-   * defaults.
-   *
-   * settingAsync starts the call without waiting and returns what setting returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  settingAsync(key: string): Promise<string | undefined> {
-    return callAsync('PlayerSetting', settingsPb.PlayerSettingRequest.toBinary({ player: this.slot, key })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = settingsPb.SettingResponse.fromBinary(reply)
-      return response.value ?? ''
-    })
-  }
-
-  /**
    * setSetting changes the player's value of a setting the manifest
    * declares. The value follows the player to later games and other mods'
    * servers of the same mod; a bot keeps the defaults.
    */
   setSetting(key: string, value: string): boolean {
     return call('SetPlayerSetting', settingsPb.SetPlayerSettingRequest.toBinary({ player: this.slot, key, value })) !== undefined
-  }
-
-  /**
-   * setSetting changes the player's value of a setting the manifest
-   * declares. The value follows the player to later games and other mods'
-   * servers of the same mod; a bot keeps the defaults.
-   *
-   * setSettingAsync starts the call without waiting and returns what setSetting returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setSettingAsync(key: string, value: string): Promise<boolean> {
-    return callAsync('SetPlayerSetting', settingsPb.SetPlayerSettingRequest.toBinary({ player: this.slot, key, value })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3326,19 +3244,6 @@ export class Player {
   }
 
   /**
-   * addMetric adds to the player's total of a metric the manifest declares.
-   * The host keeps each player's totals in memory and hands them on once,
-   * when the player leaves or the mod stops; a bot keeps none.
-   *
-   * addMetricAsync starts the call without waiting and returns what addMetric returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  addMetricAsync(name: string, value: number, label?: string): Promise<boolean> {
-    return callAsync('AddMetric', metricsPb.AddMetricRequest.toBinary({ player: this.slot, name, value, label })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * handoff replaces the handoff state for the player, such as the
    * panels their HUD shows. It lasts only through a reload of the mod in the
    * same game, in memory, as the game's does, and ends early when the player
@@ -3348,41 +3253,12 @@ export class Player {
     return call('PlayerHandoff', handoffPb.HandoffPlayerRequest.toBinary({ player: this.slot, text })) !== undefined
   }
 
-  /**
-   * handoff replaces the handoff state for the player, such as the
-   * panels their HUD shows. It lasts only through a reload of the mod in the
-   * same game, in memory, as the game's does, and ends early when the player
-   * leaves; only that player reads it back, and a bot keeps none.
-   *
-   * handoffAsync starts the call without waiting and returns what handoff returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  handoffAsync(text: string): Promise<boolean> {
-    return callAsync('PlayerHandoff', handoffPb.HandoffPlayerRequest.toBinary({ player: this.slot, text })).then((reply) => reply !== undefined)
-  }
-
   /** handedOff returns the player's handoff state, or empty. */
   handedOff(): string | undefined {
     const reply = call('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: this.slot }))
     if (reply === undefined) return undefined
     const response = handoffPb.HandedOffResponse.fromBinary(reply)
     return response.text ?? ''
-  }
-
-  /**
-   * handedOff returns the player's handoff state, or empty.
-   *
-   * handedOffAsync starts the call without waiting and returns what handedOff returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  handedOffAsync(): Promise<string | undefined> {
-    return callAsync('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = handoffPb.HandedOffResponse.fromBinary(reply)
-      return response.text ?? ''
-    })
   }
 
   /**
@@ -3400,42 +3276,11 @@ export class Player {
   }
 
   /**
-   * selectHero gives the player a hero on a team, 2 or 3, and returns the
-   * hero's identifier as Pawn.hero reports it. The hero appears on a later
-   * frame. A hero the player picked through the game's Change Hero wins: the
-   * game removes the old hero before it spawns the pick, and a call in that
-   * gap, up to 5 seconds, fails and leaves the pick to land.
-   *
-   * selectHeroAsync starts the call without waiting and returns what selectHero returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  selectHeroAsync(hero: string | number, team: number): Promise<number | undefined> {
-    return callAsync('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: heroName((hero as string)) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = playersPb.HeroResponse.fromBinary(reply)
-      return response.hero ?? 0
-    })
-  }
-
-  /**
    * spectate moves the player to the spectators, without a hero. The player
    * watches until a hero selection seats them again.
    */
   spectate(): boolean {
     return call('Spectate', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
-  }
-
-  /**
-   * spectate moves the player to the spectators, without a hero. The player
-   * watches until a hero selection seats them again.
-   *
-   * spectateAsync starts the call without waiting and returns what spectate returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  spectateAsync(): Promise<boolean> {
-    return callAsync('Spectate', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3450,21 +3295,6 @@ export class Player {
   }
 
   /**
-   * watch points the player's camera at a hero, through the hero's own view
-   * or chasing it, as the game's spectator camera follows it. A spectator watches through
-   * their spectator camera, once it exists. A player with a hero watches
-   * while the hero stays where it stands, keeping its level, souls and items,
-   * until Unwatch returns them to it.
-   *
-   * watchAsync starts the call without waiting and returns what watch returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  watchAsync(target: number, chase?: boolean): Promise<boolean> {
-    return callAsync('Watch', playersPb.WatchRequest.toBinary({ player: this.slot, target, chase })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * freeCamera lets the player fly their camera from a position, with the
    * movement keys and the mouse, as the game's roaming spectator camera does.
    * A player with a hero leaves it where it stands, as Watch does, until
@@ -3472,20 +3302,6 @@ export class Player {
    */
   freeCamera(position: Vector, facing: Angles): boolean {
     return call('FreeCamera', playersPb.FreeCameraRequest.toBinary({ player: this.slot, position, facing })) !== undefined
-  }
-
-  /**
-   * freeCamera lets the player fly their camera from a position, with the
-   * movement keys and the mouse, as the game's roaming spectator camera does.
-   * A player with a hero leaves it where it stands, as Watch does, until
-   * Unwatch returns them to it; Watch follows a hero again.
-   *
-   * freeCameraAsync starts the call without waiting and returns what freeCamera returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  freeCameraAsync(position: Vector, facing: Angles): Promise<boolean> {
-    return callAsync('FreeCamera', playersPb.FreeCameraRequest.toBinary({ player: this.slot, position, facing })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3498,36 +3314,11 @@ export class Player {
   }
 
   /**
-   * moveCamera adds one operation to the player's camera, as the game's
-   * abilities pull it back, widen its view or swing it to a point. Operations
-   * run alongside the game's own until they end or ClearCamera removes them.
-   *
-   * moveCameraAsync starts the call without waiting and returns what moveCamera returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  moveCameraAsync(options: CameraOptions): Promise<boolean> {
-    return callAsync('MoveCamera', playersPb.CameraOptions.toBinary({ player: this.slot, ...toCameraOptions(options) })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * clearCamera removes a context's camera operations from the player's
    * camera, or every operation, and the camera returns to its usual place.
    */
   clearCamera(context?: string): boolean {
     return call('ClearCamera', playersPb.ClearCameraRequest.toBinary({ player: this.slot, context })) !== undefined
-  }
-
-  /**
-   * clearCamera removes a context's camera operations from the player's
-   * camera, or every operation, and the camera returns to its usual place.
-   *
-   * clearCameraAsync starts the call without waiting and returns what clearCamera returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  clearCameraAsync(context?: string): Promise<boolean> {
-    return callAsync('ClearCamera', playersPb.ClearCameraRequest.toBinary({ player: this.slot, context })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3539,35 +3330,11 @@ export class Player {
   }
 
   /**
-   * unwatch returns a player watching or flying the free camera from their
-   * hero back to it. Stopping the mod returns every such player.
-   *
-   * unwatchAsync starts the call without waiting and returns what unwatch returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  unwatchAsync(): Promise<boolean> {
-    return callAsync('Unwatch', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * respawn revives the player's dead hero. A pawn with hero 0 has no hero to
    * revive; the call fails until SelectHero gives it one.
    */
   respawn(): boolean {
     return call('Respawn', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
-  }
-
-  /**
-   * respawn revives the player's dead hero. A pawn with hero 0 has no hero to
-   * revive; the call fails until SelectHero gives it one.
-   *
-   * respawnAsync starts the call without waiting and returns what respawn returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  respawnAsync(): Promise<boolean> {
-    return callAsync('Respawn', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3583,37 +3350,9 @@ export class Player {
     return call('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: this.slot, team: int32(team) })) !== undefined
   }
 
-  /**
-   * changeTeam moves the player's hero, living or dead, to team 2 or 3 where
-   * it stands, for a human or a bot alike. The hero keeps its hero,
-   * abilities, items and health, and the player keeps their connection; a
-   * dead hero respawns on its new team, on its timer or through Respawn. A
-   * living hero moved inside the other team's base dies to the base's
-   * defense. A player without a hero joins a team through SelectHero
-   * instead.
-   *
-   * changeTeamAsync starts the call without waiting and returns what changeTeam returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  changeTeamAsync(team: number): Promise<boolean> {
-    return callAsync('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: this.slot, team: int32(team) })).then((reply) => reply !== undefined)
-  }
-
   /** clearItems removes every item the player's hero owns. */
   clearItems(): boolean {
     return call('ClearItems', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
-  }
-
-  /**
-   * clearItems removes every item the player's hero owns.
-   *
-   * clearItemsAsync starts the call without waiting and returns what clearItems returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  clearItemsAsync(): Promise<boolean> {
-    return callAsync('ClearItems', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3624,32 +3363,9 @@ export class Player {
     return call('Freeze', playersPb.FreezeRequest.toBinary({ player: this.slot, frozen })) !== undefined
   }
 
-  /**
-   * freeze holds the player's hero in place, without input or damage, until
-   * it is released. Stopping the mod releases it.
-   *
-   * freezeAsync starts the call without waiting and returns what freeze returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  freezeAsync(frozen?: boolean): Promise<boolean> {
-    return callAsync('Freeze', playersPb.FreezeRequest.toBinary({ player: this.slot, frozen })).then((reply) => reply !== undefined)
-  }
-
   /** restoreStamina refills the player's stamina. */
   restoreStamina(): boolean {
     return call('RestoreStamina', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
-  }
-
-  /**
-   * restoreStamina refills the player's stamina.
-   *
-   * restoreStaminaAsync starts the call without waiting and returns what restoreStamina returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  restoreStaminaAsync(): Promise<boolean> {
-    return callAsync('RestoreStamina', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3661,35 +3377,11 @@ export class Player {
   }
 
   /**
-   * setStamina sets the player's stamina, as Pawn.stamina reads it. The game
-   * regenerates it as usual afterwards.
-   *
-   * setStaminaAsync starts the call without waiting and returns what setStamina returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setStaminaAsync(stamina: number): Promise<boolean> {
-    return callAsync('SetStamina', playersPb.SetStaminaRequest.toBinary({ player: this.slot, stamina })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * refreshAbility ends the cooldown of the hero's ability named ability,
    * such as citadel_ability_melee_parry.
    */
   refreshAbility(ability: string): boolean {
     return call('RefreshAbility', abilitiesPb.RefreshAbilityRequest.toBinary({ player: this.slot, ability })) !== undefined
-  }
-
-  /**
-   * refreshAbility ends the cooldown of the hero's ability named ability,
-   * such as citadel_ability_melee_parry.
-   *
-   * refreshAbilityAsync starts the call without waiting and returns what refreshAbility returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  refreshAbilityAsync(ability: string): Promise<boolean> {
-    return callAsync('RefreshAbility', abilitiesPb.RefreshAbilityRequest.toBinary({ player: this.slot, ability })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3704,39 +3396,11 @@ export class Player {
   }
 
   /**
-   * abilities lists the abilities of the player's hero in the hero's order,
-   * or none without a live hero.
-   *
-   * abilitiesAsync starts the call without waiting and returns what abilities returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  abilitiesAsync(): Promise<Ability[]> {
-    return callAsync('Abilities', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => {
-      if (reply === undefined) return []
-      const response = abilitiesPb.AbilitiesResponse.fromBinary(reply)
-      return (response.abilities ?? []).map((v) => fromAbility(v))
-    })
-  }
-
-  /**
    * setAbility changes the upgrades, charges or timers of one of the hero's
    * abilities. An omitted option stays as it is.
    */
   setAbility(options: AbilityOptions): boolean {
     return call('SetAbility', abilitiesPb.AbilityOptions.toBinary({ player: this.slot, ...toAbilityOptions(options) })) !== undefined
-  }
-
-  /**
-   * setAbility changes the upgrades, charges or timers of one of the hero's
-   * abilities. An omitted option stays as it is.
-   *
-   * setAbilityAsync starts the call without waiting and returns what setAbility returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setAbilityAsync(options: AbilityOptions): Promise<boolean> {
-    return callAsync('SetAbility', abilitiesPb.AbilityOptions.toBinary({ player: this.slot, ...toAbilityOptions(options) })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3747,20 +3411,6 @@ export class Player {
    */
   giveItem(item: string, imbue?: number): boolean {
     return call('GiveItem', abilitiesPb.GiveItemRequest.toBinary({ player: this.slot, item, imbue })) !== undefined
-  }
-
-  /**
-   * giveItem gives the hero an item, enabled and free. A hero that owns it
-   * keeps its one copy. With imbue, an imbuing item strengthens the hero's
-   * ability in that slot, 0 to 3, as the shop asks when one is bought; the
-   * call fails, granting nothing, when the ability does not accept it.
-   *
-   * giveItemAsync starts the call without waiting and returns what giveItem returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  giveItemAsync(item: string, imbue?: number): Promise<boolean> {
-    return callAsync('GiveItem', abilitiesPb.GiveItemRequest.toBinary({ player: this.slot, item, imbue })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3777,23 +3427,6 @@ export class Player {
   }
 
   /**
-   * buyItem buys an item for the hero as the shop does, under the shop's own
-   * rules and for the souls it charges, or fails and charges nothing when the
-   * shop refuses, as away from the shop or without the souls. With imbue, an
-   * imbuing item strengthens whatever ability the hero holds in that slot, 0
-   * to 3, including one ReplaceAbility put there, which the game's own
-   * buydependentitem refuses; the call fails, buying nothing, when the
-   * ability does not accept it.
-   *
-   * buyItemAsync starts the call without waiting and returns what buyItem returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  buyItemAsync(item: string, imbue?: number, source?: number): Promise<boolean> {
-    return callAsync('BuyItem', abilitiesPb.BuyItemRequest.toBinary({ player: this.slot, item, imbue, source })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * trainAbility trains or upgrades whatever ability the hero holds in a
    * slot, 0 to 3, as the player holding the upgrade key and pressing the
    * slot's ability key does: an untrained ability trains for an ability
@@ -3804,23 +3437,6 @@ export class Player {
    */
   trainAbility(slot: number): boolean {
     return call('TrainAbility', abilitiesPb.TrainAbilityRequest.toBinary({ player: this.slot, slot })) !== undefined
-  }
-
-  /**
-   * trainAbility trains or upgrades whatever ability the hero holds in a
-   * slot, 0 to 3, as the player holding the upgrade key and pressing the
-   * slot's ability key does: an untrained ability trains for an ability
-   * unlock, and a trained one buys its next tier for ability points. It works
-   * on an ability ReplaceAbility put there, which the game's own commands for
-   * a slot do not reach. When the game refuses, as without an unlock or the
-   * points, the call fails and nothing is spent.
-   *
-   * trainAbilityAsync starts the call without waiting and returns what trainAbility returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  trainAbilityAsync(slot: number): Promise<boolean> {
-    return callAsync('TrainAbility', abilitiesPb.TrainAbilityRequest.toBinary({ player: this.slot, slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3841,27 +3457,6 @@ export class Player {
   }
 
   /**
-   * replaceAbility puts the ability named ability, untrained unless keep
-   * carries the old one's progress, in the hero's ability slot index, as
-   * Ability.slot, removing the ability there. The game trains and upgrades an
-   * ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
-   * presses the slot's ability key to spend ability points on it, and training
-   * an untrained one costs an ability unlock. A hero change or ResetHero gives
-   * the hero its own abilities again, so a mod that keeps a swap replaces
-   * again then. An ability from another hero loads its models and particles
-   * only if Precache named that hero and those resources before the world
-   * loaded; otherwise its first effect stalls the game on a blocking load and
-   * the game reports an assertion.
-   *
-   * replaceAbilityAsync starts the call without waiting and returns what replaceAbility returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  replaceAbilityAsync(index: number, ability: string, keep?: boolean): Promise<boolean> {
-    return callAsync('ReplaceAbility', abilitiesPb.ReplaceAbilityRequest.toBinary({ player: this.slot, index, ability, keep })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * holdModifier keeps a modifier, named as GiveModifier names it, on the
    * hero with no expiry, giving it back whenever the game removes it or the
    * hero returns. Every hero that gains the modifier from the same ability
@@ -3870,21 +3465,6 @@ export class Player {
    */
   holdModifier(modifier: string, active?: boolean): boolean {
     return call('HoldModifier', abilitiesPb.HoldModifierRequest.toBinary({ player: this.slot, modifier, active })) !== undefined
-  }
-
-  /**
-   * holdModifier keeps a modifier, named as GiveModifier names it, on the
-   * hero with no expiry, giving it back whenever the game removes it or the
-   * hero returns. Every hero that gains the modifier from the same ability
-   * keeps it until the hold ends. Releasing leaves the hero's current
-   * modifier until it dies.
-   *
-   * holdModifierAsync starts the call without waiting and returns what holdModifier returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  holdModifierAsync(modifier: string, active?: boolean): Promise<boolean> {
-    return callAsync('HoldModifier', abilitiesPb.HoldModifierRequest.toBinary({ player: this.slot, modifier, active })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3901,42 +3481,12 @@ export class Player {
   }
 
   /**
-   * giveModifier gives the hero a modifier for seconds. An ability's
-   * modifier, named "<ability>/<modifier>", comes as if the hero's own
-   * ability applied it; a hero without that ability, or a modifier named on
-   * its own, such as Street Brawl's zipline boost
-   * modifier_street_brawl_round_start_zipline_boost, applies it with the
-   * hero's first ability. The game may end it sooner, as invisibility ends on
-   * a shot.
-   *
-   * giveModifierAsync starts the call without waiting and returns what giveModifier returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  giveModifierAsync(modifier: string, seconds: number): Promise<boolean> {
-    return callAsync('GiveModifier', abilitiesPb.GiveModifierRequest.toBinary({ player: this.slot, modifier, seconds })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * teleport moves the player's hero and turns it and the camera. With a
    * velocity it also sets the hero's motion, as a launch, and the camera
    * follows the hero.
    */
   teleport(position: Vector, facing: Angles, velocity?: Vector): boolean {
     return call('Teleport', movementPb.TeleportRequest.toBinary({ player: this.slot, position, facing, velocity })) !== undefined
-  }
-
-  /**
-   * teleport moves the player's hero and turns it and the camera. With a
-   * velocity it also sets the hero's motion, as a launch, and the camera
-   * follows the hero.
-   *
-   * teleportAsync starts the call without waiting and returns what teleport returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  teleportAsync(position: Vector, facing: Angles, velocity?: Vector): Promise<boolean> {
-    return callAsync('Teleport', movementPb.TeleportRequest.toBinary({ player: this.slot, position, facing, velocity })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -3951,40 +3501,12 @@ export class Player {
   }
 
   /**
-   * zipline puts the player's hero on a lane's zipline near the hero, riding
-   * it as from the zipline key, with the zipline's intro. It never picks
-   * another lane: it fails when the lane has no zipline the hero's team rides
-   * on this map, or the hero has no zipline ability. For Street Brawl's fast
-   * ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
-   *
-   * ziplineAsync starts the call without waiting and returns what zipline returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  ziplineAsync(lane: Lane): Promise<boolean> {
-    return callAsync('Zipline', movementPb.ZiplineRequest.toBinary({ player: this.slot, lane: laneValues[lane] })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * move carries the player's hero to a position as continuous motion,
    * as a recording plays back. Unlike Teleport it keeps the hero's animated
    * model drawn when repeated every tick, and leaves the camera alone.
    */
   move(position: Vector, facing: Angles, velocity?: Vector): boolean {
     return call('MovePlayer', movementPb.MovePlayerRequest.toBinary({ player: this.slot, position, facing, velocity })) !== undefined
-  }
-
-  /**
-   * move carries the player's hero to a position as continuous motion,
-   * as a recording plays back. Unlike Teleport it keeps the hero's animated
-   * model drawn when repeated every tick, and leaves the camera alone.
-   *
-   * moveAsync starts the call without waiting and returns what move returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  moveAsync(position: Vector, facing: Angles, velocity?: Vector): Promise<boolean> {
-    return callAsync('MovePlayer', movementPb.MovePlayerRequest.toBinary({ player: this.slot, position, facing, velocity })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4001,23 +3523,6 @@ export class Player {
   }
 
   /**
-   * steer replays a recorded movement command on the player's hero, usually a
-   * bot: the game runs the command's buttons and axes, so the hero crouches,
-   * slides, jumps and mantles with its own animation, and the step then ends
-   * on the recorded pose. The steering stays until the next Steer replaces
-   * it, its presses and its pose counting once: on the ticks between, the
-   * game's own movement carries the held command on from the pose. A Steer
-   * without one releases the hero.
-   *
-   * steerAsync starts the call without waiting and returns what steer returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  steerAsync(steering?: Steering): Promise<boolean> {
-    return callAsync('Steer', movementPb.SteerRequest.toBinary({ player: this.slot, steering })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * drive gives a bot the controls a player has, where it looks, the
    * movement axes and the buttons, as its input on every tick until the next
    * Drive replaces it. The game runs that input as a player's own, so the
@@ -4030,41 +3535,12 @@ export class Player {
   }
 
   /**
-   * drive gives a bot the controls a player has, where it looks, the
-   * movement axes and the buttons, as its input on every tick until the next
-   * Drive replaces it. The game runs that input as a player's own, so the
-   * hero accelerates, turns, jumps, dashes, slides and casts with its own
-   * movement and animation; the bot's own brain no longer moves it. Presses
-   * count once. A Drive without a command returns the bot to its brain.
-   *
-   * driveAsync starts the call without waiting and returns what drive returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  driveAsync(command?: DriveCommand): Promise<boolean> {
-    return callAsync('Drive', movementPb.DriveRequest.toBinary({ player: this.slot, command })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * adjustSouls gives the player delta souls, or takes them when delta is
    * negative. A spend larger than the player's souls fails and spends
    * nothing. Silent skips the pickup's sound and number.
    */
   adjustSouls(delta: number, silent?: boolean): boolean {
     return call('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: this.slot, delta: int32(delta), silent })) !== undefined
-  }
-
-  /**
-   * adjustSouls gives the player delta souls, or takes them when delta is
-   * negative. A spend larger than the player's souls fails and spends
-   * nothing. Silent skips the pickup's sound and number.
-   *
-   * adjustSoulsAsync starts the call without waiting and returns what adjustSouls returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  adjustSoulsAsync(delta: number, silent?: boolean): Promise<boolean> {
-    return callAsync('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: this.slot, delta: int32(delta), silent })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4077,34 +3553,9 @@ export class Player {
     return call('AdjustAbilityPoints', playersPb.AdjustAbilityPointsRequest.toBinary({ player: this.slot, points: int32(points), unlocks: int32(unlocks) })) !== undefined
   }
 
-  /**
-   * adjustAbilityPoints gives the player ability points and ability unlocks,
-   * or takes them when negative, as Pawn.ability_points and
-   * Pawn.ability_unlocks read them. A spend larger than the player holds
-   * fails and spends nothing.
-   *
-   * adjustAbilityPointsAsync starts the call without waiting and returns what adjustAbilityPoints returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  adjustAbilityPointsAsync(points: number, unlocks: number): Promise<boolean> {
-    return callAsync('AdjustAbilityPoints', playersPb.AdjustAbilityPointsRequest.toBinary({ player: this.slot, points: int32(points), unlocks: int32(unlocks) })).then((reply) => reply !== undefined)
-  }
-
   /** startingSouls sets the souls the player's hero spawns with. */
   startingSouls(souls: number): boolean {
     return call('StartingSouls', playersPb.StartingSoulsRequest.toBinary({ player: this.slot, souls: int32(souls) })) !== undefined
-  }
-
-  /**
-   * startingSouls sets the souls the player's hero spawns with.
-   *
-   * startingSoulsAsync starts the call without waiting and returns what startingSouls returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  startingSoulsAsync(souls: number): Promise<boolean> {
-    return callAsync('StartingSouls', playersPb.StartingSoulsRequest.toBinary({ player: this.slot, souls: int32(souls) })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4115,32 +3566,9 @@ export class Player {
     return call('ResetHero', playersPb.ResetHeroRequest.toBinary({ player: this.slot, souls: int32(souls) })) !== undefined
   }
 
-  /**
-   * resetHero rebuilds the player's hero as it first spawned, without items,
-   * ability upgrades, levels or ability points, holding souls.
-   *
-   * resetHeroAsync starts the call without waiting and returns what resetHero returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  resetHeroAsync(souls: number): Promise<boolean> {
-    return callAsync('ResetHero', playersPb.ResetHeroRequest.toBinary({ player: this.slot, souls: int32(souls) })).then((reply) => reply !== undefined)
-  }
-
   /** heal restores health to the player's hero, up to its maximum. */
   heal(amount: number): boolean {
     return call('Heal', playersPb.HealRequest.toBinary({ player: this.slot, amount: int32(amount) })) !== undefined
-  }
-
-  /**
-   * heal restores health to the player's hero, up to its maximum.
-   *
-   * healAsync starts the call without waiting and returns what heal returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  healAsync(amount: number): Promise<boolean> {
-    return callAsync('Heal', playersPb.HealRequest.toBinary({ player: this.slot, amount: int32(amount) })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4156,23 +3584,6 @@ export class Player {
   }
 
   /**
-   * sound plays a game sound event, such as Damage.Send.Crit, on the
-   * player's hero, and returns its ID. It follows the hero as it moves.
-   * Volume and pitch scale the sound, and listeners limit who hears it.
-   *
-   * soundAsync starts the call without waiting and returns what sound returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  soundAsync(sound: string, options?: SoundOptions): Promise<number | undefined> {
-    return callAsync('Sound', effectsPb.SoundRequest.toBinary({ player: this.slot, sound, options: options === undefined ? undefined : toSoundOptions(options) })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = effectsPb.SoundResponse.fromBinary(reply)
-      return response.id ?? 0
-    })
-  }
-
-  /**
    * restoreHero gives the player's live hero target over the next few
    * seconds: the build first, then health, stamina and pose once it settles,
    * then charges and cooldowns. A Restored event reports when the result has
@@ -4185,39 +3596,11 @@ export class Player {
   }
 
   /**
-   * restoreHero gives the player's live hero target over the next few
-   * seconds: the build first, then health, stamina and pose once it settles,
-   * then charges and cooldowns. A Restored event reports when the result has
-   * held for a second, or why it could not. A new call replaces the running
-   * one. A pawn with hero 0 has no hero to restore; the call fails until
-   * SelectHero gives it one.
-   *
-   * restoreHeroAsync starts the call without waiting and returns what restoreHero returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  restoreHeroAsync(target: HeroTarget): Promise<boolean> {
-    return callAsync('RestoreHero', playersPb.RestoreHeroRequest.toBinary({ player: this.slot, target: toHeroTarget(target) })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * screenEffect plays a full-screen effect on the player's view. Effects of
    * one kind stack. The player's hero must be alive.
    */
   screenEffect(effect: ScreenEffect, timing?: ScreenTiming): boolean {
     return call('ScreenEffect', effectsPb.ScreenEffectRequest.toBinary({ player: this.slot, effect: screenEffectValues[effect], timing })) !== undefined
-  }
-
-  /**
-   * screenEffect plays a full-screen effect on the player's view. Effects of
-   * one kind stack. The player's hero must be alive.
-   *
-   * screenEffectAsync starts the call without waiting and returns what screenEffect returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  screenEffectAsync(effect: ScreenEffect, timing?: ScreenTiming): Promise<boolean> {
-    return callAsync('ScreenEffect', effectsPb.ScreenEffectRequest.toBinary({ player: this.slot, effect: screenEffectValues[effect], timing })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4229,18 +3612,6 @@ export class Player {
   }
 
   /**
-   * clearScreenEffect ends every running instance of effect on the player's
-   * view.
-   *
-   * clearScreenEffectAsync starts the call without waiting and returns what clearScreenEffect returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  clearScreenEffectAsync(effect: ScreenEffect): Promise<boolean> {
-    return callAsync('ClearScreenEffect', effectsPb.ClearScreenEffectRequest.toBinary({ player: this.slot, effect: screenEffectValues[effect] })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * silenceVoice keeps the player's hero from speaking the named voice
    * concepts until called again, on top of those silenced for everyone.
    */
@@ -4248,32 +3619,9 @@ export class Player {
     return call('SilencePlayerVoice', effectsPb.SilencePlayerVoiceRequest.toBinary({ player: this.slot, concepts: concepts?.slice() })) !== undefined
   }
 
-  /**
-   * silenceVoice keeps the player's hero from speaking the named voice
-   * concepts until called again, on top of those silenced for everyone.
-   *
-   * silenceVoiceAsync starts the call without waiting and returns what silenceVoice returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  silenceVoiceAsync(concepts?: readonly string[]): Promise<boolean> {
-    return callAsync('SilencePlayerVoice', effectsPb.SilencePlayerVoiceRequest.toBinary({ player: this.slot, concepts: concepts?.slice() })).then((reply) => reply !== undefined)
-  }
-
   /** removeBot removes a bot the mod added. */
   removeBot(): boolean {
     return call('RemoveBot', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
-  }
-
-  /**
-   * removeBot removes a bot the mod added.
-   *
-   * removeBotAsync starts the call without waiting and returns what removeBot returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  removeBotAsync(): Promise<boolean> {
-    return callAsync('RemoveBot', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4286,19 +3634,6 @@ export class Player {
   }
 
   /**
-   * blockInput withholds buttons from the player's hero until called
-   * again, and the spectator buttons from their commands while they
-   * spectate, on top of the block on everyone. Zero releases the player.
-   *
-   * blockInputAsync starts the call without waiting and returns what blockInput returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  blockInputAsync(buttons: bigint): Promise<boolean> {
-    return callAsync('BlockPlayerInput', inputPb.PlayerInputRequest.toBinary({ player: this.slot, buttons })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * press presses buttons at the player's next input, even through a block.
    * A bot presses them as a player would.
    */
@@ -4306,48 +3641,14 @@ export class Player {
     return call('Press', inputPb.PlayerInputRequest.toBinary({ player: this.slot, buttons })) !== undefined
   }
 
-  /**
-   * press presses buttons at the player's next input, even through a block.
-   * A bot presses them as a player would.
-   *
-   * pressAsync starts the call without waiting and returns what press returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  pressAsync(buttons: bigint): Promise<boolean> {
-    return callAsync('Press', inputPb.PlayerInputRequest.toBinary({ player: this.slot, buttons })).then((reply) => reply !== undefined)
-  }
-
   /** kill kills a player's hero, crediting no one. */
   kill(): boolean {
     return call('Kill', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
 
-  /**
-   * kill kills a player's hero, crediting no one.
-   *
-   * killAsync starts the call without waiting and returns what kill returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  killAsync(): Promise<boolean> {
-    return callAsync('Kill', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => reply !== undefined)
-  }
-
   /** setVelocity replaces the motion of a player's hero without moving it. */
   setVelocity(velocity: Vector): boolean {
     return call('SetVelocity', movementPb.SetVelocityRequest.toBinary({ player: this.slot, velocity })) !== undefined
-  }
-
-  /**
-   * setVelocity replaces the motion of a player's hero without moving it.
-   *
-   * setVelocityAsync starts the call without waiting and returns what setVelocity returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setVelocityAsync(velocity: Vector): Promise<boolean> {
-    return callAsync('SetVelocity', movementPb.SetVelocityRequest.toBinary({ player: this.slot, velocity })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4362,40 +3663,464 @@ export class Player {
   }
 
   /**
-   * buttons returns the buttons a player holds, as Buttons bits, while the
-   * player is alive or dead.
-   *
-   * buttonsAsync starts the call without waiting and returns what buttons returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  buttonsAsync(): Promise<bigint | undefined> {
-    return callAsync('Buttons', playersPb.PlayerRequest.toBinary({ player: this.slot })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = inputPb.ButtonsResponse.fromBinary(reply)
-      return response.buttons ?? 0n
-    })
-  }
-
-  /**
    * watchMovement adds a player's hero to the movement samples of each Frame
    * event on a new tick, or removes it.
    */
   watchMovement(watch: boolean): boolean {
     return call('WatchMovement', movementPb.WatchMovementRequest.toBinary({ player: this.slot, watch })) !== undefined
   }
+}
 
-  /**
-   * watchMovement adds a player's hero to the movement samples of each Frame
-   * event on a new tick, or removes it.
-   *
-   * watchMovementAsync starts the call without waiting and returns what watchMovement returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  watchMovementAsync(watch: boolean): Promise<boolean> {
-    return callAsync('WatchMovement', movementPb.WatchMovementRequest.toBinary({ player: this.slot, watch })).then((reply) => reply !== undefined)
-  }
+/**
+ * playerChatAsync starts Player.chat without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.chat for the arguments and the result.
+ */
+export function playerChatAsync(player: Player, text: string): Promise<boolean> {
+  return callAsync('Chat', effectsPb.ChatRequest.toBinary({ player: player.slot, text })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerCenterTextAsync starts Player.centerText without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.centerText for the arguments and the result.
+ */
+export function playerCenterTextAsync(player: Player, text: string): Promise<boolean> {
+  return callAsync('CenterText', effectsPb.CenterTextRequest.toBinary({ player: player.slot, text })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerAnnounceAsync starts Player.announce without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.announce for the arguments and the result.
+ */
+export function playerAnnounceAsync(player: Player, title: string, text: string): Promise<boolean> {
+  return callAsync('Announce', effectsPb.AnnounceRequest.toBinary({ player: player.slot, title, text })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerPawnAsync starts Player.pawn without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.pawn for the arguments and the result.
+ */
+export function playerPawnAsync(player: Player): Promise<Pawn | undefined> {
+  return callAsync('Pawn', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = playersPb.PawnResponse.fromBinary(reply)
+    return response.pawn === undefined ? undefined : fromPawn(response.pawn)
+  })
+}
+
+/**
+ * playerSettingAsync starts Player.setting without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.setting for the arguments and the result.
+ */
+export function playerSettingAsync(player: Player, key: string): Promise<string | undefined> {
+  return callAsync('PlayerSetting', settingsPb.PlayerSettingRequest.toBinary({ player: player.slot, key })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = settingsPb.SettingResponse.fromBinary(reply)
+    return response.value ?? ''
+  })
+}
+
+/**
+ * playerSetSettingAsync starts Player.setSetting without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.setSetting for the arguments and the result.
+ */
+export function playerSetSettingAsync(player: Player, key: string, value: string): Promise<boolean> {
+  return callAsync('SetPlayerSetting', settingsPb.SetPlayerSettingRequest.toBinary({ player: player.slot, key, value })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerAddMetricAsync starts Player.addMetric without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.addMetric for the arguments and the result.
+ */
+export function playerAddMetricAsync(player: Player, name: string, value: number, label?: string): Promise<boolean> {
+  return callAsync('AddMetric', metricsPb.AddMetricRequest.toBinary({ player: player.slot, name, value, label })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerHandoffAsync starts Player.handoff without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.handoff for the arguments and the result.
+ */
+export function playerHandoffAsync(player: Player, text: string): Promise<boolean> {
+  return callAsync('PlayerHandoff', handoffPb.HandoffPlayerRequest.toBinary({ player: player.slot, text })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerHandedOffAsync starts Player.handedOff without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.handedOff for the arguments and the result.
+ */
+export function playerHandedOffAsync(player: Player): Promise<string | undefined> {
+  return callAsync('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = handoffPb.HandedOffResponse.fromBinary(reply)
+    return response.text ?? ''
+  })
+}
+
+/**
+ * playerSelectHeroAsync starts Player.selectHero without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.selectHero for the arguments and the result.
+ */
+export function playerSelectHeroAsync(player: Player, hero: string | number, team: number): Promise<number | undefined> {
+  return callAsync('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: player.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: heroName((hero as string)) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = playersPb.HeroResponse.fromBinary(reply)
+    return response.hero ?? 0
+  })
+}
+
+/**
+ * playerSpectateAsync starts Player.spectate without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.spectate for the arguments and the result.
+ */
+export function playerSpectateAsync(player: Player): Promise<boolean> {
+  return callAsync('Spectate', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerWatchAsync starts Player.watch without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.watch for the arguments and the result.
+ */
+export function playerWatchAsync(player: Player, target: number, chase?: boolean): Promise<boolean> {
+  return callAsync('Watch', playersPb.WatchRequest.toBinary({ player: player.slot, target, chase })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerFreeCameraAsync starts Player.freeCamera without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.freeCamera for the arguments and the result.
+ */
+export function playerFreeCameraAsync(player: Player, position: Vector, facing: Angles): Promise<boolean> {
+  return callAsync('FreeCamera', playersPb.FreeCameraRequest.toBinary({ player: player.slot, position, facing })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerMoveCameraAsync starts Player.moveCamera without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.moveCamera for the arguments and the result.
+ */
+export function playerMoveCameraAsync(player: Player, options: CameraOptions): Promise<boolean> {
+  return callAsync('MoveCamera', playersPb.CameraOptions.toBinary({ player: player.slot, ...toCameraOptions(options) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerClearCameraAsync starts Player.clearCamera without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.clearCamera for the arguments and the result.
+ */
+export function playerClearCameraAsync(player: Player, context?: string): Promise<boolean> {
+  return callAsync('ClearCamera', playersPb.ClearCameraRequest.toBinary({ player: player.slot, context })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerUnwatchAsync starts Player.unwatch without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.unwatch for the arguments and the result.
+ */
+export function playerUnwatchAsync(player: Player): Promise<boolean> {
+  return callAsync('Unwatch', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerRespawnAsync starts Player.respawn without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.respawn for the arguments and the result.
+ */
+export function playerRespawnAsync(player: Player): Promise<boolean> {
+  return callAsync('Respawn', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerChangeTeamAsync starts Player.changeTeam without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.changeTeam for the arguments and the result.
+ */
+export function playerChangeTeamAsync(player: Player, team: number): Promise<boolean> {
+  return callAsync('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: player.slot, team: int32(team) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerClearItemsAsync starts Player.clearItems without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.clearItems for the arguments and the result.
+ */
+export function playerClearItemsAsync(player: Player): Promise<boolean> {
+  return callAsync('ClearItems', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerFreezeAsync starts Player.freeze without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.freeze for the arguments and the result.
+ */
+export function playerFreezeAsync(player: Player, frozen?: boolean): Promise<boolean> {
+  return callAsync('Freeze', playersPb.FreezeRequest.toBinary({ player: player.slot, frozen })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerRestoreStaminaAsync starts Player.restoreStamina without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.restoreStamina for the arguments and the result.
+ */
+export function playerRestoreStaminaAsync(player: Player): Promise<boolean> {
+  return callAsync('RestoreStamina', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerSetStaminaAsync starts Player.setStamina without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.setStamina for the arguments and the result.
+ */
+export function playerSetStaminaAsync(player: Player, stamina: number): Promise<boolean> {
+  return callAsync('SetStamina', playersPb.SetStaminaRequest.toBinary({ player: player.slot, stamina })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerRefreshAbilityAsync starts Player.refreshAbility without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.refreshAbility for the arguments and the result.
+ */
+export function playerRefreshAbilityAsync(player: Player, ability: string): Promise<boolean> {
+  return callAsync('RefreshAbility', abilitiesPb.RefreshAbilityRequest.toBinary({ player: player.slot, ability })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerAbilitiesAsync starts Player.abilities without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.abilities for the arguments and the result.
+ */
+export function playerAbilitiesAsync(player: Player): Promise<Ability[]> {
+  return callAsync('Abilities', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => {
+    if (reply === undefined) return []
+    const response = abilitiesPb.AbilitiesResponse.fromBinary(reply)
+    return (response.abilities ?? []).map((v) => fromAbility(v))
+  })
+}
+
+/**
+ * playerSetAbilityAsync starts Player.setAbility without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.setAbility for the arguments and the result.
+ */
+export function playerSetAbilityAsync(player: Player, options: AbilityOptions): Promise<boolean> {
+  return callAsync('SetAbility', abilitiesPb.AbilityOptions.toBinary({ player: player.slot, ...toAbilityOptions(options) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerGiveItemAsync starts Player.giveItem without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.giveItem for the arguments and the result.
+ */
+export function playerGiveItemAsync(player: Player, item: string, imbue?: number): Promise<boolean> {
+  return callAsync('GiveItem', abilitiesPb.GiveItemRequest.toBinary({ player: player.slot, item, imbue })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerBuyItemAsync starts Player.buyItem without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.buyItem for the arguments and the result.
+ */
+export function playerBuyItemAsync(player: Player, item: string, imbue?: number, source?: number): Promise<boolean> {
+  return callAsync('BuyItem', abilitiesPb.BuyItemRequest.toBinary({ player: player.slot, item, imbue, source })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerTrainAbilityAsync starts Player.trainAbility without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.trainAbility for the arguments and the result.
+ */
+export function playerTrainAbilityAsync(player: Player, slot: number): Promise<boolean> {
+  return callAsync('TrainAbility', abilitiesPb.TrainAbilityRequest.toBinary({ player: player.slot, slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerReplaceAbilityAsync starts Player.replaceAbility without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.replaceAbility for the arguments and the result.
+ */
+export function playerReplaceAbilityAsync(player: Player, index: number, ability: string, keep?: boolean): Promise<boolean> {
+  return callAsync('ReplaceAbility', abilitiesPb.ReplaceAbilityRequest.toBinary({ player: player.slot, index, ability, keep })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerHoldModifierAsync starts Player.holdModifier without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.holdModifier for the arguments and the result.
+ */
+export function playerHoldModifierAsync(player: Player, modifier: string, active?: boolean): Promise<boolean> {
+  return callAsync('HoldModifier', abilitiesPb.HoldModifierRequest.toBinary({ player: player.slot, modifier, active })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerGiveModifierAsync starts Player.giveModifier without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.giveModifier for the arguments and the result.
+ */
+export function playerGiveModifierAsync(player: Player, modifier: string, seconds: number): Promise<boolean> {
+  return callAsync('GiveModifier', abilitiesPb.GiveModifierRequest.toBinary({ player: player.slot, modifier, seconds })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerTeleportAsync starts Player.teleport without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.teleport for the arguments and the result.
+ */
+export function playerTeleportAsync(player: Player, position: Vector, facing: Angles, velocity?: Vector): Promise<boolean> {
+  return callAsync('Teleport', movementPb.TeleportRequest.toBinary({ player: player.slot, position, facing, velocity })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerZiplineAsync starts Player.zipline without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.zipline for the arguments and the result.
+ */
+export function playerZiplineAsync(player: Player, lane: Lane): Promise<boolean> {
+  return callAsync('Zipline', movementPb.ZiplineRequest.toBinary({ player: player.slot, lane: laneValues[lane] })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerMoveAsync starts Player.move without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.move for the arguments and the result.
+ */
+export function playerMoveAsync(player: Player, position: Vector, facing: Angles, velocity?: Vector): Promise<boolean> {
+  return callAsync('MovePlayer', movementPb.MovePlayerRequest.toBinary({ player: player.slot, position, facing, velocity })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerSteerAsync starts Player.steer without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.steer for the arguments and the result.
+ */
+export function playerSteerAsync(player: Player, steering?: Steering): Promise<boolean> {
+  return callAsync('Steer', movementPb.SteerRequest.toBinary({ player: player.slot, steering })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerDriveAsync starts Player.drive without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.drive for the arguments and the result.
+ */
+export function playerDriveAsync(player: Player, command?: DriveCommand): Promise<boolean> {
+  return callAsync('Drive', movementPb.DriveRequest.toBinary({ player: player.slot, command })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerAdjustSoulsAsync starts Player.adjustSouls without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.adjustSouls for the arguments and the result.
+ */
+export function playerAdjustSoulsAsync(player: Player, delta: number, silent?: boolean): Promise<boolean> {
+  return callAsync('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: player.slot, delta: int32(delta), silent })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerAdjustAbilityPointsAsync starts Player.adjustAbilityPoints without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.adjustAbilityPoints for the arguments and the result.
+ */
+export function playerAdjustAbilityPointsAsync(player: Player, points: number, unlocks: number): Promise<boolean> {
+  return callAsync('AdjustAbilityPoints', playersPb.AdjustAbilityPointsRequest.toBinary({ player: player.slot, points: int32(points), unlocks: int32(unlocks) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerStartingSoulsAsync starts Player.startingSouls without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.startingSouls for the arguments and the result.
+ */
+export function playerStartingSoulsAsync(player: Player, souls: number): Promise<boolean> {
+  return callAsync('StartingSouls', playersPb.StartingSoulsRequest.toBinary({ player: player.slot, souls: int32(souls) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerResetHeroAsync starts Player.resetHero without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.resetHero for the arguments and the result.
+ */
+export function playerResetHeroAsync(player: Player, souls: number): Promise<boolean> {
+  return callAsync('ResetHero', playersPb.ResetHeroRequest.toBinary({ player: player.slot, souls: int32(souls) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerHealAsync starts Player.heal without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.heal for the arguments and the result.
+ */
+export function playerHealAsync(player: Player, amount: number): Promise<boolean> {
+  return callAsync('Heal', playersPb.HealRequest.toBinary({ player: player.slot, amount: int32(amount) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerSoundAsync starts Player.sound without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.sound for the arguments and the result.
+ */
+export function playerSoundAsync(player: Player, sound: string, options?: SoundOptions): Promise<number | undefined> {
+  return callAsync('Sound', effectsPb.SoundRequest.toBinary({ player: player.slot, sound, options: options === undefined ? undefined : toSoundOptions(options) })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = effectsPb.SoundResponse.fromBinary(reply)
+    return response.id ?? 0
+  })
+}
+
+/**
+ * playerRestoreHeroAsync starts Player.restoreHero without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.restoreHero for the arguments and the result.
+ */
+export function playerRestoreHeroAsync(player: Player, target: HeroTarget): Promise<boolean> {
+  return callAsync('RestoreHero', playersPb.RestoreHeroRequest.toBinary({ player: player.slot, target: toHeroTarget(target) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerScreenEffectAsync starts Player.screenEffect without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.screenEffect for the arguments and the result.
+ */
+export function playerScreenEffectAsync(player: Player, effect: ScreenEffect, timing?: ScreenTiming): Promise<boolean> {
+  return callAsync('ScreenEffect', effectsPb.ScreenEffectRequest.toBinary({ player: player.slot, effect: screenEffectValues[effect], timing })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerClearScreenEffectAsync starts Player.clearScreenEffect without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.clearScreenEffect for the arguments and the result.
+ */
+export function playerClearScreenEffectAsync(player: Player, effect: ScreenEffect): Promise<boolean> {
+  return callAsync('ClearScreenEffect', effectsPb.ClearScreenEffectRequest.toBinary({ player: player.slot, effect: screenEffectValues[effect] })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerSilenceVoiceAsync starts Player.silenceVoice without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.silenceVoice for the arguments and the result.
+ */
+export function playerSilenceVoiceAsync(player: Player, concepts?: readonly string[]): Promise<boolean> {
+  return callAsync('SilencePlayerVoice', effectsPb.SilencePlayerVoiceRequest.toBinary({ player: player.slot, concepts: concepts?.slice() })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerRemoveBotAsync starts Player.removeBot without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.removeBot for the arguments and the result.
+ */
+export function playerRemoveBotAsync(player: Player): Promise<boolean> {
+  return callAsync('RemoveBot', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerBlockInputAsync starts Player.blockInput without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.blockInput for the arguments and the result.
+ */
+export function playerBlockInputAsync(player: Player, buttons: bigint): Promise<boolean> {
+  return callAsync('BlockPlayerInput', inputPb.PlayerInputRequest.toBinary({ player: player.slot, buttons })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerPressAsync starts Player.press without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.press for the arguments and the result.
+ */
+export function playerPressAsync(player: Player, buttons: bigint): Promise<boolean> {
+  return callAsync('Press', inputPb.PlayerInputRequest.toBinary({ player: player.slot, buttons })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerKillAsync starts Player.kill without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.kill for the arguments and the result.
+ */
+export function playerKillAsync(player: Player): Promise<boolean> {
+  return callAsync('Kill', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerSetVelocityAsync starts Player.setVelocity without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.setVelocity for the arguments and the result.
+ */
+export function playerSetVelocityAsync(player: Player, velocity: Vector): Promise<boolean> {
+  return callAsync('SetVelocity', movementPb.SetVelocityRequest.toBinary({ player: player.slot, velocity })).then((reply) => reply !== undefined)
+}
+
+/**
+ * playerButtonsAsync starts Player.buttons without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.buttons for the arguments and the result.
+ */
+export function playerButtonsAsync(player: Player): Promise<bigint | undefined> {
+  return callAsync('Buttons', playersPb.PlayerRequest.toBinary({ player: player.slot })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = inputPb.ButtonsResponse.fromBinary(reply)
+    return response.buttons ?? 0n
+  })
+}
+
+/**
+ * playerWatchMovementAsync starts Player.watchMovement without waiting and returns a promise of its result, which
+ * settles in a later frame. See Player.watchMovement for the arguments and the result.
+ */
+export function playerWatchMovementAsync(player: Player, watch: boolean): Promise<boolean> {
+  return callAsync('WatchMovement', movementPb.WatchMovementRequest.toBinary({ player: player.slot, watch })).then((reply) => reply !== undefined)
 }
 
 /** WorldObject is one object the mod placed in the world. */
@@ -4417,34 +4142,9 @@ export class WorldObject {
     return call('MoveObject', objectsPb.MoveObjectRequest.toBinary({ object: this.id, position, facing })) !== undefined
   }
 
-  /**
-   * move places the object at position, turning it to facing. The
-   * physics step pulls a solid model to its new place over one tick, so a
-   * model moved each frame strikes physics props such as the Hideout ball
-   * with its speed instead of passing through them.
-   *
-   * moveAsync starts the call without waiting and returns what move returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  moveAsync(position: Vector, facing?: Angles): Promise<boolean> {
-    return callAsync('MoveObject', objectsPb.MoveObjectRequest.toBinary({ object: this.id, position, facing })).then((reply) => reply !== undefined)
-  }
-
   /** setText replaces a text object's words. */
   setText(text: string): boolean {
     return call('SetText', objectsPb.SetTextRequest.toBinary({ object: this.id, text })) !== undefined
-  }
-
-  /**
-   * setText replaces a text object's words.
-   *
-   * setTextAsync starts the call without waiting and returns what setText returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setTextAsync(text: string): Promise<boolean> {
-    return callAsync('SetText', objectsPb.SetTextRequest.toBinary({ object: this.id, text })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4454,19 +4154,6 @@ export class WorldObject {
    */
   setHidden(player: Player, hidden: boolean): boolean {
     return call('SetObjectHidden', objectsPb.SetObjectHiddenRequest.toBinary({ object: this.id, player: player.slot, hidden })) !== undefined
-  }
-
-  /**
-   * setHidden hides the object from one player or shows it again.
-   * Other players still see it. A player who leaves sees every object when
-   * they return.
-   *
-   * setHiddenAsync starts the call without waiting and returns what setHidden returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setHiddenAsync(player: Player, hidden: boolean): Promise<boolean> {
-    return callAsync('SetObjectHidden', objectsPb.SetObjectHiddenRequest.toBinary({ object: this.id, player: player.slot, hidden })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4483,23 +4170,6 @@ export class WorldObject {
   }
 
   /**
-   * showOnlyTo sends the object only to the players with the listed
-   * server slots; every other client drops it, or never receives it when the
-   * call follows its creation in the same frame. With no players no client
-   * receives it. The list replaces any earlier one and follows the object
-   * when its entity changes. A player who leaves is taken off every list, so
-   * whoever joins in their slot does not receive the object. A removed object
-   * reaches no client while the engine retires its entity.
-   *
-   * showOnlyToAsync starts the call without waiting and returns what showOnlyTo returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  showOnlyToAsync(players?: readonly number[]): Promise<boolean> {
-    return callAsync('ShowObjectOnlyTo', objectsPb.ShowObjectOnlyToRequest.toBinary({ object: this.id, players: players?.map((v) => int32(v)) })).then((reply) => reply !== undefined)
-  }
-
-  /**
    * showToAll sends the object to every player again, undoing
    * ShowObjectOnlyTo.
    */
@@ -4507,32 +4177,9 @@ export class WorldObject {
     return call('ShowObjectToAll', objectsPb.ObjectRequest.toBinary({ object: this.id })) !== undefined
   }
 
-  /**
-   * showToAll sends the object to every player again, undoing
-   * ShowObjectOnlyTo.
-   *
-   * showToAllAsync starts the call without waiting and returns what showToAll returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  showToAllAsync(): Promise<boolean> {
-    return callAsync('ShowObjectToAll', objectsPb.ObjectRequest.toBinary({ object: this.id })).then((reply) => reply !== undefined)
-  }
-
   /** remove takes the object out of the world. */
   remove(): boolean {
     return call('RemoveObject', objectsPb.ObjectRequest.toBinary({ object: this.id })) !== undefined
-  }
-
-  /**
-   * remove takes the object out of the world.
-   *
-   * removeAsync starts the call without waiting and returns what remove returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  removeAsync(): Promise<boolean> {
-    return callAsync('RemoveObject', objectsPb.ObjectRequest.toBinary({ object: this.id })).then((reply) => reply !== undefined)
   }
 
   /**
@@ -4545,22 +4192,66 @@ export class WorldObject {
     const response = entitiesPb.EntityResponse.fromBinary(reply)
     return response.entity ?? 0
   }
+}
 
-  /**
-   * entity returns the entity handle of a model or particle, as traces
-   * report it and particle anchors take it.
-   *
-   * entityAsync starts the call without waiting and returns what entity returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  entityAsync(): Promise<number | undefined> {
-    return callAsync('ObjectEntity', objectsPb.ObjectRequest.toBinary({ object: this.id })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = entitiesPb.EntityResponse.fromBinary(reply)
-      return response.entity ?? 0
-    })
-  }
+/**
+ * worldObjectMoveAsync starts WorldObject.move without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.move for the arguments and the result.
+ */
+export function worldObjectMoveAsync(worldObject: WorldObject, position: Vector, facing?: Angles): Promise<boolean> {
+  return callAsync('MoveObject', objectsPb.MoveObjectRequest.toBinary({ object: worldObject.id, position, facing })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectSetTextAsync starts WorldObject.setText without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.setText for the arguments and the result.
+ */
+export function worldObjectSetTextAsync(worldObject: WorldObject, text: string): Promise<boolean> {
+  return callAsync('SetText', objectsPb.SetTextRequest.toBinary({ object: worldObject.id, text })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectSetHiddenAsync starts WorldObject.setHidden without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.setHidden for the arguments and the result.
+ */
+export function worldObjectSetHiddenAsync(worldObject: WorldObject, player: Player, hidden: boolean): Promise<boolean> {
+  return callAsync('SetObjectHidden', objectsPb.SetObjectHiddenRequest.toBinary({ object: worldObject.id, player: player.slot, hidden })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectShowOnlyToAsync starts WorldObject.showOnlyTo without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.showOnlyTo for the arguments and the result.
+ */
+export function worldObjectShowOnlyToAsync(worldObject: WorldObject, players?: readonly number[]): Promise<boolean> {
+  return callAsync('ShowObjectOnlyTo', objectsPb.ShowObjectOnlyToRequest.toBinary({ object: worldObject.id, players: players?.map((v) => int32(v)) })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectShowToAllAsync starts WorldObject.showToAll without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.showToAll for the arguments and the result.
+ */
+export function worldObjectShowToAllAsync(worldObject: WorldObject): Promise<boolean> {
+  return callAsync('ShowObjectToAll', objectsPb.ObjectRequest.toBinary({ object: worldObject.id })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectRemoveAsync starts WorldObject.remove without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.remove for the arguments and the result.
+ */
+export function worldObjectRemoveAsync(worldObject: WorldObject): Promise<boolean> {
+  return callAsync('RemoveObject', objectsPb.ObjectRequest.toBinary({ object: worldObject.id })).then((reply) => reply !== undefined)
+}
+
+/**
+ * worldObjectEntityAsync starts WorldObject.entity without waiting and returns a promise of its result, which
+ * settles in a later frame. See WorldObject.entity for the arguments and the result.
+ */
+export function worldObjectEntityAsync(worldObject: WorldObject): Promise<number | undefined> {
+  return callAsync('ObjectEntity', objectsPb.ObjectRequest.toBinary({ object: worldObject.id })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = entitiesPb.EntityResponse.fromBinary(reply)
+    return response.entity ?? 0
+  })
 }
 
 /** Npc is one unit the mod spawned. */
@@ -4581,21 +4272,6 @@ export class Npc {
   }
 
   /**
-   * read returns the unit's state, or nothing once it is gone.
-   *
-   * readAsync starts the call without waiting and returns what read returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  readAsync(): Promise<NpcState | undefined> {
-    return callAsync('ReadNpc', npcsPb.NpcRequest.toBinary({ npc: this.entity })).then((reply) => {
-      if (reply === undefined) return undefined
-      const response = npcsPb.NpcStateResponse.fromBinary(reply)
-      return response.state === undefined ? undefined : fromNpcState(response.state)
-    })
-  }
-
-  /**
    * move places the unit and sets its velocity, which drives its walk
    * animation. It sets the pose without a teleport, which would reset the
    * unit's animation, so a mode can steer its units every frame. It reports
@@ -4606,24 +4282,6 @@ export class Npc {
     if (reply === undefined) return false
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
-  }
-
-  /**
-   * move places the unit and sets its velocity, which drives its walk
-   * animation. It sets the pose without a teleport, which would reset the
-   * unit's animation, so a mode can steer its units every frame. It reports
-   * false once the unit is gone.
-   *
-   * moveAsync starts the call without waiting and returns what move returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  moveAsync(position: Vector, facing?: Angles, velocity?: Vector): Promise<boolean> {
-    return callAsync('MoveNpc', npcsPb.MoveNpcRequest.toBinary({ npc: this.entity, position, facing, velocity })).then((reply) => {
-      if (reply === undefined) return false
-      const response = entitiesPb.AliveResponse.fromBinary(reply)
-      return response.alive ?? false
-    })
   }
 
   /**
@@ -4638,22 +4296,6 @@ export class Npc {
   }
 
   /**
-   * setHealth sets the unit's health, and its maximum when given. It
-   * reports false once the unit is gone.
-   *
-   * setHealthAsync starts the call without waiting and returns what setHealth returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  setHealthAsync(health: number, maxHealth?: number): Promise<boolean> {
-    return callAsync('SetNpcHealth', npcsPb.SetNpcHealthRequest.toBinary({ npc: this.entity, health: int32(health), maxHealth: maxHealth === undefined ? undefined : int32(maxHealth) })).then((reply) => {
-      if (reply === undefined) return false
-      const response = entitiesPb.AliveResponse.fromBinary(reply)
-      return response.alive ?? false
-    })
-  }
-
-  /**
    * remove takes a unit the mod spawned out of the world without rewards.
    * It reports false when the unit was already gone.
    */
@@ -4663,22 +4305,54 @@ export class Npc {
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
   }
+}
 
-  /**
-   * remove takes a unit the mod spawned out of the world without rewards.
-   * It reports false when the unit was already gone.
-   *
-   * removeAsync starts the call without waiting and returns what remove returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  removeAsync(): Promise<boolean> {
-    return callAsync('RemoveNpc', npcsPb.NpcRequest.toBinary({ npc: this.entity })).then((reply) => {
-      if (reply === undefined) return false
-      const response = entitiesPb.AliveResponse.fromBinary(reply)
-      return response.alive ?? false
-    })
-  }
+/**
+ * npcReadAsync starts Npc.read without waiting and returns a promise of its result, which
+ * settles in a later frame. See Npc.read for the arguments and the result.
+ */
+export function npcReadAsync(npc: Npc): Promise<NpcState | undefined> {
+  return callAsync('ReadNpc', npcsPb.NpcRequest.toBinary({ npc: npc.entity })).then((reply) => {
+    if (reply === undefined) return undefined
+    const response = npcsPb.NpcStateResponse.fromBinary(reply)
+    return response.state === undefined ? undefined : fromNpcState(response.state)
+  })
+}
+
+/**
+ * npcMoveAsync starts Npc.move without waiting and returns a promise of its result, which
+ * settles in a later frame. See Npc.move for the arguments and the result.
+ */
+export function npcMoveAsync(npc: Npc, position: Vector, facing?: Angles, velocity?: Vector): Promise<boolean> {
+  return callAsync('MoveNpc', npcsPb.MoveNpcRequest.toBinary({ npc: npc.entity, position, facing, velocity })).then((reply) => {
+    if (reply === undefined) return false
+    const response = entitiesPb.AliveResponse.fromBinary(reply)
+    return response.alive ?? false
+  })
+}
+
+/**
+ * npcSetHealthAsync starts Npc.setHealth without waiting and returns a promise of its result, which
+ * settles in a later frame. See Npc.setHealth for the arguments and the result.
+ */
+export function npcSetHealthAsync(npc: Npc, health: number, maxHealth?: number): Promise<boolean> {
+  return callAsync('SetNpcHealth', npcsPb.SetNpcHealthRequest.toBinary({ npc: npc.entity, health: int32(health), maxHealth: maxHealth === undefined ? undefined : int32(maxHealth) })).then((reply) => {
+    if (reply === undefined) return false
+    const response = entitiesPb.AliveResponse.fromBinary(reply)
+    return response.alive ?? false
+  })
+}
+
+/**
+ * npcRemoveAsync starts Npc.remove without waiting and returns a promise of its result, which
+ * settles in a later frame. See Npc.remove for the arguments and the result.
+ */
+export function npcRemoveAsync(npc: Npc): Promise<boolean> {
+  return callAsync('RemoveNpc', npcsPb.NpcRequest.toBinary({ npc: npc.entity })).then((reply) => {
+    if (reply === undefined) return false
+    const response = entitiesPb.AliveResponse.fromBinary(reply)
+    return response.alive ?? false
+  })
 }
 
 /** Pickup is one pickup the mod placed. */
@@ -4702,22 +4376,6 @@ export class Pickup {
   }
 
   /**
-   * present reports whether the pickup still lies in the world,
-   * uncollected.
-   *
-   * presentAsync starts the call without waiting and returns what present returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  presentAsync(): Promise<boolean> {
-    return callAsync('PickupPresent', entitiesPb.PickupRequest.toBinary({ pickup: this.entity })).then((reply) => {
-      if (reply === undefined) return false
-      const response = entitiesPb.AliveResponse.fromBinary(reply)
-      return response.alive ?? false
-    })
-  }
-
-  /**
    * remove takes the pickup out of the world. It reports false when a
    * player had collected it.
    */
@@ -4727,22 +4385,30 @@ export class Pickup {
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
   }
+}
 
-  /**
-   * remove takes the pickup out of the world. It reports false when a
-   * player had collected it.
-   *
-   * removeAsync starts the call without waiting and returns what remove returns, as a promise
-   * that settles in a later frame. The calls a mod starts in one turn go to the host
-   * together.
-   */
-  removeAsync(): Promise<boolean> {
-    return callAsync('RemovePickup', entitiesPb.PickupRequest.toBinary({ pickup: this.entity })).then((reply) => {
-      if (reply === undefined) return false
-      const response = entitiesPb.AliveResponse.fromBinary(reply)
-      return response.alive ?? false
-    })
-  }
+/**
+ * pickupPresentAsync starts Pickup.present without waiting and returns a promise of its result, which
+ * settles in a later frame. See Pickup.present for the arguments and the result.
+ */
+export function pickupPresentAsync(pickup: Pickup): Promise<boolean> {
+  return callAsync('PickupPresent', entitiesPb.PickupRequest.toBinary({ pickup: pickup.entity })).then((reply) => {
+    if (reply === undefined) return false
+    const response = entitiesPb.AliveResponse.fromBinary(reply)
+    return response.alive ?? false
+  })
+}
+
+/**
+ * pickupRemoveAsync starts Pickup.remove without waiting and returns a promise of its result, which
+ * settles in a later frame. See Pickup.remove for the arguments and the result.
+ */
+export function pickupRemoveAsync(pickup: Pickup): Promise<boolean> {
+  return callAsync('RemovePickup', entitiesPb.PickupRequest.toBinary({ pickup: pickup.entity })).then((reply) => {
+    if (reply === undefined) return false
+    const response = entitiesPb.AliveResponse.fromBinary(reply)
+    return response.alive ?? false
+  })
 }
 
 /** log writes one line to the server log under the mod's name. */
@@ -4751,11 +4417,8 @@ export function log(message: string): boolean {
 }
 
 /**
- * log writes one line to the server log under the mod's name.
- *
- * logAsync starts the call without waiting and returns what log returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * logAsync starts log without waiting and returns a promise of its result, which
+ * settles in a later frame. See log for the arguments and the result.
  */
 export function logAsync(message: string): Promise<boolean> {
   return callAsync('Log', wasmPb.LogRequest.toBinary({ message })).then((reply) => reply !== undefined)
@@ -4773,15 +4436,8 @@ export function serverCommand(command: string): boolean {
 }
 
 /**
- * serverCommand runs one line at the server console, as if typed there. A
- * line that sets a variable may set a development-only or cheat-protected
- * one. A line that reaches the engine's controls for files, logging, the
- * network or the process, or stores a command to run later, is refused with
- * the name of the command.
- *
- * serverCommandAsync starts the call without waiting and returns what serverCommand returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * serverCommandAsync starts serverCommand without waiting and returns a promise of its result, which
+ * settles in a later frame. See serverCommand for the arguments and the result.
  */
 export function serverCommandAsync(command: string): Promise<boolean> {
   return callAsync('ServerCommand', wasmPb.ServerCommandRequest.toBinary({ command })).then((reply) => reply !== undefined)
@@ -4798,14 +4454,8 @@ export function precache(options: PrecacheOptions): boolean {
 }
 
 /**
- * precache loads heroes and resources with the next world. Call it during
- * start, before the first world loads; a call after that, such as from a
- * reload, prepares only the world after the next map change. Name every
- * hero whose abilities ReplaceAbility gives, with their particles.
- *
- * precacheAsync starts the call without waiting and returns what precache returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * precacheAsync starts precache without waiting and returns a promise of its result, which
+ * settles in a later frame. See precache for the arguments and the result.
  */
 export function precacheAsync(options: PrecacheOptions): Promise<boolean> {
   return callAsync('Precache', wasmPb.PrecacheOptions.toBinary(toPrecacheOptions(options))).then((reply) => reply !== undefined)
@@ -4825,14 +4475,8 @@ export function pawns(): PlayerPawn[] {
 }
 
 /**
- * pawns returns every player's pawn this frame in one reply, in slot order,
- * each as Pawn returns it: a mode that reads every hero each frame makes
- * one call instead of one per player. A slot Pawn answers nothing for is
- * left out.
- *
- * pawnsAsync starts the call without waiting and returns what pawns returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * pawnsAsync starts pawns without waiting and returns a promise of its result, which
+ * settles in a later frame. See pawns for the arguments and the result.
  */
 export function pawnsAsync(): Promise<PlayerPawn[]> {
   return callAsync('Pawns', new Uint8Array()).then((reply) => {
@@ -4856,14 +4500,8 @@ export function readFile(path: string): string | undefined {
 }
 
 /**
- * readFile reads one of the mod's files: the host's copy, which the mod
- * wrote or the server's operator placed, else the one the mod ships under
- * data/. A file in neither reads as unset. Names that leave the mod's
- * directories are refused.
- *
- * readFileAsync starts the call without waiting and returns what readFile returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * readFileAsync starts readFile without waiting and returns a promise of its result, which
+ * settles in a later frame. See readFile for the arguments and the result.
  */
 export function readFileAsync(path: string): Promise<string | undefined> {
   return callAsync('ReadFile', filesPb.ReadFileRequest.toBinary({ path })).then((reply) => {
@@ -4887,14 +4525,8 @@ export function readFileBytes(path: string): Uint8Array | undefined {
 }
 
 /**
- * readFileBytes reads one of the mod's files from the same places as
- * ReadFile, as bytes that need not be text, such as a packed table the mod
- * views in place. A file in neither reads as unset. The host reads the
- * whole file during the call.
- *
- * readFileBytesAsync starts the call without waiting and returns what readFileBytes returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * readFileBytesAsync starts readFileBytes without waiting and returns a promise of its result, which
+ * settles in a later frame. See readFileBytes for the arguments and the result.
  */
 export function readFileBytesAsync(path: string): Promise<Uint8Array | undefined> {
   return callAsync('ReadFileBytes', filesPb.ReadFileRequest.toBinary({ path })).then((reply) => {
@@ -4916,15 +4548,8 @@ export function writeFile(path: string, text: string): boolean {
 }
 
 /**
- * writeFile replaces one of the mod's files in the host's copy, which
- * outlives a restart and an update of the mod; the files the mod ships stay
- * as they are. The write is whole or not at all, and the host refuses one
- * past its quota of 4 MiB per mod. A host that keeps no files refuses every
- * write.
- *
- * writeFileAsync starts the call without waiting and returns what writeFile returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * writeFileAsync starts writeFile without waiting and returns a promise of its result, which
+ * settles in a later frame. See writeFile for the arguments and the result.
  */
 export function writeFileAsync(path: string, text: string): Promise<boolean> {
   return callAsync('WriteFile', filesPb.WriteFileRequest.toBinary({ path, text })).then((reply) => reply !== undefined)
@@ -4942,15 +4567,8 @@ export function holdReload(held: boolean): boolean {
 }
 
 /**
- * holdReload keeps the running build through a reload while held is true,
- * such as while a player is partway through something a new build would
- * lose. A reload that arrives meanwhile waits, and the newest one applies
- * on the first frame after the mod releases the hold. A new build starts
- * without a hold.
- *
- * holdReloadAsync starts the call without waiting and returns what holdReload returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * holdReloadAsync starts holdReload without waiting and returns a promise of its result, which
+ * settles in a later frame. See holdReload for the arguments and the result.
  */
 export function holdReloadAsync(held: boolean): Promise<boolean> {
   return callAsync('HoldReload', abilitiesPb.HoldReloadRequest.toBinary({ held })).then((reply) => reply !== undefined)
@@ -4969,16 +4587,8 @@ export function handoff(text: string): boolean {
 }
 
 /**
- * handoff replaces the handoff state for the game: what the running build
- * hands the next build when the mod reloads, such as which round it plays.
- * It lasts only through a reload of the mod in the same game, such as an
- * update, whose new build reads it back with HandedOff. The host holds it
- * in memory and never writes it to disk, so it ends when the mod stops or
- * the server restarts. The host refuses state past 64 KiB.
- *
- * handoffAsync starts the call without waiting and returns what handoff returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * handoffAsync starts handoff without waiting and returns a promise of its result, which
+ * settles in a later frame. See handoff for the arguments and the result.
  */
 export function handoffAsync(text: string): Promise<boolean> {
   return callAsync('Handoff', handoffPb.HandoffRequest.toBinary({ text })).then((reply) => reply !== undefined)
@@ -4993,11 +4603,8 @@ export function handedOff(): string | undefined {
 }
 
 /**
- * handedOff returns the game's handoff state, or empty.
- *
- * handedOffAsync starts the call without waiting and returns what handedOff returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * handedOffAsync starts handedOff without waiting and returns a promise of its result, which
+ * settles in a later frame. See handedOff for the arguments and the result.
  */
 export function handedOffAsync(): Promise<string | undefined> {
   return callAsync('HandedOff', new Uint8Array()).then((reply) => {
@@ -5022,15 +4629,8 @@ export function heroBuild(hero: string): BuildCategory[] {
 }
 
 /**
- * heroBuild reads a hero's recommended build from the host's game data:
- * its categories of items in buying order. Items the game does not define
- * are left out, so every item returned is one GiveItem accepts. A hero
- * without a build answers with no categories. The call needs a loaded
- * world.
- *
- * heroBuildAsync starts the call without waiting and returns what heroBuild returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * heroBuildAsync starts heroBuild without waiting and returns a promise of its result, which
+ * settles in a later frame. See heroBuild for the arguments and the result.
  */
 export function heroBuildAsync(hero: string): Promise<BuildCategory[]> {
   return callAsync('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero: heroName(hero) })).then((reply) => {
@@ -5051,14 +4651,8 @@ export function silenceVoice(concepts?: readonly string[]): boolean {
 }
 
 /**
- * silenceVoice keeps every hero from speaking the named voice concepts,
- * until called again. A hero still hears the game's other sounds. Stopping
- * the mod lets them speak; a name the game does not know fails the call
- * and the known ones still apply.
- *
- * silenceVoiceAsync starts the call without waiting and returns what silenceVoice returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * silenceVoiceAsync starts silenceVoice without waiting and returns a promise of its result, which
+ * settles in a later frame. See silenceVoice for the arguments and the result.
  */
 export function silenceVoiceAsync(concepts?: readonly string[]): Promise<boolean> {
   return callAsync('SilenceVoice', effectsPb.SilenceVoiceRequest.toBinary({ concepts: concepts?.slice() })).then((reply) => reply !== undefined)
@@ -5083,19 +4677,8 @@ export function readField(entity: number, className: string, field: string, type
 }
 
 /**
- * readField reads one schema field of a live entity, such as the int32
- * m_iHealth of CBaseEntity. The host finds the field by name, so it
- * survives game updates that move it, and refuses an entity that is not of
- * the named class or a subclass. The match's state, such as the gold of each
- * team or the winning team, is a field of CCitadelGameRules, which the
- * citadel_gamerules entity reads. The parts of an entity's model that its
- * body component holds read through the entity too: CGameSceneNode, and for
- * a model entity CSkeletonInstance and CModelState, such as the uint64
- * m_MeshGroupMask of CModelState that chooses which mesh groups draw.
- *
- * readFieldAsync starts the call without waiting and returns what readField returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * readFieldAsync starts readField without waiting and returns a promise of its result, which
+ * settles in a later frame. See readField for the arguments and the result.
  */
 export function readFieldAsync(entity: number, className: string, field: string, type: FieldType): Promise<FieldValue | undefined> {
   return callAsync('ReadField', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] })).then((reply) => {
@@ -5121,16 +4704,8 @@ export function readModifierField(entity: number, modifier: string, className: s
 }
 
 /**
- * readModifierField reads one schema field of a modifier the entity holds,
- * such as the int32 m_nCameraLevel of CCitadel_Modifier_OrbitCamera on a
- * pawn holding modifier_citadel_orbit_camera. The answer holds no value
- * while the entity lacks the modifier. The host cannot check the modifier's
- * class, so a wrong class reads the wrong bytes, though never past readable
- * memory.
- *
- * readModifierFieldAsync starts the call without waiting and returns what readModifierField returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * readModifierFieldAsync starts readModifierField without waiting and returns a promise of its result, which
+ * settles in a later frame. See readModifierField for the arguments and the result.
  */
 export function readModifierFieldAsync(entity: number, modifier: string, className: string, field: string, type: FieldType): Promise<FieldValue | undefined> {
   return callAsync('ReadModifierField', fieldsPb.ReadModifierFieldRequest.toBinary({ entity, modifier, className, field, type: fieldTypeValues[type] })).then((reply) => {
@@ -5161,24 +4736,8 @@ export function writeField(entity: number, className: string, field: string, typ
 }
 
 /**
- * writeField writes one schema field of a live entity and sends the change
- * to the players. The value takes the form ReadField returns for the type.
- * Text goes only to a symbol field (string_t, such as the m_DialogXMLName of
- * a point_clientui_world_panel), with {addon} replaced by the mod's content
- * addon as in an entity's key values; a CUtlString field owns its text and
- * cannot be written. A write to the match's state sends all of it, so
- * players already in the match see the change, and a write to a model part,
- * as ReadField names them, sends the entity. A client builds a client UI
- * entity's panel only when it creates the entity, so a write to
- * m_DialogXMLName sends every client a full update on the next frame, which
- * creates every entity again; the players' game stalls briefly, so write a
- * layout when it changes, not every frame. It refuses the fields that
- * name a console line or a script, such as m_iszPrivateVScripts, here and
- * among the fields CreateEntity writes before spawn.
- *
- * writeFieldAsync starts the call without waiting and returns what writeField returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * writeFieldAsync starts writeField without waiting and returns a promise of its result, which
+ * settles in a later frame. See writeField for the arguments and the result.
  */
 export function writeFieldAsync(entity: number, className: string, field: string, type: FieldType, value: FieldValue): Promise<boolean> {
   return callAsync('WriteField', fieldsPb.WriteFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type], value: toFieldValue(value) })).then((reply) => reply !== undefined)
@@ -5197,13 +4756,8 @@ export function readFieldList(entity: number, className: string, field: string, 
 }
 
 /**
- * readFieldList reads a field that holds a list, such as the m_vecBannedHeroes
- * of CCitadelGameRules. The type is the type of one element: a number, a
- * handle, a boolean or a vector. A list of structures cannot be read.
- *
- * readFieldListAsync starts the call without waiting and returns what readFieldList returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * readFieldListAsync starts readFieldList without waiting and returns a promise of its result, which
+ * settles in a later frame. See readFieldList for the arguments and the result.
  */
 export function readFieldListAsync(entity: number, className: string, field: string, type: FieldType): Promise<FieldValue[]> {
   return callAsync('ReadFieldList', fieldsPb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] })).then((reply) => {
@@ -5223,13 +4777,8 @@ export function writeFieldList(entity: number, className: string, field: string,
 }
 
 /**
- * writeFieldList replaces the elements of a list field and sends the change
- * to the players, growing the list when it holds fewer elements than the
- * new ones.
- *
- * writeFieldListAsync starts the call without waiting and returns what writeFieldList returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * writeFieldListAsync starts writeFieldList without waiting and returns a promise of its result, which
+ * settles in a later frame. See writeFieldList for the arguments and the result.
  */
 export function writeFieldListAsync(entity: number, className: string, field: string, type: FieldType, values?: readonly FieldValue[]): Promise<boolean> {
   return callAsync('WriteFieldList', fieldsPb.WriteFieldListRequest.toBinary({ entity, className, field, type: fieldTypeValues[type], values: values?.map((v) => toFieldValue(v)) })).then((reply) => reply !== undefined)
@@ -5247,12 +4796,8 @@ export function entityClass(entity: number): EntityClassName | undefined {
 }
 
 /**
- * entityClass returns a live entity's schema class, such as
- * CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
- *
- * entityClassAsync starts the call without waiting and returns what entityClass returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * entityClassAsync starts entityClass without waiting and returns a promise of its result, which
+ * settles in a later frame. See entityClass for the arguments and the result.
  */
 export function entityClassAsync(entity: number): Promise<EntityClassName | undefined> {
   return callAsync('EntityClass', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => {
@@ -5274,12 +4819,8 @@ export function entityName(entity: number): string | undefined {
 }
 
 /**
- * entityName returns a live entity's name, the targetname a map or a spawn
- * key value gave it, or an empty name for an unnamed entity.
- *
- * entityNameAsync starts the call without waiting and returns what entityName returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * entityNameAsync starts entityName without waiting and returns a promise of its result, which
+ * settles in a later frame. See entityName for the arguments and the result.
  */
 export function entityNameAsync(entity: number): Promise<string | undefined> {
   return callAsync('EntityName', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => {
@@ -5302,13 +4843,8 @@ export function entityPosition(entity: number): EntityPlacement | undefined {
 }
 
 /**
- * entityPosition returns where a live entity stands, its absolute origin
- * and angles, as MoveEntity places it, and its velocity. Any entity with a
- * place in the world has one, such as one of the map's boxes.
- *
- * entityPositionAsync starts the call without waiting and returns what entityPosition returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * entityPositionAsync starts entityPosition without waiting and returns a promise of its result, which
+ * settles in a later frame. See entityPosition for the arguments and the result.
  */
 export function entityPositionAsync(entity: number): Promise<EntityPlacement | undefined> {
   return callAsync('EntityPosition', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => {
@@ -5330,12 +4866,8 @@ export function modifierState(entity: number, state: string): boolean {
 }
 
 /**
- * modifierState reports whether an entity has a modifier state, such as
- * MODIFIER_STATE_PARRY_ACTIVE.
- *
- * modifierStateAsync starts the call without waiting and returns what modifierState returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * modifierStateAsync starts modifierState without waiting and returns a promise of its result, which
+ * settles in a later frame. See modifierState for the arguments and the result.
  */
 export function modifierStateAsync(entity: number, state: string): Promise<boolean> {
   return callAsync('ModifierState', abilitiesPb.ModifierStateRequest.toBinary({ entity, state })).then((reply) => {
@@ -5359,14 +4891,8 @@ export function modifiers(entity: number): Modifier[] {
 }
 
 /**
- * modifiers lists every modifier an entity holds, such as the stun a
- * hero's ultimate keeps on its target, with its name, class, caster,
- * ability, age, time left and stacks. An entity that holds none answers an
- * empty list.
- *
- * modifiersAsync starts the call without waiting and returns what modifiers returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * modifiersAsync starts modifiers without waiting and returns a promise of its result, which
+ * settles in a later frame. See modifiers for the arguments and the result.
  */
 export function modifiersAsync(entity: number): Promise<Modifier[]> {
   return callAsync('Modifiers', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => {
@@ -5386,13 +4912,8 @@ export function holdModifierState(entity: number, state: string, active?: boolea
 }
 
 /**
- * holdModifierState holds a modifier state, such as
- * MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
- * releases the hold. The hold ends with the entity.
- *
- * holdModifierStateAsync starts the call without waiting and returns what holdModifierState returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * holdModifierStateAsync starts holdModifierState without waiting and returns a promise of its result, which
+ * settles in a later frame. See holdModifierState for the arguments and the result.
  */
 export function holdModifierStateAsync(entity: number, state: string, active?: boolean): Promise<boolean> {
   return callAsync('HoldModifierState', abilitiesPb.HoldModifierStateRequest.toBinary({ entity, state, active })).then((reply) => reply !== undefined)
@@ -5414,19 +4935,8 @@ export function setFreeForAll(enabled: boolean): boolean {
 }
 
 /**
- * setFreeForAll turns free-for-all on or off for the running mod, over the
- * Manifest's free_for_all default. While on, the host seats each new player
- * on the smaller team with no team screen, holds friendly fire on every
- * hero, makes teammates enemies to abilities, projectiles and target
- * checks, and ignores changeteam commands. The stock hero picker does not
- * open for a seated player, so the mod gives each seated player whose pawn
- * has hero 0 a hero with SelectHero. Turning it off releases the friendly
- * fire holds and restores stock team relations; players keep their teams.
- * Clients still draw teammates as allies.
- *
- * setFreeForAllAsync starts the call without waiting and returns what setFreeForAll returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * setFreeForAllAsync starts setFreeForAll without waiting and returns a promise of its result, which
+ * settles in a later frame. See setFreeForAll for the arguments and the result.
  */
 export function setFreeForAllAsync(enabled: boolean): Promise<boolean> {
   return callAsync('SetFreeForAll', matchPb.SetFreeForAllRequest.toBinary({ enabled })).then((reply) => reply !== undefined)
@@ -5446,17 +4956,8 @@ export function setTeamSeating(enabled: boolean): boolean {
 }
 
 /**
- * setTeamSeating turns team seating on or off for the running mod. While
- * on, the host seats each player who joins with no team on the smaller
- * team with no team screen; friendly fire and changeteam stay as the game
- * has them. The stock hero picker does not open for a seated player, so
- * the mod gives each seated player whose pawn has hero 0 a hero with
- * SelectHero. Free-for-all seats players this
- * way whatever this says. Turning it off leaves players on their teams.
- *
- * setTeamSeatingAsync starts the call without waiting and returns what setTeamSeating returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * setTeamSeatingAsync starts setTeamSeating without waiting and returns a promise of its result, which
+ * settles in a later frame. See setTeamSeating for the arguments and the result.
  */
 export function setTeamSeatingAsync(enabled: boolean): Promise<boolean> {
   return callAsync('SetTeamSeating', matchPb.SetTeamSeatingRequest.toBinary({ enabled })).then((reply) => reply !== undefined)
@@ -5475,13 +4976,8 @@ export function createModel(options: ModelOptions): WorldObject | undefined {
 }
 
 /**
- * createModel places a model in the world, solid when the options ask.
- * The world removes it when the world ends; stopping the mod removes it
- * too.
- *
- * createModelAsync starts the call without waiting and returns what createModel returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createModelAsync starts createModel without waiting and returns a promise of its result, which
+ * settles in a later frame. See createModel for the arguments and the result.
  */
 export function createModelAsync(options: ModelOptions): Promise<WorldObject | undefined> {
   return callAsync('CreateModel', objectsPb.ModelOptions.toBinary(options)).then((reply) => {
@@ -5500,11 +4996,8 @@ export function createText(options: TextOptions): WorldObject | undefined {
 }
 
 /**
- * createText places text that floats in the world.
- *
- * createTextAsync starts the call without waiting and returns what createText returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createTextAsync starts createText without waiting and returns a promise of its result, which
+ * settles in a later frame. See createText for the arguments and the result.
  */
 export function createTextAsync(options: TextOptions): Promise<WorldObject | undefined> {
   return callAsync('CreateText', objectsPb.TextOptions.toBinary(toTextOptions(options))).then((reply) => {
@@ -5527,13 +5020,8 @@ export function createParticle(options: ParticleOptions): WorldObject | undefine
 }
 
 /**
- * createParticle starts a particle effect. Removing the object stops it
- * and lets its end cap play out, unless the mod already stopped it, such as
- * with the DestroyImmediately input; moving it moves the effect.
- *
- * createParticleAsync starts the call without waiting and returns what createParticle returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createParticleAsync starts createParticle without waiting and returns a promise of its result, which
+ * settles in a later frame. See createParticle for the arguments and the result.
  */
 export function createParticleAsync(options: ParticleOptions): Promise<WorldObject | undefined> {
   return callAsync('CreateParticle', objectsPb.ParticleOptions.toBinary(toParticleOptions(options))).then((reply) => {
@@ -5555,12 +5043,8 @@ export function createFog(options: FogOptions): WorldObject | undefined {
 }
 
 /**
- * createFog fills a box with tinted fog whose density fades across the
- * box's boundary. Removing the object clears it; moving it moves the box.
- *
- * createFogAsync starts the call without waiting and returns what createFog returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createFogAsync starts createFog without waiting and returns a promise of its result, which
+ * settles in a later frame. See createFog for the arguments and the result.
  */
 export function createFogAsync(options: FogOptions): Promise<WorldObject | undefined> {
   return callAsync('CreateFog', objectsPb.FogOptions.toBinary(options)).then((reply) => {
@@ -5582,12 +5066,8 @@ export function addBot(options: BotOptions): Player | undefined {
 }
 
 /**
- * addBot adds a bot player and returns it. The bot leaves when the world
- * ends or the mod stops.
- *
- * addBotAsync starts the call without waiting and returns what addBot returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * addBotAsync starts addBot without waiting and returns a promise of its result, which
+ * settles in a later frame. See addBot for the arguments and the result.
  */
 export function addBotAsync(options: BotOptions): Promise<Player | undefined> {
   return callAsync('AddBot', playersPb.BotOptions.toBinary(toBotOptions(options))).then((reply) => {
@@ -5607,13 +5087,8 @@ export function blockInput(buttons: bigint): boolean {
 }
 
 /**
- * blockInput withholds buttons from every player's hero until called
- * again, and the spectator buttons from a spectating player's commands.
- * Stopping the mod releases them.
- *
- * blockInputAsync starts the call without waiting and returns what blockInput returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * blockInputAsync starts blockInput without waiting and returns a promise of its result, which
+ * settles in a later frame. See blockInput for the arguments and the result.
  */
 export function blockInputAsync(buttons: bigint): Promise<boolean> {
   return callAsync('BlockInput', inputPb.InputRequest.toBinary({ buttons })).then((reply) => reply !== undefined)
@@ -5629,13 +5104,8 @@ export function watchInput(buttons: bigint): boolean {
 }
 
 /**
- * watchInput replaces the buttons whose presses and releases arrive as
- * Input events. Watching does not withhold a press; block it with
- * BlockInput.
- *
- * watchInputAsync starts the call without waiting and returns what watchInput returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * watchInputAsync starts watchInput without waiting and returns a promise of its result, which
+ * settles in a later frame. See watchInput for the arguments and the result.
  */
 export function watchInputAsync(buttons: bigint): Promise<boolean> {
   return callAsync('WatchInput', inputPb.InputRequest.toBinary({ buttons })).then((reply) => reply !== undefined)
@@ -5653,15 +5123,8 @@ export function remapInput(from: bigint, to: bigint, repeat?: boolean): boolean 
 }
 
 /**
- * remapInput makes the from buttons act as the to buttons for every
- * player's hero until called again; from reads as up. With repeat, a held
- * from button uses the to ability again as soon as it is ready. A zero from
- * stops remapping, and stopping the mod does too. BlockInput applies after
- * the remap.
- *
- * remapInputAsync starts the call without waiting and returns what remapInput returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * remapInputAsync starts remapInput without waiting and returns a promise of its result, which
+ * settles in a later frame. See remapInput for the arguments and the result.
  */
 export function remapInputAsync(from: bigint, to: bigint, repeat?: boolean): Promise<boolean> {
   return callAsync('RemapInput', inputPb.RemapInputRequest.toBinary({ from, to, repeat })).then((reply) => reply !== undefined)
@@ -5680,13 +5143,8 @@ export function callService(service: string, method: string, payload: Uint8Array
 }
 
 /**
- * callService calls method of a service the host provides outside Modlock,
- * such as a game mode's match, and returns the service's answer. The
- * service defines the payload's encoding.
- *
- * callServiceAsync starts the call without waiting and returns what callService returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * callServiceAsync starts callService without waiting and returns a promise of its result, which
+ * settles in a later frame. See callService for the arguments and the result.
  */
 export function callServiceAsync(service: string, method: string, payload: Uint8Array): Promise<Uint8Array | undefined> {
   return callAsync('CallService', wasmPb.ServiceCall.toBinary({ service, method, payload })).then((reply) => {
@@ -5714,18 +5172,8 @@ export function startServiceCall(service: string, method: string, payload: Uint8
 }
 
 /**
- * startServiceCall calls method of a service the host provides and
- * returns at once with a number; the answer arrives in a later frame as a
- * ServiceReplied event carrying that number. Every call ends once: with
- * the reply, the service's refusal, a timeout or no provider at all. A
- * service nobody provides is never asked. The host waits at most 30
- * seconds, or the call's shorter timeout, and drops the mod's waiting
- * calls when the mod stops or reloads. A service that answers at once
- * answers this way too, in the next frame.
- *
- * startServiceCallAsync starts the call without waiting and returns what startServiceCall returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * startServiceCallAsync starts startServiceCall without waiting and returns a promise of its result, which
+ * settles in a later frame. See startServiceCall for the arguments and the result.
  */
 export function startServiceCallAsync(service: string, method: string, payload: Uint8Array, timeoutMilliseconds: number): Promise<bigint | undefined> {
   return callAsync('StartServiceCall', wasmPb.StartServiceCallRequest.toBinary({ service, method, payload, timeoutMilliseconds })).then((reply) => {
@@ -5771,18 +5219,8 @@ export function createEntity(options: EntityOptions): number | undefined {
 }
 
 /**
- * createEntity creates an entity the server knows by its designer name,
- * such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
- * written before it spawns. The world removes it when the world ends;
- * stopping the mod removes it too. It refuses an ability, item or weapon,
- * which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
- * a class that runs console lines or loads scripts or entities past a mod's
- * checks, such as point_servercommand, and key values that name a console
- * line or a script, such as vscripts.
- *
- * createEntityAsync starts the call without waiting and returns what createEntity returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createEntityAsync starts createEntity without waiting and returns a promise of its result, which
+ * settles in a later frame. See createEntity for the arguments and the result.
  */
 export function createEntityAsync(options: EntityOptions): Promise<number | undefined> {
   return callAsync('CreateEntity', entitiesPb.EntityOptions.toBinary(toEntityOptions(options))).then((reply) => {
@@ -5807,15 +5245,8 @@ export function fireInput(entity: number, input: string, value?: EntityValue, ac
 }
 
 /**
- * fireInput sends an input to a live entity, as a map's output would, such
- * as Skin with the integer 1. The value must have the type the input reads.
- * It reports false once the entity is gone. It refuses AddOutput and the
- * script inputs on every entity, and any input to an entity of a class
- * CreateEntity refuses.
- *
- * fireInputAsync starts the call without waiting and returns what fireInput returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * fireInputAsync starts fireInput without waiting and returns a promise of its result, which
+ * settles in a later frame. See fireInput for the arguments and the result.
  */
 export function fireInputAsync(entity: number, input: string, value?: EntityValue, activator?: number): Promise<boolean> {
   return callAsync('FireInput', entitiesPb.FireInputRequest.toBinary({ entity, input, value: value === undefined ? undefined : toEntityValue(value), activator })).then((reply) => {
@@ -5837,12 +5268,8 @@ export function removeEntity(entity: number): boolean {
 }
 
 /**
- * removeEntity takes an entity the mod created out of the world without
- * rewards. It reports false when the entity was already gone.
- *
- * removeEntityAsync starts the call without waiting and returns what removeEntity returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * removeEntityAsync starts removeEntity without waiting and returns a promise of its result, which
+ * settles in a later frame. See removeEntity for the arguments and the result.
  */
 export function removeEntityAsync(entity: number): Promise<boolean> {
   return callAsync('RemoveEntity', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => {
@@ -5868,19 +5295,8 @@ export function showEntityOnlyTo(entity: number, players?: readonly number[]): b
 }
 
 /**
- * showEntityOnlyTo sends an entity the mod created only to the players with
- * the listed server slots; every other client drops it, or never receives
- * it when the call follows its creation in the same frame. With no players
- * no client receives it. The list replaces any earlier one. A player who
- * leaves is taken off every list, so whoever joins in their slot does not
- * receive the entity. The rule holds for an entity created with
- * TransmitAlways too, but not for entities parented to it, which need their
- * own call. Removing the entity, the world ending or the mod stopping drops
- * the rule.
- *
- * showEntityOnlyToAsync starts the call without waiting and returns what showEntityOnlyTo returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * showEntityOnlyToAsync starts showEntityOnlyTo without waiting and returns a promise of its result, which
+ * settles in a later frame. See showEntityOnlyTo for the arguments and the result.
  */
 export function showEntityOnlyToAsync(entity: number, players?: readonly number[]): Promise<boolean> {
   return callAsync('ShowEntityOnlyTo', entitiesPb.ShowEntityOnlyToRequest.toBinary({ entity, players: players?.map((v) => int32(v)) })).then((reply) => reply !== undefined)
@@ -5895,12 +5311,8 @@ export function showEntityToAll(entity: number): boolean {
 }
 
 /**
- * showEntityToAll sends an entity the mod created to every player the game
- * would send it to again, undoing ShowEntityOnlyTo.
- *
- * showEntityToAllAsync starts the call without waiting and returns what showEntityToAll returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * showEntityToAllAsync starts showEntityToAll without waiting and returns a promise of its result, which
+ * settles in a later frame. See showEntityToAll for the arguments and the result.
  */
 export function showEntityToAllAsync(entity: number): Promise<boolean> {
   return callAsync('ShowEntityToAll', entitiesPb.EntityRequest.toBinary({ entity })).then((reply) => reply !== undefined)
@@ -5920,14 +5332,8 @@ export function spawnNpc(options: NpcOptions): Npc | undefined {
 }
 
 /**
- * spawnNpc adds a unit that is not a player, such as a trooper, as
- * CreateEntity does, then sets its health and lane. It thinks from the next
- * frame. The world removes it when the world ends; stopping
- * the mod removes it too.
- *
- * spawnNpcAsync starts the call without waiting and returns what spawnNpc returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * spawnNpcAsync starts spawnNpc without waiting and returns a promise of its result, which
+ * settles in a later frame. See spawnNpc for the arguments and the result.
  */
 export function spawnNpcAsync(options: NpcOptions): Promise<Npc | undefined> {
   return callAsync('SpawnNpc', npcsPb.NpcOptions.toBinary(toNpcOptions(options))).then((reply) => {
@@ -5949,12 +5355,8 @@ export function createPickup(kind: PickupKind, position: Vector): Pickup | undef
 }
 
 /**
- * createPickup places an urn, which a hero carries once collected, or a
- * movement buff. Stopping the mod removes it.
- *
- * createPickupAsync starts the call without waiting and returns what createPickup returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * createPickupAsync starts createPickup without waiting and returns a promise of its result, which
+ * settles in a later frame. See createPickup for the arguments and the result.
  */
 export function createPickupAsync(kind: PickupKind, position: Vector): Promise<Pickup | undefined> {
   return callAsync('CreatePickup', entitiesPb.CreatePickupRequest.toBinary({ kind: pickupKindValues[kind], position })).then((reply) => {
@@ -5976,12 +5378,8 @@ export function findEntities(className: string): number[] {
 }
 
 /**
- * findEntities returns the handle of every live entity of a class, such as
- * zip_line_node.
- *
- * findEntitiesAsync starts the call without waiting and returns what findEntities returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * findEntitiesAsync starts findEntities without waiting and returns a promise of its result, which
+ * settles in a later frame. See findEntities for the arguments and the result.
  */
 export function findEntitiesAsync(className: string): Promise<number[]> {
   return callAsync('FindEntities', entitiesPb.FindEntitiesRequest.toBinary({ className })).then((reply) => {
@@ -6003,12 +5401,8 @@ export function findEntitiesByName(name: string): number[] {
 }
 
 /**
- * findEntitiesByName returns the handle of every live entity with a name,
- * the targetname a map or the targetname key value of CreateEntity gave it.
- *
- * findEntitiesByNameAsync starts the call without waiting and returns what findEntitiesByName returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * findEntitiesByNameAsync starts findEntitiesByName without waiting and returns a promise of its result, which
+ * settles in a later frame. See findEntitiesByName for the arguments and the result.
  */
 export function findEntitiesByNameAsync(name: string): Promise<number[]> {
   return callAsync('FindEntitiesByName', entitiesPb.FindEntitiesByNameRequest.toBinary({ name })).then((reply) => {
@@ -6030,12 +5424,8 @@ export function removeEntities(className: string): number | undefined {
 }
 
 /**
- * removeEntities removes every entity of a class, such as npc_trooper,
- * without rewards, and returns how many it removed.
- *
- * removeEntitiesAsync starts the call without waiting and returns what removeEntities returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * removeEntitiesAsync starts removeEntities without waiting and returns a promise of its result, which
+ * settles in a later frame. See removeEntities for the arguments and the result.
  */
 export function removeEntitiesAsync(className: string): Promise<number | undefined> {
   return callAsync('RemoveEntities', entitiesPb.RemoveEntitiesRequest.toBinary({ className })).then((reply) => {
@@ -6054,12 +5444,8 @@ export function clearMap(): boolean {
 }
 
 /**
- * clearMap removes the map's own units and objectives, such as troopers,
- * guardians and walkers, so a mode can use the map as an arena.
- *
- * clearMapAsync starts the call without waiting and returns what clearMap returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * clearMapAsync starts clearMap without waiting and returns a promise of its result, which
+ * settles in a later frame. See clearMap for the arguments and the result.
  */
 export function clearMapAsync(): Promise<boolean> {
   return callAsync('ClearMap', new Uint8Array()).then((reply) => reply !== undefined)
@@ -6074,12 +5460,8 @@ export function damage(options: HitOptions): boolean {
 }
 
 /**
- * damage deals a hit as the game would. The mod's Damage events do not
- * include its own hits.
- *
- * damageAsync starts the call without waiting and returns what damage returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * damageAsync starts damage without waiting and returns a promise of its result, which
+ * settles in a later frame. See damage for the arguments and the result.
  */
 export function damageAsync(options: HitOptions): Promise<boolean> {
   return callAsync('Damage', combatPb.HitOptions.toBinary(toHitOptions(options))).then((reply) => reply !== undefined)
@@ -6094,12 +5476,8 @@ export function killEntity(options: KillOptions): boolean {
 }
 
 /**
- * killEntity forces a hero or unit to die, optionally crediting an attacker.
- * Already dead victims succeed without another death or reward.
- *
- * killEntityAsync starts the call without waiting and returns what killEntity returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * killEntityAsync starts killEntity without waiting and returns a promise of its result, which
+ * settles in a later frame. See killEntity for the arguments and the result.
  */
 export function killEntityAsync(options: KillOptions): Promise<boolean> {
   return callAsync('KillEntity', combatPb.KillOptions.toBinary(options)).then((reply) => reply !== undefined)
@@ -6117,12 +5495,8 @@ export function trace(options: TraceOptions): TraceHit | undefined {
 }
 
 /**
- * trace returns where a line first hits something, or nothing when it hits
- * nothing or the world's collision is not ready.
- *
- * traceAsync starts the call without waiting and returns what trace returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * traceAsync starts trace without waiting and returns a promise of its result, which
+ * settles in a later frame. See trace for the arguments and the result.
  */
 export function traceAsync(options: TraceOptions): Promise<TraceHit | undefined> {
   return callAsync('Trace', combatPb.TraceOptions.toBinary(toTraceOptions(options))).then((reply) => {
@@ -6144,15 +5518,8 @@ export function restoreNpcs(npcs?: readonly NpcTarget[]): boolean {
 }
 
 /**
- * restoreNpcs replaces the map's lane units and objectives with targets
- * over the next frames. Units of these classes not in the list are
- * removed, structures that match are kept, and moving units are spawned
- * again in place. An NpcsRestored event reports when every target stands
- * as its own unit, or why not. A new call replaces the running one.
- *
- * restoreNpcsAsync starts the call without waiting and returns what restoreNpcs returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * restoreNpcsAsync starts restoreNpcs without waiting and returns a promise of its result, which
+ * settles in a later frame. See restoreNpcs for the arguments and the result.
  */
 export function restoreNpcsAsync(npcs?: readonly NpcTarget[]): Promise<boolean> {
   return callAsync('RestoreNpcs', npcsPb.RestoreNpcsRequest.toBinary({ npcs: npcs?.map((v) => toNpcTarget(v)) })).then((reply) => reply !== undefined)
@@ -6167,12 +5534,8 @@ export function pause(paused: boolean): boolean {
 }
 
 /**
- * pause stops or resumes the game clock, as the pause command would.
- * Stopping the mod resumes it.
- *
- * pauseAsync starts the call without waiting and returns what pause returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * pauseAsync starts pause without waiting and returns a promise of its result, which
+ * settles in a later frame. See pause for the arguments and the result.
  */
 export function pauseAsync(paused: boolean): Promise<boolean> {
   return callAsync('Pause', matchPb.PauseRequest.toBinary({ paused })).then((reply) => reply !== undefined)
@@ -6187,11 +5550,8 @@ export function matchClock(): number | undefined {
 }
 
 /**
- * matchClock returns the match time in seconds that the scoreboard shows.
- *
- * matchClockAsync starts the call without waiting and returns what matchClock returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * matchClockAsync starts matchClock without waiting and returns a promise of its result, which
+ * settles in a later frame. See matchClock for the arguments and the result.
  */
 export function matchClockAsync(): Promise<number | undefined> {
   return callAsync('MatchClock', new Uint8Array()).then((reply) => {
@@ -6210,12 +5570,8 @@ export function holdMatchClock(seconds?: number): boolean {
 }
 
 /**
- * holdMatchClock keeps the match time at seconds every frame until called
- * again; omitted seconds let it run.
- *
- * holdMatchClockAsync starts the call without waiting and returns what holdMatchClock returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * holdMatchClockAsync starts holdMatchClock without waiting and returns a promise of its result, which
+ * settles in a later frame. See holdMatchClock for the arguments and the result.
  */
 export function holdMatchClockAsync(seconds?: number): Promise<boolean> {
   return callAsync('HoldMatchClock', matchPb.HoldMatchClockRequest.toBinary({ seconds })).then((reply) => reply !== undefined)
@@ -6230,11 +5586,8 @@ export function rift(): RiftState | undefined {
 }
 
 /**
- * rift reads the Rift objective's state.
- *
- * riftAsync starts the call without waiting and returns what rift returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * riftAsync starts rift without waiting and returns a promise of its result, which
+ * settles in a later frame. See rift for the arguments and the result.
  */
 export function riftAsync(): Promise<RiftState | undefined> {
   return callAsync('Rift', new Uint8Array()).then((reply) => {
@@ -6250,11 +5603,8 @@ export function startRift(position: Vector): boolean {
 }
 
 /**
- * startRift opens the Rift objective at position now.
- *
- * startRiftAsync starts the call without waiting and returns what startRift returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * startRiftAsync starts startRift without waiting and returns a promise of its result, which
+ * settles in a later frame. See startRift for the arguments and the result.
  */
 export function startRiftAsync(position: Vector): Promise<boolean> {
   return callAsync('StartRift', matchPb.StartRiftRequest.toBinary({ position })).then((reply) => reply !== undefined)
@@ -6271,14 +5621,8 @@ export function moveEntity(entity: number, position?: Vector, facing?: Angles, v
 }
 
 /**
- * moveEntity places any entity, such as a projectile, and replaces its
- * facing and motion when given. Without a position it leaves the entity
- * where it is, so a velocity alone steers a body the physics simulates, such
- * as a prop_physics, which carries the motion on against the world.
- *
- * moveEntityAsync starts the call without waiting and returns what moveEntity returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * moveEntityAsync starts moveEntity without waiting and returns a promise of its result, which
+ * settles in a later frame. See moveEntity for the arguments and the result.
  */
 export function moveEntityAsync(entity: number, position?: Vector, facing?: Angles, velocity?: Vector): Promise<boolean> {
   return callAsync('MoveEntity', entitiesPb.MoveEntityRequest.toBinary({ entity, position, facing, velocity })).then((reply) => reply !== undefined)
@@ -6294,13 +5638,8 @@ export function pushEntity(entity: number, velocity: Vector, spin?: Vector): boo
 }
 
 /**
- * pushEntity adds a velocity and an angular velocity to any entity. On a
- * body the physics simulates, such as a prop_physics, it acts like an
- * impulse that the simulation carries on.
- *
- * pushEntityAsync starts the call without waiting and returns what pushEntity returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * pushEntityAsync starts pushEntity without waiting and returns a promise of its result, which
+ * settles in a later frame. See pushEntity for the arguments and the result.
  */
 export function pushEntityAsync(entity: number, velocity: Vector, spin?: Vector): Promise<boolean> {
   return callAsync('PushEntity', entitiesPb.PushEntityRequest.toBinary({ entity, velocity, spin })).then((reply) => reply !== undefined)
@@ -6319,13 +5658,8 @@ export function emitSound(entity: number, sound: string, options?: SoundOptions)
 }
 
 /**
- * emitSound plays one game sound on any entity, such as a projectile, and
- * returns its ID. Volume and pitch scale the sound, and listeners limit who
- * hears it.
- *
- * emitSoundAsync starts the call without waiting and returns what emitSound returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * emitSoundAsync starts emitSound without waiting and returns a promise of its result, which
+ * settles in a later frame. See emitSound for the arguments and the result.
  */
 export function emitSoundAsync(entity: number, sound: string, options?: SoundOptions): Promise<number | undefined> {
   return callAsync('EmitSound', effectsPb.EmitSoundRequest.toBinary({ entity, sound, options: options === undefined ? undefined : toSoundOptions(options) })).then((reply) => {
@@ -6344,12 +5678,8 @@ export function adjustSound(id: number, volume?: number, pitch?: number): boolea
 }
 
 /**
- * adjustSound changes the volume or pitch of a sound Sound or EmitSound
- * started, while it plays.
- *
- * adjustSoundAsync starts the call without waiting and returns what adjustSound returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * adjustSoundAsync starts adjustSound without waiting and returns a promise of its result, which
+ * settles in a later frame. See adjustSound for the arguments and the result.
  */
 export function adjustSoundAsync(id: number, volume?: number, pitch?: number): Promise<boolean> {
   return callAsync('AdjustSound', effectsPb.AdjustSoundRequest.toBinary({ id, volume, pitch })).then((reply) => reply !== undefined)
@@ -6364,12 +5694,8 @@ export function stopSound(id: number): boolean {
 }
 
 /**
- * stopSound stops a sound Sound or EmitSound started. A sound that already
- * ended is not an error.
- *
- * stopSoundAsync starts the call without waiting and returns what stopSound returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * stopSoundAsync starts stopSound without waiting and returns a promise of its result, which
+ * settles in a later frame. See stopSound for the arguments and the result.
  */
 export function stopSoundAsync(id: number): Promise<boolean> {
   return callAsync('StopSound', effectsPb.StopSoundRequest.toBinary({ id })).then((reply) => reply !== undefined)
@@ -6385,13 +5711,8 @@ export function watchProjectiles(options: ProjectileOptions): boolean {
 }
 
 /**
- * watchProjectiles reports the projectiles with these designer names, such
- * as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
- * call replaces the list; an empty list stops watching.
- *
- * watchProjectilesAsync starts the call without waiting and returns what watchProjectiles returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * watchProjectilesAsync starts watchProjectiles without waiting and returns a promise of its result, which
+ * settles in a later frame. See watchProjectiles for the arguments and the result.
  */
 export function watchProjectilesAsync(options: ProjectileOptions): Promise<boolean> {
   return callAsync('WatchProjectiles', combatPb.ProjectileOptions.toBinary(toProjectileOptions(options))).then((reply) => reply !== undefined)
@@ -6408,14 +5729,8 @@ export function holdEntityModifier(entity: number, modifier: string, active?: bo
 }
 
 /**
- * holdEntityModifier keeps a modifier, named as GiveModifier names it, on a
- * live entity with no expiry, giving it back whenever the game removes it
- * while the entity lives. The hold ends with the entity or when active is
- * false.
- *
- * holdEntityModifierAsync starts the call without waiting and returns what holdEntityModifier returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * holdEntityModifierAsync starts holdEntityModifier without waiting and returns a promise of its result, which
+ * settles in a later frame. See holdEntityModifier for the arguments and the result.
  */
 export function holdEntityModifierAsync(entity: number, modifier: string, active?: boolean): Promise<boolean> {
   return callAsync('HoldEntityModifier', abilitiesPb.HoldEntityModifierRequest.toBinary({ entity, modifier, active })).then((reply) => reply !== undefined)
@@ -6432,14 +5747,8 @@ export function giveEntityModifier(entity: number, modifier: string, seconds: nu
 }
 
 /**
- * giveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
- * a modifier for seconds. An ability's modifier, named
- * "<ability>/<modifier>", resolves its parent ability subclass even when the
- * entity owns no abilities.
- *
- * giveEntityModifierAsync starts the call without waiting and returns what giveEntityModifier returns, as a promise
- * that settles in a later frame. The calls a mod starts in one turn go to the host
- * together.
+ * giveEntityModifierAsync starts giveEntityModifier without waiting and returns a promise of its result, which
+ * settles in a later frame. See giveEntityModifier for the arguments and the result.
  */
 export function giveEntityModifierAsync(entity: number, modifier: string, seconds: number): Promise<boolean> {
   return callAsync('GiveEntityModifier', abilitiesPb.GiveEntityModifierRequest.toBinary({ entity, modifier, seconds })).then((reply) => reply !== undefined)
