@@ -1,26 +1,76 @@
 import { expect, test } from 'bun:test'
 
-import { CameraOptions } from '../../src/wasm/players/players.pb.js'
+import {
+  HoldEntityModifierRequest,
+  HoldModifierRequest,
+} from '../../src/wasm/abilities/abilities.pb.js'
+import {
+  AliveResponse,
+  EntityOptions,
+  EntityRequest,
+  EntityResponse,
+  FireInputRequest,
+  MoveEntityRequest,
+  ShowEntityOnlyToRequest,
+} from '../../src/wasm/entities/entities.pb.js'
+import { WriteFieldRequest } from '../../src/wasm/fields/fields.pb.js'
+import {
+  CameraOptions,
+  PawnResponse,
+} from '../../src/wasm/players/players.pb.js'
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
-import { cameraPulse, cameraShake, playCamera } from '../src/camera.js'
+import {
+  cameraPulse,
+  cameraShake,
+  entityCamera,
+  playCamera,
+} from '../src/camera.js'
 import * as curve from '../src/curve.js'
 import { Player } from '../src/host.gen.js'
 import { bind } from '../src/host.js'
 import { advance } from '../src/timer.js'
 
-/** fail names the call the host answers with an error. */
+/** fail names the calls, comma separated, the host answers with an error. */
 let fail = ''
+/** nextEntity issues distinct handles for CreateEntity calls in tests. */
+let nextEntity = 100
+/** pawnEntity is the hero pawn handle Pawn returns; 0 simulates no hero. */
+let pawnEntity = 42
 
-/** sent holds the camera calls the host received. */
-const sent: { method: string; options?: CameraOptions }[] = []
+/** sent holds the calls the host received. */
+const sent: {
+  method: string
+  request: Uint8Array
+  options?: CameraOptions
+}[] = []
 bind((bytes) => {
   const { method = '', request = new Uint8Array() } = Call.fromBinary(bytes)
   sent.push({
     method,
+    request,
     options:
       method === 'MoveCamera' ? CameraOptions.fromBinary(request) : undefined,
   })
-  return Reply.toBinary(method === fail ? { error: 'no hero' } : {})
+  if (fail.split(',').includes(method))
+    return Reply.toBinary({ error: 'refused' })
+  if (method === 'Pawn') {
+    return Reply.toBinary({
+      response: PawnResponse.toBinary(
+        pawnEntity ? { pawn: { entity: pawnEntity } } : {},
+      ),
+    })
+  }
+  if (method === 'CreateEntity') {
+    return Reply.toBinary({
+      response: EntityResponse.toBinary({ entity: nextEntity++ }),
+    })
+  }
+  if (method === 'FireInput' || method === 'RemoveEntity') {
+    return Reply.toBinary({
+      response: AliveResponse.toBinary({ alive: true }),
+    })
+  }
+  return Reply.toBinary({})
 })
 
 /** lerps returns each sent lerp of a number as its start, end and duration. */
@@ -167,4 +217,204 @@ test('curves compose and play as queued lerps', () => {
   ).toBeUndefined()
   expect(sent.at(-1)?.method).toBe('ClearCamera')
   fail = ''
+})
+
+test('entityCamera spawns isolated point_camera with roll and cleans up', () => {
+  const player = new Player(5)
+  pawnEntity = 77
+  nextEntity = 200
+  fail = ''
+  advance(0)
+  sent.length = 0
+
+  const cam = entityCamera(player, {
+    position: { x: 10, y: 20, z: 30 },
+    facing: { pitch: -15, yaw: 90, roll: 45 },
+    fov: 105,
+    zNear: 4,
+    zFar: 16000,
+  })!
+  expect(cam).toBeDefined()
+  expect(cam.entity).toBe(200)
+
+  // Spawns intro_camera and pre_intro_camera, isolates both to slot 5, and
+  // holds modifier_citadel_hideout_intro on the living hero.
+  const created = sent
+    .filter((c) => c.method === 'CreateEntity')
+    .map((c) => EntityOptions.fromBinary(c.request))
+  expect(created.length).toBe(2)
+  expect(created.map((c) => c.designerName)).toEqual([
+    'point_camera',
+    'point_camera',
+  ])
+  expect(created.every((c) => c.transmitAlways)).toBe(true)
+  expect(
+    created.map(
+      (c) =>
+        c.keyValues?.find((kv) => kv.key === 'targetname')?.value?.value.value,
+    ),
+  ).toEqual(['intro_camera', 'pre_intro_camera'])
+  expect(
+    created[0]?.keyValues?.find((kv) => kv.key === 'FOV')?.value?.value.value,
+  ).toBe(105)
+
+  const audiences = sent
+    .filter((c) => c.method === 'ShowEntityOnlyTo')
+    .map((c) => ShowEntityOnlyToRequest.fromBinary(c.request))
+  expect(audiences).toEqual([
+    { entity: 200, players: [5] },
+    { entity: 201, players: [5] },
+  ])
+
+  const held = sent
+    .filter((c) => c.method === 'HoldModifier')
+    .map((c) => HoldModifierRequest.fromBinary(c.request))
+  expect(held).toEqual([
+    { player: 5, modifier: 'modifier_citadel_hideout_intro', active: true },
+  ])
+
+  // move() sends full 3-axis roll and over-the-top pitch to both cameras while
+  // pre_intro_camera is still alive, and setFov() updates CPointCamera.m_FOV.
+  sent.length = 0
+  expect(
+    cam.move({ x: 100, y: 200, z: 300 }, { pitch: 120, yaw: -45, roll: 180 }),
+  ).toBe(true)
+  const moves = sent
+    .filter((c) => c.method === 'MoveEntity')
+    .map((c) => MoveEntityRequest.fromBinary(c.request))
+  expect(moves.length).toBe(2)
+  expect(moves[0]?.facing).toEqual({ pitch: 120, yaw: -45, roll: 180 })
+
+  sent.length = 0
+  expect(cam.setFov(115)).toBe(true)
+  const fovWrites = sent
+    .filter((c) => c.method === 'WriteField')
+    .map((c) => WriteFieldRequest.fromBinary(c.request))
+  expect(fovWrites.length).toBe(2)
+  expect(fovWrites[0]?.className).toBe('CPointCamera')
+  expect(fovWrites[0]?.field).toBe('m_FOV')
+
+  // pre_intro_camera stays alive and keeps following intro_camera, since the
+  // game blends between the two for seconds after the camera opens.
+  // The camera reports settled once the game's opening blend has run out.
+  expect(cam.settled).toBe(false)
+  sent.length = 0
+  advance(10)
+  expect(cam.settled).toBe(true)
+  expect(sent.filter((c) => c.method === 'RemoveEntity')).toEqual([])
+  expect(cam.move({ x: 1, y: 2, z: 3 }, { pitch: 0, yaw: 0, roll: -90 })).toBe(
+    true,
+  )
+  expect(
+    sent
+      .filter((c) => c.method === 'MoveEntity')
+      .map((c) => MoveEntityRequest.fromBinary(c.request).entity),
+  ).toEqual([200, 201])
+
+  // stop() releases the hold, fires RemoveModifier for both intro modifiers,
+  // removes both cameras, and is idempotent.
+  sent.length = 0
+  expect(cam.stop()).toBe(true)
+  expect(
+    sent
+      .filter((c) => c.method === 'HoldModifier')
+      .map((c) => HoldModifierRequest.fromBinary(c.request)),
+  ).toEqual([
+    { player: 5, modifier: 'modifier_citadel_hideout_intro', active: false },
+  ])
+  expect(
+    sent
+      .filter((c) => c.method === 'FireInput')
+      .map((c) => FireInputRequest.fromBinary(c.request)),
+  ).toEqual([
+    {
+      entity: 77,
+      input: 'RemoveModifier',
+      value: {
+        value: { case: 'text', value: 'modifier_citadel_hideout_intro' },
+      },
+    },
+    {
+      entity: 77,
+      input: 'RemoveModifier',
+      value: {
+        value: { case: 'text', value: 'modifier_citadel_hideout_intro_exit' },
+      },
+    },
+  ])
+  expect(
+    sent
+      .filter((c) => c.method === 'RemoveEntity')
+      .map((c) => EntityRequest.fromBinary(c.request).entity),
+  ).toEqual([201, 200])
+
+  sent.length = 0
+  expect(cam.stop()).toBe(true)
+  expect(cam.move({ x: 0, y: 0, z: 0 }, { pitch: 0, yaw: 0, roll: 0 })).toBe(
+    false,
+  )
+  expect(cam.setFov(90)).toBe(false)
+  expect(sent.length).toBe(0)
+
+  // instant: false spawns only intro_camera.
+  sent.length = 0
+  const smooth = entityCamera(player, {
+    position: { x: 0, y: 0, z: 0 },
+    facing: { pitch: 0, yaw: 0, roll: 0 },
+    instant: false,
+  })!
+  expect(sent.filter((c) => c.method === 'CreateEntity').length).toBe(1)
+  smooth.stop()
+
+  // A refused HoldModifier, as on a hero that owns no ability yet, falls back
+  // to holding the modifier on the pawn itself, and stop releases that hold.
+  fail = 'HoldModifier'
+  sent.length = 0
+  const fallback = entityCamera(player, {
+    position: { x: 0, y: 0, z: 0 },
+    facing: { pitch: 0, yaw: 0, roll: 0 },
+  })
+  expect(fallback).toBeDefined()
+  const pawnHolds = () =>
+    sent
+      .filter((c) => c.method === 'HoldEntityModifier')
+      .map((c) => HoldEntityModifierRequest.fromBinary(c.request))
+  expect(pawnHolds()).toEqual([
+    {
+      entity: pawnEntity,
+      modifier: 'modifier_citadel_hideout_intro',
+      active: true,
+    },
+  ])
+  sent.length = 0
+  expect(fallback!.stop()).toBe(true)
+  expect(pawnHolds()).toEqual([
+    {
+      entity: pawnEntity,
+      modifier: 'modifier_citadel_hideout_intro',
+      active: false,
+    },
+  ])
+
+  // Refused both ways, it cleans up both spawned cameras.
+  fail = 'HoldModifier,HoldEntityModifier'
+  sent.length = 0
+  expect(
+    entityCamera(player, {
+      position: { x: 0, y: 0, z: 0 },
+      facing: { pitch: 0, yaw: 0, roll: 0 },
+    }),
+  ).toBeUndefined()
+  expect(sent.filter((c) => c.method === 'RemoveEntity').length).toBe(2)
+  fail = ''
+
+  // Returns undefined when the player has no hero.
+  pawnEntity = 0
+  expect(
+    entityCamera(player, {
+      position: { x: 0, y: 0, z: 0 },
+      facing: { pitch: 0, yaw: 0, roll: 0 },
+    }),
+  ).toBeUndefined()
+  pawnEntity = 42
 })

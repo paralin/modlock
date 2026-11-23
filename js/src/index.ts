@@ -76,6 +76,10 @@ export {
   type CameraPulseOptions,
   cameraShake,
   type CameraShakeOptions,
+  type EntityCamera,
+  entityCamera,
+  type EntityCameraOptions,
+  entityCameraSettleSeconds,
   playCamera,
   setOrbitCamera,
 } from './camera.js'
