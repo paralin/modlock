@@ -297,6 +297,25 @@ void Game::Clear() {
   free_for_all_ = false;
   team_seating_ = false;
   ReleaseFreeForAll();
+  // Remove active held modifiers from live entities when the mod stops, so
+  // infinite modifiers (such as camera-override modifiers) do not outlive it.
+  if (world_) {
+    auto modifier_name = [](std::string_view key) -> std::string_view {
+      const auto slash = key.find('/');
+      return slash == std::string_view::npos ? key : key.substr(slash + 1);
+    };
+    for (const auto& [slot, key] : held_modifiers_) {
+      if (const auto sample = observer_.Observe(slot); sample && sample->pawn_handle) {
+        static_cast<void>(world_->FireInput(sample->pawn_handle, "RemoveModifier",
+                                            gameinterop::EntityValue{modifier_name(key)},
+                                            std::nullopt));
+      }
+    }
+    for (const auto& [entity, key] : held_entity_modifiers_) {
+      static_cast<void>(world_->FireInput(
+          entity, "RemoveModifier", gameinterop::EntityValue{modifier_name(key)}, std::nullopt));
+    }
+  }
   ReleaseModifiers();
 
   // Return every ability's cooldown lengths and most charges to the game's
