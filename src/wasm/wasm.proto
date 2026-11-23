@@ -324,7 +324,7 @@ service Host {
   // hero with no expiry, giving it back whenever the game removes it or the
   // hero returns. Every hero that gains the modifier from the same ability
   // keeps it until the hold ends. Releasing leaves the hero's current
-  // modifier until it dies.
+  // modifier until it dies; the mod stopping removes it.
   rpc HoldModifier(modlock.wasm.abilities.HoldModifierRequest) returns (Empty);
 
   // GiveModifier gives the hero a modifier for seconds. An ability's
@@ -827,7 +827,8 @@ service Host {
   // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
   // live entity with no expiry, giving it back whenever the game removes it
   // while the entity lives. The hold ends with the entity or when active is
-  // false.
+  // false. Releasing leaves the entity's current modifier; the mod stopping
+  // removes it.
   rpc HoldEntityModifier(modlock.wasm.abilities.HoldEntityModifierRequest) returns (Empty);
 
   // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,

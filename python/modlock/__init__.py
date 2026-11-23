@@ -2902,7 +2902,7 @@ class Player:
         hero with no expiry, giving it back whenever the game removes it or the
         hero returns. Every hero that gains the modifier from the same ability
         keeps it until the hold ends. Releasing leaves the hero's current
-        modifier until it dies.
+        modifier until it dies; the mod stopping removes it.
         """
         return _call("HoldModifier", "HoldModifierRequest", {"player": self, "modifier": modifier, "active": active}) is not None
 
@@ -6050,7 +6050,8 @@ def hold_entity_modifier(entity: int, modifier: str, active: bool | None = None)
     """hold_entity_modifier keeps a modifier, named as GiveModifier names it, on a
     live entity with no expiry, giving it back whenever the game removes it
     while the entity lives. The hold ends with the entity or when active is
-    false.
+    false. Releasing leaves the entity's current modifier; the mod stopping
+    removes it.
     """
     return _call("HoldEntityModifier", "HoldEntityModifierRequest", {"entity": entity, "modifier": modifier, "active": active}) is not None
 
