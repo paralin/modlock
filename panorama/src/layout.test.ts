@@ -17,6 +17,9 @@ const sent: unknown[][] = []
 /** logged holds each message the library wrote to $.Msg. */
 const logged: string[] = []
 
+/** valid is what the layout's panel answers to IsValid. */
+let valid = true
+
 /** listeners holds each PlaySoundEffect callback the library registered. */
 const listeners: ((sound: string) => void)[] = []
 
@@ -25,7 +28,7 @@ Object.assign(globalThis, {
     GetContextPanel: () => ({
       GetAttributeString: (name: string, fallback: string) =>
         attributes.get(name) ?? fallback,
-      IsValid: () => true,
+      IsValid: () => valid,
     }),
     DispatchEvent: (...args: unknown[]) => sent.push(args),
     Msg: (...values: unknown[]) => logged.push(values.join(' ')),
@@ -102,4 +105,26 @@ test('onUnload listens, runs once, survives errors and stops data', () => {
   onUnload(() => calls.push('late'))
   data((value) => calls.push(['lateData', value]))
   expect(calls).toEqual([{ gold: 1 }, { gold: 2 }, 'first', 'second', 'late'])
+})
+
+test('a wake after the panel is gone unloads without the attribute', async () => {
+  // A second module instance is a second layout on its own panel.
+  const fresh: string = './layout.js?gone'
+  const layout = (await import(fresh)) as typeof import('./layout.js')
+  const calls: unknown[] = []
+  attributes.delete(layoutUnloadingAttribute)
+  attributes.set('modlock_data', '{"gold":5}')
+  layout.onUnload(() => calls.push('cleanup'))
+  layout.data((value) => calls.push(value))
+  expect(calls).toEqual([{ gold: 5 }])
+
+  // The panel goes away unmarked; the next wake, from any layout, runs the
+  // cleanup instead of reading data.
+  valid = false
+  attributes.set('modlock_data', '{"gold":6}')
+  for (const listener of listeners) {
+    listener(layoutDataChanged)
+  }
+  expect(calls).toEqual([{ gold: 5 }, 'cleanup'])
+  valid = true
 })

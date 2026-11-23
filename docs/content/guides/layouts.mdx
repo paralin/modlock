@@ -72,7 +72,9 @@ replaces the layout's panel, reloads the tree, or releases the screen as the
 player leaves, so a layout can cancel scheduled timers, drop event handlers, or
 undo changes outside its panel. Do cleanup synchronously, since the panel is
 deleted on the next frame (or after its exit transition); a handler registered
-after unload runs at once, and no `data` or `route` handler runs after it.
+after unload runs at once, and no `data` or `route` handler runs after it. A
+layout whose screen was released loads afresh on the next draw, so its script
+starts again from the top and should set up everything it needs there.
 
 The layout answers the mod by pressing back. `Modlock.press('buy', { item:
 'boots' })` sends the action with its payload as JSON, and the layout's
