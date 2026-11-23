@@ -42,6 +42,11 @@ modlock.Buttons = {
 	ability3 = 2 ^ 35,
 	-- ultimate is the hero's ultimate ability key, the fourth.
 	ultimate = 2 ^ 36,
+	-- item1 to item4 are the hero's four active item keys.
+	item1 = 2 ^ 37,
+	item2 = 2 ^ 38,
+	item3 = 2 ^ 39,
+	item4 = 2 ^ 40,
 	-- parry is the melee parry button.
 	parry = 2 ^ 42,
 	-- specNext to specToggleTeam are the buttons a player's client sends in
@@ -77,7 +82,7 @@ modlock.Layers = {
 }
 
 -- has reports whether bits, a sum of Buttons or Layers bits, holds bit.
--- bit32 reaches only the low 32 bits, and these bits go up to 2^42.
+-- bit32 reaches only the low 32 bits, and these bits go up to 2^52.
 function modlock.has(bits: number, bit: number): boolean
 	return bits // bit % 2 == 1
 end

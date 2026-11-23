@@ -28,6 +28,11 @@ export const Buttons = {
   ability3: 1n << 35n,
   /** ultimate is the hero's ultimate ability key, the fourth. */
   ultimate: 1n << 36n,
+  /** item1 to item4 are the hero's four active item keys. */
+  item1: 1n << 37n,
+  item2: 1n << 38n,
+  item3: 1n << 39n,
+  item4: 1n << 40n,
   /** parry is the melee parry button. */
   parry: 1n << 42n,
   /**

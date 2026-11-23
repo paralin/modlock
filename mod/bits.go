@@ -28,6 +28,11 @@ const (
 	ButtonAbility3 uint64 = 1 << 35
 	// ButtonUltimate is the hero's ultimate ability key, the fourth.
 	ButtonUltimate uint64 = 1 << 36
+	// ButtonItem1 to ButtonItem4 are the hero's four active item keys.
+	ButtonItem1 uint64 = 1 << 37
+	ButtonItem2 uint64 = 1 << 38
+	ButtonItem3 uint64 = 1 << 39
+	ButtonItem4 uint64 = 1 << 40
 	// ButtonParry is the melee parry button.
 	ButtonParry uint64 = 1 << 42
 	// ButtonSpecNext to ButtonSpecToggleTeam are the buttons a player's client
