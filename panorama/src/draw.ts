@@ -69,6 +69,7 @@ import {
   layoutDataChanged,
   layoutModAttribute,
   layoutNodeAttribute,
+  layoutUnloadingAttribute,
   routeAttribute,
   utf8,
 } from './data.js'
@@ -80,6 +81,7 @@ export {
   layoutDataChanged,
   layoutModAttribute,
   layoutNodeAttribute,
+  layoutUnloadingAttribute,
   maxActionPayload,
   routeAttribute,
 } from './data.js'
@@ -536,9 +538,10 @@ type Tip = '' | 'text' | 'item' | 'ability'
  * tooltip and its item's shop card shows. An input records its control, the mod's value as last
  * drawn, whether an edit waits to send, and the values it sent, oldest
  * first, that the mod has not drawn back. A layout node's panel also
- * records the layout's URL, whether it loaded, and the data set on it. A
- * root records its sheets' layout URLs and the panels nested for the sheets
- * after the first, and every panel its classes.
+ * records the layout's URL, whether it loaded, whether it was told it is
+ * leaving, and the data set on it. A root records its sheets' layout URLs
+ * and the panels nested for the sheets after the first, and every panel its
+ * classes.
  */
 interface Drawn {
   panel: Panel
@@ -568,6 +571,7 @@ interface Drawn {
   disabled: boolean
   layout: string | null
   loaded: boolean
+  unloading: boolean
   data: string
   sheets: string
   nested: Panel[]
@@ -581,6 +585,41 @@ interface Drawn {
  * older than its last few cues has played out.
  */
 const keptSounds = 8
+
+/**
+ * subtree returns every live loaded layout in previous whose panel is root's
+ * or descends from it, including through nested sheet panels.
+ */
+function subtree(previous: ReadonlyMap<string, Drawn>, root: Drawn): Drawn[] {
+  // Only live loaded layouts not already marked unloading need a notice.
+  const live = [...previous.values()].filter(
+    (each) => each.loaded && !each.unloading && each.panel.IsValid(),
+  )
+  if (live.length === 0) {
+    return []
+  }
+
+  // Map each drawn panel and nested sheet panel to its parent panel.
+  const parents = new Map<Panel, Panel>()
+  for (const each of previous.values()) {
+    parents.set(each.panel, each.parent)
+    let host = each.panel
+    for (const sheet of each.nested) {
+      parents.set(sheet, host)
+      host = sheet
+    }
+  }
+
+  // Keep only the layouts hanging at or under root's panel.
+  return live.filter((each) => {
+    for (let at: Panel | undefined = each.panel; at; at = parents.get(at)) {
+      if (at === root.panel) {
+        return true
+      }
+    }
+    return false
+  })
+}
 
 /** Drawing keeps the panels of every mod's tree under one parent. */
 export class Drawing {
@@ -638,11 +677,15 @@ export class Drawing {
   private changed = false
 
   /**
-   * release hides every tooltip, shop card and ability window the mods'
-   * panels show and stops the sounds their cues started, as the player
-   * leaves: the game's windows and sounds outlast the panels.
+   * release notifies every loaded layout that it is leaving, hides every
+   * tooltip, shop card and ability window the mods' panels show, and stops
+   * the sounds their cues started, as the player leaves: the game's windows,
+   * sounds and layout scripts outlast the panels.
    */
   release(): void {
+    this.notifyUnloading(
+      [...this.mods.values()].flatMap((drawn) => [...drawn.nodes.values()]),
+    )
     for (const drawn of this.mods.values()) {
       for (const each of drawn.nodes.values()) {
         this.untip(each)
@@ -659,19 +702,21 @@ export class Drawing {
     const trees = new Map(
       (screen?.trees ?? []).map((tree) => [tree.mod ?? '', tree]),
     )
-    for (const [mod, drawn] of this.mods) {
-      if (!trees.has(mod)) {
-        for (const each of drawn.nodes.values()) {
-          this.untip(each)
-        }
-        drawn.nodes.get('')?.panel.DeleteAsync(0)
-        this.unloaded ||= [...drawn.nodes.values()].some(
-          (each) => each.layout !== null,
-        )
-        this.mods.delete(mod)
-        this.routes.delete(mod)
-        this.addons.delete(mod)
+    const dropped = [...this.mods].filter(([mod]) => !trees.has(mod))
+    this.notifyUnloading(
+      dropped.flatMap(([, drawn]) => [...drawn.nodes.values()]),
+    )
+    for (const [mod, drawn] of dropped) {
+      for (const each of drawn.nodes.values()) {
+        this.untip(each)
       }
+      drawn.nodes.get('')?.panel.DeleteAsync(0)
+      this.unloaded ||= [...drawn.nodes.values()].some(
+        (each) => each.layout !== null,
+      )
+      this.mods.delete(mod)
+      this.routes.delete(mod)
+      this.addons.delete(mod)
     }
 
     // A mod gone from the screen stops its sounds and, back, plays only the
@@ -758,6 +803,7 @@ export class Drawing {
     const old = this.mods.get(mod)
     const generation = tree.generation ?? 0n
     if (old && old.generation !== generation) {
+      this.notifyUnloading(old.nodes.values())
       for (const each of old.nodes.values()) {
         this.untip(each)
       }
@@ -801,6 +847,7 @@ export class Drawing {
     const gone = [...previous]
       .filter(([id, old]) => !drawn.has(id) && old.panel.IsValid())
       .map(([, old]) => old)
+    this.notifyUnloading(gone)
     const leaving = new Set(gone.map((old) => old.panel))
     for (const old of gone) {
       if (leaving.has(old.parent)) {
@@ -895,6 +942,25 @@ export class Drawing {
     }
     memory.playing = []
     memory.silenced++
+  }
+
+  /**
+   * notifyUnloading marks each live loaded layout in nodes as unloading and
+   * wakes the layout library at once, before DeleteAsync invalidates the
+   * panel or its ancestor.
+   */
+  private notifyUnloading(nodes: Iterable<Drawn>): void {
+    let marked = false
+    for (const each of nodes) {
+      if (each.loaded && !each.unloading && each.panel.IsValid()) {
+        each.unloading = true
+        each.panel.SetAttributeString(layoutUnloadingAttribute, '1')
+        marked = true
+      }
+    }
+    if (marked) {
+      this.panorama.DispatchEvent('PlaySoundEffect', layoutDataChanged)
+    }
   }
 
   /**
@@ -1411,6 +1477,7 @@ export class Drawing {
     let given = old?.data ?? ''
     const kept =
       old &&
+      !old.unloading &&
       old.parent === parent &&
       old.made === made &&
       old.layout === layout &&
@@ -1418,6 +1485,7 @@ export class Drawing {
       Object.keys(written).every((name) => name in target || name in rest)
     if (!panel || !kept || !panel.IsValid() || panel.paneltype !== type) {
       if (old?.panel.IsValid()) {
+        this.notifyUnloading(subtree(previous, old))
         this.delete(old)
       }
       const name =
@@ -1523,6 +1591,7 @@ export class Drawing {
         (kind === Kind.BUTTON || kind === Kind.INPUT) && !!node.disabled,
       layout,
       loaded,
+      unloading: false,
       data,
       sheets: sheeted,
       nested,

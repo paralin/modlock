@@ -1,11 +1,18 @@
 // The data contract between the renderer and a mod's layout scripts: the
-// attributes of a layout's panel that hold its data, the mod's routes and
-// the names a press goes back with, the event that announces a change, and
-// the console command a layout's press runs. The renderer writes them and the
-// layout library reads them, so only these two change when the contract does.
+// attributes of a layout's panel that hold its data, the mod's routes, its
+// unload flag and the names a press goes back with, the event that announces
+// a change, and the console command a layout's press runs. The renderer
+// writes them and the layout library reads them, so only these two change
+// when the contract does.
 
 /** layoutDataAttribute names the attribute holding a layout node's data. */
 export const layoutDataAttribute = 'modlock_data'
+
+/**
+ * layoutUnloadingAttribute names the attribute set on a layout's panel right
+ * before the renderer deletes it or releases the screen.
+ */
+export const layoutUnloadingAttribute = 'modlock_unloading'
 
 /**
  * routeAttribute names the attribute of each layout's panel that holds the
@@ -17,9 +24,9 @@ export function routeAttribute(name: string): string {
 
 /**
  * layoutDataChanged is the sound event the drawing plays after a draw that
- * changes a layout's data or a route. The game refuses custom events and
- * delivers the stock PlaySoundEffect to every script; no sound has this
- * name, so none plays.
+ * changes a layout's data or a route, or before a layout leaves. The game
+ * refuses custom events and delivers the stock PlaySoundEffect to every
+ * script; no sound has this name, so none plays.
  */
 export const layoutDataChanged = 'modlock_data_changed'
 
