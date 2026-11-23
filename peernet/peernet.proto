@@ -5,7 +5,6 @@ package modlock.peernet;
 option go_package = "github.com/paralin/modlock/peernet;peernet";
 
 import "github.com/paralin/modlock/src/host_app/control/control.proto";
-import "github.com/paralin/modlock/src/wasm/controllers/controllers.proto";
 import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 
 // PeerNet is the service a modlock daemon serves for its peer: the PC's
@@ -39,13 +38,6 @@ service Session {
   // mounts before its game starts so it draws the mods' models, materials,
   // particles and layouts.
   rpc Content(ContentRequest) returns (stream ContentPart);
-
-  // Controllers carries the guest's controllers to the player whose game
-  // connection the same peer link carries; the frames name no player, so a
-  // guest feeds only its own. The host sends that player's want each time it
-  // changes, with epoch zero while no mod watches or the guest has no slot,
-  // and the guest reads its devices only while the latest epoch is nonzero.
-  rpc Controllers(stream modlock.wasm.controllers.ControllerFrame) returns (stream modlock.wasm.controllers.ControllerWant);
 }
 
 // AdmissionState is where a peer stands with the signaling service, which

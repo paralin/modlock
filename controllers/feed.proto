@@ -1,0 +1,18 @@
+syntax = "proto3";
+package modlock.controllers;
+
+option go_package = "github.com/paralin/modlock/controllers;controllers";
+
+import "github.com/paralin/modlock/src/wasm/controllers/controllers.proto";
+
+// ControllerFeed is the service a game server serves to each player's own
+// client over their peer link, on FeedProtocolID, to carry that player's
+// controllers to the server's mods.
+service ControllerFeed {
+  // Feed carries the client's controllers to the player whose game connection
+  // the same peer link carries; the frames name no player, so a client feeds
+  // only its own. The server sends that player's want each time it changes,
+  // with epoch zero while no mod watches or the client has no slot, and the
+  // client reads its devices only while the latest epoch is nonzero.
+  rpc Feed(stream modlock.wasm.controllers.ControllerFrame) returns (stream modlock.wasm.controllers.ControllerWant);
+}

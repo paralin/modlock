@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aperturerobotics/starpc/srpc"
 	"github.com/paralin/modlock/src/host_app/control"
 	pb "github.com/paralin/modlock/src/wasm/controllers"
 )
@@ -110,5 +111,71 @@ func TestHubServeSendsChanges(t *testing.T) {
 	cancel()
 	if err := <-done; err != nil {
 		t.Fatal(err)
+	}
+}
+
+// guestFeed serves the ControllerFeed for one guest, as a server does with
+// the peer its transport authenticated.
+type guestFeed struct {
+	hub   *Hub
+	guest string
+}
+
+// Feed binds the stream to the guest.
+func (g guestFeed) Feed(strm SRPCControllerFeed_FeedStream) error {
+	return g.hub.ServeFeed(g.guest, strm)
+}
+
+// TestFeedCarriesAGuestsDevices runs FeedHost against a server's ServeFeed
+// with the virtual devices: nothing reaches the guest's slot until a mod
+// watches it, and then the first frame of the watch's epoch lists the
+// virtual gamepad.
+func TestFeedCarriesAGuestsDevices(t *testing.T) {
+	// A server whose slot 2 connects through the guest's forwarding socket.
+	openSDL(t)
+	t.Setenv(VirtualEnv, "1")
+	frames := make(chan *control.ControllerFrames, 256)
+	hub := NewHub(func(f *control.ControllerFrames) {
+		select {
+		case frames <- f:
+		default:
+		}
+	})
+	defer hub.Forward("guest", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 40002})()
+	hub.Joined(2, "127.0.0.1:40002")
+	mux := srpc.NewMux()
+	if err := SRPCRegisterControllerFeed(mux, guestFeed{hub: hub, guest: "guest"}); err != nil {
+		t.Fatal(err)
+	}
+	client := NewSRPCControllerFeedClient(srpc.NewClient(srpc.NewServerPipe(srpc.NewServer(mux))))
+
+	// The guest's client feeds while unwatched, and nothing arrives.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	go FeedHost(ctx, client)
+	select {
+	case f := <-frames:
+		t.Fatalf("frames before a watch: %v", f)
+	case <-time.After(300 * time.Millisecond):
+	}
+
+	// A watch of slot 2 brings its epoch's full frame with the gamepad.
+	hub.Wanted(&pb.ControllerWants{Wants: []*pb.ControllerWant{{Player: 2, Epoch: 5}}})
+	for {
+		select {
+		case f := <-frames:
+			first := f.GetFrames()[0]
+			if f.GetPlayer() != 2 || first.GetEpoch() != 5 || !first.GetFull() {
+				continue
+			}
+			for _, info := range first.GetAdded() {
+				if info.GetName() == "Modlock virtual gamepad" {
+					return
+				}
+			}
+			t.Fatalf("the full frame lists no virtual gamepad: %v", first)
+		case <-ctx.Done():
+			t.Fatal("no full frame for the watch")
+		}
 	}
 }

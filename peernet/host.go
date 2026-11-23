@@ -116,7 +116,7 @@ func (h *hosting) HandleDirective(_ context.Context, inst directive.Instance) ([
 		return nil, nil
 	}
 	switch d.HandleMountedStreamProtocolID() {
-	case GameProtocolID, SessionProtocolID:
+	case GameProtocolID, SessionProtocolID, controllers.FeedProtocolID:
 		return directive.Resolvers(directive.NewValueResolver([]link.MountedStreamHandler{h})), nil
 	default:
 		return nil, nil
@@ -128,8 +128,9 @@ func (h *hosting) HandleDirective(_ context.Context, inst directive.Instance) ([
 // session ends, closing any other stream. Each stream holds the guest's link
 // while it is served.
 func (h *hosting) HandleMountedStream(_ context.Context, mounted link.MountedStream) error {
-	// Serve a session call; the call checks the join code.
-	if mounted.GetProtocolID() == SessionProtocolID {
+	// Serve a session call, which checks the join code, or a controller feed,
+	// which feeds only the slot of the guest's own game stream.
+	if id := mounted.GetProtocolID(); id == SessionProtocolID || id == controllers.FeedProtocolID {
 		go func() {
 			defer h.holdLink(mounted.GetPeerID())()
 			h.sessions.HandleStream(withPeer(h.ctx, mounted.GetPeerID()), mounted.GetStream())
@@ -314,6 +315,9 @@ func (s *Service) newHosting(ctx context.Context, port int, guests *sessionServe
 	if err := SRPCRegisterSession(mux, guests); err != nil {
 		return nil, err
 	}
+	if err := controllers.SRPCRegisterControllerFeed(mux, &feedServer{hub: guests.controllers}); err != nil {
+		return nil, err
+	}
 	return &hosting{
 		ctx:         ctx,
 		bus:         s.node.GetBus(),
@@ -383,73 +387,6 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 			return nil
 		}
 	}
-}
-
-// Controllers takes the guest's controller frames for the slot its own game
-// connection holds, sending the mods' want for that slot as it changes, until
-// the guest or the session ends.
-func (s *sessionServer) Controllers(strm SRPCSession_ControllersStream) error {
-	// Bind the stream to the calling peer.
-	ctx := strm.Context()
-	guest := peerOf(ctx)
-	if guest == "" {
-		return errors.New("controllers come only over a guest's peer link")
-	}
-	feed := s.controllers.Open(guest.String())
-	defer feed.Close()
-
-	// Send the wants beside the frames.
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	go func() {
-		_ = feed.Serve(ctx, strm.Send)
-		cancel()
-	}()
-
-	// Pass each frame to the slot until the guest stops.
-	for {
-		frame, err := strm.Recv()
-		if err != nil {
-			if errors.Is(err, io.EOF) || ctx.Err() != nil {
-				return nil
-			}
-			return err
-		}
-		feed.Frame(frame)
-	}
-}
-
-// FeedHost streams this PC's controllers to the host for the player whose game
-// this peer carries, reading them only while the host's mods watch, until ctx
-// ends. A host that predates the stream, or one that drops it, leaves the
-// player with no controllers and the game playing on.
-func FeedHost(ctx context.Context, host SRPCSessionClient) {
-	// Open the stream; the host binds it to this peer's game connection.
-	strm, err := host.Controllers(ctx)
-	if err != nil {
-		return
-	}
-	defer strm.Close()
-
-	// Follow the host's want, keeping only the latest epoch.
-	wants := make(chan uint32, 1)
-	go func() {
-		defer close(wants)
-		for {
-			want, err := strm.Recv()
-			if err != nil {
-				return
-			}
-			select {
-			case <-wants:
-			default:
-			}
-			wants <- want.GetEpoch()
-		}
-	}()
-
-	// Read the devices while wanted.
-	_ = controllers.Serve(ctx, nil, wants, strm.Send)
 }
 
 // feedLocal feeds the host's own player from this PC's controllers while the
@@ -585,7 +522,7 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 	// Feed the player's controllers while the host's mods watch them.
 	feed, stopFeed := context.WithCancel(ctx)
 	defer stopFeed()
-	go FeedHost(feed, host)
+	go controllers.FeedHost(feed, controllers.NewSRPCControllerFeedClient(srpc.NewClient(stream_srpc.NewOpenStreamFunc(s.node.GetBus(), controllers.FeedProtocolID, s.local, code.Host, 0))))
 
 	// Report the game's arrival, then hold until it leaves.
 	select {
