@@ -32,6 +32,8 @@ import {
   show,
   showChatLines,
   uiSound,
+  useDenseUiRecords,
+  type Style,
 } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
 import { keepPlayers } from '../src/players.js'
@@ -424,6 +426,82 @@ test("a style names the game's faces, edges, paint and motion on the wire", () =
   )
   expect(leave!.disabled).toBe(true)
   expect(leave!.hover).toBeUndefined()
+})
+
+test('sparse and dense records send the same bytes', () => {
+  // Every style field set, on a node with every common field, plus a bad color.
+  const style: Style = {
+    width: 120,
+    height: 'fit',
+    minWidth: '10%',
+    maxWidth: 'fill',
+    minHeight: 4,
+    maxHeight: 400,
+    x: 3,
+    y: -2,
+    flow: 'down',
+    horizontalAlign: 'center',
+    verticalAlign: 'bottom',
+    textAlign: 'right',
+    margin: [1, 2],
+    padding: 4,
+    background: '#102030',
+    color: '#ffffff80',
+    borderColor: 'nope',
+    fontSize: 18,
+    bold: true,
+    borderRadius: 6,
+    opacity: 0.5,
+    face: 'block',
+    uppercase: true,
+    letterSpacing: 1,
+    shadow: true,
+    borderWidth: 2,
+    zIndex: 3,
+    overflow: 'scroll',
+    overflowY: 'clip',
+    gradient: { shape: 'right', colors: ['#000000', '#ffffff'] },
+    boxShadow: { x: 1, y: 2, blur: 3, color: '#000000' },
+    textShadow: { blur: 2, color: '#112233' },
+    tint: '#ff0000',
+    saturation: 1.2,
+    brightness: 0.9,
+    contrast: 1.1,
+    blur: 1,
+    italic: true,
+    weight: 'semiBold',
+    lineHeight: 1.4,
+    noWrap: true,
+    textOverflow: 'ellipsis',
+    decoration: 'underline',
+    translate: [1, 2],
+    scale: 2,
+    rotate: 15,
+    origin: [0.5, 0.5],
+    turn: 90,
+    transition: { seconds: 0.2, easing: 'inOut', curve: [0, 0, 1, 1] },
+  }
+  const tree = () =>
+    jsx('button', {
+      style,
+      hover: { background: '#304050' },
+      enter: { opacity: 0 },
+      exit: { opacity: 0 },
+      tooltip: 'tip',
+      hoverSound: 'UI.MainMenu.Hover',
+      class: 'a b',
+      hideInChat: true,
+      children: [jsx('label', { style: {}, children: 'x' }), 'y'],
+    })
+
+  // Each form draws a fresh player's screen; only the slot may differ.
+  const drawn = (slot: number, dense: boolean) => {
+    useDenseUiRecords(dense)
+    show(new Player(slot), tree())
+    useDenseUiRecords(false)
+    return UiRequest.toBinary({ ...sent.at(-1)!, player: 0 })
+  }
+  expect(drawn(20, false)).toEqual(drawn(21, true))
 })
 
 test('inputs carry their values and hand changes to the mod', () => {
