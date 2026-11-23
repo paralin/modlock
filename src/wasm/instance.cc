@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstring>
 #include <format>
+#include <future>
 #include <utility>
 #include <variant>
 
@@ -176,6 +177,9 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
   }
   busy_ = false;
   FinishSamples();
+  if (!sample_flag_ && limits_.sample_after > limits_.sample_after.zero()) {
+    PrepareSampler();
+  }
   return {};
 }
 
@@ -289,7 +293,10 @@ wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmti
 }
 
 void Instance::SetBudget(std::string call, std::chrono::milliseconds limit) {
-  budget_ = {.call = std::move(call), .limit = limit, .began = ThreadTime()};
+  budget_ = {.call = std::move(call),
+             .limit = limit,
+             .began = ThreadTime(),
+             .started = std::chrono::steady_clock::now()};
   sampled_ = false;
   guest_.reset();
   last_sample_ = budget_.began;
@@ -299,6 +306,11 @@ void Instance::SetBudget(std::string call, std::chrono::milliseconds limit) {
 
 std::chrono::nanoseconds Instance::Left() const {
   return budget_.limit - (ThreadTime() - budget_.began);
+}
+
+std::chrono::nanoseconds Instance::Ran() const {
+  return std::min<std::chrono::nanoseconds>(ThreadTime() - budget_.began,
+                                            std::chrono::steady_clock::now() - budget_.started);
 }
 
 uint64_t Instance::Ticks(std::chrono::nanoseconds left) {
@@ -315,7 +327,7 @@ uint64_t Instance::NextTicks() const {
   if (limits_.sample_after <= limits_.sample_after.zero()) {
     return ticks;
   }
-  const auto until = limits_.sample_after - (ThreadTime() - budget_.began);
+  const auto until = limits_.sample_after - Ran();
   return std::min(ticks, std::max<uint64_t>(Ticks(until), 1));
 }
 
@@ -324,9 +336,7 @@ void Instance::ArmDeadline() {
 }
 
 void Instance::Sample(wasmtime::Store::Context context) {
-  const auto now = ThreadTime();
-  if (limits_.sample_after <= limits_.sample_after.zero() ||
-      now - budget_.began < limits_.sample_after) {
+  if (limits_.sample_after <= limits_.sample_after.zero() || Ran() < limits_.sample_after) {
     return;
   }
   sampled_ = true;
@@ -340,12 +350,23 @@ void Instance::Sample(wasmtime::Store::Context context) {
     return;
   }
 
-  // Record the Wasm stack of any other module.
+  // Record the Wasm stack of any other module, once its sampler is built.
   if (!guest_) {
-    guest_ = std::make_unique<GuestSampler>(runtime_.Engine(), *module_);
+    if (!spare_.valid() || spare_.wait_for(std::chrono::seconds{0}) != std::future_status::ready) {
+      return;
+    }
+    guest_ = spare_.get();
+    PrepareSampler();
   }
+  const auto now = ThreadTime();
   guest_->Sample(store_, now - last_sample_);
   last_sample_ = now;
+}
+
+void Instance::PrepareSampler() {
+  spare_ = std::async(std::launch::async, [engine = runtime_.Engine(), module = module_] {
+    return std::make_unique<GuestSampler>(engine, *module);
+  });
 }
 
 void Instance::FinishSamples() {
