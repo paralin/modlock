@@ -537,135 +537,91 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ModlockConfig.cmake
 if(BUILD_TESTING)
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
-  add_executable(modifier_states_test tests/modifier_states_test.cc)
-  target_link_libraries(modifier_states_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME modifier_states_test COMMAND modifier_states_test)
-  add_executable(camera_path_test tests/camera_path_test.cc)
-  target_link_libraries(camera_path_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME camera_path_test COMMAND camera_path_test)
-  add_executable(ability_charge_limit_test tests/ability_charge_limit_test.cc)
-  target_link_libraries(ability_charge_limit_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME ability_charge_limit_test COMMAND ability_charge_limit_test)
-  add_executable(ability_definitions_test tests/ability_definitions_test.cc)
-  target_link_libraries(ability_definitions_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME ability_definitions_test COMMAND ability_definitions_test)
-  add_executable(ability_modifier_test tests/ability_modifier_test.cc)
-  target_include_directories(ability_modifier_test PRIVATE src)
-  target_link_libraries(ability_modifier_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME ability_modifier_test COMMAND ability_modifier_test)
-  add_executable(ability_input_hook_test tests/ability_input_hook_test.cc)
-  target_link_libraries(ability_input_hook_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME ability_input_hook_test COMMAND ability_input_hook_test)
-  add_executable(combat_events_test tests/combat_events_test.cc)
-  target_link_libraries(combat_events_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME combat_events_test COMMAND combat_events_test)
-  add_executable(console_lines_test tests/console_lines_test.cc src/wasm/console_lines.cc
-    src/wasm/entity_rules.cc)
-  target_include_directories(console_lines_test PRIVATE src)
-  target_link_libraries(console_lines_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME console_lines_test COMMAND console_lines_test)
-  add_executable(entity_rules_test tests/entity_rules_test.cc src/wasm/entity_rules.cc)
-  target_include_directories(entity_rules_test PRIVATE src)
-  target_link_libraries(entity_rules_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME entity_rules_test COMMAND entity_rules_test)
-  add_executable(precache_list_test tests/precache_list_test.cc)
-  target_link_libraries(precache_list_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME precache_list_test COMMAND precache_list_test)
-  add_executable(console_variables_test tests/console_variables_test.cc)
-  target_link_libraries(console_variables_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME console_variables_test COMMAND console_variables_test)
-  add_executable(engine_server_test tests/engine_server_test.cc)
-  target_link_libraries(engine_server_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME engine_server_test COMMAND engine_server_test)
-  add_executable(gameinterop_connection_tracker_test tests/gameinterop_connection_tracker_test.cc)
-  target_link_libraries(gameinterop_connection_tracker_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_connection_tracker_test COMMAND gameinterop_connection_tracker_test)
-  add_executable(gameinterop_frame_hook_test tests/gameinterop_frame_hook_test.cc)
-  target_link_libraries(gameinterop_frame_hook_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_frame_hook_test COMMAND gameinterop_frame_hook_test)
+  include(GoogleTest)
 
-  add_executable(gameinterop_transmit_hook_test tests/gameinterop_transmit_hook_test.cc)
-  target_link_libraries(gameinterop_transmit_hook_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_transmit_hook_test COMMAND gameinterop_transmit_hook_test)
-
-  add_executable(gameinterop_ability_owner_guard_test tests/gameinterop_ability_owner_guard_test.cc)
-  target_link_libraries(gameinterop_ability_owner_guard_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_ability_owner_guard_test COMMAND gameinterop_ability_owner_guard_test)
-  add_executable(gameinterop_frame_timing_test tests/gameinterop_frame_timing_test.cc)
-  target_link_libraries(gameinterop_frame_timing_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_frame_timing_test COMMAND gameinterop_frame_timing_test)
-  add_executable(gameinterop_hero_definitions_test tests/gameinterop_hero_definitions_test.cc)
-  target_link_libraries(gameinterop_hero_definitions_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_hero_definitions_test COMMAND gameinterop_hero_definitions_test)
-  add_executable(gameinterop_hero_initialization_test tests/gameinterop_hero_initialization_test.cc)
-  target_link_libraries(gameinterop_hero_initialization_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_hero_initialization_test COMMAND gameinterop_hero_initialization_test)
-  add_executable(gameinterop_keyvalues_test tests/gameinterop_keyvalues_test.cc)
-  target_link_libraries(gameinterop_keyvalues_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_keyvalues_test COMMAND gameinterop_keyvalues_test)
-  add_executable(gameinterop_resource_service_test tests/gameinterop_resource_service_test.cc)
-  target_link_libraries(gameinterop_resource_service_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_resource_service_test COMMAND gameinterop_resource_service_test)
-  add_executable(gameinterop_schema_abi_test tests/gameinterop_schema_abi_test.cc tests/schema_enum_test.cc)
-  target_link_libraries(gameinterop_schema_abi_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_schema_abi_test COMMAND gameinterop_schema_abi_test)
-  add_executable(gameinterop_virtual_slots_test tests/gameinterop_virtual_slots_test.cc)
-  target_link_libraries(gameinterop_virtual_slots_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_virtual_slots_test COMMAND gameinterop_virtual_slots_test)
-  add_executable(gameinterop_signature_test tests/gameinterop_signature_test.cc)
-  target_link_libraries(gameinterop_signature_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_signature_test COMMAND gameinterop_signature_test)
-  add_executable(mapped_module_image_test tests/mapped_module_image_test.cc)
-  target_link_libraries(mapped_module_image_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME mapped_module_image_test COMMAND mapped_module_image_test)
-  add_executable(game_symbols_test tests/game_symbols_test.cc)
-  target_link_libraries(game_symbols_test PRIVATE modlock::sdk gtest_main)
-  target_compile_definitions(game_symbols_test PRIVATE
+  # The tests build into two executables, so a change to the SDK relinks two
+  # binaries rather than one per test file. CTest still runs each case in its
+  # own process, so no case sees another's process state, and a case keeps its
+  # Suite.Name for --gtest_filter. Discovery runs when the tests do, so a
+  # cross-compiled build still builds. Every test file keeps its helpers in an
+  # anonymous namespace, since all of them now share one program.
+  #
+  # modlock_tests holds the cases that need only the SDK and the host sources
+  # they test.
+  add_executable(modlock_tests
+    tests/ability_charge_limit_test.cc
+    tests/ability_definitions_test.cc
+    tests/ability_input_hook_test.cc
+    tests/ability_modifier_test.cc
+    tests/callbacks_test.cc
+    tests/camera_path_test.cc
+    tests/combat_events_test.cc
+    tests/console_lines_test.cc
+    tests/console_variables_test.cc
+    tests/engine_server_test.cc
+    tests/entity_rules_test.cc
+    tests/game_symbols_test.cc
+    tests/gameinterop_ability_owner_guard_test.cc
+    tests/gameinterop_connection_tracker_test.cc
+    tests/gameinterop_frame_hook_test.cc
+    tests/gameinterop_frame_timing_test.cc
+    tests/gameinterop_hero_definitions_test.cc
+    tests/gameinterop_hero_initialization_test.cc
+    tests/gameinterop_keyvalues_test.cc
+    tests/gameinterop_resource_service_test.cc
+    tests/gameinterop_schema_abi_test.cc
+    tests/gameinterop_signature_test.cc
+    tests/gameinterop_teleport_test.cc
+    tests/gameinterop_thunk_owner_test.cc
+    tests/gameinterop_transmit_hook_test.cc
+    tests/gameinterop_virtual_slots_test.cc
+    tests/gameinterop_world_entities_test.cc
+    tests/mapped_module_image_test.cc
+    tests/modifier_states_test.cc
+    tests/native_chat_hook_test.cc
+    tests/native_ping_filter_test.cc
+    tests/net_listen_boot_test.cc
+    tests/pawn_observer_ability_test.cc
+    tests/pawn_observer_selection_test.cc
+    tests/pawn_observer_test.cc
+    tests/plugin_host_test.cc
+    tests/precache_list_test.cc
+    tests/preparation_movement_test.cc
+    tests/quake_movement_test.cc
+    tests/schema_enum_test.cc
+    tests/setpawn_observe_test.cc
+    tests/stdio_guard_test.cc
+    tests/team_seating_test.cc
+    tests/wasm_definition_changes_test.cc
+    tests/wasm_definition_text_fields_test.cc
+    tests/wasm_files_test.cc
+    tests/wasm_hero_picks_test.cc
+    tests/wasm_hero_restore_test.cc
+    tests/wasm_metrics_test.cc
+    tests/wasm_npc_restore_test.cc
+    tests/wasm_settings_test.cc
+    tests/wasm_ui_test.cc
+    tests/world_effect_game_factory_test.cc
+    tests/world_text_game_factory_test.cc
+    src/wasm/console_lines.cc
+    src/wasm/definition_changes.cc
+    src/wasm/entity_rules.cc
+    src/wasm/files.cc
+    src/wasm/hero_restore.cc
+    src/wasm/metrics.cc
+    src/wasm/npc_restore.cc
+    src/wasm/settings.cc
+    src/wasm/ui.cc
+    ${modlock_quake_sources})
+  target_include_directories(modlock_tests PRIVATE src)
+  target_compile_definitions(modlock_tests PRIVATE
     MODLOCK_GAME_SIGNATURES_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/game_signatures.txtpb")
-  add_test(NAME game_symbols_test COMMAND game_symbols_test)
-  add_executable(gameinterop_world_entities_test tests/gameinterop_world_entities_test.cc)
-  target_link_libraries(gameinterop_world_entities_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_world_entities_test COMMAND gameinterop_world_entities_test)
-  add_executable(gameinterop_teleport_test tests/gameinterop_teleport_test.cc)
-  target_link_libraries(gameinterop_teleport_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_teleport_test COMMAND gameinterop_teleport_test)
-  add_executable(gameinterop_thunk_owner_test tests/gameinterop_thunk_owner_test.cc)
-  target_link_libraries(gameinterop_thunk_owner_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME gameinterop_thunk_owner_test COMMAND gameinterop_thunk_owner_test)
-  add_executable(native_chat_hook_test tests/native_chat_hook_test.cc)
-  target_link_libraries(native_chat_hook_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME native_chat_hook_test COMMAND native_chat_hook_test)
-  add_executable(native_ping_filter_test tests/native_ping_filter_test.cc)
-  target_link_libraries(native_ping_filter_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME native_ping_filter_test COMMAND native_ping_filter_test)
-  add_executable(net_listen_boot_test tests/net_listen_boot_test.cc)
-  target_link_libraries(net_listen_boot_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME net_listen_boot_test COMMAND net_listen_boot_test)
-  add_executable(
-    pawn_observer_test tests/pawn_observer_test.cc tests/pawn_observer_ability_test.cc
-    tests/pawn_observer_selection_test.cc tests/preparation_movement_test.cc)
-  target_link_libraries(pawn_observer_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME pawn_observer_test COMMAND pawn_observer_test)
-  add_executable(callbacks_test tests/callbacks_test.cc)
-  target_include_directories(callbacks_test PRIVATE src)
-  target_link_libraries(callbacks_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME callbacks_test COMMAND callbacks_test)
-  add_executable(plugin_host_test tests/plugin_host_test.cc)
-  target_link_libraries(plugin_host_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME plugin_host_test COMMAND plugin_host_test)
-  add_executable(setpawn_observe_test tests/setpawn_observe_test.cc)
-  target_link_libraries(setpawn_observe_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME setpawn_observe_test COMMAND setpawn_observe_test)
-  add_executable(quake_movement_test tests/quake_movement_test.cc ${modlock_quake_sources})
-  target_include_directories(quake_movement_test PRIVATE src)
-  target_link_libraries(quake_movement_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME quake_movement_test COMMAND quake_movement_test)
-  add_executable(stdio_guard_test tests/stdio_guard_test.cc)
-  target_link_libraries(stdio_guard_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME stdio_guard_test COMMAND stdio_guard_test)
-  add_executable(world_effect_game_factory_test tests/world_effect_game_factory_test.cc)
-  target_link_libraries(world_effect_game_factory_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME world_effect_game_factory_test COMMAND world_effect_game_factory_test)
+  target_link_libraries(modlock_tests PRIVATE modlock::sdk gtest_main)
+  gtest_discover_tests(modlock_tests DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 60)
+
+  # modlock_mod_tests holds the cases that run built mods: the Go example and
+  # the Luau and Python examples on their runtimes, and a Go mod that serves
+  # and calls extension services, against the host and its fixtures.
   # wasm_instance_test runs the Go example mod, so it builds it with Go, and
   # the Luau example on the Luau runtime.
   set(hello_go_wasm ${CMAKE_CURRENT_BINARY_DIR}/hello-go.wasm)
@@ -676,23 +632,6 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${hello_go_sources} go.mod)
   add_custom_target(hello_go_wasm DEPENDS ${hello_go_wasm})
-  add_executable(wasm_instance_test tests/wasm_instance_test.cc src/wasm/instance.cc
-    src/wasm/stack_samples.cc src/wasm/runtime.cc)
-  add_dependencies(wasm_instance_test hello_go_wasm luau_runtime python_runtime quickjs_runtime)
-  target_include_directories(wasm_instance_test PRIVATE src)
-  target_compile_definitions(wasm_instance_test PRIVATE HELLO_GO_WASM="${hello_go_wasm}"
-    LUAU_WASM="${luau_wasm}" QUICKJS_WASM="${quickjs_wasm}"
-    HELLO_LUAU_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-luau/main.luau"
-    LUAU_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/luau/modlock" PYTHON_WASM="${python_wasm}"
-    HELLO_PYTHON_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-python/main.py"
-    PYTHON_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/python/modlock")
-  target_link_libraries(wasm_instance_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
-  add_test(NAME wasm_instance_test COMMAND wasm_instance_test)
-  add_executable(team_seating_test tests/team_seating_test.cc)
-  target_include_directories(team_seating_test PRIVATE src)
-  target_link_libraries(team_seating_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME team_seating_test COMMAND team_seating_test)
-
   # wasm_host_test runs a Go mod that serves and calls extension services.
   set(extension_go_wasm ${CMAKE_CURRENT_BINARY_DIR}/extension-go.wasm)
   file(GLOB_RECURSE extension_go_sources CONFIGURE_DEPENDS mod/*.go tests/wasm/extension-go/*.go
@@ -703,65 +642,32 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${extension_go_sources} go.mod)
   add_custom_target(extension_go_wasm DEPENDS ${extension_go_wasm})
-  add_executable(wasm_host_test tests/wasm_host_test.cc src/wasm/player_scope.cc
-    src/wasm/attendance.cc src/wasm/controller_table.cc)
-  add_dependencies(wasm_host_test extension_go_wasm)
-  target_include_directories(wasm_host_test PRIVATE src)
-  target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
-  target_link_libraries(wasm_host_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_host_test COMMAND wasm_host_test)
-  # host_fixtures_test runs the same mod against needed services and the
-  # host's fixtures, and its forwarded calls over the control link.
-  add_executable(host_fixtures_test tests/host_fixtures_test.cc src/host_app/fixtures.cc
+  add_executable(modlock_mod_tests
+    tests/host_fixtures_test.cc
+    tests/wasm_host_test.cc
+    tests/wasm_instance_test.cc
+    src/host_app/control/control.pb.cc
     src/host_app/control_link.cc
-    src/host_app/control/control.pb.cc)
-  add_dependencies(host_fixtures_test extension_go_wasm)
-  target_include_directories(host_fixtures_test PRIVATE src)
-  target_compile_definitions(host_fixtures_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
-  target_link_libraries(host_fixtures_test PRIVATE modlock::sdk gtest_main)
+    src/host_app/fixtures.cc
+    src/wasm/attendance.cc
+    src/wasm/controller_table.cc
+    src/wasm/instance.cc
+    src/wasm/player_scope.cc
+    src/wasm/runtime.cc
+    src/wasm/stack_samples.cc)
+  add_dependencies(modlock_mod_tests hello_go_wasm extension_go_wasm luau_runtime python_runtime
+    quickjs_runtime)
+  target_include_directories(modlock_mod_tests PRIVATE src)
+  target_compile_definitions(modlock_mod_tests PRIVATE HELLO_GO_WASM="${hello_go_wasm}"
+    EXTENSION_GO_WASM="${extension_go_wasm}" LUAU_WASM="${luau_wasm}"
+    QUICKJS_WASM="${quickjs_wasm}"
+    HELLO_LUAU_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-luau/main.luau"
+    LUAU_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/luau/modlock" PYTHON_WASM="${python_wasm}"
+    HELLO_PYTHON_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-python/main.py"
+    PYTHON_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/python/modlock")
+  target_link_libraries(modlock_mod_tests PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   if(WIN32)
-    target_link_libraries(host_fixtures_test PRIVATE ws2_32)
+    target_link_libraries(modlock_mod_tests PRIVATE ws2_32)
   endif()
-  add_test(NAME host_fixtures_test COMMAND host_fixtures_test)
-  add_executable(wasm_ui_test tests/wasm_ui_test.cc src/wasm/ui.cc)
-  target_include_directories(wasm_ui_test PRIVATE src)
-  target_link_libraries(wasm_ui_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_ui_test COMMAND wasm_ui_test)
-  add_executable(wasm_settings_test tests/wasm_settings_test.cc src/wasm/settings.cc)
-  target_include_directories(wasm_settings_test PRIVATE src)
-  target_link_libraries(wasm_settings_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_settings_test COMMAND wasm_settings_test)
-  add_executable(wasm_definition_text_fields_test tests/wasm_definition_text_fields_test.cc
-    src/wasm/definition_changes.cc src/wasm/entity_rules.cc)
-  target_include_directories(wasm_definition_text_fields_test PRIVATE src)
-  target_link_libraries(wasm_definition_text_fields_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_definition_text_fields_test COMMAND wasm_definition_text_fields_test)
-  add_executable(wasm_files_test tests/wasm_files_test.cc src/wasm/files.cc)
-  target_include_directories(wasm_files_test PRIVATE src)
-  target_link_libraries(wasm_files_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_files_test COMMAND wasm_files_test)
-  add_executable(wasm_metrics_test tests/wasm_metrics_test.cc src/wasm/metrics.cc)
-  target_include_directories(wasm_metrics_test PRIVATE src)
-  target_link_libraries(wasm_metrics_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_metrics_test COMMAND wasm_metrics_test)
-  add_executable(wasm_hero_restore_test tests/wasm_hero_restore_test.cc src/wasm/hero_restore.cc)
-  target_include_directories(wasm_hero_restore_test PRIVATE src)
-  target_link_libraries(wasm_hero_restore_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_hero_restore_test COMMAND wasm_hero_restore_test)
-  add_executable(wasm_hero_picks_test tests/wasm_hero_picks_test.cc)
-  target_include_directories(wasm_hero_picks_test PRIVATE src)
-  target_link_libraries(wasm_hero_picks_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_hero_picks_test COMMAND wasm_hero_picks_test)
-  add_executable(wasm_npc_restore_test tests/wasm_npc_restore_test.cc src/wasm/npc_restore.cc)
-  target_include_directories(wasm_npc_restore_test PRIVATE src)
-  target_link_libraries(wasm_npc_restore_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_npc_restore_test COMMAND wasm_npc_restore_test)
-  add_executable(wasm_definition_changes_test tests/wasm_definition_changes_test.cc
-    src/wasm/definition_changes.cc src/wasm/entity_rules.cc)
-  target_include_directories(wasm_definition_changes_test PRIVATE src)
-  target_link_libraries(wasm_definition_changes_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME wasm_definition_changes_test COMMAND wasm_definition_changes_test)
-  add_executable(world_text_game_factory_test tests/world_text_game_factory_test.cc)
-  target_link_libraries(world_text_game_factory_test PRIVATE modlock::sdk gtest_main)
-  add_test(NAME world_text_game_factory_test COMMAND world_text_game_factory_test)
+  gtest_discover_tests(modlock_mod_tests DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 60)
 endif()

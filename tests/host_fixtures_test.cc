@@ -47,11 +47,14 @@ class Failures final : public WasmHostObserver {
   std::vector<std::string> seen;
 };
 
-// Build stages the test mod under a mod.json that names services.
+// Build stages the test mod under a mod.json that names services, in a
+// directory named for the running test, since tests run in parallel.
 class Build {
  public:
   explicit Build(std::string_view services)
-      : root_(std::filesystem::temp_directory_path() / "modlock-host-fixtures-test") {
+      : root_(std::filesystem::temp_directory_path() /
+              (std::string("modlock-host-fixtures-") +
+               ::testing::UnitTest::GetInstance()->current_test_info()->name())) {
     std::filesystem::remove_all(root_);
     std::filesystem::create_directories(root_);
     std::filesystem::copy_file(EXTENSION_GO_WASM, root_ / "mod.wasm");

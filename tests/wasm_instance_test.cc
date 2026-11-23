@@ -9,6 +9,14 @@
 #include <thread>
 #include <vector>
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#else
+#include <time.h>
+#endif
+
 #include "gtest/gtest.h"
 #include "wasm/instance.h"
 
@@ -31,6 +39,24 @@ using modlock::wasm::effects::ChatRequest;
 using modlock::wasm::fields::FieldResponse;
 using modlock::wasm::fields::ReadFieldRequest;
 using modlock::wasm::fields::WriteFieldRequest;
+
+// ThreadTime returns the processor time the calling thread has used, the clock
+// the instance's budget counts. A test that must spend budget spins on it, since
+// a preempted thread spends none while the wall clock runs.
+std::chrono::nanoseconds ThreadTime() {
+#if defined(_WIN32)
+  FILETIME creation, exit, kernel, user;
+  GetThreadTimes(GetCurrentThread(), &creation, &exit, &kernel, &user);
+  auto hundreds = [](FILETIME time) {
+    return (uint64_t{time.dwHighDateTime} << 32) | time.dwLowDateTime;
+  };
+  return std::chrono::nanoseconds{(hundreds(kernel) + hundreds(user)) * 100};
+#else
+  timespec now{};
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &now);
+  return std::chrono::seconds{now.tv_sec} + std::chrono::nanoseconds{now.tv_nsec};
+#endif
+}
 
 // ReadFile returns the bytes of a built module.
 std::vector<uint8_t> ReadFile(const char* path) {
@@ -547,8 +573,8 @@ TEST(WasmInstance, SlowEventCountsHostCalls) {
   Limits limits;
   limits.slow_event = std::chrono::milliseconds{50};
   auto slow = [](const Call&) {
-    const auto until = std::chrono::steady_clock::now() + std::chrono::milliseconds{200};
-    while (std::chrono::steady_clock::now() < until) {
+    const auto until = ThreadTime() + std::chrono::milliseconds{200};
+    while (ThreadTime() < until) {
     }
     return Reply{};
   };

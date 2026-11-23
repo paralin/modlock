@@ -20,6 +20,17 @@ cmake --install build --prefix "$PWD/build/sdk"
 Protobuf and abseil take a long time to build. Use half the cores, as shown, so
 the build leaves the machine usable.
 
+The native tests build into two programs: `modlock_tests`, which needs only the
+SDK, and `modlock_mod_tests`, which runs built example mods and so needs Go and
+the mod runtimes. CTest runs each case in its own process. To run a few cases,
+select them by name:
+
+```sh
+cmake --build build --target modlock_tests
+ctest --test-dir build -R 'EntityRules\.'
+build/modlock_tests --gtest_filter='EntityRules.*'
+```
+
 CMake downloads the [Wasmtime C API](https://docs.wasmtime.dev/c-api/) release
 for the target platform. Pass `-DMODLOCK_WASMTIME_DIR=<extracted release>` to
 build offline. Install puts the Wasmtime library next to `modlock-host`, where
