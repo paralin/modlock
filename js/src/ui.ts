@@ -705,7 +705,11 @@ export function Fragment(props: { children?: Child }): Child {
 
 /**
  * show replaces the interface the mod shows player with root. A player who
- * left and a mod that restarted show nothing until the next call.
+ * left and a mod that restarted show nothing until the next call. An element
+ * shown again as the same object at the same place reuses what it laid out
+ * last time without laying it out again, so a mod may keep a subtree whose
+ * inputs have not changed and pass it again; an element's props must not
+ * change after it is shown.
  */
 export function show(player: Player, root: Child): boolean {
   views.set(player.slot, { ...view(player), root })
@@ -1358,8 +1362,26 @@ interface Part {
     string,
     { readonly handler: (player: Player, wheel: Wheel) => void }
   >
+  /**
+   * placed maps each element's place to the element drawn there and what it
+   * laid out, so the same element drawn there again reuses it.
+   */
+  readonly placed: Map<string, Placed>
   /** top lists the ids of the layer's outermost nodes, the root's children. */
   top: string[]
+}
+
+/** Placed is what one element laid out in a part. */
+interface Placed {
+  readonly element: UiElement
+  /** top lists the ids of the element's outermost nodes, as place returns. */
+  readonly top: string[]
+  /** places lists the places in the element's subtree that have an id. */
+  readonly places: string[]
+  /** nodes lists the ids of the nodes in the element's subtree. */
+  readonly nodes: string[]
+  /** elements lists the places of the elements in the subtree, itself last. */
+  readonly elements: string[]
 }
 
 /** Screen is what one player's interface holds: the root and its layers. */
@@ -1392,11 +1414,20 @@ class Layout {
   readonly part: Part
   private readonly previous: Part | undefined
   private readonly screen: Screen
+  // The logs list, in order, each place given an id, each node added and each
+  // element placed, so an element's subtree is the stretch its placing added.
+  private readonly placesLog: string[]
+  private readonly nodesLog: string[]
+  private readonly elementsLog: string[]
 
   /** The layout keeps previous's ids and numbers new nodes from screen's counter. */
   constructor(previous: Part | undefined, screen: Screen) {
+    // Start with empty logs and an empty part.
     this.previous = previous
     this.screen = screen
+    this.placesLog = []
+    this.nodesLog = []
+    this.elementsLog = []
     this.part = {
       nodes: new Map(),
       ids: new Map(),
@@ -1404,6 +1435,7 @@ class Layout {
       changes: new Map(),
       actions: new Map(),
       wheels: new Map(),
+      placed: new Map(),
       top: [],
     }
   }
@@ -1420,15 +1452,81 @@ class Layout {
         : { ...node, steamId: String(node.steamId) }
     const encoded = JSON.stringify(value)
     this.part.nodes.set(node.id!, { node, encoded })
+    this.nodesLog.push(node.id!)
+  }
+
+  /**
+   * reuse carries over what element laid out at place last time when the
+   * previous part drew the same element object there, and returns its top
+   * ids; otherwise it returns undefined. The copy touches each node of the
+   * subtree once and encodes none of them.
+   */
+  reuse(element: UiElement, place: string): string[] | undefined {
+    // Only the same element object at the same place is unchanged.
+    const previous = this.previous
+    const placed = previous?.placed.get(place)
+    if (!previous || placed?.element !== element) return undefined
+
+    // Carry over its ids, nodes with their handlers, and the elements in it.
+    const part = this.part
+    for (const at of placed.places) {
+      part.ids.set(at, previous.ids.get(at)!)
+      this.placesLog.push(at)
+    }
+    for (const id of placed.nodes) {
+      part.nodes.set(id, previous.nodes.get(id)!)
+      this.nodesLog.push(id)
+      const press = previous.presses.get(id)
+      if (press) part.presses.set(id, press)
+      const change = previous.changes.get(id)
+      if (change) part.changes.set(id, change)
+      const action = previous.actions.get(id)
+      if (action) part.actions.set(id, action)
+      const wheel = previous.wheels.get(id)
+      if (wheel) part.wheels.set(id, wheel)
+    }
+    for (const at of placed.elements) {
+      part.placed.set(at, previous.placed.get(at)!)
+      this.elementsLog.push(at)
+    }
+    return placed.top
+  }
+
+  /** mark notes where the logs end, before placing an element. */
+  mark(): [number, number, number] {
+    return [
+      this.placesLog.length,
+      this.nodesLog.length,
+      this.elementsLog.length,
+    ]
+  }
+
+  /** placed records that element, laid out at place since mark, made top. */
+  placed(
+    element: UiElement,
+    place: string,
+    mark: [number, number, number],
+    top: string[],
+  ): void {
+    this.elementsLog.push(place)
+    this.part.placed.set(place, {
+      element,
+      top,
+      places: this.placesLog.slice(mark[0]),
+      nodes: this.nodesLog.slice(mark[1]),
+      elements: this.elementsLog.slice(mark[2]),
+    })
   }
 
   /** id returns the node id for the element at place. */
   id(place: string): string {
+    // Keep the id the place had, or number a new node.
     let found = this.previous?.ids.get(place)
     if (found === undefined) {
       found = (this.screen.next++).toString(36)
     }
     this.part.ids.set(place, found)
+    this.placesLog.push(place)
     return found
   }
 }
@@ -1458,11 +1556,23 @@ function place(layout: Layout, child: Child, at: string): string[] {
     layout.add(node)
     return [node.id!]
   }
-  if (child.type === fragment) {
-    return place(layout, child.props.children, `${at}>`)
-  }
 
-  // Draw an intrinsic element.
+  // Reuse an element drawn there last time, or lay it out and note what it
+  // made.
+  const reused = layout.reuse(child, at)
+  if (reused) return reused
+  const mark = layout.mark()
+  const top =
+    child.type === fragment
+      ? place(layout, child.props.children, `${at}>`)
+      : intrinsic(layout, child, at)
+  layout.placed(child, at, mark, top)
+  return top
+}
+
+/** intrinsic lays out an intrinsic element at place in layout. */
+function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
+  // Build the node's common fields, then its kind's.
   const props = child.props
   const node: Node = {
     id: layout.id(at),
