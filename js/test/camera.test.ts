@@ -13,7 +13,11 @@ import {
   MoveEntityRequest,
   ShowEntityOnlyToRequest,
 } from '../../src/wasm/entities/entities.pb.js'
-import { WriteFieldRequest } from '../../src/wasm/fields/fields.pb.js'
+import {
+  FieldResponse,
+  ReadFieldRequest,
+  WriteFieldRequest,
+} from '../../src/wasm/fields/fields.pb.js'
 import {
   CameraOptions,
   PawnResponse,
@@ -36,6 +40,8 @@ let fail = ''
 let nextEntity = 100
 /** pawnEntity is the hero pawn handle Pawn returns; 0 simulates no hero. */
 let pawnEntity = 42
+/** pawnFlags is CBaseEntity.m_fFlags returned by ReadField in tests. */
+let pawnFlags = 0x41
 
 /** sent holds the calls the host received. */
 const sent: {
@@ -63,6 +69,13 @@ bind((bytes) => {
   if (method === 'CreateEntity') {
     return Reply.toBinary({
       response: EntityResponse.toBinary({ entity: nextEntity++ }),
+    })
+  }
+  if (method === 'ReadField') {
+    return Reply.toBinary({
+      response: FieldResponse.toBinary({
+        value: { value: { case: 'number', value: pawnFlags } },
+      }),
     })
   }
   if (method === 'FireInput' || method === 'RemoveEntity') {
@@ -273,6 +286,11 @@ test('entityCamera spawns isolated point_camera with roll and cleans up', () => 
     { player: 5, modifier: 'modifier_citadel_hideout_intro', active: true },
   ])
 
+  // Default (keepControls omitted) leaves CBaseEntity.m_fFlags untouched so
+  // cinematic cameras keep FL_ATCONTROLS.
+  expect(sent.filter((c) => c.method === 'ReadField')).toEqual([])
+  expect(sent.filter((c) => c.method === 'WriteField')).toEqual([])
+
   // move() sends full 3-axis roll and over-the-top pitch to both cameras while
   // pre_intro_camera is still alive, and setFov() updates CPointCamera.m_FOV.
   sent.length = 0
@@ -407,6 +425,62 @@ test('entityCamera spawns isolated point_camera with roll and cleans up', () => 
   ).toBeUndefined()
   expect(sent.filter((c) => c.method === 'RemoveEntity').length).toBe(2)
   fail = ''
+
+  // keepControls: true clears FL_ATCONTROLS (0x40) on CBaseEntity.m_fFlags
+  // while preserving other bits, and clears it again after a respawn.
+  pawnEntity = 77
+  pawnFlags = 0x41
+  sent.length = 0
+  const controlled = entityCamera(player, {
+    position: { x: 0, y: 0, z: 0 },
+    facing: { pitch: 0, yaw: 0, roll: 0 },
+    keepControls: true,
+  })!
+  expect(controlled).toBeDefined()
+  expect(
+    sent
+      .filter((c) => c.method === 'ReadField')
+      .map((c) => ReadFieldRequest.fromBinary(c.request)),
+  ).toEqual([{ entity: 77, className: 'CBaseEntity', field: 'm_fFlags', type: 7 }])
+  expect(
+    sent
+      .filter((c) => c.method === 'WriteField')
+      .map((c) => WriteFieldRequest.fromBinary(c.request)),
+  ).toEqual([
+    {
+      entity: 77,
+      className: 'CBaseEntity',
+      field: 'm_fFlags',
+      type: 7,
+      value: { value: { case: 'number', value: 0x01 } },
+    },
+  ])
+
+  // Steady-state move() on the same pawn does not re-read m_fFlags.
+  sent.length = 0
+  controlled.move({ x: 1, y: 2, z: 3 }, { pitch: 0, yaw: 0, roll: 0 })
+  expect(sent.filter((c) => c.method === 'ReadField')).toEqual([])
+  expect(sent.filter((c) => c.method === 'WriteField')).toEqual([])
+
+  // A respawn to a new pawn handle clears FL_ATCONTROLS on the new pawn.
+  pawnEntity = 88
+  pawnFlags = 0x45
+  sent.length = 0
+  controlled.move({ x: 4, y: 5, z: 6 }, { pitch: 0, yaw: 0, roll: 0 })
+  expect(
+    sent
+      .filter((c) => c.method === 'WriteField')
+      .map((c) => WriteFieldRequest.fromBinary(c.request)),
+  ).toEqual([
+    {
+      entity: 88,
+      className: 'CBaseEntity',
+      field: 'm_fFlags',
+      type: 7,
+      value: { value: { case: 'number', value: 0x05 } },
+    },
+  ])
+  controlled.stop()
 
   // Returns undefined when the player has no hero.
   pawnEntity = 0

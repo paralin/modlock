@@ -11,6 +11,9 @@ const (
 	cameraOverrideExitModifier = "modifier_citadel_hideout_intro_exit"
 	primaryCameraName          = "intro_camera"
 	preIntroCameraName         = "pre_intro_camera"
+	// flAtControls is bit 6 of CBaseEntity.m_fFlags, set by
+	// CCitadel_Modifier_HideoutIntro::OnCreated so SetupMove skips move axes.
+	flAtControls uint32 = 0x40
 )
 
 // EntityCameraSettleSeconds is how long an entity camera takes to settle
@@ -58,6 +61,10 @@ type EntityCameraOptions struct {
 	ZFar  float32
 	// Smooth skips the frame-1 pre_intro_camera so the game blends in over 0.5s.
 	Smooth bool
+	// KeepControls clears the FL_ATCONTROLS flag set by the stock camera-override
+	// modifier so analog movement axes (forward and left) keep reaching movement
+	// samples while the camera is open.
+	KeepControls bool
 }
 
 // EntityCamera drives one player's 6-DOF point_camera override while keeping
@@ -67,8 +74,10 @@ type EntityCamera struct {
 	entity    uint32
 	preEntity uint32
 	// heldPawn is the pawn holding the modifier itself, or 0 for a player hold.
-	heldPawn uint32
-	stopped  bool
+	heldPawn     uint32
+	keepControls bool
+	clearedPawn  uint32
+	stopped      bool
 }
 
 // Entity returns the player's primary point_camera entity handle.
@@ -117,11 +126,30 @@ func spawnPointCamera(slot int32, targetname string, opts EntityCameraOptions) (
 	return entity, nil
 }
 
+func clearAtControls(entity uint32) {
+	value, err := ReadField(entity, "CBaseEntity", "m_fFlags", FieldTypeUint32)
+	if err != nil {
+		return
+	}
+	n, ok := value.(float64)
+	if !ok {
+		return
+	}
+	flags := uint32(n)
+	if flags&flAtControls == 0 {
+		return
+	}
+	_ = WriteField(entity, "CBaseEntity", "m_fFlags", FieldTypeUint32, float64(flags&^flAtControls))
+}
+
 // OpenEntityCamera gives player's living hero a per-player 6-DOF point_camera
 // view that preserves full 360-degree roll and over-the-top pitch loops while
-// keeping the player on their living hero. The stock modifier freezes the
-// hero's movement and view input while the camera is open: commands still
-// carry buttons, but forward and left read 0 and the view angles stop.
+// keeping the player on their living hero. By default the stock modifier sets
+// FL_ATCONTROLS so movement axes (forward and left) read 0 while the camera is
+// open; set KeepControls to clear that flag so WASD and Steam Input left-stick
+// analog axes keep arriving. While CSimpleCamera is active the stock client
+// skips CCitadel_ThirdPersonCamera look polling, so mouse and right-stick look
+// do not update view angles.
 func OpenEntityCamera(player Player, opts EntityCameraOptions) (*EntityCamera, error) {
 	pawn, err := player.Pawn()
 	if err != nil {
@@ -159,13 +187,31 @@ func OpenEntityCamera(player Player, opts EntityCameraOptions) (*EntityCamera, e
 		}
 		heldPawn = pawn.GetEntity()
 	}
-	return &EntityCamera{player: player, entity: entity, preEntity: preEntity, heldPawn: heldPawn}, nil
+	var clearedPawn uint32
+	if opts.KeepControls {
+		clearAtControls(pawn.GetEntity())
+		clearedPawn = pawn.GetEntity()
+	}
+	return &EntityCamera{
+		player:       player,
+		entity:       entity,
+		preEntity:    preEntity,
+		heldPawn:     heldPawn,
+		keepControls: opts.KeepControls,
+		clearedPawn:  clearedPawn,
+	}, nil
 }
 
 // Move places the camera at position and facing, preserving full roll.
 func (c *EntityCamera) Move(position Vector, facing Angles) error {
 	if c.stopped {
 		return errors.New("entity camera is stopped")
+	}
+	if c.keepControls {
+		if pawn, err := c.player.Pawn(); err == nil && pawn.GetEntity() != 0 && pawn.GetEntity() != c.clearedPawn {
+			clearAtControls(pawn.GetEntity())
+			c.clearedPawn = pawn.GetEntity()
+		}
 	}
 	err := MoveEntity(c.entity, &position, &facing, nil)
 	if c.preEntity != 0 {
