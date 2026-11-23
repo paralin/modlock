@@ -19,7 +19,7 @@ void VacatedSeats::Vacate(int32_t slot, std::chrono::steady_clock::time_point no
 
 void VacatedSeats::Clear(std::chrono::steady_clock::time_point now) {
   // A hero stays blocked only while no new seat has taken its slot.
-  std::erase_if(laid_, [](const auto& entry) {
+  std::erase_if(killed_, [](const auto& entry) {
     return ConnectionTracker::SeatGeneration(entry.second.slot) != entry.second.seat;
   });
 
@@ -38,14 +38,14 @@ void VacatedSeats::Clear(std::chrono::steady_clock::time_point now) {
     }
     it = vacancies_.erase(it);
     if (const auto hero = ClearSlot(slot); hero && *hero != kInvalidEHandleIndex) {
-      laid_[*hero] = {.slot = slot, .seat = vacancy.seat};
+      killed_[*hero] = {.slot = slot, .seat = vacancy.seat};
     }
   }
 }
 
 bool VacatedSeats::Blocked(uint32_t pawn) const {
-  const auto found = laid_.find(pawn);
-  return found != laid_.end() &&
+  const auto found = killed_.find(pawn);
+  return found != killed_.end() &&
          ConnectionTracker::SeatGeneration(found->second.slot) == found->second.seat;
 }
 
@@ -108,14 +108,14 @@ std::optional<uint32_t> VacatedSeats::ClearSlot(int32_t slot) {
   // clients.
   uint32_t hero = kInvalidEHandleIndex;
   std::memcpy(&hero, static_cast<const unsigned char*>(controller) + hero_offset_, sizeof(hero));
-  const char* laid = "no hero";
+  const char* outcome = "no hero";
   if (void* pawn = EntityInstance(*system, hero)) {
     int32_t health = 0;
     std::memcpy(&health, static_cast<const unsigned char*>(pawn) + health_offset_, sizeof(health));
-    laid = "hero down";
+    outcome = "hero killed";
     if (health > 0) {
       if (auto killed = damage_->Kill(pawn); !killed) {
-        laid = "hero left standing";
+        outcome = "hero left standing";
         std::fprintf(stderr, "[modlock] seat %d hero kill failed: %s\n", slot,
                      killed.error().c_str());
       }
@@ -125,7 +125,7 @@ std::optional<uint32_t> VacatedSeats::ClearSlot(int32_t slot) {
   // Take the controller off its team, so the scoreboard stops listing it.
   WorldEntities world(*calls_);
   const auto moved = world.FireInput(*controller_handle, "ChangeTeam", EntityValue{0});
-  std::fprintf(stderr, "[modlock] seat %d vacated: %s, controller %s\n", slot, laid,
+  std::fprintf(stderr, "[modlock] seat %d vacated: %s, controller %s\n", slot, outcome,
                moved && *moved ? "off its team" : "kept its team");
   std::fflush(stderr);
   return hero;

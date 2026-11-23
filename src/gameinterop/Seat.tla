@@ -5,7 +5,7 @@
 \* hero back only to that player. So a disconnect makes the seat away, not
 \* gone. The seat ends only when Modlock releases the row: a kick, the lobby
 \* dropping the player, or the away window running out. Only then does a mod
-\* hear the leave and the seat's hero go down. A mod that lays down a held
+\* hear the leave and the seat's hero die. A mod that kills a held
 \* hero, or a leave fired at the disconnect, hands the returning player a dead
 \* seat, and the client drops the connection.
 EXTENDS Naturals
@@ -48,10 +48,10 @@ Disconnect == /\ row = "live" /\ row' = "held" /\ seat' = "away"
               /\ heard' = IF heard = "joined" THEN "away" ELSE heard
               /\ UNCHANGED <<owner, hero, listed, joins, leaves>>
 
-\* Leave is the seat ending: the mod hears it once and the hero goes down.
+\* Leave is the seat ending: the mod hears it once and the hero is killed.
 Leave == /\ seat' = "none" /\ owner' = "none" /\ row' = "free" /\ heard' = "none"
          /\ leaves' = IF heard = "none" THEN leaves ELSE leaves + 1
-         /\ hero' = (IF hero = "alive" THEN "laid" ELSE hero) /\ listed' = FALSE
+         /\ hero' = (IF hero = "alive" THEN "killed" ELSE hero) /\ listed' = FALSE
          /\ UNCHANGED joins
 
 \* Kick is Modlock's DisconnectClient on a live row: release, then disconnect.
@@ -60,8 +60,8 @@ Kick == row = "live" /\ Leave
 \* Release is Modlock's DisconnectClient on a held row, or the away window.
 Release == row = "held" /\ Leave
 
-\* Sweep is Strays laying down a hero that no seat holds.
-Sweep == /\ hero = "alive" /\ seat = "none" /\ hero' = "laid" /\ listed' = FALSE
+\* Sweep is Strays killing a hero that no seat holds.
+Sweep == /\ hero = "alive" /\ seat = "none" /\ hero' = "killed" /\ listed' = FALSE
          /\ UNCHANGED <<row, owner, seat, heard, joins, leaves>>
 
 Next == (\E p \in Players : Connect(p) \/ Return(p)) \/ Ready \/ Spawn
@@ -70,7 +70,7 @@ Spec == Init /\ [][Next]_vars
 
 \* HeldSeatIntact: a row the engine holds for its owner keeps a standing hero
 \* and a listed controller, so the returning player gets a live seat.
-HeldSeatIntact == row = "held" => hero # "laid" /\ listed
+HeldSeatIntact == row = "held" => hero # "killed" /\ listed
 \* OneLeavePerJoin: a mod hears each join's leave once, and only after it.
 OneLeavePerJoin == /\ leaves <= joins /\ joins <= leaves + 1
                    /\ (heard = "none" => joins = leaves)

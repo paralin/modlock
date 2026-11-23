@@ -40,7 +40,7 @@ class MODLOCK_API VacatedSeats {
   bool Blocked(uint32_t pawn) const;
 
   // Holding reports whether some cleared hero's respawn is blocked.
-  bool Holding() const { return !laid_.empty(); }
+  bool Holding() const { return !killed_.empty(); }
 
  private:
   // Vacancy is one ended seat: its slot's seat generation when it ended.
@@ -49,8 +49,8 @@ class MODLOCK_API VacatedSeats {
     std::chrono::steady_clock::time_point due;
   };
 
-  // Laid is a cleared seat's hero: its slot and seat generation.
-  struct Laid {
+  // Killed is a cleared seat's hero: its slot and seat generation.
+  struct Killed {
     int32_t slot = 0;
     uint64_t seat = 0;
   };
@@ -63,7 +63,7 @@ class MODLOCK_API VacatedSeats {
   std::expected<void, std::string> Resolve();
 
   std::map<int32_t, Vacancy> vacancies_;
-  std::map<uint32_t, Laid> laid_;
+  std::map<uint32_t, Killed> killed_;
   std::optional<MappedModuleImage> image_;
   std::optional<NativeDamage> damage_;
   std::optional<WorldEntities::Calls> calls_;

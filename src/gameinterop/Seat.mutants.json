@@ -10,7 +10,7 @@
     "expect": "AwayIsHeld"
   },
   {
-    "name": "Strays ignores away seats: it lays down a held hero",
+    "name": "Strays ignores away seats: it kills a held hero",
     "replace": [
       [
         "Sweep == /\\ hero = \"alive\" /\\ seat = \"none\"",
