@@ -145,6 +145,7 @@ func (h *hosting) HandleMountedStream(_ context.Context, mounted link.MountedStr
 	}
 	guest := mounted.GetPeerID().String()
 	go func() {
+		// Hold the peer's link while this game stream runs.
 		defer h.holdLink(mounted.GetPeerID())()
 
 		// Refuse a guest without the join code.
@@ -416,11 +417,11 @@ func (s *sessionServer) Controllers(strm SRPCSession_ControllersStream) error {
 	}
 }
 
-// feedHost streams this PC's controllers to the host for the player whose game
+// FeedHost streams this PC's controllers to the host for the player whose game
 // this peer carries, reading them only while the host's mods watch, until ctx
 // ends. A host that predates the stream, or one that drops it, leaves the
 // player with no controllers and the game playing on.
-func feedHost(ctx context.Context, host SRPCSessionClient) {
+func FeedHost(ctx context.Context, host SRPCSessionClient) {
 	// Open the stream; the host binds it to this peer's game connection.
 	strm, err := host.Controllers(ctx)
 	if err != nil {
@@ -582,7 +583,7 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 	// Feed the player's controllers while the host's mods watch them.
 	feed, stopFeed := context.WithCancel(ctx)
 	defer stopFeed()
-	go feedHost(feed, host)
+	go FeedHost(feed, host)
 
 	// Report the game's arrival, then hold until it leaves.
 	select {
