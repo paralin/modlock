@@ -5929,6 +5929,11 @@ class Buttons(enum.IntFlag):
     ABILITY3 = 1 << 35
     # ULTIMATE is the hero's ultimate ability key, the fourth.
     ULTIMATE = 1 << 36
+    # ITEM1 to ITEM4 are the hero's four active item keys.
+    ITEM1 = 1 << 37
+    ITEM2 = 1 << 38
+    ITEM3 = 1 << 39
+    ITEM4 = 1 << 40
     # PARRY is the melee parry button.
     PARRY = 1 << 42
     # SPEC_NEXT to SPEC_TOGGLE_TEAM are the buttons a player's client sends in
