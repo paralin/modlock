@@ -1,0 +1,41 @@
+[
+  {
+    "name": "The feeder trusts the slot a peer names: another peer's frames reach the mod",
+    "replace": [
+      ["PeerCarriesGame(p) == p = \"owner\"", "PeerCarriesGame(p) == TRUE"]
+    ],
+    "expect": "OwnerOnly"
+  },
+  {
+    "name": "The client reports buttons without focus: a stick stays held while the player looks away",
+    "replace": [["Report == held /\\ focus", "Report == held"]],
+    "expect": "UnfocusedIdle"
+  },
+  {
+    "name": "The host keeps only the latest frame's presses: a tap between server frames is lost",
+    "replace": [["pending' = pending + f.presses", "pending' = f.presses"]],
+    "expect": "PressesKept"
+  },
+  {
+    "name": "The client sends its full set only when it opens: a watch that ends and restarts before the relay never syncs",
+    "replace": [
+      [
+        "/\\ up /\\ want /\\ sentEpoch # wantEpoch /\\",
+        "/\\ up /\\ want /\\ ~open /\\"
+      ]
+    ],
+    "expect": "Recovers"
+  },
+  {
+    "name": "The client never closes on its own: devices stay open after the watch ends",
+    "replace": [["/\\ WF_vars(Close)", ""]],
+    "expect": "ClosesWithoutWatch"
+  },
+  {
+    "name": "A dropped link leaves the devices open",
+    "replace": [
+      ["open' = FALSE /\\ want' = FALSE", "open' = open /\\ want' = FALSE"]
+    ],
+    "expect": "OpenOnlyLinked"
+  }
+]
