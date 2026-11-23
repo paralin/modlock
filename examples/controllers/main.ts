@@ -3,7 +3,9 @@
 // devices and again to stop; while they watch, a panel lists each device with
 // its axes, held buttons, hats and gamepad sticks, and the state of the
 // stream that brings them. Their client opens the devices only while the
-// watch holds.
+// watch holds. A client started with MODLOCK_VIRTUAL_CONTROLLERS=1 adds
+// virtual devices, and the panel and the log then show the delay from the
+// client's read to the mod's frame.
 import {
   command,
   hide,
@@ -14,6 +16,7 @@ import {
   toast,
 } from 'modlock'
 
+import { report } from './clock'
 import { drawPanel } from './panel'
 
 /** watching holds the slot of each player who watches their controllers. */
@@ -58,4 +61,5 @@ onFrame((frame) => {
       drawPanel(connection.player, bySlot.get(connection.player.slot))
     }
   }
+  report()
 })

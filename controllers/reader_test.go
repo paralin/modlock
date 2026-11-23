@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"maps"
 	"runtime"
 	"slices"
 	"testing"
@@ -221,5 +222,46 @@ func TestRunFollowsHotplugAndStops(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("Run did not stop")
+	}
+}
+
+// TestRunStreamsVirtualDevices runs the reader with VirtualEnv set and
+// decodes the virtual gamepad's clock axis to within a few frames of now.
+func TestRunStreamsVirtualDevices(t *testing.T) {
+	lib := openSDL(t)
+	t.Setenv(VirtualEnv, "1")
+	r := &Reader{lib: lib, log: slog.Default()}
+	r.Want(1)
+
+	// Run the reader until the pad's clock axis has been read.
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	names := map[uint32]string{}
+	var skew time.Duration
+	decoded := false
+	err := r.Run(ctx, func(f *pb.ControllerFrame) error {
+		for _, info := range f.GetAdded() {
+			names[info.GetId()] = info.GetName()
+		}
+		for _, st := range f.GetChanged() {
+			if names[st.GetId()] != "Modlock virtual gamepad" || st.GetGamepad() == nil {
+				continue
+			}
+			// The axis is (t mod 2 s) / 1 s - 1.
+			now := time.Now()
+			read := (float64(st.GetGamepad().GetLeftX()) + 1) * float64(time.Second)
+			skew, decoded = (time.Duration(now.UnixNano()%int64(virtualPeriod)) - time.Duration(read) + virtualPeriod) % virtualPeriod, true
+			cancel()
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Contains(slices.Collect(maps.Values(names)), "Modlock virtual radio") || !decoded {
+		t.Fatalf("devices %v, skew %v", names, skew)
+	}
+	if skew > MinInterval {
+		t.Fatalf("clock axis is %v behind", skew)
 	}
 }

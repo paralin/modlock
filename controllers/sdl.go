@@ -106,11 +106,13 @@ type sdlLib struct {
 	// platform's file calls in its own way.
 	guid func(js uintptr) sdlGUID
 
-	// Virtual devices, for tests.
+	// Virtual devices, for tests and MODLOCK_VIRTUAL_CONTROLLERS.
 	AttachVirtualJoystick    func(desc *sdlVirtualJoystickDesc) uint32
 	DetachVirtualJoystick    func(id uint32) bool
 	SetJoystickVirtualAxis   func(js uintptr, axis int32, value int16) bool
 	SetJoystickVirtualButton func(js uintptr, button int32, down bool) bool
+	SetJoystickVirtualHat    func(js uintptr, hat int32, value uint8) bool
+	UpdateJoysticks          func()
 }
 
 // register resolves every function in lib from the library handle, and
@@ -150,6 +152,8 @@ func (lib *sdlLib) register(handle uintptr) {
 		{&lib.DetachVirtualJoystick, "SDL_DetachVirtualJoystick"},
 		{&lib.SetJoystickVirtualAxis, "SDL_SetJoystickVirtualAxis"},
 		{&lib.SetJoystickVirtualButton, "SDL_SetJoystickVirtualButton"},
+		{&lib.SetJoystickVirtualHat, "SDL_SetJoystickVirtualHat"},
+		{&lib.UpdateJoysticks, "SDL_UpdateJoysticks"},
 	} {
 		purego.RegisterLibFunc(fn.ptr, handle, fn.name)
 	}

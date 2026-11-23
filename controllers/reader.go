@@ -99,15 +99,38 @@ func (r *Reader) Run(ctx context.Context, send func(*pb.ControllerFrame) error) 
 		s.attach(id)
 	}
 
+	// Attach the virtual devices VirtualEnv asks for; they arrive as events.
+	var virtual *virtualDevices
+	if wantVirtual() {
+		var err error
+		if virtual, err = openVirtual(lib); err != nil {
+			return err
+		}
+		defer virtual.detach()
+	}
+
 	// Send each frame that is due, then wait for an event or the next one.
 	var ev sdlEvent
 	for ctx.Err() == nil {
+		if virtual != nil {
+			// Move the virtual inputs, and apply them before the frame reads.
+			virtual.set(time.Now())
+			lib.UpdateJoysticks()
+			for lib.PollEvent(&ev) {
+				s.event(&ev)
+			}
+		}
 		if frame := s.frame(r.epoch.Load(), time.Now()); frame != nil {
 			if err := send(frame); err != nil {
 				return err
 			}
 		}
-		if lib.WaitEventTimeout(&ev, s.wait(time.Now())) {
+		wait := s.wait(time.Now())
+		if virtual != nil {
+			// Wake at the frame rate to move the virtual inputs.
+			wait = min(wait, int32(MinInterval/time.Millisecond))
+		}
+		if lib.WaitEventTimeout(&ev, wait) {
 			s.event(&ev)
 			for lib.PollEvent(&ev) {
 				s.event(&ev)

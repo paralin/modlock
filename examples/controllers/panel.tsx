@@ -1,4 +1,5 @@
 // The panel lists one player's controllers as the server sees them.
+import { lag } from './clock'
 import {
   type Controller,
   type ControllerStream,
@@ -49,14 +50,15 @@ export function drawPanel(
         Controllers
       </label>
       <label style={{ color: streamColor[stream] }}>{streamText[stream]}</label>
-      {(entry?.controllers ?? []).map((c) => device(c))}
+      {(entry?.controllers ?? []).map((c) => device(player.slot, c))}
     </panel>,
   )
 }
 
 /** device lists one controller's inputs. */
-function device(c: Controller) {
+function device(slot: number, c: Controller) {
   const { info, state } = c
+  const delay = lag(slot, c)
   const held = state.buttons.flatMap((down, i) => (down ? [i] : []))
   return (
     <panel style={{ flow: 'down', margin: [8, 0, 0, 0] }}>
@@ -76,6 +78,7 @@ function device(c: Controller) {
             : ''}
         </label>
       ) : null}
+      {delay === undefined ? null : <label>Delay {delay.toFixed(1)} ms</label>}
     </panel>
   )
 }
