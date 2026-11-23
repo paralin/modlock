@@ -1946,6 +1946,28 @@ func (e CCitadelRankedBadgeProp) UnPackedRank() Number[uint8] {
 	return Number[uint8]{e.field("m_unPackedRank")}
 }
 
+type CCitadelRankedSeasonRewardProp CEntityInstance
+
+func (e CCitadelRankedSeasonRewardProp) field(name string) Field {
+	return Field{e.Handle, "CCitadelRankedSeasonRewardProp", name}
+}
+
+func (e CCitadelRankedSeasonRewardProp) UnAccountID() Number[uint32] {
+	return Number[uint32]{e.field("m_unAccountID")}
+}
+
+func (e CCitadelRankedSeasonRewardProp) ERankedType() Number[uint32] {
+	return Number[uint32]{e.field("m_eRankedType")}
+}
+
+func (e CCitadelRankedSeasonRewardProp) UnRankInterval() Number[uint8] {
+	return Number[uint8]{e.field("m_unRankInterval")}
+}
+
+func (e CCitadelRankedSeasonRewardProp) UnPackedRank() Number[uint8] {
+	return Number[uint8]{e.field("m_unPackedRank")}
+}
+
 type CCitadel_DynamicProp CEntityInstance
 
 func (e CCitadel_DynamicProp) field(name string) Field {

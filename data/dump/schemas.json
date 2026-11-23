@@ -1,5 +1,5 @@
 {
- "build": "6839",
+ "build": "6865",
  "classes": [
   {
    "name": "AnimationDecodeDebugDumpElement_t",
@@ -97522,7 +97522,7 @@
     {
      "name": "m_bIsCoolingDownInternal",
      "type": "bool",
-     "offset": 1500
+     "offset": 1501
     },
     {
      "name": "m_flCancelMashProtectionEndTime",
@@ -99662,6 +99662,43 @@
      "type": "float32",
      "offset": 2184
     }
+   ]
+  },
+  {
+   "name": "CCitadelHideoutOwnerRankedSeasonRewardProp",
+   "module": "server",
+   "size": 1280,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CBaseEntity",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_OnPropEnabled",
+     "type": "CEntityIOOutput",
+     "offset": 1216
+    },
+    {
+     "name": "m_OnPropDisabled",
+     "type": "CEntityIOOutput",
+     "offset": 1240
+    },
+    {
+     "name": "m_eRankedType",
+     "type": "ECitadelRankedType",
+     "offset": 1272
+    },
+    {
+     "name": "m_unRankInterval",
+     "type": "RankInterval_t",
+     "offset": 1276
+    }
+   ],
+   "metadata": [
+    "MEntityAllowsPortraitWorldSpawn"
    ]
   },
   {
@@ -103882,6 +103919,58 @@
      "name": "m_unPackedRank",
      "type": "PackedRank_t",
      "offset": 3488
+    }
+   ],
+   "metadata": [
+    "MEntityAllowsPortraitWorldSpawn"
+   ]
+  },
+  {
+   "name": "CCitadelRankedSeasonRewardProp",
+   "module": "server",
+   "size": 3568,
+   "alignment": 16,
+   "bases": [
+    {
+     "name": "CDynamicProp",
+     "module": "server"
+    },
+    {
+     "name": "IHideoutInteractable",
+     "module": "server",
+     "offset": 3488
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_OnPropEnabled",
+     "type": "CEntityIOOutput",
+     "offset": 3496
+    },
+    {
+     "name": "m_OnPropDisabled",
+     "type": "CEntityIOOutput",
+     "offset": 3520
+    },
+    {
+     "name": "m_unAccountID",
+     "type": "uint32",
+     "offset": 3544
+    },
+    {
+     "name": "m_eRankedType",
+     "type": "ECitadelRankedType",
+     "offset": 3548
+    },
+    {
+     "name": "m_unRankInterval",
+     "type": "RankInterval_t",
+     "offset": 3552
+    },
+    {
+     "name": "m_unPackedRank",
+     "type": "PackedRank_t",
+     "offset": 3553
     }
    ],
    "metadata": [
@@ -108387,7 +108476,7 @@
   {
    "name": "CCitadel_Ability_Artist_Tether",
    "module": "server",
-   "size": 7800,
+   "size": 7824,
    "alignment": 8,
    "bases": [
     {
@@ -117711,6 +117800,11 @@
      "name": "m_flWallTraceRadius",
      "type": "float32",
      "offset": 4760
+    },
+    {
+     "name": "m_flWallBackTraceDistance",
+     "type": "float32",
+     "offset": 4764
     }
    ],
    "metadata": [
@@ -123674,7 +123768,7 @@
   {
    "name": "CCitadel_Ability_Nurse_Fear_VData",
    "module": "server",
-   "size": 4920,
+   "size": 4928,
    "alignment": 8,
    "bases": [
     {
@@ -123725,9 +123819,14 @@
      "offset": 4528
     },
     {
+     "name": "m_flCastRangeVisualFixup",
+     "type": "float32",
+     "offset": 4752
+    },
+    {
      "name": "m_strChannelEndSound",
      "type": "CSoundEventName",
-     "offset": 4752,
+     "offset": 4760,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -123735,7 +123834,7 @@
     {
      "name": "m_bFireFakeBullets",
      "type": "bool",
-     "offset": 4768,
+     "offset": 4776,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -123743,17 +123842,17 @@
     {
      "name": "m_flFakeBulletsCycleTime",
      "type": "float32",
-     "offset": 4772
+     "offset": 4780
     },
     {
      "name": "m_flFakeBulletSpread",
      "type": "float32",
-     "offset": 4776
+     "offset": 4784
     },
     {
      "name": "m_LaunchHeightCurve",
      "type": "CPiecewiseCurve",
-     "offset": 4784,
+     "offset": 4792,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -123761,7 +123860,7 @@
     {
      "name": "m_flRecoilDistance",
      "type": "float32",
-     "offset": 4848,
+     "offset": 4856,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -123769,7 +123868,7 @@
     {
      "name": "m_flRecoilDuration",
      "type": "float32",
-     "offset": 4852,
+     "offset": 4860,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -123777,7 +123876,7 @@
     {
      "name": "m_RecoilDistanceCurve",
      "type": "CPiecewiseCurve",
-     "offset": 4856,
+     "offset": 4864,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -175289,12 +175388,12 @@
     {
      "name": "m_hPlayerOwner",
      "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 2936
+     "offset": 2932
     },
     {
      "name": "m_hPlayerVictim",
      "type": "CHandle\u003c CCitadelPlayerPawn \u003e",
-     "offset": 2940
+     "offset": 2936
     }
    ]
   },
@@ -197085,7 +197184,7 @@
   {
    "name": "CModifier_Healbane_Debuff",
    "module": "server",
-   "size": 512,
+   "size": 1040,
    "alignment": 255,
    "bases": [
     {
@@ -201797,7 +201896,7 @@
   {
    "name": "CNPC_Ratking_Rat",
    "module": "server",
-   "size": 22544,
+   "size": 21920,
    "alignment": 16,
    "bases": [
     {
@@ -201814,12 +201913,12 @@
     {
      "name": "m_vFlightVelocity",
      "type": "Vector",
-     "offset": 22520
+     "offset": 21896
     },
     {
      "name": "m_vRunDir",
      "type": "Vector",
-     "offset": 22532
+     "offset": 21908
     }
    ]
   },
@@ -212041,6 +212140,11 @@
      "name": "m_unBaseWinLossPointGrant",
      "type": "uint32",
      "offset": 224
+    },
+    {
+     "name": "m_unCalibrationMaxRank",
+     "type": "uint32",
+     "offset": 228
     },
     {
      "name": "m_vecRankInfo",
@@ -255219,8 +255323,16 @@
      "value": "121"
     },
     {
-     "name": "NUM_CLASSIFY_CLASSES",
+     "name": "CLASS_RANKED_SEASON_BADGE_PROP",
      "value": "122"
+    },
+    {
+     "name": "CLASS_HIDEOUT_OWNER_RANKED_SEASON_BADGE_PROP",
+     "value": "123"
+    },
+    {
+     "name": "NUM_CLASSIFY_CLASSES",
+     "value": "124"
     }
    ]
   },

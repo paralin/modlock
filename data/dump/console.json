@@ -1,5 +1,5 @@
 {
- "build": "6839",
+ "build": "6865",
  "variables": [
   {
    "name": "adsp_alley_min",
@@ -5964,6 +5964,15 @@
    ]
   },
   {
+   "name": "citadel_hideout_owner_ranked_season_reward_override",
+   "type": "CONSOLE_VARIABLE_TYPE_UINT8",
+   "default_value": "0",
+   "flags": [
+    "developmentonly",
+    "gamedll"
+   ]
+  },
+  {
    "name": "citadel_hideout_teleport_trigger_delay",
    "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
    "default_value": "3",
@@ -6658,7 +6667,17 @@
   {
    "name": "citadel_melee_hit_delay_max_time",
    "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
-   "default_value": "0.1",
+   "default_value": "0.16",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
+   ]
+  },
+  {
+   "name": "citadel_melee_lagcomp_debug",
+   "type": "CONSOLE_VARIABLE_TYPE_BOOL",
+   "default_value": "false",
    "flags": [
     "developmentonly",
     "gamedll",
@@ -23337,7 +23356,7 @@
    "name": "rate",
    "type": "CONSOLE_VARIABLE_TYPE_INT32",
    "default_value": "786432",
-   "min": "98304",
+   "min": "133120",
    "max": "1000000",
    "help": "Min bytes/sec the host can receive data",
    "flags": [
@@ -28258,7 +28277,7 @@
   {
    "name": "sv_minrate",
    "type": "CONSOLE_VARIABLE_TYPE_INT32",
-   "default_value": "98304",
+   "default_value": "133120",
    "min": "0",
    "max": "1000000",
    "help": "Min bandwidth rate allowed on server, 0 == unlimited",

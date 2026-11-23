@@ -4663,6 +4663,36 @@ export class CCitadelRankedBadgeProp extends CDynamicProp {
   }
 }
 
+export class CCitadelRankedSeasonRewardProp extends CDynamicProp {
+  get m_unAccountID(): number | undefined {
+    return readField(this.handle, 'CCitadelRankedSeasonRewardProp', 'm_unAccountID', 'uint32') as number | undefined
+  }
+  set m_unAccountID(value: number | undefined) {
+    put(this, 'CCitadelRankedSeasonRewardProp', 'm_unAccountID', 'uint32', value)
+  }
+
+  get m_eRankedType(): number | undefined {
+    return readField(this.handle, 'CCitadelRankedSeasonRewardProp', 'm_eRankedType', 'uint32') as number | undefined
+  }
+  set m_eRankedType(value: number | undefined) {
+    put(this, 'CCitadelRankedSeasonRewardProp', 'm_eRankedType', 'uint32', value)
+  }
+
+  get m_unRankInterval(): number | undefined {
+    return readField(this.handle, 'CCitadelRankedSeasonRewardProp', 'm_unRankInterval', 'uint8') as number | undefined
+  }
+  set m_unRankInterval(value: number | undefined) {
+    put(this, 'CCitadelRankedSeasonRewardProp', 'm_unRankInterval', 'uint8', value)
+  }
+
+  get m_unPackedRank(): number | undefined {
+    return readField(this.handle, 'CCitadelRankedSeasonRewardProp', 'm_unPackedRank', 'uint8') as number | undefined
+  }
+  set m_unPackedRank(value: number | undefined) {
+    put(this, 'CCitadelRankedSeasonRewardProp', 'm_unPackedRank', 'uint8', value)
+  }
+}
+
 export class CCitadel_DynamicProp extends CDynamicProp {
   get m_strDefaultSkin(): string | undefined {
     return readField(this.handle, 'CCitadel_DynamicProp', 'm_strDefaultSkin', 'string') as string | undefined
@@ -25686,6 +25716,22 @@ export class CCitadelHeroLoader extends CBaseEntity {
   }
   set m_hOwner(value: CBaseEntity | undefined) {
     putHandle(this, 'CCitadelHeroLoader', 'm_hOwner', value)
+  }
+}
+
+export class CCitadelHideoutOwnerRankedSeasonRewardProp extends CBaseEntity {
+  get m_eRankedType(): number | undefined {
+    return readField(this.handle, 'CCitadelHideoutOwnerRankedSeasonRewardProp', 'm_eRankedType', 'uint32') as number | undefined
+  }
+  set m_eRankedType(value: number | undefined) {
+    put(this, 'CCitadelHideoutOwnerRankedSeasonRewardProp', 'm_eRankedType', 'uint32', value)
+  }
+
+  get m_unRankInterval(): number | undefined {
+    return readField(this.handle, 'CCitadelHideoutOwnerRankedSeasonRewardProp', 'm_unRankInterval', 'uint8') as number | undefined
+  }
+  set m_unRankInterval(value: number | undefined) {
+    put(this, 'CCitadelHideoutOwnerRankedSeasonRewardProp', 'm_unRankInterval', 'uint8', value)
   }
 }
 

@@ -274,6 +274,7 @@ type BooleanVariable0 =
 	| "citadel_mantle_debug"
 	| "citadel_match_intro_force_enabled"
 	| "citadel_melee_draw_traces"
+	| "citadel_melee_lagcomp_debug"
 	| "citadel_movement_debugdraw"
 	| "citadel_movement_override_separation_radius"
 	| "citadel_movement_resolve_origin"
@@ -408,9 +409,9 @@ type BooleanVariable0 =
 	| "citadel_use_new_abandon_rules_ranked"
 	| "citadel_use_new_abandon_rules_unranked"
 	| "citadel_use_pvs_for_players"
-	| "citadel_use_stateful_ready_on_client"
 
 type BooleanVariable1 =
+	| "citadel_use_stateful_ready_on_client"
 	| "citadel_use_unit_query_system"
 	| "citadel_use_wip_models"
 	| "citadel_vanguard_enabled"
@@ -810,9 +811,9 @@ type BooleanVariable1 =
 	| "nav_test_split_obstacle_leave"
 	| "nav_test_split_obstacle_update_pos"
 	| "navlocal_constrain"
-	| "navlocal_debug_navlink_isect"
 
 type BooleanVariable2 =
+	| "navlocal_debug_navlink_isect"
 	| "navlocal_parallel_trace_path_for_obstacle"
 	| "navspace_create_water_smooth_connections"
 	| "navspace_create_water_surface_connections"
@@ -1212,9 +1213,9 @@ type BooleanVariable2 =
 	| "sv_allchat"
 	| "sv_alltalk"
 	| "sv_audio_debug_bullet_material"
-	| "sv_audio_debug_pawn_surface_data"
 
 type BooleanVariable3 =
+	| "sv_audio_debug_pawn_surface_data"
 	| "sv_audio_log_citadel_audio_filter"
 	| "sv_audio_log_participant_start_messages"
 	| "sv_autosave"
@@ -1720,6 +1721,7 @@ type NumberVariable0 =
 	| "citadel_hideout_button_interact_distance"
 	| "citadel_hideout_camera_level_enter"
 	| "citadel_hideout_camera_level_max"
+	| "citadel_hideout_owner_ranked_season_reward_override"
 	| "citadel_hideout_teleport_trigger_delay"
 	| "citadel_hideout_tick_rate_override"
 	| "citadel_hitbox_body_to_headshot_threshold"
@@ -1803,9 +1805,9 @@ type NumberVariable0 =
 	| "citadel_neutral_player_range_strong_meters"
 	| "citadel_neutral_player_range_weak_meters"
 	| "citadel_neutral_scorer_time_window"
-	| "citadel_neutral_sleep_time"
 
 type NumberVariable1 =
+	| "citadel_neutral_sleep_time"
 	| "citadel_neutral_spawn_interval_override"
 	| "citadel_neutral_tether_distance_window"
 	| "citadel_neutral_vault_minigame_force_speed"
@@ -2205,9 +2207,9 @@ type NumberVariable1 =
 	| "entity_log_load_unserialize"
 	| "experimental_citadel_tick_rate_override"
 	| "fathom_force_spotted"
-	| "filesystem_buffer_size"
 
 type NumberVariable2 =
+	| "filesystem_buffer_size"
 	| "filesystem_fake_latency"
 	| "filesystem_max_stdio_read"
 	| "fog_hdrcolorscale"
@@ -2607,9 +2609,9 @@ type NumberVariable2 =
 	| "r_dof_override_tilt_to_ground"
 	| "r_draw_particle_children_with_parents"
 	| "r_extra_render_frames"
-	| "r_fallback_texture_lod_scale"
 
 type NumberVariable3 =
+	| "r_fallback_texture_lod_scale"
 	| "r_force_render_frame_count"
 	| "r_fullscreen_gamma"
 	| "r_grass_alpha_test"
@@ -3009,9 +3011,9 @@ type NumberVariable3 =
 	| "voice_threshold_delay"
 	| "voice_threshold_hold"
 	| "voice_threshold_ramp_min_db"
-	| "volume"
 
 type NumberVariable4 =
+	| "volume"
 	| "volume_fog_density_scale"
 	| "volume_fog_depth"
 	| "volume_fog_depth_warp"

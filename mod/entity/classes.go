@@ -982,6 +982,20 @@ func (e CCitadelHeroLoader) HOwner() Handle[CBaseEntity] {
 	return Handle[CBaseEntity]{e.field("m_hOwner")}
 }
 
+type CCitadelHideoutOwnerRankedSeasonRewardProp CEntityInstance
+
+func (e CCitadelHideoutOwnerRankedSeasonRewardProp) field(name string) Field {
+	return Field{e.Handle, "CCitadelHideoutOwnerRankedSeasonRewardProp", name}
+}
+
+func (e CCitadelHideoutOwnerRankedSeasonRewardProp) ERankedType() Number[uint32] {
+	return Number[uint32]{e.field("m_eRankedType")}
+}
+
+func (e CCitadelHideoutOwnerRankedSeasonRewardProp) UnRankInterval() Number[uint8] {
+	return Number[uint8]{e.field("m_unRankInterval")}
+}
+
 type CCitadelHideoutPropSlot CEntityInstance
 
 func (e CCitadelHideoutPropSlot) field(name string) Field {
