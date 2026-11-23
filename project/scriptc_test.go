@@ -96,3 +96,25 @@ func resolvePath(paths map[string][]string, specifier string) string {
 	}
 	return strings.Replace(paths[best][0], "*", match, 1)
 }
+
+// TestWasmStandIns checks which files a WebAssembly module stands in for: a
+// module's namesake with the same extension, and never a declaration file.
+func TestWasmStandIns(t *testing.T) {
+	for in, want := range map[string]string{
+		"src/bench/entry.wasm.ts": "src/bench/entry.ts",
+		"src/hud.wasm.tsx":        "src/hud.tsx",
+		"src/entry.ts":            "",
+		"src/wasm.ts":             "",
+		"src/a.wasm.js":           "",
+		"src/types.d.wasm.ts":     "",
+	} {
+		got, ok := wasmReplaced(in)
+		if ok != (want != "") || got != want {
+			t.Errorf("wasmReplaced(%q) = %q, %v; want %q", in, got, ok, want)
+		}
+	}
+	standIns := wasmStandIns([]string{"/m/a.ts", "/m/a.wasm.ts", "/m/b.ts"})
+	if !standIns["/m/a.ts"] || standIns["/m/b.ts"] || standIns["/m/a.wasm.ts"] || len(standIns) != 1 {
+		t.Errorf("stand-ins %v, want only /m/a.ts", standIns)
+	}
+}
