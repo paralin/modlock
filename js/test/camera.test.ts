@@ -251,11 +251,11 @@ test('entityCamera spawns isolated point_camera with roll and cleans up', () => 
   expect(
     created.map(
       (c) =>
-        c.keyValues?.find((kv) => kv.key === 'targetname')?.value?.value.value,
+        c.keyValues?.find((kv) => kv.key === 'targetname')?.value?.value?.value,
     ),
   ).toEqual(['intro_camera', 'pre_intro_camera'])
   expect(
-    created[0]?.keyValues?.find((kv) => kv.key === 'FOV')?.value?.value.value,
+    created[0]?.keyValues?.find((kv) => kv.key === 'FOV')?.value?.value?.value,
   ).toBe(105)
 
   const audiences = sent
