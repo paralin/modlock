@@ -260,6 +260,7 @@ export {
   type Transition,
   type UiElement,
   uiSound,
+  useDenseUiRecords,
 } from './ui.js'
 
 /** LogPart is a value log writes as text. */

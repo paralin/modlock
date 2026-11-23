@@ -1574,21 +1574,9 @@ function place(layout: Layout, child: Child, at: string): string[] {
 function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
   // Build the node's common fields, then its kind's.
   const props = child.props
-  const node: Node = {
-    id: layout.id(at),
-    style: wireStyle(props.style),
-    hover: wireStyle(props.hover),
-    tooltip: props.tooltip,
-    item: props.item ? itemId(props.item) : undefined,
-    ability: props.ability?.name ? itemId(props.ability.name) : undefined,
-    abilityPlayer: props.ability?.name ? props.ability.player.slot : undefined,
-    hoverSound: props.hoverSound,
-    enter: wireStyle(props.enter),
-    exit: wireStyle(props.exit),
-    cycle: cycle(props.cycle),
-    classes: classes(props.class),
-    hideInChat: props.hideInChat || undefined,
-  }
+  const node = denseRecords
+    ? denseNode(layout, props, at)
+    : sparseNode(layout, props, at)
   switch (child.type) {
     case 'label':
       node.kind = Kind.LABEL
@@ -1643,6 +1631,49 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
   }
   layout.add(node)
   return [node.id!]
+}
+
+/** sparseNode builds a node's common fields, only those props sets. */
+function sparseNode(layout: Layout, props: Props, at: string): Node {
+  // Name the node and style it.
+  const node: Node = { id: layout.id(at) }
+  if (props.style !== undefined) node.style = wireStyle(props.style)
+  if (props.hover !== undefined) node.hover = wireStyle(props.hover)
+  if (props.enter !== undefined) node.enter = wireStyle(props.enter)
+  if (props.exit !== undefined) node.exit = wireStyle(props.exit)
+  if (props.cycle !== undefined) node.cycle = cycle(props.cycle)
+  if (props.class !== undefined) node.classes = classes(props.class)
+
+  // Give it what it shows on hover, the item or ability it names, and
+  // whether chat hides it.
+  if (props.tooltip !== undefined) node.tooltip = props.tooltip
+  if (props.hoverSound !== undefined) node.hoverSound = props.hoverSound
+  if (props.item) node.item = itemId(props.item)
+  if (props.ability?.name) {
+    node.ability = itemId(props.ability.name)
+    node.abilityPlayer = props.ability.player.slot
+  }
+  if (props.hideInChat) node.hideInChat = true
+  return node
+}
+
+/** denseNode builds a node's common fields, every one present (useDenseUiRecords). */
+function denseNode(layout: Layout, props: Props, at: string): Node {
+  return {
+    id: layout.id(at),
+    style: wireStyle(props.style),
+    hover: wireStyle(props.hover),
+    tooltip: props.tooltip,
+    item: props.item ? itemId(props.item) : undefined,
+    ability: props.ability?.name ? itemId(props.ability.name) : undefined,
+    abilityPlayer: props.ability?.name ? props.ability.player.slot : undefined,
+    hoverSound: props.hoverSound,
+    enter: wireStyle(props.enter),
+    exit: wireStyle(props.exit),
+    cycle: cycle(props.cycle),
+    classes: classes(props.class),
+    hideInChat: props.hideInChat || undefined,
+  }
 }
 
 /** classes splits an element's class into its names, or undefined for none. */
@@ -1963,11 +1994,124 @@ const easings = {
   linear: Easing.LINEAR,
 } as const
 
-/** wireStyle encodes style. */
+/**
+ * denseRecords lays each node and style out with every field present, most of
+ * them undefined, as the interface did before it built them sparse. The
+ * encoding and the bytes sent are the same either way; useDenseUiRecords
+ * selects it to compare.
+ */
+let denseRecords = false
+
+/**
+ * useDenseUiRecords makes the interface build each node and style record with
+ * every field present, as it once did, instead of only the fields set. The
+ * screens and the bytes sent do not change; only the cost of building and
+ * encoding them does, so this exists to compare the two and to step back.
+ */
+export function useDenseUiRecords(dense: boolean): void {
+  denseRecords = dense
+}
+
+/**
+ * wireStyle encodes style with only the fields style sets. Its records hold
+ * them in another order than denseStyle's, which the bytes sent do not show:
+ * protobuf writes fields in number order, and the encodings the diff compares
+ * come from one builder at a time.
+ */
 function wireStyle(style: Style | undefined): WireStyle | undefined {
+  // No style, or the dense form, needs no sparse record.
   if (!style) {
     return undefined
   }
+  if (denseRecords) {
+    return denseStyle(style)
+  }
+  const out: WireStyle = {}
+
+  // Size the box.
+  if (style.width !== undefined) out.width = length(style.width)
+  if (style.height !== undefined) out.height = length(style.height)
+  if (style.minWidth !== undefined) out.minWidth = length(style.minWidth)
+  if (style.maxWidth !== undefined) out.maxWidth = length(style.maxWidth)
+  if (style.minHeight !== undefined) out.minHeight = length(style.minHeight)
+  if (style.maxHeight !== undefined) out.maxHeight = length(style.maxHeight)
+
+  // Place it and its children.
+  if (style.x !== undefined) out.x = length(style.x)
+  if (style.y !== undefined) out.y = length(style.y)
+  if (style.zIndex !== undefined) out.zIndex = style.zIndex
+  if (style.flow !== undefined) out.flow = flows[style.flow]
+  if (style.horizontalAlign !== undefined) {
+    out.horizontalAlign = align(style.horizontalAlign)
+  }
+  if (style.verticalAlign !== undefined) {
+    out.verticalAlign = align(style.verticalAlign)
+  }
+  if (style.margin !== undefined) out.margin = edges(style.margin)
+  if (style.padding !== undefined) out.padding = edges(style.padding)
+
+  // Clip and turn it.
+  const overflowX = style.overflowX ?? style.overflow
+  if (overflowX !== undefined) out.overflowX = overflow(overflowX)
+  const overflowY = style.overflowY ?? style.overflow
+  if (overflowY !== undefined) out.overflowY = overflow(overflowY)
+  if (style.clip !== undefined) out.clip = clip(style.clip)
+  if (style.turn !== undefined) out.turn = style.turn
+
+  // Paint the box.
+  if (style.background !== undefined) out.background = color(style.background)
+  if (style.borderRadius !== undefined) out.borderRadius = style.borderRadius
+  if (style.borderWidth !== undefined) out.borderWidth = style.borderWidth
+  if (style.borderColor !== undefined) {
+    out.borderColor = color(style.borderColor)
+  }
+  if (style.opacity !== undefined) out.opacity = style.opacity
+  if (style.gradient !== undefined) out.gradient = gradient(style.gradient)
+  if (style.boxShadow !== undefined) out.boxShadow = shadow(style.boxShadow)
+  if (style.tint !== undefined) out.tint = color(style.tint)
+
+  // Filter what it draws.
+  if (style.saturation !== undefined) out.saturation = style.saturation
+  if (style.brightness !== undefined) out.brightness = style.brightness
+  if (style.contrast !== undefined) out.contrast = style.contrast
+  if (style.blur !== undefined) out.blur = style.blur
+
+  // Set the text's color, size and face.
+  if (style.color !== undefined) out.color = color(style.color)
+  if (style.fontSize !== undefined) out.fontSize = style.fontSize
+  if (style.bold !== undefined) out.bold = style.bold
+  if (style.textAlign !== undefined) out.textAlign = align(style.textAlign)
+  if (style.face !== undefined) out.face = faces[style.face]
+  if (style.uppercase !== undefined) out.uppercase = style.uppercase
+  if (style.letterSpacing !== undefined) {
+    out.letterSpacing = style.letterSpacing
+  }
+  if (style.shadow !== undefined) out.shadow = style.shadow
+
+  // Set the text's weight, lines and marks.
+  if (style.italic !== undefined) out.italic = style.italic
+  if (style.weight !== undefined) out.weight = weights[style.weight]
+  if (style.lineHeight !== undefined) out.lineHeight = style.lineHeight
+  if (style.noWrap !== undefined) out.noWrap = style.noWrap
+  if (style.textOverflow !== undefined) {
+    out.textOverflow = textOverflows[style.textOverflow]
+  }
+  if (style.decoration !== undefined) {
+    out.decoration = decorations[style.decoration]
+  }
+  if (style.textShadow !== undefined) out.textShadow = shadow(style.textShadow)
+
+  // Move and animate it.
+  const moved = transform(style)
+  if (moved !== undefined) out.transform = moved
+  if (style.transition !== undefined) {
+    out.transition = transition(style.transition)
+  }
+  return out
+}
+
+/** denseStyle encodes style with every field present (useDenseUiRecords). */
+function denseStyle(style: Style): WireStyle {
   return {
     width: length(style.width),
     height: length(style.height),
@@ -2130,9 +2274,33 @@ function edges(value: Edges | undefined): WireEdges | undefined {
   return { top: value[0], right: value[1], bottom: value[2], left: value[3] }
 }
 
+/**
+ * colors caches each color string's encoding, since a screen names the same few
+ * colors on many nodes; it empties when it reaches maxColors, so a mod that
+ * computes its colors cannot grow it without bound.
+ */
+const colors = new Map<string, number>()
+const maxColors = 1024
+
 /** color encodes '#rrggbb' or '#rrggbbaa' as 0xRRGGBBAA. */
 function color(value: string | undefined): number | undefined {
-  const hex = value?.replace(/^#/, '')
+  // No color, or the dense form, skips the cache.
+  if (value === undefined) return undefined
+  if (denseRecords) return parseColor(value)
+
+  // A string that is no color is cached as -1, which no color encodes to.
+  let parsed = colors.get(value)
+  if (parsed === undefined) {
+    if (colors.size >= maxColors) colors.clear()
+    parsed = parseColor(value) ?? -1
+    colors.set(value, parsed)
+  }
+  return parsed < 0 ? undefined : parsed
+}
+
+/** parseColor parses '#rrggbb' or '#rrggbbaa', or returns undefined. */
+function parseColor(value: string): number | undefined {
+  const hex = value.replace(/^#/, '')
   if (!hex || !/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(hex)) {
     return undefined
   }
