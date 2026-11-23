@@ -28,6 +28,7 @@ import {
   type GuardPanel,
 } from './guard.js'
 import { DISPLAY_COVER, DISPLAY_IMAGE, DRAWN_MARK } from './abilities.js'
+import { mountInterfaceLayer } from './mount.js'
 import {
   abilityBarMods,
   abilityRows,
@@ -131,6 +132,9 @@ class FakePanel {
   BLoadLayout(path: string) {
     this.layout = path
     return !path.includes('missing')
+  }
+  FindChild(id: string): FakePanel | null {
+    return this.children.find((panel) => panel.id === id) ?? null
   }
   FindChildTraverse(id: string): FakePanel | null {
     return this.descendants().find((panel) => panel.id === id) ?? null
@@ -2587,4 +2591,38 @@ test('finds pips the game makes apart from the icons by where they sit', () => {
   expect(bar[0]!.train.style.visibility ?? null).toBeNull()
   host.click(bar[3]!.pips)
   expect(host.pressed).toEqual(['arena ability:3'])
+})
+
+test('the interface layer mounts under the HUD tooltips it can reach', () => {
+  const adopt = (parent: FakePanel, child: FakePanel) => {
+    child.parent = parent
+    parent.children.push(child)
+    return child
+  }
+  const create = (type: string, parent: FakePanel, id: string) =>
+    adopt(parent, new FakePanel(type, id))
+
+  // The game's HUD holds its TooltipManager as a direct child, so the layer
+  // goes just before it.
+  const hud = new FakePanel('CitadelHud', 'Hud')
+  const context = adopt(hud, new FakePanel('Panel', 'Context'))
+  adopt(hud, new FakePanel('CitadelTooltipManager', 'TooltipManager'))
+  adopt(hud, new FakePanel('Panel', 'LoadInFadeCover'))
+  mountInterfaceLayer(create, context, 'ModlockUi')
+  expect(hud.children.map((panel) => panel.id)).toEqual([
+    'Context',
+    'ModlockUi',
+    'TooltipManager',
+    'LoadInFadeCover',
+  ])
+
+  // A tree whose TooltipManager is not the top's child keeps the layer last.
+  const top = new FakePanel('Panel', 'Top')
+  const db = adopt(top, new FakePanel('CitadelDB', 'Dashboard'))
+  adopt(db, new FakePanel('CitadelTooltipManager', 'TooltipManager'))
+  mountInterfaceLayer(create, db, 'ModlockUi')
+  expect(top.children.map((panel) => panel.id)).toEqual([
+    'Dashboard',
+    'ModlockUi',
+  ])
 })
