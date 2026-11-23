@@ -14,6 +14,8 @@ export interface TreePanel {
 export interface MountPanel extends TreePanel {
   hittest: boolean
   readonly style: Record<string, string | null>
+  FindChildTraverse(id: string): MountPanel | null
+  MoveChildBefore(child: MountPanel, before: MountPanel): void
 }
 
 /** gameHud returns the game's HUD panel above panel, or the tree's top. */
@@ -36,9 +38,14 @@ export function mountInterfaceLayer<P extends MountPanel>(
   id: string,
 ): P {
   // Cover the HUD and let every click through to the game.
-  const layer = create('Panel', gameHud(context), id)
+  const hud = gameHud(context)
+  const layer = create('Panel', hud, id)
   layer.hittest = false
   layer.style.width = '100%'
   layer.style.height = '100%'
+
+  // Draw under the game's tooltips, which a mod's panels open.
+  const tooltips = hud.FindChildTraverse('TooltipManager')
+  if (tooltips) hud.MoveChildBefore(layer, tooltips)
   return layer
 }
