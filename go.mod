@@ -22,6 +22,7 @@ require (
 	github.com/aperturerobotics/protobuf-go-lite v0.19.1-0.20261028131920-f644656fc4a7
 	github.com/aperturerobotics/starpc v0.52.4-0.20261024233818-0a9074172c29
 	github.com/aperturerobotics/util v1.34.10-0.20261024231407-c6b31c4e4ea6
+	github.com/ebitengine/purego v0.11.3
 	github.com/evanw/esbuild v0.28.2
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/klauspost/compress v1.20.3
