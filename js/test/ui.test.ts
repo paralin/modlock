@@ -155,6 +155,26 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   show(player, score('Score  Leading'))
   const classed = sent.at(-1)!.change!.set!
   expect(classed.map((node) => node.classes)).toEqual([['Score', 'Leading']])
+
+  // A subtree passed again as the same object keeps its nodes and its press,
+  // and only its changed sibling is sent.
+  let presses = 0
+  const kept = jsx('button', {
+    onPress: () => presses++,
+    children: jsx('label', { children: 'Kept' }),
+  })
+  const beside = (count: number) =>
+    jsx('panel', {
+      children: [kept, jsx('label', { children: String(count) })],
+    })
+  show(player, beside(1))
+  const shown = sent.at(-1)!.change!.set!
+  const button = shown.find((node) => node.kind === Kind.BUTTON)!.id!
+  show(player, beside(2))
+  expect(sent.at(-1)!.change!.set!.map((node) => node.text)).toEqual(['2'])
+  show(player, beside(3))
+  press(player, button)
+  expect(presses).toBe(1)
 })
 
 test('clicks on the ability bar reach the handler while the root asks', () => {
