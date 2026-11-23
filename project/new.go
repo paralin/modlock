@@ -243,7 +243,8 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		}
 	}
 
-	// Choose the language's sources.
+	// Choose the language's sources. Every project ignores its build and
+	// .modlock, which holds the generated library and the records play keeps.
 	greeting := "Hello from " + name + "!"
 	quoted := strings.NewReplacer("{{slug}}", slug, "{{name}}", strconv.Quote(name), "{{greeting}}", strconv.Quote(greeting))
 	script := strings.NewReplacer("{{name}}", scriptString(name), "{{greeting}}", scriptString(greeting))
@@ -253,7 +254,7 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		files = map[string]string{
 			"go.mod":     "module " + goModule(slug) + "\n\ngo 1.25.0\n",
 			"main.go":    quoted.Replace(goMain),
-			".gitignore": "/" + BuildDir + "/\n",
+			".gitignore": "/" + BuildDir + "/\n/.modlock/\n",
 		}
 	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
 		scripts := ""
@@ -263,7 +264,7 @@ func New(ctx context.Context, dir, name string, language wasm.Manifest_Language,
 		files = map[string]string{
 			scriptMain(language): script.Replace(scriptMainSource),
 			"tsconfig.json":      strings.ReplaceAll(scriptConfig, "{{scripts}}", scripts),
-			".gitignore":         "/" + BuildDir + "/\n/node_modules/\n",
+			".gitignore":         "/" + BuildDir + "/\n/node_modules/\n/.modlock/\n",
 		}
 	case wasm.Manifest_LANGUAGE_LUAU:
 		files = map[string]string{
