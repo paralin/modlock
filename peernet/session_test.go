@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/aperturerobotics/starpc/srpc"
@@ -94,6 +95,50 @@ func TestSessionServesContentAndPresence(t *testing.T) {
 	present(true)
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 1}}})
 	present(false)
+}
+
+// hostileSession serves content it chose itself instead of what
+// session.ReadContent reads, as a host that skips its own check does.
+type hostileSession struct {
+	*sessionServer
+	content fstest.MapFS
+}
+
+// Content sends the hostile content to any guest.
+func (h *hostileSession) Content(req *ContentRequest, strm SRPCSession_ContentStream) error {
+	return sendContent(h.content, strm.Send)
+}
+
+// TestFetchRefusesHostileContent has a host send a valid file, then one whose
+// name would leave the guest's package on some platform or replace a file of
+// the game's, and checks that the guest gets none of the content and that
+// Join would end on it.
+func TestFetchRefusesHostileContent(t *testing.T) {
+	for _, name := range []string{
+		`maps/..\..\..\pak01_dir.vpk`,
+		"maps/../../pak01_dir.vpk",
+		"panorama/layout/hud/hud.vxml_c",
+		"maps/dl_midtown.vpk",
+	} {
+		mux := srpc.NewMux()
+		server := &hostileSession{
+			sessionServer: &sessionServer{session: 7, screens: session.NewScreens(0), chat: session.NewChat()},
+			content: fstest.MapFS{
+				"models/arena-0123abcd/a.vmdl_c": {Data: []byte("model")},
+				name:                             {Data: []byte("stock")},
+			},
+		}
+		if err := SRPCRegisterSession(mux, server); err != nil {
+			t.Fatal(err)
+		}
+		host := NewSRPCSessionClient(srpc.NewClient(srpc.NewServerPipe(srpc.NewServer(mux))))
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		files, err := FetchContent(ctx, host, 7, nil)
+		cancel()
+		if files != nil || !errors.Is(err, errContentName) {
+			t.Errorf("%s: fetched %v, %v", name, files, err)
+		}
+	}
 }
 
 // TestWatchClearsALostScreen clears the guest's screen when its stream from

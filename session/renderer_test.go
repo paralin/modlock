@@ -24,10 +24,10 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	mod := t.TempDir()
 	arena := []byte("map archive")
 	for name, data := range map[string][]byte{
-		info:                                    []byte(stock),
-		filepath.Join(mod, "maps", "arena.vpk"): arena,
-		filepath.Join(mod, "maps", "arena.bsp"): []byte("quake collision"),
-		filepath.Join(mod, "materials", "arena", "turf.vmat_c"): []byte("material"),
+		info: []byte(stock),
+		filepath.Join(mod, "maps", "hl_arena.vpk"):                       arena,
+		filepath.Join(mod, "maps", "hl_arena.bsp"):                       []byte("quake collision"),
+		filepath.Join(mod, "materials", "arena-0123abcd", "turf.vmat_c"): []byte("material"),
 	} {
 		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
 			t.Fatal(err)
@@ -46,7 +46,7 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found, _ := filepath.Glob(filepath.Join(devmount.Path(gameDir), "*", "maps", "arena.vpk"))
+	found, _ := filepath.Glob(filepath.Join(devmount.Path(gameDir), "*", "maps", "hl_arena.vpk"))
 	if len(found) != 1 {
 		t.Fatalf("map archives beside the package: %v", found)
 	}
@@ -58,10 +58,10 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := pak.ReadFile("materials/arena/turf.vmat_c"); err != nil {
+	if _, err := pak.ReadFile("materials/arena-0123abcd/turf.vmat_c"); err != nil {
 		t.Fatalf("material in the package: %v", err)
 	}
-	for _, name := range []string{"maps/arena.vpk", "maps/arena.bsp"} {
+	for _, name := range []string{"maps/hl_arena.vpk", "maps/hl_arena.bsp"} {
 		if _, err := pak.ReadFile(name); err == nil {
 			t.Fatalf("%s is inside the package", name)
 		}
@@ -98,5 +98,20 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	}
 	if err := mounted.Close(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestWritePackageStaysInside writes a package whose file name climbs out of
+// it, as a name that skipped check.ContentName would, and checks that the
+// write fails and nothing lands beside the package.
+func TestWritePackageStaysInside(t *testing.T) {
+	parent := t.TempDir()
+	dir := filepath.Join(parent, "package")
+	err := writePackage(dir, fstest.MapFS{"maps/../../pak01_dir.vpk": {Data: []byte("stock")}})
+	if err == nil {
+		t.Fatal("a climbing name was written")
+	}
+	if _, err := os.Stat(filepath.Join(parent, "pak01_dir.vpk")); !os.IsNotExist(err) {
+		t.Fatalf("the write left the package: %v", err)
 	}
 }

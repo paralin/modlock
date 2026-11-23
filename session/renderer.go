@@ -195,16 +195,25 @@ func packageKey(files fstest.MapFS) string {
 
 // writePackage writes files into dir, skipping each one already there with
 // the same content, as it is when an earlier session wrote the same package.
+// It writes through a root at dir, so no name, however it reached here,
+// writes outside the package.
 func writePackage(dir string, files fstest.MapFS) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return errors.Wrap(err, "write the mods' package")
+	}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return errors.Wrap(err, "write the mods' package")
+	}
+	defer root.Close()
 	for name, file := range files {
-		target := filepath.Join(dir, filepath.FromSlash(name))
-		if current, err := os.ReadFile(target); err == nil && bytes.Equal(current, file.Data) {
+		if current, err := root.ReadFile(name); err == nil && bytes.Equal(current, file.Data) {
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		if err := root.MkdirAll(path.Dir(name), 0o755); err != nil {
 			return errors.Wrap(err, "write the mods' package")
 		}
-		if err := os.WriteFile(target, file.Data, 0o644); err != nil {
+		if err := root.WriteFile(name, file.Data, 0o644); err != nil {
 			return errors.Wrap(err, "write the mods' package")
 		}
 	}
@@ -247,12 +256,19 @@ func rendererFiles(citadel string, renderer *Renderer, bridge string) (fstest.Ma
 
 // ReadContent returns the content addons of the mods built at mods: their
 // compiled Panorama content and assets, each already under its addon's name,
-// and the archive of each map a mod ships, as maps/<map>.vpk.
+// and the archive of each map a mod ships, as maps/<map>.vpk. It refuses a
+// file check.ContentName refuses, as a guest does, so a mod that would fail
+// on a guest fails on its host first.
 func ReadContent(mods []string) (fstest.MapFS, error) {
 	files := fstest.MapFS{}
 	for _, mod := range mods {
 		if err := addContent(files, mod); err != nil {
 			return nil, err
+		}
+	}
+	for name := range files {
+		if _, err := check.ContentName(name); err != nil {
+			return nil, errors.Wrap(err, "read the mod's content")
 		}
 	}
 	return files, nil

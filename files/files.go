@@ -28,7 +28,7 @@ type Mod struct {
 // hold one and from the build's otherwise, and false when neither does.
 func (m *Mod) Read(name string) (string, bool, error) {
 	// Refuse a name that is not a plain relative path.
-	if err := check(name); err != nil {
+	if err := Name(name); err != nil {
 		return "", false, err
 	}
 
@@ -58,7 +58,7 @@ func (m *Mod) Write(name, text string) error {
 	if m.Written == "" {
 		return errors.New("this host keeps no mod files")
 	}
-	if err := check(name); err != nil {
+	if err := Name(name); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(m.Written, 0o755); err != nil {
@@ -97,9 +97,11 @@ func (m *Mod) Write(name, text string) error {
 	return nil
 }
 
-// check refuses a name that is not "/"-separated segments without "." or
-// "..", empty segments or characters another platform reads as a separator.
-func check(name string) error {
+// Name refuses a name that is not "/"-separated segments without "." or
+// "..", empty segments, control characters or characters another platform
+// reads as a separator or a drive, so that the name stays inside the
+// directory it is joined to on every platform.
+func Name(name string) error {
 	if !fs.ValidPath(name) || name == "." || strings.ContainsAny(name, "\\:") ||
 		strings.ContainsFunc(name, func(r rune) bool { return r < 0x20 }) {
 		return errors.Errorf("not a file name: %s", name)

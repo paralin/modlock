@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/paralin/modlock/files"
 	"github.com/paralin/modlock/source2/panorama"
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
@@ -130,17 +131,51 @@ func ContentAddon(manifest *wasm.Manifest) error {
 	return nil
 }
 
+// addonPattern matches a content addon's name: a slug, a hyphen, then the
+// digest AddonName gives or the version Addon falls back to. No directory of
+// the game's own at an addon's depth holds a hyphen, so an addon's files never
+// land on a stock path.
+var addonPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*-[0-9A-Za-z][0-9A-Za-z.+-]{0,63}$`)
+
+// ContentName checks that name is a file a content addon may carry: a name
+// files.Name accepts, inside an addon's directory, panorama/<kind>/<addon>/
+// or <asset dir>/<addon>/, or the archive of a map a mod ships,
+// maps/hl_<map>.vpk. It returns the addon the file belongs to, or "" for a
+// map. Content that comes from another host or a publisher meets this before
+// any of it reaches a disk or a mount, so it neither leaves its package nor
+// replaces a file of the game's or of another addon.
+func ContentName(name string) (string, error) {
+	if err := files.Name(name); err != nil {
+		return "", err
+	}
+	if rest, ok := strings.CutPrefix(name, MapsDir+"/"); ok {
+		if !strings.HasPrefix(rest, ModMapPrefix) || strings.Contains(rest, "/") || path.Ext(rest) != ".vpk" {
+			return "", errors.Errorf("%s is not a mod's map; a mod ships its map as %s/%s<name>.vpk", name, MapsDir, ModMapPrefix)
+		}
+		return "", nil
+	}
+
+	// The addon's name follows the kind below panorama, and the asset
+	// directory itself elsewhere, and a file follows the addon.
+	parts := strings.Split(name, "/")
+	depth := 1
+	switch {
+	case parts[0] == ContentDir:
+		depth = 2
+	case !slices.Contains(AssetDirs, parts[0]):
+		return "", errors.Errorf("%s is outside the content directories, %s", name, strings.Join(AddonDirs(), ", "))
+	}
+	if len(parts) < depth+2 || !addonPattern.MatchString(parts[depth]) {
+		return "", errors.Errorf("%s is outside an addon's directory; client content goes in %s/<kind>/<addon>/ or <asset dir>/<addon>/", name, ContentDir)
+	}
+	return parts[depth], nil
+}
+
 // Content checks that every file in dist's addon directories lies under the
 // addon's name, panorama/<kind>/<addon>/ or <asset dir>/<addon>/, so one mod's
 // content never replaces another's or the game's.
 func Content(dist fs.FS, addon string) error {
 	for _, dir := range AddonDirs() {
-		// The addon's name follows the kind below panorama, and the asset
-		// directory itself elsewhere.
-		depth, want := 1, dir+"/"+addon+"/"
-		if dir == ContentDir {
-			depth, want = 2, dir+"/<kind>/"+addon+"/"
-		}
 		err := fs.WalkDir(dist, dir, func(name string, entry fs.DirEntry, err error) error {
 			// A mod without this kind of content has no directory.
 			if name == dir && errors.Is(err, fs.ErrNotExist) {
@@ -149,9 +184,8 @@ func Content(dist fs.FS, addon string) error {
 			if err != nil || entry.IsDir() {
 				return err
 			}
-			parts := strings.SplitN(name, "/", depth+2)
-			if len(parts) < depth+2 || parts[depth] != addon {
-				return errors.Errorf("%s is outside the addon's directories; client content goes in %s", name, want)
+			if got, err := ContentName(name); err != nil || got != addon {
+				return errors.Errorf("%s is outside the addon's directories; client content goes in %s/<kind>/%s/ or <asset dir>/%s/", name, ContentDir, addon, addon)
 			}
 			return nil
 		})

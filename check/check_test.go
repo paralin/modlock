@@ -96,3 +96,42 @@ func TestMap(t *testing.T) {
 		}
 	}
 }
+
+// TestContentName accepts files inside an addon's directory and a mod's map,
+// and refuses every name that could land outside its package on some
+// platform or replace a file of the game's: a climb, a backslash or a drive,
+// an absolute path, a stock path, and a stock map.
+func TestContentName(t *testing.T) {
+	for name, addon := range map[string]string{
+		"panorama/layout/arena-0123abcd/hud.vxml_c": "arena-0123abcd",
+		"models/arena-0123abcd/pawn.vmdl_c":         "arena-0123abcd",
+		"materials/arena-0.1.0/a/b.vmat_c":          "arena-0.1.0",
+		"maps/hl_arena.vpk":                         "",
+	} {
+		if got, err := ContentName(name); err != nil || got != addon {
+			t.Errorf("%s: got %q, %v, want %q", name, got, err, addon)
+		}
+	}
+	for _, name := range []string{
+		"maps/../pak01_dir.vpk",
+		`maps/hl_x\..\..\pak01_dir.vpk`,
+		`maps/..\..\pak01_dir.vpk`,
+		`panorama/layout/arena-0123abcd/..\..\hud\hud.vxml_c`,
+		"panorama/layout/arena-0123abcd/C:x.vxml_c",
+		"/panorama/layout/arena-0123abcd/hud.vxml_c",
+		"C:/Windows/x.vpk",
+		"panorama/layout/hud/hud.vxml_c",
+		"panorama/layout/arena-0123abcd",
+		"models/heroes/abrams.vmdl_c",
+		"maps/dl_midtown.vpk",
+		"maps/hl_arena/x.vpk",
+		"maps/hl_arena.bsp",
+		"pak01_dir.vpk",
+		"scripts/vscripts/x.lua",
+		"panorama/layout/arena-0123abcd/a\x00.vxml_c",
+	} {
+		if _, err := ContentName(name); err == nil {
+			t.Errorf("%q passed", name)
+		}
+	}
+}

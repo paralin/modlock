@@ -19,6 +19,7 @@ import (
 	"github.com/aperturerobotics/controllerbus/controller"
 	"github.com/aperturerobotics/controllerbus/directive"
 	"github.com/aperturerobotics/starpc/srpc"
+	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/gamelink"
 	"github.com/paralin/modlock/session"
 	"github.com/paralin/modlock/src/host_app/control"
@@ -442,9 +443,14 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 
 	// Send the mods' content, then the address, so the game mounts the
 	// content before it starts. Without the content the game still plays a
-	// stock map, drawing the mods' resources as errors.
+	// stock map, drawing the mods' resources as errors, but a host that sends
+	// a file outside an addon ends the join.
 	host := NewSRPCSessionClient(srpc.NewClient(stream_srpc.NewOpenStreamFunc(s.node.GetBus(), SessionProtocolID, s.local, code.Host, 0)))
-	if files, err := FetchContent(ctx, host, code.Session, nil); err == nil {
+	files, err := FetchContent(ctx, host, code.Session, nil)
+	switch {
+	case errors.Is(err, errContentName):
+		return err
+	case err == nil:
 		err = sendContent(files, func(part *ContentPart) error {
 			return send(&JoinEvent{Body: &JoinEvent_Content{Content: part}})
 		})
@@ -482,12 +488,18 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 // while a large map that keeps arriving takes as long as it needs.
 const contentQuiet = time.Minute
 
+// errContentName reports content from a host with a file name
+// check.ContentName refuses.
+var errContentName = errors.New("the host's content has a file outside an addon")
+
 // FetchContent returns the content addons of the session the host serves, as
 // session.ReadContent read them on the host: each mod's compiled Panorama
 // content and assets, and the archive of each map a mod ships, as
 // maps/<map>.vpk. It returns every file or an error, never part of one, since
-// a partial file breaks the package. progress, when set, receives the bytes
-// received so far after each part.
+// a partial file breaks the package, and refuses the whole content at the
+// first name check.ContentName refuses, since the host is anyone who handed
+// out a join code. progress, when set, receives the bytes received so far
+// after each part.
 func FetchContent(ctx context.Context, host SRPCSessionClient, session uint64, progress func(uint64)) (fstest.MapFS, error) {
 	// Fail the fetch when the host stays quiet past contentQuiet.
 	ctx, cancel := context.WithCancel(ctx)
@@ -516,6 +528,9 @@ func FetchContent(ctx context.Context, host SRPCSessionClient, session uint64, p
 		quiet.Reset(contentQuiet)
 		file := files[part.GetPath()]
 		if file == nil {
+			if _, err := check.ContentName(part.GetPath()); err != nil {
+				return nil, errors.Wrap(errContentName, err.Error())
+			}
 			file = &fstest.MapFile{Mode: 0o644}
 			files[part.GetPath()] = file
 		}
