@@ -31,13 +31,11 @@ class Sandbox {
   Sandbox() = default;
 
   // Load compiles module and runs its initialization on the calling thread,
-  // as an instance or, when concurrent is true, as a ModThread. host_call
+  // as an instance or, when concurrent holds settings, as a ModThread with them. host_call
   // answers the mod's calls and runs only on the calling thread.
-  [[nodiscard]] static std::expected<Sandbox, std::string> Load(Runtime& runtime,
-                                                                std::span<const uint8_t> module,
-                                                                const Limits& limits,
-                                                                Instance::HostCall host_call,
-                                                                bool concurrent);
+  [[nodiscard]] static std::expected<Sandbox, std::string> Load(
+      Runtime& runtime, std::span<const uint8_t> module, const Limits& limits,
+      Instance::HostCall host_call, std::optional<ModThreadSettings> concurrent);
 
   // operator bool reports whether the sandbox holds a mod.
   explicit operator bool() const { return instance_ || thread_; }
@@ -57,7 +55,9 @@ class Sandbox {
   //   - Damage, Command, Ping and Serve decide something the engine needs
   //     now, so they run now when the mod is idle and return kBusy as an
   //     error otherwise, for the caller to take its default.
-  //   - Every other event is queued, and its reply comes back from Completed.
+  //   - Every other event runs now on the calling thread when the mod is idle
+  //     with nothing queued, and is queued otherwise; either way its reply comes
+  //     back from Completed.
   [[nodiscard]] std::expected<Reply, std::string> Deliver(const Call& call);
 
   // Failure returns why the mod failed, or nullopt while it runs.

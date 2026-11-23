@@ -123,6 +123,17 @@ void Total(wasm::WindowStats& total, const wasm::WindowStats& window) {
   total.stale += window.stale;
   total.spins += window.spins;
   total.sleeps += window.sleeps;
+  total.in_place += window.in_place;
+  total.queued += window.queued;
+  for (const auto& kind : window.decisions) {
+    auto found = std::ranges::find(total.decisions, kind.method, &wasm::DecisionCount::method);
+    if (found == total.decisions.end()) {
+      found =
+          total.decisions.insert(total.decisions.end(), wasm::DecisionCount{.method = kind.method});
+    }
+    found->answered += kind.answered;
+    found->defaulted += kind.defaulted;
+  }
   total.time += window.time;
 }
 
@@ -133,7 +144,8 @@ std::expected<wasm::Sandbox, std::string> WasmPlugin::Instantiate(std::span<cons
   limits.sample_after = kFrameAllowance;
   return wasm::Sandbox::Load(
       host_.runtime, module, limits, [this](const wasm::Call& call) { return Call(call); },
-      concurrent_mods_);
+      concurrent_mods_ ? std::optional(wasm::ModThreadSettings{.posts_in_place = posts_in_place_})
+                       : std::nullopt);
 }
 
 bool WasmPlugin::Start() {
@@ -813,6 +825,14 @@ void WasmPlugin::ReportCalls() {
           "replayed {}, reads hit {} miss {} stale {}, waits spun {} slept {}",
           window_.frames, mean(window_), ms(window_.slowest), windows_idle_, w.hops, w.writes,
           w.failed, w.replayed, w.hits, w.misses, w.stale, w.spins, w.sleeps);
+      line += std::format(", posts in place {} queued {}, decisions", w.in_place, w.queued);
+      for (const auto& kind : w.decisions) {
+        line +=
+            std::format(" {} answered {} defaulted {}", kind.method, kind.answered, kind.defaulted);
+      }
+      if (w.decisions.empty()) {
+        line += " none";
+      }
     }
     std::cerr << line << '\n';
   }

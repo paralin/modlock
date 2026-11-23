@@ -244,6 +244,9 @@ void ModThread::Bell::Notify() {
   if (sleepers_.load() == 0) {
     return;
   }
+  if (waiter_running_) {
+    waiter_running_->store(true);
+  }
 
   // Take the lock so the notice cannot fall between a sleeper's check and its
   // wait.
@@ -255,6 +258,9 @@ void ModThread::Bell::Notify() {
 
 template <typename Change>
 void ModThread::Bell::Set(Change change) {
+  if (waiter_running_) {
+    waiter_running_->store(true);
+  }
   {
     std::lock_guard lock(mu_);
     change();
@@ -297,6 +303,17 @@ void ModThread::Post(Call call) {
   if (stopping_.load() || done_.load()) {
     return;
   }
+  if (call.method() != "Frame") {
+    if (settings_.posts_in_place) {
+      if (auto done = Borrow(call)) {
+        ++in_place_;
+        const std::lock_guard lock(mu_);
+        completed_.push_back(std::move(*done));
+        return;
+      }
+    }
+    ++queued_posts_;
+  }
   {
     // A Frame already queued gives way to the newer one, which takes the back
     // of the queue so the events posted between them keep their order.
@@ -316,10 +333,10 @@ void ModThread::Post(Call call) {
   to_mod_.Notify();
 }
 
-std::optional<Completion> ModThread::Decide(const Call& call) {
+std::optional<Completion> ModThread::Borrow(const Call& call) {
   // Borrow the instance only from a mod that is idle with nothing queued: the
   // mod thread is then asleep and touches nothing, and no event waits that the
-  // decision would overtake.
+  // event would overtake.
   if (!started_ || stopping_.load() || done_.load() || in_window_ || applying_ ||
       borrowed_.load() || pending_.load() != 0 || instance_->Failure()) {
     return std::nullopt;
@@ -334,6 +351,16 @@ std::optional<Completion> ModThread::Decide(const Call& call) {
   return done;
 }
 
+std::optional<Completion> ModThread::Decide(const Call& call) {
+  auto done = Borrow(call);
+  auto counted = std::ranges::find(decisions_, call.method(), &DecisionCount::method);
+  if (counted == decisions_.end()) {
+    counted = decisions_.insert(decisions_.end(), DecisionCount{.method = call.method()});
+  }
+  ++(done ? counted->answered : counted->defaulted);
+  return done;
+}
+
 WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
                               std::optional<Call> frame) {
   using Clock = std::chrono::steady_clock;
@@ -344,6 +371,9 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   }
   in_window_ = true;
   game_running_.store(true);
+  stats.in_place = std::exchange(in_place_, 0);
+  stats.queued = std::exchange(queued_posts_, 0);
+  stats.decisions = std::exchange(decisions_, {});
 
   // Bring the game up to date with what the mod wrote, and the snapshot with
   // the game, and only then wake the mod, so its Frame reads the new snapshot.

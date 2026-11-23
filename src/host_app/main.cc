@@ -50,6 +50,8 @@ void Help() {
                "                      console to DIRECTORY as JSON, and quit\n"
                "  --check-plugin      Check library compatibility and lifecycle without a game\n"
                "  --concurrent-mods   Run each mod's events on a thread of its own\n"
+               "  --queue-posts       With --concurrent-mods, queue every event instead of\n"
+               "                      running an idle one at once on the engine thread\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
 }
@@ -124,6 +126,7 @@ struct Options {
   modlock::net::LaunchConfig launch;
   bool check_only = false;
   bool concurrent_mods = false;
+  bool posts_in_place = true;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
 };
@@ -218,6 +221,10 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     }
     if (argument == "--concurrent-mods") {
       options.concurrent_mods = true;
+      continue;
+    }
+    if (argument == "--queue-posts") {
+      options.posts_in_place = false;
       continue;
     }
     if (argument == "--") {
@@ -342,7 +349,8 @@ int main(int argc, char** argv) {
                                        .check_only = options.check_only,
                                        .launch = &options.launch,
                                        .wasm = &mods,
-                                       .concurrent_mods = options.concurrent_mods};
+                                       .concurrent_mods = options.concurrent_mods,
+                                       .posts_in_place = options.posts_in_place};
   for (const auto& library : options.libraries) {
     // Load each plugin, built mod or native library.
     const auto path = std::filesystem::absolute(library);

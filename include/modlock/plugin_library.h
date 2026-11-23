@@ -46,6 +46,11 @@ struct PluginContext {
   // thread. Off, a mod runs on the engine thread. The host reads it as it loads
   // a mod.
   bool concurrent_mods = false;
+  // PostsInPlace lets a mod on its own thread run an event that needs no answer
+  // at once on the engine thread, when the mod is idle, instead of queueing it,
+  // so a decision that follows is answered by the mod and not by its default.
+  // It matters only with concurrent_mods.
+  bool posts_in_place = true;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.

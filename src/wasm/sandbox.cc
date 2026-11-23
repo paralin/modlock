@@ -29,10 +29,11 @@ bool Decides(std::string_view method) {
 
 std::expected<Sandbox, std::string> Sandbox::Load(Runtime& runtime, std::span<const uint8_t> module,
                                                   const Limits& limits,
-                                                  Instance::HostCall host_call, bool concurrent) {
+                                                  Instance::HostCall host_call,
+                                                  std::optional<ModThreadSettings> concurrent) {
   Sandbox sandbox;
   if (concurrent) {
-    auto thread = ModThread::Load(runtime, module, limits, std::move(host_call));
+    auto thread = ModThread::Load(runtime, module, limits, std::move(host_call), *concurrent);
     if (!thread) {
       return std::unexpected(std::move(thread.error()));
     }

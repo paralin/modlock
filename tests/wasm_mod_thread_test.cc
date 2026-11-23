@@ -150,8 +150,10 @@ class Rig {
   Game game;
   std::unique_ptr<ModThread> mod;
 
-  // Up loads a script made of handlers and starts it.
-  ::testing::AssertionResult Up(const std::string& handlers, ModThreadSettings settings = {}) {
+  // Up loads a script made of handlers and starts it. A post queues unless the
+  // settings say otherwise, so a test can hold the mod busy with one.
+  ::testing::AssertionResult Up(const std::string& handlers,
+                                ModThreadSettings settings = {.posts_in_place = false}) {
     auto loaded =
         ModThread::Load(SharedRuntime(), ReadFile(QUICKJS_WASM), Limits{}, game.Answer(), settings);
     if (!loaded) {
@@ -323,6 +325,50 @@ const handlers = {
   // Once the window answers it, the mod is idle again.
   EXPECT_TRUE(rig.Settle().idle);
   EXPECT_TRUE(rig.mod->Decide(Event("Decision")));
+  EXPECT_FALSE(rig.game.off_thread);
+}
+
+TEST(ModThread, PostRunsInPlaceWhileTheModIsIdle) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up(R"(
+const handlers = {
+  Ev: () => { call('Log', text('e')); },
+  Frame: () => {},
+  Decision: () => { return reply(text('ok')); },
+};)",
+                     {.posts_in_place = true}));
+
+  // An idle mod runs a posted event on the game thread at once, so a decision
+  // that follows it finds the mod idle.
+  rig.mod->Post(Event("Ev"));
+  EXPECT_EQ(rig.game.calls, (std::vector<std::string>{"Log:e"}));
+  ASSERT_TRUE(rig.mod->Decide(Event("Decision")));
+  auto stats = rig.mod->Window(Clock::now() + 1s);
+  EXPECT_EQ(stats.in_place, 1U);
+  EXPECT_EQ(stats.queued, 0U);
+  ASSERT_EQ(stats.decisions.size(), 1U);
+  EXPECT_EQ(stats.decisions[0].method, "Decision");
+  EXPECT_EQ(stats.decisions[0].answered, 1U);
+  EXPECT_EQ(stats.decisions[0].defaulted, 0U);
+  const auto done = rig.mod->Completed();
+  ASSERT_EQ(done.size(), 1U);
+  EXPECT_EQ(done[0].method, "Ev");
+
+  // A Frame always queues, and an event posted behind a queued one waits its
+  // turn, so the decision finds the mod busy and takes its default.
+  rig.mod->Post(FrameAt(1));
+  rig.mod->Post(Event("Ev"));
+  EXPECT_FALSE(rig.mod->Decide(Event("Decision")));
+  stats = rig.mod->Window(Clock::now() + 5s);
+  EXPECT_TRUE(stats.idle);
+  EXPECT_EQ(stats.in_place, 0U);
+  EXPECT_EQ(stats.queued, 1U);
+  ASSERT_EQ(stats.decisions.size(), 1U);
+  EXPECT_EQ(stats.decisions[0].defaulted, 1U);
+  const auto queued = rig.mod->Completed();
+  ASSERT_EQ(queued.size(), 2U);
+  EXPECT_EQ(queued[0].method, "Frame");
+  EXPECT_EQ(queued[1].method, "Ev");
   EXPECT_FALSE(rig.game.off_thread);
 }
 

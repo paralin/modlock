@@ -68,6 +68,11 @@ struct ModThreadSettings {
   // spin makes a waiter watch an atomic while its partner runs, before it
   // sleeps on a condition variable. Off, a waiter sleeps at once.
   bool spin = true;
+  // posts_in_place makes Post run an event at once on the calling thread, as
+  // Decide does, when the mod is idle with nothing queued, so a decision that
+  // follows finds the mod idle. Off, Post always queues. A Frame always
+  // queues.
+  bool posts_in_place = true;
   // replay_keys is the most distinct reads the game thread replays at the start
   // of a window; a mod that reads more distinct requests than this hops for
   // the rest.
@@ -75,6 +80,14 @@ struct ModThreadSettings {
   // write_limit is the most writes the buffer holds. A mod that outruns the
   // game thread's windows waits in a hop instead of growing memory.
   size_t write_limit = 8192;
+};
+
+// DecisionCount is how the decisions of one event kind ended: answered by the
+// mod, or refused because the mod was busy, for the caller's default.
+struct DecisionCount {
+  std::string method;
+  uint32_t answered = 0;
+  uint32_t defaulted = 0;
 };
 
 // WindowStats is what one Window did, for the host to report.
@@ -97,6 +110,13 @@ struct WindowStats {
   // condition variable. A sleep costs microseconds a spin does not.
   uint64_t spins = 0;
   uint64_t sleeps = 0;
+  // in_place and queued count the events other than Frame that Post ran on the
+  // calling thread and put in the queue, since the last window. decisions
+  // counts Decide's outcomes in the same span, by event kind, and lists only
+  // the kinds that were asked.
+  uint32_t in_place = 0;
+  uint32_t queued = 0;
+  std::vector<DecisionCount> decisions;
   // time is how long the window lasted on the game thread, answering hops
   // included.
   std::chrono::nanoseconds time{};
@@ -170,11 +190,14 @@ class ModThread {
   // nothing. Call it once, before any other method but Failure.
   [[nodiscard]] std::expected<Reply, std::string> Begin(const Call& start);
 
-  // Post queues an event for the mod thread, which delivers events in the order
-  // posted. Events about to run when a Frame is posted are not reordered, but a
-  // Frame already queued is dropped for the newer one, which goes to the back:
-  // a mod that falls behind sees one frame, with the latest time, instead of
-  // a backlog. Its Completion appears once the event ends.
+  // Post runs an event on the calling thread, when posts_in_place is set, the
+  // mod is idle and nothing is queued, which is how Decide borrows the mod: no
+  // earlier event is overtaken, since none waits. Otherwise Post queues the
+  // event for the mod thread, which delivers events in the order posted. Its
+  // Completion appears from Completed once the event ends. Events about to run when a Frame is
+  // posted are not reordered, but a Frame already queued is dropped for the newer one, which goes
+  // to the back: a mod that falls behind sees one frame, with the latest time, instead of a
+  // backlog.
   void Post(Call call);
 
   // Decide delivers call to the mod now, on the game thread, and returns the
@@ -229,7 +252,12 @@ class ModThread {
   // notifier touches the condition variable only when somebody sleeps.
   class Bell {
    public:
-    explicit Bell(Waits& waits) : waits_(waits) {}
+    // waiter_running, when given, is the flag the waiter keeps set while it
+    // runs. A notifier that finds the waiter asleep sets it before the wake, so
+    // a partner watching the flag does not take the waiter's wake-up, which
+    // takes microseconds, for a pause, and fall asleep itself.
+    Bell(Waits& waits, std::atomic<bool>* waiter_running)
+        : waits_(waits), waiter_running_(waiter_running) {}
 
     // Wait returns true once ready() holds, or false at deadline. When spin
     // is set it watches ready while partner is set and for kPartnerGrace after
@@ -262,6 +290,7 @@ class ModThread {
 
    private:
     Waits& waits_;
+    std::atomic<bool>* const waiter_running_;
     std::mutex mu_;
     std::condition_variable cv_;
     std::atomic<int> sleepers_ = 0;
@@ -293,6 +322,9 @@ class ModThread {
   Reply Route(const Call& call);
   // OnModThread is true on the mod thread.
   bool OnModThread() const;
+  // Borrow delivers call on the calling thread if the mod is idle with
+  // nothing queued, and returns nullopt otherwise.
+  std::optional<Completion> Borrow(const Call& call);
   // Run is the mod thread's loop.
   void Run();
   // TakeEvent pops the next event if the mod may run one.
@@ -380,12 +412,17 @@ class ModThread {
   // wakes the game thread, inside a window, for a hop, the end of the mod's
   // last event or the mod's exit.
   Waits waits_;
-  Bell to_mod_{waits_};
-  Bell to_game_{waits_};
+  Bell to_mod_{waits_, &mod_running_};
+  Bell to_game_{waits_, nullptr};
   // mod_running_ is set while the mod thread runs or spins, and clear while it
   // sleeps; game_running_ is set for the whole of a window.
   std::atomic<bool> mod_running_ = false;
   std::atomic<bool> game_running_ = false;
+  // in_place_, queued_posts_ and decisions_ count Post's and Decide's outcomes
+  // for the next window's stats. They are the game thread's.
+  uint32_t in_place_ = 0;
+  uint32_t queued_posts_ = 0;
+  std::vector<DecisionCount> decisions_;
   // pending_ counts the events posted and not yet finished.
   std::atomic<uint32_t> pending_ = 0;
   std::atomic<bool> stopping_ = false;

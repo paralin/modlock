@@ -144,6 +144,7 @@ class WasmPlugin final : public Plugin {
         check_only_(context.check_only),
         enforce_required_services_(context.enforce_required_services),
         concurrent_mods_(context.concurrent_mods),
+        posts_in_place_(context.posts_in_place),
         mod_([this](const wasm::Call& call) { return Send(call); }),
         game_(*this, host, context.engine) {
     for (int i = 1; i < context.argc; ++i) {
@@ -454,6 +455,8 @@ class WasmPlugin final : public Plugin {
   const bool enforce_required_services_;
   // concurrent_mods_ runs each instance's events on a thread of its own.
   const bool concurrent_mods_;
+  // posts_in_place_ lets such a mod run an idle event on the engine thread.
+  const bool posts_in_place_;
   std::vector<std::string> args_;
   wasm::Sandbox instance_;
   // path_ is where the running build was read from.

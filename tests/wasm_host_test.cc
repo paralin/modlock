@@ -563,8 +563,11 @@ TEST(WasmHost, PreparesABuildOffTheCallingThread) {
 // Tracing is a host whose shout service writes each call into one trace with
 // the mod's log lines, and keeps the threads that answered.
 struct Tracing {
-  explicit Tracing(bool concurrent)
-      : plugin_context{.check_only = true, .concurrent_mods = concurrent} {
+  // A mod on its own thread queues its posts unless in_place is set, so a test
+  // can hold it busy with one.
+  explicit Tracing(bool concurrent, bool in_place = false)
+      : plugin_context{
+            .check_only = true, .concurrent_mods = concurrent, .posts_in_place = in_place} {
     observer.trace = &trace;
     host.Observe(&observer);
     host.Provide("shout",
@@ -676,6 +679,29 @@ TEST(WasmHost, ConcurrentModBusyAnswersADecisionWithItsDefault) {
     return answer.has_value();
   }));
   EXPECT_EQ(*answer, "say:hi");
+}
+
+TEST(WasmHost, ConcurrentModAnswersADecisionAfterAnEventInTheSameTick) {
+  // A combat event arrives and a service call follows it before the tick, as a
+  // hit follows the combat events of its tick. The event waits on a call to a
+  // service, which only the engine thread answers.
+  Tracing queued(true, false);
+  queued.Load();
+  ASSERT_TRUE(queued.host.Call("extension-go", "trace", "impact", ""));
+  queued.Impact();
+  EXPECT_FALSE(queued.host.Call("extension-go", "echo", "say", "hi"));
+
+  // Run in place, the event ends on the engine thread at once, and the mod is
+  // idle for the decision.
+  Tracing in_place(true, true);
+  in_place.Load();
+  ASSERT_TRUE(in_place.host.Call("extension-go", "trace", "impact", ""));
+  in_place.Impact();
+  EXPECT_EQ(in_place.trace, (std::vector<std::string>{"shout:impact:hop"}));
+  auto answer = in_place.host.Call("extension-go", "echo", "say", "hi");
+  ASSERT_TRUE(answer) << answer.error();
+  EXPECT_EQ(*answer, "say:hi");
+  EXPECT_EQ(in_place.threads, (std::set<std::thread::id>{std::this_thread::get_id()}));
 }
 
 TEST(WasmHost, ConcurrentModStopsInTheMiddleOfACall) {
