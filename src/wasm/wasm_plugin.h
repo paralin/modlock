@@ -410,6 +410,10 @@ class WasmPlugin final : public Plugin {
   // DeliverServiceReplies tells the mod of each started service call that
   // ended.
   void DeliverServiceReplies();
+  // DeliverCompleted runs the calls an instance's mod submitted and tells it
+  // their replies in one event. A mod on its own thread hears them from its
+  // window instead.
+  void DeliverCompleted();
   void Unsubscribe();
   // Move installs the manifest's movement model on the server.
   void Move();

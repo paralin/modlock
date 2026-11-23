@@ -814,6 +814,19 @@ class HostService {
     return std::unexpected("this host does not support StartServiceCall");
   }
 
+  // Submit starts each call without waiting for it and returns the numbers
+  // that name them, in order. The host runs the calls in a later frame, in the
+  // order submitted and after the calls the mod made before, and delivers
+  // their replies together in one Completed event. A reply carries what the
+  // call would have returned when made directly. The host refuses a batch that
+  // would leave the mod holding more than 256 calls that have not completed, and
+  // drops the calls still waiting when the mod stops or reloads. A host that
+  // does not know Submit answers it as an unknown method, and the library then
+  // makes each call directly.
+  virtual std::expected<SubmitResponse, std::string> Submit(const SubmitRequest& /*request*/) {
+    return std::unexpected("this host does not support Submit");
+  }
+
   // CreateEntity creates an entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
@@ -1836,6 +1849,14 @@ class HostService {
            }
            return detail::Answer(host.StartServiceCall(request));
          }},
+        {"Submit",
+         [](HostService& host, const std::string& bytes) {
+           SubmitRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Submit request is malformed");
+           }
+           return detail::Answer(host.Submit(request));
+         }},
         {"CreateEntity",
          [](HostService& host, const std::string& bytes) {
            entities::EntityOptions request;
@@ -2203,6 +2224,12 @@ class ModClient {
   // ServiceReplied ends one StartServiceCall, in a frame after the call.
   std::expected<void, std::string> ServiceReplied(const ServiceRepliedEvent& event) {
     return Send<void>("ServiceReplied", event);
+  }
+
+  // Completed delivers the replies of the calls Submit started that ended
+  // since the last one, together, at most once a frame.
+  std::expected<void, std::string> Completed(const CompletedEvent& event) {
+    return Send<void>("Completed", event);
   }
 
   // Damage offers one hit before the game applies it, while the mod asked

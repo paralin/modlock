@@ -1256,6 +1256,202 @@ export const ServiceRepliedEvent: MessageType<ServiceRepliedEvent> =
   )
 
 /**
+ * SubmitRequest holds the calls to start together.
+ *
+ * @generated from message modlock.wasm.SubmitRequest
+ */
+export interface SubmitRequest {
+  /**
+   * Calls are the calls to run, each as the mod would make it directly.
+   */
+  calls?: Call[]
+}
+
+export const SubmitRequest: MessageType<SubmitRequest> =
+  /* @__PURE__ */ createMessageType<SubmitRequest>(
+    'modlock.wasm.SubmitRequest',
+    () => [[1, 'calls', 11, 1, Call.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SubmitRequest,
+      ): SubmitRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.calls ??= []).push(Call.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SubmitRequest, w: Writer): void => {
+        {
+          const a = m.calls
+          if (a != null) for (const e of a) Call.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * SubmitResponse numbers the calls a Submit started.
+ *
+ * @generated from message modlock.wasm.SubmitResponse
+ */
+export interface SubmitResponse {
+  /**
+   * Calls are the numbers of the submitted calls, one for each, in order,
+   * unique for the mod's instance.
+   */
+  calls?: bigint[]
+}
+
+export const SubmitResponse: MessageType<SubmitResponse> =
+  /* @__PURE__ */ createMessageType<SubmitResponse>(
+    'modlock.wasm.SubmitResponse',
+    () => [[1, 'calls', 4, 3]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SubmitResponse,
+      ): SubmitResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              for (const e = r.run(t), a = (m.calls ??= []); r.pos < e;)
+                a.push(r.uint64())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SubmitResponse, w: Writer): void => {
+        {
+          const a = m.calls
+          if (a != null && a.length > 0) {
+            const s = w.uint32(10).fork()
+            for (const e of a) w.uint64(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
+ * CompletedCall is the reply to one submitted call.
+ *
+ * @generated from message modlock.wasm.CompletedCall
+ */
+export interface CompletedCall {
+  /**
+   * Call is the number Submit returned.
+   */
+  call?: bigint
+  /**
+   * Reply is what the call returned.
+   */
+  reply?: Reply
+}
+
+export const CompletedCall: MessageType<CompletedCall> =
+  /* @__PURE__ */ createMessageType<CompletedCall>(
+    'modlock.wasm.CompletedCall',
+    () => [
+      [1, 'call', 4],
+      [2, 'reply', 11, 0, Reply.codec],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: CompletedCall,
+      ): CompletedCall => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.call = r.uint64()
+              break
+            case 2:
+              m.reply = Reply.decode(r, r.delimited(), m.reply ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: CompletedCall, w: Writer): void => {
+        {
+          const v = m.call
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.reply
+          if (v != null) Reply.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
+ * CompletedEvent delivers the replies of the submitted calls that ended.
+ *
+ * @generated from message modlock.wasm.CompletedEvent
+ */
+export interface CompletedEvent {
+  /**
+   * Calls are the ended calls, in the order they were submitted.
+   */
+  calls?: CompletedCall[]
+}
+
+export const CompletedEvent: MessageType<CompletedEvent> =
+  /* @__PURE__ */ createMessageType<CompletedEvent>(
+    'modlock.wasm.CompletedEvent',
+    () => [[1, 'calls', 11, 1, CompletedCall.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: CompletedEvent,
+      ): CompletedEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.calls ??= []).push(CompletedCall.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: CompletedEvent, w: Writer): void => {
+        {
+          const a = m.calls
+          if (a != null) for (const e of a) CompletedCall.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
  * LogRequest carries one log line.
  *
  * @generated from message modlock.wasm.LogRequest

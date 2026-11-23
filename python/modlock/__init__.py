@@ -2273,6 +2273,29 @@ class UiInputEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class Call:
+    """Call is one method call across the boundary: a mod calling the game
+    through modlock.host_call, or the game delivering an event through the
+    mod's modlock_event export.
+    """
+
+    # method names the method, such as "Chat".
+    method: str = ""
+    # request is the method's encoded request.
+    request: bytes = b""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Reply:
+    """Reply answers one Call."""
+
+    # error describes why the call failed, or is empty on success.
+    error: str = ""
+    # response is the method's encoded response.
+    response: bytes = b""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class StartEvent:
     """StartEvent describes the server the mod starts in."""
 
@@ -2458,6 +2481,24 @@ class ServiceRepliedEvent:
     failure: ServiceFailure | None = None
     # error describes the failure.
     error: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class CompletedCall:
+    """CompletedCall is the reply to one submitted call."""
+
+    # call is the number Submit returned.
+    call: int = 0
+    # reply is what the call returned.
+    reply: Reply
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class CompletedEvent:
+    """CompletedEvent delivers the replies of the submitted calls that ended."""
+
+    # calls are the ended calls, in the order they were submitted.
+    calls: list[CompletedCall] = dataclasses.field(default_factory=lambda: list[CompletedCall]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -4936,14 +4977,14 @@ _SCHEMA: wire.Schema = {
         ],
     ),
     "Call": (
-        None,
+        Call,
         [
             wire.Field(1, "method", "string"),
             wire.Field(2, "request", "bytes"),
         ],
     ),
     "Reply": (
-        None,
+        Reply,
         [
             wire.Field(1, "error", "string"),
             wire.Field(2, "response", "bytes"),
@@ -5065,6 +5106,31 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "payload", "bytes"),
             wire.Field(3, "failure", "enum", enum=_ServiceFailure),
             wire.Field(4, "error", "string"),
+        ],
+    ),
+    "SubmitRequest": (
+        None,
+        [
+            wire.Field(1, "calls", "message", repeated=True, message="Call"),
+        ],
+    ),
+    "SubmitResponse": (
+        None,
+        [
+            wire.Field(1, "calls", "uint64", repeated=True),
+        ],
+    ),
+    "CompletedCall": (
+        CompletedCall,
+        [
+            wire.Field(1, "call", "uint64"),
+            wire.Field(2, "reply", "message", message="Reply"),
+        ],
+    ),
+    "CompletedEvent": (
+        CompletedEvent,
+        [
+            wire.Field(1, "calls", "message", repeated=True, message="CompletedCall"),
         ],
     ),
     "LogRequest": (
@@ -5563,6 +5629,23 @@ def start_service_call(service: str, method: str, payload: bytes, timeout_millis
     return response["call"]
 
 
+def submit(calls: list[Call] | None = None) -> list[int]:
+    """submit starts each call without waiting for it and returns the numbers
+    that name them, in order. The host runs the calls in a later frame, in the
+    order submitted and after the calls the mod made before, and delivers
+    their replies together in one Completed event. A reply carries what the
+    call would have returned when made directly. The host refuses a batch that
+    would leave the mod holding more than 256 calls that have not completed, and
+    drops the calls still waiting when the mod stops or reloads. A host that
+    does not know Submit answers it as an unknown method, and the library then
+    makes each call directly.
+    """
+    response = _call("Submit", "SubmitRequest", {"calls": calls}, "SubmitResponse")
+    if response is None:
+        return []
+    return response["calls"]
+
+
 def create_entity(options: EntityOptions) -> int | None:
     """create_entity creates an entity the server knows by its designer name,
     such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
@@ -5831,6 +5914,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
+    "Completed": ("CompletedEvent", "Empty", "completed"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
     "Damaged": ("DamagedEvent", "Empty", "damaged"),
     "Killed": ("KillEvent", "Empty", "killed"),
@@ -7380,6 +7464,11 @@ def _service_replied(event: ServiceRepliedEvent) -> None:
     done(event.payload, None, "none")
 
 
+def _completed(event: CompletedEvent) -> None:
+    # The library submits no calls, so no Completed event arrives.
+    pass
+
+
 def _launch(event: LaunchEvent) -> None:
     for handler in _launches:
         handler(event)
@@ -7468,6 +7557,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_input": _ui_input,
     "serve": _serve,
     "service_replied": _service_replied,
+    "completed": _completed,
     "damage": _damage,
     "damaged": _damaged,
     "killed": _killed,

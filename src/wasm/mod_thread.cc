@@ -379,6 +379,7 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   // the game, and only then wake the mod, so its Frame reads the new snapshot.
   ApplyBuffer(&stats);
   Replay(&stats);
+  PostCompleted();
   if (frame) {
     Post(std::move(*frame));
   }
@@ -512,18 +513,15 @@ Completion ModThread::Deliver(const Call& call) {
 Reply ModThread::Route(const Call& call) {
   // The game thread runs the mod directly, so its calls need no handoff, but
   // they follow every write the mod made before.
-  const CallClass kind = ClassOf(call.method());
+  if (call.method() == "Submit") {
+    return Submit(call);
+  }
   if (!OnModThread()) {
-    ApplyBuffer(nullptr);
-    if (kind == CallClass::kWrite || kind == CallClass::kHop) {
-      ++issued_;
-      ++executed_;
-    }
-    return game_call_(call);
+    return Direct(call);
   }
 
   // The mod thread answers what it can from the buffer and the snapshot.
-  switch (kind) {
+  switch (ClassOf(call.method())) {
     case CallClass::kWrite:
       if (settings_.buffer_writes && BufferWrite(call)) {
         ++issued_;
@@ -557,14 +555,89 @@ Reply ModThread::Route(const Call& call) {
   return Hop(call, true);
 }
 
+Reply ModThread::Direct(const Call& call) {
+  ApplyBuffer(nullptr);
+  const CallClass kind = ClassOf(call.method());
+  if (kind == CallClass::kWrite || kind == CallClass::kHop) {
+    ++issued_;
+    ++executed_;
+  }
+  return game_call_(call);
+}
+
+Reply ModThread::Submit(const Call& call) {
+  // The game thread has no mod to spare, so a call submitted there runs at
+  // once; the mod thread's calls take their places in the buffer.
+  return futures_.Submit(call, [this](uint64_t id, const Call& submitted) {
+    if (OnModThread()) {
+      Queue(id, submitted);
+    } else {
+      futures_.Complete(id, Direct(submitted));
+    }
+  });
+}
+
+void ModThread::Queue(uint64_t id, const Call& call) {
+  switch (ClassOf(call.method())) {
+    case CallClass::kWrite:
+      ++issued_;
+      if (settings_.buffer_writes && BufferWrite(call)) {
+        futures_.Complete(id, Reply());
+      } else {
+        Enqueue({.call = call, .id = id});
+      }
+      return;
+    case CallClass::kRead:
+      if (settings_.replay_reads) {
+        if (auto answer = ReadSnapshot(call)) {
+          futures_.Complete(id, *std::move(answer));
+          return;
+        }
+      }
+      Enqueue({.call = call, .id = id, .changes = false});
+      return;
+    case CallClass::kImmutable:
+      if (const auto kept = immutable_.find(Key(call)); kept != immutable_.end()) {
+        futures_.Complete(id, kept->second);
+      } else {
+        Enqueue({.call = call, .id = id, .changes = false});
+      }
+      return;
+    case CallClass::kHop:
+      if (call.method() == kWriteFile) {
+        immutable_.clear();
+      }
+      ++issued_;
+      Enqueue({.call = call, .id = id});
+      return;
+  }
+}
+
+void ModThread::PostCompleted() {
+  const CompletedEvent event = futures_.Take();
+  if (event.calls_size() == 0) {
+    return;
+  }
+  Call call;
+  call.set_method("Completed");
+  call.set_request(event.SerializeAsString());
+  Post(std::move(call));
+}
+
 bool ModThread::BufferWrite(const Call& call) {
   std::lock_guard lock(mu_);
   if (buffer_.size() >= settings_.write_limit) {
     return false;
   }
-  buffer_.push_back(call);
+  buffer_.push_back({.call = call});
   buffered_.store(buffer_.size());
   return true;
+}
+
+void ModThread::Enqueue(Buffered entry) {
+  std::lock_guard lock(mu_);
+  buffer_.push_back(std::move(entry));
+  buffered_.store(buffer_.size());
 }
 
 std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
@@ -642,12 +715,15 @@ void ModThread::ApplyBuffer(WindowStats* stats) {
   // Run the writes in the order the mod made them. A decision these writes
   // provoke finds the mod busy.
   applying_ = true;
-  for (const Call& call : applying_batch_) {
-    const Reply reply = game_call_(call);
-    ++executed_;
+  for (Buffered& entry : applying_batch_) {
+    Reply reply = game_call_(entry.call);
+    executed_ += entry.changes ? 1 : 0;
     if (stats) {
       ++stats->writes;
       stats->failed += reply.error().empty() ? 0 : 1;
+    }
+    if (entry.id != 0) {
+      futures_.Complete(entry.id, std::move(reply));
     }
   }
   applying_ = false;

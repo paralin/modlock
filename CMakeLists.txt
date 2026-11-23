@@ -195,6 +195,7 @@ add_library(modlock_sdk SHARED
   src/quake/player_movement.cc
   src/render/world_effect_game_factory.cc
   src/render/world_text_game_factory.cc
+  src/wasm/futures.cc
   src/wasm/instance.cc
   src/wasm/mod_thread.cc
   src/wasm/sandbox.cc

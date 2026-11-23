@@ -45,7 +45,7 @@ import {
   type PlayerReturnedEvent,
   serveMod,
 } from './host.gen.js'
-import { serveEvents } from './host.js'
+import { completeCalls, serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
 import { connection, keepPlayers } from './players.js'
 import { advancePuppets } from './puppet.js'
@@ -898,6 +898,10 @@ const handlers: ModHandlers = {
 
   serviceReplied(event) {
     endServiceCall(event)
+  },
+
+  completed(event) {
+    completeCalls(event)
   },
 
   // scriptc types an unannotated method that returns literals of different

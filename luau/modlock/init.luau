@@ -1676,6 +1676,24 @@ export type UiInputEvent = {
 	value: (string | number | boolean | Wheel)?,
 }
 
+-- Call is one method call across the boundary: a mod calling the game
+-- through modlock.host_call, or the game delivering an event through the
+-- mod's modlock_event export.
+export type Call = {
+	-- method names the method, such as "Chat".
+	method: string,
+	-- request is the method's encoded request.
+	request: string,
+}
+
+-- Reply answers one Call.
+export type Reply = {
+	-- error describes why the call failed, or is empty on success.
+	error: string,
+	-- response is the method's encoded response.
+	response: string,
+}
+
 -- StartEvent describes the server the mod starts in.
 export type StartEvent = {
 	-- args holds the arguments that follow -- on the host command line.
@@ -1835,6 +1853,20 @@ export type ServiceRepliedEvent = {
 	failure: ServiceFailure?,
 	-- error describes the failure.
 	error: string,
+}
+
+-- CompletedCall is the reply to one submitted call.
+export type CompletedCall = {
+	-- call is the number Submit returned.
+	call: number,
+	-- reply is what the call returned.
+	reply: Reply,
+}
+
+-- CompletedEvent delivers the replies of the submitted calls that ended.
+export type CompletedEvent = {
+	-- calls are the ended calls, in the order they were submitted.
+	calls: { CompletedCall },
 }
 
 -- PrecacheOptions names what the next world loads ahead of use.
@@ -4267,6 +4299,19 @@ schema.ServiceRepliedEvent = {
 	{ number = 3, name = "failure", kind = "enum", enum = ServiceFailure },
 	{ number = 4, name = "error", kind = "string" },
 }
+schema.SubmitRequest = {
+	{ number = 1, name = "calls", kind = "message", repeated = true, message = "Call" },
+}
+schema.SubmitResponse = {
+	{ number = 1, name = "calls", kind = "uint64", repeated = true },
+}
+schema.CompletedCall = {
+	{ number = 1, name = "call", kind = "uint64" },
+	{ number = 2, name = "reply", kind = "message", message = "Reply" },
+}
+schema.CompletedEvent = {
+	{ number = 1, name = "calls", kind = "message", repeated = true, message = "CompletedCall" },
+}
 schema.LogRequest = {
 	{ number = 1, name = "message", kind = "string" },
 }
@@ -4710,6 +4755,23 @@ function modlock.startServiceCall(service: string, method: string, payload: stri
 	return response.call
 end
 
+-- submit starts each call without waiting for it and returns the numbers
+-- that name them, in order. The host runs the calls in a later frame, in the
+-- order submitted and after the calls the mod made before, and delivers
+-- their replies together in one Completed event. A reply carries what the
+-- call would have returned when made directly. The host refuses a batch that
+-- would leave the mod holding more than 256 calls that have not completed, and
+-- drops the calls still waiting when the mod stops or reloads. A host that
+-- does not know Submit answers it as an unknown method, and the library then
+-- makes each call directly.
+function modlock.submit(calls: { Call }?): { number }
+	local response = call("Submit", "SubmitRequest", { calls = calls }, "SubmitResponse")
+	if response == nil then
+		return {}
+	end
+	return response.calls
+end
+
 -- createEntity creates an entity the server knows by its designer name,
 -- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 -- written before it spawns. The world removes it when the world ends;
@@ -4979,6 +5041,9 @@ export type ModHandlers = {
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
 	serviceReplied: (event: ServiceRepliedEvent) -> (),
+	-- completed delivers the replies of the calls Submit started that ended
+	-- since the last one, together, at most once a frame.
+	completed: (event: CompletedEvent) -> (),
 	-- damage offers one hit before the game applies it, while the mod asked
 	-- for damage. The mod's answer may block the hit or change its amount.
 	damage: (event: DamageEvent) -> DamageResult,
@@ -5068,6 +5133,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
+	Completed = { request = "CompletedEvent", response = "Empty", handler = "completed" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
 	Damaged = { request = "DamagedEvent", response = "Empty", handler = "damaged" },
 	Killed = { request = "KillEvent", response = "Empty", handler = "killed" },
@@ -6699,6 +6765,9 @@ local handlers: ModHandlers = {
 		end
 		done(event.payload, nil, "none")
 	end,
+
+	-- The library submits no calls, so no Completed event arrives.
+	completed = function() end,
 
 	npcsRestored = function(event)
 		for _, handler in npcsRestoreds do

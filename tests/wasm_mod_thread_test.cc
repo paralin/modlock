@@ -14,6 +14,7 @@
 
 #include "gtest/gtest.h"
 #include "wasm/mod_thread.h"
+#include "wasm/sandbox.h"
 
 namespace {
 
@@ -30,6 +31,7 @@ using modlock::wasm::ModThread;
 using modlock::wasm::ModThreadSettings;
 using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
+using modlock::wasm::Sandbox;
 using modlock::wasm::StartEvent;
 using modlock::wasm::WindowStats;
 
@@ -104,41 +106,87 @@ struct Game {
 
 // kPrelude gives a script the host calls over protobuf bytes: call(method,
 // request) returns {error, response}, and an event arrives as a Call whose
-// handlers[method] answers. Lengths stay under 128, so each fits one byte.
+// handlers[method] answers. A length may take several bytes.
 const char kPrelude[] = R"(
 const enc = new TextEncoder(), dec = new TextDecoder();
 const text = (s) => enc.encode(s);
-const call = (method, request = new Uint8Array(0)) => {
-  const name = text(method);
-  const out = new Uint8Array(4 + name.length + request.length);
-  out[0] = 0x0a; out[1] = name.length; out.set(name, 2);
-  out[2 + name.length] = 0x12; out[3 + name.length] = request.length;
-  out.set(request, 4 + name.length);
-  const bytes = __modlock.hostCall(out);
-  let o = 0, error = '', response = new Uint8Array(0);
-  while (o < bytes.length) {
-    const tag = bytes[o++], n = bytes[o++], field = bytes.subarray(o, o + n);
-    o += n;
-    if (tag === 0x0a) error = dec.decode(field); else response = field;
-  }
-  return {error, response};
-};
-const read = (method) => dec.decode(call(method).response);
-const reply = (bytes) => {
-  const out = new Uint8Array(2 + bytes.length);
-  out[0] = 0x12; out[1] = bytes.length; out.set(bytes, 2);
+const varint = (n) => {
+  const out = [];
+  for (; n >= 128; n = Math.floor(n / 128)) out.push((n % 128) + 128);
+  out.push(n);
   return out;
 };
+const concat = (parts) => {
+  const out = [];
+  for (const part of parts) for (const byte of part) out.push(byte);
+  return Uint8Array.from(out);
+};
+const field = (tag, bytes) => concat([[tag], varint(bytes.length), bytes]);
+const readVarint = (bytes, cursor) => {
+  let n = 0, scale = 1;
+  for (;;) {
+    const byte = bytes[cursor.at++];
+    n += (byte & 127) * scale;
+    if (byte < 128) return n;
+    scale *= 128;
+  }
+};
+// fields returns the [number, value] pairs of an encoded message, where a
+// value is a number or the bytes of a length-delimited field.
+const fields = (bytes) => {
+  const out = [], cursor = {at: 0};
+  while (cursor.at < bytes.length) {
+    const tag = bytes[cursor.at++];
+    if ((tag & 7) === 0) {
+      out.push([tag >> 3, readVarint(bytes, cursor)]);
+    } else {
+      const n = readVarint(bytes, cursor);
+      out.push([tag >> 3, bytes.subarray(cursor.at, cursor.at + n)]);
+      cursor.at += n;
+    }
+  }
+  return out;
+};
+const get = (list, number) => (list.find((f) => f[0] === number) || [])[1];
+const call = (method, request = new Uint8Array(0)) => {
+  const bytes = __modlock.hostCall(concat([field(0x0a, text(method)), field(0x12, request)]));
+  const reply = fields(bytes);
+  const error = get(reply, 1), response = get(reply, 2);
+  return {error: error ? dec.decode(error) : '', response: response || new Uint8Array(0)};
+};
+const read = (method) => dec.decode(call(method).response);
+const reply = (bytes) => field(0x12, bytes);
 const busy = (ms) => { const end = Date.now() + ms; while (Date.now() < end) {} };
+)";
+
+// kFutures gives a script submit(calls), which sends [method, request] pairs
+// in one Submit and returns {error, ids}, and completed(event), which lists
+// "id:error:response" for each call a Completed event delivers.
+const char kFutures[] = R"(
+const submit = (calls) => {
+  const request = concat(calls.map(([method, body]) =>
+    field(0x0a, concat([field(0x0a, text(method)), field(0x12, body || new Uint8Array(0))]))));
+  const {error, response} = call('Submit', request);
+  const ids = [];
+  for (const [number, packed] of fields(response)) {
+    const cursor = {at: 0};
+    while (number === 1 && cursor.at < packed.length) ids.push(readVarint(packed, cursor));
+  }
+  return {error, ids};
+};
+const completed = (event) => fields(event).map(([, done]) => {
+  const parts = fields(done), answer = fields(get(parts, 2) || new Uint8Array(0));
+  const error = get(answer, 1), response = get(answer, 2);
+  return get(parts, 1) + ':' + (error ? dec.decode(error) : '') + ':' + (response ? dec.decode(response) : '');
+});
 )";
 
 // kDispatch routes each event to handlers[method] and returns its reply.
 const char kDispatch[] = R"(
 __modlock.event = (ev) => {
-  const n = ev[1];
-  const method = dec.decode(ev.subarray(2, 2 + n));
-  const at = 2 + n;
-  const request = at < ev.length ? ev.subarray(at + 2, at + 2 + ev[at + 1]) : new Uint8Array(0);
+  const sent = fields(ev);
+  const method = dec.decode(get(sent, 1));
+  const request = get(sent, 2) || new Uint8Array(0);
   const handler = handlers[method];
   return (handler && handler(request)) || new Uint8Array(0);
 };
@@ -161,7 +209,7 @@ class Rig {
     }
     mod = std::move(*loaded);
     StartEvent start;
-    start.set_source(std::string(kPrelude) + handlers + kDispatch);
+    start.set_source(std::string(kPrelude) + kFutures + handlers + kDispatch);
     auto started = mod->Begin(Event("Start", start));
     if (!started) {
       return ::testing::AssertionFailure() << started.error();
@@ -461,6 +509,128 @@ const handlers = {
   EXPECT_EQ(done[1].method, "Ev");
   EXPECT_EQ(done[2].method, "Frame");
   EXPECT_EQ(Text(done[2]), std::string(1, '\x02'));
+}
+
+// kSubmitting is a mod that submits a read, a write, a read and a hop in one
+// Submit, keeps what its Completed events deliver, and reports it.
+const char kSubmitting[] = R"(
+let ids = [], events = 0, seen = [];
+const handlers = {
+  Frame: () => {
+    if (ids.length) return;
+    ids = submit([['ReadField'], ['WriteField'], ['ReadField'], ['CreateModel']]).ids;
+  },
+  Completed: (request) => { ++events; seen.push(...completed(request)); },
+  Report: () => reply(text(ids.join(',') + '|' + events + '|' + seen.join(','))),
+  Cap: () => {
+    const first = submit(Array.from({length: 255}, () => ['Chat', text('c')]));
+    const nested = submit([['Submit']]);
+    const second = submit([['Chat', text('c')]]);
+    return reply(text(first.error + first.ids.length + '|' + nested.error + nested.ids.length + '|' + second.error));
+  },
+};)";
+
+constexpr char kReplies[] = "1,2,3,4|1|1::0,2::,3::1,4::model";
+constexpr char kCapReport[] = "255|1|the mod already holds 256 submitted calls, and may hold 256";
+constexpr char kNestedReply[] = "256:a submitted call cannot submit:";
+
+TEST(Futures, SubmittedCallsReturnInOneCompletedEventOnAThread) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up(kSubmitting));
+
+  // The calls run in the windows, in the order submitted, and their replies
+  // come back together in one event.
+  for (int i = 0; i < 6; ++i) {
+    rig.Tick();
+  }
+  EXPECT_TRUE(rig.Settle().idle);
+  rig.mod->Post(Event("Report"));
+  EXPECT_TRUE(rig.Settle().idle);
+  const auto done = rig.mod->Completed();
+  ASSERT_FALSE(done.empty());
+  EXPECT_EQ(Text(done.back()), kReplies);
+  EXPECT_EQ(rig.game.calls, (std::vector<std::string>{"WriteField", "CreateModel"}));
+  EXPECT_FALSE(rig.game.off_thread);
+}
+
+TEST(Futures, ASubmitPastTheCapAndANestedSubmitAreAnswered) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up(kSubmitting));
+  rig.mod->Post(Event("Cap"));
+  EXPECT_TRUE(rig.Settle().idle);
+  auto done = rig.mod->Completed();
+  ASSERT_FALSE(done.empty());
+  EXPECT_EQ(Text(done.back()), kCapReport);
+
+  // The refused nested call is answered with its error, in the same event as
+  // the calls that ran.
+  for (int i = 0; i < 3; ++i) {
+    rig.Tick();
+  }
+  rig.mod->Post(Event("Report"));
+  EXPECT_TRUE(rig.Settle().idle);
+  done = rig.mod->Completed();
+  ASSERT_FALSE(done.empty());
+  EXPECT_NE(Text(done.back()).find(kNestedReply), std::string::npos) << Text(done.back());
+}
+
+// LoadInstance loads the QuickJS mod running script as an instance with no
+// thread of its own, and starts it.
+std::expected<Sandbox, std::string> LoadInstance(Game& game, const std::string& handlers) {
+  auto sandbox =
+      Sandbox::Load(SharedRuntime(), ReadFile(QUICKJS_WASM), Limits{}, game.Answer(), std::nullopt);
+  if (!sandbox) {
+    return sandbox;
+  }
+  StartEvent start;
+  start.set_source(std::string(kPrelude) + kFutures + handlers + kDispatch);
+  if (auto started = sandbox->Deliver(Event("Start", start)); !started) {
+    return std::unexpected(started.error());
+  }
+  return sandbox;
+}
+
+TEST(Futures, SubmittedCallsReturnInOneCompletedEventOnAnInstance) {
+  Game game;
+  auto sandbox = LoadInstance(game, kSubmitting);
+  ASSERT_TRUE(sandbox) << sandbox.error();
+  ASSERT_TRUE(sandbox->Deliver(FrameAt(1)));
+
+  // Nothing runs until the tick that flushes, and then every call runs in
+  // order and the replies come back as one event.
+  EXPECT_TRUE(game.calls.empty());
+  const auto event = sandbox->Flush();
+  ASSERT_TRUE(event);
+  EXPECT_EQ(event->calls_size(), 4);
+  EXPECT_EQ(game.calls, (std::vector<std::string>{"WriteField", "CreateModel"}));
+  EXPECT_FALSE(sandbox->Flush());
+
+  ASSERT_TRUE(sandbox->Deliver(Event("Completed", *event)));
+  const auto report = sandbox->Deliver(Event("Report"));
+  ASSERT_TRUE(report);
+  EXPECT_EQ(report->response(), kReplies);
+}
+
+TEST(Futures, AnInstanceAnswersAPastTheCapAndANestedSubmit) {
+  Game game;
+  auto sandbox = LoadInstance(game, kSubmitting);
+  ASSERT_TRUE(sandbox) << sandbox.error();
+  const auto report = sandbox->Deliver(Event("Cap"));
+  ASSERT_TRUE(report);
+  EXPECT_EQ(report->response(), kCapReport);
+
+  // The replies keep their places until the flush takes them, and taking
+  // them frees the places.
+  const auto event = sandbox->Flush();
+  ASSERT_TRUE(event);
+  EXPECT_EQ(event->calls_size(), 256);
+  ASSERT_TRUE(sandbox->Deliver(Event("Completed", *event)));
+  const auto again = sandbox->Deliver(Event("Cap"));
+  ASSERT_TRUE(again);
+  EXPECT_EQ(again->response(), kCapReport);
+  const auto seen = sandbox->Deliver(Event("Report"));
+  ASSERT_TRUE(seen);
+  EXPECT_NE(seen->response().find(kNestedReply), std::string::npos) << seen->response();
 }
 
 // Percentile returns the p-th percentile of sorted samples.

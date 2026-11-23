@@ -1586,6 +1586,9 @@ local handlers: ModHandlers = {
 		done(event.payload, nil, "none")
 	end,
 
+	-- The library submits no calls, so no Completed event arrives.
+	completed = function() end,
+
 	npcsRestored = function(event)
 		for _, handler in npcsRestoreds do
 			handler(if event.error ~= "" then event.error else nil)

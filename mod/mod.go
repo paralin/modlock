@@ -565,6 +565,11 @@ func (h *handlers) NpcsRestored(event *NpcsRestoredEvent) error {
 	return nil
 }
 
+// Completed ignores the replies of submitted calls: this library submits none.
+func (h *handlers) Completed(event *CompletedEvent) error {
+	return nil
+}
+
 // ServiceReplied ends one started service call.
 func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
 	done, ok := h.waiting[event.GetCall()]

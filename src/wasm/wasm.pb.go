@@ -785,6 +785,96 @@ func (x *ServiceRepliedEvent) GetError() string {
 	return ""
 }
 
+// SubmitRequest holds the calls to start together.
+type SubmitRequest struct {
+	unknownFields []byte
+	// Calls are the calls to run, each as the mod would make it directly.
+	Calls []*Call `protobuf:"bytes,1,rep,name=calls,proto3" json:"calls,omitempty"`
+}
+
+func (x *SubmitRequest) Reset() {
+	*x = SubmitRequest{}
+}
+
+func (*SubmitRequest) ProtoMessage() {}
+
+func (x *SubmitRequest) GetCalls() []*Call {
+	if x != nil {
+		return x.Calls
+	}
+	return nil
+}
+
+// SubmitResponse numbers the calls a Submit started.
+type SubmitResponse struct {
+	unknownFields []byte
+	// Calls are the numbers of the submitted calls, one for each, in order,
+	// unique for the mod's instance.
+	Calls []uint64 `protobuf:"varint,1,rep,packed,name=calls,proto3" json:"calls,omitempty"`
+}
+
+func (x *SubmitResponse) Reset() {
+	*x = SubmitResponse{}
+}
+
+func (*SubmitResponse) ProtoMessage() {}
+
+func (x *SubmitResponse) GetCalls() []uint64 {
+	if x != nil {
+		return x.Calls
+	}
+	return nil
+}
+
+// CompletedCall is the reply to one submitted call.
+type CompletedCall struct {
+	unknownFields []byte
+	// Call is the number Submit returned.
+	Call uint64 `protobuf:"varint,1,opt,name=call,proto3" json:"call,omitempty"`
+	// Reply is what the call returned.
+	Reply *Reply `protobuf:"bytes,2,opt,name=reply,proto3" json:"reply,omitempty"`
+}
+
+func (x *CompletedCall) Reset() {
+	*x = CompletedCall{}
+}
+
+func (*CompletedCall) ProtoMessage() {}
+
+func (x *CompletedCall) GetCall() uint64 {
+	if x != nil {
+		return x.Call
+	}
+	return 0
+}
+
+func (x *CompletedCall) GetReply() *Reply {
+	if x != nil {
+		return x.Reply
+	}
+	return nil
+}
+
+// CompletedEvent delivers the replies of the submitted calls that ended.
+type CompletedEvent struct {
+	unknownFields []byte
+	// Calls are the ended calls, in the order they were submitted.
+	Calls []*CompletedCall `protobuf:"bytes,1,rep,name=calls,proto3" json:"calls,omitempty"`
+}
+
+func (x *CompletedEvent) Reset() {
+	*x = CompletedEvent{}
+}
+
+func (*CompletedEvent) ProtoMessage() {}
+
+func (x *CompletedEvent) GetCalls() []*CompletedCall {
+	if x != nil {
+		return x.Calls
+	}
+	return nil
+}
+
 // LogRequest carries one log line.
 type LogRequest struct {
 	unknownFields []byte
@@ -1158,6 +1248,71 @@ func (m *ServiceRepliedEvent) CloneVT() *ServiceRepliedEvent {
 }
 
 func (m *ServiceRepliedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SubmitRequest) CloneVT() *SubmitRequest {
+	if m == nil {
+		return (*SubmitRequest)(nil)
+	}
+	r := new(SubmitRequest)
+	r.Calls = protobuf_go_lite.CloneVTSlice(m.Calls)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SubmitRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SubmitResponse) CloneVT() *SubmitResponse {
+	if m == nil {
+		return (*SubmitResponse)(nil)
+	}
+	r := new(SubmitResponse)
+	r.Calls = protobuf_go_lite.CloneSlice(m.Calls)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SubmitResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *CompletedCall) CloneVT() *CompletedCall {
+	if m == nil {
+		return (*CompletedCall)(nil)
+	}
+	r := new(CompletedCall)
+	r.Call = m.Call
+	r.Reply = protobuf_go_lite.CloneVTValue(m.Reply)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *CompletedCall) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *CompletedEvent) CloneVT() *CompletedEvent {
+	if m == nil {
+		return (*CompletedEvent)(nil)
+	}
+	r := new(CompletedEvent)
+	r.Calls = protobuf_go_lite.CloneVTSlice(m.Calls)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *CompletedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1646,6 +1801,89 @@ func (this *ServiceRepliedEvent) EqualVT(that *ServiceRepliedEvent) bool {
 
 func (this *ServiceRepliedEvent) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ServiceRepliedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SubmitRequest) EqualVT(that *SubmitRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Calls, that.Calls, func() *Call { return &Call{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SubmitRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SubmitRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SubmitResponse) EqualVT(that *SubmitResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Calls, that.Calls) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SubmitResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SubmitResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *CompletedCall) EqualVT(that *CompletedCall) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Call != that.Call {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Reply, that.Reply) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CompletedCall) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*CompletedCall)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *CompletedEvent) EqualVT(that *CompletedEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Calls, that.Calls, func() *CompletedCall { return &CompletedCall{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CompletedEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*CompletedEvent)
 	if !ok {
 		return false
 	}
@@ -2824,6 +3062,232 @@ func (x *ServiceRepliedEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the SubmitRequest message to JSON.
+func (x *SubmitRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Calls) > 0 || s.HasField("calls") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("calls")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Calls {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("calls"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SubmitRequest to JSON.
+func (x *SubmitRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SubmitRequest message from JSON.
+func (x *SubmitRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "calls":
+			s.AddField("calls")
+			if s.ReadNil() {
+				x.Calls = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Calls = append(x.Calls, nil)
+					return
+				}
+				v := &Call{}
+				v.UnmarshalProtoJSON(s.WithField("calls", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Calls = append(x.Calls, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SubmitRequest from JSON.
+func (x *SubmitRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SubmitResponse message to JSON.
+func (x *SubmitResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Calls) > 0 || s.HasField("calls") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("calls")
+		s.WriteUint64Array(x.Calls)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SubmitResponse to JSON.
+func (x *SubmitResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SubmitResponse message from JSON.
+func (x *SubmitResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "calls":
+			s.AddField("calls")
+			if s.ReadNil() {
+				x.Calls = nil
+				return
+			}
+			x.Calls = s.ReadUint64Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SubmitResponse from JSON.
+func (x *SubmitResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the CompletedCall message to JSON.
+func (x *CompletedCall) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Call != 0 || s.HasField("call") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("call")
+		s.WriteUint64(x.Call)
+	}
+	if x.Reply != nil || s.HasField("reply") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reply")
+		x.Reply.MarshalProtoJSON(s.WithField("reply"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the CompletedCall to JSON.
+func (x *CompletedCall) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the CompletedCall message from JSON.
+func (x *CompletedCall) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "call":
+			s.AddField("call")
+			x.Call = s.ReadUint64()
+		case "reply":
+			if s.ReadNil() {
+				x.Reply = nil
+				return
+			}
+			x.Reply = &Reply{}
+			x.Reply.UnmarshalProtoJSON(s.WithField("reply", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the CompletedCall from JSON.
+func (x *CompletedCall) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the CompletedEvent message to JSON.
+func (x *CompletedEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Calls) > 0 || s.HasField("calls") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("calls")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Calls {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("calls"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the CompletedEvent to JSON.
+func (x *CompletedEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the CompletedEvent message from JSON.
+func (x *CompletedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "calls":
+			s.AddField("calls")
+			if s.ReadNil() {
+				x.Calls = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Calls = append(x.Calls, nil)
+					return
+				}
+				v := &CompletedCall{}
+				v.UnmarshalProtoJSON(s.WithField("calls", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Calls = append(x.Calls, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the CompletedEvent from JSON.
+func (x *CompletedEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the LogRequest message to JSON.
 func (x *LogRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -3776,6 +4240,178 @@ func (m *ServiceRepliedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SubmitRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SubmitRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SubmitRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Calls) > 0 {
+		for iNdEx := len(m.Calls) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Calls[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SubmitResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SubmitResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SubmitResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Calls) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Calls)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CompletedCall) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CompletedCall) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *CompletedCall) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Reply != nil {
+		size, err := m.Reply.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Call != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Call))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CompletedEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CompletedEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *CompletedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Calls) > 0 {
+		for iNdEx := len(m.Calls) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Calls[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *LogRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4116,6 +4752,60 @@ func (m *ServiceRepliedEvent) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Payload)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Failure)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Error)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SubmitRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Calls {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SubmitResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Calls)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *CompletedCall) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Call)
+	if m.Reply != nil {
+		l = m.Reply.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *CompletedEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Calls {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -4557,6 +5247,86 @@ func (x *ServiceRepliedEvent) MarshalProtoText() string {
 }
 
 func (x *ServiceRepliedEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SubmitRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SubmitRequest")
+	if len(x.Calls) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "calls")
+		for i, v := range x.Calls {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Call{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SubmitRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SubmitResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SubmitResponse")
+	if len(x.Calls) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "calls")
+		for i, v := range x.Calls {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteUint(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SubmitResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *CompletedCall) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "CompletedCall")
+	if x.Call != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "call")
+		protobuf_go_lite.TextWriteUint(&sb, x.Call)
+	}
+	if x.Reply != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reply")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Reply)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *CompletedCall) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *CompletedEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "CompletedEvent")
+	if len(x.Calls) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "calls")
+		for i, v := range x.Calls {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &CompletedCall{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *CompletedEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -5859,6 +6629,258 @@ func (m *ServiceRepliedEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Error = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SubmitRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SubmitRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SubmitRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Calls", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Calls = append(m.Calls, &Call{})
+			if err := m.Calls[len(m.Calls)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SubmitResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SubmitResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SubmitResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint64
+				v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Calls = append(m.Calls, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Calls) == 0 {
+					m.Calls = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Calls = append(m.Calls, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Calls", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *CompletedCall) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CompletedCall: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CompletedCall: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Call", wireType)
+			}
+			m.Call = 0
+			m.Call, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reply", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Reply == nil {
+				m.Reply = &Reply{}
+			}
+			if err := m.Reply.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *CompletedEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CompletedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CompletedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Calls", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Calls = append(m.Calls, &CompletedCall{})
+			if err := m.Calls[len(m.Calls)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

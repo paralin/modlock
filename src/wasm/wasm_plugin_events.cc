@@ -640,6 +640,12 @@ void WasmPlugin::DeliverServiceReplies() {
   }
 }
 
+void WasmPlugin::DeliverCompleted() {
+  if (auto completed = instance_.Flush()) {
+    static_cast<void>(mod_.Completed(*completed));
+  }
+}
+
 void WasmPlugin::Unsubscribe() {
   // Drop the player and combat subscriptions.
   players_.Reset();

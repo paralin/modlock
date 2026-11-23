@@ -611,6 +611,14 @@ type UiInputEventChoice = uipb.UiInputEvent_Choice
 // UiInputEventWheel sets UiInputEvent.Value to Wheel.
 type UiInputEventWheel = uipb.UiInputEvent_Wheel
 
+// Call is one method call across the boundary: a mod calling the game
+// through modlock.host_call, or the game delivering an event through the
+// mod's modlock_event export.
+type Call = wasmpb.Call
+
+// Reply answers one Call.
+type Reply = wasmpb.Reply
+
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
 
@@ -652,6 +660,12 @@ type ServiceReply = wasmpb.ServiceReply
 
 // ServiceRepliedEvent ends one started service call.
 type ServiceRepliedEvent = wasmpb.ServiceRepliedEvent
+
+// CompletedCall is the reply to one submitted call.
+type CompletedCall = wasmpb.CompletedCall
+
+// CompletedEvent delivers the replies of the submitted calls that ended.
+type CompletedEvent = wasmpb.CompletedEvent
 
 // PrecacheOptions names what the next world loads ahead of use.
 type PrecacheOptions = wasmpb.PrecacheOptions
@@ -1628,6 +1642,24 @@ func StartServiceCall(service, method string, payload []byte, timeoutMillisecond
 	return response.GetCall(), nil
 }
 
+// Submit starts each call without waiting for it and returns the numbers
+// that name them, in order. The host runs the calls in a later frame, in the
+// order submitted and after the calls the mod made before, and delivers
+// their replies together in one Completed event. A reply carries what the
+// call would have returned when made directly. The host refuses a batch that
+// would leave the mod holding more than 256 calls that have not completed, and
+// drops the calls still waiting when the mod stops or reloads. A host that
+// does not know Submit answers it as an unknown method, and the library then
+// makes each call directly.
+func Submit(calls []*Call) ([]uint64, error) {
+	request := &wasmpb.SubmitRequest{Calls: calls}
+	response := &wasmpb.SubmitResponse{}
+	if err := invoke("Submit", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetCalls(), nil
+}
+
 // CreateEntity creates an entity the server knows by its designer name,
 // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 // written before it spawns. The world removes it when the world ends;
@@ -2005,6 +2037,9 @@ type modHandlers interface {
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
 	ServiceReplied(event *ServiceRepliedEvent) error
+	// Completed delivers the replies of the calls Submit started that ended
+	// since the last one, together, at most once a frame.
+	Completed(event *CompletedEvent) error
 	// Damage offers one hit before the game applies it, while the mod asked
 	// for damage. The mod's answer may block the hit or change its amount.
 	Damage(event *DamageEvent) (*DamageResult, error)
@@ -2145,6 +2180,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.ServiceReplied(event))
+	case "Completed":
+		event := &CompletedEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Completed(event))
 	case "Damage":
 		event := &DamageEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

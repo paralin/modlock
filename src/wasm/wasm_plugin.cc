@@ -631,6 +631,7 @@ void WasmPlugin::Tick() {
 
   // End the started service calls that ended, which need no game.
   DeliverServiceReplies();
+  DeliverCompleted();
 
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {

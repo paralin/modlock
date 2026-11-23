@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "src/wasm/profile/profile.pb.h"
+#include "wasm/futures.h"
 #include "wasm/instance.h"
 
 namespace modlock::wasm {
@@ -170,6 +171,16 @@ struct Completion {
 // watches would end that, and is not built.
 // Calls from the game thread itself, which run Start and a decision, go
 // straight to the game after the buffer is applied.
+//
+// Submit starts calls without waiting for them, and takes the same paths with
+// the mod not waiting on any. A submitted write is buffered as above and
+// completed at once with success. A read the snapshot covers completes at once.
+// Every other call joins the buffer in its place, tagged with its number, and
+// completes when the game thread applies it, in the next window or before the
+// next hop. Window delivers what has completed as one Completed event before
+// the frame, so the mod's continuations run in the tick after the call, and a
+// mod that submits from the game thread, during a decision, has each call run
+// at once.
 class ModThread {
  public:
   // Load compiles module, runs its initialization on the calling thread and
@@ -211,7 +222,8 @@ class ModThread {
   [[nodiscard]] std::optional<Completion> Decide(const Call& call);
 
   // Window runs the mod for one tick, after the engine's frame. It applies the
-  // buffered writes, rebuilds the snapshot, posts frame if there is one, and
+  // buffered writes, rebuilds the snapshot, posts the Completed event for the
+  // submitted calls that finished, then frame if there is one, and
   // answers the mod's hops, applying the buffer before each, until the mod is
   // idle with nothing queued or deadline passes. A hop already waiting when the
   // window opens is answered whatever the deadline, so a mod that hops
@@ -299,6 +311,15 @@ class ModThread {
   // Hop is the mod thread's one outstanding request to the game thread.
   enum class HopState { kNone, kPosted, kAnswered };
 
+  // Buffered is one call the game thread applies in order. id, when set, is the
+  // submitted call its reply completes; changes is false for a read, which
+  // leaves the game as it was and so does not advance the snapshot's epoch.
+  struct Buffered {
+    Call call;
+    uint64_t id = 0;
+    bool changes = true;
+  };
+
   // Entry is one replayed read: the call, the game's answer when the window
   // began, and whether the mod used it since, which keeps it for the next
   // window.
@@ -320,6 +341,15 @@ class ModThread {
 
   // Route answers a call from the mod, on whichever thread runs the mod.
   Reply Route(const Call& call);
+  // Direct runs call on the game thread for the mod, after applying the buffer.
+  Reply Direct(const Call& call);
+  // Submit answers a Submit call: it numbers the calls, and starts each by the
+  // thread it runs on.
+  Reply Submit(const Call& call);
+  // Queue starts one submitted call from the mod thread, by its class.
+  void Queue(uint64_t id, const Call& call);
+  // PostCompleted posts the replies that are ready as one Completed event.
+  void PostCompleted();
   // OnModThread is true on the mod thread.
   bool OnModThread() const;
   // Borrow delivers call on the calling thread if the mod is idle with
@@ -334,6 +364,9 @@ class ModThread {
 
   // BufferWrite appends call to the buffer, or returns false when it is full.
   bool BufferWrite(const Call& call);
+  // Enqueue appends entry to the buffer whatever its size, which the calls a
+  // mod may hold submitted bound.
+  void Enqueue(Buffered entry);
   // ReadSnapshot answers a read from the snapshot, or returns nullopt after
   // noting the miss for the next window to replay.
   std::optional<Reply> ReadSnapshot(const Call& call);
@@ -392,7 +425,7 @@ class ModThread {
   };
 
   Counters reported_;
-  std::vector<Call> applying_batch_;
+  std::vector<Buffered> applying_batch_;
   bool started_ = false;
 
   // The mod thread's own state. It is touched only there, or on the game
@@ -401,6 +434,8 @@ class ModThread {
   // snapshot's epoch.
   uint64_t issued_ = 0;
   std::unordered_map<std::string, Reply> immutable_;
+  // futures_ holds the submitted calls' replies.
+  Futures futures_;
 
   // The handoff. hop_call_, hop_changes_ and hop_reply_ belong to whichever side
   // hop_ says may touch them.
@@ -446,7 +481,7 @@ class ModThread {
   mutable std::mutex mu_;
   std::deque<Call> queue_;
   std::atomic<size_t> queued_ = 0;
-  std::vector<Call> buffer_;
+  std::vector<Buffered> buffer_;
   // buffered_ mirrors the buffer's size, so a hop with nothing buffered skips
   // the lock.
   std::atomic<size_t> buffered_ = 0;

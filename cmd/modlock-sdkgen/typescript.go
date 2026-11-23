@@ -15,7 +15,7 @@ import (
 // typeScriptPreamble opens the generated module with the vector types and
 // their readers.
 const typeScriptPreamble = `import { heroNamed } from './heroes.js'
-import { call } from './host.js'
+import { call, callAsync } from './host.js'
 
 /** Vector is a position or direction in the world, in game units. */
 export interface Vector {
@@ -418,8 +418,28 @@ func (w *tsWriter) writeClass(c *class) error {
 }
 
 // writeCall writes one call as a method when indent is set, or else as an
-// exported function.
+// exported function, followed by its asynchronous form.
 func (w *tsWriter) writeCall(c *call, indent string) error {
+	if err := w.writeForm(c, indent, false); err != nil {
+		return err
+	}
+
+	// Submit is what the asynchronous forms are made of.
+	if c.method.name == "Submit" {
+		return nil
+	}
+	if indent != "" {
+		w.out.WriteString("\n")
+	}
+	return w.writeForm(c, indent, true)
+}
+
+// writeForm writes one form of a call: the synchronous one, which returns the
+// result, or the asynchronous one, which returns a promise of it. The
+// asynchronous form hands its call to callAsync, which sends the calls the
+// mod makes in one turn together, and decodes the reply as the synchronous
+// form does.
+func (w *tsWriter) writeForm(c *call, indent string, async bool) error {
 	// Declare the call.
 	var params []string
 	switch {
@@ -435,12 +455,21 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 		}
 	}
 	result, failure := w.resultType(c)
-	writeDoc(&w.out, indent, rename(c.method.doc, c.method.name, c.name))
+	name := c.name
+	doc := rename(c.method.doc, c.method.name, c.name)
+	send := "call"
+	if async {
+		name += "Async"
+		result = "Promise<" + result + ">"
+		doc += "\n\n" + fmt.Sprintf("%s starts the call without waiting and returns what %s returns, as a promise\nthat settles in a later frame. The calls a mod starts in one turn go to the host\ntogether.", name, c.name)
+		send = "callAsync"
+	}
+	writeDoc(&w.out, indent, doc)
 	declare := "export function "
 	if indent != "" {
 		declare = ""
 	}
-	fmt.Fprintf(&w.out, "%s%s%s(%s): %s {\n", indent, declare, c.name, strings.Join(params, ", "), result)
+	fmt.Fprintf(&w.out, "%s%s%s(%s): %s {\n", indent, declare, name, strings.Join(params, ", "), result)
 
 	// Encode the request.
 	request, err := w.request(c)
@@ -448,30 +477,44 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 		return err
 	}
 	body := indent + "  "
-	send := fmt.Sprintf("call('%s', %s)", c.method.name, request)
-	if c.result == nil {
-		fmt.Fprintf(&w.out, "%sreturn %s !== undefined\n%s}\n", body, send, indent)
+	send = fmt.Sprintf("%s('%s', %s)", send, c.method.name, request)
+	end := func() {
+		fmt.Fprintf(&w.out, "%s}\n", indent)
 		if indent == "" {
 			w.out.WriteString("\n")
 		}
+	}
+	if c.result == nil {
+		if async {
+			fmt.Fprintf(&w.out, "%sreturn %s.then((reply) => reply !== undefined)\n", body, send)
+		} else {
+			fmt.Fprintf(&w.out, "%sreturn %s !== undefined\n", body, send)
+		}
+		end()
 		return nil
 	}
 
-	// Decode the response.
-	fmt.Fprintf(&w.out, "%sconst reply = %s\n", body, send)
-	fmt.Fprintf(&w.out, "%sif (reply === undefined) return %s\n", body, failure)
-	fmt.Fprintf(&w.out, "%sconst response = %s.fromBinary(reply)\n", body, w.pb(c.method.response.file, c.method.response.name))
+	// Decode the response, inside the promise's continuation for the
+	// asynchronous form.
 	value := "response." + lowerCamel(c.result.name)
 	read := w.fromField(c.result, value)
 	if f := c.result; f.message != nil && !f.repeated && !f.optional && !f.message.isUnion() {
 		read = fmt.Sprintf("%s === undefined ? undefined : %s", value, w.fromValue(f, value))
 	}
-
-	// Close the generated method and separate free functions.
-	fmt.Fprintf(&w.out, "%sreturn %s\n%s}\n", body, read, indent)
-	if indent == "" {
-		w.out.WriteString("\n")
+	response := w.pb(c.method.response.file, c.method.response.name)
+	if async {
+		fmt.Fprintf(&w.out, "%sreturn %s.then((reply) => {\n", body, send)
+		inner := body + "  "
+		fmt.Fprintf(&w.out, "%sif (reply === undefined) return %s\n", inner, failure)
+		fmt.Fprintf(&w.out, "%sconst response = %s.fromBinary(reply)\n", inner, response)
+		fmt.Fprintf(&w.out, "%sreturn %s\n%s})\n", inner, read, body)
+	} else {
+		fmt.Fprintf(&w.out, "%sconst reply = %s\n", body, send)
+		fmt.Fprintf(&w.out, "%sif (reply === undefined) return %s\n", body, failure)
+		fmt.Fprintf(&w.out, "%sconst response = %s.fromBinary(reply)\n", body, response)
+		fmt.Fprintf(&w.out, "%sreturn %s\n", body, read)
 	}
+	end()
 	return nil
 }
 

@@ -2,7 +2,12 @@
 // runtime the mod runs on. Each runtime's entry binds its own transport, so
 // the library itself reads no runtime globals.
 
-import { Call, Reply } from '../../src/wasm/wasm.pb.js'
+import {
+  Call,
+  Reply,
+  SubmitRequest,
+  SubmitResponse,
+} from '../../src/wasm/wasm.pb.js'
 
 /** Transport exchanges an encoded Call for the host's encoded Reply. */
 export type Transport = (call: Uint8Array) => Uint8Array
@@ -161,5 +166,124 @@ export function call(
   method: string,
   request: Uint8Array,
 ): Uint8Array | undefined {
+  // The calls asked for without waiting went first, so each call sees the
+  // calls the mod made before it.
+  if (unsent.length > 0) flushUnsent()
   return decodeReply(transport(encodeCall(method, request)))
+}
+
+/** Unsent is one call asked for without waiting, and how its result settles. */
+interface Unsent {
+  readonly method: string
+  readonly request: Uint8Array
+  readonly settle: (response: Uint8Array | undefined) => void
+}
+
+/**
+ * unsent holds the calls callAsync took since the last flush. It lives at
+ * module scope, as does sent, because the runtime binds the transport anew for
+ * each event, and a promise outlives the event that made it.
+ */
+let unsent: Unsent[] = []
+
+/** sent maps the number of each submitted call to the call awaiting its reply. */
+const sent = new Map<bigint, Unsent>()
+
+/** flushScheduled is true while a flush waits for the end of the turn. */
+let flushScheduled = false
+
+/** submitRefused is true once the host answered that it has no Submit. */
+let submitRefused = false
+
+/**
+ * callAsync is call without the wait: the promise settles with the response, or
+ * with undefined when the call failed, in a frame after the call. The calls a
+ * mod asks for in one turn, which Promise.all makes together, go to the host
+ * in one Submit. A host that does not know Submit, or refuses the batch, runs
+ * each call as call would, so the promise settles all the same.
+ */
+export function callAsync(
+  method: string,
+  request: Uint8Array,
+): Promise<Uint8Array | undefined> {
+  return new Promise((settle) => {
+    unsent.push({ method, request, settle })
+
+    // The turn's other calls join this one; the batch goes when it ends.
+    if (!flushScheduled) {
+      flushScheduled = true
+      void Promise.resolve().then(flushUnsent)
+    }
+  })
+}
+
+/**
+ * completeCalls settles the submitted calls the host's Completed event
+ * delivers, in the order they were submitted. Their continuations run when
+ * the runtime next drains its promise jobs, which for QuickJS is before the
+ * event returns.
+ */
+export function completeCalls(event: {
+  readonly calls: readonly {
+    readonly call: bigint
+    readonly reply: { readonly error: string; readonly response: Uint8Array }
+  }[]
+}): void {
+  for (const done of event.calls) {
+    // A call settles once; a number this instance does not hold is ignored.
+    const waiting = sent.get(done.call)
+    if (waiting === undefined) continue
+    sent.delete(done.call)
+    const reply = done.reply
+    waiting.settle(reply.error ? undefined : reply.response)
+  }
+}
+
+/** flushUnsent sends the calls callAsync took, in one Submit when it can. */
+function flushUnsent(): void {
+  // The turn ended, so the calls it took are all there are.
+  flushScheduled = false
+  if (unsent.length === 0) return
+
+  // Take the batch, so a call made while it runs joins the next one.
+  const batch = unsent
+  unsent = []
+
+  // The host numbers the calls and answers them in a later frame.
+  const numbers = submitBatch(batch)
+  if (numbers !== undefined) {
+    for (const [i, waiting] of batch.entries()) {
+      sent.set(numbers[i] ?? 0n, waiting)
+    }
+    return
+  }
+
+  // Without Submit each call runs now, as it would have synchronously.
+  for (const { method, request, settle } of batch) {
+    settle(call(method, request))
+  }
+}
+
+/**
+ * submitBatch starts batch's calls and returns their numbers, or undefined when
+ * the host did not take the batch. A host with no Submit is not asked again.
+ */
+function submitBatch(batch: readonly Unsent[]): bigint[] | undefined {
+  // A host that lacks Submit stays refused.
+  if (submitRefused) return undefined
+
+  // Ask the host to start the calls.
+  const request = SubmitRequest.toBinary({
+    calls: batch.map(({ method, request }) => ({ method, request })),
+  })
+  const reply = Reply.fromBinary(transport(encodeCall('Submit', request)))
+  if (reply.error) {
+    // An older host answers Submit as it answers any name it lacks.
+    submitRefused = reply.error.includes('has no method')
+    return undefined
+  }
+
+  // The host numbers each call, one for each in order.
+  const numbers = SubmitResponse.fromBinary(reply.response ?? empty).calls ?? []
+  return numbers.length === batch.length ? numbers : undefined
 }

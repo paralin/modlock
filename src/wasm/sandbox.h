@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "src/wasm/profile/profile.pb.h"
+#include "wasm/futures.h"
 #include "wasm/instance.h"
 #include "wasm/mod_thread.h"
 #include "wasm/runtime.h"
@@ -82,9 +83,22 @@ class Sandbox {
   // last call.
   [[nodiscard]] std::vector<Completion> Completed();
 
+  // Flush runs the calls an instance's mod submitted, on the calling thread
+  // and in the order submitted, and returns the Completed event that
+  // delivers their replies, or nullopt when none ended. A mod on its own
+  // thread has its calls run by Window and its Completed event posted there,
+  // so Flush returns nullopt.
+  [[nodiscard]] std::optional<CompletedEvent> Flush();
+
  private:
+  // Submitted holds the calls an instance's mod submitted until Flush runs
+  // them.
+  struct Submitted;
+
   std::unique_ptr<Instance> instance_;
   std::unique_ptr<ModThread> thread_;
+  // submitted_ is set for an instance; shared, since its host call holds it.
+  std::shared_ptr<Submitted> submitted_;
   // decided_ is the last decision a mod on its own thread took.
   std::optional<Completion> decided_;
 };

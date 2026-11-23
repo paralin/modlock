@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <deque>
 #include <string_view>
 #include <utility>
 
@@ -27,6 +28,24 @@ bool Decides(std::string_view method) {
 
 }  // namespace
 
+struct Sandbox::Submitted {
+  explicit Submitted(Instance::HostCall run) : run(std::move(run)) {}
+
+  // Answer takes a Submit and queues its calls, and gives every other call to
+  // the host.
+  Reply Answer(const Call& call) {
+    if (call.method() != "Submit") {
+      return run(call);
+    }
+    return futures.Submit(
+        call, [this](uint64_t id, const Call& submitted) { queue.emplace_back(id, submitted); });
+  }
+
+  Instance::HostCall run;
+  Futures futures;
+  std::deque<std::pair<uint64_t, Call>> queue;
+};
+
 std::expected<Sandbox, std::string> Sandbox::Load(Runtime& runtime, std::span<const uint8_t> module,
                                                   const Limits& limits,
                                                   Instance::HostCall host_call,
@@ -39,11 +58,14 @@ std::expected<Sandbox, std::string> Sandbox::Load(Runtime& runtime, std::span<co
     }
     sandbox.thread_ = std::move(*thread);
   } else {
-    auto instance = Instance::Load(runtime, module, limits, std::move(host_call));
+    auto submitted = std::make_shared<Submitted>(std::move(host_call));
+    auto instance = Instance::Load(
+        runtime, module, limits, [submitted](const Call& call) { return submitted->Answer(call); });
     if (!instance) {
       return std::unexpected(std::move(instance.error()));
     }
     sandbox.instance_ = std::move(*instance);
+    sandbox.submitted_ = std::move(submitted);
   }
   return sandbox;
 }
@@ -51,6 +73,7 @@ std::expected<Sandbox, std::string> Sandbox::Load(Runtime& runtime, std::span<co
 void Sandbox::Reset() {
   thread_.reset();
   instance_.reset();
+  submitted_.reset();
   decided_.reset();
 }
 
@@ -108,6 +131,22 @@ WindowStats Sandbox::Window(std::chrono::steady_clock::time_point deadline,
 
 std::vector<Completion> Sandbox::Completed() {
   return thread_ ? thread_->Completed() : std::vector<Completion>();
+}
+
+std::optional<CompletedEvent> Sandbox::Flush() {
+  // Hold the calls while they run, since one may stop the mod.
+  const auto submitted = submitted_;
+  if (!submitted || submitted->queue.empty()) {
+    return std::nullopt;
+  }
+  for (auto& [id, call] : std::exchange(submitted->queue, {})) {
+    submitted->futures.Complete(id, submitted->run(call));
+  }
+  CompletedEvent event = submitted->futures.Take();
+  if (event.calls_size() == 0) {
+    return std::nullopt;
+  }
+  return event;
 }
 
 }  // namespace modlock::wasm

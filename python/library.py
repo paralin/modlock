@@ -1542,6 +1542,11 @@ def _service_replied(event: ServiceRepliedEvent) -> None:
     done(event.payload, None, "none")
 
 
+def _completed(event: CompletedEvent) -> None:
+    # The library submits no calls, so no Completed event arrives.
+    pass
+
+
 def _launch(event: LaunchEvent) -> None:
     for handler in _launches:
         handler(event)
@@ -1630,6 +1635,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_input": _ui_input,
     "serve": _serve,
     "service_replied": _service_replied,
+    "completed": _completed,
     "damage": _damage,
     "damaged": _damaged,
     "killed": _killed,
