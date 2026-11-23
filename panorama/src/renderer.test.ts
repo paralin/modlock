@@ -11,6 +11,7 @@ import {
   type InputValue,
   inputCommand,
   layoutDataChanged,
+  layoutUnloadingAttribute,
   maxActionPayload,
   pressCommand,
 } from './draw.js'
@@ -1988,6 +1989,156 @@ test("hands a mod's routes to each of its layouts", () => {
   expect(
     root.children[0]!.children[0]!.attributes.has('modlock_route_round'),
   ).toBe(false)
+})
+
+test('notifies layouts before deleting them or releasing the screen', () => {
+  // Record every layout marked unloading when PlaySoundEffect fires, while
+  // both the panel and its parent are still valid.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const notices: FakePanel[] = []
+  const tracked = new Set<FakePanel>()
+  const seen = new Set<FakePanel>()
+  const drawing = new Drawing(
+    {
+      ...$,
+      DispatchEvent(event: string, ...values: unknown[]) {
+        dispatched.push([event, ...values.map(String)])
+        if (event !== 'PlaySoundEffect' || values[0] !== layoutDataChanged) {
+          return
+        }
+        for (const panel of tracked) {
+          if (
+            !seen.has(panel) &&
+            panel.GetAttributeString(layoutUnloadingAttribute, '') === '1'
+          ) {
+            expect(panel.valid).toBe(true)
+            expect(panel.parent?.valid).toBe(true)
+            seen.add(panel)
+            notices.push(panel)
+          }
+        }
+      },
+    },
+    root,
+    () => {},
+    {
+      url: (_mod, path) => `file://arena/${path}`,
+      addon: () => 'arena',
+      unloaded: () => {},
+    },
+  )
+  const tree = (path = 'shop.xml', sheets: string[] = []) =>
+    screen(
+      { id: '', sheets, children: ['box', 'keep'] },
+      { id: 'box', children: ['shop'] },
+      { id: 'shop', kind: 'KIND_LAYOUT', layout: path },
+      { id: 'keep', kind: 'KIND_LAYOUT', layout: 'keep.xml' },
+    )
+  const layoutPanels = () => {
+    const modRoot = root.children[0]!
+    const holder =
+      modRoot.children[0]?.id === 'ModlockUiSheet'
+        ? modRoot.children[0]
+        : modRoot
+    const shop = holder.children[0]!.children[0]!
+    const keep = holder.children[1]!
+    tracked.add(shop)
+    tracked.add(keep)
+    return { shop, keep }
+  }
+
+  const expectNotified = (...panels: FakePanel[]) => {
+    expect(notices).toHaveLength(panels.length)
+    expect(new Set(notices)).toEqual(new Set(panels))
+    notices.length = 0
+  }
+
+  // Removing an ancestor notifies the nested layout before deleting the box,
+  // and leaves a sibling layout alone.
+  drawing.draw(tree())
+  const first = layoutPanels()
+  drawing.draw(
+    screen(
+      { id: '', children: ['keep'] },
+      { id: 'keep', kind: 'KIND_LAYOUT', layout: 'keep.xml' },
+    ),
+  )
+  expectNotified(first.shop)
+  expect(first.shop.parent?.valid).toBe(false)
+  expect(first.keep.attributes.has(layoutUnloadingAttribute)).toBe(false)
+
+  // Replacing a layout in place notifies the old one before creating the new.
+  drawing.draw(tree('shop.xml'))
+  const second = layoutPanels()
+  drawing.draw(tree('other.xml'))
+  const third = layoutPanels()
+  expectNotified(second.shop)
+  expect(third.shop).not.toBe(second.shop)
+  expect(third.shop.attributes.has(layoutUnloadingAttribute)).toBe(false)
+
+  // Replacing the root through style sheets notifies layouts nested under its
+  // sheet panels once before the old root goes.
+  dispatched.length = 0
+  drawing.draw(tree('other.xml', ['a.css', 'b.css']))
+  const sheeted = layoutPanels()
+  expectNotified(third.shop, third.keep)
+  expect(dispatched).toEqual([['PlaySoundEffect', layoutDataChanged]])
+  dispatched.length = 0
+  drawing.draw(tree('other.xml', ['a.css']))
+  const unnested = layoutPanels()
+  expectNotified(sheeted.shop, sheeted.keep)
+  expect(dispatched).toEqual([['PlaySoundEffect', layoutDataChanged]])
+
+  // Reloading a tree's generation notifies every layout in the old tree.
+  const reloaded = tree('other.xml', ['a.css'])
+  reloaded.trees![0]!.generation = 2n
+  drawing.draw(reloaded)
+  const afterReload = layoutPanels()
+  expectNotified(unnested.shop, unnested.keep)
+
+  // Dropping the mod notifies its layouts before deleting its root.
+  drawing.draw(null)
+  expectNotified(afterReload.shop, afterReload.keep)
+
+  // Releasing on disconnect notifies once; repeating release or drawing null
+  // after sends no extra wake.
+  drawing.draw(tree())
+  const released = layoutPanels()
+  dispatched.length = 0
+  drawing.release()
+  drawing.release()
+  drawing.draw(null)
+  expectNotified(released.shop, released.keep)
+  expect(dispatched).toEqual([['PlaySoundEffect', layoutDataChanged]])
+
+  // Drawing the same screen again after release replaces the unloaded layouts
+  // with fresh panels without sending another wake, and dropping them notifies
+  // the replacements.
+  drawing.draw(tree())
+  const stale = layoutPanels()
+  drawing.release()
+  expectNotified(stale.shop, stale.keep)
+  dispatched.length = 0
+  drawing.draw(tree())
+  const fresh = layoutPanels()
+  expect(fresh.shop).not.toBe(stale.shop)
+  expect(fresh.keep).not.toBe(stale.keep)
+  expect(fresh.shop.attributes.has(layoutUnloadingAttribute)).toBe(false)
+  expect(fresh.keep.attributes.has(layoutUnloadingAttribute)).toBe(false)
+  expect(dispatched).toEqual([])
+  drawing.draw(null)
+  expectNotified(fresh.shop, fresh.keep)
+
+  // A layout that failed to load gets no unload notice when removed.
+  dispatched.length = 0
+  drawing.draw(
+    screen(
+      { id: '', children: ['bad'] },
+      { id: 'bad', kind: 'KIND_LAYOUT', layout: 'missing.xml' },
+    ),
+  )
+  drawing.draw(null)
+  expect(dispatched).toEqual([])
 })
 
 test('reads screens in acknowledged parts', () => {

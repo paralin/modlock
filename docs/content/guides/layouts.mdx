@@ -67,6 +67,13 @@ it delivers `PlaySoundEffect` to every script, and no sound has that name, so
 none plays. The library hears it, rereads each attribute, and calls the handler
 of each value that changed.
 
+`Modlock.onUnload(() => ...)` runs once when the renderer starts removing or
+replaces the layout's panel, reloads the tree, or releases the screen as the
+player leaves, so a layout can cancel scheduled timers, drop event handlers, or
+undo changes outside its panel. Do cleanup synchronously, since the panel is
+deleted on the next frame (or after its exit transition); a handler registered
+after unload runs at once, and no `data` or `route` handler runs after it.
+
 The layout answers the mod by pressing back. `Modlock.press('buy', { item:
 'boots' })` sends the action with its payload as JSON, and the layout's
 element hears it as `onAction`, with the player the server says sent it:
