@@ -476,10 +476,22 @@ func (l *lowerer) name() string {
 	return string(l.src[start:l.pos])
 }
 
-// skipSpace skips the whitespace in a tag, which the call does not keep.
+// skipSpace skips the whitespace and comments in a tag, which the call does
+// not keep. An unclosed block comment runs to the end of the source, where the
+// tag's reader reports the unclosed tag.
 func (l *lowerer) skipSpace() {
-	for l.pos < len(l.src) && isSpace(l.src[l.pos]) {
-		l.pos++
+	for l.pos < len(l.src) {
+		switch {
+		case isSpace(l.src[l.pos]):
+			l.pos++
+		case l.has("//") || l.has("/*"):
+			var discard strings.Builder
+			if l.comment(&discard) != nil {
+				l.pos = len(l.src)
+			}
+		default:
+			return
+		}
 	}
 }
 

@@ -21,6 +21,7 @@ func TestLowerJSX(t *testing.T) {
 		{"component", `<Card width={2} key={k}>{c}</Card>`, `__modlockJsx("fragment", { children: Card({ width: 2, children: c }) }, k)`},
 		{"fragment", `<><label>a</label>b</>`, `__modlockJsx("fragment", { children: [` + el("label", `{ children: "a" }`) + `, "b"] })`},
 		{"spread", `<panel {...rest} />`, el("panel", "{ ...rest }")},
+		{"comments in a tag", "<panel // line\n  a={1} /* block */ b={2}\n/>", el("panel", "{ a: 1, b: 2 }") + "\n\n"},
 		{"generic arrow", `const id = <T,>(v: T) => v`, `const id = <T,>(v: T) => v`},
 		{"regexp and comment", "const r = /<a>/g // <b>\n", "const r = /<a>/g // <b>\n"},
 		{"type arguments", `const m = new Map<string, number>()`, `const m = new Map<string, number>()`},
