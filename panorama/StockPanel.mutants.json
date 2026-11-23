@@ -13,10 +13,20 @@
     "name": "Record once: a value the game writes while the panel is hidden is lost",
     "replace": [
       [
-        "/\\ mark' = IF inline # \"collapse\" THEN inline",
-        "/\\ mark' = IF mark = \"unmarked\" /\\ inline # \"collapse\" THEN inline"
+        "ELSE IF inline # \"collapse\" THEN inline\n                  ELSE IF mark = \"unmarked\"",
+        "ELSE IF mark = \"unmarked\" /\\ inline # \"collapse\" THEN inline\n                  ELSE IF mark = \"unmarked\""
       ]
     ],
     "expect": "Recorded"
+  },
+  {
+    "name": "Record on every panel: a script's inline value from before the hide is written back on a panel drawn by sheets",
+    "replace": [["BySheets == sheets", "BySheets == FALSE"]],
+    "expect": "Handed"
+  },
+  {
+    "name": "Sheets for every panel: an inline value the game wrote before the hide is lost",
+    "replace": [["BySheets == sheets", "BySheets == TRUE"]],
+    "expect": "Exact"
   }
 ]

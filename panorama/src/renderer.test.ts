@@ -1331,11 +1331,11 @@ test("hides the game's HUD parts while a live screen claims them", () => {
   const host = clock()
   const stock = new StockGuard(hud.game, host)
 
-  // Hiding the player's health hides its panels, each marked with the
-  // inline value it replaced, and keeps the rest.
+  // Hiding the player's health hides its panels, each marked to go back to
+  // its sheets, and keeps the rest.
   stock.screen(parts('HUD_PART_OWN_HEALTH'))
   expect(hud.bars.visible).toBe(false)
-  expect(hud.bars.attributes.get(HIDDEN_MARK)).toBe('none')
+  expect(hud.bars.attributes.get(HIDDEN_MARK)).toBe('sheets')
   expect(hud.shields.visible).toBe(false)
   expect(hud.held.visible).toBe(true)
   expect(hud.boon.visible).toBe(true)
@@ -1530,32 +1530,71 @@ test('hands a restored panel back to the game', () => {
 })
 
 test('keeps a panel the game hid inline hidden after a restore', () => {
-  // The game's own inline collapse is recorded and written back.
+  // The game hides its hero shop by an inline collapse, which the whole
+  // HUD's restore records and writes back.
   const hud = gameHud()
-  hud.souls.style.visibility = 'collapse'
+  const shop = hud.add(hud.game, 'CitadelHudHeroShop')
+  shop.style.visibility = 'collapse'
   const stock = new StockGuard(hud.game, clock())
-  stock.screen(parts('HUD_PART_SOULS'))
-  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('collapse')
+  stock.screen(parts('HUD_PART_ALL'))
+  expect(shop.attributes.get(HIDDEN_MARK)).toBe('collapse')
   stock.screen([])
-  expect(hud.souls.style.visibility).toBe('collapse')
-  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('')
+  expect(shop.style.visibility).toBe('collapse')
+  expect(shop.attributes.get(HIDDEN_MARK)).toBe('')
 })
 
-test('hides again a panel the game showed again', () => {
-  // The game showing a hidden panel again is undone on the next tick, and
-  // its write is recorded for the restore; a later restore that finds a
-  // newer write of the game's leaves it.
+test('hides again a panel another writer showed again', () => {
+  // A write that shows a hidden panel again is undone on the next tick. On
+  // a named part's panel it is a script's and goes at the restore; on any
+  // other the game's write is recorded, and a newer one stands.
   const hud = gameHud()
+  const shop = hud.add(hud.game, 'CitadelHudHeroShop')
   const stock = new StockGuard(hud.game, clock())
-  stock.screen(parts('HUD_PART_SOULS', 'HUD_PART_MINIMAP'))
-  hud.souls.style.visibility = 'visible'
+  stock.screen(parts('HUD_PART_ALL'))
+  for (const panel of [hud.souls, shop]) panel.style.visibility = 'visible'
   runScheduled()
   expect(hud.souls.visible).toBe(false)
-  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('visible')
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('sheets')
+  expect(shop.visible).toBe(false)
+  expect(shop.attributes.get(HIDDEN_MARK)).toBe('visible')
   hud.minimap.style.visibility = 'visible'
   stock.screen([])
-  expect(hud.souls.style.visibility).toBe('visible')
-  expect(hud.minimap.style.visibility).toBe('visible')
+  expect(hud.souls.style.visibility).toBeNull()
+  expect(hud.minimap.style.visibility).toBeNull()
+  expect(shop.style.visibility).toBe('visible')
+})
+
+test('gives a named part back to its sheets whatever a script left on it', () => {
+  // A script hid the top bar's scores with visible false and pinned its
+  // kill counter, which the game shows on Tab by class, with visible true;
+  // after the guard hides and restores the bar, both draw by their classes.
+  for (const part of ['HUD_PART_TOP_BAR', 'HUD_PART_ALL']) {
+    const hud = gameHud()
+    const bar = hud.scores.GetParent()!
+    const kills = hud.add(bar, '', 'KillsAndAbilityPointsContainer')
+    kills.sheet = false
+    hud.scores.visible = false
+    kills.visible = true
+    const stock = new StockGuard(hud.game, clock())
+    stock.screen(parts(part))
+    expect(hud.scores.visible).toBe(false)
+    expect(kills.visible).toBe(false)
+    stock.screen([])
+    expect(hud.scores.style.visibility).toBeNull()
+    expect(hud.scores.visible).toBe(true)
+    expect(kills.style.visibility).toBeNull()
+    expect(kills.visible).toBe(false)
+    kills.sheet = true
+    expect(kills.visible).toBe(true)
+  }
+
+  // A collapse an earlier release recorded on the bar goes too.
+  const hud = gameHud()
+  hud.scores.style.visibility = 'collapse'
+  hud.scores.attributes.set(HIDDEN_MARK, 'collapse')
+  new StockGuard(hud.game, clock())
+  expect(hud.scores.visible).toBe(true)
+  expect(hud.scores.attributes.get(HIDDEN_MARK)).toBe('')
 })
 
 test('gives the HUD back at once when the player leaves', () => {
