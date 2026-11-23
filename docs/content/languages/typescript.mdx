@@ -39,6 +39,15 @@ faster, but the compile takes about a minute and a few gigabytes of memory. To
 check that build before you publish, run `modlock build --release`, which
 compiles the same way.
 
+A module named with `.wasm` before its extension stands in for its namesake in
+the WebAssembly build: `bench.wasm.ts` replaces `bench.ts`, and `hud.wasm.tsx`
+replaces `hud.tsx`. Use one to leave out code that scriptc cannot compile and
+the published mod never runs, such as a test harness, by exporting the same
+names from a smaller module. The QuickJS bundle keeps the namesake. The
+stand-in must be part of the program your `tsconfig.json` lists, which it is
+unless the configuration names its files, and it cannot import its namesake,
+because in that build the namesake's path names the stand-in itself.
+
 In two cases the build falls back to the QuickJS bundle, and `modlock publish`
 refuses to upload it unless you pass `--allow-fallback`:
 

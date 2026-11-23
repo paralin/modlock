@@ -289,13 +289,23 @@ func (p *Project) mirrorSources(ctx context.Context, tsgo, mirror string) (strin
 		}
 	}
 
-	// Copy each file, lowering TSX. A replacer pair maps each lowered file
-	// back to its source ahead of the pair for the whole mirror.
+	// Copy each file, lowering TSX, with each WebAssembly module in place of
+	// the module it stands in for. A replacer pair maps each lowered or
+	// standing-in file back to its source ahead of the pair for the whole
+	// mirror.
+	standIns := wasmStandIns(files)
 	var names []string
 	for _, file := range files {
-		rel, err := filepath.Rel(root, file)
+		if standIns[file] {
+			continue
+		}
+		source, err := filepath.Rel(root, file)
 		if err != nil {
 			return "", nil, errors.Wrap(err, "mirror the mod's sources")
+		}
+		rel := source
+		if replaced, ok := wasmReplaced(rel); ok {
+			rel = replaced
 		}
 		data, err := os.ReadFile(file)
 		if err != nil {
@@ -306,9 +316,11 @@ func (p *Project) mirrorSources(ctx context.Context, tsgo, mirror string) (strin
 				return "", nil, errors.Wrapf(err, "lower the JSX in %s", file)
 			}
 			rel = strings.TrimSuffix(rel, "x")
-			names = append(names, filepath.Join(mirror, rel), file)
 		}
 		target := filepath.Join(mirror, rel)
+		if rel != source {
+			names = append(names, target, file)
+		}
 		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 			return "", nil, errors.Wrap(err, "mirror the mod's sources")
 		}
@@ -324,6 +336,40 @@ func (p *Project) mirrorSources(ctx context.Context, tsgo, mirror string) (strin
 		return "", nil, errors.Wrap(err, "mirror the mod's sources")
 	}
 	return filepath.Join(mirror, rel), strings.NewReplacer(names...), nil
+}
+
+// wasmModule marks a module that stands in for its namesake in the scriptc
+// build: a.wasm.ts replaces a.ts, and a.wasm.tsx replaces a.tsx. A mod uses
+// one to leave code that scriptc cannot compile, such as a test harness, out
+// of its WebAssembly build. The QuickJS bundle reaches only what the mod
+// imports, so it never holds the stand-in. The stand-in must be in the
+// program the project's configuration lists.
+const wasmModule = ".wasm"
+
+// wasmReplaced returns the file a WebAssembly module stands in for, and
+// whether file is one.
+func wasmReplaced(file string) (string, bool) {
+	ext := filepath.Ext(file)
+	if ext != ".ts" && ext != ".tsx" {
+		return "", false
+	}
+	stem := strings.TrimSuffix(file, ext)
+	if !strings.HasSuffix(stem, wasmModule) || strings.HasSuffix(stem, ".d"+wasmModule) {
+		return "", false
+	}
+	return strings.TrimSuffix(stem, wasmModule) + ext, true
+}
+
+// wasmStandIns returns the files among files that a WebAssembly module
+// among them stands in for.
+func wasmStandIns(files []string) map[string]bool {
+	replaced := map[string]bool{}
+	for _, file := range files {
+		if original, ok := wasmReplaced(file); ok {
+			replaced[original] = true
+		}
+	}
+	return replaced
 }
 
 // isLibrary reports whether the module name names the library or one of its
