@@ -42,6 +42,9 @@ let revision = 0
 /** inEvent is how many deliveries are running, nested ones included. */
 let inEvent = 0
 
+/** events counts the deliveries started, nested ones included. */
+let events = 0
+
 /**
  * gameRevision returns the current revision while an event is running, or
  * undefined outside one, where the game may change between any two calls
@@ -49,6 +52,14 @@ let inEvent = 0
  */
 export function gameRevision(): number | undefined {
   return inEvent > 0 ? revision : undefined
+}
+
+/**
+ * gameEvent returns how many events the host has delivered so far, counting
+ * the one running, so a reader can keep a finding for one event alone.
+ */
+export function gameEvent(): number {
+  return events
 }
 
 /**
@@ -65,6 +76,7 @@ export function deliver(call: Uint8Array): Uint8Array {
   // event whose handler throws fails as a whole, and the next event starts
   // from a new revision all the same.
   const depth = inEvent
+  events++
   revision++
   inEvent = depth + 1
   const reply = dispatch(call)

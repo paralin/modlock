@@ -94,6 +94,7 @@ test('a pawn read keeps what its event read until the game may change', () => {
     [1, 100],
     [2, 200],
   ])
+  let pawnsFails = false
   const pawn = (slot: number) => {
     const h = health.get(slot)
     return h === undefined ? undefined : { entity: 10 + slot, health: h }
@@ -113,6 +114,7 @@ test('a pawn read keeps what its event read until the game may change', () => {
         })
       }
       case 'Pawns':
+        if (pawnsFails) return Reply.toBinary({ error: 'busy' })
         return Reply.toBinary({
           response: PawnsResponse.toBinary({
             pawns: [...health.keys()].map((player) => ({
@@ -174,6 +176,31 @@ test('a pawn read keeps what its event read until the game may change', () => {
     expect(one.pawn()?.health).toBe(90)
     expect(one.pawn()).not.toBe(first)
     expect(methods()).toEqual(['Pawn'])
+  })
+
+  // A failed Pawns leaves the rest of its event to single reads, and the
+  // next event batches again.
+  pawnsFails = true
+  event(() => {
+    one.pawn()
+    two.pawn()
+    one.setStamina(50)
+    one.pawn()
+    two.pawn()
+    expect(methods()).toEqual([
+      'Pawn',
+      'Pawns',
+      'Pawn',
+      'SetStamina',
+      'Pawn',
+      'Pawn',
+    ])
+  })
+  pawnsFails = false
+  event(() => {
+    one.pawn()
+    two.pawn()
+    expect(methods()).toEqual(['Pawn', 'Pawns'])
   })
 
   // With the cache off, every read in an event reaches the host.

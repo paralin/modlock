@@ -20,7 +20,7 @@
 
 import { PlayerRequest } from '../../src/wasm/players/players.pb.js'
 import type { Pawn } from './host.gen.js'
-import { callRead, gameRevision } from './host.js'
+import { callRead, gameEvent, gameRevision } from './host.js'
 
 /** PawnDecoder turns one slot's encoded Pawn into the library's Pawn. */
 export type PawnDecoder = (bytes: Uint8Array) => Pawn
@@ -50,8 +50,12 @@ let batchRevision = -1
 /** batch holds each slot's encoded Pawn from the last Pawns call. */
 const batch = new Map<number, Uint8Array>()
 
-/** batchMissing is set once the host answered Pawns with an error. */
-let batchMissing = false
+/**
+ * batchFailed is the event in which the host last answered Pawns with an
+ * error. The rest of that event reads each slot alone, and the next event
+ * tries Pawns again, so a passing error costs one event its batch.
+ */
+let batchFailed = -1
 
 /**
  * setPawnCache turns the per-event pawn read on, as it starts, or off, when
@@ -65,6 +69,7 @@ export function setPawnCache(on: boolean): void {
   batch.clear()
   singleRevision = -1
   batchRevision = -1
+  batchFailed = -1
 }
 
 /**
@@ -87,7 +92,11 @@ export function pawnOf(slot: number, decode: PawnDecoder): Pawn | undefined {
   // batch is a copy of its own; a single reply is copied when kept.
   let bytes: Uint8Array | undefined
   let fresh = false
-  if (batchRevision !== now && singleRevision === now && !batchMissing) {
+  if (
+    batchRevision !== now &&
+    singleRevision === now &&
+    batchFailed !== gameEvent()
+  ) {
     readBatch(now)
   }
   if (batchRevision === now) {
@@ -133,15 +142,15 @@ function readOne(slot: number): Uint8Array | undefined {
 /**
  * readBatch fills batch from one Pawns call at revision now. Its response is
  * copied once, so the slots' views outlive the transport's next reply. A
- * host that answers with an error, such as one older than Pawns, leaves
- * every later read to its own call; a reply the walk cannot read leaves
- * this revision's.
+ * host that answers with an error, such as one older than Pawns, leaves the
+ * rest of the event's reads to their own calls; a reply the walk cannot read
+ * leaves this revision's.
  */
 function readBatch(now: number): void {
   // Ask the host for every slot.
   const reply = callRead('Pawns', new Uint8Array())
   if (reply === undefined) {
-    batchMissing = true
+    batchFailed = gameEvent()
     return
   }
 
