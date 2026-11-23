@@ -1071,6 +1071,15 @@ class HostService {
     return std::unexpected("this host does not support WatchMovement");
   }
 
+  // WatchControllers adds a player's controllers to the controller lists of
+  // each Frame event, or removes them. The player's client reads the devices
+  // only while some mod watches them, and until it answers the player is
+  // listed with no stream.
+  virtual std::expected<void, std::string> WatchControllers(
+      const controllers::WatchControllersRequest& /*request*/) {
+    return std::unexpected("this host does not support WatchControllers");
+  }
+
   // WatchProjectiles reports the projectiles with these designer names, such
   // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
   // call replaces the list; an empty list stops watching.
@@ -2106,6 +2115,14 @@ class HostService {
              return detail::Fail("the WatchMovement request is malformed");
            }
            return detail::Answer(host.WatchMovement(request));
+         }},
+        {"WatchControllers",
+         [](HostService& host, const std::string& bytes) {
+           controllers::WatchControllersRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the WatchControllers request is malformed");
+           }
+           return detail::Answer(host.WatchControllers(request));
          }},
         {"WatchProjectiles",
          [](HostService& host, const std::string& bytes) {

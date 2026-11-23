@@ -43,6 +43,7 @@
 #include "handoff.pb.h"
 #include "match.pb.h"
 #include "metrics/metrics.pb.h"
+#include "controllers/controllers.pb.h"
 #include "movement/movement.pb.h"
 #include "npcs/npcs.pb.h"
 #include "objects/objects.pb.h"
@@ -4501,6 +4502,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
   enum : int {
     kMovementFieldNumber = 3,
     kInteractionsFieldNumber = 4,
+    kControllersFieldNumber = 5,
     kTickFieldNumber = 1,
     kTimeSecondsFieldNumber = 2,
   };
@@ -4540,6 +4542,23 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
   ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_interactions();
 
   public:
+  // repeated .modlock.wasm.controllers.PlayerControllers controllers = 5;
+  int controllers_size() const;
+  private:
+  int _internal_controllers_size() const;
+
+  public:
+  void clear_controllers() ;
+  ::modlock::wasm::controllers::PlayerControllers* PROTOBUF_NONNULL mutable_controllers(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>* PROTOBUF_NONNULL mutable_controllers();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>& _internal_controllers() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>* PROTOBUF_NONNULL _internal_mutable_controllers();
+  public:
+  const ::modlock::wasm::controllers::PlayerControllers& controllers(int index) const;
+  ::modlock::wasm::controllers::PlayerControllers* PROTOBUF_NONNULL add_controllers();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>& controllers() const;
   // uint64 tick = 1;
   void clear_tick() ;
   ::uint64_t tick() const;
@@ -4564,8 +4583,8 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                   1, 0,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   2, 0,
                                    2>
       _table_;
 
@@ -4589,6 +4608,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::movement::MovementSample > movement_;
     ::google::protobuf::RepeatedField<int> interactions_;
     ::google::protobuf::internal::CachedSize _interactions_cached_byte_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::controllers::PlayerControllers > controllers_;
     ::uint64_t tick_;
     double time_seconds_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -5434,7 +5454,7 @@ inline void FrameEvent::clear_tick() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tick_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::uint64_t FrameEvent::tick() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.tick)
@@ -5442,7 +5462,7 @@ inline ::uint64_t FrameEvent::tick() const {
 }
 inline void FrameEvent::set_tick(::uint64_t value) {
   _internal_set_tick(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.tick)
 }
 inline ::uint64_t FrameEvent::_internal_tick() const {
@@ -5459,7 +5479,7 @@ inline void FrameEvent::clear_time_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.time_seconds_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline double FrameEvent::time_seconds() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.time_seconds)
@@ -5467,7 +5487,7 @@ inline double FrameEvent::time_seconds() const {
 }
 inline void FrameEvent::set_time_seconds(double value) {
   _internal_set_time_seconds(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.time_seconds)
 }
 inline double FrameEvent::_internal_time_seconds() const {
@@ -5577,6 +5597,56 @@ inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
 FrameEvent::_internal_mutable_interactions() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.interactions_;
+}
+
+// repeated .modlock.wasm.controllers.PlayerControllers controllers = 5;
+inline int FrameEvent::_internal_controllers_size() const {
+  return _internal_controllers().size();
+}
+inline int FrameEvent::controllers_size() const {
+  return _internal_controllers_size();
+}
+inline ::modlock::wasm::controllers::PlayerControllers* PROTOBUF_NONNULL FrameEvent::mutable_controllers(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.FrameEvent.controllers)
+  return _internal_mutable_controllers()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>* PROTOBUF_NONNULL FrameEvent::mutable_controllers()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.FrameEvent.controllers)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_controllers();
+}
+inline const ::modlock::wasm::controllers::PlayerControllers& FrameEvent::controllers(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.controllers)
+  return _internal_controllers().Get(index);
+}
+inline ::modlock::wasm::controllers::PlayerControllers* PROTOBUF_NONNULL FrameEvent::add_controllers()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::controllers::PlayerControllers* _add =
+      _internal_mutable_controllers()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.FrameEvent.controllers)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>& FrameEvent::controllers() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.FrameEvent.controllers)
+  return _internal_controllers();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>&
+FrameEvent::_internal_controllers() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.controllers_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::PlayerControllers>* PROTOBUF_NONNULL
+FrameEvent::_internal_mutable_controllers() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.controllers_;
 }
 
 // -------------------------------------------------------------------

@@ -6,7 +6,9 @@
 // or a reload restarts it. A mod limited to some players reaches only them,
 // changes the whole server only while it holds the world, which one limited
 // mod holds at a time, and rules only the hits of its players. A mod hears
-// exactly one leave for each player it heard join.
+// exactly one leave for each player it heard join. A mod reads a watched
+// player's controllers only from the current watch's frames, with every press
+// and release since its previous frame.
 #include "modlock/wasm_host.h"
 
 #include <algorithm>
@@ -24,6 +26,7 @@
 #include "gtest/gtest.h"
 #include "wasm/attendance.h"
 #include "wasm/call_profile.h"
+#include "wasm/controller_table.h"
 #include "wasm/player_scope.h"
 
 namespace {
@@ -396,6 +399,83 @@ TEST(Attendance, PairsEachJoinWithOneLeave) {
   EXPECT_EQ(attendance.Reconcile(roster).away.size(), 1u);
   EXPECT_TRUE(attendance.Leave(3, players::DISCONNECT_REASON_KICKED));
   EXPECT_TRUE(attendance.Reconcile(roster).joined.empty());
+}
+
+TEST(ControllerTable, KeepsEachWatchersPressesAndOnlyTheCurrentEpoch) {
+  namespace controllers = modlock::wasm::controllers;
+  using Table = modlock::wasm::ControllerTable;
+  Table table;
+  std::vector<controllers::ControllerWants> wants;
+  table.Listen([&](const controllers::ControllerWants& next) { wants.push_back(next); });
+  const auto start = Table::Clock::now();
+  int mod = 0;
+
+  // Frame builds one frame of epoch for device 7, with button 0's edges.
+  auto frame = [](uint32_t epoch, bool full, std::vector<uint32_t> pressed,
+                  std::vector<uint32_t> released) {
+    google::protobuf::RepeatedPtrField<controllers::ControllerFrame> frames;
+    auto* f = frames.Add();
+    f->set_epoch(epoch);
+    f->set_full(full);
+    f->set_focused(true);
+    if (full) {
+      f->add_added()->set_id(7);
+    }
+    auto* state = f->add_changed();
+    state->set_id(7);
+    state->add_axes(0.5F);
+    state->mutable_pressed()->Add(pressed.begin(), pressed.end());
+    state->mutable_released()->Add(released.begin(), released.end());
+    return frames;
+  };
+  // Read lists what the mod reads at now.
+  auto read = [&](Table::Clock::time_point now) {
+    google::protobuf::RepeatedPtrField<controllers::PlayerControllers> out;
+    table.Read(&mod, &out, now);
+    return out;
+  };
+
+  // A watch is wanted with its epoch, and shows no stream until a full frame.
+  table.Watch(&mod, 3, true);
+  ASSERT_EQ(wants.size(), 2u);
+  ASSERT_EQ(wants.back().wants_size(), 1);
+  EXPECT_EQ(wants.back().wants(0).epoch(), 1u);
+  table.Apply(3, frame(1, false, {0}, {}), false, start);
+  EXPECT_EQ(read(start)[0].stream(), controllers::CONTROLLER_STREAM_NONE);
+
+  // A tap between two of the mod's frames reaches it as a press and a
+  // release, once.
+  table.Apply(3, frame(1, true, {0}, {}), false, start);
+  table.Apply(3, frame(1, false, {}, {0}), false, start);
+  auto listed = read(start);
+  ASSERT_EQ(listed[0].stream(), controllers::CONTROLLER_STREAM_LIVE);
+  ASSERT_EQ(listed[0].controllers_size(), 1);
+  EXPECT_EQ(listed[0].controllers(0).state().axes(0), 0.5F);
+  EXPECT_EQ(listed[0].controllers(0).state().pressed_size(), 1);
+  EXPECT_EQ(listed[0].controllers(0).state().released_size(), 1);
+  EXPECT_EQ(read(start)[0].controllers(0).state().pressed_size(), 0);
+
+  // Past the deadline the stream is stale and keeps its last state.
+  listed = read(start + Table::kDeadline + std::chrono::milliseconds(1));
+  EXPECT_EQ(listed[0].stream(), controllers::CONTROLLER_STREAM_STALE);
+  EXPECT_EQ(listed[0].controllers_size(), 1);
+
+  // A watch that ends and starts again is a new epoch, which the old
+  // epoch's frames do not sync.
+  table.Watch(&mod, 3, false);
+  table.Watch(&mod, 3, true);
+  EXPECT_EQ(wants.back().wants(0).epoch(), 2u);
+  table.Apply(3, frame(1, true, {}, {}), false, start);
+  EXPECT_EQ(read(start)[0].stream(), controllers::CONTROLLER_STREAM_NONE);
+
+  // An ended stream shows none again, and the mod's stop unwants the slot.
+  table.Apply(3, frame(2, true, {}, {}), false, start);
+  EXPECT_EQ(read(start)[0].stream(), controllers::CONTROLLER_STREAM_LIVE);
+  table.Apply(3, {}, true, start);
+  EXPECT_EQ(read(start)[0].stream(), controllers::CONTROLLER_STREAM_NONE);
+  table.Release(&mod);
+  EXPECT_EQ(wants.back().wants_size(), 0);
+  EXPECT_TRUE(read(start).empty());
 }
 
 TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {

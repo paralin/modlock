@@ -10,6 +10,10 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+import {
+  ControllerFrame,
+  ControllerWants,
+} from '../../wasm/controllers/controllers.pb.js'
 import { CallProfile, SlowFrame } from '../../wasm/profile/profile.pb.js'
 import { Change } from '../../wasm/ui/ui.pb.js'
 
@@ -62,6 +66,7 @@ export interface ControlRequest {
     | { value: ServiceReply; case: 'service' }
     | { value: ModCall; case: 'call' }
     | { value: ServiceAnswer; case: 'answer' }
+    | { value: ControllerFrames; case: 'controllers' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
@@ -73,6 +78,7 @@ export const ControlRequest: MessageType<ControlRequest> =
       [3, 'service', 11, 0, ServiceReply.codec, 'body'],
       [4, 'call', 11, 0, ModCall.codec, 'body'],
       [5, 'answer', 11, 0, ServiceAnswer.codec, 'body'],
+      [6, 'controllers', 11, 0, ControllerFrames.codec, 'body'],
     ],
     {
       decode: (
@@ -134,6 +140,16 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 6:
+              m.body = {
+                case: 'controllers',
+                value: ControllerFrames.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'controllers' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -165,6 +181,86 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'answer' && o.value != null)
             ServiceAnswer.writeField(w, 5, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'controllers' && o.value != null)
+            ControllerFrames.writeField(w, 6, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * ControllerFrames carries one player's controller frames, in the order their
+ * client sent them. Only the controller can send it, and it sends a player's
+ * frames only from the stream it bound to that player's own client.
+ *
+ * @generated from message modlock.host_app.control.ControllerFrames
+ */
+export interface ControllerFrames {
+  /**
+   * Player is the player's slot.
+   */
+  player?: number
+  /**
+   * Frames holds the frames, oldest first.
+   */
+  frames?: ControllerFrame[]
+  /**
+   * Ended is true when the player's stream ended, after its last frame: the
+   * client disconnected or the link dropped.
+   */
+  ended?: boolean
+}
+
+export const ControllerFrames: MessageType<ControllerFrames> =
+  /* @__PURE__ */ createMessageType<ControllerFrames>(
+    'modlock.host_app.control.ControllerFrames',
+    () => [
+      [1, 'player', 5],
+      [2, 'frames', 11, 1, ControllerFrame.codec],
+      [3, 'ended', 8],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ControllerFrames,
+      ): ControllerFrames => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              ;(m.frames ??= []).push(
+                ControllerFrame.decode(r, r.delimited(), {}),
+              )
+              break
+            case 3:
+              m.ended = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ControllerFrames, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const a = m.frames
+          if (a != null) for (const e of a) ControllerFrame.writeField(w, 2, e)
+        }
+        {
+          const v = m.ended
+          if (v) w.uint32(24).bool(v)
         }
       },
     },
@@ -415,6 +511,7 @@ export interface HostEvent {
     | { value: ServiceResult; case: 'serviceApplied' }
     | { value: ModCallResult; case: 'called' }
     | { value: ServiceCall; case: 'serviceCall' }
+    | { value: ControllerWants; case: 'controllersWanted' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -435,6 +532,7 @@ export const HostEvent: MessageType<HostEvent> =
       [12, 'service_applied', 11, 0, ServiceResult.codec, 'body'],
       [13, 'called', 11, 0, ModCallResult.codec, 'body'],
       [14, 'service_call', 11, 0, ServiceCall.codec, 'body'],
+      [15, 'controllers_wanted', 11, 0, ControllerWants.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -582,6 +680,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 15:
+              m.body = {
+                case: 'controllersWanted',
+                value: ControllerWants.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'controllersWanted' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -658,6 +766,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'serviceCall' && o.value != null)
             ServiceCall.writeField(w, 14, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'controllersWanted' && o.value != null)
+            ControllerWants.writeField(w, 15, o.value)
         }
       },
     },

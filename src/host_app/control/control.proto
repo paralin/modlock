@@ -4,6 +4,7 @@ package modlock.host_app.control;
 
 option go_package = "github.com/paralin/modlock/src/host_app/control;control";
 
+import "github.com/paralin/modlock/src/wasm/controllers/controllers.proto";
 import "github.com/paralin/modlock/src/wasm/players/players.proto";
 import "github.com/paralin/modlock/src/wasm/profile/profile.proto";
 import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
@@ -33,7 +34,26 @@ message ControlRequest {
 
     // Answer ends one ServiceCall the host forwarded.
     ServiceAnswer answer = 5;
+
+    // Controllers carries the frames of one player's controller stream, which
+    // the controller has bound to that player's own client.
+    ControllerFrames controllers = 6;
   }
+}
+
+// ControllerFrames carries one player's controller frames, in the order their
+// client sent them. Only the controller can send it, and it sends a player's
+// frames only from the stream it bound to that player's own client.
+message ControllerFrames {
+  // Player is the player's slot.
+  int32 player = 1;
+
+  // Frames holds the frames, oldest first.
+  repeated modlock.wasm.controllers.ControllerFrame frames = 2;
+
+  // Ended is true when the player's stream ended, after its last frame: the
+  // client disconnected or the link dropped.
+  bool ended = 3;
 }
 
 // ModCall calls one method of a service a running mod serves, on the game's
@@ -122,6 +142,10 @@ message HostEvent {
     // ServiceCall asks the controller to answer a mod's started call to a
     // service the fixtures forward; an Answer with its id ends it.
     ServiceCall service_call = 14;
+
+    // ControllersWanted lists every player whose controllers some mod watches,
+    // each time the list changes.
+    modlock.wasm.controllers.ControllerWants controllers_wanted = 15;
   }
 }
 

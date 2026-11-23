@@ -116,6 +116,11 @@ struct WasmHost::Impl : Mods {
 
 WasmHost::WasmHost(std::filesystem::path interpreters) : impl_(std::make_unique<Impl>()) {
   impl_->interpreters = std::move(interpreters);
+
+  // Report each change of the wanted controllers to the observers.
+  impl_->game.Controllers().Listen([impl = impl_.get()](const auto& wants) {
+    impl->Notify([&](WasmHostObserver& observer) { observer.ControllersWanted(wants); });
+  });
 }
 
 WasmHost::~WasmHost() = default;
@@ -271,6 +276,13 @@ void WasmHost::SetRoles(wasm::players::RolesTable roles) {
   }
   current = std::move(roles);
   ++impl_->roles_revision;
+}
+
+void WasmHost::ApplyControllers(
+    int32_t slot,
+    const google::protobuf::RepeatedPtrField<wasm::controllers::ControllerFrame>& frames,
+    bool ended) {
+  impl_->game.Controllers().Apply(slot, frames, ended, wasm::ControllerTable::Clock::now());
 }
 
 std::expected<std::string, std::string> WasmHost::Call(std::string_view mod,

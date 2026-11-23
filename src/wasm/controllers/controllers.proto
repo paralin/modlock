@@ -1,0 +1,252 @@
+syntax = "proto3";
+
+package modlock.wasm.controllers;
+
+option go_package = "github.com/paralin/modlock/src/wasm/controllers;controllers";
+
+// A player's controllers reach a mod through the player's own client, such as
+// the modlock daemon, which reads the devices beside the game and streams them
+// to the game's host. The game client is not involved, so a mod's camera does
+// not turn the input off, and devices the game cannot read, such as a radio
+// transmitter in joystick mode, work too. Controllers.tla checks the stream.
+
+// ControllerStream is the state of the stream that brings one player's
+// controllers to the host, as a mod reads it.
+enum ControllerStream {
+  // CONTROLLER_STREAM_UNKNOWN is never sent.
+  CONTROLLER_STREAM_UNKNOWN = 0;
+
+  // CONTROLLER_STREAM_NONE means no client streams the player's controllers
+  // yet: none is linked, the link dropped, or the client has not answered
+  // the watch. A mod sees no controllers.
+  CONTROLLER_STREAM_NONE = 1;
+
+  // CONTROLLER_STREAM_LIVE means frames arrive and the game has focus.
+  CONTROLLER_STREAM_LIVE = 2;
+
+  // CONTROLLER_STREAM_UNFOCUSED means frames arrive while the player's game
+  // window does not have focus. The controllers are listed with nothing held
+  // and every axis at rest.
+  CONTROLLER_STREAM_UNFOCUSED = 3;
+
+  // CONTROLLER_STREAM_STALE means the stream is linked but no frame arrived
+  // within its deadline. The controllers keep their last state, so a short
+  // gap does not cut a held throttle; the mod decides what a long one means.
+  CONTROLLER_STREAM_STALE = 4;
+}
+
+// GamepadButton names one button of the gamepad layout, by position as SDL
+// names them: South is A on an Xbox controller and Cross on a PlayStation one.
+enum GamepadButton {
+  // GAMEPAD_BUTTON_UNKNOWN is a button the layout does not name.
+  GAMEPAD_BUTTON_UNKNOWN = 0;
+
+  // GAMEPAD_BUTTON_SOUTH is the bottom face button.
+  GAMEPAD_BUTTON_SOUTH = 1;
+
+  // GAMEPAD_BUTTON_EAST is the right face button.
+  GAMEPAD_BUTTON_EAST = 2;
+
+  // GAMEPAD_BUTTON_WEST is the left face button.
+  GAMEPAD_BUTTON_WEST = 3;
+
+  // GAMEPAD_BUTTON_NORTH is the top face button.
+  GAMEPAD_BUTTON_NORTH = 4;
+
+  // GAMEPAD_BUTTON_BACK is the View, Select or Share button.
+  GAMEPAD_BUTTON_BACK = 5;
+
+  // GAMEPAD_BUTTON_GUIDE is the Xbox, PS or Home button.
+  GAMEPAD_BUTTON_GUIDE = 6;
+
+  // GAMEPAD_BUTTON_START is the Menu, Start or Options button.
+  GAMEPAD_BUTTON_START = 7;
+
+  // GAMEPAD_BUTTON_LEFT_STICK is the left stick pressed in.
+  GAMEPAD_BUTTON_LEFT_STICK = 8;
+
+  // GAMEPAD_BUTTON_RIGHT_STICK is the right stick pressed in.
+  GAMEPAD_BUTTON_RIGHT_STICK = 9;
+
+  // GAMEPAD_BUTTON_LEFT_SHOULDER is the left bumper.
+  GAMEPAD_BUTTON_LEFT_SHOULDER = 10;
+
+  // GAMEPAD_BUTTON_RIGHT_SHOULDER is the right bumper.
+  GAMEPAD_BUTTON_RIGHT_SHOULDER = 11;
+
+  // GAMEPAD_BUTTON_DPAD_UP is the directional pad's up.
+  GAMEPAD_BUTTON_DPAD_UP = 12;
+
+  // GAMEPAD_BUTTON_DPAD_DOWN is the directional pad's down.
+  GAMEPAD_BUTTON_DPAD_DOWN = 13;
+
+  // GAMEPAD_BUTTON_DPAD_LEFT is the directional pad's left.
+  GAMEPAD_BUTTON_DPAD_LEFT = 14;
+
+  // GAMEPAD_BUTTON_DPAD_RIGHT is the directional pad's right.
+  GAMEPAD_BUTTON_DPAD_RIGHT = 15;
+
+  // GAMEPAD_BUTTON_MISC is the extra button some pads have, such as the
+  // Xbox Share button or the PlayStation microphone button.
+  GAMEPAD_BUTTON_MISC = 16;
+
+  // GAMEPAD_BUTTON_TOUCHPAD is the PlayStation touchpad pressed.
+  GAMEPAD_BUTTON_TOUCHPAD = 17;
+}
+
+// ControllerInfo describes one device a client reads.
+message ControllerInfo {
+  // Id identifies the device within its stream for as long as it stays
+  // attached. A device plugged in again gets a new id.
+  uint32 id = 1;
+
+  // Name is the device's name, such as "Xbox Series X Controller".
+  string name = 2;
+
+  // Guid is SDL's joystick GUID in hexadecimal, which identifies the model
+  // and the way it is attached.
+  string guid = 3;
+
+  // Vendor and Product are the USB vendor and product IDs, or zero when the
+  // device does not report them.
+  uint32 vendor = 4;
+  uint32 product = 5;
+
+  // Axes, Buttons and Hats count the device's raw inputs, which State's
+  // lists follow.
+  uint32 axes = 6;
+  uint32 buttons = 7;
+  uint32 hats = 8;
+
+  // Gamepad is true when SDL knows the device's gamepad layout, so State
+  // carries the gamepad layer.
+  bool gamepad = 9;
+}
+
+// Gamepad is a device's gamepad layer, with named sticks, triggers and
+// buttons, for a device whose layout SDL knows.
+message Gamepad {
+  // LeftX, LeftY, RightX and RightY are the sticks, from -1 to 1, with x
+  // positive to the right and y positive down, as SDL reports them.
+  float left_x = 1;
+  float left_y = 2;
+  float right_x = 3;
+  float right_y = 4;
+
+  // LeftTrigger and RightTrigger run from 0 at rest to 1 fully pulled.
+  float left_trigger = 5;
+  float right_trigger = 6;
+
+  // Held lists the buttons held now.
+  repeated GamepadButton held = 7;
+
+  // Pressed and Released list the buttons pressed and released since the
+  // previous state, once for each press, so a tap shorter than a server frame
+  // is listed in both.
+  repeated GamepadButton pressed = 8;
+  repeated GamepadButton released = 9;
+}
+
+// ControllerState is one device's inputs, the raw joystick layer always and
+// the gamepad layer when SDL knows the device.
+message ControllerState {
+  // Id is the device's id in ControllerInfo.
+  uint32 id = 1;
+
+  // Axes holds each raw axis from -1 to 1, in the device's order. A radio
+  // transmitter's channels are its axes.
+  repeated float axes = 2;
+
+  // Buttons holds whether each raw button is held, in the device's order.
+  repeated bool buttons = 3;
+
+  // Hats holds each hat's position as SDL's mask: 1 up, 2 right, 4 down and
+  // 8 left, combined on a diagonal, and 0 centered.
+  repeated uint32 hats = 4;
+
+  // Pressed and Released list the raw buttons, by index, pressed and
+  // released since the previous state, once for each press.
+  repeated uint32 pressed = 5;
+  repeated uint32 released = 6;
+
+  // Gamepad is the gamepad layer, when the device has one.
+  Gamepad gamepad = 7;
+}
+
+// ControllerFrame is what a client sends on its stream: the whole set of
+// devices first, then only what changed, and a frame with no change as a
+// heartbeat at least every 50 milliseconds.
+message ControllerFrame {
+  // Epoch is the want epoch this frame answers, from the ControllerWant the
+  // client last received. The host keeps only frames of the current epoch.
+  uint32 epoch = 1;
+
+  // Full is true when Added lists every device and Changed every device's
+  // state, replacing what the host held. A client sends a full frame first
+  // for each epoch.
+  bool full = 2;
+
+  // Focused is true when the player's game window has focus. An unfocused
+  // client reports every device with nothing held and every axis at rest.
+  bool focused = 3;
+
+  // Added describes the devices attached since the previous frame.
+  repeated ControllerInfo added = 4;
+
+  // Changed holds the whole state of each device whose state changed.
+  repeated ControllerState changed = 5;
+
+  // Removed lists the ids of the devices detached since the previous frame.
+  repeated uint32 removed = 6;
+}
+
+// ControllerWant asks a player's client to stream their controllers.
+message ControllerWant {
+  // Player is the player's slot.
+  int32 player = 1;
+
+  // Epoch counts the watches of this player's slot: it grows each time a mod
+  // starts watching after none did, and never repeats while the host runs.
+  // The client answers each new epoch with a full frame, so a watch that ends
+  // and starts again before the client hears either still gets a full frame.
+  uint32 epoch = 2;
+}
+
+// ControllerWants is every player whose controllers some mod watches. A
+// player missing from it is not wanted, and their client closes its devices.
+message ControllerWants {
+  // Wants holds one entry per watched player.
+  repeated ControllerWant wants = 1;
+}
+
+// Controller is one device as a mod reads it.
+message Controller {
+  // Info describes the device.
+  ControllerInfo info = 1;
+
+  // State is its inputs now, with the presses and releases since the mod's
+  // previous frame.
+  ControllerState state = 2;
+}
+
+// PlayerControllers is one watched player's controllers in a frame.
+message PlayerControllers {
+  // Player is the player's slot.
+  int32 player = 1;
+
+  // Stream is the state of the stream that brings them.
+  ControllerStream stream = 2;
+
+  // Controllers lists the player's devices, empty while Stream is none.
+  repeated Controller controllers = 3;
+}
+
+// WatchControllersRequest starts or stops a mod's watch of one player's
+// controllers.
+message WatchControllersRequest {
+  // Player is the player's slot.
+  int32 player = 1;
+
+  // Watch is true to start watching and false to stop.
+  bool watch = 2;
+}

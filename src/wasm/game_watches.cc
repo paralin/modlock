@@ -155,6 +155,19 @@ std::expected<void, std::string> Game::WatchMovement(
   return {};
 }
 
+std::expected<void, std::string> Game::WatchControllers(
+    const controllers::WatchControllersRequest& request) {
+  if (request.player() < 0 || request.player() >= gameinterop::kMaxPlayerSlots) {
+    return std::unexpected("no player has that slot");
+  }
+  services_.Controllers().Watch(this, request.player(), request.watch());
+  return {};
+}
+
+void Game::Controllers(google::protobuf::RepeatedPtrField<controllers::PlayerControllers>* out) {
+  services_.Controllers().Read(this, out, ControllerTable::Clock::now());
+}
+
 std::vector<movement::MovementSample> Game::Movement(std::span<const MovementFact> facts) {
   std::vector<movement::MovementSample> samples;
   for (const auto slot : movers_) {

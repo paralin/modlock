@@ -22,6 +22,7 @@ Game::Game(GameServices& services, EngineHost* engine)
 
 Game::~Game() {
   services_.games_.erase(this);
+  services_.Controllers().Release(this);
   if (auto steps = services_.Steps(); !steps) {
     std::cerr << "mod movement: " << steps.error() << '\n';
   }
@@ -223,10 +224,11 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget the slot's movement, input and visibility.
+  // Forget the slot's movement, controllers, input and visibility.
   seat_failed_.erase(slot);
   frozen_.erase(slot);
   movers_.erase(slot);
+  services_.Controllers().Watch(this, slot, false);
   steers_.erase(slot);
   drives_.erase(slot);
 
@@ -280,9 +282,10 @@ void Game::Clear() {
     }
   }
 
-  // Stop moving and steering heroes.
+  // Stop moving and steering heroes and watching controllers.
   frozen_.clear();
   movers_.clear();
+  services_.Controllers().Release(this);
   steers_.clear();
   drives_.clear();
 

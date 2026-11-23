@@ -60,6 +60,7 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   void Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) override;
   void Called(std::string_view mod, const wasm::profile::CallProfile& calls) override;
   void SlowFrame(std::string_view mod, const wasm::profile::SlowFrame& report) override;
+  void ControllersWanted(const wasm::controllers::ControllerWants& wants) override;
   void OnConnected(int32_t slot, uint64_t xuid, bool bot, const char* name) override;
   void OnDisconnecting(int32_t slot, uint64_t xuid, int32_t reason) override;
 

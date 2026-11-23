@@ -12,6 +12,7 @@ import (
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
+	controllers "github.com/paralin/modlock/src/wasm/controllers"
 	players "github.com/paralin/modlock/src/wasm/players"
 	profile "github.com/paralin/modlock/src/wasm/profile"
 	ui "github.com/paralin/modlock/src/wasm/ui"
@@ -68,6 +69,7 @@ type ControlRequest struct {
 	//	*ControlRequest_Service
 	//	*ControlRequest_Call
 	//	*ControlRequest_Answer
+	//	*ControlRequest_Controllers
 	Body isControlRequest_Body `protobuf_oneof:"body"`
 }
 
@@ -119,6 +121,13 @@ func (x *ControlRequest) GetAnswer() *ServiceAnswer {
 	return nil
 }
 
+func (x *ControlRequest) GetControllers() *ControllerFrames {
+	if x, ok := x.GetBody().(*ControlRequest_Controllers); ok {
+		return x.Controllers
+	}
+	return nil
+}
+
 type isControlRequest_Body interface {
 	isControlRequest_Body()
 }
@@ -149,6 +158,12 @@ type ControlRequest_Answer struct {
 	Answer *ServiceAnswer `protobuf:"bytes,5,opt,name=answer,proto3,oneof"`
 }
 
+type ControlRequest_Controllers struct {
+	// Controllers carries the frames of one player's controller stream, which
+	// the controller has bound to that player's own client.
+	Controllers *ControllerFrames `protobuf:"bytes,6,opt,name=controllers,proto3,oneof"`
+}
+
 func (*ControlRequest_Reload) isControlRequest_Body() {}
 
 func (*ControlRequest_Roles) isControlRequest_Body() {}
@@ -158,6 +173,49 @@ func (*ControlRequest_Service) isControlRequest_Body() {}
 func (*ControlRequest_Call) isControlRequest_Body() {}
 
 func (*ControlRequest_Answer) isControlRequest_Body() {}
+
+func (*ControlRequest_Controllers) isControlRequest_Body() {}
+
+// ControllerFrames carries one player's controller frames, in the order their
+// client sent them. Only the controller can send it, and it sends a player's
+// frames only from the stream it bound to that player's own client.
+type ControllerFrames struct {
+	unknownFields []byte
+	// Player is the player's slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Frames holds the frames, oldest first.
+	Frames []*controllers.ControllerFrame `protobuf:"bytes,2,rep,name=frames,proto3" json:"frames,omitempty"`
+	// Ended is true when the player's stream ended, after its last frame: the
+	// client disconnected or the link dropped.
+	Ended bool `protobuf:"varint,3,opt,name=ended,proto3" json:"ended,omitempty"`
+}
+
+func (x *ControllerFrames) Reset() {
+	*x = ControllerFrames{}
+}
+
+func (*ControllerFrames) ProtoMessage() {}
+
+func (x *ControllerFrames) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ControllerFrames) GetFrames() []*controllers.ControllerFrame {
+	if x != nil {
+		return x.Frames
+	}
+	return nil
+}
+
+func (x *ControllerFrames) GetEnded() bool {
+	if x != nil {
+		return x.Ended
+	}
+	return false
+}
 
 // ModCall calls one method of a service a running mod serves, on the game's
 // thread between frames. Only the controller can send it; no player can.
@@ -306,6 +364,7 @@ type HostEvent struct {
 	//	*HostEvent_ServiceApplied
 	//	*HostEvent_Called
 	//	*HostEvent_ServiceCall
+	//	*HostEvent_ControllersWanted
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -420,6 +479,13 @@ func (x *HostEvent) GetServiceCall() *ServiceCall {
 	return nil
 }
 
+func (x *HostEvent) GetControllersWanted() *controllers.ControllerWants {
+	if x, ok := x.GetBody().(*HostEvent_ControllersWanted); ok {
+		return x.ControllersWanted
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -500,6 +566,12 @@ type HostEvent_ServiceCall struct {
 	ServiceCall *ServiceCall `protobuf:"bytes,14,opt,name=service_call,json=serviceCall,proto3,oneof"`
 }
 
+type HostEvent_ControllersWanted struct {
+	// ControllersWanted lists every player whose controllers some mod watches,
+	// each time the list changes.
+	ControllersWanted *controllers.ControllerWants `protobuf:"bytes,15,opt,name=controllers_wanted,json=controllersWanted,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -527,6 +599,8 @@ func (*HostEvent_ServiceApplied) isHostEvent_Body() {}
 func (*HostEvent_Called) isHostEvent_Body() {}
 
 func (*HostEvent_ServiceCall) isHostEvent_Body() {}
+
+func (*HostEvent_ControllersWanted) isHostEvent_Body() {}
 
 // PlayerChat is a line a player said in chat, to everyone or to their team.
 type PlayerChat struct {
@@ -1291,6 +1365,37 @@ func (m *ControlRequest_Answer) CloneOneofVT() isControlRequest_Body {
 	return m.CloneVT()
 }
 
+func (m *ControlRequest_Controllers) CloneVT() *ControlRequest_Controllers {
+	if m == nil {
+		return (*ControlRequest_Controllers)(nil)
+	}
+	r := new(ControlRequest_Controllers)
+	r.Controllers = protobuf_go_lite.CloneVTValue(m.Controllers)
+	return r
+}
+
+func (m *ControlRequest_Controllers) CloneOneofVT() isControlRequest_Body {
+	return m.CloneVT()
+}
+
+func (m *ControllerFrames) CloneVT() *ControllerFrames {
+	if m == nil {
+		return (*ControllerFrames)(nil)
+	}
+	r := new(ControllerFrames)
+	r.Player = m.Player
+	r.Ended = m.Ended
+	r.Frames = protobuf_go_lite.CloneVTSlice(m.Frames)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ControllerFrames) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *ModCall) CloneVT() *ModCall {
 	if m == nil {
 		return (*ModCall)(nil)
@@ -1543,6 +1648,19 @@ func (m *HostEvent_ServiceCall) CloneVT() *HostEvent_ServiceCall {
 }
 
 func (m *HostEvent_ServiceCall) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
+func (m *HostEvent_ControllersWanted) CloneVT() *HostEvent_ControllersWanted {
+	if m == nil {
+		return (*HostEvent_ControllersWanted)(nil)
+	}
+	r := new(HostEvent_ControllersWanted)
+	r.ControllersWanted = protobuf_go_lite.CloneVTValue(m.ControllersWanted)
+	return r
+}
+
+func (m *HostEvent_ControllersWanted) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
@@ -1983,6 +2101,49 @@ func (this *ControlRequest_Answer) EqualVT(thatIface isControlRequest_Body) bool
 	return true
 }
 
+func (this *ControlRequest_Controllers) EqualVT(thatIface isControlRequest_Body) bool {
+	that, ok := thatIface.(*ControlRequest_Controllers)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Controllers, that.Controllers, func() *ControllerFrames { return &ControllerFrames{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *ControllerFrames) EqualVT(that *ControllerFrames) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Frames, that.Frames, func() *controllers.ControllerFrame { return &controllers.ControllerFrame{} }) {
+		return false
+	}
+	if this.Ended != that.Ended {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ControllerFrames) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ControllerFrames)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *ModCall) EqualVT(that *ModCall) bool {
 	if this == that {
 		return true
@@ -2324,6 +2485,23 @@ func (this *HostEvent_ServiceCall) EqualVT(thatIface isHostEvent_Body) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.ServiceCall, that.ServiceCall, func() *ServiceCall { return &ServiceCall{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *HostEvent_ControllersWanted) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_ControllersWanted)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.ControllersWanted, that.ControllersWanted, func() *controllers.ControllerWants { return &controllers.ControllerWants{} }) {
 		return false
 	}
 	return true
@@ -2864,6 +3042,10 @@ func (x *ControlRequest) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("answer")
 			ov.Answer.MarshalProtoJSON(s.WithField("answer"))
+		case *ControlRequest_Controllers:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("controllers")
+			ov.Controllers.MarshalProtoJSON(s.WithField("controllers"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2928,12 +3110,100 @@ func (x *ControlRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Answer = &ServiceAnswer{}
 			ov.Answer.UnmarshalProtoJSON(s.WithField("answer", true))
+		case "controllers":
+			ov := &ControlRequest_Controllers{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Controllers = nil
+				return
+			}
+			ov.Controllers = &ControllerFrames{}
+			ov.Controllers.UnmarshalProtoJSON(s.WithField("controllers", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the ControlRequest from JSON.
 func (x *ControlRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ControllerFrames message to JSON.
+func (x *ControllerFrames) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if len(x.Frames) > 0 || s.HasField("frames") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("frames")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Frames {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("frames"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.Ended || s.HasField("ended") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ended")
+		s.WriteBool(x.Ended)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ControllerFrames to JSON.
+func (x *ControllerFrames) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ControllerFrames message from JSON.
+func (x *ControllerFrames) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "frames":
+			s.AddField("frames")
+			if s.ReadNil() {
+				x.Frames = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Frames = append(x.Frames, nil)
+					return
+				}
+				v := &controllers.ControllerFrame{}
+				v.UnmarshalProtoJSON(s.WithField("frames", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Frames = append(x.Frames, v)
+			})
+		case "ended":
+			s.AddField("ended")
+			x.Ended = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ControllerFrames from JSON.
+func (x *ControllerFrames) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3185,6 +3455,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("serviceCall")
 			ov.ServiceCall.MarshalProtoJSON(s.WithField("serviceCall"))
+		case *HostEvent_ControllersWanted:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("controllersWanted")
+			ov.ControllersWanted.MarshalProtoJSON(s.WithField("controllersWanted"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -3330,6 +3604,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.ServiceCall = &ServiceCall{}
 			ov.ServiceCall.UnmarshalProtoJSON(s.WithField("service_call", true))
+		case "controllers_wanted", "controllersWanted":
+			ov := &HostEvent_ControllersWanted{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.ControllersWanted = nil
+				return
+			}
+			ov.ControllersWanted = &controllers.ControllerWants{}
+			ov.ControllersWanted.UnmarshalProtoJSON(s.WithField("controllers_wanted", true))
 		}
 	})
 }
@@ -4590,6 +4873,84 @@ func (m *ControlRequest_Answer) MarshalToSizedBufferVT(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *ControlRequest_Controllers) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ControlRequest_Controllers) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Controllers != nil {
+		size, err := m.Controllers.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x32
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ControllerFrames) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ControllerFrames) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ControllerFrames) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Ended {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Ended)
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Frames) > 0 {
+		for iNdEx := len(m.Frames) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Frames[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ModCall) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -5109,6 +5470,30 @@ func (m *HostEvent_ServiceCall) MarshalToSizedBufferVT(dAtA []byte) (int, error)
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
 		i--
 		dAtA[i] = 0x72
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HostEvent_ControllersWanted) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_ControllersWanted) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.ControllersWanted != nil {
+		size, err := m.ControllersWanted.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x7a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x7a
 	}
 	return len(dAtA) - i, nil
 }
@@ -6071,6 +6456,37 @@ func (m *ControlRequest_Answer) SizeVT() (n int) {
 	return n
 }
 
+func (m *ControlRequest_Controllers) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Controllers != nil {
+		l = m.Controllers.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *ControllerFrames) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	for _, e := range m.Frames {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Ended)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *ModCall) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -6327,6 +6743,21 @@ func (m *HostEvent_ServiceCall) SizeVT() (n int) {
 	_ = l
 	if m.ServiceCall != nil {
 		l = m.ServiceCall.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *HostEvent_ControllersWanted) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ControllersWanted != nil {
+		l = m.ControllersWanted.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	} else {
 		n += 2
@@ -6625,11 +7056,48 @@ func (x *ControlRequest) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Answer)
 		}
+	case *ControlRequest_Controllers:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "controllers")
+		if body.Controllers == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ControllerFrames{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Controllers)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *ControlRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ControllerFrames) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ControllerFrames")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if len(x.Frames) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "frames")
+		for i, v := range x.Frames {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &controllers.ControllerFrame{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Ended != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ended")
+		protobuf_go_lite.TextWriteBool(&sb, x.Ended)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ControllerFrames) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -6804,6 +7272,13 @@ func (x *HostEvent) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ServiceCall{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.ServiceCall)
+		}
+	case *HostEvent_ControllersWanted:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "controllers_wanted")
+		if body.ControllersWanted == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &controllers.ControllerWants{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.ControllersWanted)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -7341,6 +7816,101 @@ func (m *ControlRequest) UnmarshalVT(dAtA []byte) error {
 				m.Body = &ControlRequest_Answer{Answer: v}
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Controllers", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*ControlRequest_Controllers); ok {
+				if err := oneof.Controllers.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ControllerFrames{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &ControlRequest_Controllers{Controllers: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ControllerFrames) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ControllerFrames: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ControllerFrames: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Frames", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Frames = append(m.Frames, &controllers.ControllerFrame{})
+			if err := m.Frames[len(m.Frames)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ended", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Ended = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -7887,6 +8457,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &HostEvent_ServiceCall{ServiceCall: v}
+			}
+			iNdEx = postIndex
+		case 15:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ControllersWanted", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_ControllersWanted); ok {
+				if err := oneof.ControllersWanted.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &controllers.ControllerWants{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_ControllersWanted{ControllersWanted: v}
 			}
 			iNdEx = postIndex
 		default:

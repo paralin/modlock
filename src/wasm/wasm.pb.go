@@ -13,6 +13,7 @@ import (
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
+	controllers "github.com/paralin/modlock/src/wasm/controllers"
 	movement "github.com/paralin/modlock/src/wasm/movement"
 )
 
@@ -367,6 +368,9 @@ type FrameEvent struct {
 	// Movement. A kind it lacks, such as on a game build whose completion it
 	// cannot find, is unknown rather than absent from the samples.
 	Interactions []movement.InteractionKind `protobuf:"varint,4,rep,packed,name=interactions,proto3" json:"interactions,omitempty"`
+	// Controllers holds each watched player's controllers in every frame, with
+	// the presses and releases since the mod's previous frame.
+	Controllers []*controllers.PlayerControllers `protobuf:"bytes,5,rep,name=controllers,proto3" json:"controllers,omitempty"`
 }
 
 func (x *FrameEvent) Reset() {
@@ -399,6 +403,13 @@ func (x *FrameEvent) GetMovement() []*movement.MovementSample {
 func (x *FrameEvent) GetInteractions() []movement.InteractionKind {
 	if x != nil {
 		return x.Interactions
+	}
+	return nil
+}
+
+func (x *FrameEvent) GetControllers() []*controllers.PlayerControllers {
+	if x != nil {
+		return x.Controllers
 	}
 	return nil
 }
@@ -959,6 +970,7 @@ func (m *FrameEvent) CloneVT() *FrameEvent {
 	r.TimeSeconds = m.TimeSeconds
 	r.Movement = protobuf_go_lite.CloneVTSlice(m.Movement)
 	r.Interactions = protobuf_go_lite.CloneSlice(m.Interactions)
+	r.Controllers = protobuf_go_lite.CloneVTSlice(m.Controllers)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1371,6 +1383,9 @@ func (this *FrameEvent) EqualVT(that *FrameEvent) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualSlice(this.Interactions, that.Interactions) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Controllers, that.Controllers, func() *controllers.PlayerControllers { return &controllers.PlayerControllers{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2169,6 +2184,17 @@ func (x *FrameEvent) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if len(x.Controllers) > 0 || s.HasField("controllers") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("controllers")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Controllers {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("controllers"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2220,6 +2246,24 @@ func (x *FrameEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				var v movement.InteractionKind
 				v.UnmarshalProtoJSON(s)
 				x.Interactions = append(x.Interactions, v)
+			})
+		case "controllers":
+			s.AddField("controllers")
+			if s.ReadNil() {
+				x.Controllers = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Controllers = append(x.Controllers, nil)
+					return
+				}
+				v := &controllers.PlayerControllers{}
+				v.UnmarshalProtoJSON(s.WithField("controllers", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Controllers = append(x.Controllers, v)
 			})
 		}
 	})
@@ -3259,6 +3303,18 @@ func (m *FrameEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Controllers) > 0 {
+		for iNdEx := len(m.Controllers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Controllers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
 	if len(m.Interactions) > 0 {
 		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Interactions)
 		i--
@@ -3979,6 +4035,10 @@ func (m *FrameEvent) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeVarintPacked(1, m.Interactions)
+	for _, e := range m.Controllers {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -4328,6 +4388,18 @@ func (x *FrameEvent) MarshalProtoText() string {
 		for i, v := range x.Interactions {
 			protobuf_go_lite.TextWriteListSeparator(&sb, i)
 			protobuf_go_lite.TextWriteStringer(&sb, movement.InteractionKind(v))
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Controllers) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "controllers")
+		for i, v := range x.Controllers {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &controllers.PlayerControllers{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
@@ -5111,6 +5183,19 @@ func (m *FrameEvent) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field Interactions", wireType)
 			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Controllers", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Controllers = append(m.Controllers, &controllers.PlayerControllers{})
+			if err := m.Controllers[len(m.Controllers)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

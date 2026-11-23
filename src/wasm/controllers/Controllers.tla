@@ -98,14 +98,17 @@ Connect ==
   /\ UNCHANGED HostVars
 
 \* The link drops or the client exits: frames in flight are lost, the client
-\* closes its devices, and the host's copy goes with the stream.
+\* closes its devices, and the host's copy goes with the stream, the presses
+\* the mod has not taken included, since a stream that shows none lists no
+\* device to carry them.
 Lose ==
   /\ up
   /\ up' = FALSE /\ chan' = <<>> /\ open' = FALSE /\ want' = FALSE
   /\ synced' = FALSE /\ hHeld' = FALSE /\ stale' = FALSE /\ recent' = FALSE
   /\ UNCHANGED <<watched, epoch, connects, wantEpoch, sentEpoch, unsent>>
   /\ UNCHANGED PlayerVars
-  /\ UNCHANGED <<hFocus, pending, delivered, accepted, from>>
+  /\ pending' = 0 /\ accepted' = delivered
+  /\ UNCHANGED <<hFocus, delivered, from>>
 
 \* The feeder relays the host's latest want. Wants coalesce, so a watch that
 \* ends and starts again before a relay reaches the client as one new epoch.

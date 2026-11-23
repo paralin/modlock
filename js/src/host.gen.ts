@@ -2,6 +2,7 @@
 
 import * as abilitiesPb from '../../src/wasm/abilities/abilities.pb.js'
 import * as combatPb from '../../src/wasm/combat/combat.pb.js'
+import * as controllersPb from '../../src/wasm/controllers/controllers.pb.js'
 import * as effectsPb from '../../src/wasm/effects/effects.pb.js'
 import * as entitiesPb from '../../src/wasm/entities/entities.pb.js'
 import * as fieldsPb from '../../src/wasm/fields/fields.pb.js'
@@ -141,6 +142,68 @@ export type PickupKind =
 const pickupKindValues: Record<PickupKind, entitiesPb.PickupKind> = {
   urn: 0,
   movementBuff: 1,
+}
+
+/**
+ * ControllerStream is the state of the stream that brings one player's
+ * controllers to the host, as a mod reads it.
+ */
+export type ControllerStream =
+  | 'none'
+  | 'live'
+  | 'unfocused'
+  | 'stale'
+
+/** controllerStreamNames decodes each ControllerStream; an unknown value has no name. */
+const controllerStreamNames: Partial<Record<number, ControllerStream>> = {
+  1: 'none',
+  2: 'live',
+  3: 'unfocused',
+  4: 'stale',
+}
+
+/**
+ * GamepadButton names one button of the gamepad layout, by position as SDL
+ * names them: South is A on an Xbox controller and Cross on a PlayStation one.
+ */
+export type GamepadButton =
+  | 'south'
+  | 'east'
+  | 'west'
+  | 'north'
+  | 'back'
+  | 'guide'
+  | 'start'
+  | 'leftStick'
+  | 'rightStick'
+  | 'leftShoulder'
+  | 'rightShoulder'
+  | 'dpadUp'
+  | 'dpadDown'
+  | 'dpadLeft'
+  | 'dpadRight'
+  | 'misc'
+  | 'touchpad'
+
+/** gamepadButtonNames decodes each GamepadButton; an unknown value has no name. */
+const gamepadButtonNames: Partial<Record<number, GamepadButton>> = {
+  1: 'south',
+  2: 'east',
+  3: 'west',
+  4: 'north',
+  5: 'back',
+  6: 'guide',
+  7: 'start',
+  8: 'leftStick',
+  9: 'rightStick',
+  10: 'leftShoulder',
+  11: 'rightShoulder',
+  12: 'dpadUp',
+  13: 'dpadDown',
+  14: 'dpadLeft',
+  15: 'dpadRight',
+  16: 'misc',
+  17: 'touchpad',
 }
 
 /** MovementAction is a movement fact the game announced for a hero. */
@@ -1497,6 +1560,177 @@ function fromRiftState(message: matchPb.RiftState): RiftState {
     giveUpTime: message.giveUpTime ?? 0,
     nextSpawn: message.nextSpawn ?? 0,
     spawnWindow: message.spawnWindow ?? 0,
+  }
+}
+
+/** ControllerInfo describes one device a client reads. */
+export interface ControllerInfo {
+  /**
+   * id identifies the device within its stream for as long as it stays
+   * attached. A device plugged in again gets a new id.
+   */
+  readonly id: number
+  /** name is the device's name, such as "Xbox Series X Controller". */
+  readonly name: string
+  /**
+   * guid is SDL's joystick GUID in hexadecimal, which identifies the model
+   * and the way it is attached.
+   */
+  readonly guid: string
+  /**
+   * vendor and product are the USB vendor and product IDs, or zero when the
+   * device does not report them.
+   */
+  readonly vendor: number
+  readonly product: number
+  /**
+   * axes, buttons and hats count the device's raw inputs, which State's
+   * lists follow.
+   */
+  readonly axes: number
+  readonly buttons: number
+  readonly hats: number
+  /**
+   * gamepad is true when SDL knows the device's gamepad layout, so State
+   * carries the gamepad layer.
+   */
+  readonly gamepad: boolean
+}
+
+/** fromControllerInfo decodes a ControllerInfo. */
+function fromControllerInfo(message: controllersPb.ControllerInfo): ControllerInfo {
+  return {
+    id: message.id ?? 0,
+    name: message.name ?? '',
+    guid: message.guid ?? '',
+    vendor: message.vendor ?? 0,
+    product: message.product ?? 0,
+    axes: message.axes ?? 0,
+    buttons: message.buttons ?? 0,
+    hats: message.hats ?? 0,
+    gamepad: message.gamepad ?? false,
+  }
+}
+
+/**
+ * Gamepad is a device's gamepad layer, with named sticks, triggers and
+ * buttons, for a device whose layout SDL knows.
+ */
+export interface Gamepad {
+  /**
+   * leftX, leftY, rightX and rightY are the sticks, from -1 to 1, with x
+   * positive to the right and y positive down, as SDL reports them.
+   */
+  readonly leftX: number
+  readonly leftY: number
+  readonly rightX: number
+  readonly rightY: number
+  /** leftTrigger and rightTrigger run from 0 at rest to 1 fully pulled. */
+  readonly leftTrigger: number
+  readonly rightTrigger: number
+  /** held lists the buttons held now. */
+  readonly held: GamepadButton[]
+  /**
+   * pressed and released list the buttons pressed and released since the
+   * previous state, once for each press, so a tap shorter than a server frame
+   * is listed in both.
+   */
+  readonly pressed: GamepadButton[]
+  readonly released: GamepadButton[]
+}
+
+/** fromGamepad decodes a Gamepad. */
+function fromGamepad(message: controllersPb.Gamepad): Gamepad {
+  return {
+    leftX: message.leftX ?? 0,
+    leftY: message.leftY ?? 0,
+    rightX: message.rightX ?? 0,
+    rightY: message.rightY ?? 0,
+    leftTrigger: message.leftTrigger ?? 0,
+    rightTrigger: message.rightTrigger ?? 0,
+    held: known(message.held, (v) => gamepadButtonNames[v]),
+    pressed: known(message.pressed, (v) => gamepadButtonNames[v]),
+    released: known(message.released, (v) => gamepadButtonNames[v]),
+  }
+}
+
+/**
+ * ControllerState is one device's inputs, the raw joystick layer always and
+ * the gamepad layer when SDL knows the device.
+ */
+export interface ControllerState {
+  /** id is the device's id in ControllerInfo. */
+  readonly id: number
+  /**
+   * axes holds each raw axis from -1 to 1, in the device's order. A radio
+   * transmitter's channels are its axes.
+   */
+  readonly axes: number[]
+  /** buttons holds whether each raw button is held, in the device's order. */
+  readonly buttons: boolean[]
+  /**
+   * hats holds each hat's position as SDL's mask: 1 up, 2 right, 4 down and
+   * 8 left, combined on a diagonal, and 0 centered.
+   */
+  readonly hats: number[]
+  /**
+   * pressed and released list the raw buttons, by index, pressed and
+   * released since the previous state, once for each press.
+   */
+  readonly pressed: number[]
+  readonly released: number[]
+  /** gamepad is the gamepad layer, when the device has one. */
+  readonly gamepad: Gamepad
+}
+
+/** fromControllerState decodes a ControllerState. */
+function fromControllerState(message: controllersPb.ControllerState): ControllerState {
+  return {
+    id: message.id ?? 0,
+    axes: message.axes ?? [],
+    buttons: message.buttons ?? [],
+    hats: message.hats ?? [],
+    pressed: message.pressed ?? [],
+    released: message.released ?? [],
+    gamepad: fromGamepad(message.gamepad ?? {}),
+  }
+}
+
+/** Controller is one device as a mod reads it. */
+export interface Controller {
+  /** info describes the device. */
+  readonly info: ControllerInfo
+  /**
+   * state is its inputs now, with the presses and releases since the mod's
+   * previous frame.
+   */
+  readonly state: ControllerState
+}
+
+/** fromController decodes a Controller. */
+function fromController(message: controllersPb.Controller): Controller {
+  return {
+    info: fromControllerInfo(message.info ?? {}),
+    state: fromControllerState(message.state ?? {}),
+  }
+}
+
+/** PlayerControllers is one watched player's controllers in a frame. */
+export interface PlayerControllers {
+  /** player is the player's slot. */
+  readonly player: Player
+  /** stream is the state of the stream that brings them. */
+  readonly stream?: ControllerStream
+  /** controllers lists the player's devices, empty while stream is none. */
+  readonly controllers: Controller[]
+}
+
+/** fromPlayerControllers decodes a PlayerControllers. */
+function fromPlayerControllers(message: controllersPb.PlayerControllers): PlayerControllers {
+  return {
+    player: Player.of(message.player ?? 0),
+    stream: controllerStreamNames[message.stream ?? 0],
+    controllers: (message.controllers ?? []).map((v) => fromController(v)),
   }
 }
 
@@ -2886,6 +3120,11 @@ export interface FrameEvent {
    * cannot find, is unknown rather than absent from the samples.
    */
   readonly interactions: InteractionKind[]
+  /**
+   * controllers holds each watched player's controllers in every frame, with
+   * the presses and releases since the mod's previous frame.
+   */
+  readonly controllers: PlayerControllers[]
 }
 
 /** fromFrameEvent decodes a FrameEvent. */
@@ -2895,6 +3134,7 @@ function fromFrameEvent(message: wasmPb.FrameEvent): FrameEvent {
     timeSeconds: message.timeSeconds ?? 0,
     movement: (message.movement ?? []).map((v) => fromMovementSample(v)),
     interactions: known(message.interactions, (v) => interactionKindNames[v]),
+    controllers: (message.controllers ?? []).map((v) => fromPlayerControllers(v)),
   }
 }
 
@@ -3609,6 +3849,16 @@ export class Player {
    */
   watchMovement(watch: boolean): boolean {
     return call('WatchMovement', movementPb.WatchMovementRequest.toBinary({ player: this.slot, watch })) !== undefined
+  }
+
+  /**
+   * watchControllers adds a player's controllers to the controller lists of
+   * each Frame event, or removes them. The player's client reads the devices
+   * only while some mod watches them, and until it answers the player is
+   * listed with no stream.
+   */
+  watchControllers(watch: boolean): boolean {
+    return call('WatchControllers', controllersPb.WatchControllersRequest.toBinary({ player: this.slot, watch })) !== undefined
   }
 }
 

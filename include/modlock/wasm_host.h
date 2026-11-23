@@ -10,11 +10,13 @@
 #include <string>
 #include <string_view>
 
+#include "google/protobuf/repeated_ptr_field.h"
 #include "modlock/export.h"
 #include "modlock/plugin.h"
 #include "modlock/plugin_library.h"
 #include "modlock/wasm_metrics.h"
 #include "modlock/wasm_settings.h"
+#include "src/wasm/controllers/controllers.pb.h"
 #include "src/wasm/match.pb.h"
 #include "src/wasm/players/players.pb.h"
 #include "src/wasm/profile/profile.pb.h"
@@ -87,6 +89,11 @@ class MODLOCK_API WasmHostObserver {
   // a minute while it calls and when its build stops, so a reload's calls
   // belong to the build that made them.
   virtual void Called(std::string_view /*mod*/, const wasm::profile::CallProfile& /*calls*/) {}
+
+  // ControllersWanted lists every player whose controllers some mod watches,
+  // each time the list changes, for the program that relays it to each
+  // player's own client.
+  virtual void ControllersWanted(const wasm::controllers::ControllerWants& /*wants*/) {}
 };
 
 // WasmExtension answers mods' calls to one service the host provides. It
@@ -244,6 +251,16 @@ class MODLOCK_API WasmHost {
   // connection from their next event on. A table equal to the current one
   // changes nothing.
   void SetRoles(wasm::players::RolesTable roles);
+
+  // ApplyControllers takes the controller frames that the player in slot's
+  // own client streamed, oldest first; ended drops the player's controllers
+  // after them, as when the client disconnects. The caller binds the stream
+  // to the player: a frame applies to whatever slot it names. Frames for a
+  // player no mod watches are dropped.
+  void ApplyControllers(
+      int32_t slot,
+      const google::protobuf::RepeatedPtrField<wasm::controllers::ControllerFrame>& frames,
+      bool ended);
 
   // Call calls method of the service mod serves and returns the mod's answer.
   // A mod that is not running, serves no such service or fails returns an

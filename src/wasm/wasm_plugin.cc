@@ -558,6 +558,10 @@ void WasmPlugin::Observe(wasm::FrameEvent& frame) {
     ListenToCombat();
   }
   Sample(frame);
+
+  // List the watched controllers in every frame, not once per tick, since a
+  // client streams faster than the server ticks.
+  game_.Controllers(frame.mutable_controllers());
 }
 
 void WasmPlugin::Tick() {

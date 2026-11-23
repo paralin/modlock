@@ -267,6 +267,11 @@ void ControlLink::RunRequests(WasmHost& mods) {
       case control::ControlRequest::kRoles:
         mods.SetRoles(request.roles());
         break;
+      case control::ControlRequest::kControllers: {
+        const auto& frames = request.controllers();
+        mods.ApplyControllers(frames.player(), frames.frames(), frames.ended());
+        break;
+      }
       case control::ControlRequest::kAnswer: {
         // End the forwarded call the answer names; an unknown id has ended.
         const auto& answer = request.answer();
@@ -369,6 +374,12 @@ void ControlLink::SlowFrame(std::string_view mod, const wasm::profile::SlowFrame
   control::HostEvent event;
   event.mutable_slow_frame()->set_mod(std::string(mod));
   *event.mutable_slow_frame()->mutable_report() = report;
+  Push(std::move(event));
+}
+
+void ControlLink::ControllersWanted(const wasm::controllers::ControllerWants& wants) {
+  control::HostEvent event;
+  *event.mutable_controllers_wanted() = wants;
   Push(std::move(event));
 }
 

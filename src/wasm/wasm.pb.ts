@@ -11,6 +11,7 @@ import type {
 } from '@aptre/protobuf-es-lite/binary-encoding'
 import type { InteractionKind } from './movement/movement.pb.js'
 import { InteractionKind_Enum, MovementSample } from './movement/movement.pb.js'
+import { PlayerControllers } from './controllers/controllers.pb.js'
 
 /**
  * PingKind is how a player pinged.
@@ -507,6 +508,11 @@ export interface FrameEvent {
    * cannot find, is unknown rather than absent from the samples.
    */
   interactions?: InteractionKind[]
+  /**
+   * Controllers holds each watched player's controllers in every frame, with
+   * the presses and releases since the mod's previous frame.
+   */
+  controllers?: PlayerControllers[]
 }
 
 export const FrameEvent: MessageType<FrameEvent> =
@@ -517,6 +523,7 @@ export const FrameEvent: MessageType<FrameEvent> =
       [2, 'time_seconds', 1],
       [3, 'movement', 11, 1, MovementSample.codec],
       [4, 'interactions', 14, 3, InteractionKind_Enum],
+      [5, 'controllers', 11, 1, PlayerControllers.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: FrameEvent): FrameEvent => {
@@ -538,6 +545,11 @@ export const FrameEvent: MessageType<FrameEvent> =
             case 4:
               for (const e = r.run(t), a = (m.interactions ??= []); r.pos < e;)
                 a.push(r.int32())
+              break
+            case 5:
+              ;(m.controllers ??= []).push(
+                PlayerControllers.decode(r, r.delimited(), {}),
+              )
               break
             default:
               r.skip(t)
@@ -565,6 +577,11 @@ export const FrameEvent: MessageType<FrameEvent> =
             for (const e of a) w.int32(e)
             w.join(s)
           }
+        }
+        {
+          const a = m.controllers
+          if (a != null)
+            for (const e of a) PlayerControllers.writeField(w, 5, e)
         }
       },
     },

@@ -44,6 +44,7 @@
 #include "modlock/render/world_effect_game_factory.h"
 #include "modlock/render/world_text_game_factory.h"
 #include "src/wasm/wasm.pb.h"
+#include "wasm/controller_table.h"
 #include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
 #include "wasm/host_service.gen.h"
@@ -90,6 +91,10 @@ class GameServices {
   // replays, as a mod's own movement model does; an empty step stops it. One
   // mod's step may run at a time.
   std::expected<void, std::string> StepWith(gameinterop::MovementHook::Handler step);
+
+  // Controllers holds the controllers players' clients stream for the mods
+  // that watch them.
+  ControllerTable& Controllers() { return controllers_; }
 
  private:
   friend class Game;
@@ -326,6 +331,7 @@ class GameServices {
   // pending_commands_ wait for the engine's first world; started_ marks it.
   std::vector<std::string> pending_commands_;
   bool started_ = false;
+  ControllerTable controllers_;
 };
 
 // Game answers one mod's calls into the game and owns what the mod placed in
@@ -461,6 +467,10 @@ class Game : public HostService {
   // Movement returns a sample of each watched, live hero, with the facts
   // that name its pawn.
   std::vector<movement::MovementSample> Movement(std::span<const MovementFact> facts);
+
+  // Controllers appends each player whose controllers the mod watches, with
+  // the presses and releases since its last call.
+  void Controllers(google::protobuf::RepeatedPtrField<controllers::PlayerControllers>* out);
 
   // TakeLaunches returns the watched projectiles that appeared since the last
   // call.
@@ -659,6 +669,8 @@ class Game : public HostService {
       const players::PlayerRequest& request) override;
   std::expected<void, std::string> WatchMovement(
       const movement::WatchMovementRequest& request) override;
+  std::expected<void, std::string> WatchControllers(
+      const controllers::WatchControllersRequest& request) override;
   std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& request) override;
 

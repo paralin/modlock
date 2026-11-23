@@ -14,6 +14,7 @@ import "github.com/paralin/modlock/src/wasm/input.proto";
 import "github.com/paralin/modlock/src/wasm/handoff.proto";
 import "github.com/paralin/modlock/src/wasm/match.proto";
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
+import "github.com/paralin/modlock/src/wasm/controllers/controllers.proto";
 import "github.com/paralin/modlock/src/wasm/movement/movement.proto";
 import "github.com/paralin/modlock/src/wasm/npcs/npcs.proto";
 import "github.com/paralin/modlock/src/wasm/objects/objects.proto";
@@ -812,6 +813,12 @@ service Host {
   // event on a new tick, or removes it.
   rpc WatchMovement(modlock.wasm.movement.WatchMovementRequest) returns (Empty);
 
+  // WatchControllers adds a player's controllers to the controller lists of
+  // each Frame event, or removes them. The player's client reads the devices
+  // only while some mod watches them, and until it answers the player is
+  // listed with no stream.
+  rpc WatchControllers(modlock.wasm.controllers.WatchControllersRequest) returns (Empty);
+
   // WatchProjectiles reports the projectiles with these designer names, such
   // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
   // call replaces the list; an empty list stops watching.
@@ -1045,6 +1052,10 @@ message FrameEvent {
   // Movement. A kind it lacks, such as on a game build whose completion it
   // cannot find, is unknown rather than absent from the samples.
   repeated modlock.wasm.movement.InteractionKind interactions = 4;
+
+  // Controllers holds each watched player's controllers in every frame, with
+  // the presses and releases since the mod's previous frame.
+  repeated modlock.wasm.controllers.PlayerControllers controllers = 5;
 }
 
 // CommandEvent carries one command line from a player: a chat line that

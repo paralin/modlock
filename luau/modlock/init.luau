@@ -111,6 +111,60 @@ local PickupKind: { [any]: any } = {
 	movementBuff = 1,
 }
 
+-- ControllerStream is the state of the stream that brings one player's
+-- controllers to the host, as a mod reads it.
+export type ControllerStream = "none" | "live" | "unfocused" | "stale"
+local ControllerStream: { [any]: any } = {
+	[1] = "none",
+	none = 1,
+	[2] = "live",
+	live = 2,
+	[3] = "unfocused",
+	unfocused = 3,
+	[4] = "stale",
+	stale = 4,
+}
+
+-- GamepadButton names one button of the gamepad layout, by position as SDL
+-- names them: South is A on an Xbox controller and Cross on a PlayStation one.
+export type GamepadButton = "south" | "east" | "west" | "north" | "back" | "guide" | "start" | "leftStick" | "rightStick" | "leftShoulder" | "rightShoulder" | "dpadUp" | "dpadDown" | "dpadLeft" | "dpadRight" | "misc" | "touchpad"
+local GamepadButton: { [any]: any } = {
+	[1] = "south",
+	south = 1,
+	[2] = "east",
+	east = 2,
+	[3] = "west",
+	west = 3,
+	[4] = "north",
+	north = 4,
+	[5] = "back",
+	back = 5,
+	[6] = "guide",
+	guide = 6,
+	[7] = "start",
+	start = 7,
+	[8] = "leftStick",
+	leftStick = 8,
+	[9] = "rightStick",
+	rightStick = 9,
+	[10] = "leftShoulder",
+	leftShoulder = 10,
+	[11] = "rightShoulder",
+	rightShoulder = 11,
+	[12] = "dpadUp",
+	dpadUp = 12,
+	[13] = "dpadDown",
+	dpadDown = 13,
+	[14] = "dpadLeft",
+	dpadLeft = 14,
+	[15] = "dpadRight",
+	dpadRight = 15,
+	[16] = "misc",
+	misc = 16,
+	[17] = "touchpad",
+	touchpad = 17,
+}
+
 -- MovementAction is a movement fact the game announced for a hero.
 export type MovementAction = "landed" | "ziplineAttached" | "groundDash" | "slide" | "bouncePad" | "dashJump" | "airJump" | "wallJump" | "airDash" | "meleeStarted" | "abilityExecuted"
 local MovementAction: { [any]: any } = {
@@ -988,6 +1042,91 @@ export type RiftState = {
 	spawnWindow: number,
 }
 
+-- ControllerInfo describes one device a client reads.
+export type ControllerInfo = {
+	-- id identifies the device within its stream for as long as it stays
+	-- attached. A device plugged in again gets a new id.
+	id: number,
+	-- name is the device's name, such as "Xbox Series X Controller".
+	name: string,
+	-- guid is SDL's joystick GUID in hexadecimal, which identifies the model
+	-- and the way it is attached.
+	guid: string,
+	-- vendor and product are the USB vendor and product IDs, or zero when the
+	-- device does not report them.
+	vendor: number,
+	product: number,
+	-- axes, buttons and hats count the device's raw inputs, which State's
+	-- lists follow.
+	axes: number,
+	buttons: number,
+	hats: number,
+	-- gamepad is true when SDL knows the device's gamepad layout, so State
+	-- carries the gamepad layer.
+	gamepad: boolean,
+}
+
+-- Gamepad is a device's gamepad layer, with named sticks, triggers and
+-- buttons, for a device whose layout SDL knows.
+export type Gamepad = {
+	-- leftX, leftY, rightX and rightY are the sticks, from -1 to 1, with x
+	-- positive to the right and y positive down, as SDL reports them.
+	leftX: number,
+	leftY: number,
+	rightX: number,
+	rightY: number,
+	-- leftTrigger and rightTrigger run from 0 at rest to 1 fully pulled.
+	leftTrigger: number,
+	rightTrigger: number,
+	-- held lists the buttons held now.
+	held: { GamepadButton },
+	-- pressed and released list the buttons pressed and released since the
+	-- previous state, once for each press, so a tap shorter than a server frame
+	-- is listed in both.
+	pressed: { GamepadButton },
+	released: { GamepadButton },
+}
+
+-- ControllerState is one device's inputs, the raw joystick layer always and
+-- the gamepad layer when SDL knows the device.
+export type ControllerState = {
+	-- id is the device's id in ControllerInfo.
+	id: number,
+	-- axes holds each raw axis from -1 to 1, in the device's order. A radio
+	-- transmitter's channels are its axes.
+	axes: { number },
+	-- buttons holds whether each raw button is held, in the device's order.
+	buttons: { boolean },
+	-- hats holds each hat's position as SDL's mask: 1 up, 2 right, 4 down and
+	-- 8 left, combined on a diagonal, and 0 centered.
+	hats: { number },
+	-- pressed and released list the raw buttons, by index, pressed and
+	-- released since the previous state, once for each press.
+	pressed: { number },
+	released: { number },
+	-- gamepad is the gamepad layer, when the device has one.
+	gamepad: Gamepad,
+}
+
+-- Controller is one device as a mod reads it.
+export type Controller = {
+	-- info describes the device.
+	info: ControllerInfo,
+	-- state is its inputs now, with the presses and releases since the mod's
+	-- previous frame.
+	state: ControllerState,
+}
+
+-- PlayerControllers is one watched player's controllers in a frame.
+export type PlayerControllers = {
+	-- player is the player's slot.
+	player: Player,
+	-- stream is the state of the stream that brings them.
+	stream: ControllerStream?,
+	-- controllers lists the player's devices, empty while stream is none.
+	controllers: { Controller },
+}
+
 -- MovementSample is one watched hero's movement on one tick, as the game keeps
 -- it. A hero whose position, velocity or ground the game does not provide has
 -- no sample; another field the game did not provide is absent or zero.
@@ -1740,6 +1879,9 @@ export type FrameEvent = {
 	-- movement. A kind it lacks, such as on a game build whose completion it
 	-- cannot find, is unknown rather than absent from the samples.
 	interactions: { InteractionKind },
+	-- controllers holds each watched player's controllers in every frame, with
+	-- the presses and releases since the mod's previous frame.
+	controllers: { PlayerControllers },
 }
 
 -- CommandEvent carries one command line from a player: a chat line that
@@ -2072,6 +2214,11 @@ export type Player = {
 	-- watchMovement adds a player's hero to the movement samples of each Frame
 	-- event on a new tick, or removes it.
 	watchMovement: (self: Player, watch: boolean) -> boolean,
+	-- watchControllers adds a player's controllers to the controller lists of
+	-- each Frame event, or removes them. The player's client reads the devices
+	-- only while some mod watches them, and until it answers the player is
+	-- listed with no stream.
+	watchControllers: (self: Player, watch: boolean) -> boolean,
 	-- connection returns the player's connection: their name, Steam ID, whether
 	-- they are a bot and whether they finished joining. It returns nil when
 	-- nobody holds the slot.
@@ -2520,6 +2667,14 @@ end
 -- event on a new tick, or removes it.
 function Player.watchMovement(self: Player, watch: boolean): boolean
 	return call("WatchMovement", "WatchMovementRequest", { player = self, watch = watch }) ~= nil
+end
+
+-- watchControllers adds a player's controllers to the controller lists of
+-- each Frame event, or removes them. The player's client reads the devices
+-- only while some mod watches them, and until it answers the player is
+-- listed with no stream.
+function Player.watchControllers(self: Player, watch: boolean): boolean
+	return call("WatchControllers", "WatchControllersRequest", { player = self, watch = watch }) ~= nil
 end
 
 modlock.Player = Player
@@ -3483,6 +3638,50 @@ schema.AddMetricRequest = {
 	{ number = 3, name = "value", kind = "double" },
 	{ number = 4, name = "label", kind = "string", optional = true },
 }
+schema.ControllerInfo = {
+	{ number = 1, name = "id", kind = "uint32" },
+	{ number = 2, name = "name", kind = "string" },
+	{ number = 3, name = "guid", kind = "string" },
+	{ number = 4, name = "vendor", kind = "uint32" },
+	{ number = 5, name = "product", kind = "uint32" },
+	{ number = 6, name = "axes", kind = "uint32" },
+	{ number = 7, name = "buttons", kind = "uint32" },
+	{ number = 8, name = "hats", kind = "uint32" },
+	{ number = 9, name = "gamepad", kind = "bool" },
+}
+schema.Gamepad = {
+	{ number = 1, name = "leftX", kind = "float" },
+	{ number = 2, name = "leftY", kind = "float" },
+	{ number = 3, name = "rightX", kind = "float" },
+	{ number = 4, name = "rightY", kind = "float" },
+	{ number = 5, name = "leftTrigger", kind = "float" },
+	{ number = 6, name = "rightTrigger", kind = "float" },
+	{ number = 7, name = "held", kind = "enum", repeated = true, enum = GamepadButton },
+	{ number = 8, name = "pressed", kind = "enum", repeated = true, enum = GamepadButton },
+	{ number = 9, name = "released", kind = "enum", repeated = true, enum = GamepadButton },
+}
+schema.ControllerState = {
+	{ number = 1, name = "id", kind = "uint32" },
+	{ number = 2, name = "axes", kind = "float", repeated = true },
+	{ number = 3, name = "buttons", kind = "bool", repeated = true },
+	{ number = 4, name = "hats", kind = "uint32", repeated = true },
+	{ number = 5, name = "pressed", kind = "uint32", repeated = true },
+	{ number = 6, name = "released", kind = "uint32", repeated = true },
+	{ number = 7, name = "gamepad", kind = "message", message = "Gamepad" },
+}
+schema.Controller = {
+	{ number = 1, name = "info", kind = "message", message = "ControllerInfo" },
+	{ number = 2, name = "state", kind = "message", message = "ControllerState" },
+}
+schema.PlayerControllers = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "stream", kind = "enum", enum = ControllerStream },
+	{ number = 3, name = "controllers", kind = "message", repeated = true, message = "Controller" },
+}
+schema.WatchControllersRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "watch", kind = "bool" },
+}
 schema.MovementSample = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "pawn", kind = "uint32" },
@@ -4217,6 +4416,7 @@ schema.FrameEvent = {
 	{ number = 2, name = "timeSeconds", kind = "double" },
 	{ number = 3, name = "movement", kind = "message", repeated = true, message = "MovementSample" },
 	{ number = 4, name = "interactions", kind = "enum", repeated = true, enum = InteractionKind },
+	{ number = 5, name = "controllers", kind = "message", repeated = true, message = "PlayerControllers" },
 }
 schema.CommandEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

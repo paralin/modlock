@@ -9,6 +9,7 @@ import (
 	wasmpb "github.com/paralin/modlock/src/wasm"
 	abilitiespb "github.com/paralin/modlock/src/wasm/abilities"
 	combatpb "github.com/paralin/modlock/src/wasm/combat"
+	controllerspb "github.com/paralin/modlock/src/wasm/controllers"
 	effectspb "github.com/paralin/modlock/src/wasm/effects"
 	entitiespb "github.com/paralin/modlock/src/wasm/entities"
 	fieldspb "github.com/paralin/modlock/src/wasm/fields"
@@ -81,6 +82,71 @@ const (
 	PickupKindUrn = entitiespb.PickupKind_PICKUP_KIND_URN
 	// PickupKindMovementBuff is the movement speed buff.
 	PickupKindMovementBuff = entitiespb.PickupKind_PICKUP_KIND_MOVEMENT_BUFF
+)
+
+// ControllerStream is the state of the stream that brings one player's
+// controllers to the host, as a mod reads it.
+type ControllerStream = controllerspb.ControllerStream
+
+// The values of ControllerStream.
+const (
+	// ControllerStreamNone means no client streams the player's controllers
+	// yet: none is linked, the link dropped, or the client has not answered
+	// the watch. A mod sees no controllers.
+	ControllerStreamNone = controllerspb.ControllerStream_CONTROLLER_STREAM_NONE
+	// ControllerStreamLive means frames arrive and the game has focus.
+	ControllerStreamLive = controllerspb.ControllerStream_CONTROLLER_STREAM_LIVE
+	// ControllerStreamUnfocused means frames arrive while the player's game
+	// window does not have focus. The controllers are listed with nothing held
+	// and every axis at rest.
+	ControllerStreamUnfocused = controllerspb.ControllerStream_CONTROLLER_STREAM_UNFOCUSED
+	// ControllerStreamStale means the stream is linked but no frame arrived
+	// within its deadline. The controllers keep their last state, so a short
+	// gap does not cut a held throttle; the mod decides what a long one means.
+	ControllerStreamStale = controllerspb.ControllerStream_CONTROLLER_STREAM_STALE
+)
+
+// GamepadButton names one button of the gamepad layout, by position as SDL
+// names them: South is A on an Xbox controller and Cross on a PlayStation one.
+type GamepadButton = controllerspb.GamepadButton
+
+// The values of GamepadButton.
+const (
+	// GamepadButtonSouth is the bottom face button.
+	GamepadButtonSouth = controllerspb.GamepadButton_GAMEPAD_BUTTON_SOUTH
+	// GamepadButtonEast is the right face button.
+	GamepadButtonEast = controllerspb.GamepadButton_GAMEPAD_BUTTON_EAST
+	// GamepadButtonWest is the left face button.
+	GamepadButtonWest = controllerspb.GamepadButton_GAMEPAD_BUTTON_WEST
+	// GamepadButtonNorth is the top face button.
+	GamepadButtonNorth = controllerspb.GamepadButton_GAMEPAD_BUTTON_NORTH
+	// GamepadButtonBack is the View, Select or Share button.
+	GamepadButtonBack = controllerspb.GamepadButton_GAMEPAD_BUTTON_BACK
+	// GamepadButtonGuide is the Xbox, PS or Home button.
+	GamepadButtonGuide = controllerspb.GamepadButton_GAMEPAD_BUTTON_GUIDE
+	// GamepadButtonStart is the Menu, Start or Options button.
+	GamepadButtonStart = controllerspb.GamepadButton_GAMEPAD_BUTTON_START
+	// GamepadButtonLeftStick is the left stick pressed in.
+	GamepadButtonLeftStick = controllerspb.GamepadButton_GAMEPAD_BUTTON_LEFT_STICK
+	// GamepadButtonRightStick is the right stick pressed in.
+	GamepadButtonRightStick = controllerspb.GamepadButton_GAMEPAD_BUTTON_RIGHT_STICK
+	// GamepadButtonLeftShoulder is the left bumper.
+	GamepadButtonLeftShoulder = controllerspb.GamepadButton_GAMEPAD_BUTTON_LEFT_SHOULDER
+	// GamepadButtonRightShoulder is the right bumper.
+	GamepadButtonRightShoulder = controllerspb.GamepadButton_GAMEPAD_BUTTON_RIGHT_SHOULDER
+	// GamepadButtonDpadUp is the directional pad's up.
+	GamepadButtonDpadUp = controllerspb.GamepadButton_GAMEPAD_BUTTON_DPAD_UP
+	// GamepadButtonDpadDown is the directional pad's down.
+	GamepadButtonDpadDown = controllerspb.GamepadButton_GAMEPAD_BUTTON_DPAD_DOWN
+	// GamepadButtonDpadLeft is the directional pad's left.
+	GamepadButtonDpadLeft = controllerspb.GamepadButton_GAMEPAD_BUTTON_DPAD_LEFT
+	// GamepadButtonDpadRight is the directional pad's right.
+	GamepadButtonDpadRight = controllerspb.GamepadButton_GAMEPAD_BUTTON_DPAD_RIGHT
+	// GamepadButtonMisc is the extra button some pads have, such as the
+	// Xbox Share button or the PlayStation microphone button.
+	GamepadButtonMisc = controllerspb.GamepadButton_GAMEPAD_BUTTON_MISC
+	// GamepadButtonTouchpad is the PlayStation touchpad pressed.
+	GamepadButtonTouchpad = controllerspb.GamepadButton_GAMEPAD_BUTTON_TOUCHPAD
 )
 
 // MovementAction is a movement fact the game announced for a hero.
@@ -448,6 +514,23 @@ type InputEvent = wasmpb.InputEvent
 // RiftState is the Rift objective's timing as the game holds it. Times are
 // game times in seconds, or zero when unset.
 type RiftState = wasmpb.RiftState
+
+// ControllerInfo describes one device a client reads.
+type ControllerInfo = controllerspb.ControllerInfo
+
+// Gamepad is a device's gamepad layer, with named sticks, triggers and
+// buttons, for a device whose layout SDL knows.
+type Gamepad = controllerspb.Gamepad
+
+// ControllerState is one device's inputs, the raw joystick layer always and
+// the gamepad layer when SDL knows the device.
+type ControllerState = controllerspb.ControllerState
+
+// Controller is one device as a mod reads it.
+type Controller = controllerspb.Controller
+
+// PlayerControllers is one watched player's controllers in a frame.
+type PlayerControllers = controllerspb.PlayerControllers
 
 // MovementSample is one watched hero's movement on one tick, as the game keeps
 // it. A hero whose position, velocity or ground the game does not provide has
@@ -1954,6 +2037,14 @@ func (p Player) Buttons() (uint64, error) {
 // event on a new tick, or removes it.
 func (p Player) WatchMovement(watch bool) error {
 	return invoke("WatchMovement", &movementpb.WatchMovementRequest{Player: p.Slot(), Watch: watch}, nil)
+}
+
+// WatchControllers adds a player's controllers to the controller lists of
+// each Frame event, or removes them. The player's client reads the devices
+// only while some mod watches them, and until it answers the player is
+// listed with no stream.
+func (p Player) WatchControllers(watch bool) error {
+	return invoke("WatchControllers", &controllerspb.WatchControllersRequest{Player: p.Slot(), Watch: watch}, nil)
 }
 
 // WatchProjectiles reports the projectiles with these designer names, such

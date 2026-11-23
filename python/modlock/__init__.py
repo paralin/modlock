@@ -133,6 +133,80 @@ _PickupKind: dict[Any, Any] = {
 }
 
 
+# ControllerStream is the state of the stream that brings one player's
+# controllers to the host, as a mod reads it.
+type ControllerStream = Literal["none", "live", "unfocused", "stale"]
+_ControllerStream: dict[Any, Any] = {
+    1: "none",
+    "none": 1,
+    2: "live",
+    "live": 2,
+    3: "unfocused",
+    "unfocused": 3,
+    4: "stale",
+    "stale": 4,
+}
+
+
+# GamepadButton names one button of the gamepad layout, by position as SDL
+# names them: South is A on an Xbox controller and Cross on a PlayStation one.
+type GamepadButton = Literal[
+    "south",
+    "east",
+    "west",
+    "north",
+    "back",
+    "guide",
+    "start",
+    "left_stick",
+    "right_stick",
+    "left_shoulder",
+    "right_shoulder",
+    "dpad_up",
+    "dpad_down",
+    "dpad_left",
+    "dpad_right",
+    "misc",
+    "touchpad",
+]
+_GamepadButton: dict[Any, Any] = {
+    1: "south",
+    "south": 1,
+    2: "east",
+    "east": 2,
+    3: "west",
+    "west": 3,
+    4: "north",
+    "north": 4,
+    5: "back",
+    "back": 5,
+    6: "guide",
+    "guide": 6,
+    7: "start",
+    "start": 7,
+    8: "left_stick",
+    "left_stick": 8,
+    9: "right_stick",
+    "right_stick": 9,
+    10: "left_shoulder",
+    "left_shoulder": 10,
+    11: "right_shoulder",
+    "right_shoulder": 11,
+    12: "dpad_up",
+    "dpad_up": 12,
+    13: "dpad_down",
+    "dpad_down": 13,
+    14: "dpad_left",
+    "dpad_left": 14,
+    15: "dpad_right",
+    "dpad_right": 15,
+    16: "misc",
+    "misc": 16,
+    17: "touchpad",
+    "touchpad": 17,
+}
+
+
 # MovementAction is a movement fact the game announced for a hero.
 type MovementAction = Literal[
     "landed",
@@ -1477,6 +1551,103 @@ class RiftState:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class ControllerInfo:
+    """ControllerInfo describes one device a client reads."""
+
+    # id identifies the device within its stream for as long as it stays
+    # attached. A device plugged in again gets a new id.
+    id: int = 0
+    # name is the device's name, such as "Xbox Series X Controller".
+    name: str = ""
+    # guid is SDL's joystick GUID in hexadecimal, which identifies the model
+    # and the way it is attached.
+    guid: str = ""
+    # vendor and product are the USB vendor and product IDs, or zero when the
+    # device does not report them.
+    vendor: int = 0
+    product: int = 0
+    # axes, buttons and hats count the device's raw inputs, which State's
+    # lists follow.
+    axes: int = 0
+    buttons: int = 0
+    hats: int = 0
+    # gamepad is true when SDL knows the device's gamepad layout, so State
+    # carries the gamepad layer.
+    gamepad: bool = False
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Gamepad:
+    """Gamepad is a device's gamepad layer, with named sticks, triggers and
+    buttons, for a device whose layout SDL knows.
+    """
+
+    # left_x, left_y, right_x and right_y are the sticks, from -1 to 1, with x
+    # positive to the right and y positive down, as SDL reports them.
+    left_x: float = 0.0
+    left_y: float = 0.0
+    right_x: float = 0.0
+    right_y: float = 0.0
+    # left_trigger and right_trigger run from 0 at rest to 1 fully pulled.
+    left_trigger: float = 0.0
+    right_trigger: float = 0.0
+    # held lists the buttons held now.
+    held: list[GamepadButton] = dataclasses.field(default_factory=lambda: list[GamepadButton]())
+    # pressed and released list the buttons pressed and released since the
+    # previous state, once for each press, so a tap shorter than a server frame
+    # is listed in both.
+    pressed: list[GamepadButton] = dataclasses.field(default_factory=lambda: list[GamepadButton]())
+    released: list[GamepadButton] = dataclasses.field(default_factory=lambda: list[GamepadButton]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ControllerState:
+    """ControllerState is one device's inputs, the raw joystick layer always and
+    the gamepad layer when SDL knows the device.
+    """
+
+    # id is the device's id in ControllerInfo.
+    id: int = 0
+    # axes holds each raw axis from -1 to 1, in the device's order. A radio
+    # transmitter's channels are its axes.
+    axes: list[float] = dataclasses.field(default_factory=lambda: list[float]())
+    # buttons holds whether each raw button is held, in the device's order.
+    buttons: list[bool] = dataclasses.field(default_factory=lambda: list[bool]())
+    # hats holds each hat's position as SDL's mask: 1 up, 2 right, 4 down and
+    # 8 left, combined on a diagonal, and 0 centered.
+    hats: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+    # pressed and released list the raw buttons, by index, pressed and
+    # released since the previous state, once for each press.
+    pressed: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+    released: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+    # gamepad is the gamepad layer, when the device has one.
+    gamepad: Gamepad
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Controller:
+    """Controller is one device as a mod reads it."""
+
+    # info describes the device.
+    info: ControllerInfo
+    # state is its inputs now, with the presses and releases since the mod's
+    # previous frame.
+    state: ControllerState
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerControllers:
+    """PlayerControllers is one watched player's controllers in a frame."""
+
+    # player is the player's slot.
+    player: Player
+    # stream is the state of the stream that brings them.
+    stream: ControllerStream | None = None
+    # controllers lists the player's devices, empty while stream is none.
+    controllers: list[Controller] = dataclasses.field(default_factory=lambda: list[Controller]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class MovementSample:
     """MovementSample is one watched hero's movement on one tick, as the game keeps
     it. A hero whose position, velocity or ground the game does not provide has
@@ -2342,6 +2513,9 @@ class FrameEvent:
     # movement. A kind it lacks, such as on a game build whose completion it
     # cannot find, is unknown rather than absent from the samples.
     interactions: list[InteractionKind] = dataclasses.field(default_factory=lambda: list[InteractionKind]())
+    # controllers holds each watched player's controllers in every frame, with
+    # the presses and releases since the mod's previous frame.
+    controllers: list[PlayerControllers] = dataclasses.field(default_factory=lambda: list[PlayerControllers]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2893,6 +3067,14 @@ class Player:
         event on a new tick, or removes it.
         """
         return _call("WatchMovement", "WatchMovementRequest", {"player": self, "watch": watch}) is not None
+
+    def watch_controllers(self, watch: bool) -> bool:
+        """watch_controllers adds a player's controllers to the controller lists of
+        each Frame event, or removes them. The player's client reads the devices
+        only while some mod watches them, and until it answers the player is
+        listed with no stream.
+        """
+        return _call("WatchControllers", "WatchControllersRequest", {"player": self, "watch": watch}) is not None
 
     def connection(self: Player) -> Connection | None:
         """connection returns the player's connection: their name, Steam ID,
@@ -3906,6 +4088,68 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "name", "string"),
             wire.Field(3, "value", "double"),
             wire.Field(4, "label", "string", optional=True),
+        ],
+    ),
+    "ControllerInfo": (
+        ControllerInfo,
+        [
+            wire.Field(1, "id", "uint32"),
+            wire.Field(2, "name", "string"),
+            wire.Field(3, "guid", "string"),
+            wire.Field(4, "vendor", "uint32"),
+            wire.Field(5, "product", "uint32"),
+            wire.Field(6, "axes", "uint32"),
+            wire.Field(7, "buttons", "uint32"),
+            wire.Field(8, "hats", "uint32"),
+            wire.Field(9, "gamepad", "bool"),
+        ],
+    ),
+    "Gamepad": (
+        Gamepad,
+        [
+            wire.Field(1, "left_x", "float"),
+            wire.Field(2, "left_y", "float"),
+            wire.Field(3, "right_x", "float"),
+            wire.Field(4, "right_y", "float"),
+            wire.Field(5, "left_trigger", "float"),
+            wire.Field(6, "right_trigger", "float"),
+            wire.Field(7, "held", "enum", repeated=True, enum=_GamepadButton),
+            wire.Field(8, "pressed", "enum", repeated=True, enum=_GamepadButton),
+            wire.Field(9, "released", "enum", repeated=True, enum=_GamepadButton),
+        ],
+    ),
+    "ControllerState": (
+        ControllerState,
+        [
+            wire.Field(1, "id", "uint32"),
+            wire.Field(2, "axes", "float", repeated=True),
+            wire.Field(3, "buttons", "bool", repeated=True),
+            wire.Field(4, "hats", "uint32", repeated=True),
+            wire.Field(5, "pressed", "uint32", repeated=True),
+            wire.Field(6, "released", "uint32", repeated=True),
+            wire.Field(7, "gamepad", "message", message="Gamepad"),
+        ],
+    ),
+    "Controller": (
+        Controller,
+        [
+            wire.Field(1, "info", "message", message="ControllerInfo"),
+            wire.Field(2, "state", "message", message="ControllerState"),
+        ],
+    ),
+    "PlayerControllers": (
+        PlayerControllers,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "stream", "enum", enum=_ControllerStream),
+            wire.Field(3, "controllers", "message", repeated=True, message="Controller"),
+        ],
+    ),
+    "WatchControllersRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "watch", "bool"),
         ],
     ),
     "MovementSample": (
@@ -4983,6 +5227,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "time_seconds", "double"),
             wire.Field(3, "movement", "message", repeated=True, message="MovementSample"),
             wire.Field(4, "interactions", "enum", repeated=True, enum=_InteractionKind),
+            wire.Field(5, "controllers", "message", repeated=True, message="PlayerControllers"),
         ],
     ),
     "CommandEvent": (
