@@ -137,12 +137,31 @@
   },
   {
     "name": "No deadline: the window stays open while the mod computes",
-    "replace": [["/\\ late \\/ (mod \\in", "/\\ (mod \\in"]],
+    "replace": [
+      ["\\/ late\n     \\/ Design = \"Quiet\"", "\\/ Design = \"Quiet\""]
+    ],
     "expect": "WindowEnds"
   },
   {
     "name": "Weak fairness on hops: every window's deadline can pass before its hop is served",
     "replace": [["SF_vars(ServeHop)", "WF_vars(ServeHop)"]],
     "expect": "HopAnswered"
+  },
+  {
+    "name": "A window closes on a waiting hop: the mod's wait counts as quiet",
+    "replace": [
+      ["mod \\in {\"Idle\", \"Done\"} /\\ queue = <<>>", "queue = <<>>"]
+    ],
+    "expect": "CloseServesHops"
+  },
+  {
+    "name": "The overlap exit (run under the Quiet design's name) ignores a waiting hop: the window returns while the mod waits on it",
+    "replace": [
+      [
+        "\\/ Design = \"Quiet\" /\\ mod \\in {\"Idle\", \"Done\"} /\\ queue = <<>>\n     \\/ Design = \"Overlap\" /\\ mod # \"WaitingHop\"",
+        "\\/ Design = \"Quiet\""
+      ]
+    ],
+    "expect": "CloseServesHops"
   }
 ]

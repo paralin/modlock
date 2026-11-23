@@ -141,6 +141,10 @@ inline void Relax() {
 #endif
 }
 
+// kCadenceHorizon is how many windows past its last read a request stays in
+// the cadence table at least, so a read every few seconds is still predicted.
+constexpr uint64_t kCadenceHorizon = 32;
+
 // current is the ModThread whose thread this is, or null on any other.
 thread_local const ModThread* current = nullptr;
 
@@ -312,11 +316,13 @@ void ModThread::Post(Call call) {
     // of the queue so the events posted between them keep their order.
     std::lock_guard lock(mu_);
     if (call.method() == "Frame") {
+      ++frame_posts_;
       const auto old = std::ranges::find_if(
           queue_, [](const Call& queued) { return queued.method() == "Frame"; });
       if (old != queue_.end()) {
         queue_.erase(old);
         pending_.fetch_sub(1);
+        ++replaced_frames_;
       }
     }
     queue_.push_back(std::move(call));
@@ -386,6 +392,17 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
     Serve(&stats);
   }
 
+  // Overlapping, the window leaves once the mod has no hop waiting, and the mod
+  // runs on while the engine does. A hop it makes meanwhile waits for the next
+  // window, which serves it first whatever its deadline.
+  if (settings_.overlap_frames) {
+    while (hop_.load() == HopState::kPosted && Clock::now() < deadline) {
+      Serve(&stats);
+    }
+    stats.idle = pending_.load() == 0;
+    return Close(&stats, began);
+  }
+
   // Answer hops until the mod is idle with nothing queued, or time is up. The
   // game thread watches while the mod runs and sleeps only when the mod does,
   // and the deadline bounds the wait.
@@ -406,15 +423,22 @@ WindowStats ModThread::Window(std::chrono::steady_clock::time_point deadline,
   // The writes the mod made since its last hop stay buffered for the next
   // window, so the Frame event's writes land one tick late. Applying the buffer
   // once more here, when the window closes idle, would remove that lag.
-  CountReads(&stats);
+  return Close(&stats, began);
+}
+
+WindowStats ModThread::Close(WindowStats* stats, std::chrono::steady_clock::time_point began) {
+  CountReads(stats);
   {
     const std::lock_guard lock(mu_);
-    stats.missed = std::exchange(missed_tally_, {});
+    stats->missed = std::exchange(missed_tally_, {});
+    stats->frame_ticks = std::exchange(frame_ticks_, {});
+    stats->replaced_frames = std::exchange(replaced_frames_, 0);
   }
-  stats.time = std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - began);
+  stats->time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now() - began);
   game_running_.store(false);
   in_window_ = false;
-  return stats;
+  return std::move(*stats);
 }
 
 std::vector<Completion> ModThread::Completed() {
@@ -490,6 +514,10 @@ bool ModThread::TakeEvent(Call& call) {
   call = std::move(queue_.front());
   queue_.pop_front();
   queued_.store(queue_.size());
+  if (call.method() == "Frame") {
+    frame_ticks_.push_back(
+        static_cast<uint32_t>(frame_posts_ - std::exchange(frame_began_, frame_posts_)));
+  }
   return true;
 }
 
@@ -528,13 +556,20 @@ Reply ModThread::Route(const Call& call) {
         return Reply();
       }
       return Hop(call, true);
-    case CallClass::kRead:
-      if (settings_.replay_reads) {
-        if (auto answer = ReadSnapshot(call)) {
-          return *std::move(answer);
-        }
+    case CallClass::kRead: {
+      if (!settings_.replay_reads) {
+        return Hop(call, false);
       }
-      return Hop(call, false);
+      std::string key = Key(call);
+      if (auto answer = ReadSnapshot(call, key)) {
+        return *std::move(answer);
+      }
+      Reply reply = Hop(call, false);
+      if (reply.error().empty()) {
+        KeepHopRead(std::move(key), reply);
+      }
+      return reply;
+    }
     case CallClass::kImmutable: {
       const std::string key = Key(call);
       if (const auto kept = immutable_.find(key); kept != immutable_.end()) {
@@ -589,7 +624,7 @@ void ModThread::Queue(uint64_t id, const Call& call) {
       return;
     case CallClass::kRead:
       if (settings_.replay_reads) {
-        if (auto answer = ReadSnapshot(call)) {
+        if (auto answer = ReadSnapshot(call, Key(call))) {
           futures_.Complete(id, *std::move(answer));
           return;
         }
@@ -676,9 +711,8 @@ std::vector<MissTally::Row> MissTally::Top(size_t n) const {
   return rows;
 }
 
-std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
+std::optional<Reply> ModThread::ReadSnapshot(const Call& call, const std::string& key) {
   const auto snapshot = LatestSnapshot();
-  std::string key = Key(call);
   const Entry* entry = nullptr;
   if (snapshot) {
     if (const auto found = snapshot->entries.find(key); found != snapshot->entries.end()) {
@@ -697,6 +731,21 @@ std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
       hits_.fetch_add(1, std::memory_order_relaxed);
       return entry->reply;
     }
+  }
+
+  // A hop answered this read since the mod's last changing call, within this
+  // snapshot's window: the game has not moved for the mod since.
+  const uint64_t generation = snapshot ? snapshot->generation : 0;
+  if (hop_reads_generation_ != generation || hop_reads_issued_ != issued_) {
+    hop_reads_.clear();
+    hop_reads_generation_ = generation;
+    hop_reads_issued_ = issued_;
+  }
+  if (const auto kept = hop_reads_.find(key); kept != hop_reads_.end()) {
+    hop_hits_.fetch_add(1, std::memory_order_relaxed);
+    return kept->second;
+  }
+  if (entry) {
     stale_.fetch_add(1, std::memory_order_relaxed);
     return std::nullopt;
   }
@@ -709,6 +758,39 @@ std::optional<Reply> ModThread::ReadSnapshot(const Call& call) {
     missed_.push_back(call);
   }
   return std::nullopt;
+}
+
+void ModThread::KeepHopRead(std::string key, const Reply& reply) {
+  const auto snapshot = LatestSnapshot();
+  const uint64_t generation = snapshot ? snapshot->generation : 0;
+  if (hop_reads_generation_ != generation || hop_reads_issued_ != issued_) {
+    hop_reads_.clear();
+    hop_reads_generation_ = generation;
+    hop_reads_issued_ = issued_;
+  }
+  if (hop_reads_.size() < settings_.replay_keys) {
+    hop_reads_.emplace(std::move(key), reply);
+  }
+}
+
+void ModThread::NoteRead(const std::string& key, const Call& call, uint64_t read_in) {
+  // Bound the table: a mod that reads more distinct requests than the replay
+  // holds gains nothing from predicting the rest.
+  auto found = cadence_.find(key);
+  if (found == cadence_.end()) {
+    if (cadence_.size() >= 4 * settings_.replay_keys) {
+      return;
+    }
+    cadence_.emplace(key, Cadence{.call = call, .last = read_in});
+    return;
+  }
+  Cadence& cadence = found->second;
+  if (read_in > cadence.last) {
+    if (cadence.last != 0) {
+      cadence.gap = static_cast<uint32_t>(read_in - cadence.last);
+    }
+    cadence.last = read_in;
+  }
 }
 
 Reply ModThread::Hop(const Call& call, bool changes) {
@@ -773,19 +855,25 @@ void ModThread::Replay(WindowStats* stats) {
   }
 
   // Replay what the mod used of the last snapshot, and what it asked for and
-  // the snapshot lacked, up to the limit, and then what it has left unread for
-  // fewer than replay_frames windows. A read that came back keeps no count.
+  // the snapshot lacked, up to the limit; then what falls due by the mod's own
+  // pace, one window early; and then what it has left unread for fewer than
+  // replay_frames windows. A read that came back keeps no count.
   std::vector<std::pair<std::string, Call>> wanted;
   std::vector<std::pair<std::string, const Entry*>> idle;
   std::unordered_set<std::string> seen;
   const auto previous = LatestSnapshot();
+  const uint64_t read_in = previous ? previous->generation : 0;
   if (previous) {
     for (const auto& [key, entry] : previous->entries) {
       if (entry.used.load(std::memory_order_relaxed)) {
         wanted.emplace_back(key, entry.call);
         seen.insert(key);
-      } else if (entry.unread + 1 < settings_.replay_frames) {
-        idle.emplace_back(key, &entry);
+        NoteRead(key, entry.call, read_in);
+      } else {
+        ++stats->replayed_unused;
+        if (entry.unread + 1 < settings_.replay_frames) {
+          idle.emplace_back(key, &entry);
+        }
       }
     }
   }
@@ -796,13 +884,29 @@ void ModThread::Replay(WindowStats* stats) {
     missed_keys_.clear();
   }
   for (Call& call : missed) {
-    if (wanted.size() >= settings_.replay_keys) {
-      break;
-    }
     std::string key = Key(call);
-    if (seen.insert(key).second) {
+    NoteRead(key, call, read_in);
+    if (wanted.size() < settings_.replay_keys && seen.insert(key).second) {
       wanted.emplace_back(std::move(key), std::move(call));
     }
+  }
+
+  // A request the mod reads every few windows is read next one gap after its
+  // last read. Replay it for that window and the one before, in case the mod
+  // runs a window early, and forget one the mod stopped reading.
+  const uint64_t next = generation_ + 1;
+  for (auto it = cadence_.begin(); it != cadence_.end();) {
+    const auto& [key, cadence] = *it;
+    if (next - cadence.last > std::max<uint64_t>(2 * cadence.gap, kCadenceHorizon)) {
+      it = cadence_.erase(it);
+      continue;
+    }
+    const uint64_t due = cadence.last + cadence.gap;
+    if (cadence.gap > 0 && next + 1 >= due && next <= due &&
+        wanted.size() < settings_.replay_keys && seen.insert(key).second) {
+      wanted.emplace_back(key, cadence.call);
+    }
+    ++it;
   }
   std::unordered_map<std::string, uint32_t> unread;
   for (const auto& [key, entry] : idle) {
@@ -816,11 +920,12 @@ void ModThread::Replay(WindowStats* stats) {
   }
 
   // The snapshot holds the game as it is now, after the mod's writes.
-  auto next = std::make_shared<Snapshot>();
-  next->epoch = executed_;
+  auto snapshot = std::make_shared<Snapshot>();
+  snapshot->epoch = executed_;
+  snapshot->generation = next;
   applying_ = true;
   for (auto& [key, call] : wanted) {
-    Entry& entry = next->entries[key];
+    Entry& entry = snapshot->entries[key];
     entry.reply = game_call_(call);
     entry.call = std::move(call);
     if (const auto idled = unread.find(key); idled != unread.end()) {
@@ -829,9 +934,10 @@ void ModThread::Replay(WindowStats* stats) {
   }
   applying_ = false;
   stats->replayed = static_cast<uint32_t>(wanted.size());
+  generation_ = next;
   {
     const std::lock_guard lock(snapshot_mutex_);
-    snapshot_ = std::move(next);
+    snapshot_ = std::move(snapshot);
   }
 }
 
@@ -848,11 +954,12 @@ void ModThread::Serve(WindowStats* stats) {
 }
 
 void ModThread::CountReads(WindowStats* stats) {
-  const Counters now{hits_.load(), misses_.load(), stale_.load(), waits_.spins.load(),
-                     waits_.sleeps.load()};
+  const Counters now{hits_.load(),     misses_.load(),      stale_.load(),
+                     hop_hits_.load(), waits_.spins.load(), waits_.sleeps.load()};
   stats->hits = now.hits - reported_.hits;
   stats->misses = now.misses - reported_.misses;
   stats->stale = now.stale - reported_.stale;
+  stats->hop_hits = now.hop_hits - reported_.hop_hits;
   stats->spins = now.spins - reported_.spins;
   stats->sleeps = now.sleeps - reported_.sleeps;
   reported_ = now;

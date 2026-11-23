@@ -54,6 +54,10 @@ struct PluginContext {
   // ReplayFrames is how many windows a read stays in a mod's replay set after
   // the mod stops making it. It matters only with concurrent_mods.
   uint32_t replay_frames = 1;
+  // OverlapFrames lets a mod on its own thread run on through the engine's next
+  // frame, so the engine thread leaves its window as soon as the mod has no
+  // hop waiting. It matters only with concurrent_mods.
+  bool overlap_frames = false;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.

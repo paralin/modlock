@@ -54,6 +54,9 @@ void Help() {
                "                      running an idle one at once on the engine thread\n"
                "  --replay-frames N   With --concurrent-mods, keep a read in the replay set\n"
                "                      until it has gone unread for N frames (default 1)\n"
+               "  --overlap-frames    With --concurrent-mods, return from each window once the\n"
+               "                      mod has no hop waiting, and let it run through the\n"
+               "                      engine's next frame\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
 }
@@ -130,6 +133,7 @@ struct Options {
   bool concurrent_mods = false;
   bool posts_in_place = true;
   uint32_t replay_frames = 1;
+  bool overlap_frames = false;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
 };
@@ -232,6 +236,10 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     }
     if (argument == "--concurrent-mods") {
       options.concurrent_mods = true;
+      continue;
+    }
+    if (argument == "--overlap-frames") {
+      options.overlap_frames = true;
       continue;
     }
     if (argument == "--queue-posts") {
@@ -362,7 +370,8 @@ int main(int argc, char** argv) {
                                        .wasm = &mods,
                                        .concurrent_mods = options.concurrent_mods,
                                        .posts_in_place = options.posts_in_place,
-                                       .replay_frames = options.replay_frames};
+                                       .replay_frames = options.replay_frames,
+                                       .overlap_frames = options.overlap_frames};
   for (const auto& library : options.libraries) {
     // Load each plugin, built mod or native library.
     const auto path = std::filesystem::absolute(library);

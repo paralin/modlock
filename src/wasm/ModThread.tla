@@ -8,7 +8,9 @@
 \* game thread. The game thread alone touches the engine. Each tick, after the
 \* engine's frame, it opens a window: it applies the buffer, refreshes the
 \* snapshot by replay, posts a Frame event and serves hops until the mod is
-\* idle with an empty queue or the deadline passes. A decision (Damage and the
+\* idle with an empty queue or the deadline passes. In the Overlap design it
+\* serves no longer than that: it returns once the mod has no hop waiting, and
+\* the mod runs on through the engine's next frame. A decision (Damage and the
 \* like) arrives mid-simulation and is answered in the game thread's own step:
 \* the game thread borrows the store when the mod is idle, or gives the default
 \* answer. A stop sets a flag, wakes the hop waiter and joins the thread.
@@ -33,6 +35,7 @@ EXTENDS Naturals, Sequences
 
 CONSTANTS
   Strict,        \* strict mode: reads hop once the snapshot lacks a write
+  Design,        \* "Quiet": a window closes with the mod idle; "Overlap": once no hop waits
   MaxCalls,      \* writes and hops the mod issues in all, to keep the model finite
   MaxEvents,     \* non-frame events the engine posts to the mod
   MaxDecisions   \* decisions the engine raises
@@ -199,11 +202,20 @@ ServeHop ==
   /\ Raised
   /\ UNCHANGED <<ph, owner, stop, queue, batch, issued, snapW, clock, hist, nev>>
 
-\* Close: the window ends once the mod is quiet or the deadline passed. A hop
-\* still waiting then is served by the next window.
+\* Close: the window ends once the deadline passed, or, in the Quiet design,
+\* once the mod is idle with nothing queued, or, in the Overlap design, once the
+\* mod has no hop waiting, so it may still run an event or hold a queued one.
+\* A hop still waiting then is served by the next window. The deadline already
+\* lets a window close at any moment, so the Overlap design reaches no state the
+\* Quiet design cannot; what it changes is that the exit no longer waits for the
+\* deadline, and the checks that differ are the fair ones. The mod is usually
+\* running when the next tick's decision arrives, so CanBorrow fails more often
+\* and more decisions take their default answer.
 Close ==
   /\ ph = "Window" /\ ~pend /\ posted
-  /\ late \/ (mod \in {"Idle", "Done"} /\ queue = <<>>)
+  /\ \/ late
+     \/ Design = "Quiet" /\ mod \in {"Idle", "Done"} /\ queue = <<>>
+     \/ Design = "Overlap" /\ mod # "WaitingHop"
   /\ ph' = "Engine" /\ posted' = FALSE /\ late' = FALSE
   /\ UNCHANGED <<mod, owner, stop, queue, bufs, calls, snapW, pend, hist, budget>>
 
@@ -306,6 +318,7 @@ TypeOK ==
   /\ owner \in {"None", "Mod", "Game"}
   /\ Len(issued) <= MaxCalls
   /\ \A i \in 1..Len(issued) : issued[i].id = i
+  /\ Design \in {"Quiet", "Overlap"}
   /\ pend \in BOOLEAN /\ posted \in BOOLEAN /\ late \in BOOLEAN
 
 \* The store is used by one thread at a time: the mod holds it from the pop to
@@ -336,6 +349,10 @@ DecisionBorrow == borrows \subseteq {<<"Idle", "Engine", 0>>}
 
 \* At most one Frame waits in the queue.
 QueueCoalesced == Len(SelectSeq(queue, IsFrame)) <= 1
+
+\* A window never closes on a waiting hop before its deadline: a hop pending
+\* when the window opens, or arriving before it closes, is served.
+CloseServesHops == [][(ph = "Window" /\ ph' = "Engine") => (mod # "WaitingHop" \/ late)]_vars
 
 \* A decision is answered without the mod's help: this holds although the mod
 \* is not fair.

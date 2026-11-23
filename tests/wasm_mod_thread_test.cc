@@ -371,6 +371,67 @@ TEST(ModThread, AReadStaysInTheReplaySetForReplayFramesWindows) {
   EXPECT_FALSE(forgetful.game.off_thread);
 }
 
+TEST(ModThread, AHopReplyAnswersTheSameReadUntilTheModChangesTheGame) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up(R"(
+const handlers = {Frame: () => {
+  const seen = [read('ReadField'), read('ReadField')];
+  call('WriteField');
+  seen.push(read('ReadField'), read('ReadField'));
+  return reply(text(seen.join(',')));
+}};)"));
+
+  // The first read hops. The second finds its reply, and not a miss. The write
+  // moves the game, so the third hops again, and the fourth finds that one's.
+  const auto first = rig.Tick();
+  EXPECT_TRUE(first.idle);
+  EXPECT_EQ(first.misses, 2U);
+  EXPECT_EQ(first.hop_hits, 2U);
+  EXPECT_EQ(first.hits, 0U);
+  EXPECT_EQ(first.hops, 2U);
+  const auto done = rig.mod->Completed();
+  ASSERT_EQ(done.size(), 1U);
+  EXPECT_EQ(Text(done[0]), "0,0,1,1");
+
+  // The next window replays the read, which answers the two before the write.
+  // After it the snapshot lacks the write, so the third read hops, and the
+  // fourth finds its reply.
+  const auto second = rig.Tick();
+  EXPECT_EQ(second.hits, 2U);
+  EXPECT_EQ(second.stale, 1U);
+  EXPECT_EQ(second.hop_hits, 1U);
+  EXPECT_FALSE(rig.game.off_thread);
+}
+
+TEST(ModThread, ARequestReadEveryFewFramesIsReplayedWhenItsReadFallsDue) {
+  Rig rig;
+  ASSERT_TRUE(
+      rig.Up("let frame = 0;\nconst handlers = {Frame: () => {\n  if (++frame % 5 === 1) "
+             "read('ReadField');\n}};"));
+
+  // The mod reads at windows 1, 6 and 11. A window of memory keeps the miss of
+  // window 1 once, and the gap shows only when the second read has been seen.
+  std::vector<WindowStats> windows;
+  for (int i = 0; i < 11; ++i) {
+    windows.push_back(rig.Tick());
+  }
+  EXPECT_EQ(windows[0].misses, 1U);
+  EXPECT_EQ(windows[1].replayed, 1U);
+  EXPECT_EQ(windows[2].replayed_unused, 1U);
+  EXPECT_EQ(windows[5].misses, 1U);
+  EXPECT_EQ(windows[6].replayed, 1U);
+
+  // Nothing is replayed until the window before the read is due, which is then
+  // replayed too, and the read at 11 hits.
+  EXPECT_EQ(windows[7].replayed, 0U);
+  EXPECT_EQ(windows[8].replayed, 0U);
+  EXPECT_EQ(windows[9].replayed, 1U);
+  EXPECT_EQ(windows[10].replayed, 1U);
+  EXPECT_EQ(windows[10].replayed_unused, 1U);
+  EXPECT_EQ(windows[10].hits, 1U);
+  EXPECT_EQ(windows[10].misses, 0U);
+}
+
 TEST(ModThread, WritesAndHopsReachTheGameInIssueOrder) {
   Rig rig;
   ASSERT_TRUE(rig.Up(R"(
@@ -568,6 +629,66 @@ TEST(ModThread, WindowEndsNearItsDeadlineWhileTheModComputes) {
   const auto done = rig.mod->Completed();
   ASSERT_EQ(done.size(), 1U);
   EXPECT_EQ(Text(done[0]), "done");
+}
+
+TEST(ModThread, AnOverlappingWindowLeavesWhileTheModRunsAndServesItsHopNext) {
+  Rig rig;
+  ASSERT_TRUE(
+      rig.Up("const handlers = {Frame: () => { call('CreateModel'); busy(300); return "
+             "reply(text('done')); "
+             "}};",
+             {.posts_in_place = false, .overlap_frames = true}));
+
+  // The mod hops, and the window that finds the hop serves it and leaves, with
+  // the mod still inside its frame.
+  uint32_t hops = rig.mod->Window(Clock::now() + 5000ms, FrameAt(1)).hops;
+  const auto began = Clock::now();
+  for (int i = 0; i < 400 && hops == 0; ++i) {
+    std::this_thread::sleep_for(2ms);
+    hops += rig.mod->Window(Clock::now() + 5000ms).hops;
+  }
+  EXPECT_EQ(hops, 1U);
+  EXPECT_LT(Clock::now() - began, 250ms);
+  EXPECT_TRUE(rig.mod->Completed().empty());
+  EXPECT_FALSE(rig.mod->Window(Clock::now() + 5000ms).idle);
+
+  // The mod finishes on its own, and a later window finds it idle.
+  EXPECT_TRUE(rig.Settle().idle);
+  const auto done = rig.mod->Completed();
+  ASSERT_EQ(done.size(), 1U);
+  EXPECT_EQ(Text(done[0]), "done");
+  EXPECT_EQ(rig.game.calls, (std::vector<std::string>{"CreateModel"}));
+}
+
+TEST(ModThread, AFrameReplacesOneQueuedBehindAModThatRunsBehind) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up("const handlers = {Frame: () => { busy(80); }};",
+                     {.posts_in_place = false, .overlap_frames = true}));
+
+  // Frame 1 starts and runs on. Frames 2 and 3 arrive in its time, and 3
+  // replaces 2.
+  WindowStats total;
+  const auto add = [&](const WindowStats& stats) {
+    total.replaced_frames += stats.replaced_frames;
+    total.frame_ticks.insert(total.frame_ticks.end(), stats.frame_ticks.begin(),
+                             stats.frame_ticks.end());
+  };
+  add(rig.Tick());
+  std::this_thread::sleep_for(20ms);
+  add(rig.Tick());
+  add(rig.Tick());
+  EXPECT_EQ(total.replaced_frames, 1U);
+  for (int i = 0; i < 1000; ++i) {
+    const auto stats = rig.mod->Window(Clock::now() + 20ms);
+    add(stats);
+    if (stats.idle && total.frame_ticks.size() >= 2) {
+      break;
+    }
+    std::this_thread::sleep_for(2ms);
+  }
+
+  // The mod began a Frame after one window, and the next after two.
+  EXPECT_EQ(total.frame_ticks, (std::vector<uint32_t>{1, 2}));
 }
 
 TEST(ModThread, AHopWaitingAtTheWindowsOpeningIsServedPastItsDeadline) {

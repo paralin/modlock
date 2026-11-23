@@ -83,6 +83,13 @@ struct ModThreadSettings {
   // One keeps only what the mod read in the window before; more keeps the reads
   // a mod makes every few frames, at the cost of replaying them each window.
   uint32_t replay_frames = 1;
+  // overlap_frames lets a window return as soon as the mod has no hop waiting,
+  // while the mod runs on through the engine's next frame, where it otherwise
+  // returns once the mod is idle or the deadline passes. The game thread then
+  // never waits for the mod's frame, at the price that a hop waits for the next
+  // window, and that a decision finds the mod running more often and takes its
+  // default answer.
+  bool overlap_frames = false;
   // write_limit is the most writes the buffer holds. A mod that outruns the
   // game thread's windows waits in a hop instead of growing memory.
   size_t write_limit = 8192;
@@ -147,6 +154,18 @@ struct WindowStats {
   uint64_t hits = 0;
   uint64_t misses = 0;
   uint64_t stale = 0;
+  // hop_hits counts the reads answered from an earlier hop's reply, which
+  // neither the snapshot nor a hop of their own served. They are not in hits.
+  uint64_t hop_hits = 0;
+  // replayed_unused is how many of the previous snapshot's reads the mod never
+  // made, so the replay that built them was wasted.
+  uint32_t replayed_unused = 0;
+  // frame_ticks lists, for each Frame the mod began since the last window, how
+  // many windows posted a Frame since the one before it began: one when the mod
+  // keeps up, more when it runs behind. replaced_frames counts the Frames a
+  // newer one replaced in the queue.
+  std::vector<uint32_t> frame_ticks;
+  uint32_t replaced_frames = 0;
   // spins and sleeps count the waits of both threads since the last window:
   // those that the watched atomic ended, and those that fell back to the
   // condition variable. A sleep costs microseconds a spin does not.
@@ -165,8 +184,9 @@ struct WindowStats {
   // time is how long the window lasted on the game thread, answering hops
   // included.
   std::chrono::nanoseconds time{};
-  // idle is true when the window ended because the mod finished its events,
-  // and false when the deadline came first.
+  // idle is true when the window ended with the mod finished with its events,
+  // and false when the mod still had one to run, as when the deadline came
+  // first.
   bool idle = false;
 };
 
@@ -381,6 +401,18 @@ class ModThread {
   struct Snapshot {
     std::unordered_map<std::string, Entry> entries;
     uint64_t epoch = 0;
+    // generation counts the snapshots taken, from one.
+    uint64_t generation = 0;
+  };
+
+  // Cadence is when the mod read one request: the generation of the snapshot
+  // it last read it against, and the generations between its last two reads.
+  // A request the mod reads every few frames is replayed as its next read falls
+  // due, though it was not read in the window before.
+  struct Cadence {
+    Call call;
+    uint64_t last = 0;
+    uint32_t gap = 0;
   };
 
   ModThread(Runtime& runtime, ModThreadSettings settings, Instance::HostCall game_call);
@@ -408,14 +440,24 @@ class ModThread {
   // Deliver runs one event in the instance, on the calling thread.
   Completion Deliver(const Call& call);
 
+  // Close ends a window that began at began: it hands the counts the window
+  // reports to stats and returns them.
+  WindowStats Close(WindowStats* stats, std::chrono::steady_clock::time_point began);
   // BufferWrite appends call to the buffer, or returns false when it is full.
   bool BufferWrite(const Call& call);
   // Enqueue appends entry to the buffer whatever its size, which the calls a
   // mod may hold submitted bound.
   void Enqueue(Buffered entry);
-  // ReadSnapshot answers a read from the snapshot, or returns nullopt after
-  // noting the miss for the next window to replay.
-  std::optional<Reply> ReadSnapshot(const Call& call);
+  // ReadSnapshot answers a read of key from the snapshot, or from the reply of
+  // a hop that read it since the mod last changed the game, or returns nullopt
+  // after noting the miss for the next window to replay.
+  std::optional<Reply> ReadSnapshot(const Call& call, const std::string& key);
+  // KeepHopRead keeps the reply a hop gave a read of key, to answer the same
+  // read until the mod changes the game or the next window replays.
+  void KeepHopRead(std::string key, const Reply& reply);
+  // NoteRead records that the mod read a request against the snapshot of
+  // generation read_in, so Replay can predict its next read.
+  void NoteRead(const std::string& key, const Call& call, uint64_t read_in);
 
   // LatestSnapshot returns the latest snapshot, or null before the first window
   // built one.
@@ -466,6 +508,7 @@ class ModThread {
     uint64_t hits = 0;
     uint64_t misses = 0;
     uint64_t stale = 0;
+    uint64_t hop_hits = 0;
     uint64_t spins = 0;
     uint64_t sleeps = 0;
   };
@@ -480,6 +523,12 @@ class ModThread {
   // snapshot's epoch.
   uint64_t issued_ = 0;
   std::unordered_map<std::string, Reply> immutable_;
+  // hop_reads_ holds the replies hops gave reads since the mod's last changing
+  // call, as of the snapshot generation and issued_ count it was kept at; a
+  // read of the same request is answered from it until either moves.
+  std::unordered_map<std::string, Reply> hop_reads_;
+  uint64_t hop_reads_generation_ = 0;
+  uint64_t hop_reads_issued_ = 0;
   // futures_ holds the submitted calls' replies.
   Futures futures_;
 
@@ -520,6 +569,11 @@ class ModThread {
   std::atomic<uint64_t> hits_ = 0;
   std::atomic<uint64_t> misses_ = 0;
   std::atomic<uint64_t> stale_ = 0;
+  std::atomic<uint64_t> hop_hits_ = 0;
+  // generation_ counts the snapshots Replay has taken, and cadence_ keeps when
+  // the mod read each request. Both are the game thread's.
+  uint64_t generation_ = 0;
+  std::unordered_map<std::string, Cadence> cadence_;
 
   // mu_ guards what both threads hand each other: the event queue, the write
   // buffer, the reads missed since the last window, the finished events and the
@@ -535,6 +589,13 @@ class ModThread {
   std::unordered_set<std::string> missed_keys_;
   // missed_tally_ counts every miss, by method, until a window reports it.
   MissTally missed_tally_;
+  // frame_posts_ counts the Frames posted; frame_began_ is its value when the
+  // mod last began a Frame. frame_ticks_ and replaced_frames_ hold the Frames'
+  // outcomes until a window reports them.
+  uint64_t frame_posts_ = 0;
+  uint64_t frame_began_ = 0;
+  std::vector<uint32_t> frame_ticks_;
+  uint32_t replaced_frames_ = 0;
   std::vector<Completion> completed_;
   std::optional<std::string> failure_;
 

@@ -121,6 +121,11 @@ void Total(wasm::WindowStats& total, const wasm::WindowStats& window) {
   total.hits += window.hits;
   total.misses += window.misses;
   total.stale += window.stale;
+  total.hop_hits += window.hop_hits;
+  total.replayed_unused += window.replayed_unused;
+  total.replaced_frames += window.replaced_frames;
+  total.frame_ticks.insert(total.frame_ticks.end(), window.frame_ticks.begin(),
+                           window.frame_ticks.end());
   total.spins += window.spins;
   total.sleeps += window.sleeps;
   total.in_place += window.in_place;
@@ -147,7 +152,8 @@ std::expected<wasm::Sandbox, std::string> WasmPlugin::Instantiate(std::span<cons
   return wasm::Sandbox::Load(
       host_.runtime, module, limits, [this](const wasm::Call& call) { return Call(call); },
       concurrent_mods_ ? std::optional(wasm::ModThreadSettings{.posts_in_place = posts_in_place_,
-                                                               .replay_frames = replay_frames_})
+                                                               .replay_frames = replay_frames_,
+                                                               .overlap_frames = overlap_frames_})
                        : std::nullopt);
 }
 
@@ -826,9 +832,16 @@ void WasmPlugin::ReportCalls() {
       const auto& w = window_totals_;
       line += std::format(
           ", window {} mean {:.2f} max {:.2f} ms ({} idle), hops {}, writes {} ({} failed), "
-          "replayed {}, reads hit {} miss {} stale {}, waits spun {} slept {}",
+          "replayed {} ({} unused), reads hit {} from hop {} miss {} stale {}, waits spun {} slept "
+          "{}",
           window_.frames, mean(window_), ms(window_.slowest), windows_idle_, w.hops, w.writes,
-          w.failed, w.replayed, w.hits, w.misses, w.stale, w.spins, w.sleeps);
+          w.failed, w.replayed, w.replayed_unused, w.hits, w.hop_hits, w.misses, w.stale, w.spins,
+          w.sleeps);
+      auto ticks = w.frame_ticks;
+      std::ranges::sort(ticks);
+      line += std::format(", mod frames {} ticks per frame p50 {} max {}, frames replaced {}",
+                          ticks.size(), ticks.empty() ? 0 : ticks[ticks.size() / 2],
+                          ticks.empty() ? 0 : ticks.back(), w.replaced_frames);
       line += std::format(", posts in place {} queued {}, decisions", w.in_place, w.queued);
       for (const auto& kind : w.decisions) {
         line += std::format(" {} answered {} defaulted {} while applying {}", kind.method,
