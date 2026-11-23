@@ -75,12 +75,15 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
 
   // The epoch deadline arrives no sooner than the budget can be spent, since
   // the thread uses at most one second of processor time per second. A call
-  // with budget left runs on to a new deadline; one without traps.
-  // A call past limits_.sample_after also gets a callback on every tick, which
-  // samples it.
+  // with budget left runs on to a new deadline; one without traps. Every call
+  // gets a callback on each tick, which is where Interrupt takes effect, and
+  // a call past limits_.sample_after samples itself there.
   store_.epoch_deadline_callback(
       [this](wasmtime::Store::Context context,
              uint64_t& delta) -> wasmtime::Result<wasmtime::DeadlineKind> {
+        if (interrupted_.load(std::memory_order_relaxed)) {
+          return wasmtime::Error("the mod was interrupted");
+        }
         if (Left() <= Left().zero()) {
           return wasmtime::Error("the time budget is spent");
         }
@@ -309,14 +312,14 @@ uint64_t Instance::Ticks(std::chrono::nanoseconds left) {
 }
 
 uint64_t Instance::NextTicks() const {
-  // Wake for the sample when the call is not due one yet, and on every tick
-  // once it is.
+  // Wake on every tick, so an interrupt lands within one. The budget's own
+  // ticks are the more distant of the two once the budget is spent, which
+  // stays zero so the callback traps at once.
   const auto ticks = Ticks(Left());
-  if (limits_.sample_after <= limits_.sample_after.zero()) {
-    return ticks;
+  if (ticks == 0) {
+    return 0;
   }
-  const auto until = limits_.sample_after - (ThreadTime() - budget_.began);
-  return std::min(ticks, std::max<uint64_t>(Ticks(until), 1));
+  return 1;
 }
 
 void Instance::ArmDeadline() {

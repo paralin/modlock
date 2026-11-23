@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <expected>
@@ -41,8 +42,7 @@ struct Limits {
   std::chrono::milliseconds event_budget{5000};
   // sample_after is the processor time a call may run before the instance
   // samples where it is: on every epoch tick from then on, about every 10 ms.
-  // A call that ends sooner is not sampled, and pays at most two extra epoch
-  // callbacks. Zero never samples.
+  // A call that ends sooner is not sampled. Zero never samples.
   std::chrono::milliseconds sample_after{0};
 };
 
@@ -54,8 +54,10 @@ struct Limits {
 // an exhausted budget or a boundary violation fails the instance permanently;
 // later deliveries return that failure.
 //
-// All methods run on one thread at a time, normally the engine thread. The
-// runtime's epoch ticker is the only other thread.
+// All methods run on one thread at a time, normally the engine thread, except
+// Interrupt, which any thread may call. The store may move to another thread
+// between calls, as ModThread moves it. The runtime's epoch ticker is the only
+// other thread.
 class Instance {
  public:
   // HostCall answers one call from the mod. It runs inside Deliver or Load on
@@ -79,6 +81,11 @@ class Instance {
   // other. A nested delivery from inside a host call is refused without
   // failing the instance.
   [[nodiscard]] std::expected<Reply, std::string> Deliver(const Call& call);
+
+  // Interrupt makes the running call, and every later one, trap at its next
+  // epoch check, about 10 ms on, with a failure that says the mod was
+  // interrupted. It is safe from any thread, and the only method that is.
+  void Interrupt() { interrupted_.store(true, std::memory_order_relaxed); }
 
   // Failure returns the reason the instance stopped, or nullopt while it runs.
   [[nodiscard]] const std::optional<std::string>& Failure() const { return failure_; }
@@ -127,8 +134,9 @@ class Instance {
   std::chrono::nanoseconds Left() const;
   // Ticks returns the epoch ticks that cover left, zero once it is spent.
   static uint64_t Ticks(std::chrono::nanoseconds left);
-  // NextTicks returns the epoch ticks until the budget is spent or, once the
-  // call is due samples, until the next sample.
+  // NextTicks returns the epoch ticks until the next callback: one, so that
+  // Interrupt and sampling are seen on every tick, or zero once the budget is
+  // spent.
   uint64_t NextTicks() const;
   // ArmDeadline sets the epoch deadline to NextTicks.
   void ArmDeadline();
@@ -177,6 +185,8 @@ class Instance {
   // busy_ is true while a call into the mod is running.
   bool busy_ = false;
   std::optional<std::string> failure_;
+  // interrupted_ is set by Interrupt and read by the epoch callback.
+  std::atomic<bool> interrupted_ = false;
 };
 
 }  // namespace modlock::wasm
