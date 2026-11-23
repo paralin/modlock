@@ -11,6 +11,7 @@ import (
 	"net"
 
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/controllers"
 	"github.com/paralin/modlock/src/wasm/players"
 	"github.com/pkg/errors"
 )
@@ -71,7 +72,7 @@ func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error
 
 // Controllers passes the frames of one player's controller stream, or its
 // end, to the host, which keeps the latest state for the mods watching them.
-func (c *Control) Controllers(ctx context.Context, frames *control.ControllerFrames) error {
+func (c *Control) Controllers(ctx context.Context, frames *controllers.ControllerFrames) error {
 	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Controllers{Controllers: frames}})
 }
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aperturerobotics/starpc/srpc"
-	"github.com/paralin/modlock/src/host_app/control"
 	pb "github.com/paralin/modlock/src/wasm/controllers"
 )
 
@@ -17,8 +16,8 @@ import (
 // own player and the guest's own slot receive frames; the rest are dropped
 // and told they are unwanted, and a stream that ends ends its slot.
 func TestHubBindsOwnSlot(t *testing.T) {
-	var events []*control.ControllerFrames
-	hub := NewHub(func(frames *control.ControllerFrames) { events = append(events, frames) })
+	var events []*pb.ControllerFrames
+	hub := NewHub(func(frames *pb.ControllerFrames) { events = append(events, frames) })
 	want := func(wants ...*pb.ControllerWant) { hub.Wanted(&pb.ControllerWants{Wants: wants}) }
 	frame := &pb.ControllerFrame{Epoch: 1, Full: true}
 
@@ -77,7 +76,7 @@ func TestHubBindsOwnSlot(t *testing.T) {
 // TestHubServeSendsChanges sees Serve send the current want, then
 // each change, and stop when its context ends.
 func TestHubServeSendsChanges(t *testing.T) {
-	hub := NewHub(func(*control.ControllerFrames) {})
+	hub := NewHub(func(*pb.ControllerFrames) {})
 	hub.Joined(3, "loopback")
 	feed := hub.Open("")
 
@@ -134,8 +133,8 @@ func TestFeedCarriesAGuestsDevices(t *testing.T) {
 	// A server whose slot 2 connects through the guest's forwarding socket.
 	openSDL(t)
 	t.Setenv(VirtualEnv, "1")
-	frames := make(chan *control.ControllerFrames, 256)
-	hub := NewHub(func(f *control.ControllerFrames) {
+	frames := make(chan *pb.ControllerFrames, 256)
+	hub := NewHub(func(f *pb.ControllerFrames) {
 		select {
 		case frames <- f:
 		default:

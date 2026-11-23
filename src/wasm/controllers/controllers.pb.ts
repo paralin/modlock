@@ -837,6 +837,81 @@ export const ControllerWants: MessageType<ControllerWants> =
   )
 
 /**
+ * ControllerFrames carries one player's controller frames to the host, in the
+ * order their client sent them. The game server sends a player's frames only
+ * from the stream it bound to that player's own client.
+ *
+ * @generated from message modlock.wasm.controllers.ControllerFrames
+ */
+export interface ControllerFrames {
+  /**
+   * Player is the player's slot.
+   */
+  player?: number
+  /**
+   * Frames holds the frames, oldest first.
+   */
+  frames?: ControllerFrame[]
+  /**
+   * Ended is true when the player's stream ended, after its last frame: the
+   * client disconnected or the link dropped.
+   */
+  ended?: boolean
+}
+
+export const ControllerFrames: MessageType<ControllerFrames> =
+  /* @__PURE__ */ createMessageType<ControllerFrames>(
+    'modlock.wasm.controllers.ControllerFrames',
+    () => [
+      [1, 'player', 5],
+      [2, 'frames', 11, 1, ControllerFrame.codec],
+      [3, 'ended', 8],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ControllerFrames,
+      ): ControllerFrames => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              ;(m.frames ??= []).push(
+                ControllerFrame.decode(r, r.delimited(), {}),
+              )
+              break
+            case 3:
+              m.ended = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ControllerFrames, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const a = m.frames
+          if (a != null) for (const e of a) ControllerFrame.writeField(w, 2, e)
+        }
+        {
+          const v = m.ended
+          if (v) w.uint32(24).bool(v)
+        }
+      },
+    },
+  )
+
+/**
  * Controller is one device as a mod reads it.
  *
  * @generated from message modlock.wasm.controllers.Controller

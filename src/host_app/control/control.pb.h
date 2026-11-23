@@ -68,10 +68,6 @@ class ControlRequest;
 struct ControlRequestDefaultTypeInternal;
 extern ControlRequestDefaultTypeInternal _ControlRequest_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ControlRequest_class_data_;
-class ControllerFrames;
-struct ControllerFramesDefaultTypeInternal;
-extern ControllerFramesDefaultTypeInternal _ControllerFrames_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull ControllerFrames_class_data_;
 class Fixture;
 struct FixtureDefaultTypeInternal;
 extern FixtureDefaultTypeInternal _Fixture_default_instance_;
@@ -272,7 +268,7 @@ class ServiceResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceResult*>(
         &_ServiceResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(ServiceResult& a, ServiceResult& b) { a.Swap(&b); }
   inline void Swap(ServiceResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -484,7 +480,7 @@ class ServiceReply final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceReply*>(
         &_ServiceReply_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(ServiceReply& a, ServiceReply& b) { a.Swap(&b); }
   inline void Swap(ServiceReply* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -764,7 +760,7 @@ class ServiceCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceCall*>(
         &_ServiceCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(ServiceCall& a, ServiceCall& b) { a.Swap(&b); }
   inline void Swap(ServiceCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1022,7 +1018,7 @@ class ServiceAnswer final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceAnswer*>(
         &_ServiceAnswer_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(ServiceAnswer& a, ServiceAnswer& b) { a.Swap(&b); }
   inline void Swap(ServiceAnswer* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1246,7 +1242,7 @@ class ServerReady final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServerReady*>(
         &_ServerReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(ServerReady& a, ServerReady& b) { a.Swap(&b); }
   inline void Swap(ServerReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1441,7 +1437,7 @@ class ReloadRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ReloadRequest*>(
         &_ReloadRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(ReloadRequest& a, ReloadRequest& b) { a.Swap(&b); }
   inline void Swap(ReloadRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1636,7 +1632,7 @@ class PlayerMessage final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerMessage*>(
         &_PlayerMessage_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(PlayerMessage& a, PlayerMessage& b) { a.Swap(&b); }
   inline void Swap(PlayerMessage* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1889,7 +1885,7 @@ class PlayerLeft final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerLeft*>(
         &_PlayerLeft_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(PlayerLeft& a, PlayerLeft& b) { a.Swap(&b); }
   inline void Swap(PlayerLeft* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2079,7 +2075,7 @@ class PlayerJoined final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerJoined*>(
         &_PlayerJoined_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(PlayerJoined& a, PlayerJoined& b) { a.Swap(&b); }
   inline void Swap(PlayerJoined* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2327,7 +2323,7 @@ class PlayerChat final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerChat*>(
         &_PlayerChat_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(PlayerChat& a, PlayerChat& b) { a.Swap(&b); }
   inline void Swap(PlayerChat* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2551,7 +2547,7 @@ class ModStarted final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModStarted*>(
         &_ModStarted_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(ModStarted& a, ModStarted& b) { a.Swap(&b); }
   inline void Swap(ModStarted* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2758,7 +2754,7 @@ class ModLog final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModLog*>(
         &_ModLog_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(ModLog& a, ModLog& b) { a.Swap(&b); }
   inline void Swap(ModLog* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2970,7 +2966,7 @@ class ModFailed final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModFailed*>(
         &_ModFailed_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(ModFailed& a, ModFailed& b) { a.Swap(&b); }
   inline void Swap(ModFailed* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3182,7 +3178,7 @@ class ModCallResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCallResult*>(
         &_ModCallResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(ModCallResult& a, ModCallResult& b) { a.Swap(&b); }
   inline void Swap(ModCallResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3428,7 +3424,7 @@ class ModCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCall*>(
         &_ModCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 1;
   friend void swap(ModCall& a, ModCall& b) { a.Swap(&b); }
   inline void Swap(ModCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3691,7 +3687,7 @@ class Forward final : public ::google::protobuf::Message
     return *reinterpret_cast<const Forward*>(
         &_Forward_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(Forward& a, Forward& b) { a.Swap(&b); }
   inline void Swap(Forward* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3920,7 +3916,7 @@ class Fixture final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixture*>(
         &_Fixture_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(Fixture& a, Fixture& b) { a.Swap(&b); }
   inline void Swap(Fixture* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4183,7 +4179,7 @@ class Fixtures final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixtures*>(
         &_Fixtures_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(Fixtures& a, Fixtures& b) { a.Swap(&b); }
   inline void Swap(Fixtures* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4399,7 +4395,7 @@ class ModCalls final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCalls*>(
         &_ModCalls_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(ModCalls& a, ModCalls& b) { a.Swap(&b); }
   inline void Swap(ModCalls* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4556,227 +4552,6 @@ class ModCalls final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ModCalls_class_data_;
 // -------------------------------------------------------------------
 
-class ControllerFrames final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:modlock.host_app.control.ControllerFrames) */ {
- public:
-  inline ControllerFrames() : ControllerFrames(nullptr) {}
-  ~ControllerFrames() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(ControllerFrames* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(ControllerFrames));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR ControllerFrames(::google::protobuf::internal::ConstantInitialized);
-
-  inline ControllerFrames(const ControllerFrames& from) : ControllerFrames(nullptr, from) {}
-  inline ControllerFrames(ControllerFrames&& from) noexcept
-      : ControllerFrames(nullptr, ::std::move(from)) {}
-  inline ControllerFrames& operator=(const ControllerFrames& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline ControllerFrames& operator=(ControllerFrames&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const ControllerFrames& default_instance() {
-    return *reinterpret_cast<const ControllerFrames*>(
-        &_ControllerFrames_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 1;
-  friend void swap(ControllerFrames& a, ControllerFrames& b) { a.Swap(&b); }
-  inline void Swap(ControllerFrames* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(ControllerFrames* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  ControllerFrames* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<ControllerFrames>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const ControllerFrames& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const ControllerFrames& from) { ControllerFrames::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                        const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(ControllerFrames* PROTOBUF_NONNULL other);
- private:
-  template <typename T>
-  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.ControllerFrames"; }
-
-  explicit ControllerFrames(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  ControllerFrames(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ControllerFrames& from);
-  ControllerFrames(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ControllerFrames&& from) noexcept
-      : ControllerFrames(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-  static void* PROTOBUF_NONNULL PlacementNew_(
-      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static constexpr auto InternalNewImpl_();
-
- public:
-  static constexpr auto InternalGenerateClassData_();
-
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kFramesFieldNumber = 2,
-    kPlayerFieldNumber = 1,
-    kEndedFieldNumber = 3,
-  };
-  // repeated .modlock.wasm.controllers.ControllerFrame frames = 2;
-  int frames_size() const;
-  private:
-  int _internal_frames_size() const;
-
-  public:
-  void clear_frames() ;
-  ::modlock::wasm::controllers::ControllerFrame* PROTOBUF_NONNULL mutable_frames(int index);
-  ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>* PROTOBUF_NONNULL mutable_frames();
-
-  private:
-  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>& _internal_frames() const;
-  ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>* PROTOBUF_NONNULL _internal_mutable_frames();
-  public:
-  const ::modlock::wasm::controllers::ControllerFrame& frames(int index) const;
-  ::modlock::wasm::controllers::ControllerFrame* PROTOBUF_NONNULL add_frames();
-  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>& frames() const;
-  // int32 player = 1;
-  void clear_player() ;
-  ::int32_t player() const;
-  void set_player(::int32_t value);
-
-  private:
-  ::int32_t _internal_player() const;
-  void _internal_set_player(::int32_t value);
-
-  public:
-  // bool ended = 3;
-  void clear_ended() ;
-  bool ended() const;
-  void set_ended(bool value);
-
-  private:
-  bool _internal_ended() const;
-  void _internal_set_ended(bool value);
-
-  public:
-  // @@protoc_insertion_point(class_scope:modlock.host_app.control.ControllerFrames)
- private:
-  class _Internal;
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   1, 0,
-                                   2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const ControllerFrames& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::controllers::ControllerFrame > frames_;
-    ::int32_t player_;
-    bool ended_;
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
-};
-
-extern const ::google::protobuf::internal::ClassDataFull ControllerFrames_class_data_;
-// -------------------------------------------------------------------
-
 class ModSlowFrame final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.host_app.control.ModSlowFrame) */ {
  public:
@@ -4832,7 +4607,7 @@ class ModSlowFrame final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModSlowFrame*>(
         &_ModSlowFrame_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ModSlowFrame& a, ModSlowFrame& b) { a.Swap(&b); }
   inline void Swap(ModSlowFrame* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5242,23 +5017,23 @@ class ControlRequest final : public ::google::protobuf::Message
   ::modlock::host_app::control::ServiceAnswer* PROTOBUF_NONNULL _internal_mutable_answer();
 
   public:
-  // .modlock.host_app.control.ControllerFrames controllers = 6;
+  // .modlock.wasm.controllers.ControllerFrames controllers = 6;
   bool has_controllers() const;
   private:
   bool _internal_has_controllers() const;
 
   public:
   void clear_controllers() ;
-  const ::modlock::host_app::control::ControllerFrames& controllers() const;
-  [[nodiscard]] ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE release_controllers();
-  ::modlock::host_app::control::ControllerFrames* PROTOBUF_NONNULL mutable_controllers();
-  void set_allocated_controllers(::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_controllers(::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE value);
-  ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE unsafe_arena_release_controllers();
+  const ::modlock::wasm::controllers::ControllerFrames& controllers() const;
+  [[nodiscard]] ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE release_controllers();
+  ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL mutable_controllers();
+  void set_allocated_controllers(::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_controllers(::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE unsafe_arena_release_controllers();
 
   private:
-  const ::modlock::host_app::control::ControllerFrames& _internal_controllers() const;
-  ::modlock::host_app::control::ControllerFrames* PROTOBUF_NONNULL _internal_mutable_controllers();
+  const ::modlock::wasm::controllers::ControllerFrames& _internal_controllers() const;
+  ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL _internal_mutable_controllers();
 
   public:
   void clear_body();
@@ -5371,7 +5146,7 @@ class UiChanged final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiChanged*>(
         &_UiChanged_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(UiChanged& a, UiChanged& b) { a.Swap(&b); }
   inline void Swap(UiChanged* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5613,7 +5388,7 @@ class HostEvent final : public ::google::protobuf::Message
     kControllersWanted = 15,
     BODY_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(HostEvent& a, HostEvent& b) { a.Swap(&b); }
   inline void Swap(HostEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6488,7 +6263,7 @@ inline ::modlock::host_app::control::ServiceAnswer* PROTOBUF_NONNULL ControlRequ
   return _msg;
 }
 
-// .modlock.host_app.control.ControllerFrames controllers = 6;
+// .modlock.wasm.controllers.ControllerFrames controllers = 6;
 inline bool ControlRequest::has_controllers() const {
   return body_case() == kControllers;
 }
@@ -6498,22 +6273,11 @@ inline bool ControlRequest::_internal_has_controllers() const {
 inline void ControlRequest::set_has_controllers() {
   _impl_._oneof_case_[0] = kControllers;
 }
-inline void ControlRequest::clear_controllers() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (body_case() == kControllers) {
-    if (GetArena() == nullptr) {
-      delete _impl_.body_.controllers_;
-    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
-      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.controllers_);
-    }
-    clear_has_body();
-  }
-}
-inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE ControlRequest::release_controllers() {
+inline ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE ControlRequest::release_controllers() {
   // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.controllers)
   if (body_case() == kControllers) {
     clear_has_body();
-    auto* temp = reinterpret_cast<::modlock::host_app::control::ControllerFrames*>(_impl_.body_.controllers_);
+    auto* temp = reinterpret_cast<::modlock::wasm::controllers::ControllerFrames*>(_impl_.body_.controllers_);
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
@@ -6523,19 +6287,19 @@ inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE Control
     return nullptr;
   }
 }
-inline const ::modlock::host_app::control::ControllerFrames& ControlRequest::_internal_controllers() const {
-  return body_case() == kControllers ? static_cast<const ::modlock::host_app::control::ControllerFrames&>(*reinterpret_cast<::modlock::host_app::control::ControllerFrames*>(_impl_.body_.controllers_))
-                     : reinterpret_cast<const ::modlock::host_app::control::ControllerFrames&>(::modlock::host_app::control::_ControllerFrames_default_instance_);
+inline const ::modlock::wasm::controllers::ControllerFrames& ControlRequest::_internal_controllers() const {
+  return body_case() == kControllers ? static_cast<const ::modlock::wasm::controllers::ControllerFrames&>(*reinterpret_cast<::modlock::wasm::controllers::ControllerFrames*>(_impl_.body_.controllers_))
+                     : reinterpret_cast<const ::modlock::wasm::controllers::ControllerFrames&>(::modlock::wasm::controllers::_ControllerFrames_default_instance_);
 }
-inline const ::modlock::host_app::control::ControllerFrames& ControlRequest::controllers() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::modlock::wasm::controllers::ControllerFrames& ControlRequest::controllers() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:modlock.host_app.control.ControlRequest.controllers)
   return _internal_controllers();
 }
-inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE ControlRequest::unsafe_arena_release_controllers() {
+inline ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE ControlRequest::unsafe_arena_release_controllers() {
   // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.ControlRequest.controllers)
   if (body_case() == kControllers) {
     clear_has_body();
-    auto* temp = reinterpret_cast<::modlock::host_app::control::ControllerFrames*>(_impl_.body_.controllers_);
+    auto* temp = reinterpret_cast<::modlock::wasm::controllers::ControllerFrames*>(_impl_.body_.controllers_);
     _impl_.body_.controllers_ = nullptr;
     return temp;
   } else {
@@ -6543,7 +6307,7 @@ inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE Control
   }
 }
 inline void ControlRequest::unsafe_arena_set_allocated_controllers(
-    ::modlock::host_app::control::ControllerFrames* PROTOBUF_NULLABLE value) {
+    ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NULLABLE value) {
   // We rely on the oneof clear method to free the earlier contents
   // of this oneof. We can directly use the pointer we're given to
   // set the new value.
@@ -6554,18 +6318,18 @@ inline void ControlRequest::unsafe_arena_set_allocated_controllers(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ControlRequest.controllers)
 }
-inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NONNULL ControlRequest::_internal_mutable_controllers() {
+inline ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL ControlRequest::_internal_mutable_controllers() {
   if (body_case() != kControllers) {
     clear_body();
     set_has_controllers();
     _impl_.body_.controllers_ = reinterpret_cast<::google::protobuf::Message*>(
-        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ControllerFrames>(GetArena()));
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::controllers::ControllerFrames>(GetArena()));
   }
-  return reinterpret_cast<::modlock::host_app::control::ControllerFrames*>(_impl_.body_.controllers_);
+  return reinterpret_cast<::modlock::wasm::controllers::ControllerFrames*>(_impl_.body_.controllers_);
 }
-inline ::modlock::host_app::control::ControllerFrames* PROTOBUF_NONNULL ControlRequest::mutable_controllers()
+inline ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL ControlRequest::mutable_controllers()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::modlock::host_app::control::ControllerFrames* _msg = _internal_mutable_controllers();
+  ::modlock::wasm::controllers::ControllerFrames* _msg = _internal_mutable_controllers();
   // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.controllers)
   return _msg;
 }
@@ -6579,110 +6343,6 @@ inline void ControlRequest::clear_has_body() {
 inline ControlRequest::BodyCase ControlRequest::body_case() const {
   return ControlRequest::BodyCase(_impl_._oneof_case_[0]);
 }
-// -------------------------------------------------------------------
-
-// ControllerFrames
-
-// int32 player = 1;
-inline void ControllerFrames::clear_player() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.player_ = 0;
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
-}
-inline ::int32_t ControllerFrames::player() const {
-  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControllerFrames.player)
-  return _internal_player();
-}
-inline void ControllerFrames::set_player(::int32_t value) {
-  _internal_set_player(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_set:modlock.host_app.control.ControllerFrames.player)
-}
-inline ::int32_t ControllerFrames::_internal_player() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.player_;
-}
-inline void ControllerFrames::_internal_set_player(::int32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.player_ = value;
-}
-
-// repeated .modlock.wasm.controllers.ControllerFrame frames = 2;
-inline int ControllerFrames::_internal_frames_size() const {
-  return _internal_frames().size();
-}
-inline int ControllerFrames::frames_size() const {
-  return _internal_frames_size();
-}
-inline ::modlock::wasm::controllers::ControllerFrame* PROTOBUF_NONNULL ControllerFrames::mutable_frames(int index)
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControllerFrames.frames)
-  return _internal_mutable_frames()->Mutable(index);
-}
-inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>* PROTOBUF_NONNULL ControllerFrames::mutable_frames()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_mutable_list:modlock.host_app.control.ControllerFrames.frames)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_frames();
-}
-inline const ::modlock::wasm::controllers::ControllerFrame& ControllerFrames::frames(int index) const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControllerFrames.frames)
-  return _internal_frames().Get(index);
-}
-inline ::modlock::wasm::controllers::ControllerFrame* PROTOBUF_NONNULL ControllerFrames::add_frames()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::modlock::wasm::controllers::ControllerFrame* _add =
-      _internal_mutable_frames()->InternalAddWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_add:modlock.host_app.control.ControllerFrames.frames)
-  return _add;
-}
-inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>& ControllerFrames::frames() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:modlock.host_app.control.ControllerFrames.frames)
-  return _internal_frames();
-}
-inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>&
-ControllerFrames::_internal_frames() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.frames_;
-}
-inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::ControllerFrame>* PROTOBUF_NONNULL
-ControllerFrames::_internal_mutable_frames() {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.frames_;
-}
-
-// bool ended = 3;
-inline void ControllerFrames::clear_ended() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.ended_ = false;
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
-}
-inline bool ControllerFrames::ended() const {
-  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControllerFrames.ended)
-  return _internal_ended();
-}
-inline void ControllerFrames::set_ended(bool value) {
-  _internal_set_ended(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_set:modlock.host_app.control.ControllerFrames.ended)
-}
-inline bool ControllerFrames::_internal_ended() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.ended_;
-}
-inline void ControllerFrames::_internal_set_ended(bool value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.ended_ = value;
-}
-
 // -------------------------------------------------------------------
 
 // ModCall

@@ -558,6 +558,47 @@ func (x *ControllerWants) GetWants() []*ControllerWant {
 	return nil
 }
 
+// ControllerFrames carries one player's controller frames to the host, in the
+// order their client sent them. The game server sends a player's frames only
+// from the stream it bound to that player's own client.
+type ControllerFrames struct {
+	unknownFields []byte
+	// Player is the player's slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Frames holds the frames, oldest first.
+	Frames []*ControllerFrame `protobuf:"bytes,2,rep,name=frames,proto3" json:"frames,omitempty"`
+	// Ended is true when the player's stream ended, after its last frame: the
+	// client disconnected or the link dropped.
+	Ended bool `protobuf:"varint,3,opt,name=ended,proto3" json:"ended,omitempty"`
+}
+
+func (x *ControllerFrames) Reset() {
+	*x = ControllerFrames{}
+}
+
+func (*ControllerFrames) ProtoMessage() {}
+
+func (x *ControllerFrames) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ControllerFrames) GetFrames() []*ControllerFrame {
+	if x != nil {
+		return x.Frames
+	}
+	return nil
+}
+
+func (x *ControllerFrames) GetEnded() bool {
+	if x != nil {
+		return x.Ended
+	}
+	return false
+}
+
 // Controller is one device as a mod reads it.
 type Controller struct {
 	unknownFields []byte
@@ -777,6 +818,24 @@ func (m *ControllerWants) CloneVT() *ControllerWants {
 }
 
 func (m *ControllerWants) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ControllerFrames) CloneVT() *ControllerFrames {
+	if m == nil {
+		return (*ControllerFrames)(nil)
+	}
+	r := new(ControllerFrames)
+	r.Player = m.Player
+	r.Ended = m.Ended
+	r.Frames = protobuf_go_lite.CloneVTSlice(m.Frames)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ControllerFrames) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1030,6 +1089,32 @@ func (this *ControllerWants) EqualVT(that *ControllerWants) bool {
 
 func (this *ControllerWants) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ControllerWants)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ControllerFrames) EqualVT(that *ControllerFrames) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Frames, that.Frames, func() *ControllerFrame { return &ControllerFrame{} }) {
+		return false
+	}
+	if this.Ended != that.Ended {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ControllerFrames) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ControllerFrames)
 	if !ok {
 		return false
 	}
@@ -1797,6 +1882,85 @@ func (x *ControllerWants) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ControllerFrames message to JSON.
+func (x *ControllerFrames) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if len(x.Frames) > 0 || s.HasField("frames") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("frames")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Frames {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("frames"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.Ended || s.HasField("ended") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ended")
+		s.WriteBool(x.Ended)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ControllerFrames to JSON.
+func (x *ControllerFrames) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ControllerFrames message from JSON.
+func (x *ControllerFrames) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "frames":
+			s.AddField("frames")
+			if s.ReadNil() {
+				x.Frames = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Frames = append(x.Frames, nil)
+					return
+				}
+				v := &ControllerFrame{}
+				v.UnmarshalProtoJSON(s.WithField("frames", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Frames = append(x.Frames, v)
+			})
+		case "ended":
+			s.AddField("ended")
+			x.Ended = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ControllerFrames from JSON.
+func (x *ControllerFrames) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Controller message to JSON.
 func (x *Controller) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2379,6 +2543,60 @@ func (m *ControllerWants) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ControllerFrames) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ControllerFrames) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ControllerFrames) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Ended {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Ended)
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Frames) > 0 {
+		for iNdEx := len(m.Frames) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Frames[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Controller) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2629,6 +2847,22 @@ func (m *ControllerWants) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ControllerFrames) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	for _, e := range m.Frames {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Ended)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2940,6 +3174,36 @@ func (x *ControllerWants) MarshalProtoText() string {
 }
 
 func (x *ControllerWants) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ControllerFrames) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ControllerFrames")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if len(x.Frames) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "frames")
+		for i, v := range x.Frames {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &ControllerFrame{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Ended != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ended")
+		protobuf_go_lite.TextWriteBool(&sb, x.Ended)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ControllerFrames) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3798,6 +4062,81 @@ func (m *ControllerWants) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ControllerFrames) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ControllerFrames: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ControllerFrames: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Frames", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Frames = append(m.Frames, &ControllerFrame{})
+			if err := m.Frames[len(m.Frames)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ended", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Ended = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

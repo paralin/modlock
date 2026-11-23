@@ -5,6 +5,7 @@ package modlock.peernet;
 option go_package = "github.com/paralin/modlock/peernet;peernet";
 
 import "github.com/paralin/modlock/src/host_app/control/control.proto";
+import "github.com/paralin/modlock/src/wasm/controllers/controllers.proto";
 import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 
 // PeerNet is the service a modlock daemon serves for its peer: the PC's
@@ -152,7 +153,7 @@ message HostEvent {
     modlock.host_app.control.ServiceReply setup = 5;
     // controllers carries frames from a guest's controllers, bound to that
     // guest's slot, which the caller passes to the server's control link.
-    modlock.host_app.control.ControllerFrames controllers = 6;
+    modlock.wasm.controllers.ControllerFrames controllers = 6;
   }
 }
 

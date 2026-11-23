@@ -14,6 +14,7 @@ import (
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	control "github.com/paralin/modlock/src/host_app/control"
+	controllers "github.com/paralin/modlock/src/wasm/controllers"
 	ui "github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -446,7 +447,7 @@ func (x *HostEvent) GetSetup() *control.ServiceReply {
 	return nil
 }
 
-func (x *HostEvent) GetControllers() *control.ControllerFrames {
+func (x *HostEvent) GetControllers() *controllers.ControllerFrames {
 	if x, ok := x.GetBody().(*HostEvent_Controllers); ok {
 		return x.Controllers
 	}
@@ -487,7 +488,7 @@ type HostEvent_Setup struct {
 type HostEvent_Controllers struct {
 	// controllers carries frames from a guest's controllers, bound to that
 	// guest's slot, which the caller passes to the server's control link.
-	Controllers *control.ControllerFrames `protobuf:"bytes,6,opt,name=controllers,proto3,oneof"`
+	Controllers *controllers.ControllerFrames `protobuf:"bytes,6,opt,name=controllers,proto3,oneof"`
 }
 
 func (*HostEvent_JoinCode) isHostEvent_Body() {}
@@ -1796,7 +1797,7 @@ func (this *HostEvent_Controllers) EqualVT(thatIface isHostEvent_Body) bool {
 	if this == nil && that != nil || this != nil && that == nil {
 		return false
 	}
-	if !protobuf_go_lite.EqualVTImplicit(this.Controllers, that.Controllers, func() *control.ControllerFrames { return &control.ControllerFrames{} }) {
+	if !protobuf_go_lite.EqualVTImplicit(this.Controllers, that.Controllers, func() *controllers.ControllerFrames { return &controllers.ControllerFrames{} }) {
 		return false
 	}
 	return true
@@ -2681,7 +2682,7 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				ov.Controllers = nil
 				return
 			}
-			ov.Controllers = &control.ControllerFrames{}
+			ov.Controllers = &controllers.ControllerFrames{}
 			ov.Controllers.UnmarshalProtoJSON(s.WithField("controllers", true))
 		}
 	})
@@ -4881,7 +4882,7 @@ func (x *HostEvent) MarshalProtoText() string {
 	case *HostEvent_Controllers:
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "controllers")
 		if body.Controllers == nil {
-			protobuf_go_lite.TextWriteTextMarshaler(&sb, &control.ControllerFrames{})
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &controllers.ControllerFrames{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Controllers)
 		}
@@ -5728,7 +5729,7 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 			} else {
-				v := &control.ControllerFrames{}
+				v := &controllers.ControllerFrames{}
 				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 					return err
 				}

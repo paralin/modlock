@@ -250,7 +250,7 @@ func TestRunStreamsVirtualDevices(t *testing.T) {
 			// The axis is (t mod 2 s) / 1 s - 1.
 			now := time.Now()
 			read := (float64(st.GetGamepad().GetLeftX()) + 1) * float64(time.Second)
-			skew, decoded = (time.Duration(now.UnixNano()%int64(virtualPeriod)) - time.Duration(read) + virtualPeriod) % virtualPeriod, true
+			skew, decoded = (time.Duration(now.UnixNano()%int64(virtualPeriod))-time.Duration(read)+virtualPeriod)%virtualPeriod, true
 			cancel()
 		}
 		return nil

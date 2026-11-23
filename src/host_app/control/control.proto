@@ -37,23 +37,8 @@ message ControlRequest {
 
     // Controllers carries the frames of one player's controller stream, which
     // the controller has bound to that player's own client.
-    ControllerFrames controllers = 6;
+    modlock.wasm.controllers.ControllerFrames controllers = 6;
   }
-}
-
-// ControllerFrames carries one player's controller frames, in the order their
-// client sent them. Only the controller can send it, and it sends a player's
-// frames only from the stream it bound to that player's own client.
-message ControllerFrames {
-  // Player is the player's slot.
-  int32 player = 1;
-
-  // Frames holds the frames, oldest first.
-  repeated modlock.wasm.controllers.ControllerFrame frames = 2;
-
-  // Ended is true when the player's stream ended, after its last frame: the
-  // client disconnected or the link dropped.
-  bool ended = 3;
 }
 
 // ModCall calls one method of a service a running mod serves, on the game's

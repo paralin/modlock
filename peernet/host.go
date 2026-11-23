@@ -220,7 +220,7 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 		case <-ctx.Done():
 		}
 	}
-	hub := controllers.NewHub(func(frames *control.ControllerFrames) {
+	hub := controllers.NewHub(func(frames *pb.ControllerFrames) {
 		queue(&HostEvent{Body: &HostEvent_Controllers{Controllers: frames}})
 	})
 	manifestChanged := make(chan struct{}, 1)

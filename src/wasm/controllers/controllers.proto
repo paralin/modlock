@@ -219,6 +219,21 @@ message ControllerWants {
   repeated ControllerWant wants = 1;
 }
 
+// ControllerFrames carries one player's controller frames to the host, in the
+// order their client sent them. The game server sends a player's frames only
+// from the stream it bound to that player's own client.
+message ControllerFrames {
+  // Player is the player's slot.
+  int32 player = 1;
+
+  // Frames holds the frames, oldest first.
+  repeated ControllerFrame frames = 2;
+
+  // Ended is true when the player's stream ended, after its last frame: the
+  // client disconnected or the link dropped.
+  bool ended = 3;
+}
+
 // Controller is one device as a mod reads it.
 message Controller {
   // Info describes the device.

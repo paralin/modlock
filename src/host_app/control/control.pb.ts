@@ -4,16 +4,16 @@
 
 import { createEnumType } from '@aptre/protobuf-es-lite/enum'
 import { RolesTable } from '../../wasm/players/players.pb.js'
+import {
+  ControllerFrames,
+  ControllerWants,
+} from '../../wasm/controllers/controllers.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
 import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
-import {
-  ControllerFrame,
-  ControllerWants,
-} from '../../wasm/controllers/controllers.pb.js'
 import { CallProfile, SlowFrame } from '../../wasm/profile/profile.pb.js'
 import { Change } from '../../wasm/ui/ui.pb.js'
 
@@ -186,81 +186,6 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'controllers' && o.value != null)
             ControllerFrames.writeField(w, 6, o.value)
-        }
-      },
-    },
-  )
-
-/**
- * ControllerFrames carries one player's controller frames, in the order their
- * client sent them. Only the controller can send it, and it sends a player's
- * frames only from the stream it bound to that player's own client.
- *
- * @generated from message modlock.host_app.control.ControllerFrames
- */
-export interface ControllerFrames {
-  /**
-   * Player is the player's slot.
-   */
-  player?: number
-  /**
-   * Frames holds the frames, oldest first.
-   */
-  frames?: ControllerFrame[]
-  /**
-   * Ended is true when the player's stream ended, after its last frame: the
-   * client disconnected or the link dropped.
-   */
-  ended?: boolean
-}
-
-export const ControllerFrames: MessageType<ControllerFrames> =
-  /* @__PURE__ */ createMessageType<ControllerFrames>(
-    'modlock.host_app.control.ControllerFrames',
-    () => [
-      [1, 'player', 5],
-      [2, 'frames', 11, 1, ControllerFrame.codec],
-      [3, 'ended', 8],
-    ],
-    {
-      decode: (
-        r: BinaryReader,
-        end: number,
-        m: ControllerFrames,
-      ): ControllerFrames => {
-        while (r.pos < end) {
-          const t = r.tag()
-          if ((t & 7) === 4) return m
-          switch (t >>> 3) {
-            case 1:
-              m.player = r.int32()
-              break
-            case 2:
-              ;(m.frames ??= []).push(
-                ControllerFrame.decode(r, r.delimited(), {}),
-              )
-              break
-            case 3:
-              m.ended = r.bool()
-              break
-            default:
-              r.skip(t)
-          }
-        }
-        return m
-      },
-      encode: (m: ControllerFrames, w: Writer): void => {
-        {
-          const v = m.player
-          if (v) w.uint32(8).int32(v)
-        }
-        {
-          const a = m.frames
-          if (a != null) for (const e of a) ControllerFrame.writeField(w, 2, e)
-        }
-        {
-          const v = m.ended
-          if (v) w.uint32(24).bool(v)
         }
       },
     },

@@ -7,7 +7,6 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/paralin/modlock/src/host_app/control"
 	pb "github.com/paralin/modlock/src/wasm/controllers"
 )
 
@@ -27,7 +26,7 @@ import (
 // links, and opens a Feed for each controller stream it accepts.
 type Hub struct {
 	// send receives each player's frames, and the end of their stream.
-	send func(*control.ControllerFrames)
+	send func(*pb.ControllerFrames)
 
 	// mu guards the fields below.
 	mu sync.Mutex
@@ -59,7 +58,7 @@ type Feed struct {
 // NewHub returns a hub that passes each bound player's frames, and the end
 // of each player's stream, to send. send runs under the hub's lock, so it
 // must not call the hub.
-func NewHub(send func(*control.ControllerFrames)) *Hub {
+func NewHub(send func(*pb.ControllerFrames)) *Hub {
 	return &Hub{
 		send:     send,
 		players:  make(map[int32]string),
@@ -178,7 +177,7 @@ func (f *Feed) Frame(frame *pb.ControllerFrame) {
 	}
 
 	// Pass it to the slot's player.
-	h.send(&control.ControllerFrames{Player: f.bound, Frames: []*pb.ControllerFrame{frame}})
+	h.send(&pb.ControllerFrames{Player: f.bound, Frames: []*pb.ControllerFrame{frame}})
 }
 
 // Serve sends the feed's want to want each time it changes, starting with
@@ -219,7 +218,7 @@ func (h *Hub) bind(feed *Feed, slot int32) {
 		return
 	}
 	if feed.bound >= 0 {
-		h.send(&control.ControllerFrames{Player: feed.bound, Ended: true})
+		h.send(&pb.ControllerFrames{Player: feed.bound, Ended: true})
 	}
 	feed.bound = slot
 }
