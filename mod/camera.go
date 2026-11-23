@@ -119,7 +119,9 @@ func spawnPointCamera(slot int32, targetname string, opts EntityCameraOptions) (
 
 // OpenEntityCamera gives player's living hero a per-player 6-DOF point_camera
 // view that preserves full 360-degree roll and over-the-top pitch loops while
-// keeping WatchMovement analog input active.
+// keeping the player on their living hero. The stock modifier freezes the
+// hero's movement and view input while the camera is open: commands still
+// carry buttons, but forward and left read 0 and the view angles stop.
 func OpenEntityCamera(player Player, opts EntityCameraOptions) (*EntityCamera, error) {
 	pawn, err := player.Pawn()
 	if err != nil {
