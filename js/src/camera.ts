@@ -182,8 +182,13 @@ function spawnPointCamera(
  * without modifying the game client. The stock client's camera manager reads
  * C_PointCamera origin, full 3-axis angles (including 360-degree roll and
  * over-the-top pitch loops) and FOV every frame while keeping the player on
- * their living hero, so player.watchMovement(true) keeps delivering analog
- * input. Each player receives only their own camera via showEntityOnlyTo.
+ * their living hero. Each player receives only their own camera via
+ * showEntityOnlyTo.
+ *
+ * The stock modifier also freezes the hero's movement and view input: while
+ * the camera is open the player's commands still arrive, with their buttons,
+ * but forward and left read 0 and the view angles stop changing. Steer the
+ * camera from buttons or another input, not the sticks.
  *
  * Returns undefined when the player has no living hero or a host call fails.
  */
