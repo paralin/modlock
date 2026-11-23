@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Queued wake, script dies with its panel: the cleanup never runs",
+    "replace": [["Delivery = \"sync\"", "Delivery = \"queued\""]],
+    "expect": "CleanupBeforeDeath"
+  },
+  {
+    "name": "Delete without a notice: the script dies with its cleanup waiting",
+    "replace": [
+      ["/\\ panel = \"live\" /\\ marked\n", "/\\ panel = \"live\"\n"]
+    ],
+    "expect": "CleanupBeforeDeath"
+  },
+  {
+    "name": "Reread without the leaving check: data reaches a marked layout",
+    "replace": [["ELSE IF Leaving(p)", "ELSE IF FALSE"]],
+    "expect": "NoDataAfterNotice"
+  },
+  {
+    "name": "Unload keeps its handlers: a second wake runs the cleanup again",
+    "replace": [
+      [
+        "/\\ script' = \"unloaded\" /\\ handler' = FALSE",
+        "/\\ script' = \"unloaded\" /\\ handler' = handler"
+      ],
+      ["IF script # \"running\" \\/ ~listening", "IF script = \"dead\""]
+    ],
+    "expect": "CleanupOnce"
+  },
+  {
+    "name": "onUnload without the leaving check: a late handler waits forever",
+    "replace": [
+      [
+        "IF script = \"unloaded\" \\/ marked \\/ panel = \"gone\"",
+        "IF script = \"unloaded\""
+      ]
+    ],
+    "expect": "CleanupBeforeDeath"
+  }
+]

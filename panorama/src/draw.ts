@@ -947,7 +947,8 @@ export class Drawing {
   /**
    * notifyUnloading marks each live loaded layout in nodes as unloading and
    * wakes the layout library at once, before DeleteAsync invalidates the
-   * panel or its ancestor.
+   * panel or its ancestor. ../LayoutUnload.tla checks this lifecycle and
+   * names the client behavior it assumes.
    */
   private notifyUnloading(nodes: Iterable<Drawn>): void {
     let marked = false
