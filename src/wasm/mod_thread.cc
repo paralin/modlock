@@ -50,73 +50,69 @@ constexpr std::array kImmutables = std::to_array<std::string_view>({
 });
 
 // kWrites are the Host methods that return Empty, which the mod thread answers
-// with success before the game has run them. A call whose refusal a mod acts
-// on is left out and hops: SetPlayerSetting, WriteFile, HoldReload, Handoff
-// and PlayerHandoff report a bad name, a full quota or an oversize blob, and
-// they run too rarely to gain from a buffer.
+// with success before the game has run them. A call whose refusal a mod can
+// act on is left out and hops, so the mod hears the game's answer. The refusal
+// is one the mod can fix or stop sending: a definition or name the game does
+// not know, such as the modifier definition GiveModifier and GiveEntityModifier
+// find unavailable, or a slot, bot, object or entity the mod named that does
+// not exist. These calls hop:
+//   - modifiers: HoldModifier, GiveModifier, HoldEntityModifier,
+//     GiveEntityModifier, HoldModifierState;
+//   - items and abilities: GiveItem, BuyItem, TrainAbility, SetAbility,
+//     ReplaceAbility, RestoreHero, Zipline;
+//   - players and bots: Spectate, ChangeTeam, Drive, RemoveBot, WatchMovement;
+//   - objects and entities: SetObjectHidden, ShowObjectOnlyTo, ShowObjectToAll,
+//     RemoveObject, ShowEntityOnlyTo, ShowEntityToAll;
+//   - names: SilenceVoice, SilencePlayerVoice, ServerCommand, which refuses a
+//     line that reaches outside the game;
+//   - SetPlayerSetting, WriteFile, HoldReload, Handoff and PlayerHandoff, which
+//     report a bad name, a full quota or an oversize blob.
+// They run when a mod sets up or changes a game, too rarely to gain from a
+// buffer. Calls that stay here either fail only when the player or entity left
+// between the call and its run, which the mod learns from its events, or run at
+// the rate of a frame, such as MoveEntity, MoveObject, SetText, WriteField,
+// WriteFieldList, Teleport, Heal and SetVelocity, where a hop on each would cost
+// the mod a window apiece.
 constexpr std::array kWrites = std::to_array<std::string_view>({
     "Log",
-    "ServerCommand",
     "Chat",
     "CenterText",
     "Announce",
     "Precache",
     "AddMetric",
-    "Spectate",
     "Watch",
     "FreeCamera",
     "MoveCamera",
     "ClearCamera",
     "Unwatch",
     "Respawn",
-    "ChangeTeam",
     "ClearItems",
     "Freeze",
     "RestoreStamina",
     "SetStamina",
     "RefreshAbility",
-    "SetAbility",
-    "GiveItem",
-    "BuyItem",
-    "TrainAbility",
-    "ReplaceAbility",
-    "HoldModifier",
-    "GiveModifier",
     "Teleport",
-    "Zipline",
     "MovePlayer",
     "Steer",
-    "Drive",
     "AdjustSouls",
     "AdjustAbilityPoints",
     "StartingSouls",
     "ResetHero",
     "Heal",
-    "RestoreHero",
     "ScreenEffect",
     "ClearScreenEffect",
-    "SilenceVoice",
-    "SilencePlayerVoice",
     "WriteField",
     "WriteFieldList",
-    "HoldModifierState",
     "SetFreeForAll",
     "SetTeamSeating",
     "MoveObject",
     "SetText",
-    "SetObjectHidden",
-    "ShowObjectOnlyTo",
-    "ShowObjectToAll",
-    "RemoveObject",
-    "RemoveBot",
     "BlockInput",
     "BlockPlayerInput",
     "Press",
     "WatchInput",
     "RemapInput",
     "Ui",
-    "ShowEntityOnlyTo",
-    "ShowEntityToAll",
     "ClearMap",
     "KillEntity",
     "RestoreNpcs",
@@ -129,10 +125,7 @@ constexpr std::array kWrites = std::to_array<std::string_view>({
     "StopSound",
     "Kill",
     "SetVelocity",
-    "WatchMovement",
     "WatchProjectiles",
-    "HoldEntityModifier",
-    "GiveEntityModifier",
 });
 
 // kWriteFile replaces a file ReadFile may have returned, so it empties the
@@ -352,12 +345,15 @@ std::optional<Completion> ModThread::Borrow(const Call& call) {
 }
 
 std::optional<Completion> ModThread::Decide(const Call& call) {
+  // A refused Borrow leaves applying_ as it was. The refusals it causes count
+  // apart, since a window is open while the buffer applies and they would
+  // otherwise read as a window's.
   auto done = Borrow(call);
   auto counted = std::ranges::find(decisions_, call.method(), &DecisionCount::method);
   if (counted == decisions_.end()) {
     counted = decisions_.insert(decisions_.end(), DecisionCount{.method = call.method()});
   }
-  ++(done ? counted->answered : counted->defaulted);
+  ++(done ? counted->answered : applying_ ? counted->applying : counted->defaulted);
   return done;
 }
 

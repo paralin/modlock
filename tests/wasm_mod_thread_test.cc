@@ -7,7 +7,9 @@
 #include <chrono>
 #include <cstdio>
 #include <fstream>
+#include <functional>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -78,6 +80,9 @@ struct Game {
   bool record = true;
   std::vector<std::string> calls;
   std::vector<Clock::time_point> hops;
+  // on_chat runs on the game's thread inside each Chat, as the game does when
+  // one of the mod's commands provokes an event.
+  std::function<void()> on_chat;
 
   Instance::HostCall Answer() {
     return [this](const Call& call) {
@@ -85,6 +90,9 @@ struct Game {
         off_thread = true;
       }
       Reply reply;
+      if (call.method() == "Chat" && on_chat) {
+        on_chat();
+      }
       if (call.method() == "ReadField") {
         reply.set_response(std::to_string(value));
         return reply;
@@ -248,6 +256,47 @@ TEST(ModThread, ClassTable) {
   EXPECT_EQ(ClassOf("CreateModel"), CallClass::kHop);
   EXPECT_EQ(ClassOf("NotAMethod"), CallClass::kHop);
   EXPECT_EQ(ClassOf("WriteFile"), CallClass::kHop);
+
+  // A write whose refusal the mod can act on hops, so it hears the game's
+  // answer, as a missing modifier definition is.
+  EXPECT_EQ(ClassOf("GiveModifier"), CallClass::kHop);
+  EXPECT_EQ(ClassOf("GiveEntityModifier"), CallClass::kHop);
+  EXPECT_EQ(ClassOf("Chat"), CallClass::kWrite);
+}
+
+TEST(ModThread, ADecisionDuringTheBufferIsCountedApart) {
+  Rig rig;
+  ASSERT_TRUE(rig.Up(R"(
+let ran = false;
+const handlers = {
+  Frame: () => {
+    if (ran) return;
+    ran = true;
+    call('Chat', text('a'));
+  },
+  Decision: () => { return reply(text('ok')); },
+};)"));
+
+  // The game asks for a decision from inside the write the mod made, which
+  // runs in the next window, while the buffer applies.
+  std::optional<Completion> asked;
+  rig.game.on_chat = [&] {
+    asked = rig.mod->Decide(Event("Decision"));
+  };
+  rig.Tick();
+  EXPECT_FALSE(asked.has_value());
+  rig.Tick();
+  EXPECT_FALSE(asked.has_value());
+  EXPECT_EQ(rig.game.calls, (std::vector<std::string>{"Chat:a"}));
+
+  // The refusal is the apply's own, and not the mod's busyness or a window's.
+  const auto stats = rig.Tick();
+  ASSERT_EQ(stats.decisions.size(), 1U);
+  EXPECT_EQ(stats.decisions[0].method, "Decision");
+  EXPECT_EQ(stats.decisions[0].answered, 0U);
+  EXPECT_EQ(stats.decisions[0].defaulted, 0U);
+  EXPECT_EQ(stats.decisions[0].applying, 1U);
+  EXPECT_FALSE(rig.game.off_thread);
 }
 
 TEST(ModThread, RepeatedReadHitsTheSnapshotInTheNextWindow) {
@@ -413,6 +462,7 @@ const handlers = {
   EXPECT_EQ(stats.queued, 1U);
   ASSERT_EQ(stats.decisions.size(), 1U);
   EXPECT_EQ(stats.decisions[0].defaulted, 1U);
+  EXPECT_EQ(stats.decisions[0].applying, 0U);
   const auto queued = rig.mod->Completed();
   ASSERT_EQ(queued.size(), 2U);
   EXPECT_EQ(queued[0].method, "Frame");

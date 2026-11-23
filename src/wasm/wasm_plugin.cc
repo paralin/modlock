@@ -133,6 +133,7 @@ void Total(wasm::WindowStats& total, const wasm::WindowStats& window) {
     }
     found->answered += kind.answered;
     found->defaulted += kind.defaulted;
+    found->applying += kind.applying;
   }
   total.time += window.time;
 }
@@ -828,8 +829,8 @@ void WasmPlugin::ReportCalls() {
           w.failed, w.replayed, w.hits, w.misses, w.stale, w.spins, w.sleeps);
       line += std::format(", posts in place {} queued {}, decisions", w.in_place, w.queued);
       for (const auto& kind : w.decisions) {
-        line +=
-            std::format(" {} answered {} defaulted {}", kind.method, kind.answered, kind.defaulted);
+        line += std::format(" {} answered {} defaulted {} while applying {}", kind.method,
+                            kind.answered, kind.defaulted, kind.applying);
       }
       if (w.decisions.empty()) {
         line += " none";

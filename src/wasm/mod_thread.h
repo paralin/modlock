@@ -84,11 +84,16 @@ struct ModThreadSettings {
 };
 
 // DecisionCount is how the decisions of one event kind ended: answered by the
-// mod, or refused because the mod was busy, for the caller's default.
+// mod, or refused for the caller's default. defaulted counts the refusals
+// because the mod was busy, a window was open or the mod had stopped. applying
+// counts those because the buffer or the replay was running, the game being in
+// the middle of the mod's own commands: a decision the mod's write provoked,
+// which synchronous mode refuses as well.
 struct DecisionCount {
   std::string method;
   uint32_t answered = 0;
   uint32_t defaulted = 0;
+  uint32_t applying = 0;
 };
 
 // WindowStats is what one Window did, for the host to report.
