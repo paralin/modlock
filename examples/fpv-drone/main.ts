@@ -41,6 +41,12 @@ const launchHeight = 96
 /** fov is the camera's horizontal field of view, a wide FPV lens. */
 const fov = 110
 
+/**
+ * standoff is how far off a surface the drone stops, in inches, so the
+ * camera's near plane stays out of the wall it hit.
+ */
+const standoff = 16
+
 /** logEvery is how often a flight logs its state, in seconds. */
 const logEvery = 2
 
@@ -198,16 +204,19 @@ function fly(
     end: next,
     ignore: pawn?.entity ? [pawn.entity] : [],
   })
-  if (hit && !hit.startSolid) {
-    const n = hit.normal
-    drone.position = {
-      x: hit.position.x + n.x * 8,
-      y: hit.position.y + n.y * 8,
-      z: hit.position.z + n.z * 8,
+  if (!hit) {
+    drone.position = next
+  } else {
+    // A path that starts inside something keeps the drone where it was.
+    if (!hit.startSolid) {
+      const n = hit.normal
+      drone.position = {
+        x: hit.position.x + n.x * standoff,
+        y: hit.position.y + n.y * standoff,
+        z: hit.position.z + n.z * standoff,
+      }
     }
     drone.velocity = { x: 0, y: 0, z: 0 }
-  } else {
-    drone.position = next
   }
   camera.move(drone.position, angles(drone))
 
