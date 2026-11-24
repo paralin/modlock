@@ -1,0 +1,20 @@
+{
+  "slug": "fpv-drone",
+  "name": "FPV Drone",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "map": "dl_midtown",
+  "settings": [
+    {
+      "key": "sticks",
+      "label": "Sticks",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "auto", "label": "Radio if attached, else gamepad" },
+        { "value": "gamepad", "label": "Gamepad, mode 2" },
+        { "value": "aetr", "label": "Radio, AETR channels" },
+        { "value": "taer", "label": "Radio, TAER channels" }
+      ]
+    }
+  ]
+}
