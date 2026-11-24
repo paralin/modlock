@@ -11,6 +11,7 @@
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/keyvalues.h"
+#include "wasm/entity_fields.h"
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
@@ -368,8 +369,8 @@ gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
   // The entity is not networked yet, so its fields need no change notice.
   return [this, &fields](void* created) -> std::expected<void, std::string> {
     for (const auto& write : fields) {
-      auto stored =
-          StoreField(created, write.class_name(), write.field(), write.type(), write.value());
+      auto stored = StoreField(services_, created, write.class_name(), write.field(), write.type(),
+                               write.value(), addon_);
       if (!stored) {
         return stored;
       }

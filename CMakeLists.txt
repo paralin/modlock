@@ -210,6 +210,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_builds.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
   src/wasm/match.cc
+  src/wasm/entity_fields.cc
   src/wasm/modifier_masks.cc
   src/wasm/players.cc
   src/wasm/call_profile.cc
