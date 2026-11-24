@@ -47,6 +47,7 @@
 #include "wasm/controller_table.h"
 #include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
+#include "wasm/hook_sources.h"
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
 #include "wasm/match.h"
@@ -103,6 +104,20 @@ class GameServices {
   // Controllers holds the controllers players' clients stream for the mods
   // that watch them.
   ControllerTable& Controllers() { return controllers_; }
+
+  // The source sets the host-wide hooks read. A mod's game adds itself to
+  // each while it runs, and removes itself before it goes.
+  Sources<InputChanges>& InputSources() { return inputs_; }
+
+  Sources<MoverSource>& MoverSources() { return movers_; }
+
+  Sources<CameraSource>& CameraSources() { return cameras_; }
+
+  Sources<TransmitSource>& TransmitSources() { return transmitters_; }
+
+  Sources<ProjectileSource>& ProjectileSources() { return projectile_sources_; }
+
+  Sources<VoiceSource>& VoiceSources() { return voices_; }
 
  private:
   friend class Game;
@@ -223,14 +238,6 @@ class GameServices {
   // every entity a mod shows only to others.
   void Withhold(gameinterop::TransmitSet& set);
 
-  // WithholdApart keeps from one player the heroes game's apart players and
-  // the others may not see of each other.
-  void WithholdApart(const Game& game, gameinterop::TransmitSet& set) const;
-
-  // WatchesInside reports whether the player in slot watches, through any
-  // mod's Watch, a hero among the apart slot bits.
-  bool WatchesInside(int32_t slot, uint64_t apart) const;
-
   // Steps installs or removes the server movement hook to match what the
   // mods need of it.
   std::expected<void, std::string> Steps();
@@ -241,7 +248,8 @@ class GameServices {
 
   // Face points a bot's step and hero along angles in place of the view its
   // own command set: the step's view, the hero's aim, and the body's yaw.
-  void Face(Game& game, gameinterop::MovementCall& call, const std::array<float, 3>& angles);
+  void Face(MoverSource& mover, gameinterop::MovementCall& call,
+            const std::array<float, 3>& angles);
 
   // Command takes the commands pawn ran since the previous call, folded.
   std::optional<movement::MovementCommand> Command(const void* pawn);
@@ -290,8 +298,13 @@ class GameServices {
   std::map<std::pair<const void*, std::string>, bool> derives_;
   std::optional<ModifierLayout> modifiers_;
   std::map<std::string, int64_t, std::less<>> modifier_states_;
-  // games are the live mods' surfaces, which the input hook consults.
-  std::set<Game*> games_;
+  // The running mods' sources, one set per hook that reads them.
+  Sources<InputChanges> inputs_;
+  Sources<MoverSource> movers_;
+  Sources<CameraSource> cameras_;
+  Sources<TransmitSource> transmitters_;
+  Sources<ProjectileSource> projectile_sources_;
+  Sources<VoiceSource> voices_;
   std::optional<gameinterop::AbilityInputHook> input_;
   bool input_wanted_ = false;
   // held_ is each player's held buttons before blocking, for blocked edges.
@@ -344,7 +357,13 @@ class GameServices {
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
-class Game : public HostService, private WorldSource {
+class Game : public HostService,
+             private WorldSource,
+             private MoverSource,
+             private CameraSource,
+             private TransmitSource,
+             private ProjectileSource,
+             private VoiceSource {
  public:
   Game(GameServices& services, EngineHost* engine);
   ~Game() override;
@@ -491,10 +510,21 @@ class Game : public HostService, private WorldSource {
 
   // Impacted delivers a watched projectile's impact to the mod, inside the
   // game's impact.
-  virtual void Impacted(const combat::ImpactEvent& event) = 0;
+  void Impacted(const combat::ImpactEvent& event) override = 0;
 
  private:
-  friend class GameServices;
+  // What the host-wide hooks read of this game, through the source
+  // interfaces it registers with services_ (game_sources.cc).
+  gameinterop::CommandHook::Command* DriveOf(int32_t slot) override;
+  movement::Steering* SteerOf(int32_t slot) override;
+  bool Moves() const override;
+  void Aim(void* pawn, const std::array<float, 3>& angles) override;
+  std::optional<int32_t> WatchedSlot(int32_t slot) const override;
+  void Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) override;
+  bool KeepsMomentum() const override;
+  std::vector<HeroMotion> Motions() override;
+  bool Silences(int32_t concept_value) const override;
+  bool SilencesSpeaker(uint32_t speaker, int32_t concept_value) const override;
 
   // Object is one world object the mod created.
   using Object =
@@ -883,7 +913,7 @@ class Game : public HostService, private WorldSource {
   // Watching returns the Impact event for a projectile the mod watches, or
   // nothing.
   std::optional<combat::ImpactEvent> Watching(void* entity,
-                                              const gameinterop::TraceResult& contact);
+                                              const gameinterop::TraceResult& contact) override;
 
   // Owner returns a projectile's owning entity and the slot of the player
   // whose hero it is, or -1.
