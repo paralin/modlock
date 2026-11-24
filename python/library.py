@@ -18,10 +18,10 @@
 
 import io
 import math
-from collections.abc import Sequence
 import random
 import sys
 import traceback
+from collections.abc import Sequence
 
 from .heroes import HEROES as HEROES
 from .heroes import Hero as Hero
@@ -616,8 +616,18 @@ class MatchPlace:
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
+class BoardMember:
+    """BoardMember is one player of a team's row."""
+
+    steam_id: int
+    name: str
+
+
+@dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
 class BoardRow:
-    """BoardRow is one player's place on a board."""
+    """BoardRow is one player's place on a board, or a team's on a board that
+    ranks teams: its members then, ordered by SteamID64, with steam_id and
+    name the first member's."""
 
     rank: int
     steam_id: int
@@ -625,6 +635,7 @@ class BoardRow:
     value: int
     tiebreak: int
     count: int
+    members: list[BoardMember]
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
@@ -716,8 +727,13 @@ def read_board(
     offset: int = 0,
     limit: int = 0,
     player: Connection | None = None,
+    teammates: Sequence[Connection] = (),
 ) -> None:
-    """read_board reads a page and the optional connected viewer's row on a later frame."""
+    """read_board reads a page and the optional connected viewer's row on a later frame.
+
+    teammates name the player's teammates on a board that ranks teams, so the
+    page's player row is their team's; each is in the game now.
+    """
     query = wire.encode(
         _SCHEMA,
         "BoardQuery",
@@ -725,6 +741,10 @@ def read_board(
             "board": board, "partition": partition, "window": window, "offset": offset, "limit": limit,
             "player": player.player if player is not None else None,
             "connection": _score_identity(player) if player is not None else None,
+            "teammates": [
+                {"player": teammate.player, "connection": _score_identity(teammate)}
+                for teammate in teammates
+            ],
         },
     )
 
@@ -736,13 +756,19 @@ def read_board(
         standing = page["player"]
         done(
             BoardPage(
-                rows=[BoardRow(**row) for row in page["rows"]],
-                player=BoardRow(**standing) if standing is not None else None,
+                rows=[_board_row(row) for row in page["rows"]],
+                player=_board_row(standing) if standing is not None else None,
             ),
             None,
         )
 
     call_service_later(_SCORES, "Read", query, finish)
+
+
+def _board_row(standing: dict[str, Any]) -> BoardRow:
+    """_board_row converts a decoded standing to its row."""
+    members = [BoardMember(**member) for member in standing.pop("members")]
+    return BoardRow(**standing, members=members)
 
 
 def _int64(value: float) -> int:

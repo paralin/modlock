@@ -66,6 +66,14 @@ func TestCallService(t *testing.T) {
 		t.Fatal("a single player's score with a teammate was accepted")
 	}
 
+	// A team read names its player, slot zero included, beside the teammate.
+	if reply := serve("scores", "Read", &scorespb.BoardQuery{Board: "trial.pairs", Player: new(int32(0)), Teammates: pair}); reply.GetError() != "" {
+		t.Fatalf("pair read refused: %s", reply.GetError())
+	}
+	if reply := serve("scores", "Read", &scorespb.BoardQuery{Board: "trial.pairs", Teammates: pair}); reply.GetError() == "" {
+		t.Fatal("a read with a teammate but no player was accepted")
+	}
+
 	// Read the board as empty.
 	reply := serve("scores", "Read", &scorespb.BoardQuery{Board: "trial.time", Partition: canyon})
 	answer := &wasm.ServiceReply{}

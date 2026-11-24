@@ -160,9 +160,21 @@ export type BoardRead = {
 	limit: number?,
 	-- player asks for this connection's own row too.
 	player: Connection?,
+	-- teammates name the player's teammates on a board that ranks teams, so
+	-- the page's player row is their team's; each is in the game now.
+	teammates: { Connection }?,
 }
 
--- BoardRow is one player's place on a board.
+-- BoardMember is one player of a team's row.
+export type BoardMember = {
+	-- steamId is the player's 64-bit Steam ID in decimal.
+	steamId: string,
+	name: string,
+}
+
+-- BoardRow is one player's place on a board, or a team's on a board that
+-- ranks teams: its members then, ordered by SteamID64, with steamId and name
+-- the first member's.
 export type BoardRow = {
 	rank: number,
 	-- steamId is the player's 64-bit Steam ID in decimal.
@@ -171,6 +183,7 @@ export type BoardRow = {
 	value: number,
 	tiebreak: number,
 	count: number,
+	members: { BoardMember },
 }
 
 -- BoardPage is a page of a board.
@@ -201,6 +214,15 @@ local function teammatesOf(teammates: { ScorePlayer }?): { any }
 	local encoded = {}
 	for _, teammate in teammates or {} do
 		table.insert(encoded, { player = Player.new(teammate.slot), connection = teammate })
+	end
+	return encoded
+end
+
+-- readTeammatesOf encodes a team read's live teammates.
+local function readTeammatesOf(teammates: { Connection }?): { any }
+	local encoded = {}
+	for _, teammate in teammates or {} do
+		table.insert(encoded, { player = teammate.player, connection = scoreIdentity(teammate) })
 	end
 	return encoded
 end
@@ -260,6 +282,7 @@ function modlock.readBoard(board: string, read: BoardRead, done: (BoardPage?, st
 		limit = r.limit,
 		player = if r.player then r.player.player else nil,
 		connection = if r.player then scoreIdentity(r.player) else nil,
+		teammates = readTeammatesOf(r.teammates),
 	})
 	modlock.callServiceLater(scoresService, "Read", query, function(reply, err)
 		if reply == nil then

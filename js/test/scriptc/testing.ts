@@ -115,11 +115,22 @@ class Expectation {
   }
 }
 
-/** matches reports whether actual holds every field of want, deeply. */
+/**
+ * matches reports whether actual holds every field of want, deeply. As in
+ * Bun, an array matches an array of the same length whose elements each
+ * match.
+ */
 function matches(actual: unknown, want: unknown): boolean {
-  // Compare a scalar or an array whole.
-  if (typeof want !== 'object' || want === null || Array.isArray(want)) {
-    return same(actual, want)
+  // Compare a scalar whole.
+  if (typeof want !== 'object' || want === null) return same(actual, want)
+
+  // Match an array element by element.
+  if (Array.isArray(want)) {
+    if (!Array.isArray(actual) || actual.length !== want.length) return false
+    for (let i = 0; i < want.length; i++) {
+      if (!matches(actual[i], want[i])) return false
+    }
+    return true
   }
   if (typeof actual !== 'object' || actual === null) return false
 
