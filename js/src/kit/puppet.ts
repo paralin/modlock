@@ -31,15 +31,15 @@ export interface Track {
   /** stepTicks is the ticks between two samples. */
   stepTicks: number
   /** x, y and z are the hero's origin, at its feet. */
-  x: number[]
-  y: number[]
-  z: number[]
+  x: readonly number[]
+  y: readonly number[]
+  z: readonly number[]
   /** yaw is where the hero faces, in degrees. */
-  yaw: number[]
+  yaw: readonly number[]
   /** pitch is where the hero looks up or down, in degrees; level when absent. */
-  pitch?: number[]
+  pitch?: readonly number[]
   /** health is the hero's health; the hero's own is kept when absent. */
-  health?: number[]
+  health?: readonly number[]
 }
 
 /** Pose is a track read at one tick. */
@@ -84,9 +84,9 @@ export function poseAt(track: Track, tick: number): Pose | undefined {
 
   // Blend the columns, and take the velocity from the segment's slope.
   const seconds = track.stepTicks / ticksPerSecond
-  const blend = (column: number[]) =>
+  const blend = (column: readonly number[]) =>
     lerp(sample(column, i), sample(column, j), t)
-  const slope = (column: number[]) =>
+  const slope = (column: readonly number[]) =>
     (sample(column, j) - sample(column, i)) / seconds
   const still = i === j
   return {
@@ -104,7 +104,7 @@ export function poseAt(track: Track, tick: number): Pose | undefined {
 }
 
 /** sample reads column at index, zero where it is short. */
-function sample(column: number[], index: number): number {
+function sample(column: readonly number[], index: number): number {
   return column[index] ?? 0
 }
 
