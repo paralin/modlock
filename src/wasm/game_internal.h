@@ -73,6 +73,19 @@ inline std::expected<ListHeader, std::string> ReadList(const unsigned char* addr
   return list;
 }
 
+// LiveEntity resolves a handle to its live entity.
+inline std::expected<void*, std::string> LiveEntity(uint32_t handle) {
+  auto entities = gameinterop::ResolveLiveEntitySystem();
+  if (!entities) {
+    return std::unexpected(entities.error());
+  }
+  auto* entity = gameinterop::EntityInstance(*entities, handle);
+  if (entity == nullptr) {
+    return std::unexpected("no live entity has that handle");
+  }
+  return entity;
+}
+
 // FindHero resolves a request's hero by its identifier or its name.
 template <typename Request>
 std::expected<gameinterop::HeroDefinition, std::string> FindHero(

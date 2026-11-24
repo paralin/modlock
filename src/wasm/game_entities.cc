@@ -439,7 +439,7 @@ std::expected<entities::AliveResponse, std::string> Game::FireInput(
   if (auto refused = RefuseInput(request.input()); !refused.empty()) {
     return std::unexpected(std::move(refused));
   }
-  if (auto target = Entity(request.entity())) {
+  if (auto target = LiveEntity(request.entity())) {
     if (auto refused = RefuseEntityClass(gameinterop::DesignerName(*target)); !refused.empty()) {
       return std::unexpected(std::move(refused));
     }

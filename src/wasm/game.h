@@ -49,6 +49,8 @@
 #include "wasm/hero_restore.h"
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
+#include "wasm/match.h"
+#include "wasm/module.h"
 #include "wasm/npc_restore.h"
 #include "wasm/team_seating.h"
 #include "wasm/visibility.h"
@@ -91,6 +93,12 @@ class GameServices {
   // replays, as a mod's own movement model does; an empty step stops it. One
   // mod's step may run at a time.
   std::expected<void, std::string> StepWith(gameinterop::MovementHook::Handler step);
+
+  // Pause, Clock and Rift return the game's pause, match clock and rift
+  // rules.
+  std::expected<const gameinterop::GamePause*, std::string> Pause();
+  std::expected<gameinterop::MatchClock*, std::string> Clock();
+  std::expected<gameinterop::KothRules*, std::string> Rift();
 
   // Controllers holds the controllers players' clients stream for the mods
   // that watch them.
@@ -144,9 +152,6 @@ class GameServices {
   std::expected<const gameinterop::NativeDamage*, std::string> Damage();
   std::expected<gameinterop::ModifyCurrency, std::string> Currency();
   std::expected<gameinterop::RequiredSouls, std::string> RequiredSouls();
-  std::expected<const gameinterop::GamePause*, std::string> Pause();
-  std::expected<gameinterop::MatchClock*, std::string> Clock();
-  std::expected<gameinterop::KothRules*, std::string> Rift();
   // Rules returns the game rules object, which the rules proxy entity points
   // to.
   std::expected<void*, std::string> Rules();
@@ -339,7 +344,7 @@ class GameServices {
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
-class Game : public HostService {
+class Game : public HostService, private WorldSource {
  public:
   Game(GameServices& services, EngineHost* engine);
   ~Game() override;
@@ -722,9 +727,6 @@ class Game : public HostService {
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // SetPaused pauses or resumes the game.
-  std::expected<void, std::string> SetPaused(bool paused);
-
   // Keep stores a created object and returns its response.
   objects::ObjectResponse Keep(Object object);
 
@@ -749,15 +751,6 @@ class Game : public HostService {
   // ObjectHandle returns the entity handle of the mod's object id now, or
   // nothing.
   std::optional<uint32_t> ObjectHandle(uint32_t id) const;
-
-  // HoldClock sets the held match clock again, since the game advances it
-  // each frame.
-  void HoldClock();
-
-  // ReplicateClock sends the restored match clock to every client. The start
-  // time lives in the game rules, which clients receive through the rules
-  // entity; a plain write there reaches only clients that join later.
-  std::expected<void, std::string> ReplicateClock();
 
   // LatchTime is the time a hero's stamina latch counts from: the simulation
   // time without the ticks the game spent paused.
@@ -863,7 +856,7 @@ class Game : public HostService {
                                                     bool active);
 
   // World returns this world's unit operations.
-  std::expected<gameinterop::WorldEntities*, std::string> World();
+  std::expected<gameinterop::WorldEntities*, std::string> World() override;
 
   // Live returns the observed pawn of slot for this frame.
   std::expected<gameinterop::PawnObserver::Sample, std::string> Live(int32_t slot);
@@ -878,9 +871,6 @@ class Game : public HostService {
 
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
-
-  // Entity resolves a handle to its live entity.
-  std::expected<void*, std::string> Entity(uint32_t handle) const;
 
   // ObserveFrom binds slot's camera, as Watch and FreeCamera do, sets its
   // observer mode and target and replicates them, and returns the camera pawn.
@@ -1022,12 +1012,13 @@ class Game : public HostService {
   // of the last one that ended, until the mod receives it.
   std::optional<NpcRestore> npc_restore_;
   std::optional<std::string> npcs_restored_;
-  // held_clock_ is the match time the mod holds; paused_ is true while the
-  // mod has the game paused.
-  std::optional<float> held_clock_;
-  // rules_entity_ is the handle of the game rules entity, found on first use.
-  uint32_t rules_entity_ = 0;
-  bool paused_ = false;
+
+  // The modules own their domains' state. modules_ lists them in the order
+  // they are built, each after the modules it reads. WorldReady runs them in
+  // that order; Frame, WorldEnding, Leave and Clear run them in reverse, so a
+  // module's frame work and release come before those of the modules it reads.
+  Match match_{services_, *this};
+  std::array<Module*, 1> modules_{&match_};
 };
 
 }  // namespace modlock::wasm

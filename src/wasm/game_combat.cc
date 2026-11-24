@@ -31,18 +31,18 @@ std::expected<void, std::string> Game::Damage(const combat::HitOptions& request)
   }
 
   // Resolve who dealt the hit and with what.
-  auto attacker = Entity(request.attacker());
+  auto attacker = LiveEntity(request.attacker());
   if (!attacker) {
     return std::unexpected(attacker.error());
   }
-  auto inflictor = request.inflictor() == 0 ? attacker : Entity(request.inflictor());
+  auto inflictor = request.inflictor() == 0 ? attacker : LiveEntity(request.inflictor());
   if (!inflictor) {
     return std::unexpected(inflictor.error());
   }
   const int32_t hit_group = request.has_hit_group() ? request.hit_group() : -1;
   void* ability = nullptr;
   if (request.has_ability()) {
-    auto found = Entity(request.ability());
+    auto found = LiveEntity(request.ability());
     if (!found) {
       return std::unexpected(found.error());
     }
@@ -53,7 +53,7 @@ std::expected<void, std::string> Game::Damage(const combat::HitOptions& request)
 
 std::expected<void*, std::string> Game::Combatant(uint32_t handle) {
   // Damage events for the world, props or buildings crash clients.
-  auto victim = Entity(handle);
+  auto victim = LiveEntity(handle);
   if (!victim) {
     return std::unexpected(victim.error());
   }
@@ -83,17 +83,17 @@ std::expected<void, std::string> Game::KillEntity(const combat::KillOptions& req
   }
 
   // Preserve generation-checked source handles; stale sources cannot get credit.
-  auto attacker = Entity(request.attacker());
+  auto attacker = LiveEntity(request.attacker());
   if (!attacker) {
     return std::unexpected(attacker.error());
   }
-  auto inflictor = request.inflictor() == 0 ? attacker : Entity(request.inflictor());
+  auto inflictor = request.inflictor() == 0 ? attacker : LiveEntity(request.inflictor());
   if (!inflictor) {
     return std::unexpected(inflictor.error());
   }
   void* ability = nullptr;
   if (request.ability() != 0) {
-    auto found = Entity(request.ability());
+    auto found = LiveEntity(request.ability());
     if (!found) {
       return std::unexpected(found.error());
     }

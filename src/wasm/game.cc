@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <ranges>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -33,7 +34,9 @@ void Game::Frame() {
   SeatPlayers();
   ApplyFreeForAll();
   ApplyHolds();
-  HoldClock();
+  for (auto* module : std::views::reverse(modules_)) {
+    module->Frame();
+  }
   TickRestores();
 
   // Follow what moved or left since the last frame.
@@ -63,7 +66,7 @@ void Game::ApplyHolds() {
   // Renew each entity's modifiers and release those of an entity that is gone.
   std::vector<std::pair<uint32_t, std::string>> gone;
   for (const auto& [entity, key] : held_entity_modifiers_) {
-    if (!Entity(entity)) {
+    if (!LiveEntity(entity)) {
       gone.emplace_back(entity, key);
       continue;
     }
@@ -109,7 +112,7 @@ std::expected<void, std::string> Game::RenewEntityModifier(uint32_t handle, cons
   if (modifier == modifiers_.end()) {
     return std::unexpected("the modifier is not held");
   }
-  auto entity = Entity(handle);
+  auto entity = LiveEntity(handle);
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -191,6 +194,9 @@ void Game::WorldReady() {
   if (const auto image = services_.Image()) {
     gameinterop::ResolveModuleSignatures(**image, gameinterop::GameModule::kServer);
   }
+  for (auto* module : modules_) {
+    module->WorldReady();
+  }
 }
 
 void Game::WorldEnding() {
@@ -216,10 +222,11 @@ void Game::WorldEnding() {
   input_.DropPresses();
   restores_.clear();
   npc_restore_.reset();
-  held_clock_.reset();
+  for (auto* module : std::views::reverse(modules_)) {
+    module->WorldEnding();
+  }
 
-  // Forget the paused clock and the observer's cached pawns.
-  paused_ = false;
+  // Forget the observer's cached pawns.
   observer_.Invalidate();
 }
 
@@ -248,6 +255,9 @@ void Game::Leave(int32_t slot) {
   }
   for (const auto& key : keys) {
     ReleaseModifier(slot, key);
+  }
+  for (auto* module : std::views::reverse(modules_)) {
+    module->Leave(slot);
   }
 }
 
@@ -338,12 +348,11 @@ void Game::Clear() {
   npc_restore_.reset();
   npcs_restored_.reset();
 
-  // Resume the clock and stop watching projectiles.
-  held_clock_.reset();
-  if (paused_) {
-    static_cast<void>(SetPaused(false));
-  }
+  // Stop watching projectiles, then release what each module holds.
   projectiles_.Clear();
+  for (auto* module : std::views::reverse(modules_)) {
+    module->Clear();
+  }
 }
 
 void Game::RemoveWorld() {
@@ -387,6 +396,26 @@ bool Game::Departing() {
     return !state.occupied || state.generation != entry.second;
   });
   return !departing_.empty();
+}
+
+std::expected<void, std::string> Game::Pause(const wasm::PauseRequest& request) {
+  return match_.Pause(request);
+}
+
+std::expected<wasm::MatchClockResponse, std::string> Game::MatchClock() {
+  return match_.MatchClock();
+}
+
+std::expected<void, std::string> Game::HoldMatchClock(const wasm::HoldMatchClockRequest& request) {
+  return match_.HoldMatchClock(request);
+}
+
+std::expected<wasm::RiftResponse, std::string> Game::Rift() {
+  return match_.Rift();
+}
+
+std::expected<void, std::string> Game::StartRift(const wasm::StartRiftRequest& request) {
+  return match_.StartRift(request);
 }
 
 std::expected<void, std::string> Game::ServerCommand(const ServerCommandRequest& request) {
@@ -564,19 +593,6 @@ std::expected<void*, std::string> Game::LivePawn(int32_t slot) const {
     return std::unexpected("the player has no live hero");
   }
   return pawn;
-}
-
-std::expected<void*, std::string> Game::Entity(uint32_t handle) const {
-  // Find the live entity with that handle.
-  auto entities = gameinterop::ResolveLiveEntitySystem();
-  if (!entities) {
-    return std::unexpected(entities.error());
-  }
-  auto* entity = gameinterop::EntityInstance(*entities, handle);
-  if (entity == nullptr) {
-    return std::unexpected("no live entity has that handle");
-  }
-  return entity;
 }
 
 objects::ObjectResponse Game::Keep(Object object) {
