@@ -926,7 +926,7 @@ function modlock.command(name: string, handler: (player: Player, args: string) -
 end
 
 -- onStart calls handler once when the server starts the mod, with the
--- arguments that follow -- on the modlock-host command line.
+-- words after -- on the modlock dev or play command line.
 function modlock.onStart(handler: (args: { string }) -> ())
 	table.insert(starts, handler)
 end

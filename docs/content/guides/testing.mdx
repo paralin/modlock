@@ -35,7 +35,7 @@ Python inside the running mod. See [Python](/languages/python#run-a-line-in-the-
 ## In the game
 
 To test a whole round in the game, build the test into the mod. Started with
-`modlock play --arg probe`, the mod seats bots with `addBot` and plays the
+`modlock play -- probe`, the mod seats bots with `addBot` and plays the
 round. The mod then checks the outcome, logs PASS or FAIL and quits with
 `serverCommand('quit')`, as
 [`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts)

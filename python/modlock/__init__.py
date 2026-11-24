@@ -6859,7 +6859,7 @@ def command[F: Callable[[Player, str], object]](name: str) -> Callable[[F], F]:
 
 def on_start[F: Callable[[list[str]], object]](handler: F) -> F:
     """on_start calls handler once when the server starts the mod, with the
-    arguments that follow -- on the modlock-host command line.
+    words after -- on the modlock dev or play command line.
 
     Annotate the handler's parameters, since a checker and an editor's
     completion read their types from there:

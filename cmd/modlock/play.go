@@ -30,7 +30,6 @@ var sessionFlags = append([]cli.Flag{
 		Name:  "sandbox",
 		Usage: "run the mods without the game, with a stand-in player, even where the game runs",
 	},
-	&cli.StringSliceFlag{Name: "arg", Usage: "pass an argument to the mods' start handlers; repeat for several"},
 }, interfaceFlags...)
 
 // interfaceFlags configure how the game shows the mods' interfaces.
@@ -53,8 +52,8 @@ func playCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:        "play",
 		Usage:       "play mods locally or let friends join this PC's server",
-		Description: "Play built mods or watch one source project, rebuilding on each save. --watch=false uses existing builds, building projects with missing output. Without the game, use the sandbox.\n\nExamples:\n  modlock play\n  modlock play --lobby\n  modlock play --watch=false\n  modlock play --host",
-		ArgsUsage:   "[MOD...]",
+		Description: "Play built mods or watch one source project, rebuilding on each save. --watch=false uses existing builds, building projects with missing output. Without the game, use the sandbox. Words after -- go to the mods' onStart handlers.\n\nExamples:\n  modlock play\n  modlock play --lobby\n  modlock play --watch=false\n  modlock play --host\n  modlock play -- probe",
+		ArgsUsage:   "[MOD...] [-- ARG...]",
 		Flags: append(slices.Clone(sessionFlags),
 			releaseFlag,
 			&cli.BoolFlag{Name: "watch", Value: true, Usage: "build one mod project and reload it on each save; --watch=false uses existing builds"},
@@ -187,7 +186,7 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 	return sandbox.Start(c.Context, sandbox.Config{
 		Mods:     mods,
 		Map:      mapName,
-		Args:     c.StringSlice("arg"),
+		Args:     startArgs(c.Context),
 		Settings: configPath("settings.json"),
 		Files:    configPath("files"),
 		Compiled: compiled,
@@ -264,7 +263,7 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 		Mods:       mods,
 		Port:       uint16(c.Uint("port")),
 		Map:        mapName,
-		Args:       c.StringSlice("arg"),
+		Args:       startArgs(c.Context),
 		Settings:   configPath("settings.json"),
 		Files:      configPath("files"),
 		Fixtures:   fixtures,

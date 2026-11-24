@@ -29,7 +29,7 @@ func devCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:      "dev",
 		Usage:     "build the mod and run it in a local server, or in the sandbox without the game",
-		ArgsUsage: "[DIRECTORY]",
+		ArgsUsage: "[DIRECTORY] [-- ARG...]",
 		Flags: append(
 			slices.Clone(sessionFlags),
 			&cli.BoolFlag{

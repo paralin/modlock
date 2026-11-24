@@ -26,7 +26,6 @@ When Deadlock is not installed, `dev` and `play` run your mod in the sandbox ins
 | --------------------- | -------------------------------------------------------------------------------------------------------- |
 | `--no-game`           | Run the server without launching Deadlock.                                                               |
 | `--port PORT`         | Serve on a UDP port other than 27067.                                                                    |
-| `--arg VALUE`         | Pass `VALUE` to the mods' `onStart` handlers. Repeatable.                                                |
 | `--sandbox`           | Run in the sandbox even when the game is installed.                                                      |
 | `--watch=false`       | Build once instead of reloading on each save. `play` then runs existing builds and can run several mods. |
 | `--release`           | Build as `publish` does.                                                                                 |
@@ -34,6 +33,7 @@ When Deadlock is not installed, `dev` and `play` run your mod in the sandbox ins
 | `--ui-port PORT`      | Serve the mods' interfaces to the game on a port other than 4320. `0` turns them off.                    |
 | `--ui-relay ORIGIN`   | Reach the interfaces through a site other than `https://hyperline.gg`.                                   |
 | `--preview-port PORT` | Serve the browser preview of the interface on a port other than 4322. `0` turns it off.                  |
+| `-- ARG...`           | Pass the words after `--` to the mods' `onStart` handlers, as in `modlock dev -- probe 4`.               |
 
 While `dev` or `play` watches a project, saving a file rebuilds the mod and replaces the running one. Saving files in `build/` and `node_modules`, hidden files and `*.log` files does not. The terminal shows the mod's log, its reloads and the players who join, and the server's own console output goes to `build/server.log`. In the sandbox, a line you type in the terminal is sent as chat from the stand-in player.
 

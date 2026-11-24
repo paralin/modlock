@@ -108,7 +108,7 @@ Python spells each as a `snake_case` decorator, such as
 | `command(name, handler)`                            | On the frame after a player types `/name` in chat.                                         |
 | `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.                                |
 | `onPing(handler)`                                   | Before each ping reaches anyone, to block it or mute its voice; see [Pings](#pings).       |
-| `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.                                   |
+| `onStart(handler)`                                  | When the server starts the mod, with the words after `--` on the command line.             |
 | `onWorld(handler)`                                  | As each world loads, with its map, and at start if one already loaded.                     |
 | `onFrame(handler)`                                  | Once per server frame.                                                                     |
 | `onPlayerJoin(handler)`                             | As each player finishes joining, and at start for each player already joined.              |

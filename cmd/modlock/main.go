@@ -87,7 +87,8 @@ func main() {
 	}
 
 	// Run the command.
-	if err := app.RunContext(ctx, flagsFirst(app.Commands, os.Args)); err != nil {
+	ctx, args := cutStartArgs(ctx, app.Commands, flagsFirst(app.Commands, os.Args))
+	if err := app.RunContext(ctx, args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

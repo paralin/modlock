@@ -147,7 +147,7 @@ func CallServiceLater(service, method string, payload []byte, timeout time.Durat
 }
 
 // OnStart calls handler once when the server starts the mod, with the
-// arguments that follow -- on the modlock-host command line.
+// words after -- on the modlock dev or play command line.
 func OnStart(handler func(args []string)) {
 	registered.starts = append(registered.starts, handler)
 }
