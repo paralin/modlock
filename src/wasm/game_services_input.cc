@@ -77,10 +77,10 @@ void GameServices::Input() {
 }
 
 uint64_t GameServices::Filter(gameinterop::AbilityInputHook::Input& input) {
-  // Merge every game's blocks for this player.
+  // Merge every mod's blocks for this player.
   uint64_t blocked = 0;
-  for (auto* game : games_) {
-    blocked |= game->input_.Blocked(input.slot);
+  for (auto* changes : inputs_) {
+    blocked |= changes->Blocked(input.slot);
   }
 
   // A press is a button held now that changed for this input; a release is
@@ -94,14 +94,14 @@ uint64_t GameServices::Filter(gameinterop::AbilityInputHook::Input& input) {
   const uint64_t pressed = held & changed;
   const uint64_t released = ~held & changed;
 
-  // Queue the changes and add each game's pending press, then apply the
+  // Queue the changes and add each mod's pending press, then apply the
   // remaps to the input the presses made.
   Record(input.slot, pressed, released);
-  for (auto* game : games_) {
-    game->input_.ApplyPress(input);
+  for (auto* changes : inputs_) {
+    changes->ApplyPress(input);
   }
-  for (auto* game : games_) {
-    game->input_.ApplyRemap(input);
+  for (auto* changes : inputs_) {
+    changes->ApplyRemap(input);
   }
   return blocked;
 }
@@ -118,8 +118,8 @@ uint64_t GameServices::Observed(int32_t slot, uint64_t pressed, uint64_t release
   // The input hook withholds a hero's buttons, but a spectating player has no
   // hero for it to run on, so their commands withhold the spectator buttons.
   uint64_t blocked = 0;
-  for (auto* game : games_) {
-    blocked |= game->input_.Blocked(slot);
+  for (auto* changes : inputs_) {
+    blocked |= changes->Blocked(slot);
   }
   return blocked & kSpectatorButtons;
 }
@@ -139,8 +139,8 @@ void GameServices::Record(int32_t slot, uint64_t pressed, uint64_t released) {
   if (!pressed && !released) {
     return;
   }
-  for (auto* game : games_) {
-    game->input_.Record(slot, pressed, released);
+  for (auto* changes : inputs_) {
+    changes->Record(slot, pressed, released);
   }
 }
 
@@ -225,90 +225,48 @@ std::optional<std::array<float, 3>> GameServices::CameraPosition(int32_t slot) {
 }
 
 std::optional<gameinterop::CommandHook::Command> GameServices::Driven(int32_t slot) {
-  for (auto* game : games_) {
-    // The first game driving the slot answers; its press counts once.
-    auto found = game->drives_.find(slot);
-    if (found == game->drives_.end()) {
-      continue;
+  // The first mod driving the slot answers; its press counts once.
+  for (auto* mover : movers_) {
+    if (auto* drive = mover->DriveOf(slot)) {
+      const auto command = *drive;
+      drive->pressed = 0;
+      return command;
     }
-    const auto command = found->second;
-    found->second.pressed = 0;
-    return command;
   }
-  for (auto* game : games_) {
-    auto steered = game->steers_.find(slot);
-    if (steered != game->steers_.end() &&
-        gameinterop::ConnectionTracker::StateForSlot(slot).is_bot) {
-      const auto& steering = steered->second;
-      return gameinterop::CommandHook::Command{.angles = Floats(steering.facing()),
-                                               .forward = steering.command().forward(),
-                                               .left = steering.command().left(),
-                                               .held = steering.command().held()};
+
+  // A steered bot sends the recorded command as its own.
+  if (!gameinterop::ConnectionTracker::StateForSlot(slot).is_bot) {
+    return std::nullopt;
+  }
+  for (auto* mover : movers_) {
+    if (const auto* steering = mover->SteerOf(slot)) {
+      return gameinterop::CommandHook::Command{.angles = Floats(steering->facing()),
+                                               .forward = steering->command().forward(),
+                                               .left = steering->command().left(),
+                                               .held = steering->command().held()};
     }
   }
   return std::nullopt;
 }
 
 void GameServices::Withhold(gameinterop::TransmitSet& set) {
-  // A text object's entity changes with its words, so each update reads the
-  // current handles.
-  for (auto* game : games_) {
-    game->visibility_.Withhold(set, [game](uint32_t id) { return game->ObjectHandle(id); });
-    WithholdApart(*game, set);
+  for (auto* transmitter : transmitters_) {
+    transmitter->Withhold(set, cameras_);
   }
-}
-
-void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set) const {
-  // A player inside an apart game receives no hero from outside it, and one
-  // outside receives none from inside. The heroes are read each update, since
-  // a respawn or a hero swap changes their handles.
-  if (!game.apart_ || set.Slot() < 0 || set.Slot() >= gameinterop::kMaxPlayerSlots) {
-    return;
-  }
-  const bool inside = (game.apart_ >> set.Slot()) & 1;
-  if (!inside && WatchesInside(set.Slot(), game.apart_)) {
-    return;
-  }
-  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    if (((game.apart_ >> slot) & 1) == inside) {
-      continue;
-    }
-    if (const auto hero = game.observer_.PawnHandleForSlot(slot)) {
-      set.Withhold(*hero);
-    }
-  }
-}
-
-bool GameServices::WatchesInside(int32_t slot, uint64_t apart) const {
-  // A watcher outside an apart game receives every hero while their camera
-  // follows one inside it, so the camera has a hero to follow; the players
-  // inside still never receive the watcher's.
-  for (const auto* game : games_) {
-    const auto watched = game->watched_.find(slot);
-    if (watched == game->watched_.end()) {
-      continue;
-    }
-    const auto target = game->observer_.SlotOfPawn(watched->second);
-    if (target && *target >= 0 && *target < gameinterop::kMaxPlayerSlots &&
-        ((apart >> *target) & 1)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
                           const gameinterop::ProjectileImpactHook::NativeImpact& native) {
-  // Collect the games that watch this projectile.
-  std::vector<std::pair<Game*, combat::ImpactEvent>> watching;
+  // Collect the mods that watch this projectile.
+  std::vector<std::pair<ProjectileSource*, combat::ImpactEvent>> watching;
   bool keep = false;
-  for (auto* game : games_) {
-    auto event = game->Watching(entity, contact);
+  for (auto* source : projectile_sources_) {
+    auto event = source->Watching(entity, contact);
     if (!event) {
       continue;
     }
-    keep |= game->projectiles_.keep_momentum();
-    watching.emplace_back(game, std::move(*event));
+    keep |= source->KeepsMomentum();
+    watching.emplace_back(source, std::move(*event));
   }
   if (watching.empty()) {
     native();
@@ -317,21 +275,19 @@ void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
 
   // The game's explosion replaces the motion of heroes near it, even with no
   // push of its own.
-  std::vector<Game::Hero> heroes;
+  std::vector<ProjectileSource::HeroMotion> motions;
   if (keep) {
-    heroes = watching.front().first->Heroes();
+    motions = watching.front().first->Motions();
   }
   native();
-  for (const auto& hero : heroes) {
-    if (hero.velocity) {
-      gameinterop::SetEntityVelocity(hero.pawn, *hero.velocity);
-    }
+  for (const auto& motion : motions) {
+    gameinterop::SetEntityVelocity(motion.pawn, motion.velocity);
   }
 
-  // Tell each watching game, if it is still loaded.
-  for (auto& [game, event] : watching) {
-    if (games_.contains(game)) {
-      game->Impacted(event);
+  // Tell each watching mod, if it is still loaded.
+  for (auto& [source, event] : watching) {
+    if (projectile_sources_.Contains(source)) {
+      source->Impacted(event);
     }
   }
 }
@@ -353,8 +309,8 @@ std::expected<void, std::string> GameServices::StepWith(gameinterop::MovementHoo
 
 std::expected<void, std::string> GameServices::Steps() {
   // Keep the hook only while a mod or a steered bot moves heroes.
-  const bool needed = step_ || std::ranges::any_of(games_, [](const Game* game) {
-                        return game->Moving() || !game->steers_.empty() || !game->drives_.empty();
+  const bool needed = step_ || std::ranges::any_of(movers_, [](const MoverSource* mover) {
+                        return mover->Moves();
                       });
   if (!needed) {
     steps_.reset();
@@ -385,15 +341,20 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
   // A driven bot's axes and view reach movement here: the game rebuilds them,
   // and the movement keys, from the bot's own state after ProcessUsercmds,
   // which keeps only the buttons the drive wrote there. The step stays native.
-  const auto driven = std::ranges::find_if(
-      games_, [&](const Game* game) { return game->drives_.contains(call.slot); });
-  if (driven != games_.end()) {
+  MoverSource* driver = nullptr;
+  const gameinterop::CommandHook::Command* drive = nullptr;
+  for (auto* mover : movers_) {
+    if ((drive = mover->DriveOf(call.slot))) {
+      driver = mover;
+      break;
+    }
+  }
+  if (drive) {
     // Replay the drive's axes, movement keys and view.
-    const auto& drive = (*driven)->drives_.at(call.slot);
-    call.forward = drive.forward;
-    call.left = drive.left;
-    call.buttons[0] = (call.buttons[0] & ~kMoveKeys) | MoveKeys(drive.forward, drive.left);
-    Face(**driven, call, drive.angles);
+    call.forward = drive->forward;
+    call.left = drive->left;
+    call.buttons[0] = (call.buttons[0] & ~kMoveKeys) | MoveKeys(drive->forward, drive->left);
+    Face(*driver, call, drive->angles);
   }
 
   // Record the pawn's command for the mod to read.
@@ -413,17 +374,17 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
     command.set_left(call.left);
     command.set_up(call.up);
   }
-  if (driven != games_.end()) {
+  if (drive) {
     return false;
   }
 
   // Steer a bot that replays a recorded command.
-  for (auto* game : games_) {
-    // Steer the player this game replays.
-    if (auto steered = game->steers_.find(call.slot); steered != game->steers_.end()) {
+  for (auto* mover : movers_) {
+    // Steer the player this mod replays.
+    if (auto* steered = mover->SteerOf(call.slot)) {
       // The recorded command drives the game's own movement, abilities and
       // animation for this step.
-      auto& steering = steered->second;
+      auto& steering = *steered;
       auto& command = *steering.mutable_command();
       call.buttons = {command.held(), command.changed(), command.scroll()};
       call.forward = command.forward();
@@ -431,7 +392,7 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
       call.up = command.up();
 
       // The recorded view steers the step and becomes the hero's aim.
-      Face(*game, call, Floats(steering.facing()));
+      Face(*mover, call, Floats(steering.facing()));
 
       // A press counts once, though the command stays for the ticks after.
       command.set_changed(0);
@@ -466,13 +427,13 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
   return step_ && step_(call);
 }
 
-void GameServices::Face(Game& game, gameinterop::MovementCall& call,
+void GameServices::Face(MoverSource& mover, gameinterop::MovementCall& call,
                         const std::array<float, 3>& angles) {
   // The yaw turns the body, as Game::MovePlayer does. The bot's own command
   // set the view and the body before this step, and the eye angles alone
   // leave the body at the bot's yaw, so the hero would run sideways.
   call.angles = angles;
-  static_cast<void>(game.observer_.SetEyeAngles(call.pawn, call.angles));
+  mover.Aim(call.pawn, call.angles);
   if (auto motion = Motion()) {
     const std::array<float, 3> body{0, call.angles[1], 0};
     (*motion)->set_angles(call.pawn, body.data());

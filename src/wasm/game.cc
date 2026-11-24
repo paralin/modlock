@@ -4,8 +4,8 @@
 
 #include <algorithm>
 #include <chrono>
-#include <ranges>
 #include <iostream>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -18,11 +18,23 @@ Game::Game(GameServices& services, EngineHost* engine)
     : services_(services),
       engine_(engine),
       observer_(gameinterop::PawnObserver::LiveSeams(true), true) {
-  services_.games_.insert(this);
+  // Register with the host-wide hooks; the destructor removes each before
+  // the movement hook rechecks its movers.
+  services_.InputSources().Add(&input_);
+  services_.MoverSources().Add(this);
+  services_.CameraSources().Add(this);
+  services_.TransmitSources().Add(this);
+  services_.ProjectileSources().Add(this);
+  services_.VoiceSources().Add(this);
 }
 
 Game::~Game() {
-  services_.games_.erase(this);
+  services_.InputSources().Remove(&input_);
+  services_.MoverSources().Remove(this);
+  services_.CameraSources().Remove(this);
+  services_.TransmitSources().Remove(this);
+  services_.ProjectileSources().Remove(this);
+  services_.VoiceSources().Remove(this);
   services_.Controllers().Release(this);
   if (auto steps = services_.Steps(); !steps) {
     std::cerr << "mod movement: " << steps.error() << '\n';

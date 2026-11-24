@@ -1,5 +1,6 @@
 //go:build deps_only
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -88,39 +89,16 @@ std::expected<void, std::string> GameServices::Voice() {
 
 bool GameServices::Speaks(void* speaker, int32_t concept_value) {
   // A concept silenced for everyone needs no speaker.
-  bool personal = false;
-  for (const auto* game : games_) {
-    if (game->silenced_.contains(concept_value)) {
-      return false;
-    }
-    personal |= !game->silenced_players_.empty();
-  }
-  if (!personal) {
-    return true;
+  if (std::ranges::any_of(
+          voices_, [&](const VoiceSource* voice) { return voice->Silences(concept_value); })) {
+    return false;
   }
 
-  // Otherwise find the player whose hero speaks, once.
+  // Otherwise ask each mod about the player whose hero speaks.
   const auto handle = gameinterop::ReferenceHandleOf(speaker);
-  if (!handle) {
-    return true;
-  }
-  std::optional<int32_t> slot;
-  for (const auto* game : games_) {
-    if (game->silenced_players_.empty()) {
-      continue;
-    }
-    if (!slot) {
-      slot = game->observer_.SlotOfPawn(*handle);
-      if (!slot) {
-        return true;
-      }
-    }
-    const auto found = game->silenced_players_.find(*slot);
-    if (found != game->silenced_players_.end() && found->second.contains(concept_value)) {
-      return false;
-    }
-  }
-  return true;
+  return !handle || std::ranges::none_of(voices_, [&](const VoiceSource* voice) {
+    return voice->SilencesSpeaker(*handle, concept_value);
+  });
 }
 
 }  // namespace modlock::wasm
