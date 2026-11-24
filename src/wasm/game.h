@@ -710,36 +710,6 @@ class Game : public HostService,
   std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& request) override;
 
-  // FieldAddress resolves a schema field of entity whose storage holds a
-  // value of type, or a list of them when list is set, refusing an entity
-  // that is not of class_name. A game rules class resolves on the game rules
-  // proxy entity to the field of the rules object, a model part class
-  // through the entity's body component, and a movement services class
-  // through the pawn's movement services.
-  std::expected<unsigned char*, std::string> FieldAddress(void* entity,
-                                                          const std::string& class_name,
-                                                          const std::string& field,
-                                                          fields::FieldType type, bool list);
-  // ModelPart returns the address of the part of entity's model that
-  // class_name names, as IsModelClass lists, through its body component,
-  // including CBaseAnimGraphController for animated model entities.
-  // actual is the entity's schema class.
-  std::expected<unsigned char*, std::string> ModelPart(void* entity, const void* actual,
-                                                       const std::string& class_name);
-
-  // MovementServices returns the address of the field at offset in the
-  // movement services of entity, a pawn that must derive pawn_class. actual
-  // is the entity's schema class.
-  std::expected<unsigned char*, std::string> MovementServices(void* entity, const void* actual,
-                                                              const std::string& pawn_class,
-                                                              size_t offset);
-
-  // StoreField writes a schema field of entity without telling the network
-  // it changed.
-  std::expected<void, std::string> StoreField(void* entity, const std::string& class_name,
-                                              const std::string& field, fields::FieldType type,
-                                              const fields::FieldValue& value);
-
   // WriteBeforeSpawn returns the preparation that stores fields on an entity
   // the world creates, before it spawns and is networked. fields must outlive
   // the creation.
