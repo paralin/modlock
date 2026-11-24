@@ -12,7 +12,7 @@ import { Call, Reply } from '../../src/wasm/wasm.pb.js'
 import { Player } from '../src/host.gen.js'
 import { bind } from '../src/host.js'
 import { keepPlayers } from '../src/players.js'
-import { Strays } from '../src/strays.js'
+import { Strays } from '../src/kit/strays.js'
 
 // The transport supplies native fields; Strays owns the abandonment decision.
 test('disconnected controllers do not retain abandoned heroes while joining heroes stay protected', () => {

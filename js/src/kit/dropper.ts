@@ -13,25 +13,25 @@
 //
 // The keys a builder uses are withheld from their hero while they build.
 
-import { Buttons } from './bits.js'
 import {
   type Angles,
+  Buttons,
   createModel,
+  hide,
+  jsx,
   type MovementSample,
   type Player,
-  trace,
-  type Vector,
-  type WorldObject,
-} from './host.gen.js'
-import { players } from './players.js'
-import {
-  type LoadedSpot,
-  type Placed,
+  players,
+  show,
   type Spot,
   type SpotObject,
-  triggers,
-} from './spot.js'
-import { hide, jsx, show, toast, type UiElement } from './ui.js'
+  toast,
+  trace,
+  type UiElement,
+  type Vector,
+  type WorldObject,
+} from 'modlock'
+import { type LoadedSpot, type Placed, triggers } from './loaded-spot.js'
 
 /** CatalogEntry is one object builders can drop. */
 export interface CatalogEntry {

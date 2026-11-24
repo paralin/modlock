@@ -11,7 +11,8 @@
     "noEmit": true,
     "paths": {
       "modlock": ["../../js/src/index.ts"],
-      "modlock/jsx-runtime": ["../../js/src/index.ts"]
+      "modlock/jsx-runtime": ["../../js/src/index.ts"],
+      "modlock/kit": ["../../js/src/kit/index.ts"]
     }
   },
   "include": ["**/*", "../../js/src/globals.d.ts"],

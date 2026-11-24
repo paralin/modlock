@@ -48,12 +48,10 @@ import {
 import { serveEvents } from './host.js'
 import { Cast, type Want } from './cast.js'
 import { connection, keepPlayers } from './players.js'
-import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
 import { chatShown } from './chat.js'
-import { Stragglers, type StragglersOptions } from './stragglers.js'
 import {
   away,
   change,
@@ -95,15 +93,6 @@ export {
 } from './heroes.js'
 export { item, type Item, itemId, items, type Slot } from './items.js'
 export {
-  Hook,
-  type HookAbility,
-  hookAbility,
-  type HookPlayer,
-  type HookRead,
-  hookUpgrades,
-  type ReadHandle,
-} from './hook.js'
-export {
   Banner,
   type BannerProps,
   type BoxProps,
@@ -136,59 +125,16 @@ export * from './host.gen.js'
 export { Cast, type CastOptions, type Want } from './cast.js'
 export { frameClock } from './frameclock.js'
 export { ground, type GroundOptions } from './ground.js'
-export {
-  RaceGate,
-  type RaceGateOptions,
-  raceGateResources,
-} from './racegate.js'
 export { connection, players } from './players.js'
+export { decodeSpot, encodeSpot, type Spot, type SpotObject } from './spot.js'
 export { setPawnCache } from './pawns.js'
-export {
-  afterMatch,
-  fewestPlayed,
-  leaderboard,
-  leastUsed,
-  nextMatch,
-  ratingChange,
-  ratingStep,
-  settle,
-  type Standing,
-  Standings,
-  startingRating,
-} from './rotation.js'
-export {
-  bystanderStates,
-  holdBystander,
-  parkedStates,
-  parkHeight,
-  spectateFrom,
-} from './bystander.js'
-export { Strays, strayGraceSeconds } from './strays.js'
-export {
-  Stragglers,
-  stragglerConnectSeconds,
-  type StragglersOptions,
-} from './stragglers.js'
 export {
   type ChatLinesOptions,
   type ChatSpeaker,
   showChatLines,
 } from './chat.js'
 export { type Check, ProbeRun } from './probe.js'
-export {
-  poseAt,
-  type Pose,
-  Puppet,
-  type PuppetOptions,
-  type PuppetState,
-  ghostStates,
-  ticksPerSecond,
-  type Track,
-  trackTicks,
-} from './puppet.js'
 export { type HeroSnapshot, restoreHero } from './restore.js'
-export { type ReplayedHit, replayDamage } from './replayed-damage.js'
-export { type CatalogEntry, Dropper, dropperButtons } from './dropper.js'
 export {
   persist,
   type PersistChange,
@@ -213,16 +159,6 @@ export {
   type ScoreOptions,
   type ScorePlayer,
 } from './scores.js'
-export {
-  decodeSpot,
-  encodeSpot,
-  LoadedSpot,
-  loadSpot,
-  type Placed,
-  type Spot,
-  type SpotObject,
-  triggers,
-} from './spot.js'
 export {
   type ButtonProps,
   type Child,
@@ -535,16 +471,6 @@ function respawned(player: Player): void {
   }
 }
 
-/**
- * sweepStragglers runs a Stragglers sweep each frame for as long as the mod
- * runs: it kicks a human still joining after options.connectSeconds and
- * kills each hero no player holds, such as the hero of a player who left.
- * Only the first call's options apply.
- */
-export function sweepStragglers(options: StragglersOptions = {}): void {
-  stragglers ??= new Stragglers(options)
-}
-
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
@@ -785,9 +711,6 @@ const landeds: ((landing: LandedEvent) => void)[] = []
 const settingChanges: ((player: Player, key: string, value: string) => void)[] =
   []
 
-/** stragglers sweeps each frame once the mod calls sweepStragglers. */
-let stragglers: Stragglers | undefined
-
 /** handlers delivers each event to the handlers the mod registered. */
 const handlers: ModHandlers = {
   start(event) {
@@ -823,8 +746,6 @@ const handlers: ModHandlers = {
     // Advance the library's own clocks before the mod's handlers run.
     tick(event.timeSeconds)
     advance(event.timeSeconds)
-    advancePuppets(event.timeSeconds)
-    stragglers?.sweep(event.timeSeconds)
 
     // Count the frame, then tell the mod.
     frameCount++

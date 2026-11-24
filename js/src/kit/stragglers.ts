@@ -7,8 +7,7 @@
 // It sees only the slots the host lists: an attempt the engine never put in
 // the server has no slot, so no mod can see or kick it.
 
-import { log, serverCommand } from './host.gen.js'
-import { players } from './players.js'
+import { log, onFrame, players, serverCommand } from 'modlock'
 import { Strays } from './strays.js'
 
 /** stragglerConnectSeconds is how long a human may take to finish joining by default. */
@@ -95,4 +94,22 @@ export class Stragglers {
     }
     this.joining = joining
   }
+}
+
+/** swept is the Stragglers sweepStragglers runs, once the mod calls it. */
+let swept: Stragglers | undefined
+
+/**
+ * sweepStragglers runs a Stragglers sweep each frame for as long as the mod
+ * runs: it kicks a human still joining after options.connectSeconds and
+ * kills each hero no player holds, such as the hero of a player who left.
+ * Only the first call's options apply.
+ */
+export function sweepStragglers(options: StragglersOptions = {}): void {
+  if (swept) {
+    return
+  }
+  const stragglers = new Stragglers(options)
+  swept = stragglers
+  onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
 }

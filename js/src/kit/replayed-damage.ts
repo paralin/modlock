@@ -1,7 +1,7 @@
 // Replayed damage applies a hit that was recorded elsewhere, so a hero takes
 // it as if the attacker had dealt it just now.
 
-import { damage, type Player } from './host.gen.js'
+import { damage, type Player } from 'modlock'
 
 /** ReplayedHit is one recorded hit. */
 export interface ReplayedHit {

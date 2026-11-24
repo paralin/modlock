@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -270,42 +271,53 @@ func (p *Project) writeBuild(content, sourceMap []byte, runtime wasm.Manifest_Ru
 // installLibrary installs the declarations of the built library in library
 // into the script project in dir, removing any other file there.
 func installLibrary(library, dir string) error {
-	// Gather the declarations, every .d.ts file of the library, and the
-	// package that names them.
+	// Gather the declarations, every .d.ts file of the library and its kit,
+	// and the package that names them, by slash path.
 	files := map[string][]byte{"package.json": []byte(libraryPackage)}
-	declarations, err := filepath.Glob(filepath.Join(library, "*.d.ts"))
-	if err != nil {
-		return errors.Wrap(err, "install the modlock library")
-	}
-	for _, path := range declarations {
-		content, err := os.ReadFile(path)
+	for _, sub := range []string{"", js.Kit} {
+		declarations, err := filepath.Glob(filepath.Join(library, sub, "*.d.ts"))
 		if err != nil {
 			return errors.Wrap(err, "install the modlock library")
 		}
-		files[filepath.Base(path)] = content
+		for _, file := range declarations {
+			content, err := os.ReadFile(file)
+			if err != nil {
+				return errors.Wrap(err, "install the modlock library")
+			}
+			files[path.Join(sub, filepath.Base(file))] = content
+		}
 	}
 
-	// Write each file that differs, and remove the rest.
+	// Write each file that differs.
 	installed := filepath.Join(dir, libraryDir)
-	if err := os.MkdirAll(installed, 0o755); err != nil {
-		return errors.Wrap(err, "install the modlock library")
-	}
 	for name, content := range files {
-		path := filepath.Join(installed, name)
-		if existing, err := os.ReadFile(path); err == nil && bytes.Equal(existing, content) {
+		file := filepath.Join(installed, filepath.FromSlash(name))
+		if existing, err := os.ReadFile(file); err == nil && bytes.Equal(existing, content) {
 			continue
 		}
-		if err := os.WriteFile(path, content, 0o644); err != nil {
+		if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+			return errors.Wrap(err, "install the modlock library")
+		}
+		if err := os.WriteFile(file, content, 0o644); err != nil {
 			return errors.Wrap(err, "install the modlock library")
 		}
 	}
-	entries, err := os.ReadDir(installed)
-	if err != nil {
-		return errors.Wrap(err, "install the modlock library")
-	}
-	for _, entry := range entries {
-		if _, ok := files[entry.Name()]; !ok {
-			if err := os.RemoveAll(filepath.Join(installed, entry.Name())); err != nil {
+
+	// Remove the rest, keeping the kit's directory.
+	for _, sub := range []string{"", js.Kit} {
+		entries, err := os.ReadDir(filepath.Join(installed, sub))
+		if errors.Is(err, fs.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return errors.Wrap(err, "install the modlock library")
+		}
+		for _, entry := range entries {
+			name := path.Join(sub, entry.Name())
+			if _, ok := files[name]; ok || (name == js.Kit && entry.IsDir()) {
+				continue
+			}
+			if err := os.RemoveAll(filepath.Join(installed, filepath.FromSlash(name))); err != nil {
 				return errors.Wrap(err, "install the modlock library")
 			}
 		}
