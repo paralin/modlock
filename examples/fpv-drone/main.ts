@@ -17,6 +17,7 @@ import {
   players,
   toast,
   trace,
+  type Vector,
 } from 'modlock'
 
 import { angles, type Drone, launch, step } from './flight'
@@ -204,18 +205,14 @@ function fly(
     end: next,
     ignore: pawn?.entity ? [pawn.entity] : [],
   })
-  if (!hit) {
+  if (!hit || hit.startSolid) {
+    // A path that starts inside something lets the step through, so the drone
+    // flies out rather than sticking where every trace starts solid.
     drone.position = next
   } else {
-    // A path that starts inside something keeps the drone where it was.
-    if (!hit.startSolid) {
-      const n = hit.normal
-      drone.position = {
-        x: hit.position.x + n.x * standoff,
-        y: hit.position.y + n.y * standoff,
-        z: hit.position.z + n.z * standoff,
-      }
-    }
+    // The path's start was free, so every point before the hit is too: stop
+    // standoff short of the hit along the path, and kill the motion.
+    drone.position = shortOf(drone.position, hit.position, standoff)
     drone.velocity = { x: 0, y: 0, z: 0 }
   }
   camera.move(drone.position, angles(drone))
@@ -231,5 +228,19 @@ function fly(
         `position ${p.x.toFixed(0)} ${p.y.toFixed(0)} ${p.z.toFixed(0)} ` +
         `pitch ${a.pitch.toFixed(0)} yaw ${a.yaw.toFixed(0)} roll ${a.roll.toFixed(0)}`,
     )
+  }
+}
+
+/**
+ * shortOf returns the point on the segment from start to end that lies
+ * distance before end, or start when the segment is shorter than that.
+ */
+function shortOf(start: Vector, end: Vector, distance: number): Vector {
+  const d = Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z)
+  const t = d > distance ? (d - distance) / d : 0
+  return {
+    x: start.x + (end.x - start.x) * t,
+    y: start.y + (end.y - start.y) * t,
+    z: start.z + (end.z - start.z) * t,
   }
 }
