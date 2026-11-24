@@ -4,8 +4,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <format>
+#include <map>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -65,6 +69,86 @@ std::optional<std::span<uint8_t>> CallerBytes(wasmtime::Caller& caller, uint32_t
   }
   return Bytes(memory->data(caller.context()), data, size);
 }
+
+#if defined(_WIN32)
+// StackProbe measures how deep a host call reaches on the fiber that runs a
+// sliced call. With MODLOCK_STACK_PROBE set, StackPaint fills the stack below
+// the caller with a pattern, and StackReport finds how far the call
+// overwrote it. The first paint also raises a structured exception on the
+// fiber, to show that exception dispatch works there.
+struct StackProbe {
+  std::string method;
+  ULONG_PTR low = 0, high = 0;
+  uintptr_t top = 0, floor = 0;
+  bool painted = false;
+};
+
+constexpr uint8_t kStackPattern = 0xA5;
+
+LONG CALLBACK ContinueRaised(EXCEPTION_POINTERS* info) {
+  return info->ExceptionRecord->ExceptionCode == 0x20000001 ? EXCEPTION_CONTINUE_EXECUTION
+                                                            : EXCEPTION_CONTINUE_SEARCH;
+}
+
+__attribute__((noinline)) void FiberExceptions() {
+  static bool done = false;
+  if (done) {
+    return;
+  }
+  done = true;
+  void* handler = AddVectoredExceptionHandler(1, ContinueRaised);
+  RaiseException(0x20000001, 0, 0, nullptr);
+  RemoveVectoredExceptionHandler(handler);
+  std::fprintf(stderr,
+               "[stackprobe] on the fiber: a raised exception reached its handler and resumed\n");
+}
+
+__attribute__((noinline)) StackProbe StackPaint(const std::string& method, bool fiber) {
+  static const bool enabled = std::getenv("MODLOCK_STACK_PROBE") != nullptr;
+  static std::map<std::string, int> seen;
+  StackProbe probe;
+  if (!enabled || !fiber || ++seen[method] > 3) {
+    return probe;
+  }
+  FiberExceptions();
+  probe.method = method;
+  GetCurrentThreadStackLimits(&probe.low, &probe.high);
+  volatile char marker = 0;
+  probe.top = (reinterpret_cast<uintptr_t>(&marker) - 2048) & ~uintptr_t{4095};
+  // Paint page by page downward, so the guard page grows the stack as it does
+  // for the call's own probes.
+  constexpr uintptr_t kPaint = uintptr_t{6} << 20;
+  constexpr uintptr_t kMargin = 32 << 10;
+  const uintptr_t floor =
+      std::max<uintptr_t>(probe.low + kMargin, probe.top - std::min(probe.top - probe.low, kPaint));
+  probe.floor = (floor + 4095) & ~uintptr_t{4095};
+  for (uintptr_t page = probe.top; page >= probe.floor; page -= 4096) {
+    std::memset(reinterpret_cast<void*>(page), kStackPattern, 4096);
+  }
+  probe.painted = true;
+  return probe;
+}
+
+__attribute__((noinline)) void StackReport(const StackProbe& probe) {
+  if (!probe.painted) {
+    return;
+  }
+  // The lowest byte the call changed is the deepest it went.
+  const auto* bytes = reinterpret_cast<const uint8_t*>(probe.floor);
+  const size_t length = probe.top + 4096 - probe.floor;
+  size_t i = 0;
+  while (i < length && bytes[i] == kStackPattern) {
+    ++i;
+  }
+  std::fprintf(stderr,
+               "[stackprobe] %s: reached %zu bytes below the host call (the call's frame is %zu "
+               "bytes below the fiber top; the fiber holds %zu bytes; %zu painted)%s\n",
+               probe.method.c_str(), static_cast<size_t>(probe.top + 4096 - (probe.floor + i)),
+               static_cast<size_t>(probe.high - probe.top),
+               static_cast<size_t>(probe.high - probe.low), length,
+               i == 0 ? " REACHED THE PAINT FLOOR" : "");
+}
+#endif
 
 }  // namespace
 
@@ -357,7 +441,13 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
   // return. The report times each call on the steady clock instead, since
   // Wine answers thread time in 10 ms steps that round most calls to 0 or 10.
   const auto entered = std::chrono::steady_clock::now();
+#if defined(_WIN32)
+  const auto stack = StackPaint(call.method(), parked_ != nullptr);
+#endif
   host_call_(call).SerializeToString(&pending_);
+#if defined(_WIN32)
+  StackReport(stack);
+#endif
   const auto spent = std::chrono::duration_cast<std::chrono::nanoseconds>(
       std::chrono::steady_clock::now() - entered);
   budget_.host += spent;
