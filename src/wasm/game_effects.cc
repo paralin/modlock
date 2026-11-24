@@ -151,7 +151,7 @@ std::expected<objects::ObjectResponse, std::string> Game::CreateFog(
 
 std::expected<void, std::string> Game::Heal(const players::HealRequest& request) {
   // Read the live hero.
-  auto sample = Live(request.player());
+  auto sample = players_.Live(request.player());
   if (!sample) {
     return std::unexpected(sample.error());
   }
@@ -218,7 +218,7 @@ std::expected<void, std::string> Game::ClearScreenEffect(
 std::expected<int32_t, std::string> Game::ScreenOwner(int32_t slot) {
   // The client drops an effect unless its owner is a live entity, so the
   // effect belongs to the player's hero.
-  auto sample = Live(slot);
+  auto sample = players_.Live(slot);
   if (!sample) {
     return std::unexpected(sample.error());
   }

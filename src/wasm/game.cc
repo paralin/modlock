@@ -11,13 +11,11 @@
 
 #include "modlock/gameinterop/connection_tracker.h"
 #include "wasm/game_internal.h"
+#include "wasm/modifier_masks.h"
 
 namespace modlock::wasm {
 
-Game::Game(GameServices& services, EngineHost* engine)
-    : services_(services),
-      engine_(engine),
-      observer_(gameinterop::PawnObserver::LiveSeams(true), true) {
+Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
   // Register with the host-wide hooks; the destructor removes each before
   // the movement hook rechecks its movers.
   services_.InputSources().Add(&input_);
@@ -69,8 +67,9 @@ void Game::Frame() {
 
 void Game::ApplyHolds() {
   // Set each held state again and drop the ones that no longer apply.
-  std::erase_if(
-      held_, [this](const auto& hold) { return !SetModifierState(hold.first, hold.second, true); });
+  std::erase_if(held_, [this](const auto& hold) {
+    return !SetModifierState(services_, hold.first, hold.second, true);
+  });
   for (const auto& [slot, key] : held_modifiers_) {
     static_cast<void>(RenewModifier(slot, key));
   }
@@ -97,13 +96,13 @@ std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::st
   }
 
   // A dead hero has no modifiers to renew.
-  const auto sample = observer_.Observe(slot);
+  const auto sample = players_.Observer().Observe(slot);
   if (!sample || sample->health <= 0) {
     return {};
   }
 
   // Attach the modifier again if the game removed it.
-  auto attached = modifier->second.Attached(observer_, slot);
+  auto attached = modifier->second.Attached(players_.Observer(), slot);
   if (!attached) {
     return std::unexpected(attached.error());
   }
@@ -114,7 +113,7 @@ std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::st
   if (!source) {
     return std::unexpected(source.error());
   }
-  return modifier->second.Attach(observer_, slot, *source);
+  return modifier->second.Attach(players_.Observer(), slot, *source);
 }
 
 std::expected<void, std::string> Game::RenewEntityModifier(uint32_t handle, const std::string& key,
@@ -198,8 +197,6 @@ void Game::WorldReady() {
   static_cast<void>(services_.WorldCalls());
   static_cast<void>(services_.Selection());
   static_cast<void>(services_.Modifiers());
-  static_cast<void>(services_.ModifierState("MODIFIER_STATE_HOLDING_IDOL"));
-  observer_.Prepare();
 
   // Find every recorded server function now. Each is a scan of the whole
   // module, which would otherwise run inside the first call that needs it.
@@ -237,9 +234,6 @@ void Game::WorldEnding() {
   for (auto* module : std::views::reverse(modules_)) {
     module->WorldEnding();
   }
-
-  // Forget the observer's cached pawns.
-  observer_.Invalidate();
 }
 
 void Game::Leave(int32_t slot) {
@@ -280,7 +274,7 @@ std::expected<void, std::string> Game::Apart(uint64_t slots) {
 
 void Game::Clear() {
   // Stop watching every player.
-  for (const auto slot : observer_.WatchingSlots()) {
+  for (const auto slot : players_.Observer().WatchingSlots()) {
     players::PlayerRequest request;
     request.set_player(slot);
     static_cast<void>(Unwatch(request));
@@ -299,8 +293,8 @@ void Game::Clear() {
   }
   scaled_.clear();
   for (const auto slot : frozen_) {
-    if (observer_.Observe(slot)) {
-      static_cast<void>(observer_.SetPreparationFrozen(slot, false));
+    if (players_.Observer().Observe(slot)) {
+      static_cast<void>(players_.Observer().SetPreparationFrozen(slot, false));
     }
   }
 
@@ -316,7 +310,7 @@ void Game::Clear() {
 
   // Release held modifier states, the free-for-all and team seating.
   for (const auto& [entity, state] : held_) {
-    static_cast<void>(SetModifierState(entity, state, false));
+    static_cast<void>(SetModifierState(services_, entity, state, false));
   }
   held_.clear();
   free_for_all_ = false;
@@ -330,7 +324,7 @@ void Game::Clear() {
       return slash == std::string_view::npos ? key : key.substr(slash + 1);
     };
     for (const auto& [slot, key] : held_modifiers_) {
-      if (const auto sample = observer_.Observe(slot); sample && sample->pawn_handle) {
+      if (const auto sample = players_.Observer().Observe(slot); sample && sample->pawn_handle) {
         static_cast<void>(world_->FireInput(sample->pawn_handle, "RemoveModifier",
                                             gameinterop::EntityValue{modifier_name(key)},
                                             std::nullopt));
@@ -458,126 +452,6 @@ std::expected<void, std::string> Game::Announce(const effects::AnnounceRequest& 
   return (*messages)->Announce(request.player(), request.title(), request.text());
 }
 
-std::expected<players::PlayersResponse, std::string> Game::Players() {
-  players::PlayersResponse players;
-  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    // List each slot with a seat, connected or away.
-    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
-    if (!state.occupied && !state.away) {
-      continue;
-    }
-
-    // With its identity, readiness and presence.
-    auto* player = players.add_players();
-    player->set_player(slot);
-    player->set_steam_id(state.is_bot ? 0 : state.xuid);
-    player->set_name(state.name);
-    player->set_bot(state.is_bot);
-    player->set_ready(state.is_bot || state.fully_connected);
-    player->set_generation(state.generation);
-    player->set_away(state.away);
-  }
-  return players;
-}
-
-std::expected<players::PawnResponse, std::string> Game::Pawn(
-    const players::PlayerRequest& request) {
-  // Sample the player's hero; a slot without one, or a spectator, answers no
-  // pawn.
-  players::PawnResponse response;
-  const auto sample = Live(request.player());
-  if (sample) {
-    FillPawn(request.player(), *sample, response.mutable_pawn());
-  }
-  return response;
-}
-
-std::expected<players::PawnsResponse, std::string> Game::Pawns() {
-  // One sample per occupied slot with a live hero, in slot order: the same
-  // pawn Pawn answers for each, in one reply.
-  players::PawnsResponse response;
-  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    if (!gameinterop::ConnectionTracker::StateForSlot(slot).occupied) {
-      continue;
-    }
-    const auto sample = Live(slot);
-    if (!sample) {
-      continue;
-    }
-    auto* entry = response.add_pawns();
-    entry->set_player(slot);
-    FillPawn(slot, *sample, entry->mutable_pawn());
-  }
-  return response;
-}
-
-void Game::FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample,
-                    players::Pawn* pawn) {
-  // Copy the pawn's identity and health.
-  pawn->set_entity(sample.pawn_handle);
-  pawn->set_hero(sample.hero_id);
-  pawn->set_team(sample.team);
-  pawn->set_health(sample.health);
-  pawn->set_max_health(sample.max_health);
-  if (sample.effective_max_health) {
-    pawn->set_effective_max_health(*sample.effective_max_health);
-  }
-
-  // Copy the pawn's position and view.
-  pawn->mutable_position()->set_x(sample.x);
-  pawn->mutable_position()->set_y(sample.y);
-  pawn->mutable_position()->set_z(sample.z);
-  SetAngles(pawn->mutable_eye_angles(), sample.eye_angles);
-  SetAngles(pawn->mutable_camera_angles(), sample.camera_angles);
-
-  // Copy the optional readings the sample carries.
-  if (sample.stamina) {
-    pawn->set_stamina(sample.stamina->current);
-    pawn->set_max_stamina(sample.stamina->max);
-  }
-  pawn->set_generation(sample.session_generation);
-  if (sample.currencies) {
-    pawn->set_souls((*sample.currencies)[0]);
-    pawn->set_ability_points((*sample.currencies)[1]);
-    pawn->set_ability_unlocks((*sample.currencies)[2]);
-  }
-
-  // Copy the pawn's eye and velocity when the sample has them.
-  if (sample.eye_position) {
-    SetVector(pawn->mutable_eye_position(), *sample.eye_position);
-  }
-  if (const auto camera = services_.CameraPosition(slot)) {
-    SetVector(pawn->mutable_camera_position(), *camera);
-  }
-  if (sample.movement && sample.movement->abs_velocity) {
-    SetVector(pawn->mutable_velocity(), *sample.movement->abs_velocity);
-  }
-
-  // Copy the hero's scoreboard line.
-  if (sample.score) {
-    // Copy the scoreboard.
-    auto* score = pawn->mutable_score();
-    score->set_kills(sample.score->kills);
-    score->set_deaths(sample.score->deaths);
-    score->set_assists(sample.score->assists);
-    score->set_last_hits(sample.score->last_hits);
-
-    // Then denies, damage, healing and net worth.
-    score->set_denies(sample.score->denies);
-    score->set_hero_damage(sample.score->hero_damage);
-    score->set_hero_healing(sample.score->hero_healing);
-    score->set_net_worth(sample.score->net_worth);
-  }
-
-  // The game marks the hero carrying the urn with its holding-idol state.
-  abilities::ModifierStateRequest holding;
-  holding.set_entity(sample.pawn_handle);
-  holding.set_state("MODIFIER_STATE_HOLDING_IDOL");
-  if (const auto carrying = ModifierState(holding)) {
-    pawn->set_carrying_urn(carrying->active());
-  }
-}
-
 std::expected<gameinterop::WorldEntities*, std::string> Game::World() {
   if (!world_) {
     // Build the world's entities on the host's resolved calls.
@@ -588,23 +462,6 @@ std::expected<gameinterop::WorldEntities*, std::string> Game::World() {
     world_.emplace(**calls);
   }
   return &*world_;
-}
-
-std::expected<gameinterop::PawnObserver::Sample, std::string> Game::Live(int32_t slot) {
-  // A spectator's observed pawn is its camera, not a hero.
-  auto sample = observer_.Observe(slot);
-  if (!sample || sample->team == 1) {
-    return std::unexpected("the player has no live hero");
-  }
-  return *sample;
-}
-
-std::expected<void*, std::string> Game::LivePawn(int32_t slot) const {
-  void* pawn = observer_.PawnForSlot(slot);
-  if (pawn == nullptr) {
-    return std::unexpected("the player has no live hero");
-  }
-  return pawn;
 }
 
 objects::ObjectResponse Game::Keep(Object object) {

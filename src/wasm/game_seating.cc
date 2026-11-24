@@ -13,11 +13,11 @@ std::expected<void, std::string> Game::AssignTeams(const wasm::TeamAssignments& 
 std::expected<void, std::string> Game::SeatAssignedPlayer(int32_t slot, uint32_t generation,
                                                           uint64_t steam_id, int32_t team) {
   // Wait for the controller, then move a hero without replacing it.
-  const auto current = observer_.ControllerTeam(slot);
+  const auto current = players_.Observer().ControllerTeam(slot);
   if (!current) {
     return std::unexpected("player controller unavailable");
   }
-  const auto hero = team != 1 && *current >= 2 ? observer_.Observe(slot) : std::nullopt;
+  const auto hero = team != 1 && *current >= 2 ? players_.Observer().Observe(slot) : std::nullopt;
   if (hero && hero->team >= 2 && hero->hero_id != 0) {
     if (*current == team) {
       return {};
@@ -26,7 +26,7 @@ std::expected<void, std::string> Game::SeatAssignedPlayer(int32_t slot, uint32_t
     if (!change) {
       return std::unexpected(change.error());
     }
-    return observer_.MovePlayer(slot, generation, team, *change);
+    return players_.Observer().MovePlayer(slot, generation, team, *change);
   }
 
   // An observer needs a camera; a new player joins with the hero picker.
@@ -35,9 +35,10 @@ std::expected<void, std::string> Game::SeatAssignedPlayer(int32_t slot, uint32_t
     return std::unexpected(selection.error());
   }
   if (team == 1) {
-    return observer_.SelectPlayer(slot, steam_id, generation, team, nullptr, **selection);
+    return players_.Observer().SelectPlayer(slot, steam_id, generation, team, nullptr, **selection);
   }
-  auto seated = observer_.SeatForChoice(slot, steam_id, generation, team, **selection, true);
+  auto seated =
+      players_.Observer().SeatForChoice(slot, steam_id, generation, team, **selection, true);
   if (!seated) {
     return std::unexpected(seated.error());
   }
@@ -63,7 +64,7 @@ void Game::SeatAssignedPlayers() {
     const auto current = gameinterop::ConnectionTracker::StateForSlot(slot);
     const bool same_connection =
         current.occupied && current.xuid == state.xuid && current.generation == state.generation;
-    if (seated && same_connection && observer_.ControllerTeam(slot) == *assignment) {
+    if (seated && same_connection && players_.Observer().ControllerTeam(slot) == *assignment) {
       assignments_.Confirm(state.xuid, slot, state.generation, *assignment);
       seat_failed_.erase(slot);
     } else if (!seated && seat_failed_.insert(slot).second) {

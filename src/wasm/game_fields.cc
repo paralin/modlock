@@ -15,6 +15,7 @@
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
+#include "wasm/modifier_masks.h"
 #include "wasm/text_values.h"
 
 namespace modlock::wasm {
@@ -762,29 +763,12 @@ std::expected<entities::EntityPositionResponse, std::string> Game::EntityPositio
 
 std::expected<abilities::ActiveResponse, std::string> Game::ModifierState(
     const abilities::ModifierStateRequest& request) {
-  // Find the entity and the mask word that holds the state.
-  auto entity = LiveEntity(request.entity());
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  auto word = FindModifierWord(*entity, request.state());
-  if (!word) {
-    return std::unexpected(word.error());
+  auto active = ReadModifierState(services_, request.entity(), request.state());
+  if (!active) {
+    return std::unexpected(active.error());
   }
   abilities::ActiveResponse response;
-  if (!*word) {
-    return response;
-  }
-
-  // The game predicts some states, such as parry, so a state is active when
-  // either mask holds it.
-  uint32_t ordinary = 0;
-  uint32_t predicted = 0;
-  if (!gameinterop::ReadNative((*word)->ordinary, &ordinary, sizeof(ordinary)) ||
-      !gameinterop::ReadNative((*word)->predicted, &predicted, sizeof(predicted))) {
-    return std::unexpected("cannot read the entity's modifier states");
-  }
-  response.set_active(((ordinary | predicted) & (*word)->bit) != 0);
+  response.set_active(*active);
   return response;
 }
 
@@ -873,11 +857,11 @@ std::expected<void, std::string> Game::HoldModifierState(
     if (held_.erase(hold) == 0) {
       return {};
     }
-    return SetModifierState(request.entity(), request.state(), false);
+    return SetModifierState(services_, request.entity(), request.state(), false);
   }
 
   // Holding sets the state now and every frame after.
-  if (auto set = SetModifierState(request.entity(), request.state(), true); !set) {
+  if (auto set = SetModifierState(services_, request.entity(), request.state(), true); !set) {
     return set;
   }
   held_.insert(std::move(hold));
@@ -946,7 +930,7 @@ void Game::SeatPlayers() {
       if (!state.occupied || !Serves(slot)) {
         continue;
       }
-      const auto team = observer_.ControllerTeam(slot);
+      const auto team = players_.Observer().ControllerTeam(slot);
       if (!team) {
         continue;
       }
@@ -959,7 +943,8 @@ void Game::SeatPlayers() {
     for (const auto slot : unseated) {
       const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
       const int team = sides[3] < sides[2] ? 3 : 2;
-      auto seated = observer_.SeatForChoice(slot, state.xuid, state.generation, team, **selection);
+      auto seated =
+          players_.Observer().SeatForChoice(slot, state.xuid, state.generation, team, **selection);
       if (seated && *seated) {
         ++sides[team];
         seat_failed_.erase(slot);
@@ -981,7 +966,7 @@ void Game::ApplyFreeForAll() {
 
   // Hold friendly fire on each living hero, and let a gone hero's hold go.
   std::set<uint32_t> living;
-  for (const auto& hero : Heroes()) {
+  for (const auto& hero : players_.Heroes()) {
     living.insert(hero.handle);
     if (ffa_held_.insert(hero.handle).second) {
       held_.insert({hero.handle, kFriendlyFire});
@@ -1003,80 +988,11 @@ void Game::ReleaseFreeForAll() {
   static constexpr const char* kFriendlyFire = "MODIFIER_STATE_FRIENDLY_FIRE_ENABLED";
   for (const auto handle : ffa_held_) {
     if (held_.erase({handle, kFriendlyFire}) != 0) {
-      static_cast<void>(SetModifierState(handle, kFriendlyFire, false));
+      static_cast<void>(SetModifierState(services_, handle, kFriendlyFire, false));
     }
   }
   ffa_held_.clear();
   seat_failed_.clear();
-}
-
-std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifierWord(
-    void* entity, const std::string& state) {
-  // Resolve the mask layout and the state's bit.
-  auto layout = services_.Modifiers();
-  if (!layout) {
-    return std::unexpected(layout.error());
-  }
-  auto value = services_.ModifierState(state);
-  if (!value) {
-    return std::unexpected(value.error());
-  }
-  if (*value < 0 || static_cast<size_t>(*value) >= layout->mask_size * 8) {
-    return std::unexpected(state + " is outside the modifier state masks");
-  }
-
-  // Read the entity's modifier property.
-  unsigned char* property = nullptr;
-  if (!gameinterop::ReadNative(static_cast<const unsigned char*>(entity) + layout->property,
-                               &property, sizeof(property))) {
-    return std::unexpected("cannot read the entity's modifiers");
-  }
-  if (property == nullptr) {
-    return std::nullopt;
-  }
-
-  // Point at the word that holds the state in each mask.
-  const auto word = static_cast<size_t>(*value / 32) * sizeof(uint32_t);
-  return ModifierWord{
-      .ordinary = property + layout->mask + word,
-      .predicted = property + layout->predicted_mask + word,
-      .bit = uint32_t{1} << (*value % 32),
-  };
-}
-
-std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const std::string& state,
-                                                        bool active) {
-  // Find the entity and the mask word that holds the state.
-  auto entity = LiveEntity(handle);
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  auto word = FindModifierWord(*entity, state);
-  if (!word) {
-    return std::unexpected(word.error());
-  }
-  if (!*word) {
-    return std::unexpected("the entity has no modifiers");
-  }
-
-  // Read the ordinary mask and set or clear the state's bit.
-  uint32_t current = 0;
-  if (!gameinterop::ReadNative((*word)->ordinary, &current, sizeof(current))) {
-    return std::unexpected("cannot read the entity's modifier states");
-  }
-  const uint32_t desired = active ? current | (*word)->bit : current & ~(*word)->bit;
-  if (desired == current) {
-    return {};
-  }
-
-  // Write the mask back and send it.
-  if (!gameinterop::WriteNative((*word)->ordinary, &desired, sizeof(desired))) {
-    return std::unexpected("cannot write the entity's modifier states");
-  }
-  if (!gameinterop::NotifyEntityStateChanged(*entity)) {
-    return std::unexpected("cannot replicate the entity's modifier states");
-  }
-  return {};
 }
 
 }  // namespace modlock::wasm
