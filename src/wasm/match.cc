@@ -2,16 +2,18 @@
 
 #include <iostream>
 
+#include "wasm/match.h"
+
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
 namespace modlock::wasm {
 
-std::expected<void, std::string> Game::Pause(const wasm::PauseRequest& request) {
+std::expected<void, std::string> Match::Pause(const wasm::PauseRequest& request) {
   return SetPaused(request.paused());
 }
 
-std::expected<void, std::string> Game::SetPaused(bool paused) {
+std::expected<void, std::string> Match::SetPaused(bool paused) {
   // Pause or resume the game, and remember it.
   auto pause = services_.Pause();
   if (!pause) {
@@ -24,7 +26,7 @@ std::expected<void, std::string> Game::SetPaused(bool paused) {
   return {};
 }
 
-std::expected<wasm::MatchClockResponse, std::string> Game::MatchClock() {
+std::expected<wasm::MatchClockResponse, std::string> Match::MatchClock() {
   // Resolve the match clock and the server's time.
   auto clock = services_.Clock();
   if (!clock) {
@@ -49,7 +51,7 @@ std::expected<wasm::MatchClockResponse, std::string> Game::MatchClock() {
   return response;
 }
 
-std::expected<void, std::string> Game::HoldMatchClock(const wasm::HoldMatchClockRequest& request) {
+std::expected<void, std::string> Match::HoldMatchClock(const wasm::HoldMatchClockRequest& request) {
   // No seconds releases the hold.
   if (!request.has_seconds()) {
     held_clock_.reset();
@@ -65,7 +67,11 @@ std::expected<void, std::string> Game::HoldMatchClock(const wasm::HoldMatchClock
   return {};
 }
 
-void Game::HoldClock() {
+void Match::Frame() {
+  HoldClock();
+}
+
+void Match::HoldClock() {
   // Read the clock while a hold is set.
   if (!held_clock_) {
     return;
@@ -91,11 +97,11 @@ void Game::HoldClock() {
   }
 }
 
-std::expected<void, std::string> Game::ReplicateClock() {
-  auto rules = Entity(rules_entity_);
+std::expected<void, std::string> Match::ReplicateClock() {
+  auto rules = LiveEntity(rules_entity_);
   if (!rules) {
     // Find the rules entity once.
-    auto world = World();
+    auto world = world_.World();
     if (!world) {
       return std::unexpected(world.error());
     }
@@ -107,7 +113,7 @@ std::expected<void, std::string> Game::ReplicateClock() {
       return std::unexpected("the game has no rules entity");
     }
     rules_entity_ = found->front();
-    rules = Entity(rules_entity_);
+    rules = LiveEntity(rules_entity_);
     if (!rules) {
       return std::unexpected(rules.error());
     }
@@ -118,7 +124,19 @@ std::expected<void, std::string> Game::ReplicateClock() {
   return {};
 }
 
-std::expected<wasm::RiftResponse, std::string> Game::Rift() {
+void Match::WorldEnding() {
+  held_clock_.reset();
+  paused_ = false;
+}
+
+void Match::Clear() {
+  held_clock_.reset();
+  if (paused_) {
+    static_cast<void>(SetPaused(false));
+  }
+}
+
+std::expected<wasm::RiftResponse, std::string> Match::Rift() {
   // Read the rift's state.
   auto rift = services_.Rift();
   if (!rift) {
@@ -143,7 +161,7 @@ std::expected<wasm::RiftResponse, std::string> Game::Rift() {
   return response;
 }
 
-std::expected<void, std::string> Game::StartRift(const wasm::StartRiftRequest& request) {
+std::expected<void, std::string> Match::StartRift(const wasm::StartRiftRequest& request) {
   auto rift = services_.Rift();
   if (!rift) {
     return std::unexpected(rift.error());

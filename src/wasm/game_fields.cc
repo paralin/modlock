@@ -486,7 +486,7 @@ std::expected<void, std::string> Game::StoreField(void* entity, const std::strin
 std::expected<fields::FieldResponse, std::string> Game::ReadField(
     const fields::ReadFieldRequest& request) {
   // Find the entity and the field's address.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -533,7 +533,7 @@ std::expected<std::vector<unsigned char*>, std::string> Game::EntityModifiers(vo
 std::expected<fields::FieldResponse, std::string> Game::ReadModifierField(
     const fields::ReadModifierFieldRequest& request) {
   // Find the entity, the field and the entity's modifier list.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -566,7 +566,7 @@ std::expected<fields::FieldResponse, std::string> Game::ReadModifierField(
 
 std::expected<void, std::string> Game::WriteField(const fields::WriteFieldRequest& request) {
   // Find the entity and store the value in its field.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -606,7 +606,7 @@ void Game::RebuildPanels() {
 std::expected<fields::FieldListResponse, std::string> Game::ReadFieldList(
     const fields::ReadFieldRequest& request) {
   // Find the entity, the list field's address and its header.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -642,7 +642,7 @@ std::expected<fields::FieldListResponse, std::string> Game::ReadFieldList(
 std::expected<void, std::string> Game::WriteFieldList(
     const fields::WriteFieldListRequest& request) {
   // Find the entity and encode every value.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -706,7 +706,7 @@ std::expected<void, std::string> Game::WriteFieldList(
 std::expected<entities::EntityClassResponse, std::string> Game::EntityClass(
     const entities::EntityRequest& request) {
   // Find the entity and its schema class.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -725,7 +725,7 @@ std::expected<entities::EntityClassResponse, std::string> Game::EntityClass(
 
 std::expected<entities::EntityNameResponse, std::string> Game::EntityName(
     const entities::EntityRequest& request) {
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -737,7 +737,7 @@ std::expected<entities::EntityNameResponse, std::string> Game::EntityName(
 std::expected<entities::EntityPositionResponse, std::string> Game::EntityPosition(
     const entities::EntityRequest& request) {
   // Find the entity and read its scene node's origin and angles.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -763,7 +763,7 @@ std::expected<entities::EntityPositionResponse, std::string> Game::EntityPositio
 std::expected<abilities::ActiveResponse, std::string> Game::ModifierState(
     const abilities::ModifierStateRequest& request) {
   // Find the entity and the mask word that holds the state.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -791,7 +791,7 @@ std::expected<abilities::ActiveResponse, std::string> Game::ModifierState(
 std::expected<abilities::ModifiersResponse, std::string> Game::Modifiers(
     const entities::EntityRequest& request) {
   // Find the entity, its modifiers and the clock their times count on.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -1047,7 +1047,7 @@ std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifier
 std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const std::string& state,
                                                         bool active) {
   // Find the entity and the mask word that holds the state.
-  auto entity = Entity(handle);
+  auto entity = LiveEntity(handle);
   if (!entity) {
     return std::unexpected(entity.error());
   }

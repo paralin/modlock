@@ -24,7 +24,7 @@ bool Watches(const combat::ProjectileOptions& options, std::string_view name) {
 
 std::expected<void, std::string> Game::MoveEntity(const entities::MoveEntityRequest& request) {
   // Move the entity, keeping each part of its pose unless given.
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -43,7 +43,7 @@ std::expected<void, std::string> Game::PushEntity(const entities::PushEntityRequ
   if (!dynamics) {
     return std::unexpected(dynamics.error());
   }
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }

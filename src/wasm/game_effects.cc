@@ -278,7 +278,7 @@ std::expected<effects::SoundResponse, std::string> Game::Sound(
 std::expected<effects::SoundResponse, std::string> Game::EmitSound(
     const effects::EmitSoundRequest& request) {
   // Play the sound on the live entity, which it follows.
-  if (auto entity = Entity(request.entity()); !entity) {
+  if (auto entity = LiveEntity(request.entity()); !entity) {
     return std::unexpected(entity.error());
   }
   const auto index = static_cast<int32_t>(gameinterop::EntityIndexOf(request.entity()));

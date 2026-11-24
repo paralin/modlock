@@ -180,7 +180,7 @@ std::expected<void*, std::string> Game::ObserveFrom(int32_t slot, uint8_t mode, 
 
 std::expected<void, std::string> Game::Watch(const players::WatchRequest& request) {
   // Follow the target in its own view or from behind it.
-  if (auto target = Entity(request.target()); !target) {
+  if (auto target = LiveEntity(request.target()); !target) {
     return std::unexpected(target.error());
   }
   const auto mode = request.chase() ? kObserveChase : kObserveInEye;
@@ -389,7 +389,7 @@ std::expected<void, std::string> Game::MoveCamera(const players::CameraOptions& 
   // operation that names no hero.
   uint32_t target = request.target();
   if (request.has_target()) {
-    if (auto entity = Entity(target); !entity) {
+    if (auto entity = LiveEntity(target); !entity) {
       return std::unexpected(entity.error());
     }
   } else {
@@ -1027,7 +1027,7 @@ std::expected<void, std::string> Game::HoldEntityModifier(
   }
 
   // Check the entity before resolving or mutating the shared definition.
-  if (auto entity = Entity(request.entity()); !entity) {
+  if (auto entity = LiveEntity(request.entity()); !entity) {
     return std::unexpected(entity.error());
   }
   if (auto resolved = EnsureHeldModifier(key); !resolved) {
@@ -1050,7 +1050,7 @@ std::expected<void, std::string> Game::GiveEntityModifier(
   if (!calls) {
     return std::unexpected(calls.error());
   }
-  auto entity = Entity(request.entity());
+  auto entity = LiveEntity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
   }
@@ -1216,7 +1216,7 @@ std::expected<std::array<float, 3>, std::string> Game::NearestZiplineNode(void* 
   std::optional<std::array<float, 3>> nearest;
   float nearest_distance = 0;
   for (const auto handle : *nodes) {
-    auto node = Entity(handle);
+    auto node = LiveEntity(handle);
     if (!node) {
       continue;
     }
