@@ -28,7 +28,11 @@
 
 import {
   Align,
+  type Clip,
+  type Clock,
+  ClockFormat,
   type Cue,
+  type Curve,
   Decoration,
   Easing,
   type Edges,
@@ -172,6 +176,11 @@ export interface Layouts {
    */
   url(mod: string, path: string): string | null
   /**
+   * addon returns the name of the content addon that holds mod's files, which
+   * an image names as {addon}, or null when the host does not know it.
+   */
+  addon(mod: string): string | null
+  /**
    * unloaded runs after the drawing deletes one or more layouts' panels. A
    * layout's key binds replaced the host's for the whole game process, so the
    * host binds its keys again.
@@ -198,6 +207,10 @@ export class AddonLayouts implements Layouts {
   url(mod: string, path: string): string | null {
     const addon = this.addons.get(mod)
     return addon ? addonLayout(addon, path) : null
+  }
+
+  addon(mod: string): string | null {
+    return this.addons.get(mod) || null
   }
 
   unloaded(): void {}
@@ -243,6 +256,17 @@ function isAddonPath(path: string, extension: string): boolean {
     path.endsWith(extension) &&
     path.split('/').every((part) => /^[\w.-]+$/.test(part) && part !== '..')
   )
+}
+
+/** addonPlace is the place in an image's path that names the mod's addon. */
+const addonPlace = '{addon}'
+
+/**
+ * isAddonName reports whether name can name a content addon: one path
+ * segment of letters, digits, '_', '-' and '.', other than "..".
+ */
+function isAddonName(name: string): boolean {
+  return /^[\w.-]+$/.test(name) && name !== '..'
 }
 
 /** isClassName reports whether name can be a panel's class: letters, digits, '_' and '-'. */
@@ -433,6 +457,81 @@ interface Cycling {
 }
 
 /**
+ * Ticking is a label's clock as the drawing runs it: key names the clock the
+ * mod sent, since is when it started counting from its seconds, in seconds
+ * of wall time, and node is the label it fills.
+ */
+interface Ticking {
+  key: string
+  clock: Clock
+  since: number
+  node: Node
+}
+
+/** clockTick is how often a running clock writes its label, in seconds. */
+const clockTick = 0.1
+
+/** now returns the wall time in seconds. */
+function now(): number {
+  return Date.now() / 1000
+}
+
+/**
+ * windClock returns the clock a label runs: the one it ran before while the
+ * mod sends the same clock, or one started now.
+ */
+function windClock(node: Node, before: Ticking | null | undefined): Ticking {
+  const clock = node.clock!
+  const key = JSON.stringify(clock)
+  return {
+    key,
+    clock,
+    since: before?.key === key ? before.since : now(),
+    node,
+  }
+}
+
+/** clockTime returns the seconds a clock shows at time at. */
+function clockTime(ticking: Ticking, at: number): number {
+  const { seconds, up, paused } = ticking.clock
+  const start = Math.max(0, finite(seconds))
+  const passed = paused ? 0 : Math.max(0, at - ticking.since)
+  return up ? start + passed : Math.max(0, start - passed)
+}
+
+/** clockRunning reports whether a clock's time still changes at time at. */
+function clockRunning(ticking: Ticking, at: number): boolean {
+  return (
+    !ticking.clock.paused && (!!ticking.clock.up || clockTime(ticking, at) > 0)
+  )
+}
+
+/**
+ * clockText writes a clock's time in its format. A countdown rounds up and a
+ * count up rounds down, so a countdown shows zero only once it ends.
+ */
+export function clockText(clock: Clock, time: number): string {
+  const round = clock.up ? Math.floor : Math.ceil
+  const pad = (value: number) => String(value).padStart(2, '0')
+  switch (clock.format) {
+    case ClockFormat.SECONDS:
+      return String(round(time))
+    case ClockFormat.TENTHS: {
+      const tenths = round(Math.round(time * 1000) / 100)
+      const whole = Math.floor(tenths / 10)
+      const tail = `.${tenths % 10}`
+      return whole < 60
+        ? `${whole}${tail}`
+        : `${Math.floor(whole / 60)}:${pad(whole % 60)}${tail}`
+    }
+    default: {
+      const whole = round(time)
+      return `${Math.floor(whole / 60)}:${pad(whole % 60)}`
+    }
+  }
+}
+
+/**
  * Tip is what a node's panel shows under the pointer: nothing, its text, its
  * item's shop card or its ability's window.
  */
@@ -482,6 +581,7 @@ interface Drawn {
   sheets: string
   nested: Panel[]
   classes: string[]
+  clock: Ticking | null
 }
 
 /**
@@ -507,8 +607,14 @@ export class Drawing {
    */
   private readonly cues = new Map<
     string,
-    { generation: bigint; heard: number; playing: number[] }
+    { generation: bigint; heard: number; playing: number[]; silenced: number }
   >()
+
+  /** addons holds the content addon each mod's tree names, by mod. */
+  private readonly addons = new Map<string, string>()
+
+  /** ticking is true while a clock's next tick is scheduled. */
+  private ticking = false
 
   constructor(
     private readonly panorama: Panorama,
@@ -563,6 +669,7 @@ export class Drawing {
         )
         this.mods.delete(mod)
         this.routes.delete(mod)
+        this.addons.delete(mod)
       }
     }
 
@@ -608,6 +715,7 @@ export class Drawing {
     }
     const sent = this.routes.get(mod) ?? new Map<string, string>()
     this.routes.set(mod, routes)
+    this.addons.set(mod, tree.addon ?? '')
 
     // A clear followed by a redraw can share one sampled screen. Its new
     // generation still replaces the previous layout and its script state.
@@ -681,7 +789,12 @@ export class Drawing {
     const newest = Math.max(0, ...cues.map((each) => each.number ?? 0))
     const memory = this.cues.get(mod)
     if (memory === undefined) {
-      this.cues.set(mod, { generation, heard: newest, playing: [] })
+      this.cues.set(mod, {
+        generation,
+        heard: newest,
+        playing: [],
+        silenced: 0,
+      })
       return
     }
     if (memory.generation !== generation) {
@@ -690,31 +803,46 @@ export class Drawing {
       memory.heard = 0
     }
 
-    // Play the cues not yet heard, oldest first, keeping each to stop and
-    // cutting the short ones.
+    // Play the cues not yet heard, oldest first, each after its delay. A
+    // delayed cue plays only if its mod's sounds were not silenced meanwhile.
     const fresh = cues
       .filter((each) => (each.number ?? 0) > memory.heard)
       .sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
     memory.heard = Math.max(memory.heard, newest)
     for (const each of fresh) {
-      const playing = this.panorama.PlaySound?.(each.sound ?? '')
-      if (typeof playing !== 'number') {
+      const delay = clamp(each.delay ?? 0, 0, 60)
+      if (delay === 0 || !this.panorama.Schedule) {
+        this.play(memory, each)
         continue
       }
-      memory.playing = [...memory.playing, playing].slice(-keptSounds)
-      const seconds = each.seconds ?? 0
-      if (seconds > 0) {
-        this.panorama.Schedule?.(seconds, () => {
-          if (memory.playing.includes(playing)) {
-            memory.playing = memory.playing.filter((one) => one !== playing)
-            this.panorama.StopSound?.(playing)
-          }
-        })
-      }
+      const silenced = memory.silenced
+      this.panorama.Schedule(delay, () => {
+        if (memory.silenced === silenced && this.cues.get(mod) === memory) {
+          this.play(memory, each)
+        }
+      })
     }
   }
 
-  /** silence stops the sounds a mod's cues lately started. */
+  /** play plays one cue, keeping its sound to stop and cutting a short one. */
+  private play(memory: { playing: number[] }, each: Cue): void {
+    const playing = this.panorama.PlaySound?.(each.sound ?? '')
+    if (typeof playing !== 'number') {
+      return
+    }
+    memory.playing = [...memory.playing, playing].slice(-keptSounds)
+    const seconds = each.seconds ?? 0
+    if (seconds > 0) {
+      this.panorama.Schedule?.(seconds, () => {
+        if (memory.playing.includes(playing)) {
+          memory.playing = memory.playing.filter((one) => one !== playing)
+          this.panorama.StopSound?.(playing)
+        }
+      })
+    }
+  }
+
+  /** silence stops the sounds a mod's cues lately started and those waiting. */
   private silence(mod: string): void {
     const memory = this.cues.get(mod)
     if (memory === undefined) {
@@ -724,6 +852,7 @@ export class Drawing {
       this.panorama.StopSound?.(playing)
     }
     memory.playing = []
+    memory.silenced++
   }
 
   /**
@@ -1071,20 +1200,74 @@ export class Drawing {
     return true
   }
 
-  /** labelText returns a label's text: its token's in the player's language, or its own. */
-  private labelText(panel: Panel, node: Node): string {
+  /**
+   * labelText returns a label's text: its token's in the player's language,
+   * or its own. A clock's time stands in for the label's own text, or fills
+   * its token's {s:clock} place.
+   */
+  private labelText(panel: Panel, node: Node, clock: Ticking | null): string {
     // A label without a token, or a host without the game's text, shows the
     // label's own text.
+    const time = clock ? clockText(clock.clock, clockTime(clock, now())) : null
     const token = node.token ?? ''
     if (!/^#[\w.-]{1,127}$/.test(token) || !this.panorama.Localize) {
-      return node.text || token
+      return time ?? (node.text || token)
     }
 
     // Fill the token's places, then look it up.
-    for (const [name, value] of Object.entries(node.variables ?? {})) {
+    const variables = Object.entries(node.variables ?? {})
+    if (time !== null) {
+      variables.push(['clock', time])
+    }
+    for (const [name, value] of variables) {
       this.attempt('fill a token', () => panel.SetDialogVariable(name, value))
     }
     return this.panorama.Localize(token, panel)
+  }
+
+  /**
+   * tick schedules the next write of every running clock's label, unless one
+   * is scheduled, and goes on while any clock runs.
+   */
+  private tick(): void {
+    if (this.ticking || !this.panorama.Schedule) {
+      return
+    }
+    this.ticking = true
+    this.panorama.Schedule(clockTick, () => {
+      this.ticking = false
+      const at = now()
+      let running = false
+      for (const { nodes } of this.mods.values()) {
+        for (const each of nodes.values()) {
+          if (!each.clock || !each.panel.IsValid()) {
+            continue
+          }
+          const text = this.labelText(each.panel, each.clock.node, each.clock)
+          if (each.panel.text !== text) {
+            each.panel.text = text
+          }
+          running ||= clockRunning(each.clock, at)
+        }
+      }
+      if (running) {
+        this.tick()
+      }
+    })
+  }
+
+  /**
+   * imagePath returns an image's path with mod's content addon in place of
+   * {addon}, or no image when the path names the addon and none is known.
+   */
+  private imagePath(mod: string, path: string): string {
+    if (!path.includes(addonPlace)) {
+      return path
+    }
+    const addon = this.layouts
+      ? this.layouts.addon(mod)
+      : this.addons.get(mod) || null
+    return addon && isAddonName(addon) ? path.split(addonPlace).join(addon) : ''
   }
 
   /** activate presses a button that is not disabled, playing its sound. */
@@ -1299,6 +1482,10 @@ export class Drawing {
       sheets: sheeted,
       nested,
       classes,
+      clock:
+        kind === Kind.LABEL && node.clock
+          ? windClock(node, fresh ? null : old.clock)
+          : null,
     }
     drawn.set(id, each)
 
@@ -1320,9 +1507,12 @@ export class Drawing {
       panel.enabled = !each.disabled
     }
     if (kind === Kind.LABEL) {
-      panel.text = this.labelText(panel, node)
+      panel.text = this.labelText(panel, node, each.clock)
+      if (each.clock && clockRunning(each.clock, now())) {
+        this.tick()
+      }
     } else if (kind === Kind.IMAGE) {
-      panel.SetImage(node.image ?? '')
+      panel.SetImage(this.imagePath(mod, node.image ?? ''))
     } else if (control && (fresh || old.value !== value)) {
       this.answer(each, node, old)
     }
@@ -1604,6 +1794,9 @@ function styleOf(
       style?.transform?.originY !== undefined
         ? `${finite(style.transform.originX ?? 50)}% ${finite(style.transform.originY ?? 50)}%`
         : null,
+    preTransformRotate2d:
+      style?.turn === undefined ? null : `${finite(style.turn)}deg`,
+    clip: style?.clip ? clipOf(style.clip) : null,
   }
   return Object.fromEntries(
     Object.entries(css).filter(
@@ -1688,8 +1881,21 @@ function transitionOf(
     transitionProperty: names.join(', '),
     transitionDuration: `${clamp(transition.seconds, 0, 60)}s`,
     transitionDelay: `${clamp(transition.delay ?? 0, 0, 60)}s`,
-    transitionTimingFunction: easings[transition.easing ?? Easing.EASE_OUT],
+    transitionTimingFunction: transition.curve
+      ? curveOf(transition.curve)
+      : easings[transition.easing ?? Easing.EASE_OUT],
   }
+}
+
+/**
+ * curveOf writes a cubic Bezier timing function. Its control points' times
+ * stay within the transition, as the game requires; their progress may
+ * overshoot it, to spring past the end and settle back.
+ */
+function curveOf(curve: Curve): string {
+  const time = (value: number | undefined) => clamp(value ?? 0, 0, 1)
+  const progress = (value: number | undefined) => clamp(value ?? 0, -10, 10)
+  return `cubic-bezier( ${time(curve.x1)}, ${progress(curve.y1)}, ${time(curve.x2)}, ${progress(curve.y2)} )`
 }
 
 /** animated holds the style properties the game animates in a transition. */
@@ -1716,6 +1922,7 @@ const animated = new Set([
   'blur',
   'transform',
   'transformOrigin',
+  'preTransformRotate2d',
 ])
 
 /**
@@ -1756,6 +1963,7 @@ const rest: Record<string, string> = {
   // eases a transform back to rest as it eases between two.
   transform: transform({}),
   transformOrigin: '50% 50%',
+  preTransformRotate2d: '0deg',
   transitionProperty: 'none',
   transitionDuration: '0s',
   transitionDelay: '0s',
@@ -2022,6 +2230,28 @@ function transform(value: Transform): string {
   const scaleX = value.scaleX ?? 1
   const scaleY = value.scaleY ?? scaleX
   return `translate3d( ${finite(value.translateX)}px, ${finite(value.translateY)}px, 0px ) scale3d( ${finite(scaleX)}, ${finite(scaleY)}, 1 ) rotateZ( ${finite(value.rotate)}deg )`
+}
+
+/**
+ * clipOf writes the part of a panel that draws: a box whose sides lie at
+ * percents of the panel's size from its top or left edge, or a slice of a
+ * circle about a point, through sweep degrees from start.
+ */
+function clipOf(value: Clip): string | null {
+  switch (value.shape?.case) {
+    case 'rect': {
+      const edge = (inset: number | undefined) =>
+        `${clamp(inset ?? 0, 0, 100)}%`
+      const box = value.shape.value
+      return `rect( ${edge(box.top)}, ${edge(box.right)}, ${edge(box.bottom)}, ${edge(box.left)} )`
+    }
+    case 'radial': {
+      const slice = value.shape.value
+      return `radial( ${finite(slice.centerX ?? 50)}% ${finite(slice.centerY ?? 50)}%, ${finite(slice.start)}deg, ${clamp(slice.sweep ?? 0, 0, 360)}deg )`
+    }
+    default:
+      return null
+  }
 }
 
 /** refused holds the kinds of call the game refused, each logged once. */

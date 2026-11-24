@@ -16,6 +16,47 @@ import (
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 )
 
+// ClockFormat writes a clock's time.
+type ClockFormat int32
+
+const (
+	// CLOCK_FORMAT_MINUTES writes minutes and seconds, such as "4:05".
+	ClockFormat_CLOCK_FORMAT_MINUTES ClockFormat = 0
+	// CLOCK_FORMAT_SECONDS writes whole seconds, such as "245".
+	ClockFormat_CLOCK_FORMAT_SECONDS ClockFormat = 1
+	// CLOCK_FORMAT_TENTHS writes seconds and tenths, such as "9.4", with
+	// minutes before them from a minute up, such as "1:05.3".
+	ClockFormat_CLOCK_FORMAT_TENTHS ClockFormat = 2
+)
+
+// Enum value maps for ClockFormat.
+var (
+	ClockFormat_name = map[int32]string{
+		0: "CLOCK_FORMAT_MINUTES",
+		1: "CLOCK_FORMAT_SECONDS",
+		2: "CLOCK_FORMAT_TENTHS",
+	}
+	ClockFormat_value = map[string]int32{
+		"CLOCK_FORMAT_MINUTES": 0,
+		"CLOCK_FORMAT_SECONDS": 1,
+		"CLOCK_FORMAT_TENTHS":  2,
+	}
+)
+
+func (x ClockFormat) Enum() *ClockFormat {
+	p := new(ClockFormat)
+	*p = x
+	return p
+}
+
+func (x ClockFormat) String() string {
+	name, valid := ClockFormat_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Scaling fits a picture into its node's box.
 type Scaling int32
 
@@ -172,6 +213,20 @@ const (
 	// player's whole view, such as a draft before the match. The mods' own
 	// interfaces, Hyperline's and the game's tooltips stay.
 	HudPart_HUD_PART_ALL HudPart = 12
+	// HUD_PART_MINIMAP_PLAYERS is every player's icon on the minimap, the
+	// player's own included. The map, its objectives and its hints stay.
+	HudPart_HUD_PART_MINIMAP_PLAYERS HudPart = 13
+	// HUD_PART_INVENTORY is the player's purchased items at the lower right of
+	// their stats. The stats, souls and status icons stay.
+	HudPart_HUD_PART_INVENTORY HudPart = 14
+	// HUD_PART_CROSSHAIR is the crosshair with what the game draws in it: the
+	// reticle, the clip ring and ammo count, and the stamina pips. The ammo
+	// warnings stay.
+	HudPart_HUD_PART_CROSSHAIR HudPart = 15
+	// HUD_PART_ALL_BUT_CHAT is the whole of the game's HUD but its chat, as
+	// HUD_PART_ALL hides it, for a screen that takes the player's view while
+	// they still read and type chat.
+	HudPart_HUD_PART_ALL_BUT_CHAT HudPart = 16
 )
 
 // Enum value maps for HudPart.
@@ -190,6 +245,10 @@ var (
 		10: "HUD_PART_HERO_PICKER",
 		11: "HUD_PART_BROKER_COUNTDOWN",
 		12: "HUD_PART_ALL",
+		13: "HUD_PART_MINIMAP_PLAYERS",
+		14: "HUD_PART_INVENTORY",
+		15: "HUD_PART_CROSSHAIR",
+		16: "HUD_PART_ALL_BUT_CHAT",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":          0,
@@ -205,6 +264,10 @@ var (
 		"HUD_PART_HERO_PICKER":      10,
 		"HUD_PART_BROKER_COUNTDOWN": 11,
 		"HUD_PART_ALL":              12,
+		"HUD_PART_MINIMAP_PLAYERS":  13,
+		"HUD_PART_INVENTORY":        14,
+		"HUD_PART_CROSSHAIR":        15,
+		"HUD_PART_ALL_BUT_CHAT":     16,
 	}
 )
 
@@ -718,7 +781,11 @@ type Node struct {
 	// Text is a label's words.
 	Text string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
 	// Image is an image's path in the game's content, such as
-	// "file://{images}/heroes/wraith_card.psd".
+	// "file://{images}/heroes/wraith_card.psd". The renderer writes the name of
+	// the mod's content addon in place of "{addon}", so a mod names its own
+	// pictures as "file://{images}/{addon}/mark.png" without knowing the name
+	// the host mounted them under; a renderer that knows no addon for the mod
+	// draws the image empty.
 	Image string `protobuf:"bytes,5,opt,name=image,proto3" json:"image,omitempty"`
 	// Style lays out and paints the node.
 	Style *Style `protobuf:"bytes,6,opt,name=style,proto3" json:"style,omitempty"`
@@ -854,6 +921,10 @@ type Node struct {
 	// ability window for them, and gives the game's own back once the screen
 	// stops asking or it may no longer hold the HUD. Only the root's rows count.
 	AbilityDisplay []*AbilityRow `protobuf:"bytes,38,rep,name=ability_display,json=abilityDisplay,proto3" json:"abilityDisplay,omitempty"`
+	// Clock runs a label's time in the player's game, so the tree stays the
+	// same while the time changes. The label shows the time in place of its
+	// text, or fills its token's {s:clock} place with it.
+	Clock *Clock `protobuf:"bytes,39,opt,name=clock,proto3" json:"clock,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1135,6 +1206,13 @@ func (x *Node) GetAbilityDisplay() []*AbilityRow {
 	return nil
 }
 
+func (x *Node) GetClock() *Clock {
+	if x != nil {
+		return x.Clock
+	}
+	return nil
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1162,6 +1240,67 @@ func (*Node_Slider) isNode_Input() {}
 func (*Node_Toggle) isNode_Input() {}
 
 func (*Node_Dropdown) isNode_Input() {}
+
+// Clock is a time a label counts in the player's game.
+type Clock struct {
+	unknownFields []byte
+	// Seconds is the time the clock shows as the renderer first draws it.
+	Seconds float64 `protobuf:"fixed64,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+	// Up counts up from seconds; otherwise the clock counts down and stops at
+	// zero.
+	Up bool `protobuf:"varint,2,opt,name=up,proto3" json:"up,omitempty"`
+	// Paused holds the clock at seconds.
+	Paused bool `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
+	// Format writes the time.
+	Format ClockFormat `protobuf:"varint,4,opt,name=format,proto3" json:"format,omitempty"`
+	// Run names one run of the clock. The renderer starts counting again from
+	// seconds when any of the clock's fields change, so a mod changes run to
+	// restart a clock at the same time, such as each round's opening. A
+	// renderer that first draws a running clock later, as after a reload,
+	// starts it from seconds.
+	Run uint32 `protobuf:"varint,5,opt,name=run,proto3" json:"run,omitempty"`
+}
+
+func (x *Clock) Reset() {
+	*x = Clock{}
+}
+
+func (*Clock) ProtoMessage() {}
+
+func (x *Clock) GetSeconds() float64 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+func (x *Clock) GetUp() bool {
+	if x != nil {
+		return x.Up
+	}
+	return false
+}
+
+func (x *Clock) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
+}
+
+func (x *Clock) GetFormat() ClockFormat {
+	if x != nil {
+		return x.Format
+	}
+	return ClockFormat_CLOCK_FORMAT_MINUTES
+}
+
+func (x *Clock) GetRun() uint32 {
+	if x != nil {
+		return x.Run
+	}
+	return 0
+}
 
 // AbilityRow is one player's abilities, as AbilityDisplay shows them.
 type AbilityRow struct {
@@ -1274,6 +1413,11 @@ type Cue struct {
 	// Seconds cuts the sound after that long, keeping only its start; zero
 	// plays it out.
 	Seconds float32 `protobuf:"fixed32,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
+	// Delay is how long the renderer waits before it plays the sound, in
+	// seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
+	// draw. A cue whose mod leaves or clears its interface before then does
+	// not play.
+	Delay float32 `protobuf:"fixed32,4,opt,name=delay,proto3" json:"delay,omitempty"`
 }
 
 func (x *Cue) Reset() {
@@ -1299,6 +1443,13 @@ func (x *Cue) GetSound() string {
 func (x *Cue) GetSeconds() float32 {
 	if x != nil {
 		return x.Seconds
+	}
+	return 0
+}
+
+func (x *Cue) GetDelay() float32 {
+	if x != nil {
+		return x.Delay
 	}
 	return 0
 }
@@ -1611,6 +1762,16 @@ type Style struct {
 	// Transition animates each change to the node's style, and the move to and
 	// from its hover style, instead of snapping to it.
 	Transition *Transition `protobuf:"bytes,45,opt,name=transition,proto3" json:"transition,omitempty"`
+	// Clip draws only the part of the node and its children inside a shape.
+	// A transition does not ease it: a new clip shows at once, so a mod that
+	// fills a ring over time draws it again as it goes. Dropping a clip makes
+	// the node's panel anew.
+	Clip *Clip `protobuf:"bytes,46,opt,name=clip,proto3" json:"clip,omitempty"`
+	// Turn turns the node clockwise, in degrees, before its transform, as one
+	// angle: a transition eases the angle itself, so a turn from 0 to 720
+	// spins the node twice, where a transform's rotate eases the shortest way
+	// between two orientations. It turns about the transform's origin.
+	Turn float32 `protobuf:"fixed32,47,opt,name=turn,proto3" json:"turn,omitempty"`
 }
 
 func (x *Style) Reset() {
@@ -1934,6 +2095,169 @@ func (x *Style) GetTransition() *Transition {
 	return nil
 }
 
+func (x *Style) GetClip() *Clip {
+	if x != nil {
+		return x.Clip
+	}
+	return nil
+}
+
+func (x *Style) GetTurn() float32 {
+	if x != nil {
+		return x.Turn
+	}
+	return 0
+}
+
+// Clip is the shape a node is drawn inside.
+type Clip struct {
+	unknownFields []byte
+	// Shape selects the shape.
+	//
+	// Types that are assignable to Shape:
+	//	*Clip_Rect
+	//	*Clip_Radial
+	Shape isClip_Shape `protobuf_oneof:"shape"`
+}
+
+func (x *Clip) Reset() {
+	*x = Clip{}
+}
+
+func (*Clip) ProtoMessage() {}
+
+func (m *Clip) GetShape() isClip_Shape {
+	if m != nil {
+		return m.Shape
+	}
+	return nil
+}
+
+func (x *Clip) GetRect() *ClipRect {
+	if x, ok := x.GetShape().(*Clip_Rect); ok {
+		return x.Rect
+	}
+	return nil
+}
+
+func (x *Clip) GetRadial() *ClipRadial {
+	if x, ok := x.GetShape().(*Clip_Radial); ok {
+		return x.Radial
+	}
+	return nil
+}
+
+type isClip_Shape interface {
+	isClip_Shape()
+}
+
+type Clip_Rect struct {
+	// Rect is a box inside the node.
+	Rect *ClipRect `protobuf:"bytes,1,opt,name=rect,proto3,oneof"`
+}
+
+type Clip_Radial struct {
+	// Radial is a slice of a circle about a point in the node.
+	Radial *ClipRadial `protobuf:"bytes,2,opt,name=radial,proto3,oneof"`
+}
+
+func (*Clip_Rect) isClip_Shape() {}
+
+func (*Clip_Radial) isClip_Shape() {}
+
+// ClipRect is a box inside a node, each side a percent of the node's size
+// from its top or left edge.
+type ClipRect struct {
+	unknownFields []byte
+	Top           float32 `protobuf:"fixed32,1,opt,name=top,proto3" json:"top,omitempty"`
+	Right         float32 `protobuf:"fixed32,2,opt,name=right,proto3" json:"right,omitempty"`
+	Bottom        float32 `protobuf:"fixed32,3,opt,name=bottom,proto3" json:"bottom,omitempty"`
+	Left          float32 `protobuf:"fixed32,4,opt,name=left,proto3" json:"left,omitempty"`
+}
+
+func (x *ClipRect) Reset() {
+	*x = ClipRect{}
+}
+
+func (*ClipRect) ProtoMessage() {}
+
+func (x *ClipRect) GetTop() float32 {
+	if x != nil {
+		return x.Top
+	}
+	return 0
+}
+
+func (x *ClipRect) GetRight() float32 {
+	if x != nil {
+		return x.Right
+	}
+	return 0
+}
+
+func (x *ClipRect) GetBottom() float32 {
+	if x != nil {
+		return x.Bottom
+	}
+	return 0
+}
+
+func (x *ClipRect) GetLeft() float32 {
+	if x != nil {
+		return x.Left
+	}
+	return 0
+}
+
+// ClipRadial is the slice of the node swept about a center from start
+// through sweep degrees, as the game's radial clip draws a cooldown ring; a
+// sweep of 360 draws the whole node.
+type ClipRadial struct {
+	unknownFields []byte
+	// CenterX and CenterY are the slice's center, as percents of the node's
+	// size; unset is its center.
+	CenterX *float32 `protobuf:"fixed32,1,opt,name=center_x,json=centerX,proto3,oneof" json:"centerX,omitempty"`
+	CenterY *float32 `protobuf:"fixed32,2,opt,name=center_y,json=centerY,proto3,oneof" json:"centerY,omitempty"`
+	// Start is where the slice begins, in degrees.
+	Start float32 `protobuf:"fixed32,3,opt,name=start,proto3" json:"start,omitempty"`
+	// Sweep is the slice's angle, in degrees.
+	Sweep float32 `protobuf:"fixed32,4,opt,name=sweep,proto3" json:"sweep,omitempty"`
+}
+
+func (x *ClipRadial) Reset() {
+	*x = ClipRadial{}
+}
+
+func (*ClipRadial) ProtoMessage() {}
+
+func (x *ClipRadial) GetCenterX() float32 {
+	if x != nil && x.CenterX != nil {
+		return *x.CenterX
+	}
+	return 0
+}
+
+func (x *ClipRadial) GetCenterY() float32 {
+	if x != nil && x.CenterY != nil {
+		return *x.CenterY
+	}
+	return 0
+}
+
+func (x *ClipRadial) GetStart() float32 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *ClipRadial) GetSweep() float32 {
+	if x != nil {
+		return x.Sweep
+	}
+	return 0
+}
+
 // Gradient blends colors across a node.
 type Gradient struct {
 	unknownFields []byte
@@ -2137,6 +2461,10 @@ type Transition struct {
 	Delay float32 `protobuf:"fixed32,2,opt,name=delay,proto3" json:"delay,omitempty"`
 	// Easing shapes the change's speed over its time.
 	Easing Easing `protobuf:"varint,3,opt,name=easing,proto3" json:"easing,omitempty"`
+	// Curve shapes the change's speed in place of easing, as a cubic Bezier
+	// curve from (0, 0) to (1, 1) through two control points: x is the share
+	// of the time and y the share of the change.
+	Curve *Curve `protobuf:"bytes,4,opt,name=curve,proto3" json:"curve,omitempty"`
 }
 
 func (x *Transition) Reset() {
@@ -2164,6 +2492,57 @@ func (x *Transition) GetEasing() Easing {
 		return x.Easing
 	}
 	return Easing_EASING_EASE_OUT
+}
+
+func (x *Transition) GetCurve() *Curve {
+	if x != nil {
+		return x.Curve
+	}
+	return nil
+}
+
+// Curve is a cubic Bezier easing curve's two control points. Each x is from 0
+// to 1; a y outside 0 to 1 overshoots.
+type Curve struct {
+	unknownFields []byte
+	X1            float32 `protobuf:"fixed32,1,opt,name=x1,proto3" json:"x1,omitempty"`
+	Y1            float32 `protobuf:"fixed32,2,opt,name=y1,proto3" json:"y1,omitempty"`
+	X2            float32 `protobuf:"fixed32,3,opt,name=x2,proto3" json:"x2,omitempty"`
+	Y2            float32 `protobuf:"fixed32,4,opt,name=y2,proto3" json:"y2,omitempty"`
+}
+
+func (x *Curve) Reset() {
+	*x = Curve{}
+}
+
+func (*Curve) ProtoMessage() {}
+
+func (x *Curve) GetX1() float32 {
+	if x != nil {
+		return x.X1
+	}
+	return 0
+}
+
+func (x *Curve) GetY1() float32 {
+	if x != nil {
+		return x.Y1
+	}
+	return 0
+}
+
+func (x *Curve) GetX2() float32 {
+	if x != nil {
+		return x.X2
+	}
+	return 0
+}
+
+func (x *Curve) GetY2() float32 {
+	if x != nil {
+		return x.Y2
+	}
+	return 0
 }
 
 // Length is a size along one axis.
@@ -2727,6 +3106,7 @@ func (m *Node) CloneVT() *Node {
 	r.Sheets = protobuf_go_lite.CloneSlice(m.Sheets)
 	r.Cues = protobuf_go_lite.CloneVTSlice(m.Cues)
 	r.AbilityDisplay = protobuf_go_lite.CloneVTSlice(m.AbilityDisplay)
+	r.Clock = protobuf_go_lite.CloneVTValue(m.Clock)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2789,6 +3169,26 @@ func (m *Node_Dropdown) CloneOneofVT() isNode_Input {
 	return m.CloneVT()
 }
 
+func (m *Clock) CloneVT() *Clock {
+	if m == nil {
+		return (*Clock)(nil)
+	}
+	r := new(Clock)
+	r.Seconds = m.Seconds
+	r.Up = m.Up
+	r.Paused = m.Paused
+	r.Format = m.Format
+	r.Run = m.Run
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Clock) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *AbilityRow) CloneVT() *AbilityRow {
 	if m == nil {
 		return (*AbilityRow)(nil)
@@ -2835,6 +3235,7 @@ func (m *Cue) CloneVT() *Cue {
 	r.Number = m.Number
 	r.Sound = m.Sound
 	r.Seconds = m.Seconds
+	r.Delay = m.Delay
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2982,6 +3383,7 @@ func (m *Style) CloneVT() *Style {
 	r.NoWrap = m.NoWrap
 	r.TextOverflow = m.TextOverflow
 	r.Decoration = m.Decoration
+	r.Turn = m.Turn
 	r.Width = protobuf_go_lite.CloneVTValue(m.Width)
 	r.Height = protobuf_go_lite.CloneVTValue(m.Height)
 	r.Margin = protobuf_go_lite.CloneVTValue(m.Margin)
@@ -3001,6 +3403,7 @@ func (m *Style) CloneVT() *Style {
 	r.Contrast = protobuf_go_lite.ClonePtr(m.Contrast)
 	r.Transform = protobuf_go_lite.CloneVTValue(m.Transform)
 	r.Transition = protobuf_go_lite.CloneVTValue(m.Transition)
+	r.Clip = protobuf_go_lite.CloneVTValue(m.Clip)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -3008,6 +3411,88 @@ func (m *Style) CloneVT() *Style {
 }
 
 func (m *Style) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Clip) CloneVT() *Clip {
+	if m == nil {
+		return (*Clip)(nil)
+	}
+	r := new(Clip)
+	if m.Shape != nil {
+		r.Shape = m.Shape.(interface{ CloneOneofVT() isClip_Shape }).CloneOneofVT()
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Clip) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Clip_Rect) CloneVT() *Clip_Rect {
+	if m == nil {
+		return (*Clip_Rect)(nil)
+	}
+	r := new(Clip_Rect)
+	r.Rect = protobuf_go_lite.CloneVTValue(m.Rect)
+	return r
+}
+
+func (m *Clip_Rect) CloneOneofVT() isClip_Shape {
+	return m.CloneVT()
+}
+
+func (m *Clip_Radial) CloneVT() *Clip_Radial {
+	if m == nil {
+		return (*Clip_Radial)(nil)
+	}
+	r := new(Clip_Radial)
+	r.Radial = protobuf_go_lite.CloneVTValue(m.Radial)
+	return r
+}
+
+func (m *Clip_Radial) CloneOneofVT() isClip_Shape {
+	return m.CloneVT()
+}
+
+func (m *ClipRect) CloneVT() *ClipRect {
+	if m == nil {
+		return (*ClipRect)(nil)
+	}
+	r := new(ClipRect)
+	r.Top = m.Top
+	r.Right = m.Right
+	r.Bottom = m.Bottom
+	r.Left = m.Left
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ClipRect) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ClipRadial) CloneVT() *ClipRadial {
+	if m == nil {
+		return (*ClipRadial)(nil)
+	}
+	r := new(ClipRadial)
+	r.Start = m.Start
+	r.Sweep = m.Sweep
+	r.CenterX = protobuf_go_lite.ClonePtr(m.CenterX)
+	r.CenterY = protobuf_go_lite.ClonePtr(m.CenterY)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ClipRadial) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3096,6 +3581,7 @@ func (m *Transition) CloneVT() *Transition {
 	r.Seconds = m.Seconds
 	r.Delay = m.Delay
 	r.Easing = m.Easing
+	r.Curve = protobuf_go_lite.CloneVTValue(m.Curve)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -3103,6 +3589,25 @@ func (m *Transition) CloneVT() *Transition {
 }
 
 func (m *Transition) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Curve) CloneVT() *Curve {
+	if m == nil {
+		return (*Curve)(nil)
+	}
+	r := new(Curve)
+	r.X1 = m.X1
+	r.Y1 = m.Y1
+	r.X2 = m.X2
+	r.Y2 = m.Y2
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Curve) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3506,6 +4011,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.AbilityDisplay, that.AbilityDisplay, func() *AbilityRow { return &AbilityRow{} }) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Clock, that.Clock) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -3585,6 +4093,38 @@ func (this *Node_Dropdown) EqualVT(thatIface isNode_Input) bool {
 	return true
 }
 
+func (this *Clock) EqualVT(that *Clock) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	if this.Up != that.Up {
+		return false
+	}
+	if this.Paused != that.Paused {
+		return false
+	}
+	if this.Format != that.Format {
+		return false
+	}
+	if this.Run != that.Run {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Clock) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Clock)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *AbilityRow) EqualVT(that *AbilityRow) bool {
 	if this == that {
 		return true
@@ -3656,6 +4196,9 @@ func (this *Cue) EqualVT(that *Cue) bool {
 		return false
 	}
 	if this.Seconds != that.Seconds {
+		return false
+	}
+	if this.Delay != that.Delay {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -3960,11 +4503,136 @@ func (this *Style) EqualVT(that *Style) bool {
 	if !protobuf_go_lite.IsEqualVT(this.Transition, that.Transition) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Clip, that.Clip) {
+		return false
+	}
+	if this.Turn != that.Turn {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Style) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Style)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Clip) EqualVT(that *Clip) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Shape == nil && that.Shape != nil {
+		return false
+	} else if this.Shape != nil {
+		if that.Shape == nil {
+			return false
+		}
+		if !this.Shape.(interface{ EqualVT(isClip_Shape) bool }).EqualVT(that.Shape) {
+			return false
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Clip) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Clip)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Clip_Rect) EqualVT(thatIface isClip_Shape) bool {
+	that, ok := thatIface.(*Clip_Rect)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Rect, that.Rect, func() *ClipRect { return &ClipRect{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Clip_Radial) EqualVT(thatIface isClip_Shape) bool {
+	that, ok := thatIface.(*Clip_Radial)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Radial, that.Radial, func() *ClipRadial { return &ClipRadial{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *ClipRect) EqualVT(that *ClipRect) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Top != that.Top {
+		return false
+	}
+	if this.Right != that.Right {
+		return false
+	}
+	if this.Bottom != that.Bottom {
+		return false
+	}
+	if this.Left != that.Left {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ClipRect) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ClipRect)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ClipRadial) EqualVT(that *ClipRadial) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.CenterX, that.CenterX) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.CenterY, that.CenterY) {
+		return false
+	}
+	if this.Start != that.Start {
+		return false
+	}
+	if this.Sweep != that.Sweep {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ClipRadial) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ClipRadial)
 	if !ok {
 		return false
 	}
@@ -4105,11 +4773,43 @@ func (this *Transition) EqualVT(that *Transition) bool {
 	if this.Easing != that.Easing {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Curve, that.Curve) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Transition) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Transition)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Curve) EqualVT(that *Curve) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.X1 != that.X1 {
+		return false
+	}
+	if this.Y1 != that.Y1 {
+		return false
+	}
+	if this.X2 != that.X2 {
+		return false
+	}
+	if this.Y2 != that.Y2 {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Curve) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Curve)
 	if !ok {
 		return false
 	}
@@ -4514,6 +5214,46 @@ func (this *UiRequest) EqualMessageVT(thatMsg any) bool {
 		return false
 	}
 	return this.EqualVT(that)
+}
+
+// MarshalProtoJSON marshals the ClockFormat to JSON.
+func (x ClockFormat) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), ClockFormat_name)
+}
+
+// MarshalText marshals the ClockFormat to text.
+func (x ClockFormat) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), ClockFormat_name)), nil
+}
+
+// MarshalJSON marshals the ClockFormat to JSON.
+func (x ClockFormat) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ClockFormat from JSON.
+func (x *ClockFormat) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(ClockFormat_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read ClockFormat enum: %v", err)
+		return
+	}
+	*x = ClockFormat(v)
+}
+
+// UnmarshalText unmarshals the ClockFormat from text.
+func (x *ClockFormat) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), ClockFormat_value)
+	if err != nil {
+		return err
+	}
+	*x = ClockFormat(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the ClockFormat from JSON.
+func (x *ClockFormat) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
 // MarshalProtoJSON marshals the Scaling to JSON.
@@ -5310,6 +6050,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.Clock != nil || s.HasField("clock") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("clock")
+		x.Clock.MarshalProtoJSON(s.WithField("clock"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5542,12 +6287,93 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.AbilityDisplay = append(x.AbilityDisplay, v)
 			})
+		case "clock":
+			if s.ReadNil() {
+				x.Clock = nil
+				return
+			}
+			x.Clock = &Clock{}
+			x.Clock.UnmarshalProtoJSON(s.WithField("clock", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Clock message to JSON.
+func (x *Clock) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat64(x.Seconds)
+	}
+	if x.Up || s.HasField("up") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("up")
+		s.WriteBool(x.Up)
+	}
+	if x.Paused || s.HasField("paused") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("paused")
+		s.WriteBool(x.Paused)
+	}
+	if x.Format != 0 || s.HasField("format") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("format")
+		x.Format.MarshalProtoJSON(s)
+	}
+	if x.Run != 0 || s.HasField("run") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("run")
+		s.WriteUint32(x.Run)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Clock to JSON.
+func (x *Clock) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Clock message from JSON.
+func (x *Clock) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat64()
+		case "up":
+			s.AddField("up")
+			x.Up = s.ReadBool()
+		case "paused":
+			s.AddField("paused")
+			x.Paused = s.ReadBool()
+		case "format":
+			s.AddField("format")
+			x.Format.UnmarshalProtoJSON(s)
+		case "run":
+			s.AddField("run")
+			x.Run = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Clock from JSON.
+func (x *Clock) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -5727,6 +6553,11 @@ func (x *Cue) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("seconds")
 		s.WriteFloat32(x.Seconds)
 	}
+	if x.Delay != 0 || s.HasField("delay") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("delay")
+		s.WriteFloat32(x.Delay)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5753,6 +6584,9 @@ func (x *Cue) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "seconds":
 			s.AddField("seconds")
 			x.Seconds = s.ReadFloat32()
+		case "delay":
+			s.AddField("delay")
+			x.Delay = s.ReadFloat32()
 		}
 	})
 }
@@ -6335,6 +7169,16 @@ func (x *Style) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("transition")
 		x.Transition.MarshalProtoJSON(s.WithField("transition"))
 	}
+	if x.Clip != nil || s.HasField("clip") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("clip")
+		x.Clip.MarshalProtoJSON(s.WithField("clip"))
+	}
+	if x.Turn != 0 || s.HasField("turn") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("turn")
+		s.WriteFloat32(x.Turn)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6567,12 +7411,228 @@ func (x *Style) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Transition = &Transition{}
 			x.Transition.UnmarshalProtoJSON(s.WithField("transition", true))
+		case "clip":
+			if s.ReadNil() {
+				x.Clip = nil
+				return
+			}
+			x.Clip = &Clip{}
+			x.Clip.UnmarshalProtoJSON(s.WithField("clip", true))
+		case "turn":
+			s.AddField("turn")
+			x.Turn = s.ReadFloat32()
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Style from JSON.
 func (x *Style) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Clip message to JSON.
+func (x *Clip) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Shape != nil {
+		switch ov := x.Shape.(type) {
+		case *Clip_Rect:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("rect")
+			ov.Rect.MarshalProtoJSON(s.WithField("rect"))
+		case *Clip_Radial:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("radial")
+			ov.Radial.MarshalProtoJSON(s.WithField("radial"))
+		}
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Clip to JSON.
+func (x *Clip) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Clip message from JSON.
+func (x *Clip) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "rect":
+			ov := &Clip_Rect{}
+			x.Shape = ov
+			if s.ReadNil() {
+				ov.Rect = nil
+				return
+			}
+			ov.Rect = &ClipRect{}
+			ov.Rect.UnmarshalProtoJSON(s.WithField("rect", true))
+		case "radial":
+			ov := &Clip_Radial{}
+			x.Shape = ov
+			if s.ReadNil() {
+				ov.Radial = nil
+				return
+			}
+			ov.Radial = &ClipRadial{}
+			ov.Radial.UnmarshalProtoJSON(s.WithField("radial", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Clip from JSON.
+func (x *Clip) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ClipRect message to JSON.
+func (x *ClipRect) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Top != 0 || s.HasField("top") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("top")
+		s.WriteFloat32(x.Top)
+	}
+	if x.Right != 0 || s.HasField("right") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("right")
+		s.WriteFloat32(x.Right)
+	}
+	if x.Bottom != 0 || s.HasField("bottom") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("bottom")
+		s.WriteFloat32(x.Bottom)
+	}
+	if x.Left != 0 || s.HasField("left") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("left")
+		s.WriteFloat32(x.Left)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ClipRect to JSON.
+func (x *ClipRect) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ClipRect message from JSON.
+func (x *ClipRect) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "top":
+			s.AddField("top")
+			x.Top = s.ReadFloat32()
+		case "right":
+			s.AddField("right")
+			x.Right = s.ReadFloat32()
+		case "bottom":
+			s.AddField("bottom")
+			x.Bottom = s.ReadFloat32()
+		case "left":
+			s.AddField("left")
+			x.Left = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ClipRect from JSON.
+func (x *ClipRect) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ClipRadial message to JSON.
+func (x *ClipRadial) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.CenterX != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("centerX")
+		s.WriteFloat32(*x.CenterX)
+	}
+	if x.CenterY != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("centerY")
+		s.WriteFloat32(*x.CenterY)
+	}
+	if x.Start != 0 || s.HasField("start") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("start")
+		s.WriteFloat32(x.Start)
+	}
+	if x.Sweep != 0 || s.HasField("sweep") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sweep")
+		s.WriteFloat32(x.Sweep)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ClipRadial to JSON.
+func (x *ClipRadial) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ClipRadial message from JSON.
+func (x *ClipRadial) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "center_x", "centerX":
+			s.AddField("center_x")
+			if s.ReadNil() {
+				x.CenterX = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.CenterX = &t
+		case "center_y", "centerY":
+			s.AddField("center_y")
+			if s.ReadNil() {
+				x.CenterY = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.CenterY = &t
+		case "start":
+			s.AddField("start")
+			x.Start = s.ReadFloat32()
+		case "sweep":
+			s.AddField("sweep")
+			x.Sweep = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ClipRadial from JSON.
+func (x *ClipRadial) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -6912,6 +7972,11 @@ func (x *Transition) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("easing")
 		x.Easing.MarshalProtoJSON(s)
 	}
+	if x.Curve != nil || s.HasField("curve") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("curve")
+		x.Curve.MarshalProtoJSON(s.WithField("curve"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6938,12 +8003,85 @@ func (x *Transition) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "easing":
 			s.AddField("easing")
 			x.Easing.UnmarshalProtoJSON(s)
+		case "curve":
+			if s.ReadNil() {
+				x.Curve = nil
+				return
+			}
+			x.Curve = &Curve{}
+			x.Curve.UnmarshalProtoJSON(s.WithField("curve", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Transition from JSON.
 func (x *Transition) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Curve message to JSON.
+func (x *Curve) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.X1 != 0 || s.HasField("x1") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x1")
+		s.WriteFloat32(x.X1)
+	}
+	if x.Y1 != 0 || s.HasField("y1") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y1")
+		s.WriteFloat32(x.Y1)
+	}
+	if x.X2 != 0 || s.HasField("x2") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x2")
+		s.WriteFloat32(x.X2)
+	}
+	if x.Y2 != 0 || s.HasField("y2") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y2")
+		s.WriteFloat32(x.Y2)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Curve to JSON.
+func (x *Curve) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Curve message from JSON.
+func (x *Curve) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "x1":
+			s.AddField("x1")
+			x.X1 = s.ReadFloat32()
+		case "y1":
+			s.AddField("y1")
+			x.Y1 = s.ReadFloat32()
+		case "x2":
+			s.AddField("x2")
+			x.X2 = s.ReadFloat32()
+		case "y2":
+			s.AddField("y2")
+			x.Y2 = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Curve from JSON.
+func (x *Curve) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -7651,6 +8789,18 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if m.Clock != nil {
+		size, err := m.Clock.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xba
+	}
 	if len(m.AbilityDisplay) > 0 {
 		for iNdEx := len(m.AbilityDisplay) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.AbilityDisplay[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -8029,6 +9179,63 @@ func (m *Node_Dropdown) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Clock) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Clock) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Clock) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Run != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Run))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.Format != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Format))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Paused {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Paused)
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Up {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Up)
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Seconds))))
+		i--
+		dAtA[i] = 0x9
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *AbilityRow) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -8168,6 +9375,11 @@ func (m *Cue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Delay != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Delay))))
+		i--
+		dAtA[i] = 0x25
 	}
 	if m.Seconds != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
@@ -8494,6 +9706,25 @@ func (m *Style) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Turn != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Turn))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xfd
+	}
+	if m.Clip != nil {
+		size, err := m.Clip.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xf2
 	}
 	if m.Transition != nil {
 		size, err := m.Transition.MarshalToSizedBufferVT(dAtA[:i])
@@ -8858,6 +10089,199 @@ func (m *Style) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Clip) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Clip) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Clip) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if vtmsg, ok := m.Shape.(interface {
+		MarshalToSizedBufferVT([]byte) (int, error)
+	}); ok {
+		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Clip_Rect) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Clip_Rect) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Rect != nil {
+		size, err := m.Rect.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Clip_Radial) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Clip_Radial) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Radial != nil {
+		size, err := m.Radial.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ClipRect) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClipRect) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ClipRect) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Left != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Left))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Bottom != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Bottom))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Right != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Right))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Top != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Top))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ClipRadial) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClipRadial) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ClipRadial) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Sweep != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Sweep))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Start != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Start))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.CenterY != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.CenterY))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.CenterX != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.CenterX))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Gradient) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -9107,6 +10531,16 @@ func (m *Transition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Curve != nil {
+		size, err := m.Curve.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	}
 	if m.Easing != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Easing))
 		i--
@@ -9119,6 +10553,58 @@ func (m *Transition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Seconds != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Curve) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Curve) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Curve) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Y2 != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Y2))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.X2 != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.X2))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Y1 != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Y1))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.X1 != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.X1))))
 		i--
 		dAtA[i] = 0xd
 	}
@@ -9781,6 +11267,10 @@ func (m *Node) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	if m.Clock != nil {
+		l = m.Clock.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -9845,6 +11335,21 @@ func (m *Node_Dropdown) SizeVT() (n int) {
 	return n
 }
 
+func (m *Clock) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Seconds)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Up)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Paused)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Format)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Run)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *AbilityRow) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -9885,6 +11390,7 @@ func (m *Cue) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Number)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10064,6 +11570,82 @@ func (m *Style) SizeVT() (n int) {
 		l = m.Transition.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	if m.Clip != nil {
+		l = m.Clip.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += protobuf_go_lite.SizeFixed32NonZero(2, m.Turn)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Clip) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if vtmsg, ok := m.Shape.(interface{ SizeVT() int }); ok {
+		n += vtmsg.SizeVT()
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Clip_Rect) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Rect != nil {
+		l = m.Rect.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *Clip_Radial) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Radial != nil {
+		l = m.Radial.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *ClipRect) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Top)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Right)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Bottom)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Left)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ClipRadial) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.CenterX)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.CenterY)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Start)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Sweep)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10137,6 +11719,24 @@ func (m *Transition) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Easing)
+	if m.Curve != nil {
+		l = m.Curve.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Curve) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.X1)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Y1)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.X2)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Y2)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10369,6 +11969,10 @@ func (m *UiRequest) SizeVT() (n int) {
 	}
 	n += len(m.unknownFields)
 	return n
+}
+
+func (x ClockFormat) MarshalProtoText() string {
+	return x.String()
 }
 
 func (x Scaling) MarshalProtoText() string {
@@ -10649,10 +12253,44 @@ func (x *Node) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if x.Clock != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "clock")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Clock)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Clock) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Clock")
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Seconds)
+	}
+	if x.Up != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "up")
+		protobuf_go_lite.TextWriteBool(&sb, x.Up)
+	}
+	if x.Paused != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "paused")
+		protobuf_go_lite.TextWriteBool(&sb, x.Paused)
+	}
+	if x.Format != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "format")
+		protobuf_go_lite.TextWriteStringer(&sb, ClockFormat(x.Format))
+	}
+	if x.Run != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "run")
+		protobuf_go_lite.TextWriteUint(&sb, x.Run)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Clock) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -10730,6 +12368,10 @@ func (x *Cue) MarshalProtoText() string {
 	if x.Seconds != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	if x.Delay != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "delay")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Delay)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -11049,10 +12691,96 @@ func (x *Style) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "transition")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Transition)
 	}
+	if x.Clip != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "clip")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Clip)
+	}
+	if x.Turn != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "turn")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Turn)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Style) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Clip) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Clip")
+	switch body := x.Shape.(type) {
+	case *Clip_Rect:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "rect")
+		if body.Rect == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ClipRect{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Rect)
+		}
+	case *Clip_Radial:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "radial")
+		if body.Radial == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ClipRadial{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Radial)
+		}
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Clip) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ClipRect) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ClipRect")
+	if x.Top != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "top")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Top)
+	}
+	if x.Right != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "right")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Right)
+	}
+	if x.Bottom != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "bottom")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Bottom)
+	}
+	if x.Left != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "left")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Left)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ClipRect) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ClipRadial) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ClipRadial")
+	if x.CenterX != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "center_x")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.CenterX)
+	}
+	if x.CenterY != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "center_y")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.CenterY)
+	}
+	if x.Start != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "start")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Start)
+	}
+	if x.Sweep != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sweep")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Sweep)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ClipRadial) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -11187,10 +12915,40 @@ func (x *Transition) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "easing")
 		protobuf_go_lite.TextWriteStringer(&sb, Easing(x.Easing))
 	}
+	if x.Curve != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "curve")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Curve)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Transition) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Curve) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Curve")
+	if x.X1 != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x1")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.X1)
+	}
+	if x.Y1 != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y1")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Y1)
+	}
+	if x.X2 != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x2")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.X2)
+	}
+	if x.Y2 != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y2")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Y2)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Curve) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -11969,6 +13727,116 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 39:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Clock", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Clock == nil {
+				m.Clock = &Clock{}
+			}
+			if err := m.Clock.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Clock) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Clock: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Clock: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Seconds = float64(math.Float64frombits(v))
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Up", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Up = bool(v)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Paused = bool(v)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Format", wireType)
+			}
+			m.Format = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Format = ClockFormat(_v)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Run", wireType)
+			}
+			m.Run = 0
+			m.Run, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -12209,6 +14077,18 @@ func (m *Cue) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Seconds = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Delay", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Delay = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -13248,6 +15128,300 @@ func (m *Style) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 46:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Clip", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Clip == nil {
+				m.Clip = &Clip{}
+			}
+			if err := m.Clip.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 47:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Turn", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Turn = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Clip) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Clip: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Clip: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rect", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Shape.(*Clip_Rect); ok {
+				if err := oneof.Rect.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ClipRect{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Shape = &Clip_Rect{Rect: v}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Radial", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Shape.(*Clip_Radial); ok {
+				if err := oneof.Radial.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ClipRadial{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Shape = &Clip_Radial{Radial: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ClipRect) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClipRect: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClipRect: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Top", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Top = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Right", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Right = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bottom", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Bottom = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Left", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Left = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ClipRadial) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClipRadial: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClipRadial: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CenterX", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.CenterX = &v2
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CenterY", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.CenterY = &v2
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Start = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sweep", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Sweep = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -13702,6 +15876,112 @@ func (m *Transition) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Curve", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Curve == nil {
+				m.Curve = &Curve{}
+			}
+			if err := m.Curve.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Curve) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Curve: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Curve: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X1", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.X1 = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y1", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Y1 = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X2", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.X2 = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y2", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Y2 = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

@@ -53,9 +53,25 @@ type HeroLook string
 // Souls the souls and level readout, Minimap the minimap, Abilities the
 // ability and active item bar, Status the game's mark in the top-left corner,
 // Stats the weapon, spirit and vitality stats, HeroPicker the screen a player
-// without a hero picks one on, BrokerCountdown the Broker's countdown, and All
-// the whole HUD but the mods' own interfaces and the game's tooltips.
+// without a hero picks one on, BrokerCountdown the Broker's countdown,
+// MinimapPlayers every player's icon on the minimap, Inventory the purchased
+// items, Crosshair the crosshair with its clip ring, count and stamina pips,
+// All the whole HUD but the mods' own interfaces and the game's tooltips, and
+// AllButChat all of that but the chat.
 type HudPart string
+
+// ClockFormat writes a clock's time: ClockMinutes as "4:05", ClockSeconds as
+// "245" or ClockTenths as "9.4".
+type ClockFormat string
+
+const (
+	// ClockMinutes writes minutes and seconds, such as "4:05".
+	ClockMinutes ClockFormat = "minutes"
+	// ClockSeconds writes whole seconds, such as "245".
+	ClockSeconds ClockFormat = "seconds"
+	// ClockTenths writes seconds and tenths, such as "9.4".
+	ClockTenths ClockFormat = "tenths"
+)
 
 // The names of each option. They are untyped so one name serves every option
 // that takes it, as Right does a flow, an alignment and a gradient.
@@ -166,6 +182,16 @@ const (
 	HeroPicker = "heroPicker"
 	// BrokerCountdown is the countdown in the Broker's window.
 	BrokerCountdown = "brokerCountdown"
+	// MinimapPlayers is every player's icon on the minimap, the player's own
+	// included.
+	MinimapPlayers = "minimapPlayers"
+	// Inventory is the purchased items beside the stats.
+	Inventory = "inventory"
+	// Crosshair is the crosshair with its clip ring, count and stamina pips.
+	Crosshair = "crosshair"
 	// All is the whole HUD but the mods' own interfaces and tooltips.
 	All = "all"
+	// AllButChat is the whole HUD but the chat, the mods' own interfaces and
+	// tooltips.
+	AllButChat = "allButChat"
 )

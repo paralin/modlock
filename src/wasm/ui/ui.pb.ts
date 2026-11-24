@@ -11,6 +11,38 @@ import type {
 } from '@aptre/protobuf-es-lite/binary-encoding'
 
 /**
+ * ClockFormat writes a clock's time.
+ *
+ * @generated from enum modlock.wasm.ui.ClockFormat
+ */
+export enum ClockFormat {
+  /**
+   * CLOCK_FORMAT_MINUTES writes minutes and seconds, such as "4:05".
+   */
+  MINUTES = 0,
+
+  /**
+   * CLOCK_FORMAT_SECONDS writes whole seconds, such as "245".
+   */
+  SECONDS = 1,
+
+  /**
+   * CLOCK_FORMAT_TENTHS writes seconds and tenths, such as "9.4", with
+   * minutes before them from a minute up, such as "1:05.3".
+   */
+  TENTHS = 2,
+}
+
+export const ClockFormat_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.ClockFormat',
+  [
+    [0, 'CLOCK_FORMAT_MINUTES'],
+    [1, 'CLOCK_FORMAT_SECONDS'],
+    [2, 'CLOCK_FORMAT_TENTHS'],
+  ],
+)
+
+/**
  * Scaling fits a picture into its node's box.
  *
  * @generated from enum modlock.wasm.ui.Scaling
@@ -202,6 +234,32 @@ export enum HudPart {
    * interfaces, Hyperline's and the game's tooltips stay.
    */
   ALL = 12,
+
+  /**
+   * HUD_PART_MINIMAP_PLAYERS is every player's icon on the minimap, the
+   * player's own included. The map, its objectives and its hints stay.
+   */
+  MINIMAP_PLAYERS = 13,
+
+  /**
+   * HUD_PART_INVENTORY is the player's purchased items at the lower right of
+   * their stats. The stats, souls and status icons stay.
+   */
+  INVENTORY = 14,
+
+  /**
+   * HUD_PART_CROSSHAIR is the crosshair with what the game draws in it: the
+   * reticle, the clip ring and ammo count, and the stamina pips. The ammo
+   * warnings stay.
+   */
+  CROSSHAIR = 15,
+
+  /**
+   * HUD_PART_ALL_BUT_CHAT is the whole of the game's HUD but its chat, as
+   * HUD_PART_ALL hides it, for a screen that takes the player's view while
+   * they still read and type chat.
+   */
+  ALL_BUT_CHAT = 16,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -220,6 +278,10 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [10, 'HUD_PART_HERO_PICKER'],
     [11, 'HUD_PART_BROKER_COUNTDOWN'],
     [12, 'HUD_PART_ALL'],
+    [13, 'HUD_PART_MINIMAP_PLAYERS'],
+    [14, 'HUD_PART_INVENTORY'],
+    [15, 'HUD_PART_CROSSHAIR'],
+    [16, 'HUD_PART_ALL_BUT_CHAT'],
   ],
 )
 
@@ -660,7 +722,11 @@ export interface Node {
   text?: string
   /**
    * Image is an image's path in the game's content, such as
-   * "file://{images}/heroes/wraith_card.psd".
+   * "file://{images}/heroes/wraith_card.psd". The renderer writes the name of
+   * the mod's content addon in place of "{addon}", so a mod names its own
+   * pictures as "file://{images}/{addon}/mark.png" without knowing the name
+   * the host mounted them under; a renderer that knows no addon for the mod
+   * draws the image empty.
    */
   image?: string
   /**
@@ -843,6 +909,12 @@ export interface Node {
    */
   abilityDisplay?: AbilityRow[]
   /**
+   * Clock runs a label's time in the player's game, so the tree stays the
+   * same while the time changes. The label shows the time in place of its
+   * text, or fills its token's {s:clock} place with it.
+   */
+  clock?: Clock
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -901,6 +973,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [36, 'cues', 11, 1, Cue.codec],
     [37, 'ability_bar_presses', 8],
     [38, 'ability_display', 11, 1, AbilityRow.codec],
+    [39, 'clock', 11, 0, Clock.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1060,6 +1133,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             ;(m.abilityDisplay ??= []).push(
               AbilityRow.decode(r, r.delimited(), {}),
             )
+            break
+          case 39:
+            m.clock = Clock.decode(r, r.delimited(), m.clock ?? {})
             break
           default:
             r.skip(t)
@@ -1234,9 +1310,108 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
         const a = m.abilityDisplay
         if (a != null) for (const e of a) AbilityRow.writeField(w, 38, e)
       }
+      {
+        const v = m.clock
+        if (v != null) Clock.writeField(w, 39, v)
+      }
     },
   },
 )
+
+/**
+ * Clock is a time a label counts in the player's game.
+ *
+ * @generated from message modlock.wasm.ui.Clock
+ */
+export interface Clock {
+  /**
+   * Seconds is the time the clock shows as the renderer first draws it.
+   */
+  seconds?: number
+  /**
+   * Up counts up from seconds; otherwise the clock counts down and stops at
+   * zero.
+   */
+  up?: boolean
+  /**
+   * Paused holds the clock at seconds.
+   */
+  paused?: boolean
+  /**
+   * Format writes the time.
+   */
+  format?: ClockFormat
+  /**
+   * Run names one run of the clock. The renderer starts counting again from
+   * seconds when any of the clock's fields change, so a mod changes run to
+   * restart a clock at the same time, such as each round's opening. A
+   * renderer that first draws a running clock later, as after a reload,
+   * starts it from seconds.
+   */
+  run?: number
+}
+
+export const Clock: MessageType<Clock> =
+  /* @__PURE__ */ createMessageType<Clock>(
+    'modlock.wasm.ui.Clock',
+    () => [
+      [1, 'seconds', 1],
+      [2, 'up', 8],
+      [3, 'paused', 8],
+      [4, 'format', 14, 0, ClockFormat_Enum],
+      [5, 'run', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Clock): Clock => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.seconds = r.double()
+              break
+            case 2:
+              m.up = r.bool()
+              break
+            case 3:
+              m.paused = r.bool()
+              break
+            case 4:
+              m.format = r.int32()
+              break
+            case 5:
+              m.run = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Clock, w: Writer): void => {
+        {
+          const v = m.seconds
+          if (v != null && v !== 0) w.uint32(9).double(v)
+        }
+        {
+          const v = m.up
+          if (v) w.uint32(16).bool(v)
+        }
+        {
+          const v = m.paused
+          if (v) w.uint32(24).bool(v)
+        }
+        {
+          const v = m.format
+          if (v) w.uint32(32).int32(v)
+        }
+        {
+          const v = m.run
+          if (v) w.uint32(40).uint32(v)
+        }
+      },
+    },
+  )
 
 /**
  * AbilityRow is one player's abilities, as AbilityDisplay shows them.
@@ -1422,6 +1597,13 @@ export interface Cue {
    * plays it out.
    */
   seconds?: number
+  /**
+   * Delay is how long the renderer waits before it plays the sound, in
+   * seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
+   * draw. A cue whose mod leaves or clears its interface before then does
+   * not play.
+   */
+  delay?: number
 }
 
 export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
@@ -1430,6 +1612,7 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
     [1, 'number', 13],
     [2, 'sound', 9],
     [3, 'seconds', 2],
+    [4, 'delay', 2],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Cue): Cue => {
@@ -1445,6 +1628,9 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
             break
           case 3:
             m.seconds = r.float()
+            break
+          case 4:
+            m.delay = r.float()
             break
           default:
             r.skip(t)
@@ -1464,6 +1650,10 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
       {
         const v = m.seconds
         if (v != null && v !== 0) w.uint32(29).float(v)
+      }
+      {
+        const v = m.delay
+        if (v != null && v !== 0) w.uint32(37).float(v)
       }
     },
   },
@@ -2014,6 +2204,20 @@ export interface Style {
    * from its hover style, instead of snapping to it.
    */
   transition?: Transition
+  /**
+   * Clip draws only the part of the node and its children inside a shape.
+   * A transition does not ease it: a new clip shows at once, so a mod that
+   * fills a ring over time draws it again as it goes. Dropping a clip makes
+   * the node's panel anew.
+   */
+  clip?: Clip
+  /**
+   * Turn turns the node clockwise, in degrees, before its transform, as one
+   * angle: a transition eases the angle itself, so a turn from 0 to 720
+   * spins the node twice, where a transform's rotate eases the shortest way
+   * between two orientations. It turns about the transform's origin.
+   */
+  turn?: number
 }
 
 export const Style: MessageType<Style> =
@@ -2065,6 +2269,8 @@ export const Style: MessageType<Style> =
       [43, 'decoration', 14, 0, Decoration_Enum],
       [44, 'transform', 11, 0, Transform.codec],
       [45, 'transition', 11, 0, Transition.codec],
+      [46, 'clip', 11, 0, Clip.codec],
+      [47, 'turn', 2],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Style): Style => {
@@ -2214,6 +2420,12 @@ export const Style: MessageType<Style> =
                 r.delimited(),
                 m.transition ?? {},
               )
+              break
+            case 46:
+              m.clip = Clip.decode(r, r.delimited(), m.clip ?? {})
+              break
+            case 47:
+              m.turn = r.float()
               break
             default:
               r.skip(t)
@@ -2401,6 +2613,229 @@ export const Style: MessageType<Style> =
         {
           const v = m.transition
           if (v != null) Transition.writeField(w, 45, v)
+        }
+        {
+          const v = m.clip
+          if (v != null) Clip.writeField(w, 46, v)
+        }
+        {
+          const v = m.turn
+          if (v != null && v !== 0) w.uint32(381).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Clip is the shape a node is drawn inside.
+ *
+ * @generated from message modlock.wasm.ui.Clip
+ */
+export interface Clip {
+  /**
+   * Shape selects the shape.
+   *
+   * @generated from oneof modlock.wasm.ui.Clip.shape
+   */
+  shape?:
+    | { value?: undefined; case: undefined }
+    | { value: ClipRect; case: 'rect' }
+    | { value: ClipRadial; case: 'radial' }
+}
+
+export const Clip: MessageType<Clip> = /* @__PURE__ */ createMessageType<Clip>(
+  'modlock.wasm.ui.Clip',
+  () => [
+    [1, 'rect', 11, 0, ClipRect.codec, 'shape'],
+    [2, 'radial', 11, 0, ClipRadial.codec, 'shape'],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: Clip): Clip => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            m.shape = {
+              case: 'rect',
+              value: ClipRect.decode(
+                r,
+                r.delimited(),
+                m.shape?.case === 'rect' ? m.shape.value : {},
+              ),
+            }
+            break
+          case 2:
+            m.shape = {
+              case: 'radial',
+              value: ClipRadial.decode(
+                r,
+                r.delimited(),
+                m.shape?.case === 'radial' ? m.shape.value : {},
+              ),
+            }
+            break
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: Clip, w: Writer): void => {
+      {
+        const o = m.shape
+        if (o?.case === 'rect' && o.value != null)
+          ClipRect.writeField(w, 1, o.value)
+      }
+      {
+        const o = m.shape
+        if (o?.case === 'radial' && o.value != null)
+          ClipRadial.writeField(w, 2, o.value)
+      }
+    },
+  },
+)
+
+/**
+ * ClipRect is a box inside a node, each side a percent of the node's size
+ * from its top or left edge.
+ *
+ * @generated from message modlock.wasm.ui.ClipRect
+ */
+export interface ClipRect {
+  top?: number
+  right?: number
+  bottom?: number
+  left?: number
+}
+
+export const ClipRect: MessageType<ClipRect> =
+  /* @__PURE__ */ createMessageType<ClipRect>(
+    'modlock.wasm.ui.ClipRect',
+    () => [
+      [1, 'top', 2],
+      [2, 'right', 2],
+      [3, 'bottom', 2],
+      [4, 'left', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ClipRect): ClipRect => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.top = r.float()
+              break
+            case 2:
+              m.right = r.float()
+              break
+            case 3:
+              m.bottom = r.float()
+              break
+            case 4:
+              m.left = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ClipRect, w: Writer): void => {
+        {
+          const v = m.top
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.right
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.bottom
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.left
+          if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ClipRadial is the slice of the node swept about a center from start
+ * through sweep degrees, as the game's radial clip draws a cooldown ring; a
+ * sweep of 360 draws the whole node.
+ *
+ * @generated from message modlock.wasm.ui.ClipRadial
+ */
+export interface ClipRadial {
+  /**
+   * CenterX and CenterY are the slice's center, as percents of the node's
+   * size; unset is its center.
+   */
+  centerX?: number
+  centerY?: number
+  /**
+   * Start is where the slice begins, in degrees.
+   */
+  start?: number
+  /**
+   * Sweep is the slice's angle, in degrees.
+   */
+  sweep?: number
+}
+
+export const ClipRadial: MessageType<ClipRadial> =
+  /* @__PURE__ */ createMessageType<ClipRadial>(
+    'modlock.wasm.ui.ClipRadial',
+    () => [
+      [1, 'center_x', 2, 4],
+      [2, 'center_y', 2, 4],
+      [3, 'start', 2],
+      [4, 'sweep', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ClipRadial): ClipRadial => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.centerX = r.float()
+              break
+            case 2:
+              m.centerY = r.float()
+              break
+            case 3:
+              m.start = r.float()
+              break
+            case 4:
+              m.sweep = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ClipRadial, w: Writer): void => {
+        {
+          const v = m.centerX
+          if (v != null) w.uint32(13).float(v)
+        }
+        {
+          const v = m.centerY
+          if (v != null) w.uint32(21).float(v)
+        }
+        {
+          const v = m.start
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.sweep
+          if (v != null && v !== 0) w.uint32(37).float(v)
         }
       },
     },
@@ -2737,6 +3172,12 @@ export interface Transition {
    * Easing shapes the change's speed over its time.
    */
   easing?: Easing
+  /**
+   * Curve shapes the change's speed in place of easing, as a cubic Bezier
+   * curve from (0, 0) to (1, 1) through two control points: x is the share
+   * of the time and y the share of the change.
+   */
+  curve?: Curve
 }
 
 export const Transition: MessageType<Transition> =
@@ -2746,6 +3187,7 @@ export const Transition: MessageType<Transition> =
       [1, 'seconds', 2],
       [2, 'delay', 2],
       [3, 'easing', 14, 0, Easing_Enum],
+      [4, 'curve', 11, 0, Curve.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Transition): Transition => {
@@ -2761,6 +3203,9 @@ export const Transition: MessageType<Transition> =
               break
             case 3:
               m.easing = r.int32()
+              break
+            case 4:
+              m.curve = Curve.decode(r, r.delimited(), m.curve ?? {})
               break
             default:
               r.skip(t)
@@ -2780,6 +3225,77 @@ export const Transition: MessageType<Transition> =
         {
           const v = m.easing
           if (v) w.uint32(24).int32(v)
+        }
+        {
+          const v = m.curve
+          if (v != null) Curve.writeField(w, 4, v)
+        }
+      },
+    },
+  )
+
+/**
+ * Curve is a cubic Bezier easing curve's two control points. Each x is from 0
+ * to 1; a y outside 0 to 1 overshoots.
+ *
+ * @generated from message modlock.wasm.ui.Curve
+ */
+export interface Curve {
+  x1?: number
+  y1?: number
+  x2?: number
+  y2?: number
+}
+
+export const Curve: MessageType<Curve> =
+  /* @__PURE__ */ createMessageType<Curve>(
+    'modlock.wasm.ui.Curve',
+    () => [
+      [1, 'x1', 2],
+      [2, 'y1', 2],
+      [3, 'x2', 2],
+      [4, 'y2', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Curve): Curve => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.x1 = r.float()
+              break
+            case 2:
+              m.y1 = r.float()
+              break
+            case 3:
+              m.x2 = r.float()
+              break
+            case 4:
+              m.y2 = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Curve, w: Writer): void => {
+        {
+          const v = m.x1
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.y1
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.x2
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.y2
+          if (v != null && v !== 0) w.uint32(37).float(v)
         }
       },
     },

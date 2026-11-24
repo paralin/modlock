@@ -180,9 +180,16 @@ func ToastFor(p mod.Player, text string, seconds float64) bool {
 // only its start. It plays with the next screen the player reads, and not at
 // all if the player reads it only after the mod's next few sounds.
 func Sound(p mod.Player, sound string, seconds float32) bool {
+	return SoundAfter(p, sound, 0, seconds)
+}
+
+// SoundAfter plays sound as Sound does, delay seconds after the player's game
+// reads it, so one draw can time a run of sounds, such as a wheel's ticks. It
+// does not play if the mod clears its interface first.
+func SoundAfter(p mod.Player, sound string, delay, seconds float32) bool {
 	// Add the sound, keeping only the newest few.
 	v := viewOf(p)
-	v.cues = append(v.cues, &uipb.Cue{Number: lib.nextCue, Sound: sound, Seconds: seconds})
+	v.cues = append(v.cues, &uipb.Cue{Number: lib.nextCue, Sound: sound, Seconds: seconds, Delay: delay})
 	lib.nextCue++
 	if len(v.cues) > maxCues {
 		v.cues = slices.Delete(v.cues, 0, len(v.cues)-maxCues)

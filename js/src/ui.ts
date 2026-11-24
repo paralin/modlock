@@ -78,6 +78,9 @@ import {
   type AbilityRow as WireAbilityRow,
   Align,
   type Change,
+  type Clip as WireClip,
+  type Clock as WireClock,
+  ClockFormat,
   type Cue,
   type Cycle as WireCycle,
   Decoration,
@@ -155,11 +158,48 @@ export interface Shadow {
 /**
  * Transition animates each change of an element's style, and the move to its
  * hover style and back, over seconds after delay. Easing is 'out' unless set.
+ * Curve shapes the change in place of easing as a cubic Bezier curve's two
+ * control points, [x1, y1, x2, y2], as CSS's cubic-bezier: each x is a share
+ * of the time from 0 to 1, and a y outside 0 to 1 overshoots, such as
+ * [0.75, 1.5, 0.95, 1.4] for a pop that springs past its end.
  */
 export interface Transition {
   seconds: number
   delay?: number
   easing?: 'out' | 'in' | 'inOut' | 'linear'
+  curve?: readonly number[]
+}
+
+/**
+ * Clip draws only part of an element and its children. Rect is a box,
+ * [top, right, bottom, left], each side a percent of the element's size from
+ * its top or left edge, so [0, 50, 100, 0] is its left half. Without rect, the
+ * clip is a slice of a circle about center, [x, y] percents of the element's
+ * size and its middle unless set, through sweep degrees from start, as the
+ * game draws a cooldown ring. A transition does not ease a clip; draw it
+ * again to fill a ring over time.
+ */
+export interface Clip {
+  rect?: readonly number[]
+  center?: readonly number[]
+  start?: number
+  sweep?: number
+}
+
+/**
+ * Clock counts a label's time in the player's game, so the mod draws it once
+ * and not every second. It starts at seconds as the player first sees it and
+ * counts down to zero, or up when up is set, unless paused. Format writes
+ * 'minutes' as "4:05", 'seconds' as "245" or 'tenths' as "9.4". A change to
+ * any of its fields starts the count again from seconds; change run to
+ * restart the same clock, such as at each round.
+ */
+export interface Clock {
+  seconds: number
+  up?: boolean
+  paused?: boolean
+  format?: 'minutes' | 'seconds' | 'tenths'
+  run?: number
 }
 
 /**
@@ -264,6 +304,14 @@ export interface Style {
   /** rotate turns the element clockwise, in degrees. */
   rotate?: number
   /**
+   * turn turns the element clockwise, in degrees, before its other
+   * transforms. A transition eases the angle itself, so a turn from 0 to 720
+   * spins twice, where rotate eases the shortest way round.
+   */
+  turn?: number
+  /** clip draws only part of the element and its children. */
+  clip?: Clip
+  /**
    * origin is the point the element scales and turns about, as [x, y]
    * percents of its size; unset is its center.
    */
@@ -286,9 +334,12 @@ export interface Style {
  * bar, 'status' the game's mark in the top-left corner, 'stats' the weapon,
  * spirit and vitality stats at the lower left, 'heroPicker' the screen a
  * player without a hero picks one on, 'brokerCountdown' the countdown in the
- * Broker's window, and 'all' the whole HUD but the mods' own interfaces and
- * the game's tooltips, for a screen that takes the player's whole view.
- * Whatever a part does not name stays, such as the crosshair and chat.
+ * Broker's window, 'minimapPlayers' every player's icon on the minimap, the
+ * player's own included, 'inventory' the purchased items beside the stats,
+ * 'crosshair' the crosshair with its clip ring, ammo count and stamina pips,
+ * 'all' the whole HUD but the mods' own interfaces and the game's tooltips,
+ * for a screen that takes the player's whole view, and 'allButChat' all of
+ * that but the chat. Whatever a part does not name stays.
  */
 export type HudPart =
   | 'levelUp'
@@ -302,7 +353,11 @@ export type HudPart =
   | 'stats'
   | 'heroPicker'
   | 'brokerCountdown'
+  | 'minimapPlayers'
+  | 'inventory'
+  | 'crosshair'
   | 'all'
+  | 'allButChat'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -364,6 +419,7 @@ export interface Props {
   readonly cycle?: Cycle
   readonly token?: string
   readonly variables?: Readonly<Record<string, string | number>>
+  readonly clock?: Clock
   readonly steamId?: bigint
   readonly value?: string | number
   readonly placeholder?: string
@@ -434,12 +490,14 @@ export interface PanelProps extends ElementProps {
 /**
  * LabelProps show text: the label's text children, joined, or the game's text
  * for token in the player's language, with each {s:name} place in it filled
- * from variables.
+ * from variables. A clock's time stands in for the text, or fills the token's
+ * {s:clock} place.
  */
 export interface LabelProps extends ElementProps {
   children?: Child
   token?: string
   variables?: Readonly<Record<string, string | number>>
+  clock?: Clock
 }
 
 /** AvatarProps show the Steam picture of the player with steamId. */
@@ -508,7 +566,11 @@ export type Scaling =
   | 'fitHeight'
   | 'none'
 
-/** ImageProps show an image from the game's content, such as 'file://{images}/hud/icon.png'. */
+/**
+ * ImageProps show an image from the game's content, such as
+ * 'file://{images}/hud/icon.png', or from the mod's own content with {addon}
+ * in place of its addon's name, such as 'file://{images}/{addon}/mark.png'.
+ */
 export interface ImageProps extends ElementProps {
   src: string
   scaling?: Scaling
@@ -844,16 +906,23 @@ export function toast(player: Player, text: string, seconds = 4): boolean {
 /**
  * uiSound plays the game's sound event sound, such as 'UI.ItemDraft.Start', in
  * player's game alone, once; seconds cuts it after that long, keeping only its
- * start. It plays with the next screen the player reads, and not at all if
- * the player reads it only after the mod's next few sounds.
+ * start, and delay waits that long before it plays, so one draw can time a
+ * run of sounds, such as a wheel's ticks. It plays with the next screen the
+ * player reads, and not at all if the player reads it only after the mod's
+ * next few sounds, or the mod clears its interface before its delay ends.
  */
 export function uiSound(
   player: Player,
   sound: string,
-  options: { readonly seconds?: number } = {},
+  options: { readonly seconds?: number; readonly delay?: number } = {},
 ): boolean {
   const current = view(player)
-  const cue = { number: nextCue++, sound, seconds: options.seconds ?? 0 }
+  const cue = {
+    number: nextCue++,
+    sound,
+    seconds: options.seconds ?? 0,
+    delay: options.delay ?? 0,
+  }
   views.set(player.slot, {
     ...current,
     cues: [...current.cues, cue].slice(-maxCues),
@@ -1238,6 +1307,7 @@ function place(layout: Layout, child: Child, at: string): string[] {
       node.text = text(props.children)
       node.token = props.token
       node.variables = variables(props.variables)
+      node.clock = clock(props.clock)
       break
     case 'avatar':
       node.kind = Kind.AVATAR
@@ -1346,6 +1416,49 @@ function input(
   }
 }
 
+/** clock encodes a label's clock. */
+function clock(value: Clock | undefined): WireClock | undefined {
+  if (!value) {
+    return undefined
+  }
+  return {
+    seconds: value.seconds,
+    up: value.up,
+    paused: value.paused,
+    format: value.format === undefined ? undefined : clockFormats[value.format],
+    run: value.run,
+  }
+}
+
+/** clockFormats maps each clock format to its wire value. */
+const clockFormats = {
+  minutes: ClockFormat.MINUTES,
+  seconds: ClockFormat.SECONDS,
+  tenths: ClockFormat.TENTHS,
+}
+
+/** clip encodes a clip: a box when rect is set, otherwise a slice. */
+function clip(value: Clip | undefined): WireClip | undefined {
+  if (!value) {
+    return undefined
+  }
+  if (value.rect) {
+    const [top, right, bottom, left] = value.rect
+    return { shape: { case: 'rect', value: { top, right, bottom, left } } }
+  }
+  return {
+    shape: {
+      case: 'radial',
+      value: {
+        centerX: value.center?.[0],
+        centerY: value.center?.[1],
+        start: value.start,
+        sweep: value.sweep,
+      },
+    },
+  }
+}
+
 /** variables encodes a localized label's variables as text. */
 function variables(
   value: Readonly<Record<string, string | number>> | undefined,
@@ -1448,7 +1561,11 @@ const hudParts = {
   stats: WireHudPart.STATS,
   heroPicker: WireHudPart.HERO_PICKER,
   brokerCountdown: WireHudPart.BROKER_COUNTDOWN,
+  minimapPlayers: WireHudPart.MINIMAP_PLAYERS,
+  inventory: WireHudPart.INVENTORY,
+  crosshair: WireHudPart.CROSSHAIR,
   all: WireHudPart.ALL,
+  allButChat: WireHudPart.ALL_BUT_CHAT,
 } as const
 
 /** faces maps each typeface to its wire value. */
@@ -1601,6 +1718,8 @@ function wireStyle(style: Style | undefined): WireStyle | undefined {
         ? undefined
         : decorations[style.decoration],
     transform: transform(style),
+    turn: style.turn,
+    clip: clip(style.clip),
     transition: transition(style.transition),
   }
 }
@@ -1667,6 +1786,14 @@ function transition(
     seconds: value.seconds,
     delay: value.delay,
     easing: value.easing === undefined ? undefined : easings[value.easing],
+    curve: value.curve
+      ? {
+          x1: value.curve[0],
+          y1: value.curve[1],
+          x2: value.curve[2],
+          y2: value.curve[3],
+        }
+      : undefined,
   }
 }
 

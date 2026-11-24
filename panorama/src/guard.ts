@@ -155,20 +155,51 @@ export const finders: Partial<Record<HudPart, Finder>> = {
     const countdown = popup?.FindChildTraverse('Countdown')
     return countdown ? [countdown] : []
   },
-  [HudPart.ALL]: (hud, scope) => everything(hud, scope),
+  // Each player's minimap icon, and the player's own view cone, carry the
+  // player class (hud_minimap.xml's MinimapPlayerSnippet).
+  [HudPart.MINIMAP_PLAYERS]: (hud) =>
+    hud
+      .FindChildTraverse('minimap_persp')
+      ?.FindChildrenWithClassTraverse('player') ?? [],
+  [HudPart.INVENTORY]: (hud) => ownPanel(hud, 'ModsContainer'),
+  // The ammo warnings sit beside the crosshair, not in it.
+  [HudPart.CROSSHAIR]: (hud) => ownPanel(hud, 'crosshair'),
+  [HudPart.ALL]: (hud, scope) => everything(hud, scope, wholes[HudPart.ALL]!),
+  [HudPart.ALL_BUT_CHAT]: (hud, scope) =>
+    everything(hud, scope, wholes[HudPart.ALL_BUT_CHAT]!),
+}
+
+/**
+ * wholes holds the parts that hide the whole HUD, each with the game's panels
+ * it leaves beside those every such part leaves.
+ */
+const wholes: Partial<Record<HudPart, (panel: GuardPanel) => boolean>> = {
+  [HudPart.ALL]: () => false,
+  // The chat box, and the chat in the top bar that TOP_BAR also leaves.
+  [HudPart.ALL_BUT_CHAT]: (panel) =>
+    panel.id === 'Chat' || panel.BHasClass('ChatContainer'),
+}
+
+/** isWhole reports whether part hides the whole HUD. */
+function isWhole(part: HudPart): boolean {
+  return wholes[part] !== undefined
 }
 
 /**
  * everything returns the game's HUD panels beside the way down to the
- * panels that stay: those KEPT_ID names and kept. Hiding them hides the
- * whole HUD but those. A restore also takes each marked panel the walk
- * passes, so a panel now on the way, or one an earlier guard hid, comes
- * back too.
+ * panels that stay: those KEPT_ID names, kept, and those leaves takes. Hiding
+ * them hides the whole HUD but those. A restore also takes each marked panel
+ * the walk passes, so a panel now on the way, or one an earlier guard hid,
+ * comes back too.
  */
-function everything(hud: GuardPanel, { kept, restoring }: Scope): GuardPanel[] {
+function everything(
+  hud: GuardPanel,
+  { kept, restoring }: Scope,
+  leaves: (panel: GuardPanel) => boolean,
+): GuardPanel[] {
   // Find the panels that stay, level by level, not looking inside them.
   const stays = (panel: GuardPanel) =>
-    KEPT_ID.test(panel.id) || kept.includes(panel)
+    KEPT_ID.test(panel.id) || kept.includes(panel) || leaves(panel)
   const found = [...kept]
   const marked: GuardPanel[] = []
   const queue = [hud]
@@ -249,7 +280,7 @@ export function restorePanel(panel: GuardPanel): void {
 
 /**
  * ALL_MARK names the attribute on the game's HUD while a guard hides the
- * whole HUD, so a restore walks it only then: the walk reaches thousands of
+ * whole HUD, by any part that does, so a restore walks it only then: the walk reaches thousands of
  * panels, and a restore runs on every tick that hides nothing.
  */
 export const ALL_MARK = 'modlock_hidden_all'
@@ -260,8 +291,14 @@ export const ALL_MARK = 'modlock_hidden_all'
  * resident each hold one, so both find, mark and give back the same panels.
  */
 export class HudParts {
-  /** walked holds the whole HUD's panels from the last walk, and when. */
-  private walked: { panels: GuardPanel[]; at: number } | null = null
+  /**
+   * walked holds the whole HUD's panels from the last walk of each part that
+   * hides it, and when.
+   */
+  private readonly walked = new Map<
+    HudPart,
+    { panels: GuardPanel[]; at: number }
+  >()
 
   /**
    * HudParts writes on hud's panels; now is the clock in seconds; HUD_PART_ALL
@@ -275,10 +312,7 @@ export class HudParts {
 
   /** hide hides part's panels, the ones the game built since included. */
   hide(part: HudPart): void {
-    if (
-      part === HudPart.ALL &&
-      this.hud.GetAttributeString(ALL_MARK, '') === ''
-    )
+    if (isWhole(part) && this.hud.GetAttributeString(ALL_MARK, '') === '')
       this.hud.SetAttributeString(ALL_MARK, '1')
     for (const panel of this.find(part)) hidePanel(panel)
   }
@@ -288,11 +322,17 @@ export class HudParts {
    * earlier script's included.
    */
   restore(part: HudPart): void {
-    if (part === HudPart.ALL) {
-      // Walk the whole HUD only while a guard hides it, then drop the mark.
-      this.walked = null
+    if (isWhole(part)) {
+      // Walk the whole HUD only while a guard hides it, then drop the mark;
+      // a whole part still wanted hides it again on the same tick. The walk
+      // leaves only what every whole part leaves, so it finds every mark.
+      this.walked.delete(part)
       if (this.hud.GetAttributeString(ALL_MARK, '') === '') return
-      for (const panel of everything(this.hud, this.scope(true)))
+      for (const panel of everything(
+        this.hud,
+        this.scope(true),
+        wholes[HudPart.ALL]!,
+      ))
         restorePanel(panel)
       this.hud.SetAttributeString(ALL_MARK, '')
       return
@@ -319,12 +359,12 @@ export class HudParts {
    */
   private find(part: HudPart): GuardPanel[] {
     // Find every other part afresh.
-    if (part !== HudPart.ALL)
-      return finders[part]?.(this.hud, this.scope(false)) ?? []
+    const leaves = wholes[part]
+    if (!leaves) return finders[part]?.(this.hud, this.scope(false)) ?? []
 
     // Keep the last walk while it is new and whole.
     const now = this.now()
-    const last = this.walked
+    const last = this.walked.get(part)
     if (
       last &&
       now - last.at < WALK_SECONDS &&
@@ -334,12 +374,12 @@ export class HudParts {
     }
 
     // Walk again, giving back what the walk no longer hides.
-    const panels = everything(this.hud, this.scope(false))
+    const panels = everything(this.hud, this.scope(false), leaves)
     const found = new Set(panels)
     for (const panel of last?.panels ?? []) {
       if (!found.has(panel) && panel.IsValid()) restorePanel(panel)
     }
-    this.walked = { panels, at: now }
+    this.walked.set(part, { panels, at: now })
     return panels
   }
 }

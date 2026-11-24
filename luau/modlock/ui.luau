@@ -197,10 +197,12 @@ export type Style = {
 -- active item bar, "status" the game's mark in the top-left corner, "stats"
 -- the weapon, spirit and vitality stats at the lower left, "heroPicker" the
 -- screen a player without a hero picks one on, "brokerCountdown" the
--- countdown in the Broker's window, and "all" the whole HUD but the mods' own
--- interfaces and the game's tooltips, for a screen that takes the player's
--- whole view. Whatever a part does not name stays, such as the crosshair and
--- chat.
+-- countdown in the Broker's window, "minimapPlayers" every player's icon on
+-- the minimap, the player's own included, "inventory" the purchased items
+-- beside the stats, "crosshair" the crosshair with its clip ring, ammo count
+-- and stamina pips, "all" the whole HUD but the mods' own interfaces and the
+-- game's tooltips, for a screen that takes the player's whole view, and
+-- "allButChat" all of that but the chat. Whatever a part does not name stays.
 export type HudPart =
 	"levelUp"
 	| "ownHealth"
@@ -213,7 +215,11 @@ export type HudPart =
 	| "stats"
 	| "heroPicker"
 	| "brokerCountdown"
+	| "minimapPlayers"
+	| "inventory"
+	| "crosshair"
 	| "all"
+	| "allButChat"
 
 -- Element is one element of an interface, as its function builds it.
 export type Element = {

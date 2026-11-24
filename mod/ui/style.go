@@ -102,6 +102,12 @@ type Style struct {
 	Scale []float32
 	// Rotate turns the element clockwise, in degrees.
 	Rotate float32
+	// Turn turns the element clockwise, in degrees, before its other
+	// transforms. A transition eases the angle itself, so a turn from 0 to
+	// 720 spins twice, where Rotate eases the shortest way round.
+	Turn float32
+	// Clip draws only part of the element and its children.
+	Clip *Clipping
 	// Origin is the point the element scales and turns about, as [x, y]
 	// percents of its size; unset is its center.
 	Origin []float32
@@ -180,6 +186,8 @@ func (s Style) Merge(over Style) Style {
 	s.Translate = pickList(over.Translate, s.Translate)
 	s.Scale = pickList(over.Scale, s.Scale)
 	s.Rotate = pick(over.Rotate, s.Rotate)
+	s.Turn = pick(over.Turn, s.Turn)
+	s.Clip = pick(over.Clip, s.Clip)
 	s.Origin = pickList(over.Origin, s.Origin)
 	s.Transition = pick(over.Transition, s.Transition)
 	return s

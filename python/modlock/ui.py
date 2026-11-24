@@ -225,9 +225,12 @@ class Style(TypedDict, total=False):
 # item bar, "status" the game's mark in the top-left corner, "stats" the
 # weapon, spirit and vitality stats at the lower left, "hero_picker" the screen
 # a player without a hero picks one on, "broker_countdown" the countdown in the
-# Broker's window, and "all" the whole HUD but the mods' own interfaces and the
-# game's tooltips, for a screen that takes the player's whole view. Whatever a
-# part does not name stays, such as the crosshair and chat.
+# Broker's window, "minimap_players" every player's icon on the minimap, the
+# player's own included, "inventory" the purchased items beside the stats,
+# "crosshair" the crosshair with its clip ring, ammo count and stamina pips,
+# "all" the whole HUD but the mods' own interfaces and the game's tooltips, for
+# a screen that takes the player's whole view, and "all_but_chat" all of that
+# but the chat. Whatever a part does not name stays.
 type HudPart = Literal[
     "level_up",
     "own_health",
@@ -240,7 +243,11 @@ type HudPart = Literal[
     "stats",
     "hero_picker",
     "broker_countdown",
+    "minimap_players",
+    "inventory",
+    "crosshair",
     "all",
+    "all_but_chat",
 ]
 
 # Scaling fits a picture into its element's box: "fit" shows it whole, "cover"
