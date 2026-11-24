@@ -6,6 +6,7 @@
     "timers",
     "damage",
     "input",
+    "controllers",
     "world",
     "entities",
     "console",

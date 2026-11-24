@@ -1,0 +1,133 @@
+---
+title: Controllers
+description: Read a player's gamepads, joysticks and radio transmitters.
+---
+
+A mod can read the game controllers on a player's own PC: gamepads, flight
+sticks, and radio transmitters in USB joystick mode. The player's Modlock
+client opens the devices and streams their state to the server, so the mod
+sees every axis, button and hat, including the right stick and channels the
+game itself never sends. Watch a player's controllers to start the stream,
+and each frame then lists them.
+
+<Samples>
+
+```ts
+import { command, onFrame } from 'modlock'
+
+command('pad', (player) => {
+  player.watchControllers(true)
+})
+
+onFrame((frame) => {
+  for (const entry of frame.controllers) {
+    const pad = entry.controllers.find((c) => c.info.gamepad)
+    if (entry.stream === 'live' && pad) {
+      entry.player.centerText(
+        `Right stick ${pad.state.gamepad.rightX.toFixed(2)}`,
+      )
+    }
+  }
+})
+```
+
+```luau
+modlock.command("pad", function(player)
+	player:watchControllers(true)
+end)
+
+modlock.onFrame(function(frame)
+	for _, entry in frame.controllers do
+		for _, c in entry.controllers do
+			if entry.stream == "live" and c.info.gamepad then
+				entry.player:centerText(`Right stick {c.state.gamepad.rightX}`)
+				break
+			end
+		end
+	end
+end)
+```
+
+```python
+@modlock.command("pad")
+def pad(player: modlock.Player, args: str) -> None:
+    player.watch_controllers(True)
+
+
+@modlock.on_frame
+def frame(frame: modlock.FrameEvent) -> None:
+    for entry in frame.controllers:
+        pad = next((c for c in entry.controllers if c.info.gamepad), None)
+        if entry.stream == "live" and pad:
+            entry.player.center_text(f"Right stick {pad.state.gamepad.right_x:.2f}")
+```
+
+```go
+mod.Command("pad", func(p mod.Player, args string) {
+	_ = p.WatchControllers(true)
+})
+
+mod.OnFrame(func(frame *mod.FrameEvent) {
+	for _, entry := range frame.GetControllers() {
+		if entry.GetStream() != mod.ControllerStreamLive {
+			continue
+		}
+		for _, c := range entry.GetControllers() {
+			if c.GetInfo().GetGamepad() {
+				x := c.GetState().GetGamepad().GetRightX()
+				_ = mod.PlayerOf(entry.GetPlayer()).CenterText(fmt.Sprintf("Right stick %.2f", x))
+				break
+			}
+		}
+	}
+})
+```
+
+</Samples>
+
+The client opens the devices only while a watch holds, and closes them when
+the mod calls `watchControllers(false)` or the player leaves. A watched player
+whose client streams nothing stays in the list, with stream `none` and no
+devices.
+
+## Devices
+
+Each entry in `controllers` is one device, with `info` that stays fixed while
+it is attached and `state` that changes each frame.
+
+| Field                       | Holds                                                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `info.id`                   | The device's id while it stays attached; plugged in again, it gets a new one.                              |
+| `info.name`, `info.guid`    | The device's name, such as "Xbox Series X Controller", and SDL's GUID for its model.                       |
+| `info.gamepad`              | Whether SDL knows its gamepad layout, so `state.gamepad` names its sticks and buttons.                     |
+| `state.axes`                | Each raw axis from -1 to 1, in the device's order. A radio's channels are its axes.                        |
+| `state.buttons`, `hats`     | Whether each raw button is held, and each hat as a mask: 1 up, 2 right, 4 down, 8 left.                    |
+| `state.pressed`, `released` | The raw buttons pressed and released since the last frame, so a tap shorter than a frame still shows.      |
+| `state.gamepad`             | The sticks (`leftX`, `leftY`, `rightX`, `rightY`, y positive down), the triggers from 0 to 1, and buttons. |
+
+With Steam Input on, a pad can be listed twice: the physical pad and the
+virtual copy Steam presents for it. Take one device, such as the first
+gamepad, as the examples do.
+
+## Stream
+
+`stream` says whether the values are current, so a mod can choose what to do
+in each state instead of acting on old input.
+
+| Stream      | Means                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| `live`      | The values are current.                                                                         |
+| `unfocused` | The game window lost focus, so the devices are listed with nothing held and every axis at rest. |
+| `stale`     | No update arrived within the deadline; the devices keep their last state.                       |
+| `none`      | No client streams them yet: none is linked, the link dropped, or the client has not answered.   |
+
+A flight or driving mod treats anything other than `live` as the pilot letting
+go: it holds its attitude and cuts the throttle, as Modlock's `fpv-drone`
+example does.
+
+## Trying it without a device
+
+Start the client with `MODLOCK_VIRTUAL_CONTROLLERS=1`, and it adds two virtual
+devices: a gamepad whose sticks circle and whose triggers ramp, and an
+eight-channel radio whose channels wave. The `controllers` example lists them,
+and `fpv-drone` flies on the radio.
