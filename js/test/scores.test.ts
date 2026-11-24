@@ -172,6 +172,29 @@ test('a match and a viewer read use the same asynchronous service', () => {
       value: 0,
       tiebreak: 0,
       count: 0,
+      members: [],
     },
   })
+})
+
+test('a team score carries each teammate with their enrollment', () => {
+  // Enroll a teammate in slot four, then report the pair's score.
+  const teammate = bindScorePlayer({
+    ...player,
+    player: Player.of(4),
+    steamId: 76561198000000004n,
+  })!
+  reportScore(bindScorePlayer(player)!, 'coop.waves', 12, () => {}, {
+    teammates: [teammate],
+  })
+
+  // The report names the teammate's slot and enrollment beside the player's.
+  const report = ScoreReport.fromBinary(sent.at(-1)!.payload)
+  expect(report.player ?? 0).toBe(0)
+  expect(report.teammates).toMatchObject([
+    {
+      player: 4,
+      connection: { steamId: 76561198000000004n, proof: 'test proof' },
+    },
+  ])
 })

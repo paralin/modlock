@@ -129,6 +129,9 @@ export type MatchOptions = {
 export type ScoreOptions = MatchOptions & {
 	-- tiebreak ranks equal values, lower first, such as fewer deaths.
 	tiebreak: number?,
+	-- teammates are the scoring player's teammates on a board that ranks
+	-- teams, each enrolled with bindScorePlayer: the board's teamSize less one.
+	teammates: { ScorePlayer }?,
 }
 
 -- ScorePlayer is a human connection enrolled for reporting.
@@ -193,6 +196,15 @@ function modlock.bindScorePlayer(connection: Connection): ScorePlayer?
 	return wire.decode(schema, "ScoreConnection", reply) :: ScorePlayer
 end
 
+-- teammatesOf encodes a team score's enrolled teammates.
+local function teammatesOf(teammates: { ScorePlayer }?): { any }
+	local encoded = {}
+	for _, teammate in teammates or {} do
+		table.insert(encoded, { player = Player.new(teammate.slot), connection = teammate })
+	end
+	return encoded
+end
+
 -- reportScore reports the enrolled player's result and answers on a later frame.
 function modlock.reportScore(player: ScorePlayer, board: string, value: number, done: ScoreDone, options: ScoreOptions?)
 	local o: ScoreOptions = options or {}
@@ -206,6 +218,7 @@ function modlock.reportScore(player: ScorePlayer, board: string, value: number, 
 		key = o.key,
 		earnedAtUnixMillis = math.round(o.earnedAt or 0),
 		evidence = o.evidence,
+		teammates = teammatesOf(o.teammates),
 	})
 	modlock.callServiceLater(scoresService, "Report", report, function(_, err)
 		done(err)

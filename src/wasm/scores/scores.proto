@@ -110,6 +110,12 @@ message Board {
 
   // Hud asks the host to draw the board on the player's HUD.
   Hud hud = 13;
+
+  // TeamSize ranks teams of this many players, two to four, in place of
+  // single players: each score names the scoring player's teammates, the
+  // same players in any order are one team, and a standing names its team's
+  // players. Zero or one ranks single players. A team board keeps no rating.
+  uint32 team_size = 14;
 }
 
 // Partition is one dimension a board splits its rankings by.
@@ -182,6 +188,17 @@ message ScoreConnection {
   string proof = 4;
 }
 
+// Teammate is one more player a team's score or a team's read names, with
+// the connection that shows the player is in the game.
+message Teammate {
+  // Player is the teammate's server slot.
+  int32 player = 1;
+
+  // Connection is the teammate's enrollment proof from Bind in a report, or
+  // their live connection in a read.
+  ScoreConnection connection = 2;
+}
+
 // ScoreAccepted is an empty reply to a report the host accepted. A refusal
 // ends the asynchronous service call with an error.
 message ScoreAccepted {}
@@ -221,6 +238,10 @@ message ScoreReport {
 
   // Connection is the enrollment proof from Bind.
   ScoreConnection connection = 9;
+
+  // Teammates are the scoring player's teammates on a team board, the
+  // board's team size less one; a board of single players takes none.
+  repeated Teammate teammates = 10;
 }
 
 // MatchReport reports one match's places on a rating or match board, the
@@ -286,6 +307,10 @@ message BoardQuery {
 
   // Connection identifies the current viewer when Player is set.
   ScoreConnection connection = 7;
+
+  // Teammates name the viewer's teammates on a team board, so Player's row
+  // is their team's; each is a player in the game now.
+  repeated Teammate teammates = 8;
 }
 
 // BoardPage is a page of one board, the response of the Read method.
@@ -319,4 +344,18 @@ message Standing {
 
   // Count is how many scores the standing kept.
   uint32 count = 6;
+
+  // Members are a team's players on a team board, ordered by SteamID64;
+  // SteamId and Name then belong to the first. A board of single players
+  // lists none.
+  repeated Member members = 7;
+}
+
+// Member is one player of a team's standing.
+message Member {
+  // SteamId is the player's SteamID64.
+  uint64 steam_id = 1;
+
+  // Name is the player's name as the host shows it.
+  string name = 2;
 }

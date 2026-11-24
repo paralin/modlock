@@ -24,6 +24,10 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 	var partition map[string]string
 	var line string
 	var response []byte
+	// team is the call's player and teammates when it names a team's row:
+	// every report, and a read that asks for the viewer's own row.
+	var team []int32
+	teamed := false
 	switch call.GetMethod() {
 	case "Report":
 		report := &scorespb.ScoreReport{}
@@ -31,7 +35,8 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 			return &wasm.Reply{Error: "the scores Report request is malformed"}
 		}
 		board, partition = report.GetBoard(), report.GetPartition()
-		line = "player " + strconv.Itoa(int(report.GetPlayer())) + " " + strconv.FormatInt(report.GetValue(), 10)
+		team, teamed = teamSlots(report.GetPlayer(), report.GetTeammates()), true
+		line = describeTeam(team) + " " + strconv.FormatInt(report.GetValue(), 10)
 	case "Match":
 		match := &scorespb.MatchReport{}
 		if err := match.UnmarshalVT(call.GetPayload()); err != nil {
@@ -49,6 +54,7 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 			return &wasm.Reply{Error: "the scores Read request is malformed"}
 		}
 		board, partition = query.GetBoard(), query.GetPartition()
+		team, teamed = teamSlots(query.GetPlayer(), query.GetTeammates()), query.Player != nil || len(query.GetTeammates()) != 0
 		response, _ = (&scorespb.BoardPage{}).MarshalVT()
 	default:
 		return &wasm.Reply{Error: "the scores service has no method " + call.GetMethod()}
@@ -62,6 +68,11 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 	if err := boards.Partitioned(declared, partition); err != nil {
 		return s.refuse(mod, err.Error())
 	}
+	if teamed {
+		if err := boards.Teamed(declared, team[0], team[1:]); err != nil {
+			return s.refuse(mod, err.Error())
+		}
+	}
 
 	// Log a report as it would be reported.
 	if line != "" {
@@ -69,6 +80,27 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 	}
 	reply, _ := (&wasm.ServiceReply{Payload: response}).MarshalVT()
 	return &wasm.Reply{Response: reply}
+}
+
+// teamSlots lists a call's player then its teammates by slot.
+func teamSlots(player int32, teammates []*scorespb.Teammate) []int32 {
+	team := []int32{player}
+	for _, teammate := range teammates {
+		team = append(team, teammate.GetPlayer())
+	}
+	return team
+}
+
+// describeTeam writes a call's players as "player 1" or "players 1, 2".
+func describeTeam(team []int32) string {
+	if len(team) == 1 {
+		return "player " + strconv.Itoa(int(team[0]))
+	}
+	slots := make([]string, len(team))
+	for i, slot := range team {
+		slots[i] = strconv.Itoa(int(slot))
+	}
+	return "players " + strings.Join(slots, ", ")
 }
 
 // refuse logs and fails a scores call.

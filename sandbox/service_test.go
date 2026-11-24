@@ -20,6 +20,9 @@ func TestCallService(t *testing.T) {
 	build := &Build{Manifest: &wasm.Manifest{Slug: "trial", Boards: []*scorespb.Board{{
 		Name: "trial.time", Unit: scorespb.Board_UNIT_MILLISECONDS, Order: scorespb.Board_ORDER_ASCENDING,
 		Keep: scorespb.Board_KEEP_BEST, Partitions: []*scorespb.Partition{{Name: "course", Values: []string{"canyon"}}},
+	}, {
+		Name: "trial.pairs", Unit: scorespb.Board_UNIT_NUMBER, Order: scorespb.Board_ORDER_DESCENDING,
+		Keep: scorespb.Board_KEEP_BEST, TeamSize: 2,
 	}}}}
 	serve := func(service, method string, payload interface{ MarshalVT() ([]byte, error) }) *wasm.Reply {
 		data, _ := payload.MarshalVT()
@@ -45,6 +48,22 @@ func TestCallService(t *testing.T) {
 	}
 	if reply := serve("scores", "Report", &scorespb.ScoreReport{Board: "trial.time", Partition: map[string]string{"course": "mesa"}}); reply.GetError() == "" {
 		t.Fatal("an undeclared course was accepted")
+	}
+
+	// A team board logs its team's score and refuses one without the
+	// teammate; a board of single players refuses one with a teammate.
+	pair := []*scorespb.Teammate{{Player: 3}}
+	if reply := serve("scores", "Report", &scorespb.ScoreReport{Board: "trial.pairs", Player: 1, Value: 12, Teammates: pair}); reply.GetError() != "" {
+		t.Fatalf("pair report refused: %s", reply.GetError())
+	}
+	if want := "score trial.pairs: players 1, 3 12"; logged[len(logged)-1] != want {
+		t.Fatalf("logged %q, want %q", logged[len(logged)-1], want)
+	}
+	if reply := serve("scores", "Report", &scorespb.ScoreReport{Board: "trial.pairs", Player: 1, Value: 12}); reply.GetError() == "" {
+		t.Fatal("a team score without its teammate was accepted")
+	}
+	if reply := serve("scores", "Report", &scorespb.ScoreReport{Board: "trial.time", Partition: canyon, Teammates: pair}); reply.GetError() == "" {
+		t.Fatal("a single player's score with a teammate was accepted")
 	}
 
 	// Read the board as empty.

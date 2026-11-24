@@ -352,6 +352,11 @@ type Board struct {
 	Version uint32 `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
 	// Hud asks the host to draw the board on the player's HUD.
 	Hud Hud `protobuf:"varint,13,opt,name=hud,proto3" json:"hud,omitempty"`
+	// TeamSize ranks teams of this many players, two to four, in place of
+	// single players: each score names the scoring player's teammates, the
+	// same players in any order are one team, and a standing names its team's
+	// players. Zero or one ranks single players. A team board keeps no rating.
+	TeamSize uint32 `protobuf:"varint,14,opt,name=team_size,json=teamSize,proto3" json:"teamSize,omitempty"`
 }
 
 func (x *Board) Reset() {
@@ -451,6 +456,13 @@ func (x *Board) GetHud() Hud {
 	return Hud_HUD_UNKNOWN
 }
 
+func (x *Board) GetTeamSize() uint32 {
+	if x != nil {
+		return x.TeamSize
+	}
+	return 0
+}
+
 // Partition is one dimension a board splits its rankings by.
 type Partition struct {
 	unknownFields []byte
@@ -531,6 +543,37 @@ func (x *ScoreConnection) GetProof() string {
 	return ""
 }
 
+// Teammate is one more player a team's score or a team's read names, with
+// the connection that shows the player is in the game.
+type Teammate struct {
+	unknownFields []byte
+	// Player is the teammate's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Connection is the teammate's enrollment proof from Bind in a report, or
+	// their live connection in a read.
+	Connection *ScoreConnection `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
+}
+
+func (x *Teammate) Reset() {
+	*x = Teammate{}
+}
+
+func (*Teammate) ProtoMessage() {}
+
+func (x *Teammate) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *Teammate) GetConnection() *ScoreConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
 // ScoreAccepted is an empty reply to a report the host accepted. A refusal
 // ends the asynchronous service call with an error.
 type ScoreAccepted struct {
@@ -571,6 +614,9 @@ type ScoreReport struct {
 	Evidence string `protobuf:"bytes,8,opt,name=evidence,proto3" json:"evidence,omitempty"`
 	// Connection is the enrollment proof from Bind.
 	Connection *ScoreConnection `protobuf:"bytes,9,opt,name=connection,proto3" json:"connection,omitempty"`
+	// Teammates are the scoring player's teammates on a team board, the
+	// board's team size less one; a board of single players takes none.
+	Teammates []*Teammate `protobuf:"bytes,10,rep,name=teammates,proto3" json:"teammates,omitempty"`
 }
 
 func (x *ScoreReport) Reset() {
@@ -638,6 +684,13 @@ func (x *ScoreReport) GetEvidence() string {
 func (x *ScoreReport) GetConnection() *ScoreConnection {
 	if x != nil {
 		return x.Connection
+	}
+	return nil
+}
+
+func (x *ScoreReport) GetTeammates() []*Teammate {
+	if x != nil {
+		return x.Teammates
 	}
 	return nil
 }
@@ -776,6 +829,9 @@ type BoardQuery struct {
 	Player *int32 `protobuf:"varint,6,opt,name=player,proto3,oneof" json:"player,omitempty"`
 	// Connection identifies the current viewer when Player is set.
 	Connection *ScoreConnection `protobuf:"bytes,7,opt,name=connection,proto3" json:"connection,omitempty"`
+	// Teammates name the viewer's teammates on a team board, so Player's row
+	// is their team's; each is a player in the game now.
+	Teammates []*Teammate `protobuf:"bytes,8,rep,name=teammates,proto3" json:"teammates,omitempty"`
 }
 
 func (x *BoardQuery) Reset() {
@@ -833,6 +889,13 @@ func (x *BoardQuery) GetConnection() *ScoreConnection {
 	return nil
 }
 
+func (x *BoardQuery) GetTeammates() []*Teammate {
+	if x != nil {
+		return x.Teammates
+	}
+	return nil
+}
+
 // BoardPage is a page of one board, the response of the Read method.
 type BoardPage struct {
 	unknownFields []byte
@@ -877,6 +940,10 @@ type Standing struct {
 	Tiebreak int64 `protobuf:"varint,5,opt,name=tiebreak,proto3" json:"tiebreak,omitempty"`
 	// Count is how many scores the standing kept.
 	Count uint32 `protobuf:"varint,6,opt,name=count,proto3" json:"count,omitempty"`
+	// Members are a team's players on a team board, ordered by SteamID64;
+	// SteamId and Name then belong to the first. A board of single players
+	// lists none.
+	Members []*Member `protobuf:"bytes,7,rep,name=members,proto3" json:"members,omitempty"`
 }
 
 func (x *Standing) Reset() {
@@ -925,6 +992,42 @@ func (x *Standing) GetCount() uint32 {
 		return x.Count
 	}
 	return 0
+}
+
+func (x *Standing) GetMembers() []*Member {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+// Member is one player of a team's standing.
+type Member struct {
+	unknownFields []byte
+	// SteamId is the player's SteamID64.
+	SteamId uint64 `protobuf:"varint,1,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	// Name is the player's name as the host shows it.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *Member) Reset() {
+	*x = Member{}
+}
+
+func (*Member) ProtoMessage() {}
+
+func (x *Member) GetSteamId() uint64 {
+	if x != nil {
+		return x.SteamId
+	}
+	return 0
+}
+
+func (x *Member) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
 }
 
 type ScoreReport_PartitionEntry struct {
@@ -1019,6 +1122,7 @@ func (m *Board) CloneVT() *Board {
 	r.Tier = m.Tier
 	r.Version = m.Version
 	r.Hud = m.Hud
+	r.TeamSize = m.TeamSize
 	r.Partitions = protobuf_go_lite.CloneVTSlice(m.Partitions)
 	r.Windows = protobuf_go_lite.CloneSlice(m.Windows)
 	r.Lowest = protobuf_go_lite.ClonePtr(m.Lowest)
@@ -1069,6 +1173,23 @@ func (m *ScoreConnection) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *Teammate) CloneVT() *Teammate {
+	if m == nil {
+		return (*Teammate)(nil)
+	}
+	r := new(Teammate)
+	r.Player = m.Player
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Teammate) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *ScoreAccepted) CloneVT() *ScoreAccepted {
 	if m == nil {
 		return (*ScoreAccepted)(nil)
@@ -1098,6 +1219,7 @@ func (m *ScoreReport) CloneVT() *ScoreReport {
 	r.Evidence = m.Evidence
 	r.Partition = protobuf_go_lite.CloneMap(m.Partition)
 	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
+	r.Teammates = protobuf_go_lite.CloneVTSlice(m.Teammates)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1160,6 +1282,7 @@ func (m *BoardQuery) CloneVT() *BoardQuery {
 	r.Partition = protobuf_go_lite.CloneMap(m.Partition)
 	r.Player = protobuf_go_lite.ClonePtr(m.Player)
 	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
+	r.Teammates = protobuf_go_lite.CloneVTSlice(m.Teammates)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1198,6 +1321,7 @@ func (m *Standing) CloneVT() *Standing {
 	r.Value = m.Value
 	r.Tiebreak = m.Tiebreak
 	r.Count = m.Count
+	r.Members = protobuf_go_lite.CloneVTSlice(m.Members)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1205,6 +1329,23 @@ func (m *Standing) CloneVT() *Standing {
 }
 
 func (m *Standing) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Member) CloneVT() *Member {
+	if m == nil {
+		return (*Member)(nil)
+	}
+	r := new(Member)
+	r.SteamId = m.SteamId
+	r.Name = m.Name
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Member) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1251,6 +1392,9 @@ func (this *Board) EqualVT(that *Board) bool {
 		return false
 	}
 	if this.Hud != that.Hud {
+		return false
+	}
+	if this.TeamSize != that.TeamSize {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1316,6 +1460,29 @@ func (this *ScoreConnection) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *Teammate) EqualVT(that *Teammate) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Teammate) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Teammate)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *ScoreAccepted) EqualVT(that *ScoreAccepted) bool {
 	if this == that {
 		return true
@@ -1364,6 +1531,9 @@ func (this *ScoreReport) EqualVT(that *ScoreReport) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Teammates, that.Teammates, func() *Teammate { return &Teammate{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1468,6 +1638,9 @@ func (this *BoardQuery) EqualVT(that *BoardQuery) bool {
 	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Teammates, that.Teammates, func() *Teammate { return &Teammate{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1526,11 +1699,37 @@ func (this *Standing) EqualVT(that *Standing) bool {
 	if this.Count != that.Count {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Members, that.Members, func() *Member { return &Member{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Standing) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Standing)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Member) EqualVT(that *Member) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.SteamId != that.SteamId {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Member) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Member)
 	if !ok {
 		return false
 	}
@@ -1902,6 +2101,11 @@ func (x *Board) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("hud")
 		x.Hud.MarshalProtoJSON(s)
 	}
+	if x.TeamSize != 0 || s.HasField("teamSize") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("teamSize")
+		s.WriteUint32(x.TeamSize)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1991,6 +2195,9 @@ func (x *Board) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "hud":
 			s.AddField("hud")
 			x.Hud.UnmarshalProtoJSON(s)
+		case "team_size", "teamSize":
+			s.AddField("team_size")
+			x.TeamSize = s.ReadUint32()
 		}
 	})
 }
@@ -2117,6 +2324,60 @@ func (x *ScoreConnection) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ScoreConnection from JSON.
 func (x *ScoreConnection) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Teammate message to JSON.
+func (x *Teammate) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Teammate to JSON.
+func (x *Teammate) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Teammate message from JSON.
+func (x *Teammate) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &ScoreConnection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Teammate from JSON.
+func (x *Teammate) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2261,6 +2522,17 @@ func (x *ScoreReport) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("connection")
 		x.Connection.MarshalProtoJSON(s.WithField("connection"))
 	}
+	if len(x.Teammates) > 0 || s.HasField("teammates") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("teammates")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Teammates {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("teammates"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2316,6 +2588,24 @@ func (x *ScoreReport) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Connection = &ScoreConnection{}
 			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
+		case "teammates":
+			s.AddField("teammates")
+			if s.ReadNil() {
+				x.Teammates = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Teammates = append(x.Teammates, nil)
+					return
+				}
+				v := &Teammate{}
+				v.UnmarshalProtoJSON(s.WithField("teammates", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Teammates = append(x.Teammates, v)
+			})
 		}
 	})
 }
@@ -2664,6 +2954,17 @@ func (x *BoardQuery) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("connection")
 		x.Connection.MarshalProtoJSON(s.WithField("connection"))
 	}
+	if len(x.Teammates) > 0 || s.HasField("teammates") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("teammates")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Teammates {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("teammates"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2718,6 +3019,24 @@ func (x *BoardQuery) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Connection = &ScoreConnection{}
 			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
+		case "teammates":
+			s.AddField("teammates")
+			if s.ReadNil() {
+				x.Teammates = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Teammates = append(x.Teammates, nil)
+					return
+				}
+				v := &Teammate{}
+				v.UnmarshalProtoJSON(s.WithField("teammates", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Teammates = append(x.Teammates, v)
+			})
 		}
 	})
 }
@@ -2840,6 +3159,17 @@ func (x *Standing) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("count")
 		s.WriteUint32(x.Count)
 	}
+	if len(x.Members) > 0 || s.HasField("members") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("members")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Members {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("members"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2875,12 +3205,80 @@ func (x *Standing) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "count":
 			s.AddField("count")
 			x.Count = s.ReadUint32()
+		case "members":
+			s.AddField("members")
+			if s.ReadNil() {
+				x.Members = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Members = append(x.Members, nil)
+					return
+				}
+				v := &Member{}
+				v.UnmarshalProtoJSON(s.WithField("members", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Members = append(x.Members, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Standing from JSON.
 func (x *Standing) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Member message to JSON.
+func (x *Member) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.SteamId != 0 || s.HasField("steamId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steamId")
+		s.WriteUint64(x.SteamId)
+	}
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Member to JSON.
+func (x *Member) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Member message from JSON.
+func (x *Member) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "steam_id", "steamId":
+			s.AddField("steam_id")
+			x.SteamId = s.ReadUint64()
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Member from JSON.
+func (x *Member) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2912,6 +3310,11 @@ func (m *Board) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.TeamSize != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.TeamSize))
+		i--
+		dAtA[i] = 0x70
 	}
 	if m.Hud != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Hud))
@@ -3084,6 +3487,53 @@ func (m *ScoreConnection) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Teammate) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Teammate) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Teammate) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ScoreAccepted) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3144,6 +3594,18 @@ func (m *ScoreReport) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Teammates) > 0 {
+		for iNdEx := len(m.Teammates) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Teammates[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x52
+		}
 	}
 	if m.Connection != nil {
 		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
@@ -3373,6 +3835,18 @@ func (m *BoardQuery) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Teammates) > 0 {
+		for iNdEx := len(m.Teammates) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Teammates[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x42
+		}
+	}
 	if m.Connection != nil {
 		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -3509,6 +3983,18 @@ func (m *Standing) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Members) > 0 {
+		for iNdEx := len(m.Members) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Members[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
 	if m.Count != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Count))
 		i--
@@ -3542,6 +4028,48 @@ func (m *Standing) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Member) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Member) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Member) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.SteamId != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SteamId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Board) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3564,6 +4092,7 @@ func (m *Board) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintPtr(1, m.Highest)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Version)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Hud)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.TeamSize)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3590,6 +4119,21 @@ func (m *ScoreConnection) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.SteamId)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Proof)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Teammate) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3625,6 +4169,10 @@ func (m *ScoreReport) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Evidence)
 	if m.Connection != nil {
 		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for _, e := range m.Teammates {
+		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += len(m.unknownFields)
@@ -3693,6 +4241,10 @@ func (m *BoardQuery) SizeVT() (n int) {
 		l = m.Connection.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	for _, e := range m.Teammates {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3727,6 +4279,22 @@ func (m *Standing) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Value)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Tiebreak)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Count)
+	for _, e := range m.Members {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Member) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SteamId)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3826,6 +4394,10 @@ func (x *Board) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hud")
 		protobuf_go_lite.TextWriteStringer(&sb, Hud(x.Hud))
 	}
+	if x.TeamSize != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "team_size")
+		protobuf_go_lite.TextWriteUint(&sb, x.TeamSize)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -3878,6 +4450,24 @@ func (x *ScoreConnection) MarshalProtoText() string {
 }
 
 func (x *ScoreConnection) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Teammate) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Teammate")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Teammate) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3954,6 +4544,18 @@ func (x *ScoreReport) MarshalProtoText() string {
 	if x.Connection != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
+	if len(x.Teammates) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "teammates")
+		for i, v := range x.Teammates {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Teammate{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -4111,6 +4713,18 @@ func (x *BoardQuery) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
 	}
+	if len(x.Teammates) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "teammates")
+		for i, v := range x.Teammates {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Teammate{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -4171,10 +4785,40 @@ func (x *Standing) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "count")
 		protobuf_go_lite.TextWriteUint(&sb, x.Count)
 	}
+	if len(x.Members) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "members")
+		for i, v := range x.Members {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Member{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Standing) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Member) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Member")
+	if x.SteamId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Member) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4360,6 +5004,15 @@ func (m *Board) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 14:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TeamSize", wireType)
+			}
+			m.TeamSize = 0
+			m.TeamSize, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4503,6 +5156,73 @@ func (m *ScoreConnection) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Proof = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Teammate) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Teammate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Teammate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &ScoreConnection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4709,6 +5429,19 @@ func (m *ScoreReport) UnmarshalVT(dAtA []byte) error {
 				m.Connection = &ScoreConnection{}
 			}
 			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Teammates", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Teammates = append(m.Teammates, &Teammate{})
+			if err := m.Teammates[len(m.Teammates)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -5083,6 +5816,19 @@ func (m *BoardQuery) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Teammates", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Teammates = append(m.Teammates, &Teammate{})
+			if err := m.Teammates[len(m.Teammates)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -5252,6 +5998,81 @@ func (m *Standing) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Members", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Members = append(m.Members, &Member{})
+			if err := m.Members[len(m.Members)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Member) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Member: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Member: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SteamId", wireType)
+			}
+			m.SteamId = 0
+			m.SteamId, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

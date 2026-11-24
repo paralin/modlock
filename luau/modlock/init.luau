@@ -4483,6 +4483,10 @@ schema.ScoreConnection = {
 	{ number = 3, name = "generation", kind = "uint32" },
 	{ number = 4, name = "proof", kind = "string" },
 }
+schema.Teammate = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "connection", kind = "message", optional = true, message = "ScoreConnection" },
+}
 schema.ScoreReport = {
 	{ number = 1, name = "board", kind = "string" },
 	{ number = 2, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -4493,6 +4497,7 @@ schema.ScoreReport = {
 	{ number = 7, name = "earnedAtUnixMillis", kind = "int64" },
 	{ number = 8, name = "evidence", kind = "string" },
 	{ number = 9, name = "connection", kind = "message", optional = true, message = "ScoreConnection" },
+	{ number = 10, name = "teammates", kind = "message", repeated = true, message = "Teammate" },
 }
 schema.ScoreReport_PartitionEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4524,6 +4529,7 @@ schema.BoardQuery = {
 	{ number = 5, name = "limit", kind = "uint32" },
 	{ number = 6, name = "player", kind = "int32", optional = true, class = Player, key = "slot" },
 	{ number = 7, name = "connection", kind = "message", optional = true, message = "ScoreConnection" },
+	{ number = 8, name = "teammates", kind = "message", repeated = true, message = "Teammate" },
 }
 schema.BoardQuery_PartitionEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4540,6 +4546,11 @@ schema.Standing = {
 	{ number = 4, name = "value", kind = "int64" },
 	{ number = 5, name = "tiebreak", kind = "int64" },
 	{ number = 6, name = "count", kind = "uint32" },
+	{ number = 7, name = "members", kind = "message", repeated = true, message = "Member" },
+}
+schema.Member = {
+	{ number = 1, name = "steamId", kind = "uint64", id = true },
+	{ number = 2, name = "name", kind = "string" },
 }
 
 -- log writes one line to the server log under the mod's name.
@@ -5444,6 +5455,9 @@ export type MatchOptions = {
 export type ScoreOptions = MatchOptions & {
 	-- tiebreak ranks equal values, lower first, such as fewer deaths.
 	tiebreak: number?,
+	-- teammates are the scoring player's teammates on a board that ranks
+	-- teams, each enrolled with bindScorePlayer: the board's teamSize less one.
+	teammates: { ScorePlayer }?,
 }
 
 -- ScorePlayer is a human connection enrolled for reporting.
@@ -5508,6 +5522,15 @@ function modlock.bindScorePlayer(connection: Connection): ScorePlayer?
 	return wire.decode(schema, "ScoreConnection", reply) :: ScorePlayer
 end
 
+-- teammatesOf encodes a team score's enrolled teammates.
+local function teammatesOf(teammates: { ScorePlayer }?): { any }
+	local encoded = {}
+	for _, teammate in teammates or {} do
+		table.insert(encoded, { player = Player.new(teammate.slot), connection = teammate })
+	end
+	return encoded
+end
+
 -- reportScore reports the enrolled player's result and answers on a later frame.
 function modlock.reportScore(player: ScorePlayer, board: string, value: number, done: ScoreDone, options: ScoreOptions?)
 	local o: ScoreOptions = options or {}
@@ -5521,6 +5544,7 @@ function modlock.reportScore(player: ScorePlayer, board: string, value: number, 
 		key = o.key,
 		earnedAtUnixMillis = math.round(o.earnedAt or 0),
 		evidence = o.evidence,
+		teammates = teammatesOf(o.teammates),
 	})
 	modlock.callServiceLater(scoresService, "Report", report, function(_, err)
 		done(err)
