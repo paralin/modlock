@@ -40,6 +40,8 @@ const (
 	opI64Load32U = 0x35
 	// opI32Store8 stores one byte.
 	opI32Store8 = 0x3a
+	// opMemorySize pushes the memory's size in pages.
+	opMemorySize = 0x3f
 	// opMemoryGrow adds pages and pushes the old size, or -1.
 	opMemoryGrow = 0x40
 	// opI32Const pushes an i32.
@@ -50,6 +52,8 @@ const (
 	opI32Eq = 0x46
 	// opI32LtU compares two i32s, unsigned.
 	opI32LtU = 0x49
+	// opI32GtU compares two i32s, unsigned.
+	opI32GtU = 0x4b
 	// opI32GeU compares two i32s, unsigned.
 	opI32GeU = 0x4f
 	// opI32Add adds two i32s.
@@ -175,7 +179,11 @@ const (
 // opens with 0x01 and separates the text, the code and the symbol with
 // 0x1f. The sink logs the message through hostCall as a Log call and traps.
 // The library is poisoned by then and cannot allocate, so the sink builds
-// the call in a page it grows past the heap.
+// the call in a page it grows past the heap. When memory is at its limit,
+// as it is when the panic reports that the heap ran out, the sink builds the
+// call over the memory's last page instead, or over its first when the
+// message ends in the last: the instance never runs again after the trap, so
+// nothing reads what the call overwrites.
 func panicBody(hostCall uint32) *body {
 	// Test whether a nonempty message opens with 0x01.
 	b := &body{locals: 5}
@@ -199,12 +207,28 @@ func panicBody(hostCall uint32) *body {
 	b.op(opI32LtU, opSelect)
 	b.set(panicLength)
 
-	// Grow a page for the call, trapping when memory cannot grow.
+	// Grow a page for the call.
 	b.i32(1)
 	b.op(opMemoryGrow, 0)
 	b.tee(panicAt)
 	b.i32(-1)
-	b.op(opI32Eq, opIf, blockVoid, opUnreachable, opEnd)
+	b.op(opI32Eq, opIf, blockVoid)
+
+	// When memory cannot grow, take its last page.
+	b.op(opMemorySize, 0)
+	b.i32(1)
+	b.op(opI32Sub)
+	b.set(panicAt)
+
+	// Take the first page when the message ends in the last.
+	b.get(panicMessage, panicLength)
+	b.op(opI32Add)
+	b.get(panicAt)
+	b.i32(16)
+	b.op(opI32Shl, opI32GtU, opIf, blockVoid)
+	b.i32(0)
+	b.set(panicAt)
+	b.op(opEnd, opEnd)
 
 	// Place the message's copy 16 bytes into the page, past room for the
 	// call's header.
