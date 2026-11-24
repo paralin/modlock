@@ -1,10 +1,11 @@
 // Package js builds the modlock library that TypeScript and JavaScript mods
 // import: one ES module holding the calls into the game and its protobuf
-// runtime, the entity classes as a second module that imports the first, and
-// their declarations. Beside them it keeps the library's TypeScript source
-// and the protobuf runtime's, which scriptc compiles with a mod. It also
-// bundles the renderer that draws mods' interfaces in the player's game, the
-// preview page that draws them in a browser, and Modlock Studio's page.
+// runtime, the entity classes, the console and the game-mode kit as modules
+// that import the first, and their declarations. Beside them it keeps the
+// library's TypeScript source and the protobuf runtime's, which scriptc
+// compiles with a mod. It also bundles the renderer that draws mods'
+// interfaces in the player's game, the preview page that draws them in a
+// browser, and Modlock Studio's page.
 //
 // A script project installs only the declarations, so editors and the type
 // checker see one modlock package and neither compiler mistakes it for an
@@ -79,6 +80,10 @@ const LayoutLibrary = "layout.js"
 // Preview is the directory of the built library that holds the preview page
 // modlock dev serves.
 const Preview = "preview"
+
+// Kit is the directory of the built library that holds the game-mode kit,
+// which mods import as modlock/kit, and its declarations.
+const Kit = "kit"
 
 // Studio is the directory of the built library that holds Modlock Studio's
 // page, which modlock studio serves.
@@ -400,25 +405,28 @@ func Build(ctx context.Context, source, out string) error {
 		"jsx-runtime.js":   []byte(jsxRuntime),
 		"jsx-runtime.d.ts": []byte(jsxTypes),
 	}
-	emitted, err := os.ReadDir(declared)
-	if err != nil {
-		return err
-	}
-	for _, entry := range emitted {
-		name := entry.Name()
-		if _, written := files[name]; written || !strings.HasSuffix(name, ".d.ts") {
-			continue
-		}
-		if files[name], err = os.ReadFile(filepath.Join(declared, name)); err != nil {
+	for _, dir := range []string{"", Kit} {
+		emitted, err := os.ReadDir(filepath.Join(declared, dir))
+		if err != nil {
 			return err
 		}
-		if outside := escapingImport.Find(files[name]); outside != nil {
-			return errors.Errorf("declare the library: %s imports %s, which the installed library lacks; declare its public types in the module", name, outside)
+		for _, entry := range emitted {
+			name := path.Join(dir, entry.Name())
+			if _, written := files[name]; written || !strings.HasSuffix(name, ".d.ts") {
+				continue
+			}
+			if files[name], err = os.ReadFile(filepath.Join(declared, filepath.FromSlash(name))); err != nil {
+				return err
+			}
+			if outside := escapingImport.Find(files[name]); outside != nil {
+				return errors.Errorf("declare the library: %s imports %s, which the installed library lacks; declare its public types in the module", name, outside)
+			}
 		}
 	}
 
-	// Bundle the library, the entity classes, the console, the renderer, the
-	// layout library and the pages, which run the layout library as well.
+	// Bundle the library, the entity classes, the console, the game-mode kit,
+	// the renderer, the layout library and the pages, which run the layout
+	// library as well.
 	bundles := []struct {
 		name    string
 		options api.BuildOptions
@@ -426,6 +434,7 @@ func Build(ctx context.Context, source, out string) error {
 		{"index.js", api.BuildOptions{EntryPoints: []string{"js/src/quickjs.ts"}, Format: api.FormatESModule, Target: api.ES2023}},
 		{"entities.js", api.BuildOptions{EntryPoints: []string{"js/src/entities.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{"console.js", api.BuildOptions{EntryPoints: []string{"js/src/console.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
+		{Kit + "/index.js", api.BuildOptions{EntryPoints: []string{"js/src/kit/index.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{Renderer, api.BuildOptions{EntryPoints: []string{"panorama/src/main.ts"}, Format: api.FormatIIFE, Target: api.ES2020, MinifyWhitespace: true, MinifyIdentifiers: true, MinifySyntax: true}},
 		{LayoutLibrary, api.BuildOptions{EntryPoints: []string{"panorama/src/layout.ts"}, Format: api.FormatIIFE, GlobalName: "Modlock", Target: api.ES2020, MinifySyntax: true}},
 		{Preview + "/" + LayoutLibrary, api.BuildOptions{EntryPoints: []string{"panorama/src/layout.ts"}, Format: api.FormatIIFE, GlobalName: "Modlock", Target: api.ES2020, MinifySyntax: true}},

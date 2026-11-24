@@ -4,7 +4,7 @@ import { Call, Reply, ServerCommandRequest } from '../../src/wasm/wasm.pb.js'
 import { type Connection, Player } from '../src/host.gen.js'
 import { bind } from '../src/host.js'
 import { keepPlayers } from '../src/players.js'
-import { Stragglers } from '../src/stragglers.js'
+import { Stragglers } from '../src/kit/stragglers.js'
 
 /** sent lists the server commands and entity listings the sweep made. */
 const sent: string[] = []

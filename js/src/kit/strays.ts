@@ -20,11 +20,11 @@ import {
   findEntities,
   killEntity,
   log,
+  players,
   readField,
   writeField,
-} from './host.gen.js'
+} from 'modlock'
 import { holdBystander } from './bystander.js'
-import { players } from './players.js'
 
 /** strayGraceSeconds is how long a hero pawn belongs to no player before it is killed. */
 export const strayGraceSeconds = 3

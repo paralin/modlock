@@ -8,7 +8,7 @@ import {
   settle,
   Standings,
   startingRating,
-} from '../src/rotation.js'
+} from '../src/kit/rotation.js'
 
 // A session runs through join, two seatings, a result and the leaderboard,
 // the way a rotation mod calls these each match.

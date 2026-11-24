@@ -14,7 +14,7 @@ import {
   holdModifierState,
   type Player,
   type Vector,
-} from './host.gen.js'
+} from 'modlock'
 
 /** bystanderStates are the modifier states that keep a hero out of play. */
 export const bystanderStates: readonly string[] = [

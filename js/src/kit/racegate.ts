@@ -23,7 +23,7 @@ import {
   showEntityOnlyTo,
   type Vector,
   type WorldObject,
-} from './host.gen.js'
+} from 'modlock'
 
 /** RaceGateOptions place a gate and choose its look; most have a default. */
 export interface RaceGateOptions {

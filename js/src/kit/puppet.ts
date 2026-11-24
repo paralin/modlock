@@ -6,18 +6,19 @@
 //   puppet?.setGhost(true)
 //   puppet?.play()
 //
-// The library moves every playing puppet once per frame from the game clock.
+// The kit moves every playing puppet once per frame from the game clock.
 
 import {
   addBot,
   type Angles,
   type BotOptions,
   holdModifierState,
+  onFrame,
   Player,
+  players,
   type Vector,
   writeField,
-} from './host.gen.js'
-import { players } from './players.js'
+} from 'modlock'
 
 /** ticksPerSecond is the game's tick rate; a track's steps count ticks. */
 export const ticksPerSecond = 64
@@ -151,12 +152,22 @@ const live = new Set<Puppet>()
 /** longestFrame bounds the time a frame advances playback, in seconds. */
 const longestFrame = 0.25
 
+/** moving is whether the frame handler that moves live puppets is registered. */
+let moving = false
+
 /**
- * advancePuppets moves every playing puppet to the game clock at seconds.
- * The library calls it once per frame.
+ * startMoving registers, with the first puppet, the frame handler that moves
+ * every live puppet to the game clock, so a mod without puppets pays nothing.
+ * It runs after the frame handlers the mod registered before that puppet.
  */
-export function advancePuppets(seconds: number): void {
-  for (const puppet of live) puppet.advance(seconds)
+function startMoving(): void {
+  if (moving) {
+    return
+  }
+  moving = true
+  onFrame(({ timeSeconds }) => {
+    for (const puppet of live) puppet.advance(timeSeconds)
+  })
 }
 
 /**
@@ -189,6 +200,7 @@ export class Puppet {
   ) {
     this.snapUnits = options.snapUnits ?? 200
     live.add(this)
+    startMoving()
     if (options.ghost) this.setGhost(true)
   }
 

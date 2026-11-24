@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { poseAt, trackTicks, type Track } from '../src/puppet.js'
+import { poseAt, trackTicks, type Track } from '../src/kit/puppet.js'
 
 test('poseAt blends samples, turns the short way and clamps the ends', () => {
   // Two samples one second apart, the facing crossing the 360 degree seam.

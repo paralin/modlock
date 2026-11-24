@@ -298,11 +298,13 @@ hero. The function it returns ends the view: the player returns to their hero,
 the freeze and the hold end, and the hero goes back where it stood, unless you
 pass `false` because the mod respawns or moves it itself. Pass a fourth
 argument to park the hero at a spot of your own.
-`spectateFrom` is TypeScript only; in other languages, compose it from
+`spectateFrom` is TypeScript only, imported from `modlock/kit`; in other
+languages, compose it from
 `holdModifierState`, `teleport`, `freeze`, `freeCamera` and `unwatch`.
 
 ```ts
-import { type Player, spectateFrom } from 'modlock'
+import { type Player } from 'modlock'
+import { spectateFrom } from 'modlock/kit'
 
 const watching = new Map<number, (restore?: boolean) => void>()
 
@@ -438,10 +440,10 @@ mod.Command("hero", func(p mod.Player, args string) {
 
 </Samples>
 
-| Call                      | Returns                                                                                                                                                 | Languages  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `heroes`                  | The released heroes by title, each with its game name, title and fixed id. Python spells it `HEROES`.                                                   | All        |
-| `heroNamed(name)`         | The hero whose name matches exactly, as the calls above read names, or nothing. A misspelled name finds no hero rather than another one.                | All        |
-| `findHero(typed)`         | The hero a player typed: an exact name or title first, then the first title that starts with or contains it, such as `geist`.                           | All        |
-| `findTitled(list, typed)` | The same match over your own list of entries with `name` and `title`.                                                                                   | TypeScript |
-| `Hook`                    | Watches one Bebop's hook. `update(player, now)` each frame reports the hero it holds and each new throw, keeps it fully upgraded and sets its cooldown. | TypeScript |
+| Call                      | Returns                                                                                                                                                                     | Languages  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `heroes`                  | The released heroes by title, each with its game name, title and fixed id. Python spells it `HEROES`.                                                                       | All        |
+| `heroNamed(name)`         | The hero whose name matches exactly, as the calls above read names, or nothing. A misspelled name finds no hero rather than another one.                                    | All        |
+| `findHero(typed)`         | The hero a player typed: an exact name or title first, then the first title that starts with or contains it, such as `geist`.                                               | All        |
+| `findTitled(list, typed)` | The same match over your own list of entries with `name` and `title`.                                                                                                       | TypeScript |
+| `Hook`                    | Watches one Bebop's hook. `update(player, now)` each frame reports the hero it holds and each new throw, keeps it fully upgraded and sets its cooldown. From `modlock/kit`. | TypeScript |

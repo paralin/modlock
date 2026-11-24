@@ -80,13 +80,14 @@ func (p *Project) writeScriptcConfig(dir, library string, own map[string][]strin
 	}
 	_, ownLibrary := own["modlock"]
 	for name, targets := range map[string][]string{
-		"modlock":                                   {index},
-		"modlock/jsx-runtime":                       {index},
-		"modlock/entities":                          {filepath.Join(source, "js", "src", "entities.ts")},
-		"modlock/console":                           {filepath.Join(source, "js", "src", "console.ts")},
-		"modlock/scriptc":                           {filepath.Join(source, "js", "src", "scriptc.ts")},
-		"@aptre/protobuf-es-lite":                   {filepath.Join(protobuf, "index.ts")},
-		"@aptre/protobuf-es-lite/*":                 {filepath.Join(protobuf, "*.ts")},
+		"modlock":                   {index},
+		"modlock/jsx-runtime":       {index},
+		"modlock/entities":          {filepath.Join(source, "js", "src", "entities.ts")},
+		"modlock/console":           {filepath.Join(source, "js", "src", "console.ts")},
+		"modlock/kit":               {filepath.Join(source, "js", "src", "kit", "index.ts")},
+		"modlock/scriptc":           {filepath.Join(source, "js", "src", "scriptc.ts")},
+		"@aptre/protobuf-es-lite":   {filepath.Join(protobuf, "index.ts")},
+		"@aptre/protobuf-es-lite/*": {filepath.Join(protobuf, "*.ts")},
 		"@aptre/protobuf-es-lite/google/protobuf/*": {filepath.Join(protobuf, "google", "protobuf", "*.pb.ts")},
 	} {
 		if ownLibrary && isLibrary(name) {

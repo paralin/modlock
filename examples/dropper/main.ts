@@ -6,13 +6,8 @@
 // checks in front of it, drops it onto a crate, and quits with PASS or FAIL.
 import {
   addBot,
-  type CatalogEntry,
   command,
-  Dropper,
-  dropperButtons,
   encodeSpot,
-  type LoadedSpot,
-  loadSpot,
   log,
   onFrame,
   onInput,
@@ -23,10 +18,17 @@ import {
   serverCommand,
   type SpotObject,
   trace,
-  triggers,
   type Vector,
   watchInput,
 } from 'modlock'
+import {
+  type CatalogEntry,
+  Dropper,
+  dropperButtons,
+  type LoadedSpot,
+  loadSpot,
+  triggers,
+} from 'modlock/kit'
 
 // The game deletes a solid model that has physics prop data, so the catalog
 // contains only models the game keeps.

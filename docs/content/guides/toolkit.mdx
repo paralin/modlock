@@ -4,7 +4,9 @@ description: 'Helpers built on the library: seating, a player roster, free-for-a
 ---
 
 The toolkit's helpers are built on the library calls and do the work most modes
-repeat:
+repeat. TypeScript imports `Stragglers` and `RaceGate` from `modlock/kit`, the
+module of parts that game modes build from the library, and the rest from
+`modlock`:
 
 | Helper                                | Does                                                                                | Languages  |
 | ------------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
@@ -248,7 +250,8 @@ kills each hero no player holds, as [`Strays`](/mechanics/rotation#heroes-left-b
 does. Keep one and call `sweep(now)` each frame:
 
 ```ts
-import { onFrame, Stragglers } from 'modlock'
+import { onFrame } from 'modlock'
+import { Stragglers } from 'modlock/kit'
 
 const stragglers = new Stragglers({ connectSeconds: 120 })
 onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
@@ -258,7 +261,7 @@ onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
 `sweep` each frame for as long as the mod runs:
 
 ```ts
-import { sweepStragglers } from 'modlock'
+import { sweepStragglers } from 'modlock/kit'
 
 sweepStragglers()
 ```
@@ -317,7 +320,8 @@ runner passes through, in degrees. Precache `raceGateResources` in
 `onStart`:
 
 ```ts
-import { ground, onStart, precache, RaceGate, raceGateResources } from 'modlock'
+import { ground, onStart, precache } from 'modlock'
+import { RaceGate, raceGateResources } from 'modlock/kit'
 
 onStart(() => precache({ resources: raceGateResources }))
 

@@ -3,15 +3,8 @@
 // pause, play, seek <tick> and rate <n> control its playback, /puppet restore
 // sets the player's hero to 700 health, level 5 and 1000 souls where it
 // stands, and /puppet hit has the puppet hurt the player for 50.
-import {
-  command,
-  log,
-  type Player,
-  Puppet,
-  replayDamage,
-  restoreHero,
-  type Track,
-} from 'modlock'
+import { command, log, type Player, restoreHero } from 'modlock'
+import { Puppet, replayDamage, type Track } from 'modlock/kit'
 
 /** puppet is the live puppet, absent until /puppet adds one. */
 let puppet: Puppet | undefined

@@ -5,7 +5,7 @@ import {
   type HookAbility,
   type HookPlayer,
   hookAbility,
-} from '../src/hook.js'
+} from '../src/kit/hook.js'
 
 /** FakeHero is a hero with the hook, recording the writes made to it. */
 class FakeHero implements HookPlayer {
