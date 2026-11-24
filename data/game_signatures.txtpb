@@ -310,13 +310,14 @@ signatures {
   shape: "void UTIL_Remove(CEntityInstance*); queues removal at the next entity frame"
 }
 
-# The inner Teleport inlines this setter; the pawn movement update after
-# SetAbsOrigin still calls it.
+# The teleport of an entity and its children, which calls this setter and then
+# SetAbsOrigin on the entity. The setter's own body also belongs to two sibling
+# setters, which differ from it only in the scene node call they make.
 signatures {
   id: "entity.set-abs-angles"
   modules: GAME_MODULE_SERVER
-  pattern: "E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 90 ?? ?? ?? ?? 0F 28 74 24 ?? 84 C0 75 ?? 48 8D 15 ?? ?? ?? ?? 48 8B CB E8"
-  call_at: 0x24
+  pattern: "48 3B EB 75 ?? 4D 85 F6 74 ?? 49 8B D6 48 8B CB E8 ?? ?? ?? ?? 4D 85 FF 74 ?? 49 8B D7 48 8B CB E8"
+  call_at: 0x10
   shape: "void SetAbsAngles(CBaseEntity*, const QAngle*)"
 }
 
