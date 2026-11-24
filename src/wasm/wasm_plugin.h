@@ -35,6 +35,7 @@
 #include "wasm/service_calls.h"
 #include "wasm/settings.h"
 #include "wasm/ui.h"
+#include "wasm/worker.h"
 
 namespace modlock::wasm {
 
@@ -254,9 +255,16 @@ class WasmPlugin final : public Plugin {
   std::expected<wasm::ServiceReply, std::string> CallService(const wasm::ServiceCall& call);
 
   // StartServiceCall starts the mod's call to a service the host provides,
-  // which a later frame ends with a ServiceReplied event.
+  // which a later frame ends with a ServiceReplied event. The service
+  // kWorkerService is the mod's own compute worker: the call's method names
+  // the file of the worker's script and its payload is the request.
   std::expected<wasm::ServiceCallStarted, std::string> StartServiceCall(
       const wasm::StartServiceCallRequest& request);
+
+  // PostToWorker hands payload to the worker that runs script, a file of the
+  // mod, starting that worker on its first request, and ends reply with its
+  // answer.
+  void PostToWorker(const std::string& script, std::string payload, WasmReply reply);
 
   // PlayerSetting returns the value of the setting named key for the player
   // in slot: the kept value while the manifest still accepts it, and the
@@ -581,6 +589,10 @@ class WasmPlugin final : public Plugin {
   // service_calls_ holds the running instance's started service calls until
   // a frame delivers their ends.
   wasm::ServiceCalls service_calls_;
+
+  // workers_ holds the instance's compute workers by the file of their
+  // script, started by the first call that names it.
+  std::map<std::string, std::unique_ptr<wasm::Worker>> workers_;
 
   // calls_ counts the mod's host calls since calls_reported_, the last time
   // they went to the observers.

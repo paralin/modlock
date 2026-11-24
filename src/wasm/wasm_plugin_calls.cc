@@ -382,7 +382,9 @@ std::expected<wasm::ServiceCallStarted, std::string> WasmPlugin::StartServiceCal
   // Hand the call to the service's late extension, or answer it now from
   // its extension. A service nobody provides is never asked.
   const auto& service = request.service();
-  if (auto late = host_.late_extensions.find(service); late != host_.late_extensions.end()) {
+  if (service == wasm::kWorkerService) {
+    PostToWorker(request.method(), request.payload(), std::move(started->reply));
+  } else if (auto late = host_.late_extensions.find(service); late != host_.late_extensions.end()) {
     late->second(name_, request.method(), request.payload(), std::move(started->reply));
   } else if (auto found = host_.extensions.find(service); found != host_.extensions.end()) {
     started->reply(found->second(name_, request.method(), request.payload()));
@@ -391,6 +393,24 @@ std::expected<wasm::ServiceCallStarted, std::string> WasmPlugin::StartServiceCal
                         "this host provides no service " + service);
   }
   return reply;
+}
+
+void WasmPlugin::PostToWorker(const std::string& script, std::string payload, WasmReply reply) {
+  // Start the worker the first request names, from the script the mod ships.
+  auto found = workers_.find(script);
+  if (found == workers_.end()) {
+    auto source = Files().Read(script);
+    if (!source || !*source) {
+      reply(std::unexpected("the worker script " + script + " is not one of the mod's files"));
+      return;
+    }
+    found = workers_
+                .emplace(script, std::make_unique<wasm::Worker>(host_.runtime, module_,
+                                                                std::move(**source), Files(),
+                                                                name_ + " worker " + script))
+                .first;
+  }
+  found->second->Post(std::move(payload), std::move(reply));
 }
 
 std::expected<std::string, std::string> WasmPlugin::PlayerSetting(int32_t slot,

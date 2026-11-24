@@ -87,6 +87,12 @@ class Instance {
   // Failure returns the reason the instance stopped, or nullopt while it runs.
   [[nodiscard]] const std::optional<std::string>& Failure() const { return failure_; }
 
+  // MemoryBytes returns the size of the mod's linear memory, which only
+  // grows. Call it from the thread that runs the instance.
+  [[nodiscard]] uint64_t MemoryBytes() {
+    return memory_ ? memory_->size(store_.context()) * 65536 : 0;
+  }
+
   // Slow reports whether the last delivered event ran past
   // limits.slow_event.
   [[nodiscard]] bool Slow() const { return budget_.spent >= limits_.slow_event; }
