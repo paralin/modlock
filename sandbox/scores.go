@@ -54,7 +54,12 @@ func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.
 			return &wasm.Reply{Error: "the scores Read request is malformed"}
 		}
 		board, partition = query.GetBoard(), query.GetPartition()
-		team, teamed = teamSlots(query.GetPlayer(), query.GetTeammates()), query.Player != nil || len(query.GetTeammates()) != 0
+		// A read asks for a row only when it names its player, so its
+		// teammates join that player and are refused without one.
+		if query.Player == nil && len(query.GetTeammates()) != 0 {
+			return s.refuse(mod, "board "+query.GetBoard()+" read names teammates but no player")
+		}
+		team, teamed = teamSlots(query.GetPlayer(), query.GetTeammates()), query.Player != nil
 		response, _ = (&scorespb.BoardPage{}).MarshalVT()
 	default:
 		return &wasm.Reply{Error: "the scores service has no method " + call.GetMethod()}

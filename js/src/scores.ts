@@ -139,11 +139,11 @@ export function reportScore(
   done: ScoreDone,
   options: ScoreOptions = {},
 ): void {
-  // Refuse excess text before sizing or encoding the write.
+  // Refuse excess text before sizing or encoding the write. The host checks
+  // the team against the board.
   const teammates = options.teammates ?? []
   if (
     player.proof.length > 64 ||
-    teammates.length > 3 ||
     teammates.some((teammate) => teammate.proof.length > 64) ||
     !fitsText(board, options)
   ) {
@@ -218,7 +218,7 @@ export function readBoard(
   done: (page: BoardPage | undefined, error?: string) => void,
 ): void {
   // Keep the size pass bounded even for an oversized board or partition.
-  if (!fitsText(board, read) || (read.teammates?.length ?? 0) > 3) {
+  if (!fitsText(board, read)) {
     after(0, () => done(undefined, tooLarge))
     return
   }
