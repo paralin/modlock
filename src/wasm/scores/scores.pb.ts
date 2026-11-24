@@ -171,6 +171,13 @@ export interface Board {
    * Hud asks the host to draw the board on the player's HUD.
    */
   hud?: Hud
+  /**
+   * TeamSize ranks teams of this many players, two to four, in place of
+   * single players: each score names the scoring player's teammates, the
+   * same players in any order are one team, and a standing names its team's
+   * players. Zero or one ranks single players. A team board keeps no rating.
+   */
+  teamSize?: number
 }
 
 export const Board: MessageType<Board> =
@@ -190,6 +197,7 @@ export const Board: MessageType<Board> =
       [11, 'highest', 3, 4],
       [12, 'version', 13],
       [13, 'hud', 14, 0, Hud_Enum],
+      [14, 'team_size', 13],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Board): Board => {
@@ -238,6 +246,9 @@ export const Board: MessageType<Board> =
               break
             case 13:
               m.hud = r.int32()
+              break
+            case 14:
+              m.teamSize = r.uint32()
               break
             default:
               r.skip(t)
@@ -301,6 +312,10 @@ export const Board: MessageType<Board> =
         {
           const v = m.hud
           if (v) w.uint32(104).int32(v)
+        }
+        {
+          const v = m.teamSize
+          if (v) w.uint32(112).uint32(v)
         }
       },
     },
@@ -591,6 +606,66 @@ export const ScoreConnection: MessageType<ScoreConnection> =
   )
 
 /**
+ * Teammate is one more player a team's score or a team's read names, with
+ * the connection that shows the player is in the game.
+ *
+ * @generated from message modlock.wasm.scores.Teammate
+ */
+export interface Teammate {
+  /**
+   * Player is the teammate's server slot.
+   */
+  player?: number
+  /**
+   * Connection is the teammate's enrollment proof from Bind in a report, or
+   * their live connection in a read.
+   */
+  connection?: ScoreConnection
+}
+
+export const Teammate: MessageType<Teammate> =
+  /* @__PURE__ */ createMessageType<Teammate>(
+    'modlock.wasm.scores.Teammate',
+    () => [
+      [1, 'player', 5],
+      [2, 'connection', 11, 0, ScoreConnection.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Teammate): Teammate => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.connection = ScoreConnection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Teammate, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.connection
+          if (v != null) ScoreConnection.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
  * ScoreAccepted is an empty reply to a report the host accepted. A refusal
  * ends the asynchronous service call with an error.
  *
@@ -671,6 +746,11 @@ export interface ScoreReport {
    * Connection is the enrollment proof from Bind.
    */
   connection?: ScoreConnection
+  /**
+   * Teammates are the scoring player's teammates on a team board, the
+   * board's team size less one; a board of single players takes none.
+   */
+  teammates?: Teammate[]
 }
 
 export const ScoreReport: MessageType<ScoreReport> =
@@ -686,6 +766,7 @@ export const ScoreReport: MessageType<ScoreReport> =
       [7, 'earned_at_unix_millis', 3],
       [8, 'evidence', 9],
       [9, 'connection', 11, 0, ScoreConnection.codec],
+      [10, 'teammates', 11, 1, Teammate.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: ScoreReport): ScoreReport => {
@@ -731,6 +812,9 @@ export const ScoreReport: MessageType<ScoreReport> =
                 r.delimited(),
                 m.connection ?? {},
               )
+              break
+            case 10:
+              ;(m.teammates ??= []).push(Teammate.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -780,6 +864,10 @@ export const ScoreReport: MessageType<ScoreReport> =
         {
           const v = m.connection
           if (v != null) ScoreConnection.writeField(w, 9, v)
+        }
+        {
+          const a = m.teammates
+          if (a != null) for (const e of a) Teammate.writeField(w, 10, e)
         }
       },
     },
@@ -1022,6 +1110,11 @@ export interface BoardQuery {
    * Connection identifies the current viewer when Player is set.
    */
   connection?: ScoreConnection
+  /**
+   * Teammates name the viewer's teammates on a team board, so Player's row
+   * is their team's; each is a player in the game now.
+   */
+  teammates?: Teammate[]
 }
 
 export const BoardQuery: MessageType<BoardQuery> =
@@ -1035,6 +1128,7 @@ export const BoardQuery: MessageType<BoardQuery> =
       [5, 'limit', 13],
       [6, 'player', 5, 4],
       [7, 'connection', 11, 0, ScoreConnection.codec],
+      [8, 'teammates', 11, 1, Teammate.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: BoardQuery): BoardQuery => {
@@ -1074,6 +1168,9 @@ export const BoardQuery: MessageType<BoardQuery> =
                 r.delimited(),
                 m.connection ?? {},
               )
+              break
+            case 8:
+              ;(m.teammates ??= []).push(Teammate.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -1115,6 +1212,10 @@ export const BoardQuery: MessageType<BoardQuery> =
         {
           const v = m.connection
           if (v != null) ScoreConnection.writeField(w, 7, v)
+        }
+        {
+          const a = m.teammates
+          if (a != null) for (const e of a) Teammate.writeField(w, 8, e)
         }
       },
     },
@@ -1204,6 +1305,12 @@ export interface Standing {
    * Count is how many scores the standing kept.
    */
   count?: number
+  /**
+   * Members are a team's players on a team board, ordered by SteamID64;
+   * SteamId and Name then belong to the first. A board of single players
+   * lists none.
+   */
+  members?: Member[]
 }
 
 export const Standing: MessageType<Standing> =
@@ -1216,6 +1323,7 @@ export const Standing: MessageType<Standing> =
       [4, 'value', 3],
       [5, 'tiebreak', 3],
       [6, 'count', 13],
+      [7, 'members', 11, 1, Member.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Standing): Standing => {
@@ -1240,6 +1348,9 @@ export const Standing: MessageType<Standing> =
               break
             case 6:
               m.count = r.uint32()
+              break
+            case 7:
+              ;(m.members ??= []).push(Member.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -1271,6 +1382,64 @@ export const Standing: MessageType<Standing> =
         {
           const v = m.count
           if (v) w.uint32(48).uint32(v)
+        }
+        {
+          const a = m.members
+          if (a != null) for (const e of a) Member.writeField(w, 7, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Member is one player of a team's standing.
+ *
+ * @generated from message modlock.wasm.scores.Member
+ */
+export interface Member {
+  /**
+   * SteamId is the player's SteamID64.
+   */
+  steamId?: bigint
+  /**
+   * Name is the player's name as the host shows it.
+   */
+  name?: string
+}
+
+export const Member: MessageType<Member> =
+  /* @__PURE__ */ createMessageType<Member>(
+    'modlock.wasm.scores.Member',
+    () => [
+      [1, 'steam_id', 4],
+      [2, 'name', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Member): Member => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.steamId = r.uint64()
+              break
+            case 2:
+              m.name = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Member, w: Writer): void => {
+        {
+          const v = m.steamId
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.name
+          if (v) w.uint32(18).string(v)
         }
       },
     },

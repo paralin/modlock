@@ -18,6 +18,7 @@
 
 import io
 import math
+from collections.abc import Sequence
 import random
 import sys
 import traceback
@@ -647,8 +648,13 @@ def report_score(
     key: str | None = None,
     earned_at: float = 0,
     evidence: str | None = None,
+    teammates: Sequence[ScorePlayer] = (),
 ) -> None:
-    """report_score reports an enrolled player's result and answers on a later frame."""
+    """report_score reports an enrolled player's result and answers on a later frame.
+
+    teammates are the scoring player's teammates on a board that ranks teams,
+    each enrolled with bind_score_player: the board's team size less one.
+    """
     report = wire.encode(
         _SCHEMA,
         "ScoreReport",
@@ -662,6 +668,10 @@ def report_score(
             "key": key,
             "earned_at_unix_millis": _int64(earned_at),
             "evidence": evidence,
+            "teammates": [
+                {"player": Player(teammate.slot), "connection": dataclasses.asdict(teammate)}
+                for teammate in teammates
+            ],
         },
     )
     call_service_later(_SCORES, "Report", report, lambda _, err, __: done(err))

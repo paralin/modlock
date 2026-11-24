@@ -108,6 +108,15 @@ func validate(board *scorespb.Board) error {
 		return errors.Errorf("board %q lowest is above its highest", name)
 	}
 
+	// Check the team size: single players, or teams of two to four that
+	// keep no rating.
+	switch size := board.GetTeamSize(); {
+	case size > MaxTeamSize:
+		return errors.Errorf("board %q teamSize must be %d or less", name, MaxTeamSize)
+	case size > 1 && board.GetKeep() == scorespb.Board_KEEP_RATING:
+		return errors.Errorf("board %q ranks teams, which keep no rating", name)
+	}
+
 	// Check the windows, tier and HUD.
 	windows := board.GetWindows()
 	for i, window := range windows {
@@ -155,6 +164,38 @@ func validate(board *scorespb.Board) error {
 				return errors.Errorf("board %q partition %q lists value %q twice", name, partition.GetName(), value)
 			}
 		}
+	}
+	return nil
+}
+
+// MaxTeamSize is the most players a team board's team holds.
+const MaxTeamSize = 4
+
+// Teamed checks that a score or read on board names its teammates as the
+// board's team takes them: the team size less one on a team board, each a
+// different player and none the scoring player, and none on a board of
+// single players. player is the scoring or reading player's slot, and
+// teammates are the slots of the players the call names.
+func Teamed(board *scorespb.Board, player int32, teammates []int32) error {
+	// A board of single players names no teammates.
+	size := int(board.GetTeamSize())
+	if size <= 1 {
+		if len(teammates) != 0 {
+			return errors.Errorf("board %q ranks single players and takes no teammates", board.GetName())
+		}
+		return nil
+	}
+
+	// A team board names each of the other players once.
+	if len(teammates) != size-1 {
+		return errors.Errorf("board %q ranks teams of %d and takes %d teammates, not %d", board.GetName(), size, size-1, len(teammates))
+	}
+	seen := []int32{player}
+	for _, teammate := range teammates {
+		if slices.Contains(seen, teammate) {
+			return errors.Errorf("board %q names player %d twice in one team", board.GetName(), teammate)
+		}
+		seen = append(seen, teammate)
 	}
 	return nil
 }

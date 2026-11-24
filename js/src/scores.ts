@@ -36,6 +36,11 @@ export interface ScoreOptions {
   earnedAt?: number
   /** evidence names what shows the run, such as a recording. */
   evidence?: string
+  /**
+   * teammates are the scoring player's teammates on a board that ranks
+   * teams, each enrolled with bindScorePlayer: the board's teamSize less one.
+   */
+  teammates?: readonly ScorePlayer[]
 }
 
 /** BoardRead selects a page of a board. Omit window to read all time. */
@@ -45,9 +50,24 @@ export interface BoardRead {
   offset?: number
   limit?: number
   player?: Connection
+  /**
+   * teammates name the player's teammates on a board that ranks teams, so
+   * the page's player row is their team's; each is in the game now.
+   */
+  teammates?: readonly Connection[]
 }
 
-/** BoardRow is one player's place on a board. */
+/** BoardMember is one player of a team's row. */
+export interface BoardMember {
+  steamId: bigint
+  name: string
+}
+
+/**
+ * BoardRow is one player's place on a board, or a team's on a board that
+ * ranks teams: its members then, ordered by SteamID64, with steamId and name
+ * the first member's.
+ */
 export interface BoardRow {
   rank: number
   steamId: bigint
@@ -55,6 +75,7 @@ export interface BoardRow {
   value: number
   tiebreak: number
   count: number
+  members: BoardMember[]
 }
 
 /** BoardPage is a page of standings and the requested player's own row. */
@@ -119,12 +140,18 @@ export function reportScore(
   options: ScoreOptions = {},
 ): void {
   // Refuse excess text before sizing or encoding the write.
-  if (player.proof.length > 64 || !fitsText(board, options)) {
+  const teammates = options.teammates ?? []
+  if (
+    player.proof.length > 64 ||
+    teammates.length > 3 ||
+    teammates.some((teammate) => teammate.proof.length > 64) ||
+    !fitsText(board, options)
+  ) {
     after(0, () => done(tooLarge))
     return
   }
 
-  // Use the enrolled connection even if its original slot has been reused.
+  // Use each enrolled connection even if its original slot has been reused.
   const payload = encodeRequest(scoresPb.ScoreReport, {
     ...writeFields(options),
     board,
@@ -132,6 +159,10 @@ export function reportScore(
     value: integer(value),
     tiebreak: integer(options.tiebreak ?? 0),
     connection: player,
+    teammates: teammates.map((teammate) => ({
+      player: teammate.slot,
+      connection: teammate,
+    })),
   })
   if (!payload) {
     after(0, () => done(tooLarge))
@@ -145,7 +176,7 @@ export function reportMatch(
   board: string,
   places: readonly MatchPlace[],
   done: ScoreDone,
-  options: Omit<ScoreOptions, 'tiebreak'> = {},
+  options: Omit<ScoreOptions, 'tiebreak' | 'teammates'> = {},
 ): void {
   // Check cardinality before constructing or encoding the cohort.
   if (places.length === 0 || places.length > 64) {
@@ -187,7 +218,7 @@ export function readBoard(
   done: (page: BoardPage | undefined, error?: string) => void,
 ): void {
   // Keep the size pass bounded even for an oversized board or partition.
-  if (!fitsText(board, read)) {
+  if (!fitsText(board, read) || (read.teammates?.length ?? 0) > 3) {
     after(0, () => done(undefined, tooLarge))
     return
   }
@@ -201,6 +232,10 @@ export function readBoard(
     limit: read.limit,
     player: read.player?.player.slot,
     connection: read.player && identity(read.player),
+    teammates: read.teammates?.map((teammate) => ({
+      player: teammate.player.slot,
+      connection: identity(teammate),
+    })),
   })
   if (!payload) {
     after(0, () => done(undefined, tooLarge))
@@ -301,5 +336,9 @@ function row(standing: scoresPb.Standing): BoardRow {
     value: Number(standing.value ?? 0n),
     tiebreak: Number(standing.tiebreak ?? 0n),
     count: standing.count ?? 0,
+    members: (standing.members ?? []).map((member) => ({
+      steamId: member.steamId ?? 0n,
+      name: member.name ?? '',
+    })),
   }
 }

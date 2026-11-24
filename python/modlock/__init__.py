@@ -5340,6 +5340,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "proof", "string"),
         ],
     ),
+    "Teammate": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "connection", "message", optional=True, message="ScoreConnection"),
+        ],
+    ),
     "ScoreReport": (
         None,
         [
@@ -5352,6 +5359,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(7, "earned_at_unix_millis", "int64"),
             wire.Field(8, "evidence", "string"),
             wire.Field(9, "connection", "message", optional=True, message="ScoreConnection"),
+            wire.Field(10, "teammates", "message", repeated=True, message="Teammate"),
         ],
     ),
     "ScoreReport_PartitionEntry": (
@@ -5398,6 +5406,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "limit", "uint32"),
             wire.Field(6, "player", "int32", optional=True, cls=Player, key="slot"),
             wire.Field(7, "connection", "message", optional=True, message="ScoreConnection"),
+            wire.Field(8, "teammates", "message", repeated=True, message="Teammate"),
         ],
     ),
     "BoardQuery_PartitionEntry": (
@@ -5423,6 +5432,14 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "value", "int64"),
             wire.Field(5, "tiebreak", "int64"),
             wire.Field(6, "count", "uint32"),
+            wire.Field(7, "members", "message", repeated=True, message="Member"),
+        ],
+    ),
+    "Member": (
+        None,
+        [
+            wire.Field(1, "steam_id", "uint64"),
+            wire.Field(2, "name", "string"),
         ],
     ),
 }
@@ -6137,6 +6154,7 @@ def _serve_mod(handlers: Mapping[str, Callable[[Any], Any]], data: bytes) -> byt
 
 import io
 import math
+from collections.abc import Sequence
 import random
 import sys
 import traceback
@@ -6731,8 +6749,13 @@ def report_score(
     key: str | None = None,
     earned_at: float = 0,
     evidence: str | None = None,
+    teammates: Sequence[ScorePlayer] = (),
 ) -> None:
-    """report_score reports an enrolled player's result and answers on a later frame."""
+    """report_score reports an enrolled player's result and answers on a later frame.
+
+    teammates are the scoring player's teammates on a board that ranks teams,
+    each enrolled with bind_score_player: the board's team size less one.
+    """
     report = wire.encode(
         _SCHEMA,
         "ScoreReport",
@@ -6746,6 +6769,10 @@ def report_score(
             "key": key,
             "earned_at_unix_millis": _int64(earned_at),
             "evidence": evidence,
+            "teammates": [
+                {"player": Player(teammate.slot), "connection": dataclasses.asdict(teammate)}
+                for teammate in teammates
+            ],
         },
     )
     call_service_later(_SCORES, "Report", report, lambda _, err, __: done(err))

@@ -38,6 +38,7 @@ func TestValidate(t *testing.T) {
 		"lowest is above":            func(b *scorespb.Board) { low, high := int64(9), int64(1); b.Lowest, b.Highest = &low, &high },
 		"must be a short":            func(b *scorespb.Board) { b.Partitions[0].Values = []string{"two words"} },
 		"partition \"course\" twice": func(b *scorespb.Board) { b.Partitions = append(b.Partitions, b.Partitions[0]) },
+		"teamSize must be":           func(b *scorespb.Board) { b.TeamSize = MaxTeamSize + 1 },
 	} {
 		board := trial()
 		change(board)
@@ -48,6 +49,30 @@ func TestValidate(t *testing.T) {
 	}
 	if err := Validate(&wasm.Manifest{Boards: []*scorespb.Board{trial(), trial()}}); err == nil {
 		t.Error("a board declared twice was accepted")
+	}
+	teamRating := &scorespb.Board{Name: "duel", Unit: scorespb.Board_UNIT_NUMBER, Order: scorespb.Board_ORDER_DESCENDING,
+		Keep: scorespb.Board_KEEP_RATING, Rating: scorespb.Board_RATING_ELO, TeamSize: 2}
+	if err := Validate(&wasm.Manifest{Boards: []*scorespb.Board{teamRating}}); err == nil || !strings.Contains(err.Error(), "keep no rating") {
+		t.Errorf("a rated team board: got %v", err)
+	}
+
+	// A team board takes the team's other players, each once; a board of
+	// single players takes none.
+	pairs := trial()
+	pairs.TeamSize = 2
+	if err := Teamed(pairs, 0, []int32{3}); err != nil {
+		t.Errorf("a pair refused: %v", err)
+	}
+	for _, teammates := range [][]int32{nil, {3, 4}, {0}} {
+		if Teamed(pairs, 0, teammates) == nil {
+			t.Errorf("pair board took teammates %v", teammates)
+		}
+	}
+	if Teamed(trial(), 0, []int32{3}) == nil {
+		t.Error("a board of single players took a teammate")
+	}
+	if err := Teamed(trial(), 0, nil); err != nil {
+		t.Errorf("a single player refused: %v", err)
 	}
 
 	// A score names one declared value for each partition.

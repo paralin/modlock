@@ -233,6 +233,7 @@ totals.
 | `lowest`, `highest` | The plausible values. A host holds a score outside them for review.                                                         |
 | `version`           | Raise it to start a fresh ranking when the unit, order, keep rule, rating or partitions change.                             |
 | `hud`               | `HUD_END_CARD` asks the host to show the player's place after each score.                                                   |
+| `teamSize`          | Ranks teams of two to four players in place of single players, as below. A team board keeps no rating.                      |
 
 | Keep          | Standing                                           |
 | ------------- | -------------------------------------------------- |
@@ -241,6 +242,20 @@ totals.
 | `KEEP_COUNT`  | How many scores the player reported.               |
 | `KEEP_LATEST` | The latest value.                                  |
 | `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
+
+A board with `teamSize` ranks teams: the score of a run two players finished
+together, say. Each report names the scoring player's teammates, enrolled with
+`bindScorePlayer` as the player is, the team size less one of them. The same
+players in any order are one team, so a pair keeps one standing whoever
+reported, and a player belongs to as many teams as they play in. Each row of
+the board lists its team's members. To read a team's own row, pass the player
+and their teammates, each still in the game. Under `modlock dev`, the host
+refuses a team score without its teammates and a single player's score with
+one.
+
+```ts
+reportScore(enrolled, 'duo.waves', wavesCleared, done, { teammates: [partner] })
+```
 
 When your mod reports a score, it gives a value for each partition and may give
 a `key` for the run. A score sent twice with the same key counts once. Between equal
