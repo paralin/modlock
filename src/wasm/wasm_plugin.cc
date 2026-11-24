@@ -244,6 +244,13 @@ std::expected<void, std::string> WasmPlugin::Input(int32_t slot, std::string_vie
   const auto space = line.find(' ');
   const auto node = line.substr(0, space);
   const auto value = space == std::string_view::npos ? std::string_view() : line.substr(space + 1);
+  if (value.starts_with("d:")) {
+    if (auto document = ui_.Document(slot, node, value.substr(2), host_.documents,
+                                     wasm::UiDocuments::Clock::now())) {
+      static_cast<void>(mod_.UiInput(*document));
+    }
+    return {};
+  }
   auto event = ui_.Input(slot, node, value);
   if (!event) {
     return std::unexpected(name_ + " " + event.error());
@@ -355,6 +362,10 @@ void WasmPlugin::Halt() {
   // Reset every player's interface.
   ui::Change reset;
   reset.set_reset(true);
+  // Return outstanding documents before the forms and their ids disappear.
+  for (const auto& [slot, control] : ui_.DocumentControls()) {
+    host_.documents.Cancel(slot, control);
+  }
   for (const auto slot : ui_.Clear()) {
     ShowUi(slot, reset);
   }
@@ -565,6 +576,7 @@ void WasmPlugin::Observe(wasm::FrameEvent& frame) {
 }
 
 void WasmPlugin::Tick() {
+  host_.documents.Expire(wasm::UiDocuments::Clock::now());
   // A build that waited for the hold's release replaces the running one
   // outside the mod's own calls.
   if (waiting_ && !held_) {

@@ -319,31 +319,47 @@ const (
 	Kind_KIND_INPUT Kind = 7
 	// KIND_AVATAR shows the Steam picture of the player its steam_id names.
 	Kind_KIND_AVATAR Kind = 8
+	// KIND_MENU shows children only while its renderer-owned surface is open.
+	Kind_KIND_MENU Kind = 9
+	// KIND_MENU_CLOSE dismisses the containing menu without a server event.
+	Kind_KIND_MENU_CLOSE Kind = 10
+	// KIND_DOCUMENT_INPUT edits and explicitly submits a text document.
+	Kind_KIND_DOCUMENT_INPUT Kind = 11
+	// KIND_DOCUMENT_OUTPUT shows selectable, non-editable plain text.
+	Kind_KIND_DOCUMENT_OUTPUT Kind = 12
 )
 
 // Enum value maps for Kind.
 var (
 	Kind_name = map[int32]string{
-		0: "KIND_PANEL",
-		1: "KIND_LABEL",
-		2: "KIND_IMAGE",
-		3: "KIND_BUTTON",
-		4: "KIND_LAYOUT",
-		5: "KIND_ROUTE",
-		6: "KIND_HERO_IMAGE",
-		7: "KIND_INPUT",
-		8: "KIND_AVATAR",
+		0:  "KIND_PANEL",
+		1:  "KIND_LABEL",
+		2:  "KIND_IMAGE",
+		3:  "KIND_BUTTON",
+		4:  "KIND_LAYOUT",
+		5:  "KIND_ROUTE",
+		6:  "KIND_HERO_IMAGE",
+		7:  "KIND_INPUT",
+		8:  "KIND_AVATAR",
+		9:  "KIND_MENU",
+		10: "KIND_MENU_CLOSE",
+		11: "KIND_DOCUMENT_INPUT",
+		12: "KIND_DOCUMENT_OUTPUT",
 	}
 	Kind_value = map[string]int32{
-		"KIND_PANEL":      0,
-		"KIND_LABEL":      1,
-		"KIND_IMAGE":      2,
-		"KIND_BUTTON":     3,
-		"KIND_LAYOUT":     4,
-		"KIND_ROUTE":      5,
-		"KIND_HERO_IMAGE": 6,
-		"KIND_INPUT":      7,
-		"KIND_AVATAR":     8,
+		"KIND_PANEL":           0,
+		"KIND_LABEL":           1,
+		"KIND_IMAGE":           2,
+		"KIND_BUTTON":          3,
+		"KIND_LAYOUT":          4,
+		"KIND_ROUTE":           5,
+		"KIND_HERO_IMAGE":      6,
+		"KIND_INPUT":           7,
+		"KIND_AVATAR":          8,
+		"KIND_MENU":            9,
+		"KIND_MENU_CLOSE":      10,
+		"KIND_DOCUMENT_INPUT":  11,
+		"KIND_DOCUMENT_OUTPUT": 12,
 	}
 )
 
@@ -355,6 +371,46 @@ func (x Kind) Enum() *Kind {
 
 func (x Kind) String() string {
 	name, valid := Kind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// MenuMode selects how the game's scoreboard input affects a menu.
+type MenuMode int32
+
+const (
+	// MENU_MODE_MANUAL only opens on a button press or a new OpenRequest.
+	MenuMode_MENU_MODE_MANUAL MenuMode = 0
+	// MENU_MODE_TOGGLE toggles on each fresh scoreboard press.
+	MenuMode_MENU_MODE_TOGGLE MenuMode = 1
+	// MENU_MODE_HOLD opens on a fresh press and closes on release.
+	MenuMode_MENU_MODE_HOLD MenuMode = 2
+)
+
+// Enum value maps for MenuMode.
+var (
+	MenuMode_name = map[int32]string{
+		0: "MENU_MODE_MANUAL",
+		1: "MENU_MODE_TOGGLE",
+		2: "MENU_MODE_HOLD",
+	}
+	MenuMode_value = map[string]int32{
+		"MENU_MODE_MANUAL": 0,
+		"MENU_MODE_TOGGLE": 1,
+		"MENU_MODE_HOLD":   2,
+	}
+)
+
+func (x MenuMode) Enum() *MenuMode {
+	p := new(MenuMode)
+	*p = x
+	return p
+}
+
+func (x MenuMode) String() string {
+	name, valid := MenuMode_name[int32(x)]
 	if valid {
 		return name
 	}
@@ -945,6 +1001,12 @@ type Node struct {
 	// that finds no top bar hides the node. A mod marks who is talking this
 	// way without drawing the tree again as voices start and stop.
 	Speaking string `protobuf:"bytes,41,opt,name=speaking,proto3" json:"speaking,omitempty"`
+	// Menu configures the local lifetime of a menu's children.
+	Menu *Menu `protobuf:"bytes,42,opt,name=menu,proto3" json:"menu,omitempty"`
+	// DocumentInput configures a form that sends one whole document on submit.
+	DocumentInput *DocumentInput `protobuf:"bytes,43,opt,name=document_input,json=documentInput,proto3" json:"documentInput,omitempty"`
+	// DocumentText is the plain, selectable text of a document output.
+	DocumentText string `protobuf:"bytes,44,opt,name=document_text,json=documentText,proto3" json:"documentText,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1247,6 +1309,27 @@ func (x *Node) GetSpeaking() string {
 	return ""
 }
 
+func (x *Node) GetMenu() *Menu {
+	if x != nil {
+		return x.Menu
+	}
+	return nil
+}
+
+func (x *Node) GetDocumentInput() *DocumentInput {
+	if x != nil {
+		return x.DocumentInput
+	}
+	return nil
+}
+
+func (x *Node) GetDocumentText() string {
+	if x != nil {
+		return x.DocumentText
+	}
+	return ""
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1484,6 +1567,83 @@ func (x *Cue) GetSeconds() float32 {
 func (x *Cue) GetDelay() float32 {
 	if x != nil {
 		return x.Delay
+	}
+	return 0
+}
+
+// Menu defines a local surface, not a stream of key events for the mod.
+type Menu struct {
+	unknownFields []byte
+	// Mode selects what the scoreboard input does.
+	Mode MenuMode `protobuf:"varint,1,opt,name=mode,proto3" json:"mode,omitempty"`
+	// OpenLabel names the optional opener shown while the children are hidden.
+	OpenLabel string `protobuf:"bytes,2,opt,name=open_label,json=openLabel,proto3" json:"openLabel,omitempty"`
+	// OpenRequest opens once when it advances within this surface's lifetime.
+	OpenRequest uint32 `protobuf:"varint,3,opt,name=open_request,json=openRequest,proto3" json:"openRequest,omitempty"`
+}
+
+func (x *Menu) Reset() {
+	*x = Menu{}
+}
+
+func (*Menu) ProtoMessage() {}
+
+func (x *Menu) GetMode() MenuMode {
+	if x != nil {
+		return x.Mode
+	}
+	return MenuMode_MENU_MODE_MANUAL
+}
+
+func (x *Menu) GetOpenLabel() string {
+	if x != nil {
+		return x.OpenLabel
+	}
+	return ""
+}
+
+func (x *Menu) GetOpenRequest() uint32 {
+	if x != nil {
+		return x.OpenRequest
+	}
+	return 0
+}
+
+// DocumentInput presents an initially empty, multiline draft and a submit button.
+type DocumentInput struct {
+	unknownFields []byte
+	// Placeholder is shown when the draft is empty.
+	Placeholder string `protobuf:"bytes,1,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
+	// SubmitLabel names the submit button; empty means "Submit".
+	SubmitLabel string `protobuf:"bytes,2,opt,name=submit_label,json=submitLabel,proto3" json:"submitLabel,omitempty"`
+	// Control identifies the current player and form lifetime. The host sets it
+	// on accepted trees, never taking a value written by a mod.
+	Control uint64 `protobuf:"varint,3,opt,name=control,proto3" json:"control,omitempty"`
+}
+
+func (x *DocumentInput) Reset() {
+	*x = DocumentInput{}
+}
+
+func (*DocumentInput) ProtoMessage() {}
+
+func (x *DocumentInput) GetPlaceholder() string {
+	if x != nil {
+		return x.Placeholder
+	}
+	return ""
+}
+
+func (x *DocumentInput) GetSubmitLabel() string {
+	if x != nil {
+		return x.SubmitLabel
+	}
+	return ""
+}
+
+func (x *DocumentInput) GetControl() uint64 {
+	if x != nil {
+		return x.Control
 	}
 	return 0
 }
@@ -3032,7 +3192,8 @@ type isUiInputEvent_Value interface {
 }
 
 type UiInputEvent_Text struct {
-	// Text is a text entry's text.
+	// Text is a text entry's text or the whole document explicitly submitted
+	// by a document input. Documents are at most 65,536 UTF-8 bytes.
 	Text string `protobuf:"bytes,3,opt,name=text,proto3,oneof"`
 }
 
@@ -3149,6 +3310,7 @@ func (m *Node) CloneVT() *Node {
 	r.AbilityBarPresses = m.AbilityBarPresses
 	r.HideInChat = m.HideInChat
 	r.Speaking = m.Speaking
+	r.DocumentText = m.DocumentText
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -3165,6 +3327,8 @@ func (m *Node) CloneVT() *Node {
 	r.Cues = protobuf_go_lite.CloneVTSlice(m.Cues)
 	r.AbilityDisplay = protobuf_go_lite.CloneVTSlice(m.AbilityDisplay)
 	r.Clock = protobuf_go_lite.CloneVTValue(m.Clock)
+	r.Menu = protobuf_go_lite.CloneVTValue(m.Menu)
+	r.DocumentInput = protobuf_go_lite.CloneVTValue(m.DocumentInput)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -3301,6 +3465,42 @@ func (m *Cue) CloneVT() *Cue {
 }
 
 func (m *Cue) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Menu) CloneVT() *Menu {
+	if m == nil {
+		return (*Menu)(nil)
+	}
+	r := new(Menu)
+	r.Mode = m.Mode
+	r.OpenLabel = m.OpenLabel
+	r.OpenRequest = m.OpenRequest
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Menu) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *DocumentInput) CloneVT() *DocumentInput {
+	if m == nil {
+		return (*DocumentInput)(nil)
+	}
+	r := new(DocumentInput)
+	r.Placeholder = m.Placeholder
+	r.SubmitLabel = m.SubmitLabel
+	r.Control = m.Control
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *DocumentInput) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -4080,6 +4280,15 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.Speaking != that.Speaking {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Menu, that.Menu) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.DocumentInput, that.DocumentInput) {
+		return false
+	}
+	if this.DocumentText != that.DocumentText {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -4272,6 +4481,58 @@ func (this *Cue) EqualVT(that *Cue) bool {
 
 func (this *Cue) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Cue)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Menu) EqualVT(that *Menu) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mode != that.Mode {
+		return false
+	}
+	if this.OpenLabel != that.OpenLabel {
+		return false
+	}
+	if this.OpenRequest != that.OpenRequest {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Menu) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Menu)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *DocumentInput) EqualVT(that *DocumentInput) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Placeholder != that.Placeholder {
+		return false
+	}
+	if this.SubmitLabel != that.SubmitLabel {
+		return false
+	}
+	if this.Control != that.Control {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *DocumentInput) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*DocumentInput)
 	if !ok {
 		return false
 	}
@@ -5488,6 +5749,46 @@ func (x *Kind) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the MenuMode to JSON.
+func (x MenuMode) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), MenuMode_name)
+}
+
+// MarshalText marshals the MenuMode to text.
+func (x MenuMode) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), MenuMode_name)), nil
+}
+
+// MarshalJSON marshals the MenuMode to JSON.
+func (x MenuMode) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MenuMode from JSON.
+func (x *MenuMode) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(MenuMode_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read MenuMode enum: %v", err)
+		return
+	}
+	*x = MenuMode(v)
+}
+
+// UnmarshalText unmarshals the MenuMode from text.
+func (x *MenuMode) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), MenuMode_value)
+	if err != nil {
+		return err
+	}
+	*x = MenuMode(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the MenuMode from JSON.
+func (x *MenuMode) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Overflow to JSON.
 func (x Overflow) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), Overflow_name)
@@ -6137,6 +6438,21 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("speaking")
 		s.WriteString(x.Speaking)
 	}
+	if x.Menu != nil || s.HasField("menu") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("menu")
+		x.Menu.MarshalProtoJSON(s.WithField("menu"))
+	}
+	if x.DocumentInput != nil || s.HasField("documentInput") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("documentInput")
+		x.DocumentInput.MarshalProtoJSON(s.WithField("documentInput"))
+	}
+	if x.DocumentText != "" || s.HasField("documentText") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("documentText")
+		s.WriteString(x.DocumentText)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6382,6 +6698,23 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "speaking":
 			s.AddField("speaking")
 			x.Speaking = s.ReadString()
+		case "menu":
+			if s.ReadNil() {
+				x.Menu = nil
+				return
+			}
+			x.Menu = &Menu{}
+			x.Menu.UnmarshalProtoJSON(s.WithField("menu", true))
+		case "document_input", "documentInput":
+			if s.ReadNil() {
+				x.DocumentInput = nil
+				return
+			}
+			x.DocumentInput = &DocumentInput{}
+			x.DocumentInput.UnmarshalProtoJSON(s.WithField("document_input", true))
+		case "document_text", "documentText":
+			s.AddField("document_text")
+			x.DocumentText = s.ReadString()
 		}
 	})
 }
@@ -6681,6 +7014,122 @@ func (x *Cue) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the Cue from JSON.
 func (x *Cue) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Menu message to JSON.
+func (x *Menu) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mode != 0 || s.HasField("mode") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mode")
+		x.Mode.MarshalProtoJSON(s)
+	}
+	if x.OpenLabel != "" || s.HasField("openLabel") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("openLabel")
+		s.WriteString(x.OpenLabel)
+	}
+	if x.OpenRequest != 0 || s.HasField("openRequest") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("openRequest")
+		s.WriteUint32(x.OpenRequest)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Menu to JSON.
+func (x *Menu) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Menu message from JSON.
+func (x *Menu) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mode":
+			s.AddField("mode")
+			x.Mode.UnmarshalProtoJSON(s)
+		case "open_label", "openLabel":
+			s.AddField("open_label")
+			x.OpenLabel = s.ReadString()
+		case "open_request", "openRequest":
+			s.AddField("open_request")
+			x.OpenRequest = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Menu from JSON.
+func (x *Menu) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the DocumentInput message to JSON.
+func (x *DocumentInput) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Placeholder != "" || s.HasField("placeholder") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("placeholder")
+		s.WriteString(x.Placeholder)
+	}
+	if x.SubmitLabel != "" || s.HasField("submitLabel") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("submitLabel")
+		s.WriteString(x.SubmitLabel)
+	}
+	if x.Control != 0 || s.HasField("control") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("control")
+		s.WriteUint64(x.Control)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the DocumentInput to JSON.
+func (x *DocumentInput) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the DocumentInput message from JSON.
+func (x *DocumentInput) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "placeholder":
+			s.AddField("placeholder")
+			x.Placeholder = s.ReadString()
+		case "submit_label", "submitLabel":
+			s.AddField("submit_label")
+			x.SubmitLabel = s.ReadString()
+		case "control":
+			s.AddField("control")
+			x.Control = s.ReadUint64()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the DocumentInput from JSON.
+func (x *DocumentInput) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -8893,6 +9342,37 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.DocumentText) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.DocumentText)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xe2
+	}
+	if m.DocumentInput != nil {
+		size, err := m.DocumentInput.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xda
+	}
+	if m.Menu != nil {
+		size, err := m.Menu.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xd2
+	}
 	if len(m.Speaking) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Speaking)
 		i--
@@ -9513,6 +9993,100 @@ func (m *Cue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Number))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Menu) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Menu) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Menu) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.OpenRequest != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.OpenRequest))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.OpenLabel) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.OpenLabel)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Mode != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Mode))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DocumentInput) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DocumentInput) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *DocumentInput) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Control != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Control))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.SubmitLabel) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.SubmitLabel)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Placeholder) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Placeholder)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -11401,6 +11975,15 @@ func (m *Node) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.HideInChat)
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Speaking)
+	if m.Menu != nil {
+		l = m.Menu.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.DocumentInput != nil {
+		l = m.DocumentInput.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += protobuf_go_lite.SizeStringNonEmpty(2, m.DocumentText)
 	n += len(m.unknownFields)
 	return n
 }
@@ -11521,6 +12104,32 @@ func (m *Cue) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Menu) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Mode)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.OpenLabel)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.OpenRequest)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *DocumentInput) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Placeholder)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.SubmitLabel)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Control)
 	n += len(m.unknownFields)
 	return n
 }
@@ -12123,6 +12732,10 @@ func (x Kind) MarshalProtoText() string {
 	return x.String()
 }
 
+func (x MenuMode) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x Overflow) MarshalProtoText() string {
 	return x.String()
 }
@@ -12397,6 +13010,18 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "speaking")
 		protobuf_go_lite.TextWriteString(&sb, x.Speaking)
 	}
+	if x.Menu != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "menu")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Menu)
+	}
+	if x.DocumentInput != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "document_input")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.DocumentInput)
+	}
+	if x.DocumentText != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "document_text")
+		protobuf_go_lite.TextWriteString(&sb, x.DocumentText)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -12517,6 +13142,50 @@ func (x *Cue) MarshalProtoText() string {
 }
 
 func (x *Cue) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Menu) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Menu")
+	if x.Mode != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mode")
+		protobuf_go_lite.TextWriteStringer(&sb, MenuMode(x.Mode))
+	}
+	if x.OpenLabel != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "open_label")
+		protobuf_go_lite.TextWriteString(&sb, x.OpenLabel)
+	}
+	if x.OpenRequest != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "open_request")
+		protobuf_go_lite.TextWriteUint(&sb, x.OpenRequest)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Menu) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *DocumentInput) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "DocumentInput")
+	if x.Placeholder != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "placeholder")
+		protobuf_go_lite.TextWriteString(&sb, x.Placeholder)
+	}
+	if x.SubmitLabel != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "submit_label")
+		protobuf_go_lite.TextWriteString(&sb, x.SubmitLabel)
+	}
+	if x.Control != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "control")
+		protobuf_go_lite.TextWriteUint(&sb, x.Control)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *DocumentInput) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -13910,6 +14579,46 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Speaking = v
+		case 42:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Menu", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Menu == nil {
+				m.Menu = &Menu{}
+			}
+			if err := m.Menu.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 43:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DocumentInput", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.DocumentInput == nil {
+				m.DocumentInput = &DocumentInput{}
+			}
+			if err := m.DocumentInput.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 44:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DocumentText", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.DocumentText = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -14257,6 +14966,151 @@ func (m *Cue) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Delay = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Menu) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Menu: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Menu: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mode", wireType)
+			}
+			m.Mode = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Mode = MenuMode(_v)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OpenLabel", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.OpenLabel = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OpenRequest", wireType)
+			}
+			m.OpenRequest = 0
+			m.OpenRequest, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *DocumentInput) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DocumentInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DocumentInput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Placeholder", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Placeholder = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubmitLabel", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.SubmitLabel = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Control", wireType)
+			}
+			m.Control = 0
+			m.Control, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

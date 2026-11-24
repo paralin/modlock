@@ -801,6 +801,25 @@ _Kind: dict[Any, Any] = {
     "input": 7,
     8: "avatar",
     "avatar": 8,
+    9: "menu",
+    "menu": 9,
+    10: "menu_close",
+    "menu_close": 10,
+    11: "document_input",
+    "document_input": 11,
+    12: "document_output",
+    "document_output": 12,
+}
+
+
+# _MenuMode maps each MenuMode to its number and back.
+_MenuMode: dict[Any, Any] = {
+    0: "manual",
+    "manual": 0,
+    1: "toggle",
+    "toggle": 1,
+    2: "hold",
+    "hold": 2,
 }
 
 
@@ -4905,6 +4924,9 @@ _SCHEMA: wire.Schema = {
             wire.Field(39, "clock", "message", message="Clock"),
             wire.Field(40, "hide_in_chat", "bool"),
             wire.Field(41, "speaking", "string"),
+            wire.Field(42, "menu", "message", message="Menu"),
+            wire.Field(43, "document_input", "message", message="DocumentInput"),
+            wire.Field(44, "document_text", "string"),
         ],
     ),
     "Node_VariablesEntry": (
@@ -4949,6 +4971,22 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "sound", "string"),
             wire.Field(3, "seconds", "float"),
             wire.Field(4, "delay", "float"),
+        ],
+    ),
+    "Menu": (
+        None,
+        [
+            wire.Field(1, "mode", "enum", enum=_MenuMode),
+            wire.Field(2, "open_label", "string"),
+            wire.Field(3, "open_request", "uint32"),
+        ],
+    ),
+    "DocumentInput": (
+        None,
+        [
+            wire.Field(1, "placeholder", "string"),
+            wire.Field(2, "submit_label", "string"),
+            wire.Field(3, "control", "uint64"),
         ],
     ),
     "TextEntry": (

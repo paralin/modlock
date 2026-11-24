@@ -349,6 +349,26 @@ export enum Kind {
    * KIND_AVATAR shows the Steam picture of the player its steam_id names.
    */
   AVATAR = 8,
+
+  /**
+   * KIND_MENU shows children only while its renderer-owned surface is open.
+   */
+  MENU = 9,
+
+  /**
+   * KIND_MENU_CLOSE dismisses the containing menu without a server event.
+   */
+  MENU_CLOSE = 10,
+
+  /**
+   * KIND_DOCUMENT_INPUT edits and explicitly submits a text document.
+   */
+  DOCUMENT_INPUT = 11,
+
+  /**
+   * KIND_DOCUMENT_OUTPUT shows selectable, non-editable plain text.
+   */
+  DOCUMENT_OUTPUT = 12,
 }
 
 export const Kind_Enum = /* @__PURE__ */ createEnumType(
@@ -363,6 +383,41 @@ export const Kind_Enum = /* @__PURE__ */ createEnumType(
     [6, 'KIND_HERO_IMAGE'],
     [7, 'KIND_INPUT'],
     [8, 'KIND_AVATAR'],
+    [9, 'KIND_MENU'],
+    [10, 'KIND_MENU_CLOSE'],
+    [11, 'KIND_DOCUMENT_INPUT'],
+    [12, 'KIND_DOCUMENT_OUTPUT'],
+  ],
+)
+
+/**
+ * MenuMode selects how the game's scoreboard input affects a menu.
+ *
+ * @generated from enum modlock.wasm.ui.MenuMode
+ */
+export enum MenuMode {
+  /**
+   * MENU_MODE_MANUAL only opens on a button press or a new OpenRequest.
+   */
+  MANUAL = 0,
+
+  /**
+   * MENU_MODE_TOGGLE toggles on each fresh scoreboard press.
+   */
+  TOGGLE = 1,
+
+  /**
+   * MENU_MODE_HOLD opens on a fresh press and closes on release.
+   */
+  HOLD = 2,
+}
+
+export const MenuMode_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.MenuMode',
+  [
+    [0, 'MENU_MODE_MANUAL'],
+    [1, 'MENU_MODE_TOGGLE'],
+    [2, 'MENU_MODE_HOLD'],
   ],
 )
 
@@ -941,6 +996,18 @@ export interface Node {
    */
   speaking?: string
   /**
+   * Menu configures the local lifetime of a menu's children.
+   */
+  menu?: Menu
+  /**
+   * DocumentInput configures a form that sends one whole document on submit.
+   */
+  documentInput?: DocumentInput
+  /**
+   * DocumentText is the plain, selectable text of a document output.
+   */
+  documentText?: string
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -1002,6 +1069,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [39, 'clock', 11, 0, Clock.codec],
     [40, 'hide_in_chat', 8],
     [41, 'speaking', 9],
+    [42, 'menu', 11, 0, Menu.codec],
+    [43, 'document_input', 11, 0, DocumentInput.codec],
+    [44, 'document_text', 9],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1170,6 +1240,19 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 41:
             m.speaking = r.string()
+            break
+          case 42:
+            m.menu = Menu.decode(r, r.delimited(), m.menu ?? {})
+            break
+          case 43:
+            m.documentInput = DocumentInput.decode(
+              r,
+              r.delimited(),
+              m.documentInput ?? {},
+            )
+            break
+          case 44:
+            m.documentText = r.string()
             break
           default:
             r.skip(t)
@@ -1355,6 +1438,18 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.speaking
         if (v) w.uint32(330).string(v)
+      }
+      {
+        const v = m.menu
+        if (v != null) Menu.writeField(w, 42, v)
+      }
+      {
+        const v = m.documentInput
+        if (v != null) DocumentInput.writeField(w, 43, v)
+      }
+      {
+        const v = m.documentText
+        if (v) w.uint32(354).string(v)
       }
     },
   },
@@ -1700,6 +1795,142 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
     },
   },
 )
+
+/**
+ * Menu defines a local surface, not a stream of key events for the mod.
+ *
+ * @generated from message modlock.wasm.ui.Menu
+ */
+export interface Menu {
+  /**
+   * Mode selects what the scoreboard input does.
+   */
+  mode?: MenuMode
+  /**
+   * OpenLabel names the optional opener shown while the children are hidden.
+   */
+  openLabel?: string
+  /**
+   * OpenRequest opens once when it advances within this surface's lifetime.
+   */
+  openRequest?: number
+}
+
+export const Menu: MessageType<Menu> = /* @__PURE__ */ createMessageType<Menu>(
+  'modlock.wasm.ui.Menu',
+  () => [
+    [1, 'mode', 14, 0, MenuMode_Enum],
+    [2, 'open_label', 9],
+    [3, 'open_request', 13],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: Menu): Menu => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            m.mode = r.int32()
+            break
+          case 2:
+            m.openLabel = r.string()
+            break
+          case 3:
+            m.openRequest = r.uint32()
+            break
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: Menu, w: Writer): void => {
+      {
+        const v = m.mode
+        if (v) w.uint32(8).int32(v)
+      }
+      {
+        const v = m.openLabel
+        if (v) w.uint32(18).string(v)
+      }
+      {
+        const v = m.openRequest
+        if (v) w.uint32(24).uint32(v)
+      }
+    },
+  },
+)
+
+/**
+ * DocumentInput presents an initially empty, multiline draft and a submit button.
+ *
+ * @generated from message modlock.wasm.ui.DocumentInput
+ */
+export interface DocumentInput {
+  /**
+   * Placeholder is shown when the draft is empty.
+   */
+  placeholder?: string
+  /**
+   * SubmitLabel names the submit button; empty means "Submit".
+   */
+  submitLabel?: string
+  /**
+   * Control identifies the current player and form lifetime. The host sets it
+   * on accepted trees, never taking a value written by a mod.
+   */
+  control?: bigint
+}
+
+export const DocumentInput: MessageType<DocumentInput> =
+  /* @__PURE__ */ createMessageType<DocumentInput>(
+    'modlock.wasm.ui.DocumentInput',
+    () => [
+      [1, 'placeholder', 9],
+      [2, 'submit_label', 9],
+      [3, 'control', 4],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: DocumentInput,
+      ): DocumentInput => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.placeholder = r.string()
+              break
+            case 2:
+              m.submitLabel = r.string()
+              break
+            case 3:
+              m.control = r.uint64()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: DocumentInput, w: Writer): void => {
+        {
+          const v = m.placeholder
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.submitLabel
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.control
+          if (v) w.uint32(24).uint64(v)
+        }
+      },
+    },
+  )
 
 /**
  * TextEntry is a box the player types a line of text into.

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <expected>
 #include <map>
+#include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -12,6 +14,38 @@
 #include "src/wasm/ui/ui.pb.h"
 
 namespace modlock::wasm {
+
+// UiDocuments assembles at most one submission per authenticated player,
+// across all of the host's mods. It never retains a callback or a player id
+// claimed by the client.
+class UiDocuments {
+ public:
+  using Clock = std::chrono::steady_clock;
+  static constexpr size_t kLimit = 65536;
+
+  // Take processes a frame for the currently authorized control. A value is
+  // returned only after an explicit end with exactly the declared UTF-8 bytes.
+  std::optional<std::string> Take(int32_t slot, uint64_t control, uint64_t& last,
+                                  std::string_view frame, Clock::time_point now);
+
+  // Cancel discards the in-flight bytes if they belong to this control.
+  void Cancel(int32_t slot, uint64_t control);
+
+  // Expire releases unfinished submissions after their fixed deadline.
+  void Expire(Clock::time_point now);
+
+ private:
+  struct Transfer {
+    uint64_t control;
+    uint64_t serial;
+    size_t total;
+    Clock::time_point until;
+    std::string bytes;
+  };
+
+  std::map<int32_t, Transfer> transfers_;
+  Clock::time_point check_at_;
+};
 
 // UiTrees follows the interface trees one mod shows its players, one tree per
 // player slot. It checks each change against the limits a renderer can draw
@@ -25,7 +59,19 @@ class UiTrees {
   // Apply checks change and applies it to slot's tree. A change that breaks
   // a limit, or that does not reset a departed player's slot, leaves the
   // tree as it was.
-  [[nodiscard]] std::expected<void, std::string> Apply(int32_t slot, const ui::Change& change);
+  [[nodiscard]] std::expected<void, std::string> Apply(
+      int32_t slot, const ui::Change& change, std::optional<ui::Change>* stamped = nullptr);
+
+  // DocumentControl is the host-issued lifetime of the slot's enabled form.
+  uint64_t DocumentControl(int32_t slot) const;
+
+  // DocumentControls lists the form lifetimes to cancel when this mod stops.
+  const std::map<int32_t, uint64_t>& DocumentControls() const { return document_controls_; }
+
+  // Document takes one renderer frame only for the current reachable form.
+  std::optional<ui::UiInputEvent> Document(int32_t slot, std::string_view node,
+                                           std::string_view frame, UiDocuments& documents,
+                                           UiDocuments::Clock::time_point now);
 
   // IsButton reports whether slot's tree holds a button named node.
   bool IsButton(int32_t slot, std::string_view node) const;
@@ -77,6 +123,9 @@ class UiTrees {
     ui::Node::InputCase input = ui::Node::INPUT_NOT_SET;
     bool disabled = false;
     bool wheel = false;
+    uint64_t document_control = 0;
+    uint64_t last_submission = 0;
+    std::shared_ptr<const std::vector<std::string>> children;
     uint32_t length = 0;
     float min = 0;
     float max = 1;
@@ -93,6 +142,7 @@ class UiTrees {
   std::map<int32_t, std::map<std::string, Shown, std::less<>>> trees_;
   // left_ holds the slots whose player left since their last reset.
   std::set<int32_t> left_;
+  std::map<int32_t, uint64_t> document_controls_;
 
   // Pace is what one player's layouts have left of their presses: the
   // presses they may still send, as of when.

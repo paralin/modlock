@@ -617,6 +617,9 @@ export const domPanorama = {
     // hero and account as the page can.
     const panel = new DomPanel(type, id, control(type, properties ?? {}))
     panel.SetParent(parent)
+    if (properties?.allowtextselection === 'true') {
+      panel.element.style.userSelect = 'text'
+    }
     if (properties?.scaling) {
       panel.element.style.backgroundSize = backgroundSize(properties.scaling)
     }

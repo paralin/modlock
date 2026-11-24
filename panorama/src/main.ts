@@ -6,7 +6,13 @@
 // command that sends it to the server.
 
 import { Bridge } from './bridge.js'
-import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
+import {
+  AddonLayouts,
+  CHAT_OPEN,
+  Drawing,
+  inputCommand,
+  pressCommand,
+} from './draw.js'
 import { StockGuard } from './guard.js'
 import { gameHud, mountInterfaceLayer } from './mount.js'
 import {
@@ -35,6 +41,9 @@ const root = mountInterfaceLayer(
 // global sound call. Presses and edits go to the host as console commands, and
 // each mod's layouts load from the content addon its tree names.
 const layouts = new AddonLayouts()
+const cursor = new Cursor((event, ...values) => {
+  $.DispatchEvent(event, ...values)
+}, game)
 const drawing = new Drawing(
   {
     CreatePanel: (...args: Parameters<typeof $.CreatePanel>) =>
@@ -59,6 +68,39 @@ const drawing = new Drawing(
   layouts,
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
+  {
+    allowed: () => stock.allowed(),
+    stock: () => {
+      // Chat, the shop and stock popups keep their input when already open.
+      const chat = game.FindChildTraverse('Chat')
+      if (
+        chat?.BHasClass(CHAT_OPEN) ||
+        chat?.FindChildTraverse('ChatInput')?.BHasKeyFocus?.() ||
+        game.FindChildTraverse('CitadelHudHeroShop')?.BHasClass('gShopOpen') ||
+        game.BHasClass('gEditingBuilds') ||
+        game.BHasClass('gItemDraftOpen')
+      )
+        return 'other'
+      const manager = game.FindChild('PopupManager')
+      if (manager) {
+        for (let i = 0; i < manager.GetChildCount(); i++) {
+          const panel = manager.GetChild(i)
+          if (panel?.BHasClass('PopupPanel') && !panel.BHasClass('Hidden'))
+            return 'other'
+        }
+      }
+      if (
+        game.BHasClass('ShowEscapeMenu') ||
+        game.FindChild('EscapeMenu')?.BHasClass('ShowEscapeMenu')
+      )
+        return 'escape'
+      return null
+    },
+    capture: (open) => cursor.menuCapture(open),
+    resume: () => {
+      $.DispatchEvent('CitadelResumePlaying', game)
+    },
+  },
 )
 const stock = new StockGuard(
   game,
@@ -92,25 +134,27 @@ for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
   $.RegisterForUnhandledEvent(event, () => {
     stock.leave()
     drawing.release()
+    cursor.set(false, 0)
     return false
   })
 }
-const cursor = new Cursor((event, ...values) => {
-  $.DispatchEvent(event, ...values)
-}, game)
+$.RegisterForUnhandledEvent('CitadelScoreboardToggle', (pressed: boolean) => {
+  drawing.scoreboard(pressed)
+  return false
+})
 new Bridge(
   context.FindChildTraverse('ModlockUiState')!,
   // The session's boot script names the page for its relay and port.
   context.GetAttributeString('modlock_bridge', defaultBridge),
   (screen) => {
     layouts.follow(screen)
-    drawing.draw(screen)
     stock.screen(
       screen ? hiddenParts(screen) : null,
       abilityBarMods(screen),
       abilityRows(screen),
     )
     cursor.set(cursorFreed(screen), cursorAsks(screen))
+    drawing.draw(screen)
   },
   () => stock.alive(),
 )

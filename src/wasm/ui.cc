@@ -3,6 +3,7 @@
 #include "wasm/ui.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <charconv>
 #include <chrono>
@@ -45,9 +46,10 @@ constexpr size_t kMaxInput = 240;
 // the game's ability bar: "ability:" and a slot from 0 to 3.
 bool IsAbilityBarNode(std::string_view node) {
   constexpr std::string_view kPrefix = "ability:";
-  return node.size() == kPrefix.size() + 1 && node.starts_with(kPrefix) &&
-         node.back() >= '0' && node.back() <= '3';
+  return node.size() == kPrefix.size() + 1 && node.starts_with(kPrefix) && node.back() >= '0' &&
+         node.back() <= '3';
 }
+
 constexpr uint32_t kEntryLength = 100;
 
 // kMaxClasses bounds a node's classes, and kMaxSheets the root's style sheets.
@@ -216,6 +218,24 @@ std::expected<void, std::string> Check(const ui::Node& node) {
     return std::unexpected("node " + node.id() + ": images come from the game's content");
   }
 
+  if ((node.kind() == ui::KIND_MENU) != node.has_menu() ||
+      (node.has_menu() && (node.id().empty() || node.menu().open_label().size() > kMaxName ||
+                           !ui::MenuMode_IsValid(node.menu().mode())))) {
+    return std::unexpected("node " + node.id() + ": invalid menu");
+  }
+  if ((node.kind() == ui::KIND_DOCUMENT_INPUT) != node.has_document_input() ||
+      (node.has_document_input() &&
+       (node.id().empty() || node.document_input().placeholder().size() > kMaxText ||
+        node.document_input().submit_label().size() > kMaxName || !node.children().empty()))) {
+    return std::unexpected("node " + node.id() + ": invalid document input");
+  }
+  if (node.kind() == ui::KIND_DOCUMENT_OUTPUT
+          ? node.id().empty() || node.document_text().size() > UiDocuments::kLimit ||
+                !node.children().empty() || node.document_text().contains('\0')
+          : !node.document_text().empty()) {
+    return std::unexpected("node " + node.id() + ": invalid document output");
+  }
+
   // Localized text, inputs and the ability display have their own limits.
   if (auto checked = CheckLabel(node); !checked) {
     return checked;
@@ -357,9 +377,111 @@ bool IsUtf8(std::string_view text) {
   return true;
 }
 
+// TakeField reads one colon-delimited field and advances past its separator.
+std::string_view TakeField(std::string_view& line) {
+  const auto end = line.find(':');
+  const auto field = line.substr(0, end);
+  line.remove_prefix(end == std::string_view::npos ? line.size() : end + 1);
+  return field;
+}
+
+// Decimal reads a whole unsigned decimal field without overflow.
+std::optional<uint64_t> Decimal(std::string_view field) {
+  if (field.empty()) {
+    return std::nullopt;
+  }
+  uint64_t value = 0;
+  const auto [end, error] = std::from_chars(field.data(), field.data() + field.size(), value);
+  if (error != std::errc{} || end != field.data() + field.size()) {
+    return std::nullopt;
+  }
+  return value;
+}
+
+// NextDocumentControl gives each new form a host-unique identity, even if
+// another player or another mod uses the same node id.
+uint64_t NextDocumentControl() {
+  static std::atomic<uint64_t> next{1};
+  return next.fetch_add(1, std::memory_order_relaxed);
+}
+
 }  // namespace
 
-std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& change) {
+std::optional<std::string> UiDocuments::Take(int32_t slot, uint64_t control, uint64_t& last,
+                                             std::string_view frame, Clock::time_point now) {
+  // Match the control and submission before changing any pending transfer.
+  if (frame.size() > 320 || Decimal(TakeField(frame)) != control) {
+    return std::nullopt;
+  }
+  const auto serial = Decimal(TakeField(frame));
+  if (!serial || *serial == 0) {
+    return std::nullopt;
+  }
+  auto found = transfers_.find(slot);
+  if (found != transfers_.end() && now >= found->second.until) {
+    transfers_.erase(found);
+    found = transfers_.end();
+  }
+  if (frame.starts_with("b:")) {
+    const auto total = Decimal(frame.substr(2));
+    if (!total || *total > kLimit || *serial <= last || found != transfers_.end()) {
+      return std::nullopt;
+    }
+    last = *serial;
+    auto [started, inserted] = transfers_.try_emplace(
+        slot,
+        Transfer{
+            control, *serial, static_cast<size_t>(*total), now + std::chrono::seconds(20), {}});
+    static_cast<void>(inserted);
+    started->second.bytes.reserve(static_cast<size_t>(*total));
+    return std::nullopt;
+  }
+  if (found == transfers_.end() || found->second.control != control ||
+      found->second.serial != *serial) {
+    return std::nullopt;
+  }
+  auto& transfer = found->second;
+  const bool finish = frame == "e";
+  if (frame.starts_with("p:")) {
+    frame.remove_prefix(2);
+    const auto offset = Decimal(TakeField(frame));
+    constexpr size_t kChunk = 180;
+    const auto count = std::min(kChunk, transfer.total - transfer.bytes.size());
+    if (offset == transfer.bytes.size() && count != 0 && frame.size() == (count * 4 + 2) / 3) {
+      if (auto decoded = DecodeBase64Url(frame); decoded && decoded->size() == count) {
+        transfer.bytes.append(*decoded);
+        return std::nullopt;
+      }
+    }
+  }
+  // Any other frame ends this transfer. Remove it before calling the mod so
+  // replayed completion or changes made inside its callback cannot deliver twice.
+  auto bytes = std::move(transfer.bytes);
+  const auto complete = bytes.size() == transfer.total;
+  transfers_.erase(found);
+  if (finish && complete && !bytes.contains('\0') && IsUtf8(bytes)) {
+    return bytes;
+  }
+  return std::nullopt;
+}
+
+void UiDocuments::Cancel(int32_t slot, uint64_t control) {
+  const auto found = transfers_.find(slot);
+  if (found != transfers_.end() && found->second.control == control) {
+    transfers_.erase(found);
+  }
+}
+
+void UiDocuments::Expire(Clock::time_point now) {
+  if (transfers_.empty() || now < check_at_) {
+    return;
+  }
+  check_at_ = now + std::chrono::seconds(1);
+  std::erase_if(transfers_, [now](const auto& each) { return now >= each.second.until; });
+}
+
+std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& change,
+                                                std::optional<ui::Change>* stamped) {
   // The slot must be a player's; a player who left must reset.
   if (slot < 0 || slot > kMaxSlot) {
     return std::unexpected("no player has slot " + std::to_string(slot));
@@ -379,13 +501,79 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
     tree = found->second;
   }
   for (const auto& node : change.set()) {
-    tree[node.id()] = Keep(node);
+    auto kept = Keep(node);
+    if (node.kind() == ui::KIND_DOCUMENT_INPUT && !node.disabled()) {
+      kept.document_control = NextDocumentControl();
+    }
+    tree[node.id()] = std::move(kept);
   }
   for (const auto& id : change.removed()) {
     tree.erase(id);
   }
   if (tree.size() > kMaxNodes) {
     return std::unexpected("the interface has too many nodes");
+  }
+
+  // A player gets one form and one export per tree. Only an input reachable
+  // from the root may receive a document, even if a native caller leaves an
+  // orphan node in its delta. Local menu visibility is the renderer's job.
+  const std::string* form = nullptr;
+  bool output = false;
+  for (const auto& [id, node] : tree) {
+    if (node.kind == ui::KIND_DOCUMENT_INPUT) {
+      if (form) {
+        return std::unexpected("the interface has more than one document input");
+      }
+      form = &id;
+    }
+    if (node.kind == ui::KIND_DOCUMENT_OUTPUT && std::exchange(output, true)) {
+      return std::unexpected("the interface has more than one document output");
+    }
+  }
+  if (form) {
+    std::vector<std::string_view> todo = {""};
+    std::set<std::string_view> seen;
+    bool reached = false;
+    while (!todo.empty()) {
+      const auto id = todo.back();
+      todo.pop_back();
+      if (id == *form) {
+        reached = true;
+        break;
+      }
+      if (!seen.insert(id).second) {
+        continue;
+      }
+      const auto found = tree.find(id);
+      if (found == tree.end() || !found->second.children || found->second.kind == ui::KIND_LAYOUT) {
+        continue;
+      }
+      for (const auto& child : *found->second.children) {
+        todo.emplace_back(child);
+      }
+    }
+    if (!reached) {
+      return std::unexpected("the document input is not reachable from the root");
+    }
+  }
+  if (stamped && std::ranges::any_of(change.set(), [](const ui::Node& node) {
+        return node.kind() == ui::KIND_DOCUMENT_INPUT;
+      })) {
+    auto& outgoing = stamped->emplace(change);
+    for (auto& node : *outgoing.mutable_set()) {
+      if (node.kind() != ui::KIND_DOCUMENT_INPUT) {
+        continue;
+      }
+      const auto found = tree.find(node.id());
+      node.mutable_document_input()->set_control(
+          found == tree.end() ? 0 : found->second.document_control);
+    }
+  }
+  const auto control = form ? tree.find(*form)->second.document_control : 0;
+  if (control) {
+    document_controls_[slot] = control;
+  } else {
+    document_controls_.erase(slot);
   }
 
   // Store the tree, dropping an empty one.
@@ -396,6 +584,34 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
     trees_[slot] = std::move(tree);
   }
   return {};
+}
+
+uint64_t UiTrees::DocumentControl(int32_t slot) const {
+  const auto found = document_controls_.find(slot);
+  return found == document_controls_.end() ? 0 : found->second;
+}
+
+std::optional<ui::UiInputEvent> UiTrees::Document(int32_t slot, std::string_view node,
+                                                  std::string_view frame, UiDocuments& documents,
+                                                  UiDocuments::Clock::time_point now) {
+  const auto control = DocumentControl(slot);
+  if (!control) {
+    return std::nullopt;
+  }
+  auto& tree = trees_.find(slot)->second;
+  const auto found = tree.find(node);
+  if (found == tree.end() || found->second.document_control != control) {
+    return std::nullopt;
+  }
+  auto value = documents.Take(slot, control, found->second.last_submission, frame, now);
+  if (!value) {
+    return std::nullopt;
+  }
+  ui::UiInputEvent event;
+  event.set_player(slot);
+  event.set_node(node);
+  event.set_text(std::move(*value));
+  return event;
 }
 
 bool UiTrees::IsButton(int32_t slot, std::string_view node) const {
@@ -416,6 +632,10 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   // Keep the kind, and an input's control and state.
   Shown shown;
   shown.kind = node.kind();
+  if (!node.children().empty()) {
+    shown.children = std::make_shared<const std::vector<std::string>>(node.children().begin(),
+                                                                      node.children().end());
+  }
   shown.ability_bar = node.id().empty() && node.ability_bar_presses();
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
@@ -585,6 +805,7 @@ std::expected<ui::UiPressEvent, std::string> UiTrees::Action(
 
 bool UiTrees::Drop(int32_t slot) {
   paces_.erase(slot);
+  document_controls_.erase(slot);
   if (trees_.erase(slot) == 0) {
     return false;
   }
@@ -599,6 +820,7 @@ std::vector<int32_t> UiTrees::Clear() {
     slots.push_back(slot);
   }
   trees_.clear();
+  document_controls_.clear();
   left_.clear();
   paces_.clear();
   return slots;

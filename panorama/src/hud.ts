@@ -36,16 +36,34 @@ export class Cursor {
 
   /** set frees the cursor or captures it for a screen that holds asks asks. */
   set(free: boolean, asks: number): void {
+    this.apply(free, asks, this.menu)
+  }
+
+  /** menuCapture holds the cursor on behalf of a local menu alongside root asks. */
+  menuCapture(open: boolean): void {
+    this.apply(this.requested, this.asked, open)
+  }
+
+  private requested = false
+  private menu = false
+
+  private apply(requested: boolean, asks: number, menu: boolean): void {
+    // A menu can ask for the cursor without changing a root panel's request.
+    const menuChanged = menu !== this.menu
+    const free = requested || menu
+    this.requested = requested
+    this.menu = menu
+
     // A rise in the count is an ask, which counts even when the cursor is
     // already free here.
-    const again = free && asks !== this.asked
+    const again = (requested && asks !== this.asked) || (menuChanged && menu)
     this.asked = asks
     if (free === this.free && !again) return
 
     // Hand the keyboard back to the game before it takes the cursor, then
     // tell the game.
     this.free = free
-    if (!free) {
+    if (!free && !menuChanged) {
       this.dispatch('DropInputFocus', this.hud)
     }
     this.dispatch('CitadelConCommand', `hud_free_cursor ${free ? 1 : 0}`)

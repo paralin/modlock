@@ -95,6 +95,7 @@ import {
   HeroLook,
   HudPart as WireHudPart,
   Kind,
+  MenuMode,
   Overflow as WireOverflow,
   Scaling as WireScaling,
   TextOverflow,
@@ -396,6 +397,26 @@ export interface UiElement {
   readonly key?: string
 }
 
+/** MenuProps describes a surface whose visibility and focus stay local. */
+export interface MenuProps extends PanelProps {
+  mode?: 'manual' | 'hold' | 'toggle'
+  openLabel?: string
+  openRequest?: number
+}
+
+/** DocumentInputProps describes a blank draft submitted only with its button. */
+export interface DocumentInputProps extends ElementProps {
+  placeholder?: string
+  submitLabel?: string
+  disabled?: boolean
+  onSubmit: (player: Player, text: string) => void
+}
+
+/** DocumentOutputProps shows up to 65,536 UTF-8 bytes the player can select. */
+export interface DocumentOutputProps extends ElementProps {
+  text: string
+}
+
 /**
  * ChangeHandler is the handler of any input: it takes the value the control
  * holds, whose type each element's props narrow. The method form makes the
@@ -449,6 +470,12 @@ export interface Props {
   readonly selected?: number
   readonly onChange?: ChangeHandler
   readonly onWheel?: (player: Player, wheel: Wheel) => void
+  readonly mode?: 'manual' | 'hold' | 'toggle'
+  readonly openLabel?: string
+  readonly openRequest?: number
+  readonly submitLabel?: string
+  readonly text?: string
+  readonly onSubmit?: (player: Player, text: string) => void
 }
 
 /**
@@ -668,6 +695,10 @@ export declare namespace JSX {
   // The compiler applies IntrinsicAttributes only to components, so each
   // element takes a key as well.
   interface IntrinsicElements {
+    menu: MenuProps & IntrinsicAttributes
+    menuClose: PanelProps & IntrinsicAttributes
+    documentInput: DocumentInputProps & IntrinsicAttributes
+    documentOutput: DocumentOutputProps & IntrinsicAttributes
     panel: PanelProps & IntrinsicAttributes
     label: LabelProps & IntrinsicAttributes
     image: ImageProps & IntrinsicAttributes
@@ -1609,6 +1640,39 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
       node.token = props.token
       node.variables = variables(props.variables)
       node.clock = clock(props.clock)
+      break
+    case 'menu':
+      node.kind = Kind.MENU
+      node.menu = {
+        mode:
+          props.mode === 'hold'
+            ? MenuMode.HOLD
+            : props.mode === 'toggle'
+              ? MenuMode.TOGGLE
+              : MenuMode.MANUAL,
+        openLabel: props.openLabel,
+        openRequest: props.openRequest,
+      }
+      node.children = place(layout, props.children, `${at}/`)
+      break
+    case 'menuClose':
+      node.kind = Kind.MENU_CLOSE
+      node.children = place(layout, props.children, `${at}/`)
+      break
+    case 'documentInput':
+      node.kind = Kind.DOCUMENT_INPUT
+      node.documentInput = {
+        placeholder: props.placeholder,
+        submitLabel: props.submitLabel,
+      }
+      node.disabled = props.disabled || !props.onSubmit
+      if (props.onSubmit && !node.disabled) {
+        layout.part.changes.set(node.id!, { handler: props.onSubmit })
+      }
+      break
+    case 'documentOutput':
+      node.kind = Kind.DOCUMENT_OUTPUT
+      node.documentText = props.text
       break
     case 'avatar':
       node.kind = Kind.AVATAR
