@@ -108,11 +108,11 @@ std::expected<void, std::string> Game::AdjustSouls(const players::AdjustSoulsReq
   if (!currency) {
     return std::unexpected(currency.error());
   }
-  if (auto pawn = LivePawn(request.player()); !pawn) {
+  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
   }
-  auto adjusted =
-      observer_.AdjustCurrency(request.player(), 0, request.delta(), request.silent(), *currency);
+  auto adjusted = players_.Observer().AdjustCurrency(request.player(), 0, request.delta(),
+                                                     request.silent(), *currency);
   if (!adjusted) {
     return std::unexpected(adjusted.error());
   }
@@ -126,10 +126,10 @@ std::expected<void, std::string> Game::AdjustAbilityPoints(
   if (!currency) {
     return std::unexpected(currency.error());
   }
-  if (auto pawn = LivePawn(request.player()); !pawn) {
+  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
   }
-  const auto sample = observer_.Observe(request.player());
+  const auto sample = players_.Observer().Observe(request.player());
   if (!sample || !sample->currencies) {
     return std::unexpected("native wallet unavailable");
   }
@@ -143,7 +143,8 @@ std::expected<void, std::string> Game::AdjustAbilityPoints(
 
   // Apply each change silently.
   for (const auto [type, delta] : changes) {
-    if (auto adjusted = observer_.AdjustCurrency(request.player(), type, delta, true, *currency);
+    if (auto adjusted =
+            players_.Observer().AdjustCurrency(request.player(), type, delta, true, *currency);
         !adjusted) {
       return std::unexpected(adjusted.error());
     }
@@ -157,10 +158,11 @@ std::expected<void, std::string> Game::StartingSouls(const players::StartingSoul
   if (!currency) {
     return std::unexpected(currency.error());
   }
-  if (auto pawn = LivePawn(request.player()); !pawn) {
+  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
   }
-  auto prepared = observer_.PrepareStartingSouls(request.player(), request.souls(), *currency);
+  auto prepared =
+      players_.Observer().PrepareStartingSouls(request.player(), request.souls(), *currency);
   if (!prepared) {
     return std::unexpected(prepared.error());
   }
@@ -177,10 +179,11 @@ std::expected<void, std::string> Game::ResetHero(const players::ResetHeroRequest
   if (!reset) {
     return std::unexpected(reset.error());
   }
-  if (auto pawn = LivePawn(request.player()); !pawn) {
+  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
   }
-  auto fresh = observer_.ResetStartingSouls(request.player(), request.souls(), *currency, *reset);
+  auto fresh =
+      players_.Observer().ResetStartingSouls(request.player(), request.souls(), *currency, *reset);
   if (!fresh) {
     return std::unexpected(fresh.error());
   }
@@ -236,7 +239,7 @@ std::expected<void, std::string> Game::RestoreHero(const players::RestoreHeroReq
   }
 
   // Resolve the live pawn and the engine services.
-  auto sample = Live(request.player());
+  auto sample = players_.Live(request.player());
   if (!sample) {
     return std::unexpected(sample.error());
   }
@@ -255,14 +258,16 @@ std::expected<void, std::string> Game::RestoreHero(const players::RestoreHeroReq
   HeroRestore::Engine access{
       .apply = [this](const HeroRestore::Sample& pawn, const RestoreTarget& target,
                       HeroRestore::Stage stage) { return ApplyRestore(pawn, target, stage); },
-      .abilities = [this](int32_t slot) { return observer_.CurrentAbilitiesForSlot(slot); },
+      .abilities =
+          [this](int32_t slot) { return players_.Observer().CurrentAbilitiesForSlot(slot); },
       .definition = [abilities](uint32_t id) { return abilities->Find(id); },
       .clock = [engine] { return engine->ReadClock(); },
       .set_timers =
           [this](int32_t slot, std::span<const HeroRestore::Ability> timers) {
-            return observer_.ApplyAbilityTimers(slot, timers);
+            return players_.Observer().ApplyAbilityTimers(slot, timers);
           },
-      .ready_timers = [this](int32_t slot) { return observer_.FreshAbilityTargets(slot); },
+      .ready_timers =
+          [this](int32_t slot) { return players_.Observer().FreshAbilityTargets(slot); },
   };
   auto restore = HeroRestore::Create(*sample, std::move(target), std::move(access));
   if (!restore) {
@@ -292,7 +297,7 @@ std::expected<void, std::string> Game::HoldLevelSouls(int32_t slot, int32_t leve
   }
 
   // Move the hero's souls into the level's band.
-  auto held = observer_.HoldLevelSouls(slot, level, *starting, *required, *currency);
+  auto held = players_.Observer().HoldLevelSouls(slot, level, *starting, *required, *currency);
   if (!held) {
     return std::unexpected(held.error());
   }
@@ -307,7 +312,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
     return false;
   };
   const auto slot = sample.slot;
-  void* pawn = observer_.PawnForSlot(slot);
+  void* pawn = players_.Observer().PawnForSlot(slot);
 
   // The build stage restores the level, items, abilities and upgrade bonuses.
   if (stage == HeroRestore::Stage::kBuild) {
@@ -324,7 +329,8 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       return log("items", items.error());
     }
     if (target.items) {
-      if (auto done = observer_.ReconcileItems(slot, *target.items, **definitions, **items);
+      if (auto done =
+              players_.Observer().ReconcileItems(slot, *target.items, **definitions, **items);
           !done) {
         return log("items", done.error());
       }
@@ -334,18 +340,18 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       if (!create) {
         return log("abilities", create.error());
       }
-      if (auto done = observer_.ReconcileAbilities(slot, target.abilities, **definitions, *create,
-                                                   (*items)->set_bits);
+      if (auto done = players_.Observer().ReconcileAbilities(slot, target.abilities, **definitions,
+                                                             *create, (*items)->set_bits);
           !done) {
         return log("abilities", done.error());
       }
     }
 
     // Item and ability calls can replace the pawn, so borrow it again.
-    if (!observer_.CurrentAbilitiesForSlot(slot)) {
+    if (!players_.Observer().CurrentAbilitiesForSlot(slot)) {
       return false;
     }
-    pawn = observer_.PawnForSlot(slot);
+    pawn = players_.Observer().PawnForSlot(slot);
     if (target.level) {
       // The game raises a level its souls pass and never lowers one, so the
       // restored level holds only with souls inside its band. A hero whose
@@ -353,7 +359,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       if (auto held = HoldLevelSouls(slot, *target.level); !held) {
         log("level souls", held.error());
       }
-      pawn = observer_.PawnForSlot(slot);
+      pawn = players_.Observer().PawnForSlot(slot);
     }
     if (!target.fresh && target.upgrade_bonuses) {
       if (auto done = gameinterop::RestorePawnUpgradeBonuses(pawn, *target.upgrade_bonuses);
@@ -379,10 +385,10 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       if (!clock) {
         return log("stamina", clock.error());
       }
-      if (auto done = observer_.SetPracticeStamina(slot, clock->current_time); !done) {
+      if (auto done = players_.Observer().SetPracticeStamina(slot, clock->current_time); !done) {
         return log("stamina", done.error());
       }
-      pawn = observer_.PawnForSlot(slot);
+      pawn = players_.Observer().PawnForSlot(slot);
     }
     const auto health = target.fresh ? *sample.effective_max_health : target.health;
     const auto max_health = target.fresh ? sample.max_health : target.max_health;
@@ -396,7 +402,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
   if (!teleport) {
     return log("pose", teleport.error());
   }
-  pawn = observer_.PawnForSlot(slot);
+  pawn = players_.Observer().PawnForSlot(slot);
   if (pawn == nullptr) {
     return false;
   }
@@ -423,7 +429,7 @@ void Game::TickRestores() {
   }
   ++frames_;
   for (auto it = restores_.begin(); it != restores_.end();) {
-    auto result = it->second.Tick(observer_.Observe(it->first), frames_);
+    auto result = it->second.Tick(players_.Observer().Observe(it->first), frames_);
     if (!result) {
       ++it;
       continue;

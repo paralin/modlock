@@ -27,7 +27,7 @@ bool Game::Moves() const {
 }
 
 void Game::Aim(void* pawn, const std::array<float, 3>& angles) {
-  static_cast<void>(observer_.SetEyeAngles(pawn, angles));
+  static_cast<void>(players_.Observer().SetEyeAngles(pawn, angles));
 }
 
 std::optional<int32_t> Game::WatchedSlot(int32_t slot) const {
@@ -35,7 +35,7 @@ std::optional<int32_t> Game::WatchedSlot(int32_t slot) const {
   if (watched == watched_.end()) {
     return std::nullopt;
   }
-  return observer_.SlotOfPawn(watched->second);
+  return players_.Observer().SlotOfPawn(watched->second);
 }
 
 void Game::Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) {
@@ -60,7 +60,7 @@ void Game::Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& 
     if (((apart_ >> slot) & 1) == inside) {
       continue;
     }
-    if (const auto hero = observer_.PawnHandleForSlot(slot)) {
+    if (const auto hero = players_.Observer().PawnHandleForSlot(slot)) {
       set.Withhold(*hero);
     }
   }
@@ -72,7 +72,7 @@ bool Game::KeepsMomentum() const {
 
 std::vector<ProjectileSource::HeroMotion> Game::Motions() {
   std::vector<HeroMotion> motions;
-  for (const auto& hero : Heroes()) {
+  for (const auto& hero : players_.Heroes()) {
     if (hero.velocity) {
       motions.push_back({.pawn = hero.pawn, .velocity = *hero.velocity});
     }
@@ -88,7 +88,7 @@ bool Game::SilencesSpeaker(uint32_t speaker, int32_t concept_value) const {
   if (silenced_players_.empty()) {
     return false;
   }
-  const auto slot = observer_.SlotOfPawn(speaker);
+  const auto slot = players_.Observer().SlotOfPawn(speaker);
   if (!slot) {
     return false;
   }

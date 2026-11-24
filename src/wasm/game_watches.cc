@@ -62,7 +62,7 @@ std::expected<void, std::string> Game::Kill(const players::PlayerRequest& reques
   if (!damage) {
     return std::unexpected(damage.error());
   }
-  auto sample = Live(request.player());
+  auto sample = players_.Live(request.player());
   if (!sample) {
     return std::unexpected(sample.error());
   }
@@ -70,7 +70,7 @@ std::expected<void, std::string> Game::Kill(const players::PlayerRequest& reques
 }
 
 std::expected<void, std::string> Game::SetVelocity(const movement::SetVelocityRequest& request) {
-  auto pawn = LivePawn(request.player());
+  auto pawn = players_.LivePawn(request.player());
   if (!pawn) {
     return std::unexpected(pawn.error());
   }
@@ -172,7 +172,7 @@ std::vector<movement::MovementSample> Game::Movement(std::span<const MovementFac
   std::vector<movement::MovementSample> samples;
   for (const auto slot : movers_) {
     // Skip a dead or unmoving pawn.
-    const auto sample = observer_.Observe(slot);
+    const auto sample = players_.Observer().Observe(slot);
     if (!sample || sample->health <= 0 || !sample->movement) {
       continue;
     }
@@ -242,26 +242,6 @@ std::expected<void, std::string> Game::WatchProjectiles(const combat::Projectile
     services_.Projectiles();
   }
   return {};
-}
-
-std::vector<Game::Hero> Game::Heroes() {
-  std::vector<Hero> heroes;
-  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    // Collect each live hero.
-    const auto sample = Live(slot);
-    if (!sample || sample->health <= 0) {
-      continue;
-    }
-    Hero hero{.slot = slot,
-              .handle = sample->pawn_handle,
-              .pawn = sample->pawn,
-              .feet = {float(sample->x), float(sample->y), float(sample->z)}};
-    if (sample->movement) {
-      hero.velocity = sample->movement->abs_velocity;
-    }
-    heroes.push_back(hero);
-  }
-  return heroes;
 }
 
 void Game::TrackProjectiles() {
@@ -347,7 +327,7 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
 
   // Find the player whose pawn owns it.
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    const auto sample = observer_.Observe(slot);
+    const auto sample = players_.Observer().Observe(slot);
     if (sample && sample->pawn_handle == owner) {
       return {owner, slot};
     }
