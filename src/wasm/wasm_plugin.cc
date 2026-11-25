@@ -27,8 +27,14 @@ namespace {
 // frames to repay it: half of a 64-tick frame.
 constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
 
+// kFrameBudget is the part of the frame allowance the budgets share. A mod's
+// tasks stop at the budget and then each runs one more step, so the other
+// half of the allowance is the room for those steps, and a mod that paces
+// stays under the allowance instead of running to it.
+constexpr auto kFrameBudget = kFrameAllowance / 2;
+
 // kBudgetFloor is the least budget a frame carries, however many mods share
-// the frame allowance.
+// kFrameBudget.
 constexpr auto kBudgetFloor = std::chrono::milliseconds(1);
 
 // kShedLogPeriod is how often the log reports the frames a slow mod skipped.
@@ -755,12 +761,12 @@ uint32_t WasmPlugin::FrameBudget() const {
     return 0;
   }
 
-  // Share the frame allowance among the mods that take frames, this one
-  // among them. The count walks a handful of mods once a frame.
+  // Share kFrameBudget among the mods that take frames, this one among
+  // them. The count walks a handful of mods once a frame.
   const auto sharing = std::ranges::count_if(
       host_.plugins, [](const auto& entry) { return entry.second->WantsFrames(); });
   const auto share = std::max<std::chrono::microseconds>(
-      kBudgetFloor, kFrameAllowance / std::max<std::ptrdiff_t>(sharing, 1));
+      kBudgetFloor, kFrameBudget / std::max<std::ptrdiff_t>(sharing, 1));
   return static_cast<uint32_t>(share.count());
 }
 
