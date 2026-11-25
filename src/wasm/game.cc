@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -16,23 +15,17 @@
 namespace modlock::wasm {
 
 Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
-  // Register with the host-wide hooks; the destructor removes each before
-  // the movement hook rechecks its movers.
+  // Register with the host-wide hooks while the game lives.
   services_.InputSources().Add(&input_);
-  services_.MoverSources().Add(this);
   services_.ProjectileSources().Add(this);
   services_.VoiceSources().Add(this);
 }
 
 Game::~Game() {
   services_.InputSources().Remove(&input_);
-  services_.MoverSources().Remove(this);
   services_.ProjectileSources().Remove(this);
   services_.VoiceSources().Remove(this);
   services_.Controllers().Release(this);
-  if (auto steps = services_.Steps(); !steps) {
-    std::cerr << "mod movement: " << steps.error() << '\n';
-  }
 }
 
 void Game::Frame() {
@@ -81,8 +74,6 @@ void Game::WorldReady() {
 void Game::WorldEnding() {
   // Drop the per-world player state and reapply host seats on the next map.
   assignments_.WorldEnding();
-  steers_.clear();
-  drives_.clear();
   ffa_held_.clear();
 
   // Release what the mod held in the world.
@@ -95,12 +86,9 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget the slot's movement, controllers and input.
+  // Forget the slot's seat, controllers and input.
   seat_failed_.erase(slot);
-  movers_.erase(slot);
   services_.Controllers().Watch(this, slot, false);
-  steers_.erase(slot);
-  drives_.erase(slot);
 
   // Forget its restores, blocks, presses and silences.
   restores_.erase(slot);
@@ -113,14 +101,8 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
-  // Stop moving and steering heroes and watching controllers.
-  movers_.clear();
+  // Stop watching controllers.
   services_.Controllers().Release(this);
-  steers_.clear();
-  drives_.clear();
-
-  // Releasing the movement hook cannot fail.
-  static_cast<void>(services_.Steps());
 
   // Release the free-for-all and team seating.
   free_for_all_ = false;

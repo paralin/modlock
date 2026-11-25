@@ -387,7 +387,7 @@ void WasmPlugin::Sample(wasm::FrameEvent& frame) {
   sampled_ = frame.tick();
 
   // Take the queued facts.
-  std::vector<wasm::Game::MovementFact> facts;
+  std::vector<wasm::HeroMovement::MovementFact> facts;
   {
     std::lock_guard lock(damaged_lock_);
     facts.swap(facts_);

@@ -47,6 +47,7 @@
 #include "wasm/camera.h"
 #include "wasm/controller_table.h"
 #include "wasm/fields.h"
+#include "wasm/hero_movement.h"
 #include "wasm/hero_restore.h"
 #include "wasm/heroes.h"
 #include "wasm/hook_sources.h"
@@ -219,6 +220,9 @@ class GameServices {
   // mods need of it.
   std::expected<void, std::string> Steps();
 
+  // Command takes the commands pawn ran since the previous call, folded.
+  std::optional<movement::MovementCommand> Command(const void* pawn);
+
  private:
   friend class Game;
 
@@ -273,9 +277,6 @@ class GameServices {
   // own command set: the step's view, the hero's aim, and the body's yaw.
   void Face(MoverSource& mover, gameinterop::MovementCall& call,
             const std::array<float, 3>& angles);
-
-  // Command takes the commands pawn ran since the previous call, folded.
-  std::optional<movement::MovementCommand> Command(const void* pawn);
 
   std::optional<gameinterop::MappedModuleImage> image_;
   std::optional<gameinterop::EngineServer> server_;
@@ -380,10 +381,7 @@ class GameServices {
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
-class Game : public HostService,
-             private MoverSource,
-             private ProjectileSource,
-             private VoiceSource {
+class Game : public HostService, private ProjectileSource, private VoiceSource {
  public:
   Game(GameServices& services, EngineHost* engine);
   ~Game() override;
@@ -488,21 +486,14 @@ class Game : public HostService,
   void ClientCommand(int32_t slot, std::string_view line) { heroes_.ClientCommand(slot, line); }
 
   // Moving reports whether the mod watches any player's movement.
-  bool Moving() const { return !movers_.empty(); }
-
-  // MovementFact is one movement fact the game announced for the hero with
-  // the pawn handle; an executed ability carries the ability's handle, and
-  // a completed interaction, with no action, the interaction.
-  struct MovementFact {
-    uint32_t pawn = 0;
-    movement::MovementAction action = movement::MOVEMENT_ACTION_UNKNOWN;
-    uint32_t ability = 0;
-    std::optional<movement::Interaction> interaction;
-  };
+  bool Moving() const { return movement_.Moving(); }
 
   // Movement returns a sample of each watched, live hero, with the facts
   // that name its pawn.
-  std::vector<movement::MovementSample> Movement(std::span<const MovementFact> facts);
+  std::vector<movement::MovementSample> Movement(
+      std::span<const wasm::HeroMovement::MovementFact> facts) {
+    return movement_.Samples(facts);
+  }
 
   // Controllers appends each player whose controllers the mod watches, with
   // the presses and releases since its last call.
@@ -529,10 +520,6 @@ class Game : public HostService,
  private:
   // What the host-wide hooks read of this game, through the source
   // interfaces it registers with services_ (game_sources.cc).
-  gameinterop::CommandHook::Command* DriveOf(int32_t slot) override;
-  movement::Steering* SteerOf(int32_t slot) override;
-  bool Moves() const override;
-  void Aim(void* pawn, const std::array<float, 3>& angles) override;
   bool KeepsMomentum() const override;
   std::vector<HeroMotion> Motions() override;
   bool Silences(int32_t concept_value) const override;
@@ -666,11 +653,25 @@ class Game : public HostService,
     return modifiers_.GiveEntityModifier(request);
   }
 
-  std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override;
-  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override;
-  std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
-  std::expected<void, std::string> Steer(const movement::SteerRequest& request) override;
-  std::expected<void, std::string> Drive(const movement::DriveRequest& request) override;
+  std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override {
+    return movement_.Teleport(request);
+  }
+
+  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override {
+    return movement_.Zipline(request);
+  }
+
+  std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override {
+    return movement_.MovePlayer(request);
+  }
+
+  std::expected<void, std::string> Steer(const movement::SteerRequest& request) override {
+    return movement_.Steer(request);
+  }
+
+  std::expected<void, std::string> Drive(const movement::DriveRequest& request) override {
+    return movement_.Drive(request);
+  }
 
   std::expected<void, std::string> AdjustSouls(
       const players::AdjustSoulsRequest& request) override {
@@ -941,11 +942,18 @@ class Game : public HostService,
   }
 
   std::expected<void, std::string> SetVelocity(
-      const movement::SetVelocityRequest& request) override;
+      const movement::SetVelocityRequest& request) override {
+    return movement_.SetVelocity(request);
+  }
+
   std::expected<wasm::ButtonsResponse, std::string> Buttons(
       const players::PlayerRequest& request) override;
+
   std::expected<void, std::string> WatchMovement(
-      const movement::WatchMovementRequest& request) override;
+      const movement::WatchMovementRequest& request) override {
+    return movement_.WatchMovement(request);
+  }
+
   std::expected<void, std::string> WatchControllers(
       const controllers::WatchControllersRequest& request) override;
   std::expected<void, std::string> WatchProjectiles(
@@ -1011,21 +1019,10 @@ class Game : public HostService,
   // whose hero it is, or -1.
   std::pair<uint32_t, int32_t> Owner(void* entity);
 
-  // NearestZiplineNode returns where the zipline node nearest pawn stands
-  // among those on lane that pawn's team may ride.
-  std::expected<std::array<float, 3>, std::string> NearestZiplineNode(void* pawn, int32_t lane);
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
-  // movers_ is the players whose movement the mod watches.
-  std::set<int32_t> movers_;
-
-  // steers_ maps each steered player to the command its hero replays.
-  std::map<int32_t, movement::Steering> steers_;
-  // drives_ maps each driven bot's slot to the command its hero runs.
-  std::map<int32_t, gameinterop::CommandHook::Command> drives_;
   // free_for_all_ is true while the host seats players and holds friendly fire,
   // and team_seating_ while it only seats them; ffa_held_ is the hero pawns it
   // holds friendly fire on, and seat_failed_ the players it could not seat, so
@@ -1072,8 +1069,9 @@ class Game : public HostService,
   ModifierHolds modifiers_{services_, players_, world_};
   wasm::Heroes heroes_{services_, players_};
   Camera camera_{services_, players_, world_};
-  std::array<Module*, 8> modules_{&players_, &world_,     &match_,  &apart_,
-                                  &fields_,  &modifiers_, &heroes_, &camera_};
+  wasm::HeroMovement movement_{services_, players_, world_, modifiers_};
+  std::array<Module*, 9> modules_{&players_,   &world_,  &match_,  &apart_,   &fields_,
+                                  &modifiers_, &heroes_, &camera_, &movement_};
 };
 
 }  // namespace modlock::wasm
