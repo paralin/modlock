@@ -52,6 +52,7 @@
 #include "wasm/heroes.h"
 #include "wasm/hook_sources.h"
 #include "wasm/host_service.gen.h"
+#include "wasm/input.h"
 #include "wasm/input_changes.h"
 #include "wasm/match.h"
 #include "wasm/modifier_holds.h"
@@ -397,7 +398,7 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
 
   // TakeButtonChanges returns the watched button changes since the last call,
   // in the order players made them.
-  std::vector<ButtonChange> TakeButtonChanges();
+  std::vector<ButtonChange> TakeButtonChanges() { return input_.TakeButtonChanges(); }
 
   // Restored is the result of one player's hero restore; an empty error
   // means the target held.
@@ -497,7 +498,9 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
 
   // Controllers appends each player whose controllers the mod watches, with
   // the presses and releases since its last call.
-  void Controllers(google::protobuf::RepeatedPtrField<controllers::PlayerControllers>* out);
+  void Controllers(google::protobuf::RepeatedPtrField<controllers::PlayerControllers>* out) {
+    input_.Controllers(out);
+  }
 
   // TakeLaunches returns the watched projectiles that appeared since the last
   // call.
@@ -824,12 +827,26 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
     return world_.RemoveBot(request);
   }
 
-  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override;
+  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override {
+    return input_.BlockInput(request);
+  }
+
   std::expected<void, std::string> BlockPlayerInput(
-      const wasm::PlayerInputRequest& request) override;
-  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override;
-  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override;
-  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override;
+      const wasm::PlayerInputRequest& request) override {
+    return input_.BlockPlayerInput(request);
+  }
+
+  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override {
+    return input_.Press(request);
+  }
+
+  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override {
+    return input_.WatchInput(request);
+  }
+
+  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override {
+    return input_.RemapInput(request);
+  }
 
   std::expected<entities::EntityResponse, std::string> CreateEntity(
       const entities::EntityOptions& request) override {
@@ -947,7 +964,9 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   }
 
   std::expected<wasm::ButtonsResponse, std::string> Buttons(
-      const players::PlayerRequest& request) override;
+      const players::PlayerRequest& request) override {
+    return input_.Buttons(request);
+  }
 
   std::expected<void, std::string> WatchMovement(
       const movement::WatchMovementRequest& request) override {
@@ -955,7 +974,10 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   }
 
   std::expected<void, std::string> WatchControllers(
-      const controllers::WatchControllersRequest& request) override;
+      const controllers::WatchControllersRequest& request) override {
+    return input_.WatchControllers(request);
+  }
+
   std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& request) override;
 
@@ -1035,8 +1057,6 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
 
-  // input_ is the mod's blocks, presses, remap and watched buttons.
-  InputChanges input_;
   // silenced_ is the voice concepts the mod keeps every hero from speaking,
   // and silenced_players_ those it keeps from one player's hero, by slot.
   std::set<int32_t> silenced_;
@@ -1070,8 +1090,9 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   wasm::Heroes heroes_{services_, players_};
   Camera camera_{services_, players_, world_};
   wasm::HeroMovement movement_{services_, players_, world_, modifiers_};
-  std::array<Module*, 9> modules_{&players_,   &world_,  &match_,  &apart_,   &fields_,
-                                  &modifiers_, &heroes_, &camera_, &movement_};
+  wasm::Input input_{services_};
+  std::array<Module*, 10> modules_{&players_,   &world_,  &match_,  &apart_,    &fields_,
+                                   &modifiers_, &heroes_, &camera_, &movement_, &input_};
 };
 
 }  // namespace modlock::wasm
