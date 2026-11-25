@@ -215,6 +215,7 @@ add_library(modlock_sdk SHARED
   src/wasm/players.cc
   src/wasm/world.cc
   src/wasm/apart_players.cc
+  src/wasm/fields.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc

@@ -47,6 +47,7 @@
 #include "src/wasm/wasm.pb.h"
 #include "wasm/apart_players.h"
 #include "wasm/controller_table.h"
+#include "wasm/fields.h"
 #include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
 #include "wasm/hook_sources.h"
@@ -612,23 +613,46 @@ class Game : public HostService,
       const effects::SilenceVoiceRequest& request) override;
   std::expected<void, std::string> SilencePlayerVoice(
       const effects::SilencePlayerVoiceRequest& request) override;
+
   std::expected<fields::FieldResponse, std::string> ReadField(
-      const fields::ReadFieldRequest& request) override;
-  std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& request) override;
+      const fields::ReadFieldRequest& request) override {
+    return fields_.ReadField(request);
+  }
+
+  std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& request) override {
+    return fields_.WriteField(request);
+  }
+
   std::expected<fields::FieldListResponse, std::string> ReadFieldList(
-      const fields::ReadFieldRequest& request) override;
+      const fields::ReadFieldRequest& request) override {
+    return fields_.ReadFieldList(request);
+  }
+
   std::expected<fields::FieldResponse, std::string> ReadModifierField(
       const fields::ReadModifierFieldRequest& request) override;
   std::expected<abilities::ModifiersResponse, std::string> Modifiers(
       const entities::EntityRequest& request) override;
+
   std::expected<void, std::string> WriteFieldList(
-      const fields::WriteFieldListRequest& request) override;
+      const fields::WriteFieldListRequest& request) override {
+    return fields_.WriteFieldList(request);
+  }
+
   std::expected<entities::EntityClassResponse, std::string> EntityClass(
-      const entities::EntityRequest& request) override;
+      const entities::EntityRequest& request) override {
+    return fields_.EntityClass(request);
+  }
+
   std::expected<entities::EntityNameResponse, std::string> EntityName(
-      const entities::EntityRequest& request) override;
+      const entities::EntityRequest& request) override {
+    return fields_.EntityName(request);
+  }
+
   std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
-      const entities::EntityRequest& request) override;
+      const entities::EntityRequest& request) override {
+    return fields_.EntityPosition(request);
+  }
+
   std::expected<abilities::ActiveResponse, std::string> ModifierState(
       const abilities::ModifierStateRequest& request) override;
   std::expected<void, std::string> HoldModifierState(
@@ -845,10 +869,6 @@ class Game : public HostService,
   // frame and queues the ones that ended.
   void TickRestores();
 
-  // RebuildPanels sends every client a full update when rebuild_panels_ asks
-  // for one, so each builds its client UI panels from their current layouts.
-  void RebuildPanels();
-
   // LatchTime is the time a hero's stamina latch counts from: the simulation
   // time without the ticks the game spent paused.
   std::expected<float, std::string> LatchTime();
@@ -954,17 +974,6 @@ class Game : public HostService,
   // whose hero it is, or -1.
   std::pair<uint32_t, int32_t> Owner(void* entity);
 
-  // SceneNode returns an entity's scene node, or null for an entity with no
-  // place in the world.
-  unsigned char* SceneNode(void* entity);
-
-  // Origin returns where an entity is.
-  std::optional<std::array<float, 3>> Origin(void* entity);
-
-  // SceneVector reads a three-float field of an entity's scene node, such as
-  // m_vecAbsOrigin or m_angAbsRotation.
-  std::optional<std::array<float, 3>> SceneVector(void* entity, const std::string& field);
-
   // NearestZiplineNode returns where the zipline node nearest pawn stands
   // among those on lane that pawn's team may ride.
   std::expected<std::array<float, 3>, std::string> NearestZiplineNode(void* pawn, int32_t lane);
@@ -977,9 +986,6 @@ class Game : public HostService,
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
-  // rebuild_panels_ asks every client for a full update at the next frame,
-  // after the mod wrote a client UI entity's layout.
-  bool rebuild_panels_ = false;
   // watched_ maps each player Watch points at a hero to that hero's entity
   // handle, until another camera call or Unwatch. A player watching a hero
   // inside an apart game receives that game's heroes.
@@ -1053,7 +1059,8 @@ class Game : public HostService,
   wasm::World world_{services_, engine_};
   Match match_{services_, world_};
   ApartPlayers apart_{services_, players_};
-  std::array<Module*, 4> modules_{&players_, &world_, &match_, &apart_};
+  Fields fields_{services_, world_};
+  std::array<Module*, 5> modules_{&players_, &world_, &match_, &apart_, &fields_};
 };
 
 }  // namespace modlock::wasm

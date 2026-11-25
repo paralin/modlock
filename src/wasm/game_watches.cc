@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "wasm/entity_fields.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -247,7 +248,7 @@ void Game::TrackProjectiles() {
     const auto [owner, player] = Owner(entity);
     launch.set_owner(owner);
     launch.set_player(player);
-    if (const auto origin = Origin(entity)) {
+    if (const auto origin = Origin(services_, entity)) {
       SetVector(launch.mutable_position(), *origin);
     }
     launches_.push_back(std::move(launch));
@@ -299,43 +300,6 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
     }
   }
   return {owner, -1};
-}
-
-unsigned char* Game::SceneNode(void* entity) {
-  // Resolve the body component's fields.
-  auto body = services_.Field("CBaseEntity", "m_CBodyComponent");
-  auto node = services_.Field("CBodyComponent", "m_pSceneNode");
-  if (!body || !node) {
-    return nullptr;
-  }
-
-  // Follow the body component to its scene node.
-  unsigned char* component = nullptr;
-  std::memcpy(&component, static_cast<unsigned char*>(entity) + body->offset, sizeof(component));
-  if (component == nullptr) {
-    return nullptr;
-  }
-  unsigned char* scene = nullptr;
-  std::memcpy(&scene, component + node->offset, sizeof(scene));
-  return scene;
-}
-
-std::optional<std::array<float, 3>> Game::Origin(void* entity) {
-  return SceneVector(entity, "m_vecAbsOrigin");
-}
-
-std::optional<std::array<float, 3>> Game::SceneVector(void* entity, const std::string& field) {
-  // Find the scene node and the field.
-  auto* scene = SceneNode(entity);
-  auto at = services_.Field("CGameSceneNode", field);
-  if (scene == nullptr || !at) {
-    return std::nullopt;
-  }
-
-  // Read the node's three floats.
-  std::array<float, 3> value{};
-  std::memcpy(value.data(), scene + at->offset, sizeof(value));
-  return value;
 }
 
 }  // namespace modlock::wasm
