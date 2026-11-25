@@ -5,6 +5,7 @@ package texture
 
 import (
 	"encoding/binary"
+	"math"
 
 	"github.com/paralin/modlock/source2/resource"
 	"github.com/pkg/errors"
@@ -19,6 +20,9 @@ const extraFill = 3
 
 // Texture is a compiled texture's header and its stored mips.
 type Texture struct {
+	// AverageColor is the stored linear RGB reflectivity used as the shader's
+	// color-correction pivot, without a gamma conversion.
+	AverageColor [3]float32
 	// Width is the top mip's width in texels.
 	Width int
 	// Height is the top mip's height in texels.
@@ -58,6 +62,9 @@ func Read(compiled []byte) (*Texture, error) {
 		Depth:  max(1, int(binary.LittleEndian.Uint16(d[24:]))),
 		Format: Format(d[26]),
 		Mips:   max(1, int(d[27])),
+	}
+	for i := range t.AverageColor {
+		t.AverageColor[i] = math.Float32frombits(binary.LittleEndian.Uint32(d[4+i*4:]))
 	}
 	t.VisibleWidth, t.VisibleHeight = t.Width, t.Height
 

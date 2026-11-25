@@ -38,6 +38,17 @@ The camera path evaluation in `src/camera/camera_path.cc` and
 and `native/include/dolly_flight.hpp`), MIT License, Copyright (c) 2026
 Deadlock Dolly contributors. The notice is kept in those files.
 
+## ValveResourceFormat
+
+Studio's environment-layer renderer in `studio/web/environment.ts` follows
+[ValveResourceFormat](https://github.com/ValveResourceFormat/ValveResourceFormat)'s
+Citadel environment shaders: the TEXCOORD4 blend paint, COLOR tint, packed
+texture channels and reveal-mask thresholds. The reference files are
+`Renderer/Shaders/citadel/environment_vertex.slang`,
+`Renderer/Shaders/citadel/environment_blend.frag.slang` and
+`Renderer/Shaders/common/surface_environment_layers.slang`. They are MIT licensed,
+Copyright (c) 2015 ValveResourceFormat Contributors; the notice is in [LICENSE](LICENSE).
+
 ## Third-party libraries
 
 | Library                                                                  | Location                                                                                                                                 | License                                                           |

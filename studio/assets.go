@@ -658,13 +658,14 @@ func (a *Assets) texture(w http.ResponseWriter, r *http.Request) {
 	}
 	_, served := t.MipSize(0)
 	writeMessage(w, &Texture{
-		Width:  uint32(t.Width),
-		Height: uint32(t.Height),
-		Depth:  uint32(t.Depth),
-		Format: uint32(t.Format),
-		Mips:   uint32(t.Mips),
-		Cube:   t.Flags&texture.FlagCube != 0,
-		Served: served,
+		Width:        uint32(t.Width),
+		Height:       uint32(t.Height),
+		Depth:        uint32(t.Depth),
+		Format:       uint32(t.Format),
+		Mips:         uint32(t.Mips),
+		Cube:         t.Flags&texture.FlagCube != 0,
+		Served:       served,
+		AverageColor: t.AverageColor[:],
 	})
 }
 

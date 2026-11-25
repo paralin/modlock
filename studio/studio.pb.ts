@@ -939,6 +939,10 @@ export interface Texture {
    * Served reports that the mips route can answer this format's mips.
    */
   served?: boolean
+  /**
+   * AverageColor is the stored linear RGB reflectivity, the color-correction pivot.
+   */
+  averageColor?: number[]
 }
 
 export const Texture: MessageType<Texture> =
@@ -952,6 +956,7 @@ export const Texture: MessageType<Texture> =
       [5, 'mips', 13],
       [6, 'cube', 8],
       [7, 'served', 8],
+      [8, 'average_color', 2, 3],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Texture): Texture => {
@@ -979,6 +984,10 @@ export const Texture: MessageType<Texture> =
               break
             case 7:
               m.served = r.bool()
+              break
+            case 8:
+              for (const e = r.run(t), a = (m.averageColor ??= []); r.pos < e;)
+                a.push(r.float())
               break
             default:
               r.skip(t)
@@ -1014,6 +1023,14 @@ export const Texture: MessageType<Texture> =
         {
           const v = m.served
           if (v) w.uint32(56).bool(v)
+        }
+        {
+          const a = m.averageColor
+          if (a != null && a.length > 0) {
+            const s = w.uint32(66).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
         }
       },
     },
@@ -1803,6 +1820,10 @@ export interface Shot {
    * side, as a fraction of that side.
    */
   margin?: number
+  /**
+   * Tint is the model's sRGB color tint; empty means white.
+   */
+  tint?: number[]
 }
 
 export const Shot: MessageType<Shot> = /* @__PURE__ */ createMessageType<Shot>(
@@ -1814,6 +1835,7 @@ export const Shot: MessageType<Shot> = /* @__PURE__ */ createMessageType<Shot>(
     [4, 'fov', 2],
     [5, 'size', 13],
     [6, 'margin', 2],
+    [7, 'tint', 2, 3],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Shot): Shot => {
@@ -1838,6 +1860,10 @@ export const Shot: MessageType<Shot> = /* @__PURE__ */ createMessageType<Shot>(
             break
           case 6:
             m.margin = r.float()
+            break
+          case 7:
+            for (const e = r.run(t), a = (m.tint ??= []); r.pos < e;)
+              a.push(r.float())
             break
           default:
             r.skip(t)
@@ -1869,6 +1895,14 @@ export const Shot: MessageType<Shot> = /* @__PURE__ */ createMessageType<Shot>(
       {
         const v = m.margin
         if (v != null && v !== 0) w.uint32(53).float(v)
+      }
+      {
+        const a = m.tint
+        if (a != null && a.length > 0) {
+          const s = w.uint32(58).fork()
+          for (const e of a) w.float(e)
+          w.join(s)
+        }
       }
     },
   },
