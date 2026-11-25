@@ -16,16 +16,13 @@ namespace modlock::wasm {
 
 Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
   // Register with the host-wide hooks while the game lives.
-  services_.InputSources().Add(&input_);
   services_.ProjectileSources().Add(this);
   services_.VoiceSources().Add(this);
 }
 
 Game::~Game() {
-  services_.InputSources().Remove(&input_);
   services_.ProjectileSources().Remove(this);
   services_.VoiceSources().Remove(this);
-  services_.Controllers().Release(this);
 }
 
 void Game::Frame() {
@@ -40,10 +37,6 @@ void Game::Frame() {
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
-}
-
-std::vector<Game::ButtonChange> Game::TakeButtonChanges() {
-  return input_.TakeChanges();
 }
 
 std::vector<Game::Restored> Game::TakeRestored() {
@@ -77,7 +70,6 @@ void Game::WorldEnding() {
   ffa_held_.clear();
 
   // Release what the mod held in the world.
-  input_.DropPresses();
   restores_.clear();
   npc_restore_.reset();
   for (auto* module : std::views::reverse(modules_)) {
@@ -86,13 +78,11 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget the slot's seat, controllers and input.
+  // Forget the slot's seat.
   seat_failed_.erase(slot);
-  services_.Controllers().Watch(this, slot, false);
 
-  // Forget its restores, blocks, presses and silences.
+  // Forget its restores and silences.
   restores_.erase(slot);
-  input_.Leave(slot);
   silenced_players_.erase(slot);
 
   for (auto* module : std::views::reverse(modules_)) {
@@ -101,17 +91,12 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
-  // Stop watching controllers.
-  services_.Controllers().Release(this);
-
   // Release the free-for-all and team seating.
   free_for_all_ = false;
   team_seating_ = false;
   ReleaseFreeForAll();
 
-  // Release the input the mod blocked, remapped or watched, and the voices
-  // it silenced.
-  input_.Clear();
+  // Release the voices it silenced.
   silenced_.clear();
   silenced_players_.clear();
 
