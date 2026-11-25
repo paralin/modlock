@@ -925,6 +925,14 @@ type Node struct {
 	// chat box's state in the player's game; a renderer that finds no chat box
 	// always shows the node.
 	HideInChat bool `protobuf:"varint,40,opt,name=hide_in_chat,json=hideInChat,proto3" json:"hideInChat,omitempty"`
+	// Speaking shows the node only while the player sees this player name
+	// speak on voice chat, and for a moment after, so a pause between words
+	// does not blink it. The renderer reads the voice marks the game keeps on
+	// the stock top bar's player panels, which stay while a mod hides the top
+	// bar, and knows each player by the name the top bar shows; a renderer
+	// that finds no top bar hides the node. A mod marks who is talking this
+	// way without drawing the tree again as voices start and stop.
+	Speaking string `protobuf:"bytes,41,opt,name=speaking,proto3" json:"speaking,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1218,6 +1226,13 @@ func (x *Node) GetHideInChat() bool {
 		return x.HideInChat
 	}
 	return false
+}
+
+func (x *Node) GetSpeaking() string {
+	if x != nil {
+		return x.Speaking
+	}
+	return ""
 }
 
 type isNode_Input interface {
@@ -3121,6 +3136,7 @@ func (m *Node) CloneVT() *Node {
 	r.FreeCursorAsks = m.FreeCursorAsks
 	r.AbilityBarPresses = m.AbilityBarPresses
 	r.HideInChat = m.HideInChat
+	r.Speaking = m.Speaking
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -4047,6 +4063,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.HideInChat != that.HideInChat {
+		return false
+	}
+	if this.Speaking != that.Speaking {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6101,6 +6120,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("hideInChat")
 		s.WriteBool(x.HideInChat)
 	}
+	if x.Speaking != "" || s.HasField("speaking") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("speaking")
+		s.WriteString(x.Speaking)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6343,6 +6367,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "hide_in_chat", "hideInChat":
 			s.AddField("hide_in_chat")
 			x.HideInChat = s.ReadBool()
+		case "speaking":
+			s.AddField("speaking")
+			x.Speaking = s.ReadString()
 		}
 	})
 }
@@ -8854,6 +8881,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.Speaking) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Speaking)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xca
+	}
 	if m.HideInChat {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.HideInChat)
 		i--
@@ -11354,6 +11388,7 @@ func (m *Node) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.HideInChat)
+	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Speaking)
 	n += len(m.unknownFields)
 	return n
 }
@@ -12345,6 +12380,10 @@ func (x *Node) MarshalProtoText() string {
 	if x.HideInChat != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hide_in_chat")
 		protobuf_go_lite.TextWriteBool(&sb, x.HideInChat)
+	}
+	if x.Speaking != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "speaking")
+		protobuf_go_lite.TextWriteString(&sb, x.Speaking)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -13849,6 +13888,16 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.HideInChat = bool(v)
+		case 41:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Speaking", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Speaking = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

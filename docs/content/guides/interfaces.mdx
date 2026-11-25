@@ -107,6 +107,7 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 | `hideHud(player, parts)`                       | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'` or `'all'`; `[]` shows them again. |
 | `hideHudForAll(parts)`                         | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.                                                         |
 | `showChatLines(options?)`                      | Show chat lines as subtitles above the ability bar, with the speaker's portrait and name. TypeScript only.                                         |
+| `showSpeakers(options?)`                       | Show who each player hears on voice chat, as portraits and names at the left edge. TypeScript only.                                                |
 | `freeCursor(player, free)`                     | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                |
 | `abilityBarPresses(player, onPress?)`          | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                 |
 | `abilityDisplay(viewer, rows?)`                | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                   |
@@ -131,19 +132,21 @@ or a timer.
 
 ## Replace the top bar
 
-The game's top bar shows each player's portrait and their chat line under it
-for a few seconds. A mode that hides the top bar for its own score keeps the
-chat lines with `showChatLines`, which draws them as subtitles: centred low on
+The game's top bar shows each player's portrait, their chat line under it for a
+few seconds, and a mark while their voice plays. A mode that hides the top bar
+for its own score keeps the voices with `showSpeakers` and the chat lines with
+`showChatLines`, which draws them as subtitles: centred low on
 the screen a little above the ability bar, each the speaker's small portrait,
 their name in their team's color and the line itself on a slim, translucent
 band. The lines give way while the player has the game's chat box open, since
 the box then shows the history itself. Call both when the mod loads:
 
 ```ts
-import { hideHudForAll, showChatLines } from 'modlock'
+import { hideHudForAll, showChatLines, showSpeakers } from 'modlock'
 
 hideHudForAll(['topBar'])
 showChatLines()
+showSpeakers()
 ```
 
 At most four lines show, newest at the bottom and older ones dimmer, and a
@@ -157,7 +160,16 @@ together, so `0.8` draws the text at 13 pixels on a band at most 448 wide, and
 `{ speaker(speaker, viewer) }`, which returns the name's `color`, the portrait's
 `hero` (0 hides it), a `note` after the name and whether the speaker is `out`.
 
-The library draws the lines as a layer of its own over whatever interface the
+`showSpeakers` stacks a row at the left edge for each player the viewer hears:
+the speaker's portrait in a green ring, their name and the voice icon. A row
+stays a moment after the voice stops, so a pause between words does not blink
+it, and rows keep slot order, so the stack does not reorder as people talk over
+each other. The player's game shows and hides the rows by the voice marks it
+keeps on the hidden top bar, so voices starting and stopping cost the mod
+nothing. `{ scale }` sizes the rows, and `{ speaker }` takes the same function
+as `showChatLines`, so a player looks the same in both.
+
+The library draws the lines and the stack as layers of their own over whatever interface the
 mod shows each player, as it draws toasts: a line arriving or leaving redraws
 only the lines, and the mod does not redraw for them. A player's own `hideHud`
 list adds to the parts hidden from everyone, and `hide` leaves those parts
@@ -186,6 +198,7 @@ Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
 | `enter`, `exit`         | any             | Styles it eases from as it appears and to before it goes, with its `transition`.                                                                                                                                                                                              |
 | `cycle`                 | any             | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                                                                                                                                                                 |
 | `hideInChat`            | any             | Hides it while the player has the game's chat box open, which shows the chat history itself.                                                                                                                                                                                  |
+| `speaking`              | any             | A player: shows it only while the viewer hears that player on voice chat, and a moment after. The viewer's game shows and hides it, so it costs no redraw.                                                                                                                    |
 | `sound`, `disabled`     | `button`        | A sound played on a press; `disabled` stops presses.                                                                                                                                                                                                                          |
 | `scaling`               | `image`         | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                                                                                                                                                                       |
 | `src`                   | `image`         | A game picture, or one of the mod's own with `{addon}` for its addon, such as `'file://{images}/{addon}/mark.png'`.                                                                                                                                                           |

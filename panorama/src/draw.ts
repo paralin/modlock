@@ -73,6 +73,7 @@ import {
   routeAttribute,
   utf8,
 } from './data.js'
+import { Voices } from './voice.js'
 
 export {
   actionCommand,
@@ -109,6 +110,8 @@ export interface Panel {
   /** GetParent and BHasClass find and read the game's chat box. */
   GetParent?(): Panel | null
   BHasClass?(name: string): boolean
+  /** FindChildrenWithClassTraverse finds the top bar's players by class. */
+  FindChildrenWithClassTraverse?(name: string): Panel[]
   GetChild(index: number): Panel | null
   FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
@@ -439,10 +442,13 @@ interface Ticking {
 const clockTick = 0.1
 
 /**
- * chatTick is how often the drawing reads the chat box's state while a node
- * that hides in chat shows, in seconds.
+ * followTick is how often the drawing reads the chat box and the voice marks
+ * while a node that follows them is drawn, in seconds.
  */
-const chatTick = 0.1
+const followTick = 0.1
+
+/** nobody is the names heard where no node follows a voice. */
+const nobody: ReadonlySet<string> = new Set()
 
 /** CHAT_BOX is the id of the game's chat box, a CitadelChat, in its HUD. */
 const CHAT_BOX = 'Chat'
@@ -578,6 +584,8 @@ interface Drawn {
   classes: string[]
   clock: Ticking | null
   hideInChat: boolean
+  /** speaking is the player name whose voice shows the node, or ''. */
+  speaking: string
 }
 
 /**
@@ -650,10 +658,16 @@ export class Drawing {
   /** chatBox is the game's chat box, once found. */
   private chatBox: Panel | null = null
 
-  /** inChat holds the panels of the drawn nodes that hide in chat. */
-  private inChat: Panel[] = []
+  /** voices reads who the player hears, once a node follows a voice. */
+  private voices: Voices | null = null
 
-  /** following is true while the chat box's next read is scheduled. */
+  /**
+   * gated holds the drawn nodes the player's game shows or hides: those that
+   * hide in chat and those that show while a player speaks.
+   */
+  private gated: Drawn[] = []
+
+  /** following is true while the next read for gated is scheduled. */
   private following = false
 
   constructor(
@@ -744,39 +758,53 @@ export class Drawing {
       this.layouts?.unloaded()
     }
 
-    // Hide the nodes that hide in chat while the chat box is open.
-    this.inChat = []
+    // Show the nodes that follow the chat box or a voice by what the game
+    // shows now.
+    this.gated = []
     for (const { nodes } of this.mods.values()) {
       for (const each of nodes.values()) {
-        if (each.hideInChat) this.inChat.push(each.panel)
+        if (each.hideInChat || each.speaking) this.gated.push(each)
       }
     }
-    this.followChat()
+    this.follow()
   }
 
   /**
-   * followChat shows or hides the panels that hide in chat by the chat box's
-   * state, and reads it again shortly while any of them shows and the box is
-   * found.
+   * follow shows or hides each gated node: one that hides in chat gives way
+   * while the chat box is open, and one that follows a voice shows while its
+   * player is heard. It reads again shortly while a node follows a voice, or
+   * while one hides in chat and the chat box is found.
    */
-  private followChat(): void {
-    // Nothing hides in chat: nothing to read.
-    const panels = this.inChat.filter((panel) => panel.IsValid())
-    if (panels.length === 0) return
+  private follow(): void {
+    // Nothing gated: nothing to read.
+    const gated = this.gated.filter((each) => each.panel.IsValid())
+    if (gated.length === 0) return
 
-    // Read the chat box, finding it again once the game rebuilt it.
-    if (!this.chatBox?.IsValid()) this.chatBox = findChatBox(this.parent)
-    const open = this.chatBox?.BHasClass?.(CHAT_OPEN) ?? false
-    for (const panel of panels) {
-      if (panel.visible === open) panel.visible = !open
+    // Read the chat box, finding it again once the game rebuilt it, and the
+    // voice marks, each only where a node follows it.
+    const chat = gated.some((each) => each.hideInChat)
+    if (chat && !this.chatBox?.IsValid()) {
+      this.chatBox = findChatBox(this.parent)
+    }
+    const open = chat && (this.chatBox?.BHasClass?.(CHAT_OPEN) ?? false)
+    const voice = gated.some((each) => each.speaking !== '')
+    const heard = voice
+      ? (this.voices ??= new Voices(this.parent)).read(now())
+      : nobody
+    for (const each of gated) {
+      const shown =
+        !(each.hideInChat && open) &&
+        (each.speaking === '' || heard.has(each.speaking))
+      if (each.panel.visible !== shown) each.panel.visible = shown
     }
 
-    // Read it again shortly, while a box is there to read.
-    if (this.following || !this.chatBox || !this.panorama.Schedule) return
+    // Read again shortly, while there is something to read.
+    if (this.following || !this.panorama.Schedule) return
+    if (!voice && !this.chatBox) return
     this.following = true
-    this.panorama.Schedule(chatTick, () => {
+    this.panorama.Schedule(followTick, () => {
       this.following = false
-      this.followChat()
+      this.follow()
     })
   }
 
@@ -1602,11 +1630,13 @@ export class Drawing {
           ? windClock(node, fresh ? null : old.clock)
           : null,
       hideInChat: !!node.hideInChat,
+      speaking: node.speaking ?? '',
     }
     drawn.set(id, each)
 
-    // A kept panel that no longer hides in chat shows again.
-    if (!fresh && old.hideInChat && !each.hideInChat) panel.visible = true
+    // A kept panel that no longer follows the chat box or a voice shows again.
+    const followed = (node: Drawn) => node.hideInChat || node.speaking !== ''
+    if (!fresh && followed(old) && !followed(each)) panel.visible = true
 
     // Write the node's content and the style properties that changed. A
     // layout's own root decides whether it takes the pointer; a node takes it

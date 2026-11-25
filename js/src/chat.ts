@@ -251,6 +251,45 @@ const words: Style = {
 /** portraits finds each hero's portrait by id. */
 const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
+/** SpeakerLook is a speaker as one viewer sees them, ready to draw. */
+export interface SpeakerLook {
+  /** name is the player's name, with the mod's note in brackets. */
+  readonly name: string
+  /** color is the name's color. */
+  readonly color: string
+  /** src is the portrait's image, undefined for an empty square. */
+  readonly src: string | undefined
+  /** out greys the portrait and the name. */
+  readonly out: boolean
+}
+
+/**
+ * speakerLook is how viewer sees speaker: what the mod's see says, else
+ * their hero, and their name in their game team's color lifted to read on a
+ * dark band.
+ */
+export function speakerLook(
+  speaker: Player,
+  viewer: Player,
+  see?: (speaker: Player, viewer: Player) => ChatSpeaker,
+): SpeakerLook {
+  // The mod's say comes first; a name with no color of its own takes the
+  // team's, and an out speaker is greyed.
+  const pawn = speaker.pawn()
+  const seen = see?.(speaker, viewer) ?? {}
+  const tone = teamTones[pawn?.team ?? 0]
+  const color = seen.out
+    ? shades.quiet
+    : (seen.color ?? (tone ? lifted[tone] : undefined) ?? tones.text)
+  const note = seen.note ? ` (${seen.note})` : ''
+  return {
+    name: `${connection(speaker)?.name ?? ''}${note}`,
+    color,
+    src: portraits.get(seen.hero ?? pawn?.hero ?? 0),
+    out: seen.out ?? false,
+  }
+}
+
 /**
  * subtitle is one line as viewer sees it: the portrait, the name and the
  * text, 16 pixels at scale 1, on a slim, translucent band, dimmer with age.
@@ -261,19 +300,10 @@ function subtitle(
   age: number,
   size: Sizes,
 ): UiElement {
-  // The speaker's look: the mod's say, else their hero and team.
-  const pawn = line.speaker.pawn()
-  const seen = shown?.speaker?.(line.speaker, viewer) ?? {}
-  const tone = teamTones[pawn?.team ?? 0]
-  const color = seen.out
-    ? shades.quiet
-    : (seen.color ?? (tone ? lifted[tone] : undefined) ?? tones.text)
-  const notes = [line.team !== 0 ? 'team' : '', seen.note ?? '']
-    .filter((note) => note !== '')
-    .map((note) => ` (${note})`)
-    .join('')
-  const name = `${connection(line.speaker)?.name ?? ''}${notes}`
-  const src = portraits.get(seen.hero ?? pawn?.hero ?? 0)
+  // The speaker's look, with a team line noted.
+  const seen = speakerLook(line.speaker, viewer, shown?.speaker)
+  const name = line.team !== 0 ? `${seen.name} (team)` : seen.name
+  const { color, src } = seen
 
   // The portrait sits on a raised square, empty for a hidden or missing hero.
   const portrait: UiElement = {

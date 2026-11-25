@@ -133,6 +133,7 @@ export {
   type ChatSpeaker,
   showChatLines,
 } from './chat.js'
+export { showSpeakers, type SpeakersOptions } from './speakers.js'
 export { type Check, ProbeRun } from './probe.js'
 export { type HeroSnapshot, restoreHero } from './restore.js'
 export {

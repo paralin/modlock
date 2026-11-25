@@ -4900,6 +4900,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(38, "ability_display", "message", repeated=True, message="AbilityRow"),
             wire.Field(39, "clock", "message", message="Clock"),
             wire.Field(40, "hide_in_chat", "bool"),
+            wire.Field(41, "speaking", "string"),
         ],
     ),
     "Node_VariablesEntry": (

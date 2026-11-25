@@ -110,6 +110,7 @@ import {
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
 import { chatLines, expireChat, forgetChat, hearChat } from './chat.js'
+import { forgetSpeakers, speakers, speakersChanged } from './speakers.js'
 import { heroes } from './heroes.js'
 import {
   type ChatEvent,
@@ -118,7 +119,7 @@ import {
   type Wheel,
 } from './host.gen.js'
 import { call } from './host.js'
-import { players } from './players.js'
+import { connection, players } from './players.js'
 
 /**
  * Length is a size: pixels, a percentage of the parent, 'fit' to size to the
@@ -428,6 +429,7 @@ export interface Props {
   readonly exit?: Style
   readonly cycle?: Cycle
   readonly hideInChat?: boolean
+  readonly speaking?: Player
   readonly token?: string
   readonly variables?: Readonly<Record<string, string | number>>
   readonly clock?: Clock
@@ -475,6 +477,12 @@ export interface ElementProps {
    * open, which then shows the chat history itself.
    */
   hideInChat?: boolean
+  /**
+   * speaking shows the element only while the player hears this player on
+   * voice chat, and for a moment after. The player's game shows and hides
+   * it, so voices starting and stopping draw nothing again.
+   */
+  speaking?: Player
 }
 
 /**
@@ -965,6 +973,7 @@ export function returned(player: Player): void {
 export function left(player: Player): void {
   views.delete(player.slot)
   screens.delete(player.slot)
+  forgetSpeakers(player.slot)
   if (forgetChat(player.slot)) drawAll(['chat'])
 }
 
@@ -1079,8 +1088,18 @@ export function change(
  * nothing.
  */
 export function tick(seconds: number): void {
+  // Advance the clock, noting a new second, and take down expired lines.
+  const second = Math.floor(seconds) !== Math.floor(now)
   now = seconds
   if (expireChat(now)) drawAll(['chat'])
+
+  // Once a second, draw the speaking stack again for each viewer whose rows
+  // look different: a player joined, left, picked a hero or changed side.
+  if (second) {
+    for (const { player, away } of players()) {
+      if (!away && speakersChanged(player)) draw(player, ['voice'])
+    }
+  }
   for (const current of views.values()) {
     if (!current.notices.some((notice) => notice.until <= now)) {
       continue
@@ -1171,10 +1190,10 @@ function view(player: Player): View {
  * own tree, the chat lines, the notices and the routes. Each lays out and
  * diffs alone, so a change to one costs only its own nodes.
  */
-type Layer = 'view' | 'chat' | 'notices' | 'routes'
+type Layer = 'view' | 'chat' | 'voice' | 'notices' | 'routes'
 
 /** layers lists every layer, the root's children in drawing order first. */
-const layers: readonly Layer[] = ['view', 'chat', 'notices', 'routes']
+const layers: readonly Layer[] = ['view', 'chat', 'voice', 'notices', 'routes']
 
 /**
  * draw sends what changed in player's interface: the root, which holds the
@@ -1278,6 +1297,8 @@ function content(layer: Layer, current: View): Child {
       return current.root
     case 'chat':
       return chatLines(current.player)
+    case 'voice':
+      return speakers(current.player)
     case 'notices':
       return current.notices.length !== 0 && notices(current.notices)
     default:
@@ -1654,6 +1675,7 @@ function sparseNode(layout: Layout, props: Props, at: string): Node {
     node.abilityPlayer = props.ability.player.slot
   }
   if (props.hideInChat) node.hideInChat = true
+  if (props.speaking) node.speaking = speakingName(props.speaking)
   return node
 }
 
@@ -1673,7 +1695,17 @@ function denseNode(layout: Layout, props: Props, at: string): Node {
     cycle: cycle(props.cycle),
     classes: classes(props.class),
     hideInChat: props.hideInChat || undefined,
+    speaking: props.speaking ? speakingName(props.speaking) : undefined,
   }
+}
+
+/**
+ * speakingName is the name the player's game knows a speaker by: their
+ * name in its top bar, which is their connection's. A speaker with no name
+ * yet gets one nobody holds, so the element stays hidden.
+ */
+function speakingName(player: Player): string {
+  return connection(player)?.name || `#${player.slot}`
 }
 
 /** classes splits an element's class into its names, or undefined for none. */

@@ -915,6 +915,16 @@ export interface Node {
    */
   hideInChat?: boolean
   /**
+   * Speaking shows the node only while the player sees this player name
+   * speak on voice chat, and for a moment after, so a pause between words
+   * does not blink it. The renderer reads the voice marks the game keeps on
+   * the stock top bar's player panels, which stay while a mod hides the top
+   * bar, and knows each player by the name the top bar shows; a renderer
+   * that finds no top bar hides the node. A mod marks who is talking this
+   * way without drawing the tree again as voices start and stop.
+   */
+  speaking?: string
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -975,6 +985,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [38, 'ability_display', 11, 1, AbilityRow.codec],
     [39, 'clock', 11, 0, Clock.codec],
     [40, 'hide_in_chat', 8],
+    [41, 'speaking', 9],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1140,6 +1151,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 40:
             m.hideInChat = r.bool()
+            break
+          case 41:
+            m.speaking = r.string()
             break
           default:
             r.skip(t)
@@ -1321,6 +1335,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.hideInChat
         if (v) w.uint32(320).bool(v)
+      }
+      {
+        const v = m.speaking
+        if (v) w.uint32(330).string(v)
       }
     },
   },
