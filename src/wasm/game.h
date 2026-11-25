@@ -46,6 +46,7 @@
 #include "wasm/apart_players.h"
 #include "wasm/camera.h"
 #include "wasm/controller_table.h"
+#include "wasm/effects.h"
 #include "wasm/fields.h"
 #include "wasm/hero_movement.h"
 #include "wasm/hero_restore.h"
@@ -524,10 +525,21 @@ class Game : public HostService {
 
  private:
   // The calls, in the order the Host service declares them.
-  std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override;
-  std::expected<void, std::string> Chat(const effects::ChatRequest& request) override;
-  std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override;
-  std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override;
+  std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override {
+    return effects_.ServerCommand(request);
+  }
+
+  std::expected<void, std::string> Chat(const effects::ChatRequest& request) override {
+    return effects_.Chat(request);
+  }
+
+  std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override {
+    return effects_.CenterText(request);
+  }
+
+  std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override {
+    return effects_.Announce(request);
+  }
 
   std::expected<void, std::string> Precache(const PrecacheOptions& request) override {
     return world_.Precache(request);
@@ -690,9 +702,14 @@ class Game : public HostService {
     return heroes_.ResetHero(request);
   }
 
-  std::expected<void, std::string> Heal(const players::HealRequest& request) override;
+  std::expected<void, std::string> Heal(const players::HealRequest& request) override {
+    return effects_.Heal(request);
+  }
+
   std::expected<effects::SoundResponse, std::string> Sound(
-      const effects::SoundRequest& request) override;
+      const effects::SoundRequest& request) override {
+    return effects_.Sound(request);
+  }
 
   std::expected<void, std::string> RestoreHero(
       const players::RestoreHeroRequest& request) override {
@@ -700,9 +717,14 @@ class Game : public HostService {
   }
 
   std::expected<void, std::string> ScreenEffect(
-      const effects::ScreenEffectRequest& request) override;
+      const effects::ScreenEffectRequest& request) override {
+    return effects_.ScreenEffect(request);
+  }
+
   std::expected<void, std::string> ClearScreenEffect(
-      const effects::ClearScreenEffectRequest& request) override;
+      const effects::ClearScreenEffectRequest& request) override {
+    return effects_.ClearScreenEffect(request);
+  }
 
   std::expected<void, std::string> SilenceVoice(
       const effects::SilenceVoiceRequest& request) override {
@@ -940,21 +962,41 @@ class Game : public HostService {
 
   std::expected<void, std::string> ClearMap() override { return world_.ClearMap(); }
 
-  std::expected<void, std::string> Damage(const combat::HitOptions& request) override;
-  std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override;
+  std::expected<void, std::string> Damage(const combat::HitOptions& request) override {
+    return effects_.Damage(request);
+  }
+
+  std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override {
+    return effects_.KillEntity(request);
+  }
+
   std::expected<combat::TraceResponse, std::string> Trace(
-      const combat::TraceOptions& request) override;
+      const combat::TraceOptions& request) override {
+    return effects_.Trace(request);
+  }
 
   std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override {
     return restores_.RestoreNpcs(request);
   }
 
-  std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override;
-  std::expected<wasm::MatchClockResponse, std::string> MatchClock() override;
+  std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override {
+    return match_.Pause(request);
+  }
+
+  std::expected<wasm::MatchClockResponse, std::string> MatchClock() override {
+    return match_.MatchClock();
+  }
+
   std::expected<void, std::string> HoldMatchClock(
-      const wasm::HoldMatchClockRequest& request) override;
-  std::expected<wasm::RiftResponse, std::string> Rift() override;
-  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override;
+      const wasm::HoldMatchClockRequest& request) override {
+    return match_.HoldMatchClock(request);
+  }
+
+  std::expected<wasm::RiftResponse, std::string> Rift() override { return match_.Rift(); }
+
+  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override {
+    return match_.StartRift(request);
+  }
 
   std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override {
     return world_.MoveEntity(request);
@@ -965,9 +1007,18 @@ class Game : public HostService {
   }
 
   std::expected<effects::SoundResponse, std::string> EmitSound(
-      const effects::EmitSoundRequest& request) override;
-  std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request) override;
-  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override;
+      const effects::EmitSoundRequest& request) override {
+    return effects_.EmitSound(request);
+  }
+
+  std::expected<void, std::string> AdjustSound(
+      const effects::AdjustSoundRequest& request) override {
+    return effects_.AdjustSound(request);
+  }
+
+  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override {
+    return effects_.StopSound(request);
+  }
 
   std::expected<void, std::string> Kill(const players::PlayerRequest& request) override {
     return heroes_.Kill(request);
@@ -998,21 +1049,6 @@ class Game : public HostService {
     return projectiles_.WatchProjectiles(request);
   }
 
-  // ScreenOwner returns the entity index a screen effect for slot belongs to.
-  std::expected<int32_t, std::string> ScreenOwner(int32_t slot);
-
-  // HumanSlots returns the slot bits of the connected human players, whose
-  // clients can hear a sound.
-  static uint64_t HumanSlots();
-
-  // PlaySound starts a sound on the source entity index, shaped and
-  // addressed by options.
-  std::expected<effects::SoundResponse, std::string> PlaySound(
-      const std::string& sound, int32_t source, const effects::SoundOptions& options);
-
-  // Combatant resolves a hero or unit that can safely receive damage events.
-  std::expected<void*, std::string> Combatant(uint32_t handle);
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
@@ -1037,6 +1073,8 @@ class Game : public HostService {
   Restores restores_{services_, players_, world_, modifiers_, heroes_};
   Seating seating_{services_, players_, modifiers_, [this](int32_t slot) { return Serves(slot); }};
   wasm::Voice voice_{services_, players_};
+  // effects_ keeps no state, so it is not one of the modules.
+  Effects effects_{services_, engine_, players_};
   std::array<Module*, 14> modules_{&players_,     &world_,    &match_,   &apart_,    &fields_,
                                    &modifiers_,   &heroes_,   &camera_,  &movement_, &input_,
                                    &projectiles_, &restores_, &seating_, &voice_};
