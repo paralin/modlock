@@ -3350,6 +3350,13 @@ export interface FrameEvent {
    * the presses and releases since the mod's previous frame.
    */
   readonly controllers: PlayerControllers[]
+  /**
+   * budgetMicroseconds is the time this frame may take, counted from when the
+   * mod receives it, or zero when the host gives the mod no budget. A mod's
+   * library resumes its tasks until the budget runs out and leaves the rest
+   * for the next frame.
+   */
+  readonly budgetMicroseconds: number
 }
 
 /** fromFrameEvent decodes a FrameEvent. */
@@ -3360,6 +3367,7 @@ function fromFrameEvent(message: wasmPb.FrameEvent): FrameEvent {
     movement: (message.movement ?? []).map((v) => fromMovementSample(v)),
     interactions: known(message.interactions, (v) => interactionKindNames[v]),
     controllers: (message.controllers ?? []).map((v) => fromPlayerControllers(v)),
+    budgetMicroseconds: message.budgetMicroseconds ?? 0,
   }
 }
 

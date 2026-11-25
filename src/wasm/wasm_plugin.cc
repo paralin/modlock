@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <cstdlib>
 #include <format>
 #include <iostream>
 #include <memory>
+#include <ranges>
 #include <string_view>
 #include <utility>
 
@@ -24,6 +26,10 @@ namespace {
 // kFrameAllowance is the time a mod's frame may take before the mod skips
 // frames to repay it: half of a 64-tick frame.
 constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
+
+// kBudgetFloor is the least budget a frame carries, however many mods share
+// the frame allowance.
+constexpr auto kBudgetFloor = std::chrono::milliseconds(1);
 
 // kShedLogPeriod is how often the log reports the frames a slow mod skipped.
 constexpr auto kShedLogPeriod = std::chrono::minutes(1);
@@ -108,6 +114,25 @@ void Untune(wasm::DefinitionUndo& undo) {
 }
 
 }  // namespace
+
+FrameBudgets FrameBudgets::FromEnvironment() {
+  FrameBudgets budgets;
+  const char* value = std::getenv("MODLOCK_FRAME_BUDGET");
+  if (value == nullptr) {
+    return budgets;
+  }
+
+  // Take "all", or each name between the commas.
+  for (const auto part : std::string_view(value) | std::views::split(',')) {
+    const std::string_view name(part.begin(), part.end());
+    if (name == "all") {
+      budgets.all = true;
+    } else if (!name.empty()) {
+      budgets.mods.emplace(name);
+    }
+  }
+  return budgets;
+}
 
 std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
     std::span<const uint8_t> module) {
@@ -692,6 +717,7 @@ void WasmPlugin::Tick() {
     Observe(frame);
     observe_.Add(std::chrono::steady_clock::now() - began);
   }
+  frame.set_budget_microseconds(FrameBudget());
   static_cast<void>(mod_.Frame(frame));
 
   // Charge a slow frame to the frames after it. The slowest frame keeps its
@@ -721,6 +747,21 @@ void WasmPlugin::Tick() {
     slowest_ = {};
     shed_logged_ = ended;
   }
+}
+
+uint32_t WasmPlugin::FrameBudget() const {
+  // A mod the flag leaves out gets none.
+  if (!host_.budgets.Selects(name_, slug_)) {
+    return 0;
+  }
+
+  // Share the frame allowance among the mods that take frames, this one
+  // among them. The count walks a handful of mods once a frame.
+  const auto sharing = std::ranges::count_if(
+      host_.plugins, [](const auto& entry) { return entry.second->WantsFrames(); });
+  const auto share = std::max<std::chrono::microseconds>(
+      kBudgetFloor, kFrameAllowance / std::max<std::ptrdiff_t>(sharing, 1));
+  return static_cast<uint32_t>(share.count());
 }
 
 void WasmPlugin::Stop() {
