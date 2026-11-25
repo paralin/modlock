@@ -41,7 +41,6 @@ void Game::Frame() {
   // Apply the per-frame state each feature keeps.
   SeatPlayers();
   ApplyFreeForAll();
-  ApplyHolds();
   TickRestores();
 
   // Follow what moved or left since the last frame, then run the modules,
@@ -50,119 +49,6 @@ void Game::Frame() {
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
-}
-
-void Game::ApplyHolds() {
-  // Set each held state again and drop the ones that no longer apply.
-  std::erase_if(held_, [this](const auto& hold) {
-    return !SetModifierState(services_, hold.first, hold.second, true);
-  });
-  for (const auto& [slot, key] : held_modifiers_) {
-    static_cast<void>(RenewModifier(slot, key));
-  }
-
-  // Renew each entity's modifiers and release those of an entity that is gone.
-  std::vector<std::pair<uint32_t, std::string>> gone;
-  for (const auto& [entity, key] : held_entity_modifiers_) {
-    if (!LiveEntity(entity)) {
-      gone.emplace_back(entity, key);
-      continue;
-    }
-    static_cast<void>(RenewEntityModifier(entity, key, false));
-  }
-  for (const auto& [entity, key] : gone) {
-    ReleaseEntityModifier(entity, key);
-  }
-}
-
-std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::string& key) {
-  // Find the modifier the slot holds.
-  const auto modifier = modifiers_.find(key);
-  if (modifier == modifiers_.end()) {
-    return std::unexpected("the modifier is not held");
-  }
-
-  // A dead hero has no modifiers to renew.
-  const auto sample = players_.Observer().Observe(slot);
-  if (!sample || sample->health <= 0) {
-    return {};
-  }
-
-  // Attach the modifier again if the game removed it.
-  auto attached = modifier->second.Attached(players_.Observer(), slot);
-  if (!attached) {
-    return std::unexpected(attached.error());
-  }
-  if (*attached) {
-    return {};
-  }
-  auto source = ModifierSource(slot, key);
-  if (!source) {
-    return std::unexpected(source.error());
-  }
-  return modifier->second.Attach(players_.Observer(), slot, *source);
-}
-
-std::expected<void, std::string> Game::RenewEntityModifier(uint32_t handle, const std::string& key,
-                                                           bool initial) {
-  // Find the held modifier and the live entity.
-  const auto modifier = modifiers_.find(key);
-  if (modifier == modifiers_.end()) {
-    return std::unexpected("the modifier is not held");
-  }
-  auto entity = LiveEntity(handle);
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  if (!modifier->second.EntityAlive(*entity)) {
-    if (initial) {
-      return std::unexpected("the entity is not alive");
-    }
-    return {};
-  }
-
-  // Attach the modifier again if the game removed it.
-  auto attached = modifier->second.AttachedToEntity(*entity);
-  if (!attached) {
-    return std::unexpected(attached.error());
-  }
-  if (*attached) {
-    return {};
-  }
-  return modifier->second.AttachEntity(*entity, EntityAbilityHandle(handle, key));
-}
-
-void Game::ReleaseModifier(int32_t slot, const std::string& key) {
-  if (held_modifiers_.erase({slot, key}) != 0) {
-    RestoreUnusedModifier(key);
-  }
-}
-
-void Game::ReleaseEntityModifier(uint32_t handle, const std::string& key) {
-  if (held_entity_modifiers_.erase({handle, key}) != 0) {
-    RestoreUnusedModifier(key);
-  }
-}
-
-void Game::RestoreUnusedModifier(const std::string& key) {
-  if (std::ranges::any_of(held_modifiers_, [&](const auto& hold) { return hold.second == key; }) ||
-      std::ranges::any_of(held_entity_modifiers_,
-                          [&](const auto& hold) { return hold.second == key; })) {
-    return;
-  }
-  if (auto modifier = modifiers_.find(key); modifier != modifiers_.end()) {
-    modifier->second.Restore();
-    modifiers_.erase(modifier);
-  }
-}
-
-void Game::ReleaseModifiers() {
-  for (const auto& [key, modifier] : modifiers_) {
-    modifier.Restore();
-  }
-  modifiers_.clear();
-  held_modifiers_.clear();
-  held_entity_modifiers_.clear();
 }
 
 std::vector<Game::ButtonChange> Game::TakeButtonChanges() {
@@ -183,7 +69,6 @@ void Game::WorldReady() {
   static_cast<void>(services_.Heroes());
   static_cast<void>(services_.WorldCalls());
   static_cast<void>(services_.Selection());
-  static_cast<void>(services_.Modifiers());
 
   // Find every recorded server function now. Each is a scan of the whole
   // module, which would otherwise run inside the first call that needs it.
@@ -201,11 +86,9 @@ void Game::WorldEnding() {
   frozen_.clear();
   steers_.clear();
   drives_.clear();
-  held_.clear();
   ffa_held_.clear();
 
   // Release what the mod held in the world.
-  ReleaseModifiers();
   input_.DropPresses();
   restores_.clear();
   npc_restore_.reset();
@@ -229,16 +112,6 @@ void Game::Leave(int32_t slot) {
   input_.Leave(slot);
   silenced_players_.erase(slot);
 
-  // Release the modifiers the slot held.
-  std::vector<std::string> keys;
-  for (const auto& [held, key] : held_modifiers_) {
-    if (held == slot) {
-      keys.push_back(key);
-    }
-  }
-  for (const auto& key : keys) {
-    ReleaseModifier(slot, key);
-  }
   for (auto* module : std::views::reverse(modules_)) {
     module->Leave(slot);
   }
@@ -270,34 +143,10 @@ void Game::Clear() {
   // Releasing the movement hook cannot fail.
   static_cast<void>(services_.Steps());
 
-  // Release held modifier states, the free-for-all and team seating.
-  for (const auto& [entity, state] : held_) {
-    static_cast<void>(SetModifierState(services_, entity, state, false));
-  }
-  held_.clear();
+  // Release the free-for-all and team seating.
   free_for_all_ = false;
   team_seating_ = false;
   ReleaseFreeForAll();
-  // Remove active held modifiers from live entities when the mod stops, so
-  // infinite modifiers (such as camera-override modifiers) do not outlive it.
-  if (auto* world = world_.Loaded()) {
-    auto modifier_name = [](std::string_view key) -> std::string_view {
-      const auto slash = key.find('/');
-      return slash == std::string_view::npos ? key : key.substr(slash + 1);
-    };
-    for (const auto& [slot, key] : held_modifiers_) {
-      if (const auto sample = players_.Observer().Observe(slot); sample && sample->pawn_handle) {
-        static_cast<void>(world->FireInput(sample->pawn_handle, "RemoveModifier",
-                                           gameinterop::EntityValue{modifier_name(key)},
-                                           std::nullopt));
-      }
-    }
-    for (const auto& [entity, key] : held_entity_modifiers_) {
-      static_cast<void>(world->FireInput(
-          entity, "RemoveModifier", gameinterop::EntityValue{modifier_name(key)}, std::nullopt));
-    }
-  }
-  ReleaseModifiers();
 
   // Return every ability's cooldown lengths and most charges to the game's
   // own.

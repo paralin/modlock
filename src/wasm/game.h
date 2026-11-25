@@ -54,6 +54,7 @@
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
 #include "wasm/match.h"
+#include "wasm/modifier_holds.h"
 #include "wasm/module.h"
 #include "wasm/npc_restore.h"
 #include "wasm/players.h"
@@ -582,14 +583,27 @@ class Game : public HostService,
       const abilities::HeroBuildRequest& request) override;
   std::expected<void, std::string> ReplaceAbility(
       const abilities::ReplaceAbilityRequest& request) override;
+
   std::expected<void, std::string> HoldModifier(
-      const abilities::HoldModifierRequest& request) override;
+      const abilities::HoldModifierRequest& request) override {
+    return modifiers_.HoldModifier(request);
+  }
+
   std::expected<void, std::string> GiveModifier(
-      const abilities::GiveModifierRequest& request) override;
+      const abilities::GiveModifierRequest& request) override {
+    return modifiers_.GiveModifier(request);
+  }
+
   std::expected<void, std::string> HoldEntityModifier(
-      const abilities::HoldEntityModifierRequest& request) override;
+      const abilities::HoldEntityModifierRequest& request) override {
+    return modifiers_.HoldEntityModifier(request);
+  }
+
   std::expected<void, std::string> GiveEntityModifier(
-      const abilities::GiveEntityModifierRequest& request) override;
+      const abilities::GiveEntityModifierRequest& request) override {
+    return modifiers_.GiveEntityModifier(request);
+  }
+
   std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override;
   std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override;
   std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
@@ -629,9 +643,14 @@ class Game : public HostService,
   }
 
   std::expected<fields::FieldResponse, std::string> ReadModifierField(
-      const fields::ReadModifierFieldRequest& request) override;
+      const fields::ReadModifierFieldRequest& request) override {
+    return modifiers_.ReadModifierField(request);
+  }
+
   std::expected<abilities::ModifiersResponse, std::string> Modifiers(
-      const entities::EntityRequest& request) override;
+      const entities::EntityRequest& request) override {
+    return modifiers_.Modifiers(request);
+  }
 
   std::expected<void, std::string> WriteFieldList(
       const fields::WriteFieldListRequest& request) override {
@@ -654,9 +673,15 @@ class Game : public HostService,
   }
 
   std::expected<abilities::ActiveResponse, std::string> ModifierState(
-      const abilities::ModifierStateRequest& request) override;
+      const abilities::ModifierStateRequest& request) override {
+    return modifiers_.ModifierState(request);
+  }
+
   std::expected<void, std::string> HoldModifierState(
-      const abilities::HoldModifierStateRequest& request) override;
+      const abilities::HoldModifierStateRequest& request) override {
+    return modifiers_.HoldModifierState(request);
+  }
+
   std::expected<void, std::string> SetFreeForAll(
       const wasm::SetFreeForAllRequest& request) override;
   std::expected<void, std::string> SetTeamSeating(
@@ -884,21 +909,6 @@ class Game : public HostService,
   std::expected<gameinterop::PawnObserver::Ability, std::string> OwnedAbility(
       int32_t slot, std::string_view name);
 
-  // ModifierSource is the ability that applies a modifier keyed key to slot's
-  // live hero: the ability before the key's slash when the hero owns it, and
-  // otherwise, as for a top-level modifier, the hero's first ability.
-  std::expected<uint32_t, std::string> ModifierSource(int32_t slot, std::string_view key);
-
-  // EntityModifiers returns the address of each modifier entity holds, in
-  // the game's order, or none for an entity without a modifier property.
-  std::expected<std::vector<unsigned char*>, std::string> EntityModifiers(void* entity);
-
-  // ApplyHolds sets every held modifier state again, since the game
-  // recomputes states each frame and on teleport, and forgets a hold whose
-  // entity is gone. It gives held modifiers back to living heroes that lost
-  // them.
-  void ApplyHolds();
-
   // SeatAssignedPlayers retries pending host seats and records a seat only
   // after its native operation succeeds for the same connection generation.
   void SeatAssignedPlayers();
@@ -922,37 +932,6 @@ class Game : public HostService,
   // Silence installs the voice hook while the mod silences any concept, then
   // reports the concept names the game did not know, from unknown.
   std::expected<void, std::string> Silence(const std::string& unknown);
-
-  // EnsureHeldModifier resolves key with no expiry once for all active holds.
-  std::expected<void, std::string> EnsureHeldModifier(const std::string& key);
-
-  // EntityAbilityHandle returns the owned ability handle when handle is a
-  // player's hero that owns key's parent ability, or kInvalidEHandleIndex.
-  uint32_t EntityAbilityHandle(uint32_t handle, std::string_view key);
-
-  // RenewModifier gives slot's living hero the held modifier when it lacks
-  // it. A dead or absent hero waits for its return.
-  std::expected<void, std::string> RenewModifier(int32_t slot, const std::string& key);
-
-  // RenewEntityModifier gives handle's live entity the held modifier when it
-  // lacks it. When initial is true, a dead entity fails the hold.
-  std::expected<void, std::string> RenewEntityModifier(uint32_t handle, const std::string& key,
-                                                       bool initial);
-
-  // ReleaseModifier ends slot's hold on key and restores the modifier's
-  // duration once nothing holds it.
-  void ReleaseModifier(int32_t slot, const std::string& key);
-
-  // ReleaseEntityModifier ends handle's hold on key and restores the modifier's
-  // duration once nothing holds it.
-  void ReleaseEntityModifier(uint32_t handle, const std::string& key);
-
-  // RestoreUnusedModifier restores and forgets key once no slot or entity holds
-  // it.
-  void RestoreUnusedModifier(const std::string& key);
-
-  // ReleaseModifiers ends every modifier hold.
-  void ReleaseModifiers();
 
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
@@ -1000,9 +979,6 @@ class Game : public HostService,
   std::map<int32_t, movement::Steering> steers_;
   // drives_ maps each driven bot's slot to the command its hero runs.
   std::map<int32_t, gameinterop::CommandHook::Command> drives_;
-  // held_ is the modifier states the mod holds, by entity handle and name;
-  // ApplyHolds sets them again.
-  std::set<std::pair<uint32_t, std::string>> held_;
   // free_for_all_ is true while the host seats players and holds friendly fire,
   // and team_seating_ while it only seats them; ffa_held_ is the hero pawns it
   // holds friendly fire on, and seat_failed_ the players it could not seat, so
@@ -1014,12 +990,6 @@ class Game : public HostService,
 
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
-  // held_modifiers_ and held_entity_modifiers_ are the modifiers the mod holds,
-  // by player slot or entity handle and modifier key; modifiers_ resolves each
-  // held key.
-  std::set<std::pair<int32_t, std::string>> held_modifiers_;
-  std::set<std::pair<uint32_t, std::string>> held_entity_modifiers_;
-  std::map<std::string, gameinterop::AbilityModifier, std::less<>> modifiers_;
 
   // cooldown_ holds the cooldown lengths the mod gave abilities, created the
   // first time one is given; it puts the game's own lengths back when the
@@ -1060,7 +1030,8 @@ class Game : public HostService,
   Match match_{services_, world_};
   ApartPlayers apart_{services_, players_};
   Fields fields_{services_, world_};
-  std::array<Module*, 5> modules_{&players_, &world_, &match_, &apart_, &fields_};
+  ModifierHolds modifiers_{services_, players_, world_};
+  std::array<Module*, 6> modules_{&players_, &world_, &match_, &apart_, &fields_, &modifiers_};
 };
 
 }  // namespace modlock::wasm
