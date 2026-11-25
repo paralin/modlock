@@ -1,5 +1,7 @@
 //go:build deps_only
 
+#include "wasm/effects.h"
+
 #include <algorithm>
 #include <array>
 #include <utility>
@@ -35,7 +37,39 @@ std::expected<gameinterop::engine::ScreenEffectState, std::string> ScreenState(
 
 }  // namespace
 
-std::expected<combat::TraceResponse, std::string> Game::Trace(const combat::TraceOptions& request) {
+Effects::Effects(GameServices& services, EngineHost* engine, Players& players)
+    : services_(services), engine_(engine), players_(players) {}
+
+std::expected<void, std::string> Effects::ServerCommand(const ServerCommandRequest& request) {
+  return services_.ServerCommand(request.command());
+}
+
+std::expected<void, std::string> Effects::Chat(const effects::ChatRequest& request) {
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
+  return (*messages)->Chat(request.player(), request.text());
+}
+
+std::expected<void, std::string> Effects::CenterText(const effects::CenterTextRequest& request) {
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
+  return (*messages)->CenterText(request.player(), request.text());
+}
+
+std::expected<void, std::string> Effects::Announce(const effects::AnnounceRequest& request) {
+  auto messages = services_.Messages();
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
+  return (*messages)->Announce(request.player(), request.title(), request.text());
+}
+
+std::expected<combat::TraceResponse, std::string> Effects::Trace(
+    const combat::TraceOptions& request) {
   // Resolve the world's collision.
   auto trace = engine_->Trace();
   if (!trace) {
@@ -78,7 +112,7 @@ std::expected<combat::TraceResponse, std::string> Game::Trace(const combat::Trac
   return response;
 }
 
-std::expected<void, std::string> Game::Heal(const players::HealRequest& request) {
+std::expected<void, std::string> Effects::Heal(const players::HealRequest& request) {
   // Read the live hero.
   auto sample = players_.Live(request.player());
   if (!sample) {
@@ -102,7 +136,8 @@ std::expected<void, std::string> Game::Heal(const players::HealRequest& request)
   return {};
 }
 
-std::expected<void, std::string> Game::ScreenEffect(const effects::ScreenEffectRequest& request) {
+std::expected<void, std::string> Effects::ScreenEffect(
+    const effects::ScreenEffectRequest& request) {
   // Resolve the messages, the screen's owner and the effect.
   auto messages = services_.Messages();
   if (!messages) {
@@ -126,7 +161,7 @@ std::expected<void, std::string> Game::ScreenEffect(const effects::ScreenEffectR
                                     .fade_out = timing.fade_out()});
 }
 
-std::expected<void, std::string> Game::ClearScreenEffect(
+std::expected<void, std::string> Effects::ClearScreenEffect(
     const effects::ClearScreenEffectRequest& request) {
   // Resolve the messages, the screen's owner and the effect.
   auto messages = services_.Messages();
@@ -144,7 +179,7 @@ std::expected<void, std::string> Game::ClearScreenEffect(
   return (*messages)->ClearScreenEffect(request.player(), *owner, *state);
 }
 
-std::expected<int32_t, std::string> Game::ScreenOwner(int32_t slot) {
+std::expected<int32_t, std::string> Effects::ScreenOwner(int32_t slot) {
   // The client drops an effect unless its owner is a live entity, so the
   // effect belongs to the player's hero.
   auto sample = players_.Live(slot);
@@ -154,7 +189,7 @@ std::expected<int32_t, std::string> Game::ScreenOwner(int32_t slot) {
   return static_cast<int32_t>(gameinterop::EntityIndexOf(sample->pawn_handle));
 }
 
-uint64_t Game::HumanSlots() {
+uint64_t Effects::HumanSlots() {
   uint64_t slots = 0;
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
@@ -165,7 +200,7 @@ uint64_t Game::HumanSlots() {
   return slots;
 }
 
-std::expected<effects::SoundResponse, std::string> Game::PlaySound(
+std::expected<effects::SoundResponse, std::string> Effects::PlaySound(
     const std::string& sound, int32_t source, const effects::SoundOptions& options) {
   auto messages = services_.Messages();
   if (!messages) {
@@ -194,7 +229,7 @@ std::expected<effects::SoundResponse, std::string> Game::PlaySound(
   return response;
 }
 
-std::expected<effects::SoundResponse, std::string> Game::Sound(
+std::expected<effects::SoundResponse, std::string> Effects::Sound(
     const effects::SoundRequest& request) {
   // Play the sound on the live player's hero, which it follows.
   auto hero = ScreenOwner(request.player());
@@ -204,7 +239,7 @@ std::expected<effects::SoundResponse, std::string> Game::Sound(
   return PlaySound(request.sound(), *hero, request.options());
 }
 
-std::expected<effects::SoundResponse, std::string> Game::EmitSound(
+std::expected<effects::SoundResponse, std::string> Effects::EmitSound(
     const effects::EmitSoundRequest& request) {
   // Play the sound on the live entity, which it follows.
   if (auto entity = LiveEntity(request.entity()); !entity) {
@@ -214,7 +249,7 @@ std::expected<effects::SoundResponse, std::string> Game::EmitSound(
   return PlaySound(request.sound(), index, request.options());
 }
 
-std::expected<void, std::string> Game::AdjustSound(const effects::AdjustSoundRequest& request) {
+std::expected<void, std::string> Effects::AdjustSound(const effects::AdjustSoundRequest& request) {
   // Every player gets the change; one not playing the sound ignores it.
   auto messages = services_.Messages();
   if (!messages) {
@@ -226,7 +261,7 @@ std::expected<void, std::string> Game::AdjustSound(const effects::AdjustSoundReq
        request.has_pitch() ? std::optional(request.pitch()) : std::nullopt});
 }
 
-std::expected<void, std::string> Game::StopSound(const effects::StopSoundRequest& request) {
+std::expected<void, std::string> Effects::StopSound(const effects::StopSoundRequest& request) {
   // Every player gets the stop; one not playing the sound ignores it.
   auto messages = services_.Messages();
   if (!messages) {

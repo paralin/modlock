@@ -2,15 +2,7 @@
 
 #include "wasm/game.h"
 
-#include <algorithm>
-#include <chrono>
 #include <ranges>
-#include <utility>
-#include <vector>
-
-#include "modlock/gameinterop/connection_tracker.h"
-#include "wasm/game_internal.h"
-#include "wasm/modifier_masks.h"
 
 namespace modlock::wasm {
 
@@ -61,54 +53,6 @@ void Game::Clear() {
   for (auto* module : std::views::reverse(modules_)) {
     module->Clear();
   }
-}
-
-std::expected<void, std::string> Game::Pause(const wasm::PauseRequest& request) {
-  return match_.Pause(request);
-}
-
-std::expected<wasm::MatchClockResponse, std::string> Game::MatchClock() {
-  return match_.MatchClock();
-}
-
-std::expected<void, std::string> Game::HoldMatchClock(const wasm::HoldMatchClockRequest& request) {
-  return match_.HoldMatchClock(request);
-}
-
-std::expected<wasm::RiftResponse, std::string> Game::Rift() {
-  return match_.Rift();
-}
-
-std::expected<void, std::string> Game::StartRift(const wasm::StartRiftRequest& request) {
-  return match_.StartRift(request);
-}
-
-std::expected<void, std::string> Game::ServerCommand(const ServerCommandRequest& request) {
-  return services_.ServerCommand(request.command());
-}
-
-std::expected<void, std::string> Game::Chat(const effects::ChatRequest& request) {
-  auto messages = services_.Messages();
-  if (!messages) {
-    return std::unexpected(messages.error());
-  }
-  return (*messages)->Chat(request.player(), request.text());
-}
-
-std::expected<void, std::string> Game::CenterText(const effects::CenterTextRequest& request) {
-  auto messages = services_.Messages();
-  if (!messages) {
-    return std::unexpected(messages.error());
-  }
-  return (*messages)->CenterText(request.player(), request.text());
-}
-
-std::expected<void, std::string> Game::Announce(const effects::AnnounceRequest& request) {
-  auto messages = services_.Messages();
-  if (!messages) {
-    return std::unexpected(messages.error());
-  }
-  return (*messages)->Announce(request.player(), request.title(), request.text());
 }
 
 }  // namespace modlock::wasm

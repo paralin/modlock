@@ -4,12 +4,13 @@
 #include <vector>
 
 #include "modlock/gameinterop/native_memory.h"
+#include "wasm/effects.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
 namespace modlock::wasm {
 
-std::expected<void, std::string> Game::Damage(const combat::HitOptions& request) {
+std::expected<void, std::string> Effects::Damage(const combat::HitOptions& request) {
   // Resolve the damage service and the victim.
   auto damage = services_.Damage();
   if (!damage) {
@@ -46,7 +47,7 @@ std::expected<void, std::string> Game::Damage(const combat::HitOptions& request)
   return (*damage)->Hit(*victim, *inflictor, *attacker, ability, request.amount(), hit_group);
 }
 
-std::expected<void*, std::string> Game::Combatant(uint32_t handle) {
+std::expected<void*, std::string> Effects::Combatant(uint32_t handle) {
   // Damage events for the world, props or buildings crash clients.
   auto victim = LiveEntity(handle);
   if (!victim) {
@@ -63,7 +64,7 @@ std::expected<void*, std::string> Game::Combatant(uint32_t handle) {
   return *victim;
 }
 
-std::expected<void, std::string> Game::KillEntity(const combat::KillOptions& request) {
+std::expected<void, std::string> Effects::KillEntity(const combat::KillOptions& request) {
   // Resolve a live combat entity before invoking the game's death path.
   auto damage = services_.Damage();
   if (!damage) {
