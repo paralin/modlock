@@ -60,6 +60,7 @@
 #include "wasm/npc_restore.h"
 #include "wasm/players.h"
 #include "wasm/projectiles.h"
+#include "wasm/restores.h"
 #include "wasm/team_seating.h"
 #include "wasm/world.h"
 
@@ -401,19 +402,12 @@ class Game : public HostService, private VoiceSource {
   // in the order players made them.
   std::vector<ButtonChange> TakeButtonChanges() { return input_.TakeButtonChanges(); }
 
-  // Restored is the result of one player's hero restore; an empty error
-  // means the target held.
-  struct Restored {
-    int32_t slot = 0;
-    std::string error;
-  };
-
   // TakeRestored returns the hero restores that ended since the last call.
-  std::vector<Restored> TakeRestored();
+  std::vector<Restores::Restored> TakeRestored() { return restores_.TakeRestored(); }
 
   // TakeNpcsRestored returns the result of the unit restore that ended since
   // the last call: an empty string when the units hold their targets.
-  std::optional<std::string> TakeNpcsRestored();
+  std::optional<std::string> TakeNpcsRestored() { return restores_.TakeNpcsRestored(); }
 
   // WorldEnding removes the mod's objects, units and bots and ends its
   // restores and match clock hold before the world goes. The mod's input
@@ -697,7 +691,12 @@ class Game : public HostService, private VoiceSource {
   std::expected<void, std::string> Heal(const players::HealRequest& request) override;
   std::expected<effects::SoundResponse, std::string> Sound(
       const effects::SoundRequest& request) override;
-  std::expected<void, std::string> RestoreHero(const players::RestoreHeroRequest& request) override;
+
+  std::expected<void, std::string> RestoreHero(
+      const players::RestoreHeroRequest& request) override {
+    return restores_.RestoreHero(request);
+  }
+
   std::expected<void, std::string> ScreenEffect(
       const effects::ScreenEffectRequest& request) override;
   std::expected<void, std::string> ClearScreenEffect(
@@ -932,7 +931,11 @@ class Game : public HostService, private VoiceSource {
   std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override;
   std::expected<combat::TraceResponse, std::string> Trace(
       const combat::TraceOptions& request) override;
-  std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override;
+
+  std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override {
+    return restores_.RestoreNpcs(request);
+  }
+
   std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override;
   std::expected<wasm::MatchClockResponse, std::string> MatchClock() override;
   std::expected<void, std::string> HoldMatchClock(
@@ -994,14 +997,6 @@ class Game : public HostService, private VoiceSource {
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // ApplyRestore performs one stage of a hero restore's writes.
-  bool ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
-                    HeroRestore::Stage stage);
-
-  // TickRestores advances every hero restore and the unit restore by one
-  // frame and queues the ones that ended.
-  void TickRestores();
-
   // SeatAssignedPlayers retries pending host seats and records a seat only
   // after its native operation succeeds for the same connection generation.
   void SeatAssignedPlayers();
@@ -1049,16 +1044,6 @@ class Game : public HostService, private VoiceSource {
   // and silenced_players_ those it keeps from one player's hero, by slot.
   std::set<int32_t> silenced_;
   std::map<int32_t, std::set<int32_t>> silenced_players_;
-  // restores_ are the running hero restores by player slot, ticked once per
-  // frame; restored_ queues the ones that ended for the mod.
-  std::map<int32_t, HeroRestore> restores_;
-  uint64_t frames_ = 0;
-  std::vector<Restored> restored_;
-  // npc_restore_ is the running unit restore; npcs_restored_ is the result
-  // of the last one that ended, until the mod receives it.
-  std::optional<NpcRestore> npc_restore_;
-  std::optional<std::string> npcs_restored_;
-
   // The modules own their domains' state. modules_ lists them in the order
   // they are built, each after the modules it reads. WorldReady runs them in
   // that order; Frame, WorldEnding, Leave and Clear run them in reverse, so a
@@ -1075,9 +1060,10 @@ class Game : public HostService, private VoiceSource {
   wasm::Input input_{services_};
   Projectiles projectiles_{services_, players_,
                            [this](const combat::ImpactEvent& event) { Impacted(event); }};
-  std::array<Module*, 11> modules_{&players_,  &world_,     &match_,      &apart_,
-                                   &fields_,   &modifiers_, &heroes_,     &camera_,
-                                   &movement_, &input_,     &projectiles_};
+  Restores restores_{services_, players_, world_, modifiers_, heroes_};
+  std::array<Module*, 12> modules_{&players_,  &world_,     &match_,       &apart_,
+                                   &fields_,   &modifiers_, &heroes_,      &camera_,
+                                   &movement_, &input_,     &projectiles_, &restores_};
 };
 
 }  // namespace modlock::wasm

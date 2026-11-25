@@ -27,21 +27,12 @@ void Game::Frame() {
   // Apply the per-frame state each feature keeps.
   SeatPlayers();
   ApplyFreeForAll();
-  TickRestores();
 
   // Run the modules, so the world finishes the units spawned this frame
   // together.
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
-}
-
-std::vector<Game::Restored> Game::TakeRestored() {
-  return std::exchange(restored_, {});
-}
-
-std::optional<std::string> Game::TakeNpcsRestored() {
-  return std::exchange(npcs_restored_, {});
 }
 
 void Game::WorldReady() {
@@ -67,8 +58,6 @@ void Game::WorldEnding() {
   ffa_held_.clear();
 
   // Release what the mod held in the world.
-  restores_.clear();
-  npc_restore_.reset();
   for (auto* module : std::views::reverse(modules_)) {
     module->WorldEnding();
   }
@@ -78,8 +67,7 @@ void Game::Leave(int32_t slot) {
   // Forget the slot's seat.
   seat_failed_.erase(slot);
 
-  // Forget its restores and silences.
-  restores_.erase(slot);
+  // Forget its silences.
   silenced_players_.erase(slot);
 
   for (auto* module : std::views::reverse(modules_)) {
@@ -96,12 +84,6 @@ void Game::Clear() {
   // Release the voices it silenced.
   silenced_.clear();
   silenced_players_.clear();
-
-  // Drop pending restores and their reports.
-  restores_.clear();
-  restored_.clear();
-  npc_restore_.reset();
-  npcs_restored_.reset();
 
   // Release what each module holds.
   for (auto* module : std::views::reverse(modules_)) {

@@ -220,6 +220,7 @@ add_library(modlock_sdk SHARED
   src/wasm/hero_movement.cc
   src/wasm/input.cc
   src/wasm/projectiles.cc
+  src/wasm/restores.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc
