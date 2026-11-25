@@ -1,8 +1,8 @@
 //go:build deps_only
 
-#include <iostream>
-
 #include "wasm/match.h"
+
+#include <iostream>
 
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
@@ -101,7 +101,7 @@ std::expected<void, std::string> Match::ReplicateClock() {
   auto rules = LiveEntity(rules_entity_);
   if (!rules) {
     // Find the rules entity once.
-    auto world = world_.World();
+    auto world = world_.Entities();
     if (!world) {
       return std::unexpected(world.error());
     }

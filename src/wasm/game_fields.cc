@@ -116,7 +116,7 @@ std::expected<void, std::string> Game::WriteField(const fields::WriteFieldReques
     return std::unexpected(entity.error());
   }
   auto stored = StoreField(services_, *entity, request.class_name(), request.field(),
-                           request.type(), request.value(), addon_);
+                           request.type(), request.value(), world_.Addon());
   if (!stored) {
     return stored;
   }
