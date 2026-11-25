@@ -48,6 +48,15 @@ bool IsSlug(std::string_view name) {
 
 }  // namespace
 
+std::expected<std::vector<uint8_t>, std::string> ReadInterpreter(
+    wasm::Manifest::Runtime runtime, const std::filesystem::path& interpreters) {
+  const auto interpreter = InterpreterFile(runtime);
+  if (interpreter.empty()) {
+    return std::unexpected("this host does not know the runtime");
+  }
+  return ReadFile(interpreters / interpreter);
+}
+
 // ReadBuild reads a built mod directory through its mod.json, or a bare
 // .wasm file. An interpreted mod's module comes from interpreters.
 std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
@@ -104,13 +113,9 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
     build.module = std::move(*entry);
   } else {
     // Other runtimes run their source in the host's interpreter.
-    const auto interpreter = InterpreterFile(manifest.runtime());
-    if (interpreter.empty()) {
-      return std::unexpected(manifest_path.string() + ": this host does not know the runtime");
-    }
-    auto module = ReadFile(interpreters / interpreter);
+    auto module = ReadInterpreter(manifest.runtime(), interpreters);
     if (!module) {
-      return std::unexpected(module.error());
+      return std::unexpected(manifest_path.string() + ": " + module.error());
     }
     build.module = std::move(*module);
     build.source = std::move(*entry);

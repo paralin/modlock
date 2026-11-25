@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <stop_token>
 #include <string>
 #include <wasmtime.hh>
 
@@ -47,6 +48,11 @@ struct Limits {
   // that just began look due. A call that ends sooner is not sampled, and
   // pays at most two extra epoch callbacks. Zero never samples.
   std::chrono::milliseconds sample_after{0};
+  // stop ends a running call within one epoch tick once a stop is
+  // requested, as a spent budget does, for an instance that runs off the
+  // engine thread and must stop when its owner does. An instance without a
+  // stop source never checks it.
+  std::stop_token stop;
 };
 
 // Instance runs one WebAssembly mod in its own Wasmtime store. The mod sees
@@ -86,6 +92,12 @@ class Instance {
 
   // Failure returns the reason the instance stopped, or nullopt while it runs.
   [[nodiscard]] const std::optional<std::string>& Failure() const { return failure_; }
+
+  // MemoryBytes returns the size of the mod's linear memory, which only
+  // grows. Call it from the thread that runs the instance.
+  [[nodiscard]] uint64_t MemoryBytes() {
+    return memory_ ? memory_->size(store_.context()) * 65536 : 0;
+  }
 
   // Slow reports whether the last delivered event ran past
   // limits.slow_event.

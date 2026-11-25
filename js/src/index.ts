@@ -73,6 +73,7 @@ export { Buttons, Layers } from './bits.js'
 export { callServiceLater, type ServiceDone } from './service-later.js'
 export { after, every, sequence, type Timer } from './timer.js'
 export { late, task, type Task } from './tasks.js'
+export { worker, type Worker } from './workers.js'
 export {
   type CameraMove,
   type CameraPlayOptions,

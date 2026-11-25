@@ -81,6 +81,11 @@ const LayoutLibrary = "layout.js"
 // modlock dev serves.
 const Preview = "preview"
 
+// Worker is the built library's entry for a script a mod's worker runs,
+// which the script imports as modlock/worker. It binds the host itself and
+// leaves out the mod's event handlers, so a worker answers only requests.
+const Worker = "worker.js"
+
 // Kit is the directory of the built library that holds the game-mode kit,
 // which mods import as modlock/kit, and its declarations.
 const Kit = "kit"
@@ -424,14 +429,15 @@ func Build(ctx context.Context, source, out string) error {
 		}
 	}
 
-	// Bundle the library, the entity classes, the console, the game-mode kit,
-	// the renderer, the layout library and the pages, which run the layout
-	// library as well.
+	// Bundle the library, the worker entry, the entity classes, the console,
+	// the game-mode kit, the renderer, the layout library and the pages, which
+	// run the layout library as well.
 	bundles := []struct {
 		name    string
 		options api.BuildOptions
 	}{
 		{"index.js", api.BuildOptions{EntryPoints: []string{"js/src/quickjs.ts"}, Format: api.FormatESModule, Target: api.ES2023}},
+		{Worker, api.BuildOptions{EntryPoints: []string{"js/src/worker.ts"}, Format: api.FormatESModule, Target: api.ES2023}},
 		{"entities.js", api.BuildOptions{EntryPoints: []string{"js/src/entities.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{"console.js", api.BuildOptions{EntryPoints: []string{"js/src/console.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{Kit + "/index.js", api.BuildOptions{EntryPoints: []string{"js/src/kit/index.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},

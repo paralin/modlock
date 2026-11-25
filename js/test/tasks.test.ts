@@ -1,8 +1,14 @@
 import { expect, test } from 'bun:test'
 
-import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
+import {
+  Call,
+  FrameEvent,
+  Reply,
+  ServiceFailure,
+  ServiceRepliedEvent,
+} from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
-import { task } from '../src/index.js'
+import { task, worker } from '../src/index.js'
 
 // The library answers every host call it makes with an empty reply.
 bind(() => Reply.toBinary({}))
@@ -88,4 +94,29 @@ test('a cancelled task runs no further step and unwinds', async () => {
   expect(steps).toBe(1)
   expect(unwound).toBe(true)
   expect(work.finished).toBe(true)
+})
+
+test('a worker the host does not run answers inline in a later frame', async () => {
+  // The bound host starts the call as number 0; a host that runs no worker
+  // for the mod then ends it as unavailable, and the worker falls back to
+  // its handle.
+  const double = worker('double.worker.js', (request) =>
+    request.map((b) => b * 2),
+  )
+  let answer: Uint8Array | undefined
+  void double.call(new Uint8Array([1, 2, 3])).then((a) => {
+    answer = a
+  })
+  deliver(
+    Call.toBinary({
+      method: 'ServiceReplied',
+      request: ServiceRepliedEvent.toBinary({
+        call: 0n,
+        failure: ServiceFailure.UNAVAILABLE,
+      }),
+    }),
+  )
+  expect(answer).toBeUndefined()
+  await frame(100)
+  expect(answer).toEqual(new Uint8Array([2, 4, 6]))
 })

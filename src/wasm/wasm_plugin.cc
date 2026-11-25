@@ -121,23 +121,23 @@ void Untune(wasm::DefinitionUndo& undo) {
 
 }  // namespace
 
-FrameBudgets FrameBudgets::FromEnvironment() {
-  FrameBudgets budgets;
-  const char* value = std::getenv("MODLOCK_FRAME_BUDGET");
+ModSet ModSet::FromEnvironment(const char* variable) {
+  ModSet set;
+  const char* value = std::getenv(variable);
   if (value == nullptr) {
-    return budgets;
+    return set;
   }
 
   // Take "all", or each name between the commas.
   for (const auto part : std::string_view(value) | std::views::split(',')) {
     const std::string_view name(part.begin(), part.end());
     if (name == "all") {
-      budgets.all = true;
+      set.all = true;
     } else if (!name.empty()) {
-      budgets.mods.emplace(name);
+      set.mods.emplace(name);
     }
   }
-  return budgets;
+  return set;
 }
 
 std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
@@ -422,6 +422,7 @@ void WasmPlugin::Halt() {
   // Drop the movement, the subscriptions, the started service calls and
   // the game state.
   service_calls_.Drop();
+  workers_.clear();
   host_.Notify([&](WasmHostObserver& observer) { observer.Halted(name_); });
   movement_.reset();
   hero_slots_.clear();
