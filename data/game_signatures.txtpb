@@ -544,6 +544,15 @@ signatures {
   shape: "int64 ResetHero(CCitadelPlayerPawn*, bool reset_abilities)"
 }
 
+# Base pawn ChangeTeam, also used by OnControllerChangedTeam, updates native
+# team lists, networked team and OnTeamChanged without routing back to controller.
+signatures {
+  id: "pawn.change-team"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 6C 24 18 56 48 83 EC 20 48 8B F1 8B EA"
+  shape: "void CBasePlayerPawn::ChangeTeam(int team)"
+}
+
 signatures {
   id: "pawn.respawn"
   modules: GAME_MODULE_SERVER

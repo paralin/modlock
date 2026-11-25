@@ -307,7 +307,7 @@ class GameServices {
   std::optional<gameinterop::AbilitySlots> slots_;
   gameinterop::CreateAbility create_ability_ = nullptr;
   gameinterop::RespawnPawn respawn_ = nullptr;
-  gameinterop::ChangeTeamKeepingHero change_team_ = nullptr;
+  gameinterop::ChangeTeamKeepingHero change_team_;
   gameinterop::ResetHeroPawn reset_hero_ = nullptr;
   gameinterop::TeleportClientCamera teleport_ = nullptr;
   gameinterop::WarpOntoZipline zipline_ = nullptr;

@@ -244,7 +244,7 @@ TEST(AbilityModifier, AttachesEmbeddedAndStandaloneModifiersToEntitiesAndRestore
   ASSERT_TRUE(after) << after.error();
   EXPECT_TRUE(*after);
 
-  // Stop cleanup uses the full embedded key and the game's native remove reason.
+  // Stop cleanup uses the canonical definition ID and the game's native remove reason.
   ASSERT_TRUE(modifier->RemoveFromEntity(entity.data()));
   EXPECT_EQ(g_state.last_property, property.data());
   EXPECT_EQ(g_state.removed_subclass, 0x1234abcdu);
