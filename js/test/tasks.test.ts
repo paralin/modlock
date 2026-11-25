@@ -31,7 +31,9 @@ async function frame(budget: number): Promise<void> {
       }),
     }),
   )
-  await new Promise((settle) => setTimeout(settle, 0))
+  // The tests also run compiled, with no timers, so let queued jobs run by
+  // awaiting: each resumed task and its continuation are a few jobs deep.
+  for (let job = 0; job < 32; job++) await Promise.resolve()
 }
 
 /** spin holds the thread for ms milliseconds. */
