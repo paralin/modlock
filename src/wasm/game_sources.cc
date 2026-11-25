@@ -30,14 +30,6 @@ void Game::Aim(void* pawn, const std::array<float, 3>& angles) {
   static_cast<void>(players_.Observer().SetEyeAngles(pawn, angles));
 }
 
-std::optional<int32_t> Game::WatchedSlot(int32_t slot) const {
-  const auto watched = watched_.find(slot);
-  if (watched == watched_.end()) {
-    return std::nullopt;
-  }
-  return players_.Observer().SlotOfPawn(watched->second);
-}
-
 bool Game::KeepsMomentum() const {
   return projectiles_.keep_momentum();
 }

@@ -20,7 +20,6 @@ Game::Game(GameServices& services, EngineHost* engine) : services_(services), en
   // the movement hook rechecks its movers.
   services_.InputSources().Add(&input_);
   services_.MoverSources().Add(this);
-  services_.CameraSources().Add(this);
   services_.ProjectileSources().Add(this);
   services_.VoiceSources().Add(this);
 }
@@ -28,7 +27,6 @@ Game::Game(GameServices& services, EngineHost* engine) : services_(services), en
 Game::~Game() {
   services_.InputSources().Remove(&input_);
   services_.MoverSources().Remove(this);
-  services_.CameraSources().Remove(this);
   services_.ProjectileSources().Remove(this);
   services_.VoiceSources().Remove(this);
   services_.Controllers().Release(this);
@@ -115,14 +113,6 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
-  // Stop watching every player.
-  for (const auto slot : players_.Observer().WatchingSlots()) {
-    players::PlayerRequest request;
-    request.set_player(slot);
-    static_cast<void>(Unwatch(request));
-  }
-  watched_.clear();
-
   // Stop moving and steering heroes and watching controllers.
   movers_.clear();
   services_.Controllers().Release(this);
