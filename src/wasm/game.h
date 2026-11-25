@@ -45,6 +45,7 @@
 #include "modlock/render/world_effect_game_factory.h"
 #include "modlock/render/world_text_game_factory.h"
 #include "src/wasm/wasm.pb.h"
+#include "wasm/apart_players.h"
 #include "wasm/controller_table.h"
 #include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
@@ -381,7 +382,6 @@ class GameServices {
 class Game : public HostService,
              private MoverSource,
              private CameraSource,
-             private TransmitSource,
              private ProjectileSource,
              private VoiceSource {
  public:
@@ -442,7 +442,7 @@ class Game : public HostService,
   // player, and every other player's hero from them, until the next call; zero
   // shows every hero to everyone again. It survives Clear and world changes,
   // since it follows the mod's scope rather than what the mod placed.
-  std::expected<void, std::string> Apart(uint64_t slots);
+  std::expected<void, std::string> Apart(uint64_t slots) { return apart_.Set(slots); }
 
   // Departing reports whether a bot the mod removed still holds its slot.
   // The engine finishes the disconnect of a client it is processing after
@@ -532,7 +532,6 @@ class Game : public HostService,
   bool Moves() const override;
   void Aim(void* pawn, const std::array<float, 3>& angles) override;
   std::optional<int32_t> WatchedSlot(int32_t slot) const override;
-  void Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) override;
   bool KeepsMomentum() const override;
   std::vector<HeroMotion> Motions() override;
   bool Silences(int32_t concept_value) const override;
@@ -981,8 +980,6 @@ class Game : public HostService,
   // rebuild_panels_ asks every client for a full update at the next frame,
   // after the mod wrote a client UI entity's layout.
   bool rebuild_panels_ = false;
-  // apart_ is the slot bits of the players Apart keeps out of sight.
-  uint64_t apart_ = 0;
   // watched_ maps each player Watch points at a hero to that hero's entity
   // handle, until another camera call or Unwatch. A player watching a hero
   // inside an apart game receives that game's heroes.
@@ -1055,7 +1052,8 @@ class Game : public HostService,
   wasm::Players players_{services_};
   wasm::World world_{services_, engine_};
   Match match_{services_, world_};
-  std::array<Module*, 3> modules_{&players_, &world_, &match_};
+  ApartPlayers apart_{services_, players_};
+  std::array<Module*, 4> modules_{&players_, &world_, &match_, &apart_};
 };
 
 }  // namespace modlock::wasm

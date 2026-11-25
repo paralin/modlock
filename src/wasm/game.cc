@@ -21,7 +21,6 @@ Game::Game(GameServices& services, EngineHost* engine) : services_(services), en
   services_.InputSources().Add(&input_);
   services_.MoverSources().Add(this);
   services_.CameraSources().Add(this);
-  services_.TransmitSources().Add(this);
   services_.ProjectileSources().Add(this);
   services_.VoiceSources().Add(this);
 }
@@ -30,7 +29,6 @@ Game::~Game() {
   services_.InputSources().Remove(&input_);
   services_.MoverSources().Remove(this);
   services_.CameraSources().Remove(this);
-  services_.TransmitSources().Remove(this);
   services_.ProjectileSources().Remove(this);
   services_.VoiceSources().Remove(this);
   services_.Controllers().Release(this);
@@ -245,11 +243,6 @@ void Game::Leave(int32_t slot) {
   for (auto* module : std::views::reverse(modules_)) {
     module->Leave(slot);
   }
-}
-
-std::expected<void, std::string> Game::Apart(uint64_t slots) {
-  apart_ = slots;
-  return slots ? services_.Transmit() : std::expected<void, std::string>{};
 }
 
 void Game::Clear() {
