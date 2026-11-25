@@ -14,14 +14,9 @@
 
 namespace modlock::wasm {
 
-Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
-  // Register with the host-wide hooks while the game lives.
-  services_.VoiceSources().Add(this);
-}
+Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {}
 
-Game::~Game() {
-  services_.VoiceSources().Remove(this);
-}
+Game::~Game() = default;
 
 void Game::Frame() {
   // Run the modules, so the world finishes the units spawned this frame
@@ -56,19 +51,12 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget its silences.
-  silenced_players_.erase(slot);
-
   for (auto* module : std::views::reverse(modules_)) {
     module->Leave(slot);
   }
 }
 
 void Game::Clear() {
-  // Release the voices it silenced.
-  silenced_.clear();
-  silenced_players_.clear();
-
   // Release what each module holds.
   for (auto* module : std::views::reverse(modules_)) {
     module->Clear();

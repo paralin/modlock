@@ -202,7 +202,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game.cc
   src/wasm/game_combat.cc
   src/wasm/game_effects.cc
-  src/wasm/game_voice.cc
+  src/wasm/game_services_voice.cc
   src/wasm/hero_builds.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
   src/wasm/match.cc
@@ -220,13 +220,13 @@ add_library(modlock_sdk SHARED
   src/wasm/projectiles.cc
   src/wasm/restores.cc
   src/wasm/seating.cc
+  src/wasm/voice.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc
   src/wasm/entity_rules.cc
   src/wasm/game_services.cc
   src/wasm/game_services_input.cc
-  src/wasm/game_sources.cc
   src/wasm/hero_restore.cc
   src/wasm/attendance.cc
   src/wasm/controller_table.cc
