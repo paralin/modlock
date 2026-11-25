@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 
 	pb "github.com/paralin/modlock/src/wasm/controllers"
@@ -46,7 +45,7 @@ type server struct {
 	send func(*pb.ControllerFrame) error
 
 	// reader is open once a want arrived and SDL3 loaded; missing is true
-	// once it failed to.
+	// once a load failed, so the failure logs once while later wants retry.
 	reader  *Reader
 	missing bool
 
@@ -64,22 +63,18 @@ func (s *server) want(epoch uint32) error {
 		return s.stop()
 	}
 
-	// Open SDL3 on the first want, or log once that it is missing.
-	if s.reader == nil && !s.missing {
+	// Open SDL3 on a want, logging the first failure; each later want tries
+	// again.
+	if s.reader == nil {
 		reader, err := Open(s.log)
 		if err != nil {
-			s.missing = true
-			if errors.Is(err, ErrUnavailable) {
-				s.log.Info("controllers unavailable: SDL3 is not installed")
-			} else {
-				s.log.Warn("controllers unavailable", "err", err)
+			if !s.missing {
+				s.missing = true
+				s.log.Info("controllers unavailable", "err", err)
 			}
 			return nil
 		}
 		s.reader = reader
-	}
-	if s.reader == nil {
-		return nil
 	}
 
 	// Answer the epoch, starting the reader if it is not running.

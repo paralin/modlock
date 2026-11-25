@@ -3,33 +3,33 @@
 package controllers
 
 import (
-	"crypto/sha256"
-	"embed"
-	"encoding/hex"
+	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/paralin/modlock/internal/fetch"
 )
 
-// built holds the SDL3.dll a release build embeds; in any other build it
-// holds only the directory's .gitignore.
-//
-//go:embed all:built
-var built embed.FS
+// installTimeout bounds the download of SDL3.dll on a PC that lacks it.
+const installTimeout = time.Minute
 
-// loadSDL loads SDL3.dll, from beside the executable, then the one this build
-// embeds, then the system's search path, and resolves the reader's functions.
+// loadSDL loads SDL3.dll, from beside the executable, then the pinned release
+// in the user cache, downloading it there when missing, then the system's
+// search path, and resolves the reader's functions. A failed download is
+// returned with ErrUnavailable when nothing else loads.
 func loadSDL() (*sdlLib, error) {
 	// List where SDL3.dll could be.
 	var names []string
 	if exe, err := os.Executable(); err == nil {
 		names = append(names, filepath.Join(filepath.Dir(exe), "SDL3.dll"))
 	}
-	if embedded, err := installEmbedded(); err == nil && embedded != "" {
-		names = append(names, embedded)
+	pinned, installErr := installPinned()
+	if installErr == nil {
+		names = append(names, pinned)
 	}
 	names = append(names, "SDL3.dll")
 
@@ -55,32 +55,22 @@ func loadSDL() (*sdlLib, error) {
 		}
 		return lib, nil
 	}
+	if installErr != nil {
+		return nil, fmt.Errorf("%w: %v", ErrUnavailable, installErr)
+	}
 	return nil, ErrUnavailable
 }
 
-// installEmbedded copies the embedded SDL3.dll into the user cache, keyed by
-// its contents, the first time, and returns its path, or empty when this
-// build embeds none.
-func installEmbedded() (string, error) {
-	// Name the cache directory by the library's checksum.
-	data, err := built.ReadFile("built/SDL3.dll")
-	if err != nil {
-		return "", nil
-	}
-	sum := sha256.Sum256(data)
-	dir, err := fetch.Cache("sdl3", hex.EncodeToString(sum[:])[:16])
+// installPinned returns the path of the pinned SDL3.dll in the user cache,
+// downloading it there the first time.
+func installPinned() (string, error) {
+	dir, err := fetch.Cache("sdl3", SDLVersion)
 	if err != nil {
 		return "", err
 	}
-
-	// Write it into place whole.
-	err = fetch.Install(dir, func(staging string) error {
-		if err := os.MkdirAll(staging, 0o755); err != nil {
-			return err
-		}
-		return os.WriteFile(filepath.Join(staging, "SDL3.dll"), data, 0o644)
-	})
-	if err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), installTimeout)
+	defer cancel()
+	if err := InstallSDL(ctx, dir); err != nil {
 		return "", err
 	}
 	return filepath.Join(dir, "SDL3.dll"), nil
