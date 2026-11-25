@@ -16,12 +16,10 @@ namespace modlock::wasm {
 
 Game::Game(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
   // Register with the host-wide hooks while the game lives.
-  services_.ProjectileSources().Add(this);
   services_.VoiceSources().Add(this);
 }
 
 Game::~Game() {
-  services_.ProjectileSources().Remove(this);
   services_.VoiceSources().Remove(this);
 }
 
@@ -31,9 +29,8 @@ void Game::Frame() {
   ApplyFreeForAll();
   TickRestores();
 
-  // Follow what moved or left since the last frame, then run the modules,
-  // so the world finishes the units spawned this frame together.
-  TrackProjectiles();
+  // Run the modules, so the world finishes the units spawned this frame
+  // together.
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
@@ -106,8 +103,7 @@ void Game::Clear() {
   npc_restore_.reset();
   npcs_restored_.reset();
 
-  // Stop watching projectiles, then release what each module holds.
-  projectiles_.Clear();
+  // Release what each module holds.
   for (auto* module : std::views::reverse(modules_)) {
     module->Clear();
   }

@@ -12,20 +12,6 @@ namespace modlock::wasm {
 // registers them while it lives (game.cc), so each hook sees only the answers
 // below and none of the state behind them.
 
-bool Game::KeepsMomentum() const {
-  return projectiles_.keep_momentum();
-}
-
-std::vector<ProjectileSource::HeroMotion> Game::Motions() {
-  std::vector<HeroMotion> motions;
-  for (const auto& hero : players_.Heroes()) {
-    if (hero.velocity) {
-      motions.push_back({.pawn = hero.pawn, .velocity = *hero.velocity});
-    }
-  }
-  return motions;
-}
-
 bool Game::Silences(int32_t concept_value) const {
   return silenced_.contains(concept_value);
 }

@@ -59,6 +59,7 @@
 #include "wasm/module.h"
 #include "wasm/npc_restore.h"
 #include "wasm/players.h"
+#include "wasm/projectiles.h"
 #include "wasm/team_seating.h"
 #include "wasm/world.h"
 
@@ -382,7 +383,7 @@ class GameServices {
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
-class Game : public HostService, private ProjectileSource, private VoiceSource {
+class Game : public HostService, private VoiceSource {
  public:
   Game(GameServices& services, EngineHost* engine);
   ~Game() override;
@@ -504,7 +505,7 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
 
   // TakeLaunches returns the watched projectiles that appeared since the last
   // call.
-  std::vector<combat::LaunchEvent> TakeLaunches() { return std::exchange(launches_, {}); }
+  std::vector<combat::LaunchEvent> TakeLaunches() { return projectiles_.TakeLaunches(); }
 
  protected:
   // Serves reports whether this game currently controls the player's slot.
@@ -518,13 +519,11 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
 
   // Impacted delivers a watched projectile's impact to the mod, inside the
   // game's impact.
-  void Impacted(const combat::ImpactEvent& event) override = 0;
+  virtual void Impacted(const combat::ImpactEvent& event) = 0;
 
  private:
   // What the host-wide hooks read of this game, through the source
   // interfaces it registers with services_ (game_sources.cc).
-  bool KeepsMomentum() const override;
-  std::vector<HeroMotion> Motions() override;
   bool Silences(int32_t concept_value) const override;
   bool SilencesSpeaker(uint32_t speaker, int32_t concept_value) const override;
 
@@ -979,7 +978,9 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   }
 
   std::expected<void, std::string> WatchProjectiles(
-      const combat::ProjectileOptions& request) override;
+      const combat::ProjectileOptions& request) override {
+    return projectiles_.WatchProjectiles(request);
+  }
 
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
   std::expected<int32_t, std::string> ScreenOwner(int32_t slot);
@@ -1028,19 +1029,6 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
 
-  // TrackProjectiles queues a Launch for each watched projectile that
-  // appeared since the last frame.
-  void TrackProjectiles();
-
-  // Watching returns the Impact event for a projectile the mod watches, or
-  // nothing.
-  std::optional<combat::ImpactEvent> Watching(void* entity,
-                                              const gameinterop::TraceResult& contact) override;
-
-  // Owner returns a projectile's owning entity and the slot of the player
-  // whose hero it is, or -1.
-  std::pair<uint32_t, int32_t> Owner(void* entity);
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
@@ -1061,12 +1049,6 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   // and silenced_players_ those it keeps from one player's hero, by slot.
   std::set<int32_t> silenced_;
   std::map<int32_t, std::set<int32_t>> silenced_players_;
-  // projectiles_ is the mod's projectile watch. projectiles_seen_ holds the
-  // watched projectiles of the last frame, and launches_ queues the new ones
-  // for the mod.
-  combat::ProjectileOptions projectiles_;
-  std::set<uint32_t> projectiles_seen_;
-  std::vector<combat::LaunchEvent> launches_;
   // restores_ are the running hero restores by player slot, ticked once per
   // frame; restored_ queues the ones that ended for the mod.
   std::map<int32_t, HeroRestore> restores_;
@@ -1091,8 +1073,11 @@ class Game : public HostService, private ProjectileSource, private VoiceSource {
   Camera camera_{services_, players_, world_};
   wasm::HeroMovement movement_{services_, players_, world_, modifiers_};
   wasm::Input input_{services_};
-  std::array<Module*, 10> modules_{&players_,   &world_,  &match_,  &apart_,    &fields_,
-                                   &modifiers_, &heroes_, &camera_, &movement_, &input_};
+  Projectiles projectiles_{services_, players_,
+                           [this](const combat::ImpactEvent& event) { Impacted(event); }};
+  std::array<Module*, 11> modules_{&players_,  &world_,     &match_,      &apart_,
+                                   &fields_,   &modifiers_, &heroes_,     &camera_,
+                                   &movement_, &input_,     &projectiles_};
 };
 
 }  // namespace modlock::wasm
