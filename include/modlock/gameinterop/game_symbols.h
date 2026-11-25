@@ -126,7 +126,7 @@ struct GameSignatureLoad {
 // ResolveSignature resolves the recorded signature with id. An unknown id is
 // an error. In a loaded image the address is found once and kept for the life
 // of the process, so only the first lookup of an id scans the module; a
-// failure is not kept, and the next lookup scans again.
+// failure is kept too, so an unavailable feature never rescans the module.
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> ResolveSignature(
     const ModuleImage& image, std::string_view id);
 

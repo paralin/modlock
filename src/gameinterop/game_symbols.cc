@@ -46,14 +46,13 @@ bool IsRipRelativeLoad(std::span<const uint8_t> bytes, size_t site) {
   return (rex & 0xF8) == 0x48 && (opcode == 0x8D || opcode == 0x8B) && (modrm & 0xC7) == 0x05;
 }
 
-// ResolvedSignatures keeps the address of each signature found in a loaded
-// module, for the life of the process. A module's code does not move, and an
-// address found before a hook rewrote its function's entry stays right where
-// a second scan would no longer match.
+// ResolvedSignatures keeps each loaded module's resolution, including a
+// failure, for the life of the process. The module's code does not move, and
+// rescanning a missing signature cannot recover until the module changes.
 class ResolvedSignatures {
  public:
-  // Find returns the address kept for id in the module at base.
-  std::optional<void*> Find(std::uintptr_t base, std::string_view id) {
+  // Find returns the resolution kept for id in the module at base.
+  std::optional<std::expected<void*, std::string>> Find(std::uintptr_t base, std::string_view id) {
     // Look in the module's addresses, when it has any.
     const std::lock_guard lock(mu_);
     const auto module = modules_.find(base);
@@ -67,8 +66,9 @@ class ResolvedSignatures {
     return found->second;
   }
 
-  // Keep records the address of id in the module at base.
-  void Keep(std::uintptr_t base, std::string_view id, void* address) {
+  // Keep records the resolution of id in the module at base.
+  void Keep(std::uintptr_t base, std::string_view id,
+            const std::expected<void*, std::string>& address) {
     const std::lock_guard lock(mu_);
     modules_[base].emplace(id, address);
   }
@@ -76,13 +76,14 @@ class ResolvedSignatures {
  private:
   // mu_ guards modules_.
   std::mutex mu_;
-  // modules_ holds each module's addresses by signature id, keyed by its base.
-  std::map<std::uintptr_t, std::map<std::string, void*, std::less<>>> modules_;
+  // modules_ holds each module's resolutions by signature id, keyed by its base.
+  std::map<std::uintptr_t, std::map<std::string, std::expected<void*, std::string>, std::less<>>>
+      modules_;
 };
 
 // ResolveKept resolves signature in image, scanning a loaded image only until
-// the signature is found there once. The scan runs outside the lock, so two
-// threads may both scan for one id; they find the same address.
+// the signature is resolved there once, whether found or absent. The scan
+// runs outside the lock, so concurrent first lookups may both scan.
 std::expected<void*, std::string> ResolveKept(const ModuleImage& image,
                                               const GameSignature& signature) {
   // Only a loaded module keeps its addresses.
@@ -96,9 +97,7 @@ std::expected<void*, std::string> ResolveKept(const ModuleImage& image,
     return *kept;
   }
   const auto address = ResolveSignature(image, signature);
-  if (address) {
-    resolved.Keep(image.base(), signature.id, *address);
-  }
+  resolved.Keep(image.base(), signature.id, address);
   return address;
 }
 
