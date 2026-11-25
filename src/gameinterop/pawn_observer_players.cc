@@ -608,13 +608,15 @@ std::expected<void, std::string> PawnObserver::MovePlayer(int32_t slot, uint32_t
   uint32_t hero = 0;
   std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
   const uint8_t from = controller[layout_.team];
-  if (from < 2 || !IdentityOfHandle(list, hero)) {
+  auto* identity = IdentityOfHandle(list, hero);
+  auto* pawn = identity ? static_cast<unsigned char*>(InstanceOf(identity)) : nullptr;
+  if (from < 2 || !pawn) {
     return std::unexpected("player has no hero to move; select one on the team instead");
   }
-  if (from != team) {
+  if (from != team || pawn[layout_.team] != team) {
     std::fprintf(stderr, "[modlock] player team change: slot=%d generation=%u team=%u->%d\n", slot,
                  generation, from, team);
-    change_team(controller, team);
+    change_team.Move(controller, pawn, team);
   }
   return {};
 }

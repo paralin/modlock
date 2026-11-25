@@ -1,0 +1,32 @@
+[
+  {
+    "name": "The controller's matching team suppresses pawn repair",
+    "replace": [
+      [
+        "/\\ pawn' = target /\\ phase' = \"restore\"",
+        "/\\ pawn' = pawn /\\ phase' = \"restore\""
+      ]
+    ],
+    "expect": "Converged"
+  },
+  {
+    "name": "The pawn changes team with hero teardown enabled",
+    "replace": [
+      [
+        "/\\ teardown' = FALSE /\\ phase' = \"pawn\"",
+        "/\\ teardown' = TRUE /\\ phase' = \"pawn\""
+      ]
+    ],
+    "expect": "HeroPreserved"
+  },
+  {
+    "name": "Seating accepts matching controller while its hero belongs to the old team",
+    "replace": [
+      [
+        "SeatingMatches == controller = target /\\ pawn = target",
+        "SeatingMatches == controller = target"
+      ]
+    ],
+    "expect": "Converged"
+  }
+]

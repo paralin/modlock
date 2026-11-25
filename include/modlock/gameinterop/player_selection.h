@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "modlock/export.h"
 #include "modlock/gameinterop/hero_definitions.h"
 
@@ -29,8 +31,23 @@ using RespawnPawn = void (*)(void* pawn, bool force);
 MODLOCK_API std::expected<RespawnPawn, std::string> ResolveRespawnPawn(const ModuleImage& server);
 
 // ChangeTeamKeepingHero moves a controller to another team with its hero pawn,
-// which keeps its hero, abilities, items, health and place.
-using ChangeTeamKeepingHero = void (*)(void* controller, int team);
+// which keeps its hero, abilities, items, health and place. The pawn's native
+// team change also runs when its controller already reports the requested team.
+struct MODLOCK_API ChangeTeamKeepingHero {
+  // controller changes the controller and its pawn through the keep-hero wrapper.
+  void (*controller)(void*, int) = nullptr;
+  // pawn changes the pawn through the base pawn's native team operations.
+  void (*pawn)(void*, int) = nullptr;
+  // keep_hero is the controller flag the game's wrapper clears during a move.
+  size_t keep_hero = 0;
+
+  explicit operator bool() const { return controller && pawn; }
+
+  // Move runs both native transitions with hero teardown disabled. Calls are
+  // synchronous and run on the engine thread, with no C++ exceptions.
+  void Move(void* controller_entity, void* pawn_entity, int team) const;
+};
+
 MODLOCK_API std::expected<ChangeTeamKeepingHero, std::string> ResolveChangeTeamKeepingHero(
     const ModuleImage& server);
 

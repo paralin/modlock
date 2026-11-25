@@ -572,6 +572,8 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   fixture.generation = 3;
   fixture.controller = MakeController(HandleOf(2, 7));
   Instance spectator{}, hero{};
+
+  // Give the fixture hero its identity.
   expected_pawn = hero.data();
   respawned = 0;
   const uint32_t hero_id = 13;
@@ -618,6 +620,73 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   EXPECT_FALSE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
+}
+
+TEST(PawnObserver, TeamChangeRepairsAPawnWhoseControllerAlreadyAgrees) {
+  // Give the connection a controller on team 3 and its unchanged hero on team 2.
+  static Fixture* active = nullptr;
+  static int moves = 0;
+  static int repairs = 0;
+  Fixture fixture;
+  Instance hero{};
+  active = &fixture;
+  moves = 0;
+  repairs = 0;
+
+  // The fixture teardown flag is separate from the real game's byte offset.
+  constexpr size_t flag = 0xf0;
+  fixture.occupied = true;
+  fixture.generation = 3;
+  fixture.controller[kTeamField] = 3;
+  fixture.controller[flag] = 1;
+  hero[kTeamField] = 2;
+  hero[0xf1] = 0x5a;
+
+  // Register the hero and bind it to this controller.
+  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+  fixture.image.SetIdentity(2, hero.data(), 7, 0);
+  const auto handle = HandleOf(2, 7);
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &handle, sizeof(handle));
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &handle, sizeof(handle));
+  PawnObserver observer{HeroSeamsFor(fixture)};
+
+  // Model the native controller early-out, then the pawn's native transition.
+  modlock::gameinterop::ChangeTeamKeepingHero change{
+      .controller =
+          +[](void* entity, int team) {
+            if (static_cast<unsigned char*>(entity)[kTeamField] != team) {
+              ++moves;
+              static_cast<unsigned char*>(entity)[kTeamField] = static_cast<unsigned char>(team);
+            }
+          },
+      .pawn =
+          +[](void* entity, int team) {
+            EXPECT_EQ(active->controller[flag], 0);
+            ++repairs;
+            static_cast<unsigned char*>(entity)[kTeamField] = static_cast<unsigned char>(team);
+          },
+      .keep_hero = flag,
+  };
+
+  // A matching controller must not suppress repair of the mismatched pawn.
+  ASSERT_TRUE(observer.MovePlayer(0, 3, 3, change));
+  EXPECT_EQ(moves, 0);
+  EXPECT_EQ(repairs, 1);
+  EXPECT_EQ(hero[kTeamField], 3);
+  EXPECT_EQ(fixture.controller[flag], 1);
+  EXPECT_EQ(hero[0xf1], 0x5a);
+
+  // Both teams already match, so the next call performs no native work.
+  ASSERT_TRUE(observer.MovePlayer(0, 3, 3, change));
+  EXPECT_EQ(repairs, 1);
+
+  // A normal move still updates the controller and its same hero in place.
+  ASSERT_TRUE(observer.MovePlayer(0, 3, 2, change));
+  EXPECT_EQ(moves, 1);
+  EXPECT_EQ(repairs, 2);
+  EXPECT_EQ(hero[kTeamField], 2);
+  EXPECT_EQ(hero[0xf1], 0x5a);
+  active = nullptr;
 }
 
 }  // namespace

@@ -155,6 +155,7 @@ void Seating::ApplyFreeForAll() {
 }
 
 void Seating::ReleaseFreeForAll() {
+  // Release native relations before clearing the per-entity overrides.
   services_.DisableRelations();
   static constexpr const char* kFriendlyFire = "MODIFIER_STATE_FRIENDLY_FIRE_ENABLED";
   for (const auto handle : ffa_held_) {
@@ -177,7 +178,7 @@ std::expected<void, std::string> Seating::SeatAssignedPlayer(int32_t slot, uint3
   }
   const auto hero = team != 1 && *current >= 2 ? players_.Observer().Observe(slot) : std::nullopt;
   if (hero && hero->team >= 2 && hero->hero_id != 0) {
-    if (*current == team) {
+    if (*current == team && hero->team == team) {
       return {};
     }
     auto change = services_.ChangeTeam();
