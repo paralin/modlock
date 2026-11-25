@@ -219,6 +219,7 @@ add_library(modlock_sdk SHARED
   src/wasm/camera.cc
   src/wasm/hero_movement.cc
   src/wasm/input.cc
+  src/wasm/projectiles.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc
@@ -226,7 +227,6 @@ add_library(modlock_sdk SHARED
   src/wasm/game_services.cc
   src/wasm/game_services_input.cc
   src/wasm/game_sources.cc
-  src/wasm/game_watches.cc
   src/wasm/hero_restore.cc
   src/wasm/attendance.cc
   src/wasm/controller_table.cc

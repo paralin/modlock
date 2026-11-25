@@ -1,11 +1,10 @@
 //go:build deps_only
 
+#include "wasm/projectiles.h"
+
 #include <algorithm>
-#include <array>
 #include <cstring>
-#include <span>
-#include <utility>
-#include <vector>
+#include <string_view>
 
 #include "wasm/entity_fields.h"
 #include "wasm/game.h"
@@ -22,18 +21,33 @@ bool Watches(const combat::ProjectileOptions& options, std::string_view name) {
 
 }  // namespace
 
-std::expected<void, std::string> Game::WatchProjectiles(const combat::ProjectileOptions& request) {
-  projectiles_ = request;
-  if (!projectiles_.names().empty()) {
+Projectiles::Projectiles(GameServices& services, Players& players, Deliver deliver)
+    : services_(services), players_(players), deliver_(std::move(deliver)) {
+  services_.ProjectileSources().Add(this);
+}
+
+Projectiles::~Projectiles() {
+  services_.ProjectileSources().Remove(this);
+}
+
+std::expected<void, std::string> Projectiles::WatchProjectiles(
+    const combat::ProjectileOptions& request) {
+  watch_ = request;
+  if (!watch_.names().empty()) {
     services_.Projectiles();
   }
   return {};
 }
 
-void Game::TrackProjectiles() {
+void Projectiles::Clear() {
+  watch_.Clear();
+  launches_.clear();
+}
+
+void Projectiles::Frame() {
   // With no projectile watched, forget the ones seen.
-  if (projectiles_.names().empty()) {
-    projectiles_seen_.clear();
+  if (watch_.names().empty()) {
+    seen_.clear();
     return;
   }
 
@@ -46,7 +60,7 @@ void Game::TrackProjectiles() {
   for (void* entity : gameinterop::EntityInstances(*entities)) {
     // Track each watched projectile.
     const auto name = gameinterop::DesignerName(entity);
-    if (!Watches(projectiles_, name)) {
+    if (!Watches(watch_, name)) {
       continue;
     }
     const auto handle = gameinterop::ReferenceHandleOf(entity);
@@ -56,7 +70,7 @@ void Game::TrackProjectiles() {
     seen.insert(*handle);
 
     // Skip one already seen.
-    if (projectiles_seen_.contains(*handle) || launches_.size() >= kMaxChanges) {
+    if (seen_.contains(*handle) || launches_.size() >= kMaxChanges) {
       continue;
     }
 
@@ -72,14 +86,14 @@ void Game::TrackProjectiles() {
     }
     launches_.push_back(std::move(launch));
   }
-  projectiles_seen_ = std::move(seen);
+  seen_ = std::move(seen);
 }
 
-std::optional<combat::ImpactEvent> Game::Watching(void* entity,
-                                                  const gameinterop::TraceResult& contact) {
+std::optional<combat::ImpactEvent> Projectiles::Watching(void* entity,
+                                                         const gameinterop::TraceResult& contact) {
   // Only a watched projectile reports an impact.
   const auto name = gameinterop::DesignerName(entity);
-  if (!Watches(projectiles_, name)) {
+  if (!Watches(watch_, name)) {
     return std::nullopt;
   }
 
@@ -99,7 +113,7 @@ std::optional<combat::ImpactEvent> Game::Watching(void* entity,
   return event;
 }
 
-std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
+std::pair<uint32_t, int32_t> Projectiles::Owner(void* entity) {
   // Read the entity's owner handle.
   auto field = services_.Field("CBaseEntity", "m_hOwnerEntity");
   if (!field) {
@@ -119,6 +133,20 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
     }
   }
   return {owner, -1};
+}
+
+bool Projectiles::KeepsMomentum() const {
+  return watch_.keep_momentum();
+}
+
+std::vector<ProjectileSource::HeroMotion> Projectiles::Motions() {
+  std::vector<HeroMotion> motions;
+  for (const auto& hero : players_.Heroes()) {
+    if (hero.velocity) {
+      motions.push_back({.pawn = hero.pawn, .velocity = *hero.velocity});
+    }
+  }
+  return motions;
 }
 
 }  // namespace modlock::wasm
