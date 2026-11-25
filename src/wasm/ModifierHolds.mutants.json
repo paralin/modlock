@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Map input cleanup leaves active held modifiers behind",
+    "replace": [
+      [
+        "Removed == IF cleanup THEN pending \\cup (active \\cap holds) ELSE pending",
+        "Removed == pending"
+      ]
+    ],
+    "expect": "StoppedMarked"
+  },
+  {
+    "name": "Endless hold admitted without a native removal call",
+    "replace": [["CanHold == cleanup", "CanHold == TRUE"]],
+    "expect": "AdmittedCleanup"
+  }
+]

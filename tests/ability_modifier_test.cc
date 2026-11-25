@@ -58,17 +58,20 @@ struct ModifierSchema {
   }
 
   ModifierSchema() {
+    // Bind the fixture schema's type-scope lookup.
     system_methods[FindVirtualSlot("schema-system.find-type-scope")->index] =
         reinterpret_cast<void*>(&FindScope);
     scope_methods[FindVirtualSlot("schema-type-scope.find-declared-class")->index] =
         reinterpret_cast<void*>(&FindClass);
 
+    // Give fixture entities a life state and modifier property.
     pointer_type.name = "CModifierProperty*";
     byte_type.name = "uint8";
     list_type.name = "CUtlVector< CBaseModifier* >";
     bool_type.name = "bool";
     duration_type.name = "CModifierLevelFloat";
 
+    // Give the property its vector and prediction flag.
     entity_fields = {
         MakeField("m_lifeState", byte_type, 8),
         MakeField("m_pModifierProp", pointer_type, 16),
@@ -80,6 +83,7 @@ struct ModifierSchema {
         .fields = entity_fields.data(),
     });
 
+    // Give the definition its duration field.
     property_fields = {
         MakeField("m_vecModifiers", list_type, 0),
         MakeField("m_bPredictedOwner", bool_type, 24),
@@ -91,6 +95,7 @@ struct ModifierSchema {
         .fields = property_fields.data(),
     });
 
+    // Schema class records carry a self pointer.
     vdata_fields = {
         MakeField("m_flDuration", duration_type, 8),
     };
@@ -132,18 +137,26 @@ struct CallState {
   uint32_t last_ability_subclass = 0;
   void* last_definition = nullptr;
   uint8_t predicted_during_add = 0;
+  uint32_t removed_subclass = 0;
+  int32_t removal_reason = 0;
 };
 
 CallState g_state;
 
 void* FakeLookup(int32_t scope, uint32_t id) {
+  // Record the lookup separately from its canonical definition.
   g_state.last_scope = scope;
   g_state.last_lookup_hash = id;
+
+  // Return the definition's canonical identity, independent of the lookup key.
+  const uint32_t canonical = 0x1234abcd;
+  std::memcpy(g_state.definition.data() + 0xc, &canonical, sizeof(canonical));
   return g_state.definition.data();
 }
 
 void* FakeAdd(void* property, void* caster, uint32_t ability_handle, uint32_t ability_subclass,
               void* definition, void* params, void* kv) {
+  // Record the attachment ABI supplied by production.
   EXPECT_EQ(params, nullptr);
   EXPECT_EQ(kv, nullptr);
   g_state.last_property = property;
@@ -153,6 +166,7 @@ void* FakeAdd(void* property, void* caster, uint32_t ability_handle, uint32_t ab
   g_state.last_definition = definition;
   g_state.predicted_during_add = static_cast<unsigned char*>(property)[24];
 
+  // Expose the simulated modifier through its native vector.
   std::memcpy(g_state.instance.data() + 0x10, &definition, sizeof(definition));
   g_state.active.push_back(g_state.instance.data());
   const UtlVector<unsigned char*> vec{
@@ -166,6 +180,18 @@ void* FakeAdd(void* property, void* caster, uint32_t ability_handle, uint32_t ab
   return g_state.instance.data();
 }
 
+bool FakeRemove(void* property, uint32_t subclass, void* caster, int32_t reason) {
+  // Record the native cleanup contract and clear the simulated modifier list.
+  EXPECT_EQ(caster, nullptr);
+  g_state.last_property = property;
+  g_state.removed_subclass = subclass;
+  g_state.removal_reason = reason;
+  g_state.active.clear();
+  const UtlVector<unsigned char*> empty{};
+  std::memcpy(property, &empty, sizeof(empty));
+  return true;
+}
+
 TEST(AbilityModifier, AttachesEmbeddedAndStandaloneModifiersToEntitiesAndRestoresDuration) {
   // Prepare a live entity and its modifier property.
   ModifierSchema schema;
@@ -173,27 +199,34 @@ TEST(AbilityModifier, AttachesEmbeddedAndStandaloneModifiersToEntitiesAndRestore
   const float stock_duration = 6.0f;
   std::memcpy(g_state.definition.data() + 8, &stock_duration, sizeof(stock_duration));
 
+  // Bind a modifier property to the entity.
   std::array<unsigned char, 32> property{};
   std::array<unsigned char, 24> entity{};
   unsigned char* property_ptr = property.data();
   std::memcpy(entity.data() + 16, &property_ptr, sizeof(property_ptr));
 
   // Resolve an embedded modifier and attach it without an owned ability handle.
-  auto modifier = AbilityModifier::Resolve(FakeLookup, FakeAdd, &schema.system,
-                                           "upgrade_colossus/modifier_colossus_active", -1.0f);
+  auto calls = AbilityModifier::ResolveCalls(FakeLookup, FakeAdd, &schema.system);
+  ASSERT_TRUE(calls) << calls.error();
+  calls->remove = FakeRemove;
+  auto modifier =
+      AbilityModifier::Resolve(*calls, "upgrade_colossus/modifier_colossus_active", -1.0f);
   ASSERT_TRUE(modifier) << modifier.error();
   EXPECT_EQ(g_state.last_scope, 2);
   EXPECT_EQ(g_state.last_lookup_hash,
             MakeMemberName("upgrade_colossus/modifier_colossus_active").hash);
 
+  // An endless hold changes the shared definition duration.
   float active_duration = 0;
   std::memcpy(&active_duration, g_state.definition.data() + 8, sizeof(active_duration));
   EXPECT_FLOAT_EQ(active_duration, -1.0f);
 
+  // The modifier is absent before attachment.
   const auto before = modifier->AttachedToEntity(entity.data());
   ASSERT_TRUE(before) << before.error();
   EXPECT_FALSE(*before);
 
+  // Attachment uses its parent ability subclass.
   const auto attached = modifier->AttachEntity(entity.data());
   ASSERT_TRUE(attached) << attached.error();
   EXPECT_EQ(g_state.last_property, property.data());
@@ -201,13 +234,25 @@ TEST(AbilityModifier, AttachesEmbeddedAndStandaloneModifiersToEntitiesAndRestore
   EXPECT_EQ(g_state.last_ability_handle, kInvalidEHandleIndex);
   EXPECT_EQ(g_state.last_ability_subclass, MakeMemberName("upgrade_colossus").hash);
   EXPECT_EQ(g_state.last_definition, g_state.definition.data());
+
+  // Prediction is enabled only during the native call.
   EXPECT_EQ(g_state.predicted_during_add, 1u);
   EXPECT_EQ(property[24], 0u);
 
+  // A definition match recognizes the attached instance.
   const auto after = modifier->AttachedToEntity(entity.data());
   ASSERT_TRUE(after) << after.error();
   EXPECT_TRUE(*after);
 
+  // Stop cleanup uses the full embedded key and the game's native remove reason.
+  ASSERT_TRUE(modifier->RemoveFromEntity(entity.data()));
+  EXPECT_EQ(g_state.last_property, property.data());
+  EXPECT_EQ(g_state.removed_subclass, 0x1234abcdu);
+  EXPECT_EQ(g_state.removal_reason, 6);
+  EXPECT_FALSE(modifier->AttachedToEntity(entity.data()).value_or(true));
+
+  // Cleanup is idempotent and restoring the definition keeps its stock duration.
+  ASSERT_TRUE(modifier->RemoveFromEntity(entity.data()));
   modifier->Restore();
   std::memcpy(&active_duration, g_state.definition.data() + 8, sizeof(active_duration));
   EXPECT_FLOAT_EQ(active_duration, stock_duration);
@@ -222,17 +267,20 @@ TEST(AbilityModifier, AttachesEmbeddedAndStandaloneModifiersToEntitiesAndRestore
 }
 
 TEST(AbilityModifier, RefusesDeadEntitiesAndEntitiesWithoutModifierProperty) {
+  // Resolve against the fixture schema.
   ModifierSchema schema;
   g_state = CallState{};
   auto modifier = AbilityModifier::Resolve(FakeLookup, FakeAdd, &schema.system,
                                            "modifier_citadel_idol_glow", 5.0f);
   ASSERT_TRUE(modifier) << modifier.error();
 
+  // A missing modifier property cannot accept attachment.
   std::array<unsigned char, 32> property{};
   std::array<unsigned char, 24> entity{};
   EXPECT_FALSE(modifier->AttachEntity(entity.data()));
   EXPECT_FALSE(modifier->AttachedToEntity(entity.data()));
 
+  // A property cannot make a dead entity eligible.
   unsigned char* property_ptr = property.data();
   std::memcpy(entity.data() + 16, &property_ptr, sizeof(property_ptr));
   entity[8] = 2;  // LIFE_DEAD
@@ -261,6 +309,7 @@ TEST(AbilityModifier, ResolvedCallsServeLaterModifiersWithoutTheSchema) {
   unsigned char* property_ptr = property.data();
   std::memcpy(entity.data() + 16, &property_ptr, sizeof(property_ptr));
   for (const std::string_view key : {"modifier_citadel_idol_glow", "upgrade_colossus/modifier_x"}) {
+    // Reuse only the cached native calls and offsets.
     auto modifier = AbilityModifier::Resolve(*calls, key, 3.0f);
     ASSERT_TRUE(modifier) << modifier.error();
     EXPECT_EQ(g_state.last_lookup_hash, MakeMemberName(key).hash);
