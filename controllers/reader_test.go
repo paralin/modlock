@@ -7,6 +7,7 @@ import (
 	"maps"
 	"runtime"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 	"unsafe"
@@ -263,5 +264,24 @@ func TestRunStreamsVirtualDevices(t *testing.T) {
 	}
 	if skew > MinInterval {
 		t.Fatalf("clock axis is %v behind", skew)
+	}
+}
+
+// TestMissingSDLSymbol checks both an early and a late missing function without
+// invoking any of the partially registered native functions.
+func TestMissingSDLSymbol(t *testing.T) {
+	for _, missing := range []string{"SDL_SetHint", "SDL_UpdateJoysticks"} {
+		t.Run(missing, func(t *testing.T) {
+			lib := &sdlLib{}
+			err := lib.register(func(name string) (uintptr, error) {
+				if name == missing {
+					return 0, errors.New("missing " + name)
+				}
+				return 1, nil
+			})
+			if err == nil || !strings.Contains(err.Error(), missing) {
+				t.Fatalf("register = %v; want missing %s", err, missing)
+			}
+		})
 	}
 }

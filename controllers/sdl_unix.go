@@ -3,7 +3,7 @@
 package controllers
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,24 +32,41 @@ func sdlNames() []string {
 
 // loadSDL loads the first SDL3 library sdlNames finds.
 func loadSDL() (*sdlLib, error) {
+	// Keep each candidate's diagnostic while trying the remaining libraries.
+	failures := []error{ErrUnavailable}
 	for _, name := range sdlNames() {
-		if lib, err := openSDL(name); err == nil {
+		lib, err := openSDL(name)
+		if err == nil {
 			return lib, nil
 		}
+		failures = append(failures, err)
 	}
-	return nil, ErrUnavailable
+	return nil, errors.Join(failures...)
 }
 
 // openSDL loads the SDL3 library at name and resolves the reader's functions.
 func openSDL(name string) (*sdlLib, error) {
+	// Open the library without publishing any of its functions yet.
 	handle, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
+		return nil, err
 	}
+
+	// Release an incomplete library before trying the next candidate.
 	lib := &sdlLib{}
-	lib.register(handle)
+	if err := lib.register(func(name string) (uintptr, error) { return purego.Dlsym(handle, name) }); err != nil {
+		purego.Dlclose(handle)
+		return nil, err
+	}
+
+	// Resolve the struct-returning function with the Unix calling convention.
 	var guid func(js uintptr) sdlGUID
-	purego.RegisterLibFunc(&guid, handle, "SDL_GetJoystickGUID")
+	addr, err := purego.Dlsym(handle, "SDL_GetJoystickGUID")
+	if err != nil {
+		purego.Dlclose(handle)
+		return nil, errors.New("controllers: resolve SDL_GetJoystickGUID: " + err.Error())
+	}
+	purego.RegisterFunc(&guid, addr)
 	lib.guid = guid
 	return lib, nil
 }

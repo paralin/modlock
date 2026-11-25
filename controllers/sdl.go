@@ -115,9 +115,8 @@ type sdlLib struct {
 	UpdateJoysticks          func()
 }
 
-// register resolves every function in lib from the library handle, and
-// panics, as purego does, when one is missing.
-func (lib *sdlLib) register(handle uintptr) {
+// register resolves every function in lib, returning the first missing symbol.
+func (lib *sdlLib) register(resolve func(string) (uintptr, error)) error {
 	for _, fn := range []struct {
 		ptr  any
 		name string
@@ -155,8 +154,13 @@ func (lib *sdlLib) register(handle uintptr) {
 		{&lib.SetJoystickVirtualHat, "SDL_SetJoystickVirtualHat"},
 		{&lib.UpdateJoysticks, "SDL_UpdateJoysticks"},
 	} {
-		purego.RegisterLibFunc(fn.ptr, handle, fn.name)
+		addr, err := resolve(fn.name)
+		if err != nil {
+			return errors.New("controllers: resolve " + fn.name + ": " + err.Error())
+		}
+		purego.RegisterFunc(fn.ptr, addr)
 	}
+	return nil
 }
 
 // joysticks returns the ids of the attached joysticks.
