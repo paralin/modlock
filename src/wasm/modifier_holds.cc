@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <optional>
 
 #include "modlock/gameinterop/entity_abi.h"
@@ -22,6 +23,7 @@ namespace {
 // at +0x10 as in Deadworks CBaseModifier, keeps its interned name at +0x10, as
 // every CEntitySubclassVDataBase does. An unreadable name is empty.
 std::string ModifierName(const unsigned char* modifier) {
+  // Follow the definition and its interned name only while both are readable.
   const unsigned char* definition = nullptr;
   const char* interned = nullptr;
   if (!gameinterop::ReadNative(modifier + 0x10, &definition, sizeof(definition)) || !definition ||
@@ -87,23 +89,25 @@ void ModifierHolds::Clear() {
   }
   states_.clear();
 
-  // Remove active held modifiers from live entities when the mod stops, so
-  // infinite modifiers (such as camera-override modifiers) do not outlive it.
-  if (auto* world = world_.Loaded()) {
-    auto modifier_name = [](std::string_view key) -> std::string_view {
-      const auto slash = key.find('/');
-      return slash == std::string_view::npos ? key : key.substr(slash + 1);
-    };
-    for (const auto& [slot, key] : held_slots_) {
-      if (const auto sample = players_.Observer().Observe(slot); sample && sample->pawn_handle) {
-        static_cast<void>(world->FireInput(sample->pawn_handle, "RemoveModifier",
-                                           gameinterop::EntityValue{modifier_name(key)},
-                                           std::nullopt));
-      }
+  // Remove each held definition from its target. The native property
+  // owns callbacks and deferred deletion; restore durations only afterwards.
+  bool removal_logged = false;
+  auto remove = [this, &removal_logged](void* entity, const std::string& key) {
+    const auto modifier = modifiers_.find(key);
+    if (!entity || modifier == modifiers_.end()) {
+      return;
     }
-    for (const auto& [entity, key] : held_entities_) {
-      static_cast<void>(world->FireInput(
-          entity, "RemoveModifier", gameinterop::EntityValue{modifier_name(key)}, std::nullopt));
+    if (auto removed = modifier->second.RemoveFromEntity(entity); !removed && !removal_logged) {
+      std::fprintf(stderr, "[modlock] held modifier cleanup: %s\n", removed.error().c_str());
+      removal_logged = true;
+    }
+  };
+  for (const auto& [slot, key] : held_slots_) {
+    remove(players_.Observer().PawnForSlot(slot), key);
+  }
+  for (const auto& [entity, key] : held_entities_) {
+    if (auto live = LiveEntity(entity)) {
+      remove(*live, key);
     }
   }
   ReleaseModifiers();
@@ -224,12 +228,16 @@ void ModifierHolds::ReleaseModifiers() {
 }
 
 std::expected<void, std::string> ModifierHolds::EnsureHeldModifier(const std::string& key) {
+  // Share the definition duration across this mod's holds.
   if (modifiers_.contains(key)) {
     return {};
   }
   auto calls = services_.ModifierCalls();
   if (!calls) {
     return std::unexpected(calls.error());
+  }
+  if (!(*calls)->remove) {
+    return std::unexpected("held modifiers require native modifier removal");
   }
   auto modifier = gameinterop::AbilityModifier::Resolve(**calls, key, -1);
   if (!modifier) {
@@ -240,6 +248,7 @@ std::expected<void, std::string> ModifierHolds::EnsureHeldModifier(const std::st
 }
 
 uint32_t ModifierHolds::EntityAbilityHandle(uint32_t handle, std::string_view key) {
+  // Resolve a source only for an embedded modifier on a player's hero.
   const auto slash = key.find('/');
   const auto slot = players_.SlotOfPawn(handle);
   if (slash == std::string_view::npos || !slot) {
@@ -358,6 +367,7 @@ std::expected<void, std::string> ModifierHolds::GiveEntityModifier(
 
 std::expected<uint32_t, std::string> ModifierHolds::ModifierSource(int32_t slot,
                                                                    std::string_view key) {
+  // Read the hero's owned abilities for the modifier's source.
   auto owned = players_.Observer().CurrentAbilitiesForSlot(slot);
   if (!owned) {
     return std::unexpected(owned.error());
@@ -446,6 +456,7 @@ std::expected<fields::FieldResponse, std::string> ModifierHolds::ReadModifierFie
 
 std::expected<abilities::ActiveResponse, std::string> ModifierHolds::ModifierState(
     const abilities::ModifierStateRequest& request) {
+  // Read the native mask without creating a hold.
   auto active = ReadModifierState(services_, request.entity(), request.state());
   if (!active) {
     return std::unexpected(active.error());
@@ -480,6 +491,7 @@ std::expected<abilities::ModifiersResponse, std::string> ModifierHolds::Modifier
     bool found = false;
   };
 
+  // Request only the fields returned by the response.
   std::array<Read, 9> reads{{{"m_hCaster"},
                              {"m_hAbility"},
                              {"m_flCreationTime"},
@@ -501,6 +513,7 @@ std::expected<abilities::ModifiersResponse, std::string> ModifierHolds::Modifier
   // at its default, so one unreadable field still lists the modifier.
   abilities::ModifiersResponse response;
   for (auto* modifier : *modifiers) {
+    // Read each optional schema field through a bounded native read.
     auto field = [&]<typename T>(const Read& read, T fallback) {
       T value = fallback;
       if (read.found && !gameinterop::ReadNative(modifier + read.offset, &value, sizeof(value))) {
@@ -508,6 +521,8 @@ std::expected<abilities::ModifiersResponse, std::string> ModifierHolds::Modifier
       }
       return value;
     };
+
+    // Identify this modifier and its source entities.
     auto* entry = response.add_modifiers();
     entry->set_name(ModifierName(modifier));
     entry->set_class_name(gameinterop::ObjectClassName(modifier));
@@ -515,6 +530,8 @@ std::expected<abilities::ModifiersResponse, std::string> ModifierHolds::Modifier
     const auto ability_handle = field(ability, uint32_t{0xFFFFFFFFu});
     entry->set_caster(caster_handle == 0xFFFFFFFFu ? 0 : caster_handle);
     entry->set_ability(ability_handle == 0xFFFFFFFFu ? 0 : ability_handle);
+
+    // Copy its state and timing into the response.
     entry->set_stacks(field(stacks, int16_t{0}));
     entry->set_max_stacks(field(max_stacks, int16_t{0}));
     entry->set_team(field(team, uint8_t{0}));

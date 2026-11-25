@@ -22,6 +22,9 @@ namespace modlock::gameinterop {
 class MODLOCK_API AbilityModifier {
  public:
   using AddModifier = void* (*)(void*, void*, uint32_t, uint32_t, void*, void*, void*);
+  // RemoveModifier marks the named modifier for native removal, with an
+  // optional caster filter and the game's removal reason.
+  using RemoveModifier = bool (*)(void* property, uint32_t subclass, void* caster, int32_t reason);
 
   // Calls holds the native calls and schema offsets every modifier shares.
   // They belong to the server module, not the loaded world, so a host resolves
@@ -29,6 +32,8 @@ class MODLOCK_API AbilityModifier {
   struct Calls {
     AbilityDefinitions::Lookup lookup = nullptr;
     AddModifier add = nullptr;
+    // remove is optional for one-shot attachments; holds require cleanup.
+    RemoveModifier remove = nullptr;
     size_t duration = 0;
     size_t property = 0;
     size_t modifiers = 0;
@@ -71,6 +76,11 @@ class MODLOCK_API AbilityModifier {
   // modifier.
   std::expected<bool, std::string> AttachedToEntity(const void* entity) const;
 
+  // RemoveFromEntity removes this definition through the game's modifier
+  // property, including native callbacks and replication. Absence is success;
+  // the engine finishes deleting the marked modifier on its next update.
+  std::expected<void, std::string> RemoveFromEntity(void* entity) const;
+
   // EntityAlive reports whether entity's m_lifeState marks it alive.
   bool EntityAlive(const void* entity) const;
 
@@ -88,6 +98,8 @@ class MODLOCK_API AbilityModifier {
   std::expected<bool, std::string> HasDefinition(const unsigned char* property) const;
 
   AddModifier add_ = nullptr;
+  RemoveModifier remove_ = nullptr;
+  uint32_t subclass_ = 0;
   unsigned char* definition_ = nullptr;
   uint32_t ability_subclass_ = 0;
   size_t duration_ = 0;

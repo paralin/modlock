@@ -459,6 +459,15 @@ signatures {
   shape: "CModifierProperty::AddModifier"
 }
 
+# modifier_remove uses this property call with a subclass hash, no caster
+# filter, and removal reason 6. The property runs callbacks and replication.
+signatures {
+  id: "modifier.remove"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 57 41 54 41 55 41 56 41 57 48 83 EC 20 8B 41 40"
+  shape: "bool CModifierProperty::RemoveModifier(uint32 subclass, CBaseEntity* caster, int reason)"
+}
+
 # A modifier's own deserializer calls this before it changes each networked
 # field.
 signatures {

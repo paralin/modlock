@@ -20,12 +20,23 @@ std::expected<AbilityModifier::Calls, std::string> AbilityModifier::ResolveCalls
   if (!add) {
     return std::unexpected(add.error());
   }
-  return ResolveCalls(reinterpret_cast<AbilityDefinitions::Lookup>(*lookup),
-                      reinterpret_cast<AddModifier>(*add), schema);
+  auto calls = ResolveCalls(reinterpret_cast<AbilityDefinitions::Lookup>(*lookup),
+                            reinterpret_cast<AddModifier>(*add), schema);
+  if (!calls) {
+    return std::unexpected(calls.error());
+  }
+
+  // One-shot attachments still work without the cleanup call. A hold requires
+  // it before changing a duration or attaching an endless modifier.
+  if (auto remove = ResolveSignature(server, "modifier.remove")) {
+    calls->remove = reinterpret_cast<RemoveModifier>(*remove);
+  }
+  return calls;
 }
 
 std::expected<AbilityModifier::Calls, std::string> AbilityModifier::ResolveCalls(
     AbilityDefinitions::Lookup lookup, AddModifier add, void* schema) {
+  // Require both native calls before reading the schema.
   if (!lookup || !add) {
     return std::unexpected("modifier calls unavailable");
   }
@@ -75,6 +86,7 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(
 std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Calls& calls,
                                                                      std::string_view key,
                                                                      float duration) {
+  // Require the definition lookup and attachment call.
   if (!calls.lookup || !calls.add) {
     return std::unexpected("modifier calls unavailable");
   }
@@ -93,10 +105,17 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Calls
 
   // Record the call, parent ability subclass (when embedded) and offsets.
   modifier.add_ = calls.add;
+  modifier.remove_ = calls.remove;
+
+  // AddModifier copies the definition's subclass at +0xc to the instance's
+  // +0x18. Native removal matches that ID, including aliases of an embedded key.
+  std::memcpy(&modifier.subclass_, definition + 0xc, sizeof(modifier.subclass_));
   modifier.definition_ = definition;
   if (const auto slash = key.find('/'); slash != std::string_view::npos && slash > 0) {
     modifier.ability_subclass_ = MakeMemberName(key.substr(0, slash)).hash;
   }
+
+  // Keep the schema offsets used by attachment and cleanup.
   modifier.duration_ = calls.duration;
   modifier.property_ = calls.property;
   modifier.modifiers_ = calls.modifiers;
@@ -164,6 +183,22 @@ std::expected<bool, std::string> AbilityModifier::AttachedToEntity(const void* e
   return HasDefinition(*property);
 }
 
+std::expected<void, std::string> AbilityModifier::RemoveFromEntity(void* entity) const {
+  // Require the native cleanup call and the entity's modifier property.
+  if (!remove_) {
+    return std::unexpected("native modifier removal unavailable");
+  }
+  auto property = EntityProperty(entity);
+  if (!property) {
+    return std::unexpected(property.error());
+  }
+
+  // Match modifier_remove: no caster filter, reason 6. A missing modifier is
+  // already removed, so the native false result needs no retry.
+  static_cast<void>(remove_(*property, subclass_, nullptr, 6));
+  return {};
+}
+
 bool AbilityModifier::EntityAlive(const void* entity) const {
   if (!entity) {
     return false;
@@ -188,6 +223,7 @@ void* AbilityModifier::LivePawn(PawnObserver& observer, int32_t slot) {
 
 std::expected<unsigned char*, std::string> AbilityModifier::EntityProperty(
     const void* entity) const {
+  // An absent entity has no property to read.
   if (!entity) {
     return std::unexpected("the entity has no modifiers");
   }
