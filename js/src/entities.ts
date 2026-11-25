@@ -5395,16 +5395,6 @@ export class CCitadelItemPickupRejuv extends CCitadelItemPickup {
 
 export class CCitadelItemPickupRejuvHeroTest extends CCitadelItemPickupRejuv {}
 
-export class CCitadelItemPunchableNeutralGold extends CCitadelItemPickup {
-  get m_hVictimPlayer(): CBaseEntity | undefined {
-    const target = readHandle(this, 'CCitadelItemPunchableNeutralGold', 'm_hVictimPlayer')
-    return target === undefined ? undefined : new CBaseEntity(target)
-  }
-  set m_hVictimPlayer(value: CBaseEntity | undefined) {
-    putHandle(this, 'CCitadelItemPunchableNeutralGold', 'm_hVictimPlayer', value)
-  }
-}
-
 export class CCitadel_Bounce_Pad extends CCitadelAnimatingModelEntity {
   get m_hAbility(): CCitadelBaseAbility | undefined {
     const target = readHandle(this, 'CCitadel_Bounce_Pad', 'm_hAbility')
@@ -5966,18 +5956,39 @@ export class CCitadel_Pickup extends CBaseAnimGraph {
     putHandle(this, 'CCitadel_Pickup', 'm_hAssignedClaimer', value)
   }
 
-  get m_bActive(): boolean | undefined {
-    return readField(this.handle, 'CCitadel_Pickup', 'm_bActive', 'bool') as boolean | undefined
-  }
-  set m_bActive(value: boolean | undefined) {
-    put(this, 'CCitadel_Pickup', 'm_bActive', 'bool', value)
-  }
-
   get m_bInteractive(): boolean | undefined {
     return readField(this.handle, 'CCitadel_Pickup', 'm_bInteractive', 'bool') as boolean | undefined
   }
   set m_bInteractive(value: boolean | undefined) {
     put(this, 'CCitadel_Pickup', 'm_bInteractive', 'bool', value)
+  }
+
+  get m_vImpactVel(): Vector | undefined {
+    return readField(this.handle, 'CCitadel_Pickup', 'm_vImpactVel', 'vector') as Vector | undefined
+  }
+  set m_vImpactVel(value: Vector | undefined) {
+    put(this, 'CCitadel_Pickup', 'm_vImpactVel', 'vector', value)
+  }
+
+  get m_vImpactPos(): Vector | undefined {
+    return readField(this.handle, 'CCitadel_Pickup', 'm_vImpactPos', 'vector') as Vector | undefined
+  }
+  set m_vImpactPos(value: Vector | undefined) {
+    put(this, 'CCitadel_Pickup', 'm_vImpactPos', 'vector', value)
+  }
+
+  get m_flImpactTime(): number | undefined {
+    return readField(this.handle, 'CCitadel_Pickup', 'm_flImpactTime', 'float32') as number | undefined
+  }
+  set m_flImpactTime(value: number | undefined) {
+    put(this, 'CCitadel_Pickup', 'm_flImpactTime', 'float32', value)
+  }
+
+  get m_bActive(): boolean | undefined {
+    return readField(this.handle, 'CCitadel_Pickup', 'm_bActive', 'bool') as boolean | undefined
+  }
+  set m_bActive(value: boolean | undefined) {
+    put(this, 'CCitadel_Pickup', 'm_bActive', 'bool', value)
   }
 
   get m_vVacuumStartPos(): Vector | undefined {
@@ -6014,27 +6025,6 @@ export class CCitadel_Pickup extends CBaseAnimGraph {
   }
   set m_flVacuumStartTime(value: number | undefined) {
     put(this, 'CCitadel_Pickup', 'm_flVacuumStartTime', 'float32', value)
-  }
-
-  get m_vImpactVel(): Vector | undefined {
-    return readField(this.handle, 'CCitadel_Pickup', 'm_vImpactVel', 'vector') as Vector | undefined
-  }
-  set m_vImpactVel(value: Vector | undefined) {
-    put(this, 'CCitadel_Pickup', 'm_vImpactVel', 'vector', value)
-  }
-
-  get m_vImpactPos(): Vector | undefined {
-    return readField(this.handle, 'CCitadel_Pickup', 'm_vImpactPos', 'vector') as Vector | undefined
-  }
-  set m_vImpactPos(value: Vector | undefined) {
-    put(this, 'CCitadel_Pickup', 'm_vImpactPos', 'vector', value)
-  }
-
-  get m_flImpactTime(): number | undefined {
-    return readField(this.handle, 'CCitadel_Pickup', 'm_flImpactTime', 'float32') as number | undefined
-  }
-  set m_flImpactTime(value: number | undefined) {
-    put(this, 'CCitadel_Pickup', 'm_flImpactTime', 'float32', value)
   }
 }
 
@@ -6115,6 +6105,23 @@ export class CCitadel_Pickup_Health extends CCitadel_Pickup {}
 export class CCitadel_Pickup_Modifier extends CCitadel_Pickup {}
 
 export class CCitadel_Pickup_NecroDeath extends CCitadel_Pickup {}
+
+export class CCitadel_Pickup_SoulBag extends CCitadel_Pickup {
+  get m_iGoldReward(): number | undefined {
+    return readField(this.handle, 'CCitadel_Pickup_SoulBag', 'm_iGoldReward', 'int32') as number | undefined
+  }
+  set m_iGoldReward(value: number | undefined) {
+    put(this, 'CCitadel_Pickup_SoulBag', 'm_iGoldReward', 'int32', value)
+  }
+
+  get m_hVictimPlayer(): CCitadelPlayerPawn | undefined {
+    const target = readHandle(this, 'CCitadel_Pickup_SoulBag', 'm_hVictimPlayer')
+    return target === undefined ? undefined : new CCitadelPlayerPawn(target)
+  }
+  set m_hVictimPlayer(value: CCitadelPlayerPawn | undefined) {
+    putHandle(this, 'CCitadel_Pickup_SoulBag', 'm_hVictimPlayer', value)
+  }
+}
 
 export class CCitadel_PickupItemSpawner extends CBaseAnimGraph {
   get m_tNextDropTime(): number | undefined {
@@ -38428,9 +38435,6 @@ const keysCCitadelItemPickupIdol: KeyMap<CCitadelItemPickupIdolKeys> = { base: k
 export interface CCitadel_PickupItemSpawnerKeys extends CBaseAnimGraphKeys {}
 const keysCCitadel_PickupItemSpawner: KeyMap<CCitadel_PickupItemSpawnerKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
-export interface CCitadelItemPunchableNeutralGoldKeys extends CCitadelItemPickupKeys {}
-const keysCCitadelItemPunchableNeutralGold: KeyMap<CCitadelItemPunchableNeutralGoldKeys> = { base: keysCCitadelItemPickup, keys: {} }
-
 const tableCCitadel_NewYears_Fireworks = {
   ShowDurationSeconds: 'integer',
   ShowDelaySeconds: 'integer',
@@ -41864,7 +41868,6 @@ const designers = {
   citadel_item_pickup_rejuv_herotest: { make: CCitadelItemPickupRejuvHeroTest, keys: keysCCitadelItemPickup, subclass: 'citadel_item_pickup_rejuv_herotest' } as Designer<typeof CCitadelItemPickupRejuvHeroTest, CCitadelItemPickupKeys>,
   citadel_item_pickup_rejuv_herotest_infospawn: { make: CCitadelItemPickupRejuvHeroTestInfoSpawn, keys: keysCPointEntity } as Designer<typeof CCitadelItemPickupRejuvHeroTestInfoSpawn, CPointEntityKeys>,
   citadel_item_powerup_spawner: { make: CCitadel_PickupItemSpawner, keys: keysCCitadel_PickupItemSpawner, subclass: 'citadel_item_powerup_spawner_bounty_runes' } as Designer<typeof CCitadel_PickupItemSpawner, CCitadel_PickupItemSpawnerKeys>,
-  citadel_item_punchable_gold: { make: CCitadelItemPunchableNeutralGold, keys: keysCCitadelItemPunchableNeutralGold, subclass: 'citadel_item_punchable_gold' } as Designer<typeof CCitadelItemPunchableNeutralGold, CCitadelItemPunchableNeutralGoldKeys>,
   citadel_local_player_ranked_badge_prop: { make: CCitadelLocalPlayerRankedBadgeProp, keys: keysCBaseEntity } as Designer<typeof CCitadelLocalPlayerRankedBadgeProp, CBaseEntityKeys>,
   citadel_magic_beam_blocker: { make: CCitadel_Magic_Beam_Blocker, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Magic_Beam_Blocker, CBaseAnimGraphKeys>,
   citadel_minimap_boundary: { make: CCitadelMinimapBoundary, keys: keysCBaseEntity } as Designer<typeof CCitadelMinimapBoundary, CBaseEntityKeys>,

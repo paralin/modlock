@@ -2274,13 +2274,6 @@ class CCitadelItemPickupRejuvHeroTest(CCitadelItemPickupRejuv):
     pass
 
 
-class CCitadelItemPunchableNeutralGold(CCitadelItemPickup):
-    m_hVictimPlayer: CBaseEntity | None
-    _fields = {
-        "m_hVictimPlayer": "CBaseEntity",
-    }
-
-
 class CCitadel_Bounce_Pad(CCitadelAnimatingModelEntity):
     m_hAbility: CCitadelBaseAbility | None
     m_flUpFactor: float | None
@@ -2578,28 +2571,28 @@ class CCitadel_Magic_Beam_Blocker(CBaseAnimGraph):
 
 class CCitadel_Pickup(CBaseAnimGraph):
     m_hAssignedClaimer: CBaseEntity | None
-    m_bActive: bool | None
     m_bInteractive: bool | None
+    m_vImpactVel: Vector | None
+    m_vImpactPos: Vector | None
+    m_flImpactTime: float | None
+    m_bActive: bool | None
     m_vVacuumStartPos: Vector | None
     m_vInitialVacuumVel: Vector | None
     m_hVacuumTarget: CBaseEntity | None
     m_vVacuumPos: Vector | None
     m_flVacuumStartTime: float | None
-    m_vImpactVel: Vector | None
-    m_vImpactPos: Vector | None
-    m_flImpactTime: float | None
     _fields = {
         "m_hAssignedClaimer": "CBaseEntity",
-        "m_bActive": "bool",
         "m_bInteractive": "bool",
+        "m_vImpactVel": "vector",
+        "m_vImpactPos": "vector",
+        "m_flImpactTime": "float32",
+        "m_bActive": "bool",
         "m_vVacuumStartPos": "vector",
         "m_vInitialVacuumVel": "vector",
         "m_hVacuumTarget": "CBaseEntity",
         "m_vVacuumPos": "vector",
         "m_flVacuumStartTime": "float32",
-        "m_vImpactVel": "vector",
-        "m_vImpactPos": "vector",
-        "m_flImpactTime": "float32",
     }
 
 
@@ -2661,6 +2654,15 @@ class CCitadel_Pickup_Modifier(CCitadel_Pickup):
 
 class CCitadel_Pickup_NecroDeath(CCitadel_Pickup):
     pass
+
+
+class CCitadel_Pickup_SoulBag(CCitadel_Pickup):
+    m_iGoldReward: int | None
+    m_hVictimPlayer: CCitadelPlayerPawn | None
+    _fields = {
+        "m_iGoldReward": "int32",
+        "m_hVictimPlayer": "CCitadelPlayerPawn",
+    }
 
 
 class CCitadel_PickupItemSpawner(CBaseAnimGraph):
@@ -18222,9 +18224,6 @@ if TYPE_CHECKING:
     class CCitadel_PickupItemSpawnerKeys(CBaseAnimGraphKeys, total=False):
         pass
 
-    class CCitadelItemPunchableNeutralGoldKeys(CCitadelItemPickupKeys, total=False):
-        pass
-
     class CCitadel_NewYears_FireworksKeys(CDynamicPropKeys, total=False):
         ShowDurationSeconds: int
         ShowDelaySeconds: int
@@ -20723,7 +20722,6 @@ _KEY_MAPS: dict[str, tuple[str | None, dict[str, str]]] = {
     "CCitadelItemKothSpawner": ("CCitadelItemPickup", {"koth_early_warning_time": "number", "koth_silent_spawn": "boolean"}),
     "CCitadelItemPickupIdol": ("CCitadelItemPickup", {}),
     "CCitadel_PickupItemSpawner": ("CBaseAnimGraph", {}),
-    "CCitadelItemPunchableNeutralGold": ("CCitadelItemPickup", {}),
     "CCitadel_NewYears_Fireworks": ("CDynamicProp", {"ShowDurationSeconds": "integer", "ShowDelaySeconds": "integer", "FireworkIntervalMin": "number", "FireworkIntervalMax": "number", "FireworkParticle1": "text", "FireworkParticle2": "text", "FireworkParticle3": "text", "FireworkParticle4": "text", "FireworkParticle5": "text", "FireworkParticle6": "text", "FireworkParticle7": "text", "FireworkParticle8": "text", "SoundName": "text", "StartSoundVerticalOffset": "number"}),
     "CTriggerObscuredVolume": ("CBaseTrigger", {"modifier_name": "text"}),
     "CCitadelPassthroughFakeWall": ("CBaseModelEntity", {"allow_anyone": "boolean", "allow_tiny_characters": "boolean", "trigger_distance_meters": "number"}),
@@ -21149,7 +21147,6 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadelItemPickupIdol": CCitadelItemPickupIdol,
     "CCitadelItemPickupRejuv": CCitadelItemPickupRejuv,
     "CCitadelItemPickupRejuvHeroTest": CCitadelItemPickupRejuvHeroTest,
-    "CCitadelItemPunchableNeutralGold": CCitadelItemPunchableNeutralGold,
     "CCitadel_Bounce_Pad": CCitadel_Bounce_Pad,
     "CCitadel_CatAnimating": CCitadel_CatAnimating,
     "CCitadel_Destroyable_Building": CCitadel_Destroyable_Building,
@@ -21194,6 +21191,7 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadel_Pickup_Health": CCitadel_Pickup_Health,
     "CCitadel_Pickup_Modifier": CCitadel_Pickup_Modifier,
     "CCitadel_Pickup_NecroDeath": CCitadel_Pickup_NecroDeath,
+    "CCitadel_Pickup_SoulBag": CCitadel_Pickup_SoulBag,
     "CCitadel_PickupItemSpawner": CCitadel_PickupItemSpawner,
     "CCitadel_PickupSpawner": CCitadel_PickupSpawner,
     "CCitadel_SmokeGrenade_Blocker": CCitadel_SmokeGrenade_Blocker,
@@ -22408,7 +22406,6 @@ type DesignerName = Literal[
     "citadel_item_pickup_rejuv_herotest",
     "citadel_item_pickup_rejuv_herotest_infospawn",
     "citadel_item_powerup_spawner",
-    "citadel_item_punchable_gold",
     "citadel_local_player_ranked_badge_prop",
     "citadel_magic_beam_blocker",
     "citadel_minimap_boundary",
@@ -22989,7 +22986,6 @@ _DESIGNERS: dict[str, tuple[str, str, str]] = {
     "citadel_item_pickup_rejuv_herotest": ("CCitadelItemPickupRejuvHeroTest", "CCitadelItemPickup", "citadel_item_pickup_rejuv_herotest"),
     "citadel_item_pickup_rejuv_herotest_infospawn": ("CCitadelItemPickupRejuvHeroTestInfoSpawn", "CPointEntity", ""),
     "citadel_item_powerup_spawner": ("CCitadel_PickupItemSpawner", "CCitadel_PickupItemSpawner", "citadel_item_powerup_spawner_bounty_runes"),
-    "citadel_item_punchable_gold": ("CCitadelItemPunchableNeutralGold", "CCitadelItemPunchableNeutralGold", "citadel_item_punchable_gold"),
     "citadel_local_player_ranked_badge_prop": ("CCitadelLocalPlayerRankedBadgeProp", "CBaseEntity", ""),
     "citadel_magic_beam_blocker": ("CCitadel_Magic_Beam_Blocker", "CBaseAnimGraph", ""),
     "citadel_minimap_boundary": ("CCitadelMinimapBoundary", "CBaseEntity", ""),

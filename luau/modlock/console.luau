@@ -1878,8 +1878,6 @@ type NumberVariable1 =
 	| "citadel_player_move_speed_scale"
 	| "citadel_player_neutral_gold_drop_min"
 	| "citadel_player_neutral_gold_drop_min_increase_per_minute"
-	| "citadel_player_neutral_gold_duration"
-	| "citadel_player_neutral_gold_fallrate"
 	| "citadel_player_override_spawn_time"
 	| "citadel_player_ping_duration"
 	| "citadel_player_regen_zone_bonus_base"
@@ -1973,6 +1971,11 @@ type NumberVariable1 =
 	| "citadel_slide_one_button_falling_max_lookahead_distance"
 	| "citadel_slow_air_drag_penalty_scale"
 	| "citadel_snowball_level_override"
+	| "citadel_soul_bag_extra_spawn_min_value_multiplier"
+	| "citadel_soul_bag_scale_max"
+	| "citadel_soul_bag_scale_max_value"
+	| "citadel_soul_bag_scale_min"
+	| "citadel_soul_bag_spawn_max"
 	| "citadel_spawn_practice_bots_count"
 	| "citadel_spray_max_range"
 	| "citadel_stamina_ping_interval"
@@ -2204,11 +2207,11 @@ type NumberVariable1 =
 	| "ent_steadystate_delay"
 	| "ent_steadystate_interval"
 	| "ent_text_flags_active"
+
+type NumberVariable2 =
 	| "entity_log_load_unserialize"
 	| "experimental_citadel_tick_rate_override"
 	| "fathom_force_spotted"
-
-type NumberVariable2 =
 	| "filesystem_buffer_size"
 	| "filesystem_fake_latency"
 	| "filesystem_max_stdio_read"
@@ -2606,11 +2609,11 @@ type NumberVariable2 =
 	| "r_dof_override_far_crisp"
 	| "r_dof_override_near_blurry"
 	| "r_dof_override_near_crisp"
+
+type NumberVariable3 =
 	| "r_dof_override_tilt_to_ground"
 	| "r_draw_particle_children_with_parents"
 	| "r_extra_render_frames"
-
-type NumberVariable3 =
 	| "r_fallback_texture_lod_scale"
 	| "r_force_render_frame_count"
 	| "r_fullscreen_gamma"
@@ -3008,11 +3011,11 @@ type NumberVariable3 =
 	| "voice_stall_ms"
 	| "voice_threshold"
 	| "voice_threshold_attack"
+
+type NumberVariable4 =
 	| "voice_threshold_delay"
 	| "voice_threshold_hold"
 	| "voice_threshold_ramp_min_db"
-
-type NumberVariable4 =
 	| "volume"
 	| "volume_fog_density_scale"
 	| "volume_fog_depth"

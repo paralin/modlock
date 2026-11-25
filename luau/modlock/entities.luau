@@ -2225,13 +2225,6 @@ describe("CCitadelItemPickupRejuv", "CCitadelItemPickup", {
 export type CCitadelItemPickupRejuvHeroTest = CCitadelItemPickupRejuv
 describe("CCitadelItemPickupRejuvHeroTest", "CCitadelItemPickupRejuv", {})
 
-export type CCitadelItemPunchableNeutralGold = CCitadelItemPickup & {
-	m_hVictimPlayer: CBaseEntity?,
-}
-describe("CCitadelItemPunchableNeutralGold", "CCitadelItemPickup", {
-	m_hVictimPlayer = "CBaseEntity",
-})
-
 export type CCitadel_Bounce_Pad = CCitadelAnimatingModelEntity & {
 	m_hAbility: CCitadelBaseAbility?,
 	m_flUpFactor: number?,
@@ -2510,29 +2503,29 @@ describe("CCitadel_Magic_Beam_Blocker", "CBaseAnimGraph", {
 
 export type CCitadel_Pickup = CBaseAnimGraph & {
 	m_hAssignedClaimer: CBaseEntity?,
-	m_bActive: boolean?,
 	m_bInteractive: boolean?,
+	m_vImpactVel: modlock.Vector?,
+	m_vImpactPos: modlock.Vector?,
+	m_flImpactTime: number?,
+	m_bActive: boolean?,
 	m_vVacuumStartPos: modlock.Vector?,
 	m_vInitialVacuumVel: modlock.Vector?,
 	m_hVacuumTarget: CBaseEntity?,
 	m_vVacuumPos: modlock.Vector?,
 	m_flVacuumStartTime: number?,
-	m_vImpactVel: modlock.Vector?,
-	m_vImpactPos: modlock.Vector?,
-	m_flImpactTime: number?,
 }
 describe("CCitadel_Pickup", "CBaseAnimGraph", {
 	m_hAssignedClaimer = "CBaseEntity",
-	m_bActive = "bool",
 	m_bInteractive = "bool",
+	m_vImpactVel = "vector",
+	m_vImpactPos = "vector",
+	m_flImpactTime = "float32",
+	m_bActive = "bool",
 	m_vVacuumStartPos = "vector",
 	m_vInitialVacuumVel = "vector",
 	m_hVacuumTarget = "CBaseEntity",
 	m_vVacuumPos = "vector",
 	m_flVacuumStartTime = "float32",
-	m_vImpactVel = "vector",
-	m_vImpactPos = "vector",
-	m_flImpactTime = "float32",
 })
 
 export type CCitadel_Pickup_Ability = CCitadel_Pickup & {
@@ -2588,6 +2581,15 @@ describe("CCitadel_Pickup_Modifier", "CCitadel_Pickup", {})
 
 export type CCitadel_Pickup_NecroDeath = CCitadel_Pickup
 describe("CCitadel_Pickup_NecroDeath", "CCitadel_Pickup", {})
+
+export type CCitadel_Pickup_SoulBag = CCitadel_Pickup & {
+	m_iGoldReward: number?,
+	m_hVictimPlayer: CCitadelPlayerPawn?,
+}
+describe("CCitadel_Pickup_SoulBag", "CCitadel_Pickup", {
+	m_iGoldReward = "int32",
+	m_hVictimPlayer = "CCitadelPlayerPawn",
+})
 
 export type CCitadel_PickupItemSpawner = CBaseAnimGraph & {
 	m_tNextDropTime: number?,
@@ -17380,9 +17382,6 @@ keyMaps.CCitadelItemPickupIdol = { base = "CCitadelItemPickup", keys = {  } }
 export type CCitadel_PickupItemSpawnerKeys = CBaseAnimGraphKeys
 keyMaps.CCitadel_PickupItemSpawner = { base = "CBaseAnimGraph", keys = {  } }
 
-export type CCitadelItemPunchableNeutralGoldKeys = CCitadelItemPickupKeys
-keyMaps.CCitadelItemPunchableNeutralGold = { base = "CCitadelItemPickup", keys = {  } }
-
 export type CCitadel_NewYears_FireworksKeys = CDynamicPropKeys & {
 	ShowDurationSeconds: number?,
 	ShowDelaySeconds: number?,
@@ -20523,7 +20522,6 @@ type ClassName0 =
 	| "CCitadelItemPickupIdol"
 	| "CCitadelItemPickupRejuv"
 	| "CCitadelItemPickupRejuvHeroTest"
-	| "CCitadelItemPunchableNeutralGold"
 	| "CCitadel_Bounce_Pad"
 	| "CCitadel_CatAnimating"
 	| "CCitadel_Destroyable_Building"
@@ -20568,6 +20566,7 @@ type ClassName0 =
 	| "CCitadel_Pickup_Health"
 	| "CCitadel_Pickup_Modifier"
 	| "CCitadel_Pickup_NecroDeath"
+	| "CCitadel_Pickup_SoulBag"
 	| "CCitadel_PickupItemSpawner"
 	| "CCitadel_PickupSpawner"
 	| "CCitadel_SmokeGrenade_Blocker"
@@ -21790,7 +21789,6 @@ local designers = {
 	citadel_item_pickup_rejuv_herotest = { "CCitadelItemPickupRejuvHeroTest", "CCitadelItemPickup", "citadel_item_pickup_rejuv_herotest" },
 	citadel_item_pickup_rejuv_herotest_infospawn = { "CCitadelItemPickupRejuvHeroTestInfoSpawn", "CPointEntity" },
 	citadel_item_powerup_spawner = { "CCitadel_PickupItemSpawner", "CCitadel_PickupItemSpawner", "citadel_item_powerup_spawner_bounty_runes" },
-	citadel_item_punchable_gold = { "CCitadelItemPunchableNeutralGold", "CCitadelItemPunchableNeutralGold", "citadel_item_punchable_gold" },
 	citadel_local_player_ranked_badge_prop = { "CCitadelLocalPlayerRankedBadgeProp", "CBaseEntity" },
 	citadel_magic_beam_blocker = { "CCitadel_Magic_Beam_Blocker", "CBaseAnimGraph" },
 	citadel_minimap_boundary = { "CCitadelMinimapBoundary", "CBaseEntity" },

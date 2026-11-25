@@ -1918,8 +1918,6 @@ type NumberVariable = Literal[
     "citadel_player_move_speed_scale",
     "citadel_player_neutral_gold_drop_min",
     "citadel_player_neutral_gold_drop_min_increase_per_minute",
-    "citadel_player_neutral_gold_duration",
-    "citadel_player_neutral_gold_fallrate",
     "citadel_player_override_spawn_time",
     "citadel_player_ping_duration",
     "citadel_player_regen_zone_bonus_base",
@@ -2013,6 +2011,11 @@ type NumberVariable = Literal[
     "citadel_slide_one_button_falling_max_lookahead_distance",
     "citadel_slow_air_drag_penalty_scale",
     "citadel_snowball_level_override",
+    "citadel_soul_bag_extra_spawn_min_value_multiplier",
+    "citadel_soul_bag_scale_max",
+    "citadel_soul_bag_scale_max_value",
+    "citadel_soul_bag_scale_min",
+    "citadel_soul_bag_spawn_max",
     "citadel_spawn_practice_bots_count",
     "citadel_spray_max_range",
     "citadel_stamina_ping_interval",
@@ -5485,8 +5488,6 @@ Settings = TypedDict(
         "citadel_player_move_speed_scale": float,
         "citadel_player_neutral_gold_drop_min": float,
         "citadel_player_neutral_gold_drop_min_increase_per_minute": float,
-        "citadel_player_neutral_gold_duration": float,
-        "citadel_player_neutral_gold_fallrate": float,
         "citadel_player_override_spawn_time": float,
         "citadel_player_ping_duration": float,
         # When standing in a regen zone, how much extra do we regen per second?
@@ -5664,6 +5665,11 @@ Settings = TypedDict(
         # Change the snowball level.
         "citadel_snowball_level_override": float,
         "citadel_solo_bot_match": bool,
+        "citadel_soul_bag_extra_spawn_min_value_multiplier": float,
+        "citadel_soul_bag_scale_max": float,
+        "citadel_soul_bag_scale_max_value": float,
+        "citadel_soul_bag_scale_min": float,
+        "citadel_soul_bag_spawn_max": float,
         # Forces all players down the mid lane.
         "citadel_soul_rune_lane_experiment": bool,
         # Only spawn creeps on one team.

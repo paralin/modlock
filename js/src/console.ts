@@ -1652,8 +1652,6 @@ export interface Variables {
   citadel_player_move_speed_scale: number
   citadel_player_neutral_gold_drop_min: number
   citadel_player_neutral_gold_drop_min_increase_per_minute: number
-  citadel_player_neutral_gold_duration: number
-  citadel_player_neutral_gold_fallrate: number
   citadel_player_override_spawn_time: number
   citadel_player_ping_duration: number
   /** When standing in a regen zone, how much extra do we regen per second? */
@@ -1868,6 +1866,11 @@ export interface Variables {
   /** Change the snowball level. */
   citadel_snowball_level_override: number
   citadel_solo_bot_match: boolean
+  citadel_soul_bag_extra_spawn_min_value_multiplier: number
+  citadel_soul_bag_scale_max: number
+  citadel_soul_bag_scale_max_value: number
+  citadel_soul_bag_scale_min: number
+  citadel_soul_bag_spawn_max: number
   /** Forces all players down the mid lane. */
   citadel_soul_rune_lane_experiment: boolean
   /** Only spawn creeps on one team. */

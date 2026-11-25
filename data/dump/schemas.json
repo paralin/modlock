@@ -1,5 +1,5 @@
 {
- "build": "6865",
+ "build": "6868",
  "classes": [
   {
    "name": "AnimationDecodeDebugDumpElement_t",
@@ -100218,78 +100218,6 @@
    ]
   },
   {
-   "name": "CCitadelItemPunchableNeutralGold",
-   "module": "server",
-   "size": 21856,
-   "alignment": 16,
-   "bases": [
-    {
-     "name": "CCitadelItemPickup",
-     "module": "server"
-    }
-   ],
-   "fields": [
-    {
-     "name": "m_hVictimPlayer",
-     "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 21840
-    }
-   ]
-  },
-  {
-   "name": "CCitadelItemPunchableNeutralGoldVData",
-   "module": "server",
-   "size": 328,
-   "alignment": 8,
-   "bases": [
-    {
-     "name": "CCitadelItemPickupVData",
-     "module": "server"
-    }
-   ],
-   "fields": [
-    {
-     "name": "m_flGroundOffset",
-     "type": "float32",
-     "offset": 288
-    },
-    {
-     "name": "m_flSpinRate",
-     "type": "float32",
-     "offset": 292
-    },
-    {
-     "name": "m_flBobHeight",
-     "type": "float32",
-     "offset": 296
-    },
-    {
-     "name": "m_flBobFrequency",
-     "type": "float32",
-     "offset": 300
-    },
-    {
-     "name": "m_flSpinSpeed",
-     "type": "float32",
-     "offset": 304
-    },
-    {
-     "name": "m_PunchPickupModifier",
-     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 312,
-     "metadata": [
-      "MPropertyStartGroup"
-     ]
-    }
-   ],
-   "metadata": [
-    "MGetKV3ClassDefaults"
-   ],
-   "flags": [
-    "MHasKV3TransferPolymorphicClassname"
-   ]
-  },
-  {
    "name": "CCitadelLocalPlayerRankedBadgeProp",
    "module": "server",
    "size": 1200,
@@ -157102,51 +157030,6 @@
    ]
   },
   {
-   "name": "CCitadel_Modifier_ItemPunchable_Gold",
-   "module": "server",
-   "size": 400,
-   "alignment": 255,
-   "bases": [
-    {
-     "name": "CCitadelModifierAura",
-     "module": "server"
-    }
-   ]
-  },
-  {
-   "name": "CCitadel_Modifier_ItemPunchable_GoldVData",
-   "module": "server",
-   "size": 2056,
-   "alignment": 8,
-   "bases": [
-    {
-     "name": "CCitadelModifierAuraVData",
-     "module": "server"
-    }
-   ],
-   "fields": [
-    {
-     "name": "m_flPhysicsRadius",
-     "type": "float32",
-     "offset": 2032
-    },
-    {
-     "name": "m_sHitSound",
-     "type": "CSoundEventName",
-     "offset": 2040,
-     "metadata": [
-      "MPropertyGroupName"
-     ]
-    }
-   ],
-   "metadata": [
-    "MGetKV3ClassDefaults"
-   ],
-   "flags": [
-    "MHasKV3TransferPolymorphicClassname"
-   ]
-  },
-  {
    "name": "CCitadel_Modifier_ItemPunchable_Rejuv",
    "module": "server",
    "size": 352,
@@ -174998,7 +174881,7 @@
   {
    "name": "CCitadel_Pickup",
    "module": "server",
-   "size": 2928,
+   "size": 2944,
    "alignment": 16,
    "bases": [
     {
@@ -175018,54 +174901,54 @@
      "offset": 2816
     },
     {
-     "name": "m_bActive",
+     "name": "m_bInteractive",
      "type": "bool",
      "offset": 2820
     },
     {
-     "name": "m_bInteractive",
-     "type": "bool",
-     "offset": 2821
-    },
-    {
-     "name": "m_vVacuumStartPos",
-     "type": "VectorWS",
-     "offset": 2824
-    },
-    {
-     "name": "m_vInitialVacuumVel",
-     "type": "Vector",
-     "offset": 2836
-    },
-    {
-     "name": "m_hVacuumTarget",
-     "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 2848
-    },
-    {
-     "name": "m_vVacuumPos",
-     "type": "VectorWS",
-     "offset": 2876
-    },
-    {
-     "name": "m_flVacuumStartTime",
-     "type": "GameTime_t",
-     "offset": 2888
-    },
-    {
      "name": "m_vImpactVel",
      "type": "Vector",
-     "offset": 2900
+     "offset": 2824
     },
     {
      "name": "m_vImpactPos",
      "type": "VectorWS",
-     "offset": 2912
+     "offset": 2836
     },
     {
      "name": "m_flImpactTime",
      "type": "GameTime_t",
-     "offset": 2924
+     "offset": 2848
+    },
+    {
+     "name": "m_bActive",
+     "type": "bool",
+     "offset": 2852
+    },
+    {
+     "name": "m_vVacuumStartPos",
+     "type": "VectorWS",
+     "offset": 2856
+    },
+    {
+     "name": "m_vInitialVacuumVel",
+     "type": "Vector",
+     "offset": 2868
+    },
+    {
+     "name": "m_hVacuumTarget",
+     "type": "CHandle\u003c CBaseEntity \u003e",
+     "offset": 2880
+    },
+    {
+     "name": "m_vVacuumPos",
+     "type": "VectorWS",
+     "offset": 2908
+    },
+    {
+     "name": "m_flVacuumStartTime",
+     "type": "GameTime_t",
+     "offset": 2920
     }
    ]
   },
@@ -175319,7 +175202,7 @@
   {
    "name": "CCitadel_Pickup_Ability",
    "module": "server",
-   "size": 2960,
+   "size": 2976,
    "alignment": 16,
    "bases": [
     {
@@ -175331,27 +175214,27 @@
     {
      "name": "m_nUpgradeBits",
      "type": "AbilityUpgradeBits_t",
-     "offset": 2928
+     "offset": 2944
     },
     {
      "name": "m_nUpgradeLevel",
      "type": "int32",
-     "offset": 2932
+     "offset": 2948
     },
     {
      "name": "m_unAbilityID",
      "type": "CUtlStringToken",
-     "offset": 2936
+     "offset": 2952
     },
     {
      "name": "m_nGoldCost",
      "type": "int32",
-     "offset": 2940
+     "offset": 2956
     },
     {
      "name": "m_bShowGoldCostInUI",
      "type": "bool",
-     "offset": 2944
+     "offset": 2960
     }
    ]
   },
@@ -175376,7 +175259,7 @@
   {
    "name": "CCitadel_Pickup_ArtistDrawing",
    "module": "server",
-   "size": 2944,
+   "size": 2960,
    "alignment": 16,
    "bases": [
     {
@@ -175388,12 +175271,12 @@
     {
      "name": "m_hPlayerOwner",
      "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 2932
+     "offset": 2948
     },
     {
      "name": "m_hPlayerVictim",
      "type": "CHandle\u003c CCitadelPlayerPawn \u003e",
-     "offset": 2936
+     "offset": 2952
     }
    ]
   },
@@ -175425,7 +175308,7 @@
   {
    "name": "CCitadel_Pickup_AssignedCurrencies",
    "module": "server",
-   "size": 2960,
+   "size": 2976,
    "alignment": 16,
    "bases": [
     {
@@ -175437,7 +175320,7 @@
   {
    "name": "CCitadel_Pickup_Currency",
    "module": "server",
-   "size": 2944,
+   "size": 2960,
    "alignment": 16,
    "bases": [
     {
@@ -175449,7 +175332,7 @@
     {
      "name": "m_nCurrencyAmount",
      "type": "int32",
-     "offset": 2928
+     "offset": 2944
     }
    ]
   },
@@ -175494,7 +175377,7 @@
   {
    "name": "CCitadel_Pickup_Gold",
    "module": "server",
-   "size": 2944,
+   "size": 2960,
    "alignment": 16,
    "bases": [
     {
@@ -175506,7 +175389,7 @@
     {
      "name": "m_iGoldReward",
      "type": "int32",
-     "offset": 2928
+     "offset": 2944
     }
    ]
   },
@@ -175551,7 +175434,7 @@
   {
    "name": "CCitadel_Pickup_HalloweenCandy",
    "module": "server",
-   "size": 2944,
+   "size": 2960,
    "alignment": 16,
    "bases": [
     {
@@ -175563,7 +175446,7 @@
   {
    "name": "CCitadel_Pickup_Health",
    "module": "server",
-   "size": 2928,
+   "size": 2944,
    "alignment": 16,
    "bases": [
     {
@@ -175575,7 +175458,7 @@
   {
    "name": "CCitadel_Pickup_Item",
    "module": "server",
-   "size": 2960,
+   "size": 2976,
    "alignment": 16,
    "bases": [
     {
@@ -175605,7 +175488,7 @@
   {
    "name": "CCitadel_Pickup_Modifier",
    "module": "server",
-   "size": 2928,
+   "size": 2944,
    "alignment": 16,
    "bases": [
     {
@@ -175642,13 +175525,72 @@
   {
    "name": "CCitadel_Pickup_NecroDeath",
    "module": "server",
-   "size": 2944,
+   "size": 2960,
    "alignment": 16,
    "bases": [
     {
      "name": "CCitadel_Pickup",
      "module": "server"
     }
+   ]
+  },
+  {
+   "name": "CCitadel_Pickup_SoulBag",
+   "module": "server",
+   "size": 2960,
+   "alignment": 16,
+   "bases": [
+    {
+     "name": "CCitadel_Pickup",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_iGoldReward",
+     "type": "int32",
+     "offset": 2944
+    },
+    {
+     "name": "m_hVictimPlayer",
+     "type": "CHandle\u003c CCitadelPlayerPawn \u003e",
+     "offset": 2948
+    }
+   ]
+  },
+  {
+   "name": "CCitadel_Pickup_SoulBag_VData",
+   "module": "server",
+   "size": 2592,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CCitadel_Pickup_VData",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_flHoverRate",
+     "type": "float32",
+     "offset": 2576
+    },
+    {
+     "name": "m_flHoverHeight",
+     "type": "float32",
+     "offset": 2580
+    },
+    {
+     "name": "m_flHoverTurnRate",
+     "type": "float32",
+     "offset": 2584
+    }
+   ],
+   "metadata": [
+    "MGetKV3ClassDefaults"
+   ],
+   "flags": [
+    "MHasKV3TransferPolymorphicClassname"
    ]
   },
   {
@@ -175971,9 +175913,17 @@
      ]
     },
     {
-     "name": "m_flHoverOffset",
+     "name": "m_flYawSpin",
      "type": "float32",
      "offset": 2336,
+     "metadata": [
+      "MPropertySuppressExpr"
+     ]
+    },
+    {
+     "name": "m_flHoverOffset",
+     "type": "float32",
+     "offset": 2340,
      "metadata": [
       "MPropertyDescription",
       "MPropertySuppressExpr"
@@ -175982,7 +175932,7 @@
     {
      "name": "m_iHitsRequired",
      "type": "int32",
-     "offset": 2340,
+     "offset": 2344,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyStartGroup",
@@ -175992,7 +175942,7 @@
     {
      "name": "m_bHeavyMeleeOnly",
      "type": "bool",
-     "offset": 2344,
+     "offset": 2348,
      "metadata": [
       "MPropertySuppressExpr"
      ]
@@ -176000,7 +175950,7 @@
     {
      "name": "m_flCollisionRadius",
      "type": "float32",
-     "offset": 2348,
+     "offset": 2352,
      "metadata": [
       "MPropertySuppressExpr"
      ]
@@ -176008,7 +175958,7 @@
     {
      "name": "m_flCenterHeightOffset",
      "type": "float32",
-     "offset": 2352,
+     "offset": 2356,
      "metadata": [
       "MPropertySuppressExpr"
      ]
@@ -222453,7 +222403,7 @@
   {
    "name": "CitadelHeroData_t",
    "module": "server",
-   "size": 4232,
+   "size": 4240,
    "alignment": 8,
    "fields": [
     {
@@ -227676,7 +227626,7 @@
   {
    "name": "ItemDraftBucketing_t",
    "module": "server",
-   "size": 48,
+   "size": 56,
    "alignment": 8,
    "fields": [
     {
@@ -227687,6 +227637,14 @@
      "name": "m_mapBuckets",
      "type": "CUtlOrderedMap\u003c CUtlString, float32 \u003e",
      "offset": 8
+    },
+    {
+     "name": "m_flGoodItemPickRateThreshold",
+     "type": "float32",
+     "offset": 48,
+     "metadata": [
+      "MPropertyDescription"
+     ]
     }
    ],
    "metadata": [
@@ -259155,16 +259113,12 @@
      "value": "1"
     },
     {
-     "name": "ELoot_NeutralGold",
+     "name": "ELoot_KothCapturePoint",
      "value": "2"
     },
     {
-     "name": "ELoot_KothCapturePoint",
-     "value": "3"
-    },
-    {
      "name": "ELoot_LootTypeCount",
-     "value": "4"
+     "value": "3"
     }
    ]
   },

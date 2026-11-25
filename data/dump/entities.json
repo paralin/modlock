@@ -1,5 +1,5 @@
 {
- "build": "6865",
+ "build": "6868",
  "classes": [
   {
    "designer_name": "abiilty_boho_channeltether",
@@ -2816,12 +2816,6 @@
    "base": "baseanimgraph"
   },
   {
-   "designer_name": "citadel_item_punchable_gold",
-   "class_name": "CCitadelItemPunchableNeutralGold",
-   "data_map": "CCitadelItemPunchableNeutralGold",
-   "base": "citadel_item_pickup"
-  },
-  {
    "designer_name": "citadel_koth_cashin",
    "class_name": "CCitadel_KothCashIn",
    "data_map": "CCitadel_KothCashIn",
@@ -2962,6 +2956,12 @@
   {
    "designer_name": "citadel_pickup_necro_death",
    "class_name": "CCitadel_Pickup_NecroDeath",
+   "data_map": "CBaseAnimGraph",
+   "base": "citadel_pickup"
+  },
+  {
+   "designer_name": "citadel_pickup_soulbag",
+   "class_name": "CCitadel_Pickup_SoulBag",
    "data_map": "CBaseAnimGraph",
    "base": "citadel_pickup"
   },
@@ -10534,18 +10534,6 @@
   {
    "name": "CCitadelItemPickupIdol",
    "base": "CCitadelItemPickup"
-  },
-  {
-   "name": "CCitadelItemPunchableNeutralGold",
-   "base": "CCitadelItemPickup",
-   "key_values": [
-    {
-     "name": "victim_player",
-     "field": "m_hVictimPlayer",
-     "type": "KEY_TYPE_EHANDLE",
-     "count": 1
-    }
-   ]
   },
   {
    "name": "CCitadelMapDistrictTrigger",

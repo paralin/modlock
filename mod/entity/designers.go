@@ -67,7 +67,6 @@ var CitadelItemPickupRejuv = Designer[CCitadelItemPickupRejuv, CCitadelItemPicku
 var CitadelItemPickupRejuvHerotest = Designer[CCitadelItemPickupRejuvHeroTest, CCitadelItemPickupKeys]{"citadel_item_pickup_rejuv_herotest", "citadel_item_pickup_rejuv_herotest"}
 var CitadelItemPickupRejuvHerotestInfospawn = Designer[CCitadelItemPickupRejuvHeroTestInfoSpawn, CPointEntityKeys]{"citadel_item_pickup_rejuv_herotest_infospawn", ""}
 var CitadelItemPowerupSpawner = Designer[CCitadel_PickupItemSpawner, CCitadel_PickupItemSpawnerKeys]{"citadel_item_powerup_spawner", "citadel_item_powerup_spawner_bounty_runes"}
-var CitadelItemPunchableGold = Designer[CCitadelItemPunchableNeutralGold, CCitadelItemPunchableNeutralGoldKeys]{"citadel_item_punchable_gold", "citadel_item_punchable_gold"}
 var CitadelLocalPlayerRankedBadgeProp = Designer[CCitadelLocalPlayerRankedBadgeProp, CBaseEntityKeys]{"citadel_local_player_ranked_badge_prop", ""}
 var CitadelMagicBeamBlocker = Designer[CCitadel_Magic_Beam_Blocker, CBaseAnimGraphKeys]{"citadel_magic_beam_blocker", ""}
 var CitadelMinimapBoundary = Designer[CCitadelMinimapBoundary, CBaseEntityKeys]{"citadel_minimap_boundary", ""}

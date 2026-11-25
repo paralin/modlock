@@ -438,10 +438,6 @@ type CCitadel_PickupItemSpawnerKeys struct {
 	CBaseAnimGraphKeys
 }
 
-type CCitadelItemPunchableNeutralGoldKeys struct {
-	CCitadelItemPickupKeys
-}
-
 type CCitadel_NewYears_FireworksKeys struct {
 	CDynamicPropKeys
 	ShowDurationSeconds      *int32   `key:"ShowDurationSeconds"`

@@ -1,5 +1,5 @@
 {
- "build": "6865",
+ "build": "6868",
  "variables": [
   {
    "name": "adsp_alley_min",
@@ -8093,26 +8093,6 @@
    ]
   },
   {
-   "name": "citadel_player_neutral_gold_duration",
-   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
-   "default_value": "180",
-   "flags": [
-    "developmentonly",
-    "gamedll",
-    "defensive"
-   ]
-  },
-  {
-   "name": "citadel_player_neutral_gold_fallrate",
-   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
-   "default_value": "300",
-   "flags": [
-    "developmentonly",
-    "gamedll",
-    "defensive"
-   ]
-  },
-  {
    "name": "citadel_player_override_spawn_time",
    "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
    "default_value": "-1",
@@ -8688,7 +8668,7 @@
   {
    "name": "citadel_popular_items_min_pick_pct_late_game",
    "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
-   "default_value": "10",
+   "default_value": "7.5",
    "flags": [
     "developmentonly",
     "gamedll",
@@ -9360,6 +9340,56 @@
     "gamedll",
     "replicated",
     "release"
+   ]
+  },
+  {
+   "name": "citadel_soul_bag_extra_spawn_min_value_multiplier",
+   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
+   "default_value": "2",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
+   ]
+  },
+  {
+   "name": "citadel_soul_bag_scale_max",
+   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
+   "default_value": "8.5",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
+   ]
+  },
+  {
+   "name": "citadel_soul_bag_scale_max_value",
+   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
+   "default_value": "2000",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
+   ]
+  },
+  {
+   "name": "citadel_soul_bag_scale_min",
+   "type": "CONSOLE_VARIABLE_TYPE_FLOAT32",
+   "default_value": "1",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
+   ]
+  },
+  {
+   "name": "citadel_soul_bag_spawn_max",
+   "type": "CONSOLE_VARIABLE_TYPE_INT32",
+   "default_value": "5",
+   "flags": [
+    "developmentonly",
+    "gamedll",
+    "defensive"
    ]
   },
   {

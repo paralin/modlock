@@ -2242,10 +2242,6 @@ var CitadelPlayerNeutralGoldDropMin = Variable[int32]{"citadel_player_neutral_go
 
 var CitadelPlayerNeutralGoldDropMinIncreasePerMinute = Variable[int32]{"citadel_player_neutral_gold_drop_min_increase_per_minute"}
 
-var CitadelPlayerNeutralGoldDuration = Variable[float32]{"citadel_player_neutral_gold_duration"}
-
-var CitadelPlayerNeutralGoldFallrate = Variable[float32]{"citadel_player_neutral_gold_fallrate"}
-
 var CitadelPlayerOverrideSpawnTime = Variable[float32]{"citadel_player_override_spawn_time"}
 
 var CitadelPlayerPingDuration = Variable[float32]{"citadel_player_ping_duration"}
@@ -2554,6 +2550,16 @@ var CitadelSlowAirDragPenaltyScale = Variable[float32]{"citadel_slow_air_drag_pe
 var CitadelSnowballLevelOverride = Variable[int32]{"citadel_snowball_level_override"}
 
 var CitadelSoloBotMatch = Variable[bool]{"citadel_solo_bot_match"}
+
+var CitadelSoulBagExtraSpawnMinValueMultiplier = Variable[float32]{"citadel_soul_bag_extra_spawn_min_value_multiplier"}
+
+var CitadelSoulBagScaleMax = Variable[float32]{"citadel_soul_bag_scale_max"}
+
+var CitadelSoulBagScaleMaxValue = Variable[float32]{"citadel_soul_bag_scale_max_value"}
+
+var CitadelSoulBagScaleMin = Variable[float32]{"citadel_soul_bag_scale_min"}
+
+var CitadelSoulBagSpawnMax = Variable[int32]{"citadel_soul_bag_spawn_max"}
 
 // CitadelSoulRuneLaneExperiment: Forces all players down the mid lane.
 var CitadelSoulRuneLaneExperiment = Variable[bool]{"citadel_soul_rune_lane_experiment"}

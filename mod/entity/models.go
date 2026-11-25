@@ -2416,16 +2416,6 @@ func (e CCitadelItemPickupRejuv) BPickedUp() Bool {
 
 type CCitadelItemPickupRejuvHeroTest CEntityInstance
 
-type CCitadelItemPunchableNeutralGold CEntityInstance
-
-func (e CCitadelItemPunchableNeutralGold) field(name string) Field {
-	return Field{e.Handle, "CCitadelItemPunchableNeutralGold", name}
-}
-
-func (e CCitadelItemPunchableNeutralGold) HVictimPlayer() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hVictimPlayer")}
-}
-
 type CCitadel_Bounce_Pad CEntityInstance
 
 func (e CCitadel_Bounce_Pad) field(name string) Field {
@@ -2842,12 +2832,24 @@ func (e CCitadel_Pickup) HAssignedClaimer() Handle[CBaseEntity] {
 	return Handle[CBaseEntity]{e.field("m_hAssignedClaimer")}
 }
 
-func (e CCitadel_Pickup) BActive() Bool {
-	return Bool{e.field("m_bActive")}
-}
-
 func (e CCitadel_Pickup) BInteractive() Bool {
 	return Bool{e.field("m_bInteractive")}
+}
+
+func (e CCitadel_Pickup) VImpactVel() Vector {
+	return Vector{e.field("m_vImpactVel")}
+}
+
+func (e CCitadel_Pickup) VImpactPos() Vector {
+	return Vector{e.field("m_vImpactPos")}
+}
+
+func (e CCitadel_Pickup) FlImpactTime() Number[float32] {
+	return Number[float32]{e.field("m_flImpactTime")}
+}
+
+func (e CCitadel_Pickup) BActive() Bool {
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CCitadel_Pickup) VVacuumStartPos() Vector {
@@ -2868,18 +2870,6 @@ func (e CCitadel_Pickup) VVacuumPos() Vector {
 
 func (e CCitadel_Pickup) FlVacuumStartTime() Number[float32] {
 	return Number[float32]{e.field("m_flVacuumStartTime")}
-}
-
-func (e CCitadel_Pickup) VImpactVel() Vector {
-	return Vector{e.field("m_vImpactVel")}
-}
-
-func (e CCitadel_Pickup) VImpactPos() Vector {
-	return Vector{e.field("m_vImpactPos")}
-}
-
-func (e CCitadel_Pickup) FlImpactTime() Number[float32] {
-	return Number[float32]{e.field("m_flImpactTime")}
 }
 
 type CCitadel_Pickup_Ability CEntityInstance
@@ -2949,6 +2939,20 @@ type CCitadel_Pickup_Health CEntityInstance
 type CCitadel_Pickup_Modifier CEntityInstance
 
 type CCitadel_Pickup_NecroDeath CEntityInstance
+
+type CCitadel_Pickup_SoulBag CEntityInstance
+
+func (e CCitadel_Pickup_SoulBag) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Pickup_SoulBag", name}
+}
+
+func (e CCitadel_Pickup_SoulBag) IGoldReward() Number[int32] {
+	return Number[int32]{e.field("m_iGoldReward")}
+}
+
+func (e CCitadel_Pickup_SoulBag) HVictimPlayer() Handle[CCitadelPlayerPawn] {
+	return Handle[CCitadelPlayerPawn]{e.field("m_hVictimPlayer")}
+}
 
 type CCitadel_PickupItemSpawner CEntityInstance
 
