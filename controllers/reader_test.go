@@ -14,9 +14,9 @@ import (
 	pb "github.com/paralin/modlock/src/wasm/controllers"
 )
 
-// openSDL returns the loaded library, skipping the test when SDL3 is not
+// testSDL returns the loaded library, skipping the test when SDL3 is not
 // installed, with the joystick layers started on the test's locked thread.
-func openSDL(t *testing.T) *sdlLib {
+func testSDL(t *testing.T) *sdlLib {
 	t.Helper()
 	r, err := Open(nil)
 	if errors.Is(err, ErrUnavailable) {
@@ -85,7 +85,7 @@ func changed(frame *pb.ControllerFrame, id uint32) *pb.ControllerState {
 func TestStreamSendsFullThenChanges(t *testing.T) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	lib := openSDL(t)
+	lib := testSDL(t)
 	if !lib.InitSubSystem(sdlInitJoystick | sdlInitGamepad) {
 		t.Fatal(lib.GetError())
 	}
@@ -170,7 +170,7 @@ func TestStreamSendsFullThenChanges(t *testing.T) {
 // TestRunFollowsHotplugAndStops runs the reader, sees a device attached
 // while it runs announced, and sees Run return once its context ends.
 func TestRunFollowsHotplugAndStops(t *testing.T) {
-	lib := openSDL(t)
+	lib := testSDL(t)
 	if !lib.InitSubSystem(sdlInitJoystick | sdlInitGamepad) {
 		t.Fatal(lib.GetError())
 	}
@@ -228,7 +228,7 @@ func TestRunFollowsHotplugAndStops(t *testing.T) {
 // TestRunStreamsVirtualDevices runs the reader with VirtualEnv set and
 // decodes the virtual gamepad's clock axis to within a few frames of now.
 func TestRunStreamsVirtualDevices(t *testing.T) {
-	lib := openSDL(t)
+	lib := testSDL(t)
 	t.Setenv(VirtualEnv, "1")
 	r := &Reader{lib: lib, log: slog.Default()}
 	r.Want(1)

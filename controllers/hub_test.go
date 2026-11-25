@@ -163,7 +163,7 @@ func (g guestFeed) Feed(strm SRPCControllerFeed_FeedStream) error {
 // virtual gamepad.
 func TestFeedCarriesAGuestsDevices(t *testing.T) {
 	// A server whose slot 2 connects through the guest's forwarding socket.
-	openSDL(t)
+	testSDL(t)
 	t.Setenv(VirtualEnv, "1")
 	frames := make(chan *pb.ControllerFrames, 256)
 	hub := NewHub(func(f *pb.ControllerFrames) {
