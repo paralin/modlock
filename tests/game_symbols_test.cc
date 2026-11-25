@@ -9,6 +9,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <vector>
 
 #include "modlock/gameinterop/signature.h"
 #include "modlock/gameinterop/virtual_slots.h"
@@ -39,15 +40,20 @@ class Image final : public ModuleImage {
 // LoadedImage reports itself loaded, as a module mapped at base does.
 class LoadedImage final : public ModuleImage {
  public:
-  explicit LoadedImage(std::uintptr_t base) : base_(base) {}
+  explicit LoadedImage(std::uintptr_t base, size_t size = 32) : bytes(size), base_(base) {}
 
   std::uintptr_t base() const override { return base_; }
 
-  std::span<const uint8_t> image_bytes() const override { return bytes; }
+  std::span<const uint8_t> image_bytes() const override {
+    ++reads;
+    return bytes;
+  }
+
+  mutable size_t reads = 0;
 
   bool loaded() const override { return true; }
 
-  std::array<uint8_t, 32> bytes{};
+  std::vector<uint8_t> bytes;
 
  private:
   std::uintptr_t base_;
@@ -262,9 +268,8 @@ signatures { id: "a.server" modules: GAME_MODULE_SERVER pattern: "CC" shape: "a 
 signatures { id: "b.engine" modules: GAME_MODULE_ENGINE pattern: "DD" shape: "a match" }
 )")));
 
-  // A failure is not kept: the signature resolves once its bytes are there.
+  // A successful address survives a hook rewriting its matching bytes.
   LoadedImage loaded(0x2000);
-  EXPECT_FALSE(ResolveSignature(loaded, "a.server"));
   loaded.bytes[4] = 0xcc;
   const auto found = ResolveSignature(loaded, "a.server");
   ASSERT_TRUE(found) << found.error();
@@ -283,10 +288,30 @@ signatures { id: "b.engine" modules: GAME_MODULE_ENGINE pattern: "DD" shape: "a 
   image.bytes[4] = 0xe9;
   EXPECT_FALSE(ResolveSignature(image, "a.server"));
 
-  // Resolving a module's signatures counts the ones that miss.
-  LoadedImage module(0x3000);
+  // Resolving a module's signatures keeps both hits and misses.
+  LoadedImage missing(0x3000);
+  EXPECT_EQ(ResolveModuleSignatures(missing, GameModule::kServer), 1);
+  missing.bytes[4] = 0xcc;
+  EXPECT_EQ(ResolveModuleSignatures(missing, GameModule::kServer), 1);
+  EXPECT_EQ(missing.reads, 1);
+
+  // Cached misses never read the image, at either size.
+  for (const size_t size : {size_t{32}, size_t{320}}) {
+    // Resolve the miss once before repeating it.
+    LoadedImage absent(0x10000 + size, size);
+    const auto failure = ResolveSignature(absent, "a.server");
+    ASSERT_FALSE(failure);
+    for (int i = 0; i < 10; ++i) {
+      const auto repeated = ResolveSignature(absent, "a.server");
+      ASSERT_FALSE(repeated);
+      EXPECT_EQ(repeated.error(), failure.error());
+    }
+    EXPECT_EQ(absent.reads, 1);
+  }
+
+  // A different loaded module gets its own resolution.
+  LoadedImage module(0x4000);
   module.bytes[8] = 0xdd;
-  EXPECT_EQ(ResolveModuleSignatures(module, GameModule::kServer), 1);
   module.bytes[4] = 0xcc;
   EXPECT_EQ(ResolveModuleSignatures(module, GameModule::kServer), 0);
 
