@@ -24,10 +24,6 @@ Game::~Game() {
 }
 
 void Game::Frame() {
-  // Apply the per-frame state each feature keeps.
-  SeatPlayers();
-  ApplyFreeForAll();
-
   // Run the modules, so the world finishes the units spawned this frame
   // together.
   for (auto* module : std::views::reverse(modules_)) {
@@ -53,10 +49,6 @@ void Game::WorldReady() {
 }
 
 void Game::WorldEnding() {
-  // Drop the per-world player state and reapply host seats on the next map.
-  assignments_.WorldEnding();
-  ffa_held_.clear();
-
   // Release what the mod held in the world.
   for (auto* module : std::views::reverse(modules_)) {
     module->WorldEnding();
@@ -64,9 +56,6 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget the slot's seat.
-  seat_failed_.erase(slot);
-
   // Forget its silences.
   silenced_players_.erase(slot);
 
@@ -76,11 +65,6 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
-  // Release the free-for-all and team seating.
-  free_for_all_ = false;
-  team_seating_ = false;
-  ReleaseFreeForAll();
-
   // Release the voices it silenced.
   silenced_.clear();
   silenced_players_.clear();

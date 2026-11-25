@@ -61,6 +61,7 @@
 #include "wasm/players.h"
 #include "wasm/projectiles.h"
 #include "wasm/restores.h"
+#include "wasm/seating.h"
 #include "wasm/team_seating.h"
 #include "wasm/world.h"
 
@@ -161,6 +162,9 @@ class GameServices {
   std::expected<const gameinterop::EntityDynamics*, std::string> Dynamics();
   std::expected<const gameinterop::BotCreation*, std::string> Bots();
   std::expected<gameinterop::FreeForAllRelations*, std::string> Relations();
+  // DisableRelations restores the stock team relations, if Relations
+  // installed them.
+  void DisableRelations();
   std::expected<render::WorldTextGameFactory*, std::string> Text();
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
 
@@ -454,12 +458,14 @@ class Game : public HostService, private VoiceSource {
 
   // AssignTeams applies host seats on join and assignment change. The table
   // survives Clear, so a build reload keeps confirmed seats and pending joins.
-  std::expected<void, std::string> AssignTeams(const wasm::TeamAssignments& request);
+  std::expected<void, std::string> AssignTeams(const wasm::TeamAssignments& request) {
+    return seating_.AssignTeams(request);
+  }
 
   // StartFreeForAll sets whether free-for-all is on as a mod starts, from its
   // manifest, and turns team seating off. SetFreeForAll and SetTeamSeating
   // change them while the mod runs.
-  void StartFreeForAll(bool enabled);
+  void StartFreeForAll(bool enabled) { seating_.StartFreeForAll(enabled); }
 
   // StartContentAddon names the content addon of the mod that starts, which
   // CreateEntity writes in place of {addon} in a text key value, and
@@ -474,7 +480,7 @@ class Game : public HostService, private VoiceSource {
 
   // FreeForAllCommand reports whether free-for-all consumes a player's console
   // line. Seating is the host's, so it drops the team commands.
-  bool FreeForAllCommand(std::string_view line) const;
+  bool FreeForAllCommand(std::string_view line) const { return seating_.FreeForAllCommand(line); }
 
   // ClientCommand notes a console command a player sent the game that the
   // host follows: a selecthero pick from the game's Change Hero, which
@@ -761,9 +767,14 @@ class Game : public HostService, private VoiceSource {
   }
 
   std::expected<void, std::string> SetFreeForAll(
-      const wasm::SetFreeForAllRequest& request) override;
+      const wasm::SetFreeForAllRequest& request) override {
+    return seating_.SetFreeForAll(request);
+  }
+
   std::expected<void, std::string> SetTeamSeating(
-      const wasm::SetTeamSeatingRequest& request) override;
+      const wasm::SetTeamSeatingRequest& request) override {
+    return seating_.SetTeamSeating(request);
+  }
 
   std::expected<objects::ObjectResponse, std::string> CreateModel(
       const objects::ModelOptions& request) override {
@@ -997,26 +1008,6 @@ class Game : public HostService, private VoiceSource {
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // SeatAssignedPlayers retries pending host seats and records a seat only
-  // after its native operation succeeds for the same connection generation.
-  void SeatAssignedPlayers();
-  // SeatAssignedPlayer applies one pending host seat without choosing a hero.
-  std::expected<void, std::string> SeatAssignedPlayer(int32_t slot, uint32_t generation,
-                                                      uint64_t steam_id, int32_t team);
-
-  // SeatPlayers seats each player who has no team on the smaller side, with
-  // no hero, while team seating or free-for-all is on. A host that cannot
-  // seat a player leaves the game's own team screen to them.
-  void SeatPlayers();
-  // ApplyFreeForAll holds friendly fire on every living hero in free-for-all.
-  void ApplyFreeForAll();
-  // EnableRelations makes teammates enemies to abilities and projectiles,
-  // installing the relations on first use.
-  void EnableRelations();
-  // ReleaseFreeForAll gives back the friendly fire holds free-for-all took
-  // and restores the stock team relations.
-  void ReleaseFreeForAll();
-
   // Silence installs the voice hook while the mod silences any concept, then
   // reports the concept names the game did not know, from unknown.
   std::expected<void, std::string> Silence(const std::string& unknown);
@@ -1028,17 +1019,6 @@ class Game : public HostService, private VoiceSource {
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
-  // free_for_all_ is true while the host seats players and holds friendly fire,
-  // and team_seating_ while it only seats them; ffa_held_ is the hero pawns it
-  // holds friendly fire on, and seat_failed_ the players it could not seat, so
-  // each failure is logged once.
-  bool free_for_all_ = false;
-  bool team_seating_ = false;
-  // assignments_ survives Clear: the host owns it, independently of the mod.
-  TeamSeating assignments_;
-
-  std::set<uint32_t> ffa_held_;
-  std::set<int32_t> seat_failed_;
 
   // silenced_ is the voice concepts the mod keeps every hero from speaking,
   // and silenced_players_ those it keeps from one player's hero, by slot.
@@ -1061,9 +1041,10 @@ class Game : public HostService, private VoiceSource {
   Projectiles projectiles_{services_, players_,
                            [this](const combat::ImpactEvent& event) { Impacted(event); }};
   Restores restores_{services_, players_, world_, modifiers_, heroes_};
-  std::array<Module*, 12> modules_{&players_,  &world_,     &match_,       &apart_,
-                                   &fields_,   &modifiers_, &heroes_,      &camera_,
-                                   &movement_, &input_,     &projectiles_, &restores_};
+  Seating seating_{services_, players_, modifiers_, [this](int32_t slot) { return Serves(slot); }};
+  std::array<Module*, 13> modules_{&players_,     &world_,    &match_,  &apart_,    &fields_,
+                                   &modifiers_,   &heroes_,   &camera_, &movement_, &input_,
+                                   &projectiles_, &restores_, &seating_};
 };
 
 }  // namespace modlock::wasm
