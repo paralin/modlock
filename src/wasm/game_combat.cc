@@ -413,7 +413,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
   }
 
   // A teleport recomputes the hero's modifier states, dropping held ones.
-  ApplyHolds();
+  modifiers_.Apply();
   return true;
 }
 
