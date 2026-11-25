@@ -455,29 +455,31 @@ std::expected<wasm::ServiceCallStarted, std::string> WasmPlugin::StartServiceCal
 }
 
 void WasmPlugin::PostToWorker(const std::string& script, std::string payload, WasmReply reply) {
-  // Start the worker the first request names, from the script the mod ships.
+  // Start the worker the first request names, from the script the mod
+  // ships, and again after its store trapped on a request.
   auto found = workers_.find(script);
+  if (found != workers_.end() && found->second->Trapped()) {
+    workers_.erase(found);
+    found = workers_.end();
+  }
   if (found == workers_.end()) {
-    auto source = Files().Read(script);
-    if (!source || !*source) {
-      reply(std::unexpected("the worker script " + script + " is not one of the mod's files"));
-      return;
-    }
     // A worker's script runs in the interpreter of the mod's language: the
-    // mod's own module when it is interpreted, and QuickJS for a mod
-    // compiled from TypeScript, whose module runs no other script.
-    std::vector<uint8_t> module = module_;
+    // mod's own module when it is interpreted, which the worker takes as a
+    // copy, and QuickJS for a compiled mod, whose module runs no other
+    // script. The worker reads the script and the interpreter on its thread.
+    wasm::Worker::ModuleSource module;
     if (manifest_.runtime() == wasm::Manifest::RUNTIME_WASM) {
-      auto interpreter = wasm::ReadInterpreter(wasm::Manifest::RUNTIME_QUICKJS, host_.interpreters);
-      if (!interpreter) {
-        reply(std::unexpected("the worker has no interpreter: " + interpreter.error()));
-        return;
-      }
-      module = std::move(*interpreter);
+      module = [interpreters = host_.interpreters] {
+        return wasm::ReadInterpreter(wasm::Manifest::RUNTIME_QUICKJS, interpreters);
+      };
+    } else {
+      module = [copy = module_]() mutable -> std::expected<std::vector<uint8_t>, std::string> {
+        return std::move(copy);
+      };
     }
     found = workers_
-                .emplace(script, std::make_unique<wasm::Worker>(host_.runtime, module,
-                                                                std::move(**source), Files(),
+                .emplace(script, std::make_unique<wasm::Worker>(host_.runtime, std::move(module),
+                                                                script, Files(),
                                                                 name_ + " worker " + script))
                 .first;
   }

@@ -3,7 +3,9 @@
 // beside the server's tick, with no game to talk to: it may log and read the
 // mod's files, and the host refuses every other call. It answers one request
 // at a time, in the order the mod made them, and keeps its state between
-// them, so a table it decoded once can answer many small questions.
+// them, so a table it decoded once can answer many small questions. A request
+// that runs out of time or memory loses that state, and the next request
+// starts the script again.
 //
 //   import { serve } from 'modlock/worker'
 //   import { answer } from './table.js'

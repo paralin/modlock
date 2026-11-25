@@ -222,7 +222,9 @@ can leave the server's tick altogether. A worker is a script of the mod's own,
 named `*.worker.ts` in the project's root or `src/`, which the build bundles
 into the mod's `data/` directory and the host runs in a second interpreter on
 another thread. It may log and read the mod's files and nothing else, answers one
-request at a time, and keeps its state between them:
+request at a time, and keeps its state between them. A request that runs out
+of time or memory loses that state, and the next request starts the script
+again:
 
 <Samples>
 

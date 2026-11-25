@@ -76,11 +76,11 @@ class WorkerHost : public HostService {
 
 }  // namespace
 
-Worker::Worker(Runtime& runtime, std::span<const uint8_t> module, std::string source,
-               ModFiles files, std::string name)
+Worker::Worker(Runtime& runtime, ModuleSource module, std::string script, ModFiles files,
+               std::string name)
     : runtime_(runtime),
-      module_(module.begin(), module.end()),
-      source_(std::move(source)),
+      module_(std::move(module)),
+      script_(std::move(script)),
       files_(std::move(files)),
       name_(std::move(name)),
       thread_([this](std::stop_token stop) { Run(stop); }) {}
@@ -112,13 +112,19 @@ void Worker::Log(const std::string& text) const {
   std::cerr << std::format("[{}] {}\n", name_, text);
 }
 
-void Worker::Fail(const std::string& failure) {
+bool Worker::Trapped() {
+  std::lock_guard lock(mu_);
+  return trapped_;
+}
+
+void Worker::Fail(const std::string& failure, bool trapped) {
   // The store is gone for good: refuse what waits and everything posted later.
   Log(failure);
   std::deque<Request> waiting;
   {
     std::lock_guard lock(mu_);
     failure_ = failure;
+    trapped_ = trapped;
     waiting.swap(queue_);
   }
   for (auto& request : waiting) {
@@ -127,7 +133,8 @@ void Worker::Fail(const std::string& failure) {
 }
 
 void Worker::Run(std::stop_token stop) {
-  // Load the store and start the script, timing each step.
+  // Read the module and the script, load the store and start the script,
+  // timing each step.
   const auto began = Clock::now();
   WorkerHost host(files_, [this](const std::string& text) { Log(text); });
   Limits limits;
@@ -135,26 +142,43 @@ void Worker::Run(std::stop_token stop) {
   limits.event_budget = kWorkerEvent;
   limits.slow_event = kWorkerEvent;
   limits.stop = stop;
-  auto instance = Instance::Load(runtime_, module_, limits,
-                                 [&host](const Call& call) { return host.Dispatch(call); });
-  std::optional<std::string> failure;
-  const double loaded = Milliseconds(began);
-  if (instance) {
-    StartEvent event;
-    event.set_source(source_);
-    Call start;
-    start.set_method("Start");
-    start.set_request(event.SerializeAsString());
-    if (auto started = (*instance)->Deliver(start); !started) {
-      failure = "the worker's script did not start: " + started.error();
-    } else if (!started->error().empty()) {
-      failure = "the worker's script did not start: " + started->error();
+  double loaded = 0;
+  auto start = [&]() -> std::expected<std::unique_ptr<Instance>, std::string> {
+    auto module = module_();
+    if (!module) {
+      return std::unexpected("the worker has no interpreter: " + module.error());
     }
-  } else {
-    failure = "the worker did not load: " + instance.error();
-  }
-  if (failure) {
-    Fail(*failure);
+    auto source = files_.Read(script_);
+    if (!source || !*source) {
+      return std::unexpected("the worker script " + script_ + " is not one of the mod's files");
+    }
+    auto instance = Instance::Load(runtime_, *module, limits,
+                                   [&host](const Call& call) { return host.Dispatch(call); });
+    loaded = Milliseconds(began);
+    if (!instance) {
+      return std::unexpected("the worker did not load: " + instance.error());
+    }
+    StartEvent event;
+    event.set_source(std::move(**source));
+    Call call;
+    call.set_method("Start");
+    call.set_request(event.SerializeAsString());
+    auto started = (*instance)->Deliver(call);
+    if (!started) {
+      return std::unexpected("the worker's script did not start: " + started.error());
+    }
+    if (!started->error().empty()) {
+      return std::unexpected("the worker's script did not start: " + started->error());
+    }
+    return std::move(*instance);
+  };
+  auto instance = start();
+  if (!instance) {
+    // A stop during the start is the mod stopping, not a fault: the
+    // destructor refuses what waits.
+    if (!stop.stop_requested()) {
+      Fail(instance.error(), false);
+    }
     return;
   }
   Log(std::format("worker ready in {:.1f} ms ({:.1f} ms to load the store), memory {} KiB", Milliseconds(began),
@@ -180,9 +204,12 @@ void Worker::Run(std::stop_token stop) {
     auto answered = (*instance)->Deliver(call);
     const double took = Milliseconds(requested);
     if (!answered) {
-      Log(std::format("request {} failed after {:.1f} ms: {}", ++served, took, answered.error()));
       request.reply(std::unexpected(answered.error()));
-      Fail(answered.error());
+      if (!stop.stop_requested()) {
+        Fail(std::format("request {} failed after {:.1f} ms: {}", ++served, took,
+                         answered.error()),
+             true);
+      }
       return;
     }
     ++served;

@@ -7,12 +7,13 @@
 \* step here.
 \*
 \* A request runs for Long epoch ticks. The destroyer requests a stop and
-\* waits for the thread; with Design "interrupt", the running request's store
-\* traps on the next tick, so the wait is one tick. Design "wait" is the
-\* probe's, in which the stop waits for the request to finish: its mutant
-\* fails StopIsPrompt.
+\* waits for the thread; the running request's store traps on the next tick,
+\* so the wait is one tick. Worker.mutants.json holds the probe's design, in
+\* which the stop waits for the request to finish. Loading the store cannot
+\* be interrupted, so a stop that finds the worker loading waits for the load,
+\* a few milliseconds; Stop folds that wait into one step.
 EXTENDS Naturals, Sequences, FiniteSets
-CONSTANTS Requests, Long, Design
+CONSTANTS Requests, Long
 VARIABLES worker, queue, running, left, replies, posted, stopping, waited
 vars == <<worker, queue, running, left, replies, posted, stopping, waited>>
 
@@ -61,7 +62,7 @@ Take ==
 Tick ==
   /\ worker = "running"
   /\ waited' = IF stopping THEN waited + 1 ELSE waited
-  /\ IF stopping /\ Design = "interrupt" THEN
+  /\ IF stopping THEN
        \* The store traps: the request ends with an error and the thread
        \* exits.
        /\ Reply(running) /\ running' = None /\ worker' = "exited"
