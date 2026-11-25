@@ -40,11 +40,20 @@ func studioRenderCommand(out *printer) *cli.Command {
 			&cli.Float64Flag{Name: "fov", Value: 30, Usage: "the camera's vertical field of view in `DEGREES`"},
 			&cli.IntFlag{Name: "size", Value: 1024, Usage: "each picture's longer side in `PIXELS`"},
 			&cli.Float64Flag{Name: "margin", Value: 0.04, Usage: "the empty border as a `FRACTION` of the longer side"},
+			&cli.StringFlag{Name: "tint", Value: "ffffff", Usage: "the model color as six hexadecimal RGB digits"},
 			&cli.StringFlag{Name: "browser", Usage: "the Chromium `PATH` to draw in, or none to print the address instead"},
 			&cli.IntFlag{Name: "port", Usage: "the loopback `PORT` to serve on, or a free one when taken or zero"},
 		},
 		Action: func(c *cli.Context) error {
 			out.header("studio render", "")
+
+			// Read the model tint before opening the archive or starting a browser.
+			tintText := strings.TrimPrefix(c.String("tint"), "#")
+			tintColor, tintErr := strconv.ParseUint(tintText, 16, 24)
+			if tintErr != nil || len(tintText) != 6 {
+				return errors.New("tint must be six hexadecimal RGB digits")
+			}
+			tint := []float32{float32((tintColor>>16)&255) / 255, float32((tintColor>>8)&255) / 255, float32(tintColor&255) / 255}
 
 			// Read the views and the models' names and patterns.
 			views, err := renderViews(c.StringSlice("view"), c.Int("turntable"), c.Float64("turntable-pitch"))
@@ -85,6 +94,7 @@ func studioRenderCommand(out *printer) *cli.Command {
 				for _, view := range views {
 					shots = append(shots, &studio.Shot{
 						Model:  model.path,
+						Tint:   tint,
 						Yaw:    view.yaw,
 						Pitch:  view.pitch,
 						Fov:    float32(c.Float64("fov")),

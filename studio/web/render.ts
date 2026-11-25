@@ -70,6 +70,23 @@ class Stage {
     if (this.loaded?.name !== name) this.loaded = await this.load(name, signal)
     const { group, missing } = this.loaded
 
+    // Apply each shot's model tint independently of the previous shot's tint.
+    const [r = 1, g = 1, b = 1] = shot.tint ?? []
+    const tint = new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace)
+    group.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : [object.material]
+      for (const material of materials) {
+        if (!(material instanceof THREE.MeshStandardMaterial)) continue
+        const modelTint = material.userData.s2ModelTint as
+          | THREE.Color
+          | undefined
+        modelTint?.copy(tint)
+      }
+    })
+
     // Find the bounding sphere of what is drawn.
     group.updateMatrixWorld(true)
     const box = new THREE.Box3().setFromObject(group)

@@ -35,7 +35,9 @@ export async function decodeBuffer(
 interface Layout {
   size: number
   bytes: number
-  array: new (length: number) => Float32Array | Uint16Array | Int16Array
+  array: new (
+    length: number,
+  ) => Float32Array | Uint16Array | Int16Array | Uint8Array
   normalized: boolean
   half?: boolean
 }
@@ -43,6 +45,7 @@ interface Layout {
 // layouts are the vertex formats the page reads, kept in their stored
 // precision so the GPU gets them unconverted.
 const layouts: Record<number, Layout> = {
+  28: { size: 4, bytes: 1, array: Uint8Array, normalized: true }, // R8G8B8A8_UNORM
   2: { size: 4, bytes: 4, array: Float32Array, normalized: false }, // R32G32B32A32_FLOAT
   6: { size: 3, bytes: 4, array: Float32Array, normalized: false }, // R32G32B32_FLOAT
   16: { size: 2, bytes: 4, array: Float32Array, normalized: false }, // R32G32_FLOAT
@@ -137,12 +140,24 @@ export function readVertices(streams: Stream[]): Vertices {
   }
   copy('POSITION', 'position')
   copy('TEXCOORD', 'uv')
+  copy('TEXCOORD', 's2SecondaryUv', 1)
+  copy('TEXCOORD', 's2Blend', 4)
   copy('TEXCOORD', 'lightmapUv', lightmapIndex)
+
+  // Meshes without blend paint start on the first layer; missing secondary
+  // coordinates use the primary stream, as a one-layer model does.
+  attributes.s2Blend ??= new THREE.BufferAttribute(
+    new Uint8Array((attributes.position?.count ?? 0) * 4),
+    4,
+    true,
+  )
+  if (attributes.uv) attributes.s2SecondaryUv ??= attributes.uv
 
   // Read the vertex color, stored as sRGB bytes, as a linear color.
   const color = field('COLOR')
   if (color?.format === rgba8) {
     const out = new Uint16Array(color.count * 3)
+    const tint = new Uint16Array(color.count * 3)
     const c = new THREE.Color()
     for (let v = 0; v < color.count; v++) {
       const at = v * color.stride + color.at
@@ -151,8 +166,13 @@ export function readVertices(streams: Stream[]): Vertices {
       out[v * 3] = c.r * 65535
       out[v * 3 + 1] = c.g * 65535
       out[v * 3 + 2] = c.b * 65535
+      const strength = byte(3)
+      tint[v * 3] = (1 + (c.r - 1) * strength) * 65535
+      tint[v * 3 + 1] = (1 + (c.g - 1) * strength) * 65535
+      tint[v * 3 + 2] = (1 + (c.b - 1) * strength) * 65535
     }
     attributes.color = new THREE.BufferAttribute(out, 3, true)
+    attributes.s2Tint = new THREE.BufferAttribute(tint, 3, true)
   }
 
   // Unpack the stored tangent frame.

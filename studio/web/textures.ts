@@ -146,6 +146,11 @@ export async function loadTexture(
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping
   texture.flipY = false
   if (srgb) texture.colorSpace = THREE.SRGBColorSpace
+  texture.userData.s2AverageColor = new THREE.Vector3(
+    ...((header.averageColor?.length === 3
+      ? header.averageColor
+      : [1, 1, 1]) as [number, number, number]),
+  )
   texture.needsUpdate = true
   return { texture, width, height }
 }

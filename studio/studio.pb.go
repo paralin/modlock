@@ -580,6 +580,8 @@ type Texture struct {
 	Cube bool `protobuf:"varint,6,opt,name=cube,proto3" json:"cube,omitempty"`
 	// Served reports that the mips route can answer this format's mips.
 	Served bool `protobuf:"varint,7,opt,name=served,proto3" json:"served,omitempty"`
+	// AverageColor is the stored linear RGB reflectivity, the color-correction pivot.
+	AverageColor []float32 `protobuf:"fixed32,8,rep,packed,name=average_color,json=averageColor,proto3" json:"averageColor,omitempty"`
 }
 
 func (x *Texture) Reset() {
@@ -635,6 +637,13 @@ func (x *Texture) GetServed() bool {
 		return x.Served
 	}
 	return false
+}
+
+func (x *Texture) GetAverageColor() []float32 {
+	if x != nil {
+		return x.AverageColor
+	}
+	return nil
 }
 
 // Resource is any compiled resource's blocks.
@@ -1060,6 +1069,8 @@ type Shot struct {
 	// Margin is the empty border around the model on the picture's longer
 	// side, as a fraction of that side.
 	Margin float32 `protobuf:"fixed32,6,opt,name=margin,proto3" json:"margin,omitempty"`
+	// Tint is the model's sRGB color tint; empty means white.
+	Tint []float32 `protobuf:"fixed32,7,rep,packed,name=tint,proto3" json:"tint,omitempty"`
 }
 
 func (x *Shot) Reset() {
@@ -1108,6 +1119,13 @@ func (x *Shot) GetMargin() float32 {
 		return x.Margin
 	}
 	return 0
+}
+
+func (x *Shot) GetTint() []float32 {
+	if x != nil {
+		return x.Tint
+	}
+	return nil
 }
 
 // ShotResult is the page's answer for one shot.
@@ -1535,6 +1553,7 @@ func (m *Texture) CloneVT() *Texture {
 	r.Mips = m.Mips
 	r.Cube = m.Cube
 	r.Served = m.Served
+	r.AverageColor = protobuf_go_lite.CloneSlice(m.AverageColor)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1709,6 +1728,7 @@ func (m *Shot) CloneVT() *Shot {
 	r.Fov = m.Fov
 	r.Size = m.Size
 	r.Margin = m.Margin
+	r.Tint = protobuf_go_lite.CloneSlice(m.Tint)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2063,6 +2083,9 @@ func (this *Texture) EqualVT(that *Texture) bool {
 	if this.Served != that.Served {
 		return false
 	}
+	if !protobuf_go_lite.EqualSlice(this.AverageColor, that.AverageColor) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -2331,6 +2354,9 @@ func (this *Shot) EqualVT(that *Shot) bool {
 		return false
 	}
 	if this.Margin != that.Margin {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Tint, that.Tint) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -3576,6 +3602,11 @@ func (x *Texture) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("served")
 		s.WriteBool(x.Served)
 	}
+	if len(x.AverageColor) > 0 || s.HasField("averageColor") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("averageColor")
+		s.WriteFloat32Array(x.AverageColor)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -3614,6 +3645,13 @@ func (x *Texture) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "served":
 			s.AddField("served")
 			x.Served = s.ReadBool()
+		case "average_color", "averageColor":
+			s.AddField("average_color")
+			if s.ReadNil() {
+				x.AverageColor = nil
+				return
+			}
+			x.AverageColor = s.ReadFloat32Array()
 		}
 	})
 }
@@ -4501,6 +4539,11 @@ func (x *Shot) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("margin")
 		s.WriteFloat32(x.Margin)
 	}
+	if len(x.Tint) > 0 || s.HasField("tint") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("tint")
+		s.WriteFloat32Array(x.Tint)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4536,6 +4579,13 @@ func (x *Shot) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "margin":
 			s.AddField("margin")
 			x.Margin = s.ReadFloat32()
+		case "tint":
+			s.AddField("tint")
+			if s.ReadNil() {
+				x.Tint = nil
+				return
+			}
+			x.Tint = s.ReadFloat32Array()
 		}
 	})
 }
@@ -5282,6 +5332,15 @@ func (m *Texture) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.AverageColor) > 0 {
+		for iNdEx := len(m.AverageColor) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.AverageColor[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.AverageColor)*4))
+		i--
+		dAtA[i] = 0x42
+	}
 	if m.Served {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Served)
 		i--
@@ -5864,6 +5923,15 @@ func (m *Shot) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Tint) > 0 {
+		for iNdEx := len(m.Tint) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.Tint[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Tint)*4))
+		i--
+		dAtA[i] = 0x3a
+	}
 	if m.Margin != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Margin))))
 		i--
@@ -6156,6 +6224,7 @@ func (m *Texture) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Mips)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Cube)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Served)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.AverageColor)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6314,6 +6383,7 @@ func (m *Shot) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Fov)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Size)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Margin)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Tint)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6827,6 +6897,14 @@ func (x *Texture) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "served")
 		protobuf_go_lite.TextWriteBool(&sb, x.Served)
 	}
+	if len(x.AverageColor) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "average_color")
+		for i, v := range x.AverageColor {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -7202,6 +7280,14 @@ func (x *Shot) MarshalProtoText() string {
 	if x.Margin != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "margin")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.Margin)
+	}
+	if len(x.Tint) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "tint")
+		for i, v := range x.Tint {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -8386,6 +8472,42 @@ func (m *Texture) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Served = bool(v)
+		case 8:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.AverageColor = append(m.AverageColor, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.AverageColor) == 0 {
+					m.AverageColor = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.AverageColor = append(m.AverageColor, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field AverageColor", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -9468,6 +9590,42 @@ func (m *Shot) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Margin = float32(math.Float32frombits(v))
+		case 7:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Tint = append(m.Tint, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Tint) == 0 {
+					m.Tint = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Tint = append(m.Tint, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tint", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

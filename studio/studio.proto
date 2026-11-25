@@ -197,6 +197,9 @@ message Texture {
 
   // Served reports that the mips route can answer this format's mips.
   bool served = 7;
+
+  // AverageColor is the stored linear RGB reflectivity, the color-correction pivot.
+  repeated float average_color = 8;
 }
 
 // Resource is any compiled resource's blocks.
@@ -368,6 +371,9 @@ message Shot {
   // Margin is the empty border around the model on the picture's longer
   // side, as a fraction of that side.
   float margin = 6;
+
+  // Tint is the model's sRGB color tint; empty means white.
+  repeated float tint = 7;
 }
 
 // ShotResult is the page's answer for one shot.

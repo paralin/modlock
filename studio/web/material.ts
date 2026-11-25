@@ -11,6 +11,7 @@ import {
   lightmapVertex,
 } from './lighting.js'
 import type { TextureCache } from './textures.js'
+import { createEnvironmentLayers } from './environment.js'
 
 // Params reads a material's parameters, by the name with or without the
 // layer suffix 1 the game's shaders use.
@@ -75,10 +76,12 @@ const fragment: Record<string, string> = {
     float s2Luma = dot(s2Albedo, vec3(0.2126, 0.7152, 0.0722));
     s2Albedo = mix(vec3(s2Luma), s2Albedo, s2Csb.y) * s2Csb.z;
     s2Albedo = mix(s2Albedo, s2Albedo * s2Tint, s2MaskTint ? s2Mask : 1.0);
+    vec3 s2VertexColor = s2ModelTint;
     #if defined(USE_COLOR) || defined(USE_INSTANCING_COLOR)
-      s2Albedo = mix(s2Albedo, s2Albedo * vColor.rgb,
-        (s2MaskVertexTint ? s2Mask : 1.0) * s2VertexTintStrength);
+      s2VertexColor *= vColor.rgb;
     #endif
+    s2Albedo = mix(s2Albedo, s2Albedo * s2VertexColor,
+      (s2MaskVertexTint ? s2Mask : 1.0) * s2VertexTintStrength);
     vec3 s2Emissive = vec3(0.0);
     #ifdef S2_SELF_ILLUM
       float s2IllumMask = texture2D(s2SelfIllumMask, vMapUv).x;
@@ -133,6 +136,7 @@ const declarations = /* glsl */ `
   uniform sampler2D s2SelfIllumMask;
   uniform sampler2D s2Metalness;
   uniform vec3 s2Tint;
+  uniform vec3 s2ModelTint;
   uniform bool s2MaskTint;
   uniform bool s2MaskVertexTint;
   uniform float s2VertexTintStrength;
@@ -210,6 +214,7 @@ export function createMaterial(
     s2SelfIllumMask: { value: black as THREE.Texture },
     s2Metalness: { value: black as THREE.Texture },
     s2Tint: { value: tint },
+    s2ModelTint: { value: new THREE.Color(1, 1, 1) },
     s2MaskTint: { value: p.int('g_bMaskColorTint1', 1) !== 0 },
     s2MaskVertexTint: { value: p.int('g_bMaskVertexColorTint1', 1) !== 0 },
     s2VertexTintStrength: { value: p.float('g_fVertexColorStrength1', 1) },
@@ -232,6 +237,7 @@ export function createMaterial(
     side:
       p.int('F_RENDER_BACKFACES') !== 0 ? THREE.DoubleSide : THREE.FrontSide,
   })
+  drawn.userData.s2ModelTint = uniforms.s2ModelTint.value
   drawn.defines = {}
   if (selfIllum) drawn.defines.S2_SELF_ILLUM = ''
   if (metalnessTexture) drawn.defines.S2_METALNESS_TEXTURE = ''
@@ -240,6 +246,45 @@ export function createMaterial(
   drawn.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms)
     patch(shader, baked)
+  }
+
+  // Environment layers keep their blend paint separate from the vertex tint.
+  if (
+    material &&
+    ['environment_layer.vfx', 'environment_blend.vfx'].includes(shader)
+  ) {
+    const layers = createEnvironmentLayers(material, textures)
+    drawn.addEventListener('dispose', layers.dispose)
+    drawn.defines.S2_LAYER_COUNT = layers.count
+    drawn.onBeforeCompile = (shader) => {
+      // Bind the layer parameters and replace the PBR surface chunks.
+      Object.assign(shader.uniforms, uniforms, layers.uniforms)
+      patch(shader, baked)
+      shader.fragmentShader = inject(shader.fragmentShader, {
+        declarations: layers.declarations,
+      })
+      for (const [chunk, replacement] of Object.entries(layers.chunks)) {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          fragment[chunk] ?? '',
+          replacement,
+        )
+      }
+
+      // Carry the authored blend paint and prepared tint to each fragment.
+      shader.vertexShader = inject(shader.vertexShader, {
+        declarations: layers.vertex,
+        begin_vertex: `#include <begin_vertex>
+          vS2Blend = s2Blend.xyz;
+          vS2SecondaryUv = s2SecondaryUv;
+          vS2Tint = vec3(1.0);
+          #ifdef USE_COLOR
+            vS2Tint = s2Tint;
+          #endif
+          #ifdef USE_INSTANCING_COLOR
+            vS2Tint *= instanceColor;
+          #endif`,
+      })
+    }
   }
 
   // Cut out or blend by the color's alpha.
