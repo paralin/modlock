@@ -10,8 +10,10 @@ import (
 )
 
 // jsxImport binds the library's jsx in a lowered file. It joins the file's
-// first line, so every line keeps its number.
-const jsxImport = "import { jsx as __modlockJsx, type JSX as __ModlockJSX } from 'modlock'; "
+// first line, so every line keeps its number. The render helper accepts a
+// component with fewer parameters while still checking its declared props.
+const jsxImport = "import { jsx as __modlockJsx, type JSX as __ModlockJSX } from 'modlock'; " +
+	"function __modlockRender<P, R>(component: (props: P) => R, props: P): R { return component(props); } "
 
 // fragmentType is the type of the library's fragment element, which holds a
 // component's elements or a fragment's children.
@@ -331,7 +333,7 @@ func (l *lowerer) elementCall() (string, error) {
 	if isIntrinsic(name) {
 		return call(jsString(name), elementProps(name, props(attributes, children)), key), nil
 	}
-	rendered := name + "(" + props(attributes, children) + ")"
+	rendered := "__modlockRender(" + name + ", " + props(attributes, children) + ")"
 	return call(fragmentType, "{ children: "+rendered+" }", key), nil
 }
 
