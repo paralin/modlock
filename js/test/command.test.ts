@@ -194,3 +194,20 @@ test('a mode empties the map with its own settings and probes itself', () => {
     '> quit',
   ])
 })
+
+test('command names ignore case while arguments keep their case', () => {
+  // Register mixed case and send the spellings chat and console forward.
+  const seen: string[] = []
+  command('CaseFold', (_player, args) => seen.push(args))
+  expect(send(1, 'casefold First')).toBe(true)
+  expect(send(1, 'CASEFOLD Second')).toBe(true)
+  expect(send(1, 'CaseFold ThIrD')).toBe(true)
+  frame(30)
+  expect(seen).toEqual(['First', 'Second', 'ThIrD'])
+
+  // A different spelling replaces the same command registration.
+  command('casefold', (_player, args) => seen.push(`replacement ${args}`))
+  expect(send(1, 'CASEFOLD MiXeD')).toBe(true)
+  frame(30.016)
+  expect(seen.at(-1)).toBe('replacement MiXeD')
+})
