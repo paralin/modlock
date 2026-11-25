@@ -51,7 +51,7 @@ import { connection, keepPlayers } from './players.js'
 import { settleRestore } from './restore.js'
 import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
-import { beginFrame, resumeTasks } from './tasks.js'
+import { beginFrame, endFrame } from './budget.js'
 import { chatShown } from './chat.js'
 import {
   acted,
@@ -72,7 +72,8 @@ export * as vector from './vector.js'
 export { Buttons, Layers } from './bits.js'
 export { callServiceLater, type ServiceDone } from './service-later.js'
 export { after, every, sequence, type Timer } from './timer.js'
-export { late, task, type Task } from './tasks.js'
+export { late } from './budget.js'
+export { task, type Task } from './tasks.js'
 export { worker, type Worker } from './workers.js'
 export {
   type CameraMove,
@@ -774,7 +775,7 @@ const handlers: ModHandlers = {
     for (const handler of frames) {
       handler(event)
     }
-    resumeTasks()
+    endFrame()
   },
 
   command(event) {

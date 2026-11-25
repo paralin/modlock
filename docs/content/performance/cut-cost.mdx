@@ -215,6 +215,11 @@ of the frame only when `MODLOCK_FRAME_BUDGET` names it, or is `all`; with no
 budget, `pace` never waits and `late()` is always false, so the task runs to
 its end in the frame it starts, as a plain loop would.
 
+A task is async, and scriptc compiles no async code, so a TypeScript mod that
+starts a task or calls a worker builds for QuickJS even when it asks for
+[WebAssembly](/languages/typescript#two-runtimes). `late()` is not async and
+works in both builds.
+
 ## Move computation to a worker
 
 Work that reads no game state, such as decoding a large table or searching it,

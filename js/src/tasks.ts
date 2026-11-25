@@ -31,6 +31,7 @@
 // cancel ends a task at its next pace or frame, which rejects, so the task's
 // finally blocks run and it runs no further step.
 
+import { late, onEndFrame } from './budget.js'
 import { log } from './host.gen.js'
 
 /** Task is work a mod spreads across frames. */
@@ -59,9 +60,6 @@ interface Waiter {
   readonly end: (error: Cancelled) => void
 }
 
-/** deadline is the runtime clock reading past which the frame is late. */
-let deadline = Infinity
-
 /** waiting holds the tasks the next frame resumes, in the order they waited. */
 let waiting: Waiter[] = []
 
@@ -87,6 +85,7 @@ class Entry implements Task {
 
 /** task starts work on the next frame and returns its handle. */
 export function task(fn: (task: Task) => Promise<void> | void): Task {
+  onEndFrame(resumeTasks)
   const entry = new Entry()
   waiting.push({
     task: entry,
@@ -115,29 +114,10 @@ async function run(
 }
 
 /**
- * late reports whether the current frame is past the time the host gave the
- * mod. It is false whenever the host gave none.
- */
-export function late(): boolean {
-  return performance.now() > deadline
-}
-
-/**
- * beginFrame starts the frame's budget, in microseconds, zero for none. The
- * library calls it before the frame's handlers, so they count against it.
- */
-export function beginFrame(budgetMicroseconds: number): void {
-  deadline =
-    budgetMicroseconds === 0
-      ? Infinity
-      : performance.now() + budgetMicroseconds / 1000
-}
-
-/**
  * resumeTasks resumes the tasks that waited for this frame, ending each
  * cancelled one. A task that waits again waits for the next frame.
  */
-export function resumeTasks(): void {
+function resumeTasks(): void {
   const batch = waiting
   waiting = []
   for (const waiter of batch) {
