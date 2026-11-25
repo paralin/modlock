@@ -9,39 +9,6 @@
 
 namespace modlock::wasm {
 
-// The voice calls replace the mod's silences; the shared hook merges every
-// mod's.
-
-std::expected<void, std::string> Game::SilenceVoice(const effects::SilenceVoiceRequest& request) {
-  auto [concepts, unknown] = services_.Silenced(request.concepts());
-  silenced_ = std::move(concepts);
-  return Silence(unknown);
-}
-
-std::expected<void, std::string> Game::SilencePlayerVoice(
-    const effects::SilencePlayerVoiceRequest& request) {
-  auto [concepts, unknown] = services_.Silenced(request.concepts());
-  if (concepts.empty()) {
-    silenced_players_.erase(request.player());
-  } else {
-    silenced_players_[request.player()] = std::move(concepts);
-  }
-  return Silence(unknown);
-}
-
-std::expected<void, std::string> Game::Silence(const std::string& unknown) {
-  // The hook stays once installed; an empty silence costs it one lookup.
-  if (!silenced_.empty() || !silenced_players_.empty()) {
-    if (auto voice = services_.Voice(); !voice) {
-      return voice;
-    }
-  }
-  if (!unknown.empty()) {
-    return std::unexpected("unknown voice concepts: " + unknown);
-  }
-  return {};
-}
-
 std::pair<std::set<int32_t>, std::string> GameServices::Silenced(
     const google::protobuf::RepeatedPtrField<std::string>& names) {
   std::set<int32_t> concepts;

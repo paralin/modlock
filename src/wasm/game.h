@@ -63,6 +63,7 @@
 #include "wasm/restores.h"
 #include "wasm/seating.h"
 #include "wasm/team_seating.h"
+#include "wasm/voice.h"
 #include "wasm/world.h"
 
 namespace modlock::wasm {
@@ -388,7 +389,7 @@ class GameServices {
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
-class Game : public HostService, private VoiceSource {
+class Game : public HostService {
  public:
   Game(GameServices& services, EngineHost* engine);
   ~Game() override;
@@ -522,11 +523,6 @@ class Game : public HostService, private VoiceSource {
   virtual void Impacted(const combat::ImpactEvent& event) = 0;
 
  private:
-  // What the host-wide hooks read of this game, through the source
-  // interfaces it registers with services_ (game_sources.cc).
-  bool Silences(int32_t concept_value) const override;
-  bool SilencesSpeaker(uint32_t speaker, int32_t concept_value) const override;
-
   // The calls, in the order the Host service declares them.
   std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override;
   std::expected<void, std::string> Chat(const effects::ChatRequest& request) override;
@@ -707,10 +703,16 @@ class Game : public HostService, private VoiceSource {
       const effects::ScreenEffectRequest& request) override;
   std::expected<void, std::string> ClearScreenEffect(
       const effects::ClearScreenEffectRequest& request) override;
+
   std::expected<void, std::string> SilenceVoice(
-      const effects::SilenceVoiceRequest& request) override;
+      const effects::SilenceVoiceRequest& request) override {
+    return voice_.SilenceVoice(request);
+  }
+
   std::expected<void, std::string> SilencePlayerVoice(
-      const effects::SilencePlayerVoiceRequest& request) override;
+      const effects::SilencePlayerVoiceRequest& request) override {
+    return voice_.SilencePlayerVoice(request);
+  }
 
   std::expected<fields::FieldResponse, std::string> ReadField(
       const fields::ReadFieldRequest& request) override {
@@ -1008,10 +1010,6 @@ class Game : public HostService, private VoiceSource {
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // Silence installs the voice hook while the mod silences any concept, then
-  // reports the concept names the game did not know, from unknown.
-  std::expected<void, std::string> Silence(const std::string& unknown);
-
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
 
@@ -1020,10 +1018,6 @@ class Game : public HostService, private VoiceSource {
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
 
-  // silenced_ is the voice concepts the mod keeps every hero from speaking,
-  // and silenced_players_ those it keeps from one player's hero, by slot.
-  std::set<int32_t> silenced_;
-  std::map<int32_t, std::set<int32_t>> silenced_players_;
   // The modules own their domains' state. modules_ lists them in the order
   // they are built, each after the modules it reads. WorldReady runs them in
   // that order; Frame, WorldEnding, Leave and Clear run them in reverse, so a
@@ -1042,9 +1036,10 @@ class Game : public HostService, private VoiceSource {
                            [this](const combat::ImpactEvent& event) { Impacted(event); }};
   Restores restores_{services_, players_, world_, modifiers_, heroes_};
   Seating seating_{services_, players_, modifiers_, [this](int32_t slot) { return Serves(slot); }};
-  std::array<Module*, 13> modules_{&players_,     &world_,    &match_,  &apart_,    &fields_,
-                                   &modifiers_,   &heroes_,   &camera_, &movement_, &input_,
-                                   &projectiles_, &restores_, &seating_};
+  wasm::Voice voice_{services_, players_};
+  std::array<Module*, 14> modules_{&players_,     &world_,    &match_,   &apart_,    &fields_,
+                                   &modifiers_,   &heroes_,   &camera_,  &movement_, &input_,
+                                   &projectiles_, &restores_, &seating_, &voice_};
 };
 
 }  // namespace modlock::wasm
