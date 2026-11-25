@@ -544,7 +544,7 @@ class WasmPlugin final : public Plugin {
   // may report off the engine thread, until a frame delivers them.
   std::mutex damaged_lock_;
   std::vector<gameinterop::DamageTakenEvent> damaged_;
-  std::vector<wasm::Game::MovementFact> facts_;
+  std::vector<wasm::HeroMovement::MovementFact> facts_;
   // casts_ and fired_ queue the casts and watched modifier events the same
   // way. watched_ holds, by the running game's value for each watched event,
   // the names the mod gave it, and changes only under the lock.
