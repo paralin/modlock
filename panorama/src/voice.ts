@@ -51,6 +51,11 @@ export class Voices {
 
   constructor(private readonly root: VoicePanel) {}
 
+  /** count is how many players the top bar showed at the last read. */
+  get count(): number {
+    return this.players.length
+  }
+
   /**
    * read takes the top bar's marks at time now, in seconds, and returns the
    * names heard. It returns none while no top bar is found.
