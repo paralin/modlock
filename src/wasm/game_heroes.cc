@@ -226,7 +226,7 @@ std::expected<void, std::string> Game::Unwatch(const players::PlayerRequest& req
   }
 
   // Remove the camera entity the player watched through.
-  auto world = World();
+  auto world = world_.Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -1185,7 +1185,7 @@ std::expected<void, std::string> Game::Zipline(const movement::ZiplineRequest& r
 std::expected<std::array<float, 3>, std::string> Game::NearestZiplineNode(void* pawn,
                                                                           int32_t lane) {
   // Find the map's zipline nodes and read the hero's team and position.
-  auto world = World();
+  auto world = world_.Entities();
   if (!world) {
     return std::unexpected(world.error());
   }

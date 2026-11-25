@@ -462,7 +462,7 @@ std::expected<void, std::string> Game::RestoreNpcs(const npcs::RestoreNpcsReques
   }
 
   // Restore the NPCs into the world over the coming frames.
-  auto world = World();
+  auto world = world_.Entities();
   if (!world) {
     return std::unexpected(world.error());
   }

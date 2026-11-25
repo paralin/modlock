@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <expected>
 #include <functional>
@@ -55,7 +56,7 @@
 #include "wasm/npc_restore.h"
 #include "wasm/players.h"
 #include "wasm/team_seating.h"
-#include "wasm/visibility.h"
+#include "wasm/world.h"
 
 namespace modlock::wasm {
 
@@ -156,6 +157,22 @@ class GameServices {
   std::expected<gameinterop::FreeForAllRelations*, std::string> Relations();
   std::expected<render::WorldTextGameFactory*, std::string> Text();
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
+
+  // SweepEffects lets the effect factory release the effects that ended by
+  // now, and InvalidateEffects forgets those the engine freed with the world.
+  // Neither builds the factory.
+  void SweepEffects(std::chrono::steady_clock::time_point now) {
+    if (effects_) {
+      effects_->Sweep(now);
+    }
+  }
+
+  void InvalidateEffects() {
+    if (effects_) {
+      effects_->InvalidateAfterEngineReset();
+    }
+  }
+
   std::expected<const gameinterop::NativeDamage*, std::string> Damage();
   std::expected<gameinterop::ModifyCurrency, std::string> Currency();
   std::expected<gameinterop::RequiredSouls, std::string> RequiredSouls();
@@ -362,7 +379,6 @@ class GameServices {
 // The calls that reach beyond the game, Log, Ui and CallService, belong to a
 // subclass.
 class Game : public HostService,
-             private WorldSource,
              private MoverSource,
              private CameraSource,
              private TransmitSource,
@@ -431,7 +447,7 @@ class Game : public HostService,
   // Departing reports whether a bot the mod removed still holds its slot.
   // The engine finishes the disconnect of a client it is processing after
   // the call returns, so the slot can stay held for a moment.
-  bool Departing();
+  bool Departing() { return world_.Departing(); }
 
   // SlotOfPawn returns the slot of the player whose hero the entity handle
   // names, or no value for any other entity.
@@ -454,11 +470,11 @@ class Game : public HostService,
   // CreateModel and CreateParticle in a resource path, so a world panel names
   // its layout as file://{resources}/layout/{addon}/panel.xml and a model its
   // resource as models/{addon}/pawn.vmdl.
-  void StartContentAddon(std::string addon) { addon_ = std::move(addon); }
+  void StartContentAddon(std::string addon) { world_.StartContentAddon(std::move(addon)); }
 
   // WithAddon returns text with the mod's content addon in place of each
   // {addon}.
-  std::string WithAddon(std::string text) const;
+  std::string WithAddon(std::string text) const { return world_.WithAddon(std::move(text)); }
 
   // FreeForAllCommand reports whether free-for-all consumes a player's console
   // line. Seating is the host's, so it drops the team commands.
@@ -522,16 +538,15 @@ class Game : public HostService,
   bool Silences(int32_t concept_value) const override;
   bool SilencesSpeaker(uint32_t speaker, int32_t concept_value) const override;
 
-  // Object is one world object the mod created.
-  using Object =
-      std::variant<std::unique_ptr<render::WorldEffect>, std::unique_ptr<render::WorldTextEntity>>;
-
   // The calls, in the order the Host service declares them.
   std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override;
   std::expected<void, std::string> Chat(const effects::ChatRequest& request) override;
   std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override;
   std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override;
-  std::expected<void, std::string> Precache(const PrecacheOptions& request) override;
+
+  std::expected<void, std::string> Precache(const PrecacheOptions& request) override {
+    return world_.Precache(request);
+  }
 
   std::expected<players::PawnResponse, std::string> Pawn(
       const players::PlayerRequest& request) override {
@@ -623,64 +638,155 @@ class Game : public HostService,
       const wasm::SetFreeForAllRequest& request) override;
   std::expected<void, std::string> SetTeamSeating(
       const wasm::SetTeamSeatingRequest& request) override;
+
   std::expected<objects::ObjectResponse, std::string> CreateModel(
-      const objects::ModelOptions& request) override;
+      const objects::ModelOptions& request) override {
+    return world_.CreateModel(request);
+  }
+
   std::expected<objects::ObjectResponse, std::string> CreateText(
-      const objects::TextOptions& request) override;
+      const objects::TextOptions& request) override {
+    return world_.CreateText(request);
+  }
+
   std::expected<objects::ObjectResponse, std::string> CreateParticle(
-      const objects::ParticleOptions& request) override;
+      const objects::ParticleOptions& request) override {
+    return world_.CreateParticle(request);
+  }
+
   std::expected<objects::ObjectResponse, std::string> CreateFog(
-      const objects::FogOptions& request) override;
-  std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& request) override;
-  std::expected<void, std::string> SetText(const objects::SetTextRequest& request) override;
+      const objects::FogOptions& request) override {
+    return world_.CreateFog(request);
+  }
+
+  std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& request) override {
+    return world_.MoveObject(request);
+  }
+
+  std::expected<void, std::string> SetText(const objects::SetTextRequest& request) override {
+    return world_.SetText(request);
+  }
+
   std::expected<void, std::string> SetObjectHidden(
-      const objects::SetObjectHiddenRequest& request) override;
+      const objects::SetObjectHiddenRequest& request) override {
+    return world_.SetObjectHidden(request);
+  }
+
   std::expected<void, std::string> ShowObjectOnlyTo(
-      const objects::ShowObjectOnlyToRequest& request) override;
-  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request) override;
-  std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) override;
+      const objects::ShowObjectOnlyToRequest& request) override {
+    return world_.ShowObjectOnlyTo(request);
+  }
+
+  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request) override {
+    return world_.ShowObjectToAll(request);
+  }
+
+  std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) override {
+    return world_.RemoveObject(request);
+  }
+
   std::expected<entities::EntityResponse, std::string> ObjectEntity(
-      const objects::ObjectRequest& request) override;
+      const objects::ObjectRequest& request) override {
+    return world_.ObjectEntity(request);
+  }
+
   std::expected<players::BotResponse, std::string> AddBot(
-      const players::BotOptions& request) override;
-  std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override;
+      const players::BotOptions& request) override {
+    return world_.AddBot(request);
+  }
+
+  std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override {
+    return world_.RemoveBot(request);
+  }
+
   std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override;
   std::expected<void, std::string> BlockPlayerInput(
       const wasm::PlayerInputRequest& request) override;
   std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override;
   std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override;
   std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override;
+
   std::expected<entities::EntityResponse, std::string> CreateEntity(
-      const entities::EntityOptions& request) override;
+      const entities::EntityOptions& request) override {
+    return world_.CreateEntity(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> FireInput(
-      const entities::FireInputRequest& request) override;
+      const entities::FireInputRequest& request) override {
+    return world_.FireInput(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> RemoveEntity(
-      const entities::EntityRequest& request) override;
+      const entities::EntityRequest& request) override {
+    return world_.RemoveEntity(request);
+  }
+
   std::expected<void, std::string> ShowEntityOnlyTo(
-      const entities::ShowEntityOnlyToRequest& request) override;
-  std::expected<void, std::string> ShowEntityToAll(const entities::EntityRequest& request) override;
-  std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& request) override;
+      const entities::ShowEntityOnlyToRequest& request) override {
+    return world_.ShowEntityOnlyTo(request);
+  }
+
+  std::expected<void, std::string> ShowEntityToAll(
+      const entities::EntityRequest& request) override {
+    return world_.ShowEntityToAll(request);
+  }
+
+  std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& request) override {
+    return world_.SpawnNpc(request);
+  }
+
   std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
-      const npcs::NpcRequest& request) override;
+      const npcs::NpcRequest& request) override {
+    return world_.ReadNpc(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> MoveNpc(
-      const npcs::MoveNpcRequest& request) override;
+      const npcs::MoveNpcRequest& request) override {
+    return world_.MoveNpc(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> SetNpcHealth(
-      const npcs::SetNpcHealthRequest& request) override;
+      const npcs::SetNpcHealthRequest& request) override {
+    return world_.SetNpcHealth(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> RemoveNpc(
-      const npcs::NpcRequest& request) override;
+      const npcs::NpcRequest& request) override {
+    return world_.RemoveNpc(request);
+  }
+
   std::expected<entities::PickupResponse, std::string> CreatePickup(
-      const entities::CreatePickupRequest& request) override;
+      const entities::CreatePickupRequest& request) override {
+    return world_.CreatePickup(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> PickupPresent(
-      const entities::PickupRequest& request) override;
+      const entities::PickupRequest& request) override {
+    return world_.PickupPresent(request);
+  }
+
   std::expected<entities::AliveResponse, std::string> RemovePickup(
-      const entities::PickupRequest& request) override;
+      const entities::PickupRequest& request) override {
+    return world_.RemovePickup(request);
+  }
+
   std::expected<entities::EntitiesResponse, std::string> FindEntities(
-      const entities::FindEntitiesRequest& request) override;
+      const entities::FindEntitiesRequest& request) override {
+    return world_.FindEntities(request);
+  }
+
   std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
-      const entities::FindEntitiesByNameRequest& request) override;
+      const entities::FindEntitiesByNameRequest& request) override {
+    return world_.FindEntitiesByName(request);
+  }
+
   std::expected<entities::CountResponse, std::string> RemoveEntities(
-      const entities::RemoveEntitiesRequest& request) override;
-  std::expected<void, std::string> ClearMap() override;
+      const entities::RemoveEntitiesRequest& request) override {
+    return world_.RemoveEntities(request);
+  }
+
+  std::expected<void, std::string> ClearMap() override { return world_.ClearMap(); }
+
   std::expected<void, std::string> Damage(const combat::HitOptions& request) override;
   std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override;
   std::expected<combat::TraceResponse, std::string> Trace(
@@ -692,8 +798,15 @@ class Game : public HostService,
       const wasm::HoldMatchClockRequest& request) override;
   std::expected<wasm::RiftResponse, std::string> Rift() override;
   std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override;
-  std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override;
-  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override;
+
+  std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override {
+    return world_.MoveEntity(request);
+  }
+
+  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override {
+    return world_.PushEntity(request);
+  }
+
   std::expected<effects::SoundResponse, std::string> EmitSound(
       const effects::EmitSoundRequest& request) override;
   std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request) override;
@@ -710,12 +823,6 @@ class Game : public HostService,
   std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& request) override;
 
-  // WriteBeforeSpawn returns the preparation that stores fields on an entity
-  // the world creates, before it spawns and is networked. fields must outlive
-  // the creation.
-  gameinterop::WorldEntities::Prepare WriteBeforeSpawn(
-      const google::protobuf::RepeatedPtrField<fields::FieldWrite>& fields);
-
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
   std::expected<int32_t, std::string> ScreenOwner(int32_t slot);
 
@@ -728,9 +835,6 @@ class Game : public HostService,
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // Keep stores a created object and returns its response.
-  objects::ObjectResponse Keep(Object object);
-
   // HoldLevelSouls gives the slot's hero the souls its restored level needs,
   // so the game's progression keeps the level.
   std::expected<void, std::string> HoldLevelSouls(int32_t slot, int32_t level);
@@ -742,16 +846,9 @@ class Game : public HostService,
   // frame and queues the ones that ended.
   void TickRestores();
 
-  // PruneAudiences drops the audience of each entity the world no longer
-  // holds. A removed object's entity waits, sent to nobody, until then.
-  void PruneAudiences();
   // RebuildPanels sends every client a full update when rebuild_panels_ asks
   // for one, so each builds its client UI panels from their current layouts.
   void RebuildPanels();
-
-  // ObjectHandle returns the entity handle of the mod's object id now, or
-  // nothing.
-  std::optional<uint32_t> ObjectHandle(uint32_t id) const;
 
   // LatchTime is the time a hero's stamina latch counts from: the simulation
   // time without the ticks the game spent paused.
@@ -838,9 +935,6 @@ class Game : public HostService,
   // ReleaseModifiers ends every modifier hold.
   void ReleaseModifiers();
 
-  // World returns this world's unit operations.
-  std::expected<gameinterop::WorldEntities*, std::string> World() override;
-
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
 
@@ -880,19 +974,10 @@ class Game : public HostService,
   // ability with handle, owned by slot's hero, imbues; empty for most.
   std::vector<uint32_t> ImbuedAbilities(int32_t slot, uint32_t handle);
 
-  // RemoveWorld removes the objects, units and bots.
-  void RemoveWorld();
-
-  // Depart records that the bot in slot was disconnected.
-  void Depart(int32_t slot);
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
-  std::map<uint32_t, Object> objects_;
-  // visibility_ is who receives the mod's objects and entities.
-  Visibility visibility_;
   // rebuild_panels_ asks every client for a full update at the next frame,
   // after the mod wrote a client UI entity's layout.
   bool rebuild_panels_ = false;
@@ -904,25 +989,6 @@ class Game : public HostService,
   std::map<int32_t, uint32_t> watched_;
   // picks_ holds each player's own Change Hero pick until it lands.
   HeroPicks picks_;
-  // fog_ is the world's fog controller, which the fog objects need; it is
-  // created with the first and removed after the objects.
-  std::unique_ptr<render::WorldEffect> fog_;
-  uint32_t next_object_ = 1;
-  // world_ creates and steers entities in the loaded world; created_ are the
-  // entities, units and pickups the mod created, and spawned_ is true until
-  // the units' placement finishes.
-  std::optional<gameinterop::WorldEntities> world_;
-  std::set<uint32_t> created_;
-  // scaled_ maps each entity the mod rescaled but did not create, such as a
-  // hero, to the scale it had before the mod's first SetAbsScale; Clear puts
-  // it back, so the next mod in the game starts from the game's own sizes.
-  std::map<uint32_t, float> scaled_;
-  bool spawned_ = false;
-  // bots_ is the slots of the bots the mod added.
-  std::set<int32_t> bots_;
-  // departing_ maps each removed bot's slot to its connection generation
-  // until the slot empties or another connection takes it.
-  std::map<int32_t, uint32_t> departing_;
   std::set<int32_t> frozen_;
   // movers_ is the players whose movement the mod watches.
   std::set<int32_t> movers_;
@@ -943,8 +1009,6 @@ class Game : public HostService,
   // assignments_ survives Clear: the host owns it, independently of the mod.
   TeamSeating assignments_;
 
-  // addon_ is the running mod's content addon.
-  std::string addon_;
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
   // held_modifiers_ and held_entity_modifiers_ are the modifiers the mod holds,
@@ -989,8 +1053,9 @@ class Game : public HostService,
   // that order; Frame, WorldEnding, Leave and Clear run them in reverse, so a
   // module's frame work and release come before those of the modules it reads.
   wasm::Players players_{services_};
-  Match match_{services_, *this};
-  std::array<Module*, 2> modules_{&players_, &match_};
+  wasm::World world_{services_, engine_};
+  Match match_{services_, world_};
+  std::array<Module*, 3> modules_{&players_, &world_, &match_};
 };
 
 }  // namespace modlock::wasm

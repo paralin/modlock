@@ -39,8 +39,9 @@ class Module {
 // naming the module that owns them.
 class WorldSource {
  public:
-  // World returns this world's entity operations, building them on first use.
-  virtual std::expected<gameinterop::WorldEntities*, std::string> World() = 0;
+  // Entities returns this world's entity operations, building them on first
+  // use.
+  virtual std::expected<gameinterop::WorldEntities*, std::string> Entities() = 0;
 
  protected:
   ~WorldSource() = default;

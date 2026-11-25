@@ -22,40 +22,6 @@ bool Watches(const combat::ProjectileOptions& options, std::string_view name) {
 
 }  // namespace
 
-std::expected<void, std::string> Game::MoveEntity(const entities::MoveEntityRequest& request) {
-  // Move the entity, keeping each part of its pose unless given.
-  auto entity = LiveEntity(request.entity());
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  const auto position = Floats(request.position());
-  const auto facing = Floats(request.facing());
-  const auto velocity = Floats(request.velocity());
-  gameinterop::TeleportEntity(*entity, request.has_position() ? position.data() : nullptr,
-                              request.has_facing() ? facing.data() : nullptr,
-                              request.has_velocity() ? velocity.data() : nullptr);
-  return {};
-}
-
-std::expected<void, std::string> Game::PushEntity(const entities::PushEntityRequest& request) {
-  // Add the motion through the engine's impulse calls.
-  auto dynamics = services_.Dynamics();
-  if (!dynamics) {
-    return std::unexpected(dynamics.error());
-  }
-  auto entity = LiveEntity(request.entity());
-  if (!entity) {
-    return std::unexpected(entity.error());
-  }
-  const auto velocity = Floats(request.velocity());
-  (*dynamics)->push(*entity, velocity.data());
-  if (request.has_spin()) {
-    const auto spin = Floats(request.spin());
-    (*dynamics)->spin(*entity, spin.data());
-  }
-  return {};
-}
-
 std::expected<void, std::string> Game::Kill(const players::PlayerRequest& request) {
   // Kill the live player's hero unless it is already dead.
   auto damage = services_.Damage();

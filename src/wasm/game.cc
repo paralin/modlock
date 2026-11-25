@@ -44,25 +44,15 @@ void Game::Frame() {
   SeatPlayers();
   ApplyFreeForAll();
   ApplyHolds();
+  TickRestores();
+
+  // Follow what moved or left since the last frame, then run the modules,
+  // so the world finishes the units spawned this frame together.
+  TrackProjectiles();
+  RebuildPanels();
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
-  TickRestores();
-
-  // Follow what moved or left since the last frame.
-  TrackProjectiles();
-  PruneAudiences();
-  RebuildPanels();
-  if (services_.effects_) {
-    services_.effects_->Sweep(std::chrono::steady_clock::now());
-  }
-
-  // Finish the entities spawned this frame together.
-  if (!spawned_ || !world_) {
-    return;
-  }
-  world_->FinishSpawns();
-  spawned_ = false;
 }
 
 void Game::ApplyHolds() {
@@ -209,15 +199,6 @@ void Game::WorldReady() {
 }
 
 void Game::WorldEnding() {
-  // Remove the world's objects and forget its entities.
-  RemoveWorld();
-  world_.reset();
-  scaled_.clear();
-  if (services_.effects_) {
-    services_.effects_->InvalidateAfterEngineReset();
-  }
-  spawned_ = false;
-
   // Drop the per-world player state and reapply host seats on the next map.
   assignments_.WorldEnding();
   frozen_.clear();
@@ -237,7 +218,7 @@ void Game::WorldEnding() {
 }
 
 void Game::Leave(int32_t slot) {
-  // Forget the slot's movement, controllers, input and visibility.
+  // Forget the slot's movement, controllers and input.
   seat_failed_.erase(slot);
   frozen_.erase(slot);
   movers_.erase(slot);
@@ -249,7 +230,6 @@ void Game::Leave(int32_t slot) {
   restores_.erase(slot);
   picks_.Forget(slot);
   input_.Leave(slot);
-  visibility_.Leave(slot);
   silenced_players_.erase(slot);
 
   // Release the modifiers the slot held.
@@ -281,17 +261,7 @@ void Game::Clear() {
   }
   watched_.clear();
 
-  // Remove the world's objects, put back the scale of each entity the mod
-  // rescaled and unfreeze the frozen heroes. A handle whose entity is gone
-  // no longer resolves, so a reused index keeps its own scale.
-  RemoveWorld();
-  if (world_) {
-    for (const auto& [entity, scale] : scaled_) {
-      static_cast<void>(
-          world_->FireInput(entity, "SetAbsScale", gameinterop::EntityValue{scale}, std::nullopt));
-    }
-  }
-  scaled_.clear();
+  // Unfreeze the frozen heroes.
   for (const auto slot : frozen_) {
     if (players_.Observer().Observe(slot)) {
       static_cast<void>(players_.Observer().SetPreparationFrozen(slot, false));
@@ -318,20 +288,20 @@ void Game::Clear() {
   ReleaseFreeForAll();
   // Remove active held modifiers from live entities when the mod stops, so
   // infinite modifiers (such as camera-override modifiers) do not outlive it.
-  if (world_) {
+  if (auto* world = world_.Loaded()) {
     auto modifier_name = [](std::string_view key) -> std::string_view {
       const auto slash = key.find('/');
       return slash == std::string_view::npos ? key : key.substr(slash + 1);
     };
     for (const auto& [slot, key] : held_modifiers_) {
       if (const auto sample = players_.Observer().Observe(slot); sample && sample->pawn_handle) {
-        static_cast<void>(world_->FireInput(sample->pawn_handle, "RemoveModifier",
-                                            gameinterop::EntityValue{modifier_name(key)},
-                                            std::nullopt));
+        static_cast<void>(world->FireInput(sample->pawn_handle, "RemoveModifier",
+                                           gameinterop::EntityValue{modifier_name(key)},
+                                           std::nullopt));
       }
     }
     for (const auto& [entity, key] : held_entity_modifiers_) {
-      static_cast<void>(world_->FireInput(
+      static_cast<void>(world->FireInput(
           entity, "RemoveModifier", gameinterop::EntityValue{modifier_name(key)}, std::nullopt));
     }
   }
@@ -359,49 +329,6 @@ void Game::Clear() {
   for (auto* module : std::views::reverse(modules_)) {
     module->Clear();
   }
-}
-
-void Game::RemoveWorld() {
-  // Remove the text, effect and fog objects.
-  for (auto& [id, object] : objects_) {
-    std::visit([](auto& handle) { handle->Remove(); }, object);
-  }
-  objects_.clear();
-  if (fog_) {
-    fog_->Remove();
-    fog_.reset();
-  }
-
-  // Remove the entities the mod created.
-  if (world_) {
-    for (const auto entity : created_) {
-      static_cast<void>(world_->RemoveEntity(entity));
-    }
-  }
-  created_.clear();
-  visibility_.Clear();
-
-  // Only the engine removes a bot's connection.
-  if (auto server = services_.Server()) {
-    for (const auto slot : bots_) {
-      if ((*server)->DisconnectClient(slot, gameinterop::kDisconnectKicked, "removed by its mod")) {
-        Depart(slot);
-      }
-    }
-  }
-  bots_.clear();
-}
-
-void Game::Depart(int32_t slot) {
-  departing_[slot] = gameinterop::ConnectionTracker::StateForSlot(slot).generation;
-}
-
-bool Game::Departing() {
-  std::erase_if(departing_, [](const auto& entry) {
-    const auto state = gameinterop::ConnectionTracker::StateForSlot(entry.first);
-    return !state.occupied || state.generation != entry.second;
-  });
-  return !departing_.empty();
 }
 
 std::expected<void, std::string> Game::Pause(const wasm::PauseRequest& request) {
@@ -450,27 +377,6 @@ std::expected<void, std::string> Game::Announce(const effects::AnnounceRequest& 
     return std::unexpected(messages.error());
   }
   return (*messages)->Announce(request.player(), request.title(), request.text());
-}
-
-std::expected<gameinterop::WorldEntities*, std::string> Game::World() {
-  if (!world_) {
-    // Build the world's entities on the host's resolved calls.
-    auto calls = services_.WorldCalls();
-    if (!calls) {
-      return std::unexpected(calls.error());
-    }
-    world_.emplace(**calls);
-  }
-  return &*world_;
-}
-
-objects::ObjectResponse Game::Keep(Object object) {
-  // Store the object under the next id and return the id.
-  const auto id = next_object_++;
-  objects_.emplace(id, std::move(object));
-  objects::ObjectResponse response;
-  response.set_object(id);
-  return response;
 }
 
 }  // namespace modlock::wasm

@@ -1,8 +1,11 @@
 //go:build deps_only
 
+#include "wasm/world.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <chrono>
 #include <deque>
 #include <optional>
 #include <string_view>
@@ -62,7 +65,7 @@ std::optional<gameinterop::EntityValue> Value(const entities::EntityValue& value
 // content addon in place of each {addon} in a text value. The result borrows
 // the text of pairs, and of filled, which holds each text value it rewrote.
 std::expected<std::vector<gameinterop::EntityKeyValue>, std::string> KeyValues(
-    const google::protobuf::RepeatedPtrField<entities::KeyValue>& pairs, const Game& game,
+    const google::protobuf::RepeatedPtrField<entities::KeyValue>& pairs, const World& world,
     std::deque<std::string>& filled) {
   // Convert each pair, failing on a refused key or a pair with no value.
   std::vector<gameinterop::EntityKeyValue> result;
@@ -81,7 +84,7 @@ std::expected<std::vector<gameinterop::EntityKeyValue>, std::string> KeyValues(
     // Name the mod's content addon in a text value.
     const auto* text = std::get_if<std::string_view>(&*value);
     if (text && text->find(kAddonToken) != std::string_view::npos) {
-      *value = std::string_view(filled.emplace_back(game.WithAddon(std::string(*text))));
+      *value = std::string_view(filled.emplace_back(world.WithAddon(std::string(*text))));
     }
     result.push_back({.key = pair.key(), .value = *value});
   }
@@ -100,11 +103,83 @@ std::expected<entities::AliveResponse, std::string> Alive(std::expected<bool, st
 
 }  // namespace
 
-std::string Game::WithAddon(std::string text) const {
+World::World(GameServices& services, EngineHost* engine) : services_(services), engine_(engine) {
+  services_.TransmitSources().Add(this);
+}
+
+World::~World() {
+  services_.TransmitSources().Remove(this);
+}
+
+std::expected<gameinterop::WorldEntities*, std::string> World::Entities() {
+  if (!entities_) {
+    // Build the world's entities on the host's resolved calls.
+    auto calls = services_.WorldCalls();
+    if (!calls) {
+      return std::unexpected(calls.error());
+    }
+    entities_.emplace(**calls);
+  }
+  return &*entities_;
+}
+
+void World::Frame() {
+  // The transmit pass withholds by entity index alone, so a gone entity's
+  // audience would otherwise apply to the next entity at its index.
+  if (entities_) {
+    visibility_.Prune([this](uint32_t entity) {
+      auto live = entities_->Exists(entity);
+      return live && !*live;
+    });
+  }
+  services_.SweepEffects(std::chrono::steady_clock::now());
+
+  // Finish the entities spawned this frame together.
+  if (spawned_ && entities_) {
+    entities_->FinishSpawns();
+  }
+  spawned_ = false;
+}
+
+void World::WorldEnding() {
+  // Remove the world's objects and forget its entities, then the effects the
+  // engine freed with it.
+  RemoveWorld();
+  entities_.reset();
+  scaled_.clear();
+  services_.InvalidateEffects();
+  spawned_ = false;
+}
+
+void World::Leave(int32_t slot) {
+  visibility_.Leave(slot);
+}
+
+void World::Clear() {
+  // Remove the world's objects and put back the scale of each entity the mod
+  // rescaled. A handle whose entity is gone no longer resolves, so a reused
+  // index keeps its own scale.
+  RemoveWorld();
+  if (entities_) {
+    for (const auto& [entity, scale] : scaled_) {
+      static_cast<void>(entities_->FireInput(entity, "SetAbsScale", gameinterop::EntityValue{scale},
+                                             std::nullopt));
+    }
+  }
+  scaled_.clear();
+}
+
+void World::Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& /*cameras*/) {
+  // A text object's entity changes with its words, so each update reads the
+  // current handles.
+  visibility_.Withhold(set, [this](uint32_t id) { return ObjectHandle(id); });
+}
+
+std::string World::WithAddon(std::string text) const {
   return wasm::WithAddon(std::move(text), addon_);
 }
 
-std::expected<objects::ObjectResponse, std::string> Game::CreateModel(
+std::expected<objects::ObjectResponse, std::string> World::CreateModel(
     const objects::ModelOptions& request) {
   // Resolve the effect factory.
   auto effects = services_.Effects();
@@ -130,7 +205,7 @@ std::expected<objects::ObjectResponse, std::string> Game::CreateModel(
   return Keep(std::move(*model));
 }
 
-std::expected<objects::ObjectResponse, std::string> Game::CreateText(
+std::expected<objects::ObjectResponse, std::string> World::CreateText(
     const objects::TextOptions& request) {
   // Resolve the text factory.
   auto text = services_.Text();
@@ -155,7 +230,7 @@ std::expected<objects::ObjectResponse, std::string> Game::CreateText(
   return Keep(std::move(*entity));
 }
 
-std::expected<void, std::string> Game::MoveObject(const objects::MoveObjectRequest& request) {
+std::expected<void, std::string> World::MoveObject(const objects::MoveObjectRequest& request) {
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
     return std::unexpected("no object has that identifier");
@@ -173,7 +248,7 @@ std::expected<void, std::string> Game::MoveObject(const objects::MoveObjectReque
   return {};
 }
 
-std::expected<void, std::string> Game::SetText(const objects::SetTextRequest& request) {
+std::expected<void, std::string> World::SetText(const objects::SetTextRequest& request) {
   // Find the object and check it is text.
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
@@ -189,7 +264,7 @@ std::expected<void, std::string> Game::SetText(const objects::SetTextRequest& re
   return {};
 }
 
-std::expected<void, std::string> Game::SetObjectHidden(
+std::expected<void, std::string> World::SetObjectHidden(
     const objects::SetObjectHiddenRequest& request) {
   // Showing the object again drops it from the player's hidden set.
   if (!objects_.contains(request.object())) {
@@ -209,7 +284,7 @@ std::expected<void, std::string> Game::SetObjectHidden(
   return {};
 }
 
-std::expected<void, std::string> Game::RemoveObject(const objects::ObjectRequest& request) {
+std::expected<void, std::string> World::RemoveObject(const objects::ObjectRequest& request) {
   // Find the object.
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
@@ -223,7 +298,7 @@ std::expected<void, std::string> Game::RemoveObject(const objects::ObjectRequest
   return {};
 }
 
-std::expected<void, std::string> Game::ShowObjectOnlyTo(
+std::expected<void, std::string> World::ShowObjectOnlyTo(
     const objects::ShowObjectOnlyToRequest& request) {
   // Find the object.
   if (!objects_.contains(request.object())) {
@@ -245,7 +320,7 @@ std::expected<void, std::string> Game::ShowObjectOnlyTo(
   return {};
 }
 
-std::expected<void, std::string> Game::ShowObjectToAll(const objects::ObjectRequest& request) {
+std::expected<void, std::string> World::ShowObjectToAll(const objects::ObjectRequest& request) {
   if (!objects_.contains(request.object())) {
     return std::unexpected("no object has that identifier");
   }
@@ -253,7 +328,7 @@ std::expected<void, std::string> Game::ShowObjectToAll(const objects::ObjectRequ
   return {};
 }
 
-std::expected<entities::EntityResponse, std::string> Game::ObjectEntity(
+std::expected<entities::EntityResponse, std::string> World::ObjectEntity(
     const objects::ObjectRequest& request) {
   // Find the object and check it is a model or particle.
   auto found = objects_.find(request.object());
@@ -275,7 +350,7 @@ std::expected<entities::EntityResponse, std::string> Game::ObjectEntity(
   return response;
 }
 
-std::expected<players::BotResponse, std::string> Game::AddBot(const players::BotOptions& request) {
+std::expected<players::BotResponse, std::string> World::AddBot(const players::BotOptions& request) {
   // Resolve the hero and the bot service.
   auto heroes = services_.Heroes();
   if (!heroes) {
@@ -302,7 +377,7 @@ std::expected<players::BotResponse, std::string> Game::AddBot(const players::Bot
   return response;
 }
 
-std::expected<void, std::string> Game::RemoveBot(const players::PlayerRequest& request) {
+std::expected<void, std::string> World::RemoveBot(const players::PlayerRequest& request) {
   // Find the bot the mod added in that slot.
   auto found = bots_.find(request.player());
   if (found == bots_.end()) {
@@ -322,7 +397,7 @@ std::expected<void, std::string> Game::RemoveBot(const players::PlayerRequest& r
   return {};
 }
 
-std::expected<void, std::string> Game::Precache(const PrecacheOptions& request) {
+std::expected<void, std::string> World::Precache(const PrecacheOptions& request) {
   std::vector<std::string> resources;
   resources.reserve(request.resources().size());
   for (const auto& resource : request.resources()) {
@@ -332,39 +407,7 @@ std::expected<void, std::string> Game::Precache(const PrecacheOptions& request) 
                            std::move(resources));
 }
 
-// The input calls replace the mod's changes; the shared hook applies them.
-
-std::expected<void, std::string> Game::BlockInput(const wasm::InputRequest& request) {
-  input_.Block(request.buttons());
-  services_.Input();
-  return {};
-}
-
-std::expected<void, std::string> Game::BlockPlayerInput(const wasm::PlayerInputRequest& request) {
-  input_.BlockPlayer(request.player(), request.buttons());
-  services_.Input();
-  return {};
-}
-
-std::expected<void, std::string> Game::Press(const wasm::PlayerInputRequest& request) {
-  input_.Press(request.player(), request.buttons());
-  services_.Input();
-  return {};
-}
-
-std::expected<void, std::string> Game::WatchInput(const wasm::InputRequest& request) {
-  input_.Watch(request.buttons());
-  services_.Input();
-  return {};
-}
-
-std::expected<void, std::string> Game::RemapInput(const wasm::RemapInputRequest& request) {
-  input_.Remap(request);
-  services_.Input();
-  return {};
-}
-
-gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
+gameinterop::WorldEntities::Prepare World::WriteBeforeSpawn(
     const google::protobuf::RepeatedPtrField<fields::FieldWrite>& fields) {
   // The entity is not networked yet, so its fields need no change notice.
   return [this, &fields](void* created) -> std::expected<void, std::string> {
@@ -379,14 +422,14 @@ gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
   };
 }
 
-std::expected<entities::EntityResponse, std::string> Game::CreateEntity(
+std::expected<entities::EntityResponse, std::string> World::CreateEntity(
     const entities::EntityOptions& request) {
   // Refuse a class that runs console lines, then resolve the world and the
   // requested key values.
   if (auto refused = RefuseEntityClass(request.designer_name()); !refused.empty()) {
     return std::unexpected(std::move(refused));
   }
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -432,7 +475,7 @@ std::expected<entities::EntityResponse, std::string> Game::CreateEntity(
   return response;
 }
 
-std::expected<entities::AliveResponse, std::string> Game::FireInput(
+std::expected<entities::AliveResponse, std::string> World::FireInput(
     const entities::FireInputRequest& request) {
   // Refuse an input that rewires an entity or runs a script, and any input to
   // a live entity whose class runs console lines, such as one a map placed.
@@ -447,7 +490,7 @@ std::expected<entities::AliveResponse, std::string> Game::FireInput(
   }
 
   // Fire the input on the entity, from its activator when given.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -465,7 +508,7 @@ std::expected<entities::AliveResponse, std::string> Game::FireInput(
     read.set_class_name("CGameSceneNode");
     read.set_field("m_flScale");
     read.set_type(fields::FIELD_TYPE_FLOAT32);
-    if (auto scale = ReadField(read);
+    if (auto scale = ReadEntityField(services_, read);
         scale && scale->value().value_case() == fields::FieldValue::kNumber) {
       scaled_[request.entity()] = static_cast<float>(scale->value().number());
     }
@@ -474,10 +517,10 @@ std::expected<entities::AliveResponse, std::string> Game::FireInput(
       (*world)->FireInput(request.entity(), request.input(), Value(request.value()), activator));
 }
 
-std::expected<entities::AliveResponse, std::string> Game::RemoveEntity(
+std::expected<entities::AliveResponse, std::string> World::RemoveEntity(
     const entities::EntityRequest& request) {
   // Resolve the world.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -491,7 +534,7 @@ std::expected<entities::AliveResponse, std::string> Game::RemoveEntity(
   return Alive((*world)->RemoveEntity(request.entity()));
 }
 
-std::expected<void, std::string> Game::ShowEntityOnlyTo(
+std::expected<void, std::string> World::ShowEntityOnlyTo(
     const entities::ShowEntityOnlyToRequest& request) {
   // Only the mod's own entities take an audience, so a mod cannot keep a
   // player's hero or the map's entities from a client.
@@ -512,7 +555,7 @@ std::expected<void, std::string> Game::ShowEntityOnlyTo(
   return {};
 }
 
-std::expected<void, std::string> Game::ShowEntityToAll(const entities::EntityRequest& request) {
+std::expected<void, std::string> World::ShowEntityToAll(const entities::EntityRequest& request) {
   if (!created_.contains(request.entity())) {
     return std::unexpected("the mod did not create the entity");
   }
@@ -520,19 +563,7 @@ std::expected<void, std::string> Game::ShowEntityToAll(const entities::EntityReq
   return {};
 }
 
-void Game::PruneAudiences() {
-  if (!world_) {
-    return;
-  }
-  // The transmit pass withholds by entity index alone, so a gone entity's
-  // audience would otherwise apply to the next entity at its index.
-  visibility_.Prune([this](uint32_t entity) {
-    auto live = world_->Exists(entity);
-    return live && !*live;
-  });
-}
-
-std::optional<uint32_t> Game::ObjectHandle(uint32_t id) const {
+std::optional<uint32_t> World::ObjectHandle(uint32_t id) const {
   const auto found = objects_.find(id);
   if (found == objects_.end()) {
     return std::nullopt;
@@ -540,12 +571,12 @@ std::optional<uint32_t> Game::ObjectHandle(uint32_t id) const {
   return std::visit([](const auto& object) { return object->Handle(); }, found->second);
 }
 
-std::expected<npcs::NpcResponse, std::string> Game::SpawnNpc(const npcs::NpcOptions& request) {
+std::expected<npcs::NpcResponse, std::string> World::SpawnNpc(const npcs::NpcOptions& request) {
   // Refuse a class that runs console lines, then resolve the world.
   if (auto refused = RefuseEntityClass(request.class_name()); !refused.empty()) {
     return std::unexpected(std::move(refused));
   }
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -577,9 +608,9 @@ std::expected<npcs::NpcResponse, std::string> Game::SpawnNpc(const npcs::NpcOpti
   return response;
 }
 
-std::expected<npcs::NpcStateResponse, std::string> Game::ReadNpc(const npcs::NpcRequest& request) {
+std::expected<npcs::NpcStateResponse, std::string> World::ReadNpc(const npcs::NpcRequest& request) {
   // Read the NPC's state.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -605,9 +636,9 @@ std::expected<npcs::NpcStateResponse, std::string> Game::ReadNpc(const npcs::Npc
   return response;
 }
 
-std::expected<entities::AliveResponse, std::string> Game::MoveNpc(
+std::expected<entities::AliveResponse, std::string> World::MoveNpc(
     const npcs::MoveNpcRequest& request) {
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -622,9 +653,9 @@ std::expected<entities::AliveResponse, std::string> Game::MoveNpc(
   return Alive((*world)->Move(request.npc(), Floats(request.position()), facing, velocity));
 }
 
-std::expected<entities::AliveResponse, std::string> Game::SetNpcHealth(
+std::expected<entities::AliveResponse, std::string> World::SetNpcHealth(
     const npcs::SetNpcHealthRequest& request) {
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -632,17 +663,17 @@ std::expected<entities::AliveResponse, std::string> Game::SetNpcHealth(
   return Alive((*world)->SetHealth(request.npc(), request.health(), max_health));
 }
 
-std::expected<entities::AliveResponse, std::string> Game::RemoveNpc(
+std::expected<entities::AliveResponse, std::string> World::RemoveNpc(
     const npcs::NpcRequest& request) {
   entities::EntityRequest entity;
   entity.set_entity(request.npc());
   return RemoveEntity(entity);
 }
 
-std::expected<entities::PickupResponse, std::string> Game::CreatePickup(
+std::expected<entities::PickupResponse, std::string> World::CreatePickup(
     const entities::CreatePickupRequest& request) {
   // Resolve the world.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -674,26 +705,26 @@ std::expected<entities::PickupResponse, std::string> Game::CreatePickup(
   return response;
 }
 
-std::expected<entities::AliveResponse, std::string> Game::PickupPresent(
+std::expected<entities::AliveResponse, std::string> World::PickupPresent(
     const entities::PickupRequest& request) {
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
   return Alive((*world)->Exists(request.pickup()));
 }
 
-std::expected<entities::AliveResponse, std::string> Game::RemovePickup(
+std::expected<entities::AliveResponse, std::string> World::RemovePickup(
     const entities::PickupRequest& request) {
   entities::EntityRequest entity;
   entity.set_entity(request.pickup());
   return RemoveEntity(entity);
 }
 
-std::expected<entities::EntitiesResponse, std::string> Game::FindEntities(
+std::expected<entities::EntitiesResponse, std::string> World::FindEntities(
     const entities::FindEntitiesRequest& request) {
   // Find the entities of the class.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -706,10 +737,10 @@ std::expected<entities::EntitiesResponse, std::string> Game::FindEntities(
   return response;
 }
 
-std::expected<entities::EntitiesResponse, std::string> Game::FindEntitiesByName(
+std::expected<entities::EntitiesResponse, std::string> World::FindEntitiesByName(
     const entities::FindEntitiesByNameRequest& request) {
   // Find the entities with the name.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -722,10 +753,10 @@ std::expected<entities::EntitiesResponse, std::string> Game::FindEntitiesByName(
   return response;
 }
 
-std::expected<entities::CountResponse, std::string> Game::RemoveEntities(
+std::expected<entities::CountResponse, std::string> World::RemoveEntities(
     const entities::RemoveEntitiesRequest& request) {
   // Remove the world's entities of the class and count them.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -738,10 +769,10 @@ std::expected<entities::CountResponse, std::string> Game::RemoveEntities(
   return response;
 }
 
-std::expected<void, std::string> Game::ClearMap() {
+std::expected<void, std::string> World::ClearMap() {
   // Kill the map's own units and remove its round objectives; what the mod
   // made stays.
-  auto world = World();
+  auto world = Entities();
   if (!world) {
     return std::unexpected(world.error());
   }
@@ -750,6 +781,163 @@ std::expected<void, std::string> Game::ClearMap() {
     return std::unexpected(damage.error());
   }
   return (*world)->ClearAuthored(**damage);
+}
+
+std::expected<objects::ObjectResponse, std::string> World::CreateParticle(
+    const objects::ParticleOptions& request) {
+  // Resolve the effects service.
+  auto effects = services_.Effects();
+  if (!effects) {
+    return std::unexpected(effects.error());
+  }
+
+  // Describe the particle with its optional tint, data, anchors and parent.
+  render::ParticleSettings settings{
+      .resource = WithAddon(request.resource()),
+      .origin = request.position(),
+      .angles = Floats(request.facing()),
+      .start_active = !request.inactive(),
+  };
+  if (request.color() != 0) {
+    // The particle takes its color as 0xAABBGGRR.
+    settings.tint = render::ParticleTint{.rgba = std::byteswap(request.color()),
+                                         .control_point = request.tint_point()};
+  }
+  if (request.has_point()) {
+    settings.data = render::ParticleData{.control_point = request.point().index(),
+                                         .value = Floats(request.point().position())};
+  }
+  for (const auto& anchor : request.anchors()) {
+    settings.control_points.emplace_back(anchor.index(), anchor.entity());
+  }
+  if (request.parent() != 0) {
+    settings.parent = request.parent();
+  }
+
+  // Create the particle and keep it.
+  auto particle = (*effects)->CreateParticle(settings);
+  if (!particle) {
+    return std::unexpected(particle.error());
+  }
+  return Keep(std::unique_ptr<render::WorldEffect>(std::move(*particle)));
+}
+
+std::expected<objects::ObjectResponse, std::string> World::CreateFog(
+    const objects::FogOptions& request) {
+  // kDrawDistance reaches the far edges of the largest map.
+  constexpr float kDrawDistance = 16384;
+  auto effects = services_.Effects();
+  if (!effects) {
+    return std::unexpected(effects.error());
+  }
+
+  // Create the map's fog controller once.
+  if (!fog_) {
+    auto controller = (*effects)->CreateFogController(request.position(), kDrawDistance);
+    if (!controller) {
+      return std::unexpected(controller.error());
+    }
+    fog_ = std::move(*controller);
+  }
+
+  // Create the fog volume with the color's tint.
+  const uint32_t color = request.color();
+  const std::array<uint8_t, 3> tint{static_cast<uint8_t>(color >> 24),
+                                    static_cast<uint8_t>(color >> 16),
+                                    static_cast<uint8_t>(color >> 8)};
+  auto volume = (*effects)->CreateFogVolume(request.position(), Floats(request.facing()),
+                                            Floats(request.mins()), Floats(request.maxs()),
+                                            request.strength(), tint);
+  if (!volume) {
+    return std::unexpected(volume.error());
+  }
+  return Keep(std::move(*volume));
+}
+
+std::expected<void, std::string> World::MoveEntity(const entities::MoveEntityRequest& request) {
+  // Move the entity, keeping each part of its pose unless given.
+  auto entity = LiveEntity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  const auto position = Floats(request.position());
+  const auto facing = Floats(request.facing());
+  const auto velocity = Floats(request.velocity());
+  gameinterop::TeleportEntity(*entity, request.has_position() ? position.data() : nullptr,
+                              request.has_facing() ? facing.data() : nullptr,
+                              request.has_velocity() ? velocity.data() : nullptr);
+  return {};
+}
+
+std::expected<void, std::string> World::PushEntity(const entities::PushEntityRequest& request) {
+  // Add the motion through the engine's impulse calls.
+  auto dynamics = services_.Dynamics();
+  if (!dynamics) {
+    return std::unexpected(dynamics.error());
+  }
+  auto entity = LiveEntity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  const auto velocity = Floats(request.velocity());
+  (*dynamics)->push(*entity, velocity.data());
+  if (request.has_spin()) {
+    const auto spin = Floats(request.spin());
+    (*dynamics)->spin(*entity, spin.data());
+  }
+  return {};
+}
+
+void World::RemoveWorld() {
+  // Remove the text, effect and fog objects.
+  for (auto& [id, object] : objects_) {
+    std::visit([](auto& handle) { handle->Remove(); }, object);
+  }
+  objects_.clear();
+  if (fog_) {
+    fog_->Remove();
+    fog_.reset();
+  }
+
+  // Remove the entities the mod created.
+  if (entities_) {
+    for (const auto entity : created_) {
+      static_cast<void>(entities_->RemoveEntity(entity));
+    }
+  }
+  created_.clear();
+  visibility_.Clear();
+
+  // Only the engine removes a bot's connection.
+  if (auto server = services_.Server()) {
+    for (const auto slot : bots_) {
+      if ((*server)->DisconnectClient(slot, gameinterop::kDisconnectKicked, "removed by its mod")) {
+        Depart(slot);
+      }
+    }
+  }
+  bots_.clear();
+}
+
+void World::Depart(int32_t slot) {
+  departing_[slot] = gameinterop::ConnectionTracker::StateForSlot(slot).generation;
+}
+
+bool World::Departing() {
+  std::erase_if(departing_, [](const auto& entry) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(entry.first);
+    return !state.occupied || state.generation != entry.second;
+  });
+  return !departing_.empty();
+}
+
+objects::ObjectResponse World::Keep(Object object) {
+  // Store the object under the next id and return the id.
+  const auto id = next_object_++;
+  objects_.emplace(id, std::move(object));
+  objects::ObjectResponse response;
+  response.set_object(id);
+  return response;
 }
 
 }  // namespace modlock::wasm

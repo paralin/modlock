@@ -203,7 +203,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_combat.cc
   src/wasm/game_effects.cc
   src/wasm/game_voice.cc
-  src/wasm/game_entities.cc
+  src/wasm/game_input.cc
   src/wasm/game_fields.cc
   src/wasm/game_seating.cc
   src/wasm/game_heroes.cc
@@ -213,6 +213,7 @@ add_library(modlock_sdk SHARED
   src/wasm/entity_fields.cc
   src/wasm/modifier_masks.cc
   src/wasm/players.cc
+  src/wasm/world.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc

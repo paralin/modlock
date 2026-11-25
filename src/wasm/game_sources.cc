@@ -39,10 +39,6 @@ std::optional<int32_t> Game::WatchedSlot(int32_t slot) const {
 }
 
 void Game::Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) {
-  // A text object's entity changes with its words, so each update reads the
-  // current handles.
-  visibility_.Withhold(set, [this](uint32_t id) { return ObjectHandle(id); });
-
   // A player inside the apart players receives no hero from outside them, and
   // one outside receives none from inside. A watcher outside receives every
   // hero while their camera follows one inside, so the camera has a hero to
