@@ -3,6 +3,7 @@
 package controllers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,19 +30,26 @@ func sdlNames() []string {
 	return append(names, system...)
 }
 
-// loadSDL loads SDL3 and resolves the reader's functions.
+// loadSDL loads the first SDL3 library sdlNames finds.
 func loadSDL() (*sdlLib, error) {
 	for _, name := range sdlNames() {
-		handle, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
-		if err != nil {
-			continue
+		if lib, err := openSDL(name); err == nil {
+			return lib, nil
 		}
-		lib := &sdlLib{}
-		lib.register(handle)
-		var guid func(js uintptr) sdlGUID
-		purego.RegisterLibFunc(&guid, handle, "SDL_GetJoystickGUID")
-		lib.guid = guid
-		return lib, nil
 	}
 	return nil, ErrUnavailable
+}
+
+// openSDL loads the SDL3 library at name and resolves the reader's functions.
+func openSDL(name string) (*sdlLib, error) {
+	handle, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
+	}
+	lib := &sdlLib{}
+	lib.register(handle)
+	var guid func(js uintptr) sdlGUID
+	purego.RegisterLibFunc(&guid, handle, "SDL_GetJoystickGUID")
+	lib.guid = guid
+	return lib, nil
 }

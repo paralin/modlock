@@ -64,6 +64,23 @@ type Reader struct {
 	running sync.Mutex
 }
 
+// LoadSDL loads the SDL3 library at path for every later Open, for an
+// application that ships its own copy somewhere the reader does not look,
+// such as a directory it unpacks into. It does nothing once a load has
+// succeeded.
+func LoadSDL(path string) error {
+	loaded.Lock()
+	defer loaded.Unlock()
+	if loaded.lib == nil {
+		lib, err := openSDL(path)
+		if err != nil {
+			return err
+		}
+		loaded.lib = lib
+	}
+	return nil
+}
+
 // Open loads SDL3, or returns ErrUnavailable when it cannot be loaded; a
 // later Open tries again. A nil log uses slog's default.
 func Open(log *slog.Logger) (*Reader, error) {
