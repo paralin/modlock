@@ -7,7 +7,7 @@
 #include <iostream>
 #include <utility>
 
-#include "src/wasm/host_service.gen.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/instance.h"
 
 namespace modlock::wasm {
@@ -32,9 +32,18 @@ double Milliseconds(Clock::time_point began) {
   return std::chrono::duration<double, std::milli>(Clock::now() - began).count();
 }
 
-// WorkerHost is everything a worker's script may call. HostService refuses
-// each call it does not override.
-class WorkerHost : public HostService {
+// kNoGame answers every call outside the plugin part: a worker has no game.
+constexpr std::string_view kNoGame = "a worker has no game to call";
+
+// Refused answers a plugin call a worker may not make, since each one reaches
+// the mod's players, its saved state or another service.
+std::unexpected<std::string> Refused() {
+  return std::unexpected(std::string("a worker may only log and read the mod's files"));
+}
+
+// WorkerHost is everything a worker's script may call: it logs and reads the
+// mod's files, and refuses the plugin's other calls.
+class WorkerHost : public PluginCalls {
  public:
   WorkerHost(ModFiles files, std::function<void(const std::string&)> log)
       : files_(std::move(files)), log_(std::move(log)) {}
@@ -68,6 +77,53 @@ class WorkerHost : public HostService {
     }
     return response;
   }
+
+  std::expected<settings::SettingResponse, std::string> PlayerSetting(
+      const settings::PlayerSettingRequest&) override {
+    return Refused();
+  }
+
+  std::expected<void, std::string> SetPlayerSetting(
+      const settings::SetPlayerSettingRequest&) override {
+    return Refused();
+  }
+
+  std::expected<void, std::string> AddMetric(const metrics::AddMetricRequest&) override {
+    return Refused();
+  }
+
+  std::expected<void, std::string> WriteFile(const WriteFileRequest&) override { return Refused(); }
+
+  std::expected<void, std::string> HoldReload(const abilities::HoldReloadRequest&) override {
+    return Refused();
+  }
+
+  std::expected<void, std::string> Handoff(const HandoffRequest&) override { return Refused(); }
+
+  std::expected<HandedOffResponse, std::string> HandedOff() override { return Refused(); }
+
+  std::expected<void, std::string> PlayerHandoff(const HandoffPlayerRequest&) override {
+    return Refused();
+  }
+
+  std::expected<HandedOffResponse, std::string> PlayerHandedOff(
+      const players::PlayerRequest&) override {
+    return Refused();
+  }
+
+  std::expected<void, std::string> Ui(const ui::UiRequest&) override { return Refused(); }
+
+  std::expected<ServiceReply, std::string> CallService(const ServiceCall&) override {
+    return Refused();
+  }
+
+  std::expected<ServiceCallStarted, std::string> StartServiceCall(
+      const StartServiceCallRequest&) override {
+    return Refused();
+  }
+
+  // Calls is the dispatch table: this plugin part, and no game.
+  HostCalls Calls() { return {.plugin = this, .absent = kNoGame}; }
 
  private:
   ModFiles files_;
@@ -152,8 +208,9 @@ void Worker::Run(std::stop_token stop) {
     if (!source || !*source) {
       return std::unexpected("the worker script " + script_ + " is not one of the mod's files");
     }
-    auto instance = Instance::Load(runtime_, *module, limits,
-                                   [&host](const Call& call) { return host.Dispatch(call); });
+    auto instance =
+        Instance::Load(runtime_, *module, limits,
+                       [calls = host.Calls()](const Call& call) { return Dispatch(calls, call); });
     loaded = Milliseconds(began);
     if (!instance) {
       return std::unexpected("the worker did not load: " + instance.error());
@@ -181,8 +238,8 @@ void Worker::Run(std::stop_token stop) {
     }
     return;
   }
-  Log(std::format("worker ready in {:.1f} ms ({:.1f} ms to load the store), memory {} KiB", Milliseconds(began),
-                  loaded, (*instance)->MemoryBytes() >> 10));
+  Log(std::format("worker ready in {:.1f} ms ({:.1f} ms to load the store), memory {} KiB",
+                  Milliseconds(began), loaded, (*instance)->MemoryBytes() >> 10));
 
   // Answer requests one at a time until the mod stops.
   uint64_t served = 0;
@@ -206,8 +263,7 @@ void Worker::Run(std::stop_token stop) {
     if (!answered) {
       request.reply(std::unexpected(answered.error()));
       if (!stop.stop_requested()) {
-        Fail(std::format("request {} failed after {:.1f} ms: {}", ++served, took,
-                         answered.error()),
+        Fail(std::format("request {} failed after {:.1f} ms: {}", ++served, took, answered.error()),
              true);
       }
       return;
