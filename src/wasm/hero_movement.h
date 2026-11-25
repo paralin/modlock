@@ -13,9 +13,10 @@
 #include "modlock/gameinterop/command_hook.h"
 #include "src/wasm/movement/movement.pb.h"
 #include "wasm/hook_sources.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/modifier_holds.h"
 #include "wasm/module.h"
-#include "wasm/players.h"
+#include "wasm/roster.h"
 #include "wasm/world.h"
 
 namespace modlock::wasm {
@@ -27,7 +28,7 @@ class GameServices;
 // bot with commands, and setting a velocity. It samples the heroes whose
 // movement the mod watches, and tells the host-wide movement and command
 // hooks which heroes it steers and drives.
-class HeroMovement final : public Module, private MoverSource {
+class HeroMovement final : public Module, private MoverSource, public MovementCalls {
  public:
   // MovementFact is one movement fact the game announced for the hero with
   // the pawn handle; an executed ability carries the ability's handle, and
@@ -42,19 +43,21 @@ class HeroMovement final : public Module, private MoverSource {
   // services, players, world and modifiers outlive the movement. It
   // registers as a mover source while it lives, and on destruction lets the
   // movement hook go when no other mod moves a hero.
-  HeroMovement(GameServices& services, Players& players, World& world, ModifierHolds& modifiers);
+  HeroMovement(GameServices& services, Roster& players, World& world, ModifierHolds& modifiers);
   ~HeroMovement() override;
 
   HeroMovement(const HeroMovement&) = delete;
   HeroMovement& operator=(const HeroMovement&) = delete;
 
-  std::expected<void, std::string> Teleport(const movement::TeleportRequest& request);
-  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request);
-  std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request);
-  std::expected<void, std::string> Steer(const movement::SteerRequest& request);
-  std::expected<void, std::string> Drive(const movement::DriveRequest& request);
-  std::expected<void, std::string> SetVelocity(const movement::SetVelocityRequest& request);
-  std::expected<void, std::string> WatchMovement(const movement::WatchMovementRequest& request);
+  std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override;
+  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override;
+  std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
+  std::expected<void, std::string> Steer(const movement::SteerRequest& request) override;
+  std::expected<void, std::string> Drive(const movement::DriveRequest& request) override;
+  std::expected<void, std::string> SetVelocity(
+      const movement::SetVelocityRequest& request) override;
+  std::expected<void, std::string> WatchMovement(
+      const movement::WatchMovementRequest& request) override;
 
   // Moving reports whether the mod watches any player's movement.
   bool Moving() const { return !movers_.empty(); }
@@ -85,7 +88,7 @@ class HeroMovement final : public Module, private MoverSource {
   std::expected<std::array<float, 3>, std::string> NearestZiplineNode(void* pawn, int32_t lane);
 
   GameServices& services_;
-  Players& players_;
+  Roster& players_;
   // world_ finds the zipline nodes.
   World& world_;
   // modifiers_ gives a teleported hero its held modifiers back at once.

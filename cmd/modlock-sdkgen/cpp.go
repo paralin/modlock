@@ -48,45 +48,79 @@ Reply Answer(const std::expected<Response, std::string>& result) {
   return reply;
 }
 
+// Absent returns the reply to a call whose part the host left out: absent,
+// or that the host does not support method.
+inline Reply Absent(std::string_view absent, std::string_view method) {
+  if (!absent.empty()) {
+    return Fail(std::string(absent));
+  }
+  return Fail("this host does not support " + std::string(method));
+}
+
 }  // namespace detail
 
 `
+
+// cppColumns is the line limit of the repository's clang-format style.
+const cppColumns = 100
 
 // writeCpp returns src/wasm/host_service.gen.h.
 func writeCpp(s *schema) ([]byte, error) {
 	var out bytes.Buffer
 	out.WriteString(cppPreamble)
 
-	// Declare the host's service.
-	writeComment(&out, "", "//", s.host.doc)
-	out.WriteString("//\n// HostService declares one virtual method per call. Each returns that the\n")
-	out.WriteString("// host does not support the call until a subclass overrides it.\nclass HostService {\n public:\n")
-	out.WriteString("  virtual ~HostService() = default;\n\n")
-	for _, m := range s.host.methods {
-		writeComment(&out, "  ", "//", m.doc)
-		fmt.Fprintf(&out, "  virtual %s %s(%s) {\n", cppResult(m), m.name, cppParam(m, "/*request*/"))
-		fmt.Fprintf(&out, "    return std::unexpected(%q);\n  }\n\n", "this host does not support "+m.name)
-	}
-	out.WriteString("  // Dispatch runs call on the method it names and returns the reply.\n")
-	out.WriteString("  Reply Dispatch(const Call& call) {\n")
-	out.WriteString("    using Handler = Reply (*)(HostService&, const std::string&);\n")
-	out.WriteString("    static const std::unordered_map<std::string_view, Handler> handlers = {\n")
-	for _, m := range s.host.methods {
-		fmt.Fprintf(&out, "        {%q,\n         [](HostService& host, const std::string& bytes) {\n", m.name)
-		if m.request.isEmpty() {
-			fmt.Fprintf(&out, "           static_cast<void>(bytes);\n           return detail::Answer(host.%s());\n         }},\n", m.name)
-			continue
+	// Declare one interface per part of the host.
+	for _, p := range s.parts {
+		fmt.Fprintf(&out, "// %s are the Host calls the %s part of the host answers.\n", partInterface(p), p.name)
+		fmt.Fprintf(&out, "class %s {\n public:\n", partInterface(p))
+		for _, m := range p.methods {
+			writeComment(&out, "  ", "//", m.doc)
+			decl := fmt.Sprintf("  virtual %s %s(%s) = 0;", cppResult(m), m.name, cppParam(m, "request"))
+			if len(decl) > cppColumns {
+				// Break after the parenthesis, as clang-format does.
+				decl = fmt.Sprintf("  virtual %s %s(\n      %s) = 0;", cppResult(m), m.name, cppParam(m, "request"))
+			}
+			out.WriteString(decl + "\n\n")
 		}
-		fmt.Fprintf(&out, "           %s request;\n", cppType(m.request))
-		fmt.Fprintf(&out, "           if (!request.ParseFromString(bytes)) {\n             return detail::Fail(%q);\n           }\n",
-			"the "+m.name+" request is malformed")
-		fmt.Fprintf(&out, "           return detail::Answer(host.%s(request));\n         }},\n", m.name)
+		fmt.Fprintf(&out, " protected:\n  ~%s() = default;\n};\n\n", partInterface(p))
 	}
-	out.WriteString("    };\n")
-	out.WriteString("    const auto handler = handlers.find(call.method());\n")
-	out.WriteString("    if (handler == handlers.end()) {\n")
-	out.WriteString("      return detail::Fail(\"this host has no method \" + call.method());\n    }\n")
-	out.WriteString("    return handler->second(*this, call.request());\n  }\n};\n\n")
+
+	// Declare the table of parts and the dispatch over it.
+	writeComment(&out, "", "//", s.host.doc)
+	out.WriteString(`//
+// HostCalls names the object that answers each part of Host. A call whose
+// part is null fails with absent, or, when absent is empty, with that this
+// host does not support it.
+struct HostCalls {
+`)
+	for _, p := range s.parts {
+		fmt.Fprintf(&out, "  %s* %s = nullptr;\n", partInterface(p), p.name)
+	}
+	out.WriteString("  std::string_view absent;\n};\n\n")
+	out.WriteString("// Dispatch runs call on the part that answers the method it names and\n")
+	out.WriteString("// returns the reply: one lookup by name and one virtual call.\n")
+	out.WriteString("inline Reply Dispatch(const HostCalls& calls, const Call& call) {\n")
+	out.WriteString("  using Handler = Reply (*)(const HostCalls&, const std::string&);\n")
+	out.WriteString("  static const std::unordered_map<std::string_view, Handler> handlers = {\n")
+	for _, p := range s.parts {
+		for _, m := range p.methods {
+			fmt.Fprintf(&out, "      {%q,\n       [](const HostCalls& calls, const std::string& bytes) {\n", m.name)
+			fmt.Fprintf(&out, "         if (calls.%s == nullptr) {\n           return detail::Absent(calls.absent, %q);\n         }\n", p.name, m.name)
+			if m.request.isEmpty() {
+				fmt.Fprintf(&out, "         static_cast<void>(bytes);\n         return detail::Answer(calls.%s->%s());\n       }},\n", p.name, m.name)
+				continue
+			}
+			fmt.Fprintf(&out, "         %s request;\n", cppType(m.request))
+			fmt.Fprintf(&out, "         if (!request.ParseFromString(bytes)) {\n           return detail::Fail(%q);\n         }\n",
+				"the "+m.name+" request is malformed")
+			fmt.Fprintf(&out, "         return detail::Answer(calls.%s->%s(request));\n       }},\n", p.name, m.name)
+		}
+	}
+	out.WriteString("  };\n")
+	out.WriteString("  const auto handler = handlers.find(call.method());\n")
+	out.WriteString("  if (handler == handlers.end()) {\n")
+	out.WriteString("    return detail::Fail(\"this host has no method \" + call.method());\n  }\n")
+	out.WriteString("  return handler->second(calls, call.request());\n}\n\n")
 
 	// Declare the client that delivers events to a mod.
 	writeComment(&out, "", "//", s.mod.doc)

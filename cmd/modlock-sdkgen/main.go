@@ -15,9 +15,9 @@
 //     handwritten luau/library.luau.
 //   - python/modlock/__init__.py: the same for Python, followed by the
 //     handwritten python/library.py.
-//   - src/wasm/host_service.gen.h: the host's service with one virtual
-//     method per call, its dispatch by method name, and the client that
-//     delivers events to a mod.
+//   - src/wasm/host_service.gen.h: one interface per part of the host that
+//     src/wasm/host_calls.txt names, the dispatch of each call by name to
+//     its part, and the client that delivers events to a mod.
 //
 // The conventions it follows are stated at the top of the schema.
 package main
@@ -72,6 +72,9 @@ func run(ctx context.Context) error {
 	}
 	s, err := readSchema(set, schemaFile)
 	if err != nil {
+		return err
+	}
+	if s.parts, err = readParts(partsFile, s.host); err != nil {
 		return err
 	}
 	for _, output := range outputs {

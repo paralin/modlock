@@ -28,6 +28,8 @@ type schema struct {
 	// services are the requests and responses of the services a host
 	// provides outside Modlock, which serviceMessages names.
 	services []*message
+	// parts are the parts of the host, each answering some Host calls.
+	parts []*part
 	// file is the file that declares the services, Call and Reply.
 	file *protoFile
 }

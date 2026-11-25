@@ -114,7 +114,7 @@ World::~World() {
 std::expected<gameinterop::WorldEntities*, std::string> World::Entities() {
   if (!entities_) {
     // Build the world's entities on the host's resolved calls.
-    auto calls = services_.WorldCalls();
+    auto calls = services_.EntityCalls();
     if (!calls) {
       return std::unexpected(calls.error());
     }

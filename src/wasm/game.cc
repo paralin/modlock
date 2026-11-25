@@ -10,6 +10,25 @@ Game::Game(GameServices& services, EngineHost* engine) : services_(services), en
 
 Game::~Game() = default;
 
+HostCalls Game::Calls() {
+  return {
+      .players = &players_,
+      .world = &world_,
+      .match = &match_,
+      .fields = &fields_,
+      .modifiers = &modifiers_,
+      .heroes = &heroes_,
+      .camera = &camera_,
+      .movement = &movement_,
+      .input = &input_,
+      .projectiles = &projectiles_,
+      .restores = &restores_,
+      .seating = &seating_,
+      .voice = &voice_,
+      .effects = &effects_,
+  };
+}
+
 void Game::Frame() {
   // Run the modules, so the world finishes the units spawned this frame
   // together.
@@ -22,7 +41,7 @@ void Game::WorldReady() {
   // Each lookup is kept once found; one that fails here is reported by the
   // call that needs it.
   static_cast<void>(services_.Heroes());
-  static_cast<void>(services_.WorldCalls());
+  static_cast<void>(services_.EntityCalls());
   static_cast<void>(services_.Selection());
 
   // Find every recorded server function now. Each is a scan of the whole

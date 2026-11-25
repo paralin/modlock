@@ -1,6 +1,8 @@
 //go:build deps_only
 
-#include "wasm/players.h"
+#include "wasm/roster.h"
+
+#include <utility>
 
 #include "modlock/gameinterop/connection_tracker.h"
 #include "wasm/game.h"
@@ -16,20 +18,22 @@ constexpr const char* kHoldingIdol = "MODIFIER_STATE_HOLDING_IDOL";
 
 }  // namespace
 
-Players::Players(GameServices& services)
-    : services_(services), observer_(gameinterop::PawnObserver::LiveSeams(true), true) {}
+Roster::Roster(GameServices& services, Describe describe)
+    : services_(services),
+      describe_(std::move(describe)),
+      observer_(gameinterop::PawnObserver::LiveSeams(true), true) {}
 
-void Players::WorldReady() {
+void Roster::WorldReady() {
   // A lookup that fails here is retried by the call that needs it.
   static_cast<void>(services_.ModifierState(kHoldingIdol));
   observer_.Prepare();
 }
 
-void Players::WorldEnding() {
+void Roster::WorldEnding() {
   observer_.Invalidate();
 }
 
-players::PlayersResponse Players::List() const {
+std::expected<players::PlayersResponse, std::string> Roster::Players() {
   players::PlayersResponse players;
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     // List each slot with a seat, connected or away.
@@ -48,10 +52,12 @@ players::PlayersResponse Players::List() const {
     player->set_generation(state.generation);
     player->set_away(state.away);
   }
+  describe_(players);
   return players;
 }
 
-players::PawnResponse Players::Pawn(const players::PlayerRequest& request) {
+std::expected<players::PawnResponse, std::string> Roster::Pawn(
+    const players::PlayerRequest& request) {
   // Sample the player's hero; a slot without one, or a spectator, answers no
   // pawn.
   players::PawnResponse response;
@@ -62,7 +68,7 @@ players::PawnResponse Players::Pawn(const players::PlayerRequest& request) {
   return response;
 }
 
-players::PawnsResponse Players::Pawns() {
+std::expected<players::PawnsResponse, std::string> Roster::Pawns() {
   // One sample per occupied slot with a live hero, in slot order: the same
   // pawn Pawn answers for each, in one reply.
   players::PawnsResponse response;
@@ -81,8 +87,8 @@ players::PawnsResponse Players::Pawns() {
   return response;
 }
 
-void Players::FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample,
-                       players::Pawn* pawn) {
+void Roster::FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample,
+                      players::Pawn* pawn) {
   // Copy the pawn's identity and health.
   pawn->set_entity(sample.pawn_handle);
   pawn->set_hero(sample.hero_id);
@@ -145,7 +151,7 @@ void Players::FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sa
   }
 }
 
-std::expected<gameinterop::PawnObserver::Sample, std::string> Players::Live(int32_t slot) {
+std::expected<gameinterop::PawnObserver::Sample, std::string> Roster::Live(int32_t slot) {
   // A spectator's observed pawn is its camera, not a hero.
   auto sample = observer_.Observe(slot);
   if (!sample || sample->team == 1) {
@@ -154,7 +160,7 @@ std::expected<gameinterop::PawnObserver::Sample, std::string> Players::Live(int3
   return *sample;
 }
 
-std::expected<void*, std::string> Players::LivePawn(int32_t slot) const {
+std::expected<void*, std::string> Roster::LivePawn(int32_t slot) const {
   void* pawn = observer_.PawnForSlot(slot);
   if (pawn == nullptr) {
     return std::unexpected("the player has no live hero");
@@ -162,7 +168,7 @@ std::expected<void*, std::string> Players::LivePawn(int32_t slot) const {
   return pawn;
 }
 
-std::vector<Players::Hero> Players::Heroes() {
+std::vector<Roster::Hero> Roster::Heroes() {
   std::vector<Hero> heroes;
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     // Collect each live hero.

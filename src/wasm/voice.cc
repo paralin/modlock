@@ -9,7 +9,7 @@
 
 namespace modlock::wasm {
 
-Voice::Voice(GameServices& services, Players& players) : services_(services), players_(players) {
+Voice::Voice(GameServices& services, Roster& players) : services_(services), players_(players) {
   services_.VoiceSources().Add(this);
 }
 

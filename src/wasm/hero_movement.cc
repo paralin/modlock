@@ -20,7 +20,7 @@
 
 namespace modlock::wasm {
 
-HeroMovement::HeroMovement(GameServices& services, Players& players, World& world,
+HeroMovement::HeroMovement(GameServices& services, Roster& players, World& world,
                            ModifierHolds& modifiers)
     : services_(services), players_(players), world_(world), modifiers_(modifiers) {
   services_.MoverSources().Add(this);

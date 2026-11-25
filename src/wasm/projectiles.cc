@@ -21,7 +21,7 @@ bool Watches(const combat::ProjectileOptions& options, std::string_view name) {
 
 }  // namespace
 
-Projectiles::Projectiles(GameServices& services, Players& players, Deliver deliver)
+Projectiles::Projectiles(GameServices& services, Roster& players, Deliver deliver)
     : services_(services), players_(players), deliver_(std::move(deliver)) {
   services_.ProjectileSources().Add(this);
 }
