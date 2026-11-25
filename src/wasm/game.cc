@@ -83,7 +83,6 @@ void Game::WorldReady() {
 void Game::WorldEnding() {
   // Drop the per-world player state and reapply host seats on the next map.
   assignments_.WorldEnding();
-  frozen_.clear();
   steers_.clear();
   drives_.clear();
   ffa_held_.clear();
@@ -100,15 +99,13 @@ void Game::WorldEnding() {
 void Game::Leave(int32_t slot) {
   // Forget the slot's movement, controllers and input.
   seat_failed_.erase(slot);
-  frozen_.erase(slot);
   movers_.erase(slot);
   services_.Controllers().Watch(this, slot, false);
   steers_.erase(slot);
   drives_.erase(slot);
 
-  // Forget its restores, blocks, presses, silences and what it was shown.
+  // Forget its restores, blocks, presses and silences.
   restores_.erase(slot);
-  picks_.Forget(slot);
   input_.Leave(slot);
   silenced_players_.erase(slot);
 
@@ -126,15 +123,7 @@ void Game::Clear() {
   }
   watched_.clear();
 
-  // Unfreeze the frozen heroes.
-  for (const auto slot : frozen_) {
-    if (players_.Observer().Observe(slot)) {
-      static_cast<void>(players_.Observer().SetPreparationFrozen(slot, false));
-    }
-  }
-
   // Stop moving and steering heroes and watching controllers.
-  frozen_.clear();
   movers_.clear();
   services_.Controllers().Release(this);
   steers_.clear();
@@ -147,11 +136,6 @@ void Game::Clear() {
   free_for_all_ = false;
   team_seating_ = false;
   ReleaseFreeForAll();
-
-  // Return every ability's cooldown lengths and most charges to the game's
-  // own.
-  cooldown_.reset();
-  charge_limit_.reset();
 
   // Release the input the mod blocked, remapped or watched, and the voices
   // it silenced.

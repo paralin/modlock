@@ -6,7 +6,6 @@
 #include <utility>
 #include <vector>
 
-#include "modlock/gameinterop/console_variables.h"
 #include "modlock/gameinterop/native_memory.h"
 #include "wasm/entity_rules.h"
 #include "wasm/game.h"
@@ -102,94 +101,6 @@ std::expected<void, std::string> Game::KillEntity(const combat::KillOptions& req
   return (*damage)->Kill(*victim, *attacker, *inflictor, ability);
 }
 
-std::expected<void, std::string> Game::AdjustSouls(const players::AdjustSoulsRequest& request) {
-  // Adjust the live player's souls.
-  auto currency = services_.Currency();
-  if (!currency) {
-    return std::unexpected(currency.error());
-  }
-  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
-    return std::unexpected(pawn.error());
-  }
-  auto adjusted = players_.Observer().AdjustCurrency(request.player(), 0, request.delta(),
-                                                     request.silent(), *currency);
-  if (!adjusted) {
-    return std::unexpected(adjusted.error());
-  }
-  return {};
-}
-
-std::expected<void, std::string> Game::AdjustAbilityPoints(
-    const players::AdjustAbilityPointsRequest& request) {
-  // Check that the live player holds every spend before changing either.
-  auto currency = services_.Currency();
-  if (!currency) {
-    return std::unexpected(currency.error());
-  }
-  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
-    return std::unexpected(pawn.error());
-  }
-  const auto sample = players_.Observer().Observe(request.player());
-  if (!sample || !sample->currencies) {
-    return std::unexpected("native wallet unavailable");
-  }
-  // EAbilityPoints=1, EAbilityUnlocks=2.
-  const std::array changes{std::pair{1u, request.points()}, std::pair{2u, request.unlocks()}};
-  for (const auto [type, delta] : changes) {
-    if (delta < 0 && (*sample->currencies)[type] < -delta) {
-      return std::unexpected("the player holds fewer ability points or unlocks than the spend");
-    }
-  }
-
-  // Apply each change silently.
-  for (const auto [type, delta] : changes) {
-    if (auto adjusted =
-            players_.Observer().AdjustCurrency(request.player(), type, delta, true, *currency);
-        !adjusted) {
-      return std::unexpected(adjusted.error());
-    }
-  }
-  return {};
-}
-
-std::expected<void, std::string> Game::StartingSouls(const players::StartingSoulsRequest& request) {
-  // Set the live player's starting souls.
-  auto currency = services_.Currency();
-  if (!currency) {
-    return std::unexpected(currency.error());
-  }
-  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
-    return std::unexpected(pawn.error());
-  }
-  auto prepared =
-      players_.Observer().PrepareStartingSouls(request.player(), request.souls(), *currency);
-  if (!prepared) {
-    return std::unexpected(prepared.error());
-  }
-  return {};
-}
-
-std::expected<void, std::string> Game::ResetHero(const players::ResetHeroRequest& request) {
-  // Reset the live player's hero to fresh starting souls.
-  auto currency = services_.Currency();
-  if (!currency) {
-    return std::unexpected(currency.error());
-  }
-  auto reset = services_.ResetHero();
-  if (!reset) {
-    return std::unexpected(reset.error());
-  }
-  if (auto pawn = players_.LivePawn(request.player()); !pawn) {
-    return std::unexpected(pawn.error());
-  }
-  auto fresh =
-      players_.Observer().ResetStartingSouls(request.player(), request.souls(), *currency, *reset);
-  if (!fresh) {
-    return std::unexpected(fresh.error());
-  }
-  return {};
-}
-
 std::expected<void, std::string> Game::RestoreHero(const players::RestoreHeroRequest& request) {
   // Build the restore target from the request.
   const auto& source = request.target();
@@ -277,33 +188,6 @@ std::expected<void, std::string> Game::RestoreHero(const players::RestoreHeroReq
   return {};
 }
 
-std::expected<void, std::string> Game::HoldLevelSouls(int32_t slot, int32_t level) {
-  // Resolve the native calls and the souls progression leaves out of a level.
-  auto required = services_.RequiredSouls();
-  if (!required) {
-    return std::unexpected(required.error());
-  }
-  auto currency = services_.Currency();
-  if (!currency) {
-    return std::unexpected(currency.error());
-  }
-  auto variables = gameinterop::ConsoleVariables::Resolve();
-  if (!variables) {
-    return std::unexpected(variables.error());
-  }
-  auto starting = variables->ReadInt32("citadel_player_starting_gold");
-  if (!starting) {
-    return std::unexpected(starting.error());
-  }
-
-  // Move the hero's souls into the level's band.
-  auto held = players_.Observer().HoldLevelSouls(slot, level, *starting, *required, *currency);
-  if (!held) {
-    return std::unexpected(held.error());
-  }
-  return {};
-}
-
 bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
                         HeroRestore::Stage stage) {
   // Log a step that fails, and borrow the player's pawn.
@@ -356,7 +240,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       // The game raises a level its souls pass and never lowers one, so the
       // restored level holds only with souls inside its band. A hero whose
       // thresholds cannot be read keeps the level written; the settle reports it.
-      if (auto held = HoldLevelSouls(slot, *target.level); !held) {
+      if (auto held = heroes_.HoldLevelSouls(slot, *target.level); !held) {
         log("level souls", held.error());
       }
       pawn = players_.Observer().PawnForSlot(slot);
