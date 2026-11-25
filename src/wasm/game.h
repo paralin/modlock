@@ -17,8 +17,6 @@
 #include <vector>
 
 #include "modlock/engine_host.h"
-#include "modlock/gameinterop/ability_charge_limit.h"
-#include "modlock/gameinterop/ability_cooldown.h"
 #include "modlock/gameinterop/ability_input_hook.h"
 #include "modlock/gameinterop/ability_modifier.h"
 #include "modlock/gameinterop/ability_slots.h"
@@ -48,8 +46,8 @@
 #include "wasm/apart_players.h"
 #include "wasm/controller_table.h"
 #include "wasm/fields.h"
-#include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
+#include "wasm/heroes.h"
 #include "wasm/hook_sources.h"
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
@@ -438,7 +436,9 @@ class Game : public HostService,
 
   // Cast describes one executed ability for the mod: the caster's player,
   // and the ability's name and slot when a player's hero cast it.
-  abilities::AbilityCastEvent Cast(uint32_t caster, uint32_t ability, uint32_t target);
+  abilities::AbilityCastEvent Cast(uint32_t caster, uint32_t ability, uint32_t target) {
+    return heroes_.Cast(caster, ability, target);
+  }
 
   // Apart hides the heroes of the players in the slot bits from every other
   // player, and every other player's hero from them, until the next call; zero
@@ -485,7 +485,7 @@ class Game : public HostService,
   // ClientCommand notes a console command a player sent the game that the
   // host follows: a selecthero pick from the game's Change Hero, which
   // SelectHero leaves to land.
-  void ClientCommand(int32_t slot, std::string_view line);
+  void ClientCommand(int32_t slot, std::string_view line) { heroes_.ClientCommand(slot, line); }
 
   // Moving reports whether the mod watches any player's movement.
   bool Moving() const { return !movers_.empty(); }
@@ -557,32 +557,77 @@ class Game : public HostService,
   std::expected<players::PawnsResponse, std::string> Pawns() override { return players_.Pawns(); }
 
   std::expected<players::HeroResponse, std::string> SelectHero(
-      const players::SelectHeroRequest& request) override;
+      const players::SelectHeroRequest& request) override {
+    return heroes_.SelectHero(request);
+  }
+
   std::expected<void, std::string> Spectate(const players::PlayerRequest& request) override;
   std::expected<void, std::string> Watch(const players::WatchRequest& request) override;
   std::expected<void, std::string> FreeCamera(const players::FreeCameraRequest& request) override;
   std::expected<void, std::string> MoveCamera(const players::CameraOptions& request) override;
   std::expected<void, std::string> ClearCamera(const players::ClearCameraRequest& request) override;
   std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> Respawn(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> ChangeTeam(const players::ChangeTeamRequest& request) override;
-  std::expected<void, std::string> ClearItems(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> Freeze(const players::FreezeRequest& request) override;
-  std::expected<void, std::string> RestoreStamina(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> SetStamina(const players::SetStaminaRequest& request) override;
+
+  std::expected<void, std::string> Respawn(const players::PlayerRequest& request) override {
+    return heroes_.Respawn(request);
+  }
+
+  std::expected<void, std::string> ChangeTeam(const players::ChangeTeamRequest& request) override {
+    return heroes_.ChangeTeam(request);
+  }
+
+  std::expected<void, std::string> ClearItems(const players::PlayerRequest& request) override {
+    return heroes_.ClearItems(request);
+  }
+
+  std::expected<void, std::string> Freeze(const players::FreezeRequest& request) override {
+    return heroes_.Freeze(request);
+  }
+
+  std::expected<void, std::string> RestoreStamina(const players::PlayerRequest& request) override {
+    return heroes_.RestoreStamina(request);
+  }
+
+  std::expected<void, std::string> SetStamina(const players::SetStaminaRequest& request) override {
+    return heroes_.SetStamina(request);
+  }
+
   std::expected<void, std::string> RefreshAbility(
-      const abilities::RefreshAbilityRequest& request) override;
+      const abilities::RefreshAbilityRequest& request) override {
+    return heroes_.RefreshAbility(request);
+  }
+
   std::expected<abilities::AbilitiesResponse, std::string> Abilities(
-      const players::PlayerRequest& request) override;
-  std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& request) override;
-  std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) override;
+      const players::PlayerRequest& request) override {
+    return heroes_.Abilities(request);
+  }
+
+  std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& request) override {
+    return heroes_.SetAbility(request);
+  }
+
+  std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) override {
+    return heroes_.GiveItem(request);
+  }
+
   std::expected<void, std::string> TrainAbility(
-      const abilities::TrainAbilityRequest& request) override;
-  std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& request) override;
+      const abilities::TrainAbilityRequest& request) override {
+    return heroes_.TrainAbility(request);
+  }
+
+  std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& request) override {
+    return heroes_.BuyItem(request);
+  }
+
   std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
-      const abilities::HeroBuildRequest& request) override;
+      const abilities::HeroBuildRequest& request) override {
+    return heroes_.HeroBuild(request);
+  }
+
   std::expected<void, std::string> ReplaceAbility(
-      const abilities::ReplaceAbilityRequest& request) override;
+      const abilities::ReplaceAbilityRequest& request) override {
+    return heroes_.ReplaceAbility(request);
+  }
 
   std::expected<void, std::string> HoldModifier(
       const abilities::HoldModifierRequest& request) override {
@@ -609,12 +654,26 @@ class Game : public HostService,
   std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
   std::expected<void, std::string> Steer(const movement::SteerRequest& request) override;
   std::expected<void, std::string> Drive(const movement::DriveRequest& request) override;
-  std::expected<void, std::string> AdjustSouls(const players::AdjustSoulsRequest& request) override;
+
+  std::expected<void, std::string> AdjustSouls(
+      const players::AdjustSoulsRequest& request) override {
+    return heroes_.AdjustSouls(request);
+  }
+
   std::expected<void, std::string> AdjustAbilityPoints(
-      const players::AdjustAbilityPointsRequest& request) override;
+      const players::AdjustAbilityPointsRequest& request) override {
+    return heroes_.AdjustAbilityPoints(request);
+  }
+
   std::expected<void, std::string> StartingSouls(
-      const players::StartingSoulsRequest& request) override;
-  std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) override;
+      const players::StartingSoulsRequest& request) override {
+    return heroes_.StartingSouls(request);
+  }
+
+  std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) override {
+    return heroes_.ResetHero(request);
+  }
+
   std::expected<void, std::string> Heal(const players::HealRequest& request) override;
   std::expected<effects::SoundResponse, std::string> Sound(
       const effects::SoundRequest& request) override;
@@ -859,7 +918,11 @@ class Game : public HostService,
       const effects::EmitSoundRequest& request) override;
   std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request) override;
   std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override;
-  std::expected<void, std::string> Kill(const players::PlayerRequest& request) override;
+
+  std::expected<void, std::string> Kill(const players::PlayerRequest& request) override {
+    return heroes_.Kill(request);
+  }
+
   std::expected<void, std::string> SetVelocity(
       const movement::SetVelocityRequest& request) override;
   std::expected<wasm::ButtonsResponse, std::string> Buttons(
@@ -883,9 +946,6 @@ class Game : public HostService,
   std::expected<effects::SoundResponse, std::string> PlaySound(
       const std::string& sound, int32_t source, const effects::SoundOptions& options);
 
-  // HoldLevelSouls gives the slot's hero the souls its restored level needs,
-  // so the game's progression keeps the level.
-  std::expected<void, std::string> HoldLevelSouls(int32_t slot, int32_t level);
   // ApplyRestore performs one stage of a hero restore's writes.
   bool ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
                     HeroRestore::Stage stage);
@@ -893,21 +953,6 @@ class Game : public HostService,
   // TickRestores advances every hero restore and the unit restore by one
   // frame and queues the ones that ended.
   void TickRestores();
-
-  // LatchTime is the time a hero's stamina latch counts from: the simulation
-  // time without the ticks the game spent paused.
-  std::expected<float, std::string> LatchTime();
-
-  // SetCooldownLength makes seconds the length of the ability's cooldowns,
-  // or returns it to the game's own when seconds is negative.
-  std::expected<void, std::string> SetCooldownLength(int32_t slot, uint32_t handle, float seconds);
-
-  // LimitCharges makes maximum the most charges the player's ability holds.
-  std::expected<void, std::string> LimitCharges(int32_t slot, uint32_t handle, int32_t maximum);
-
-  // OwnedAbility returns the ability named name of slot's live hero.
-  std::expected<gameinterop::PawnObserver::Ability, std::string> OwnedAbility(
-      int32_t slot, std::string_view name);
 
   // SeatAssignedPlayers retries pending host seats and records a seat only
   // after its native operation succeeds for the same connection generation.
@@ -957,10 +1002,6 @@ class Game : public HostService,
   // among those on lane that pawn's team may ride.
   std::expected<std::array<float, 3>, std::string> NearestZiplineNode(void* pawn, int32_t lane);
 
-  // ImbuedAbilities returns the definition ids of the abilities that the
-  // ability with handle, owned by slot's hero, imbues; empty for most.
-  std::vector<uint32_t> ImbuedAbilities(int32_t slot, uint32_t handle);
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
@@ -969,9 +1010,6 @@ class Game : public HostService,
   // handle, until another camera call or Unwatch. A player watching a hero
   // inside an apart game receives that game's heroes.
   std::map<int32_t, uint32_t> watched_;
-  // picks_ holds each player's own Change Hero pick until it lands.
-  HeroPicks picks_;
-  std::set<int32_t> frozen_;
   // movers_ is the players whose movement the mod watches.
   std::set<int32_t> movers_;
 
@@ -991,14 +1029,6 @@ class Game : public HostService,
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
 
-  // cooldown_ holds the cooldown lengths the mod gave abilities, created the
-  // first time one is given; it puts the game's own lengths back when the
-  // mod stops.
-  std::unique_ptr<gameinterop::AbilityCooldown> cooldown_;
-  // charge_limit_ holds the most charges the mod gave abilities, created the
-  // first time one is limited; it puts the game's own maximums back when the
-  // mod stops.
-  std::unique_ptr<gameinterop::AbilityChargeLimit> charge_limit_;
   // input_ is the mod's blocks, presses, remap and watched buttons.
   InputChanges input_;
   // silenced_ is the voice concepts the mod keeps every hero from speaking,
@@ -1031,7 +1061,9 @@ class Game : public HostService,
   ApartPlayers apart_{services_, players_};
   Fields fields_{services_, world_};
   ModifierHolds modifiers_{services_, players_, world_};
-  std::array<Module*, 6> modules_{&players_, &world_, &match_, &apart_, &fields_, &modifiers_};
+  wasm::Heroes heroes_{services_, players_};
+  std::array<Module*, 7> modules_{&players_, &world_,     &match_, &apart_,
+                                  &fields_,  &modifiers_, &heroes_};
 };
 
 }  // namespace modlock::wasm

@@ -9,6 +9,7 @@
 #include "modlock/gameinterop/keyvalues.h"
 #include "src/gamedata/hero_builds.pb.h"
 #include "wasm/game.h"
+#include "wasm/heroes.h"
 
 namespace modlock::wasm {
 
@@ -32,7 +33,7 @@ const gamedata::HeroBuildFile& Builds() {
 
 }  // namespace
 
-std::expected<abilities::HeroBuildResponse, std::string> Game::HeroBuild(
+std::expected<abilities::HeroBuildResponse, std::string> Heroes::HeroBuild(
     const abilities::HeroBuildRequest& request) {
   // Find the hero's build; a hero without one has no categories.
   abilities::HeroBuildResponse response;

@@ -23,19 +23,6 @@ bool Watches(const combat::ProjectileOptions& options, std::string_view name) {
 
 }  // namespace
 
-std::expected<void, std::string> Game::Kill(const players::PlayerRequest& request) {
-  // Kill the live player's hero unless it is already dead.
-  auto damage = services_.Damage();
-  if (!damage) {
-    return std::unexpected(damage.error());
-  }
-  auto sample = players_.Live(request.player());
-  if (!sample) {
-    return std::unexpected(sample.error());
-  }
-  return (*damage)->Kill(sample->pawn);
-}
-
 std::expected<void, std::string> Game::SetVelocity(const movement::SetVelocityRequest& request) {
   auto pawn = players_.LivePawn(request.player());
   if (!pawn) {
