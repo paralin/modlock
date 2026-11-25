@@ -14,6 +14,7 @@
 #include "modlock/gameinterop/native_memory.h"
 #include "modlock/gameinterop/native_user_messages.h"
 #include "src/gameinterop/engine/camera.pb.h"
+#include "wasm/entity_fields.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -1207,7 +1208,7 @@ std::expected<std::array<float, 3>, std::string> Game::NearestZiplineNode(void* 
     return value;
   };
   const auto hero_team = team(pawn);
-  const auto from = Origin(pawn);
+  const auto from = Origin(services_, pawn);
   if (!from) {
     return std::unexpected("the hero has no position");
   }
@@ -1229,7 +1230,7 @@ std::expected<std::array<float, 3>, std::string> Game::NearestZiplineNode(void* 
     if (node_lane != lane || (node_team != hero_team && node_team != 4)) {
       continue;
     }
-    const auto at = Origin(entity);
+    const auto at = Origin(services_, entity);
     if (!at) {
       continue;
     }

@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <expected>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -70,5 +71,18 @@ std::expected<void, std::string> StoreField(GameServices& services, void* entity
 // ReadEntityField reads the field request names on its live entity.
 std::expected<fields::FieldResponse, std::string> ReadEntityField(
     GameServices& services, const fields::ReadFieldRequest& request);
+
+// SceneNode returns entity's scene node, or null for an entity with no place
+// in the world. It trusts entity to be live, as every caller's comes from
+// the entity list this frame.
+unsigned char* SceneNode(GameServices& services, void* entity);
+
+// SceneVector reads a three-float field of entity's scene node, such as
+// m_vecAbsOrigin or m_angAbsRotation.
+std::optional<std::array<float, 3>> SceneVector(GameServices& services, void* entity,
+                                                const std::string& field);
+
+// Origin returns where entity is.
+std::optional<std::array<float, 3>> Origin(GameServices& services, void* entity);
 
 }  // namespace modlock::wasm

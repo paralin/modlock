@@ -47,7 +47,6 @@ void Game::Frame() {
   // Follow what moved or left since the last frame, then run the modules,
   // so the world finishes the units spawned this frame together.
   TrackProjectiles();
-  RebuildPanels();
   for (auto* module : std::views::reverse(modules_)) {
     module->Frame();
   }
