@@ -38,30 +38,6 @@ std::optional<int32_t> Game::WatchedSlot(int32_t slot) const {
   return players_.Observer().SlotOfPawn(watched->second);
 }
 
-void Game::Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) {
-  // A player inside the apart players receives no hero from outside them, and
-  // one outside receives none from inside. A watcher outside receives every
-  // hero while their camera follows one inside, so the camera has a hero to
-  // follow; the players inside still never receive the watcher's. The heroes
-  // are read each update, since a respawn or a hero swap changes their
-  // handles.
-  if (!apart_ || set.Slot() < 0 || set.Slot() >= gameinterop::kMaxPlayerSlots) {
-    return;
-  }
-  const bool inside = (apart_ >> set.Slot()) & 1;
-  if (!inside && WatchesInside(cameras, set.Slot(), apart_)) {
-    return;
-  }
-  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    if (((apart_ >> slot) & 1) == inside) {
-      continue;
-    }
-    if (const auto hero = players_.Observer().PawnHandleForSlot(slot)) {
-      set.Withhold(*hero);
-    }
-  }
-}
-
 bool Game::KeepsMomentum() const {
   return projectiles_.keep_momentum();
 }
