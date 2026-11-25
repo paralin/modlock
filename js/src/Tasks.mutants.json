@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Late first: a resumed task checks the clock before its step, so a task behind a costly one never runs",
+    "replace": [
+      [
+        "     ELSE\n       \\* Run one step, then pace: run on while within budget.",
+        "     ELSE IF Late THEN\n       /\\ batch' = Tail(batch)\n       /\\ waiting' = Append(waiting, t)\n       /\\ UNCHANGED <<left, state, used, frame, ran, phase>>\n     ELSE\n       \\* Run one step, then pace: run on while within budget."
+      ]
+    ],
+    "expect": "EachTaskSteps"
+  }
+]

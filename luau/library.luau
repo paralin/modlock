@@ -1104,10 +1104,11 @@ function modlock.late(): boolean
 end
 
 -- beginFrame starts the frame's budget, in microseconds, before the frame's
--- handlers so they count against it. The wire leaves out a zero budget, which
--- means none, so the field reads nil.
-local function beginFrame(budgetMicroseconds: number?)
-	deadline = if budgetMicroseconds then os.clock() + budgetMicroseconds / 1e6 else math.huge
+-- handlers so they count against it. Zero means the host gave none; the
+-- decoder reads an absent budget as zero, which Luau counts as true, so the
+-- test is against zero.
+local function beginFrame(budgetMicroseconds: number)
+	deadline = if budgetMicroseconds ~= 0 then os.clock() + budgetMicroseconds / 1e6 else math.huge
 end
 
 -- resumeTasks resumes the tasks that yielded to this frame, ending each

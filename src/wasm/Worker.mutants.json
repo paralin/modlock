@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Wait: the stop waits for the running request to finish instead of trapping its store",
+    "replace": [
+      [
+        "  /\\ IF stopping THEN\n       \\* The store traps",
+        "  /\\ IF FALSE THEN\n       \\* The store traps"
+      ]
+    ],
+    "expect": "StopIsPrompt"
+  }
+]

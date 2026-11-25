@@ -15,11 +15,11 @@
 \*
 \* One unit of cost is one step. Steps are not split, so a frame can overrun
 \* its budget by the step each resumed task runs: the cost of guaranteeing
-\* every task a step in each frame that resumes it. Design "late-first" is the
-\* rejected alternative in which a resumed task checks the clock before its
+\* every task a step in each frame that resumes it. Tasks.mutants.json holds
+\* the rejected alternative in which a resumed task checks the clock before its
 \* first step; a task behind a costly one then never runs.
 EXTENDS Naturals, Sequences, FiniteSets
-CONSTANTS Tasks, Steps, Budget, Frames, Design
+CONSTANTS Tasks, Steps, Budget, Frames
 VARIABLES left, state, waiting, batch, used, frame, ran, phase
 vars == <<left, state, waiting, batch, used, frame, ran, phase>>
 
@@ -67,10 +67,6 @@ Resume ==
      IF state[t] = "cancelled" THEN
        /\ batch' = Tail(batch)
        /\ UNCHANGED <<left, state, waiting, used, frame, ran, phase>>
-     ELSE IF Design = "late-first" /\ Late THEN
-       /\ batch' = Tail(batch)
-       /\ waiting' = Append(waiting, t)
-       /\ UNCHANGED <<left, state, used, frame, ran, phase>>
      ELSE
        \* Run one step, then pace: run on while within budget.
        /\ left' = [left EXCEPT ![t] = @ - 1]
