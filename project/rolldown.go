@@ -55,7 +55,7 @@ type rolldownError struct {
 
 // bundleRolldown bundles the project's sources and the library into one
 // minified script for QuickJS, writing any bundling errors to output.
-func (p *Project) bundleRolldown(ctx context.Context, library string, output io.Writer) ([]byte, error) {
+func (p *Project) bundleRolldown(ctx context.Context, library, entry string, output io.Writer) ([]byte, error) {
 	// Install Node and Rolldown with this system's binding.
 	binding, ok := rolldownBindings[runtime.GOOS+"/"+runtime.GOARCH]
 	if !ok {
@@ -78,7 +78,7 @@ func (p *Project) bundleRolldown(ctx context.Context, library string, output io.
 	options, err := json.Marshal(map[string]string{
 		"rolldown": filepath.Join(modules, "node_modules", "rolldown", "dist", "index.mjs"),
 		"dir":      p.Dir,
-		"entry":    p.scriptEntry(),
+		"entry":    entry,
 		"library":  library,
 		"styles":   filepath.Join(p.Dir, ContentDir, "styles"),
 	})

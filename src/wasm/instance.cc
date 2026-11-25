@@ -85,6 +85,9 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
         if (Left() <= Left().zero()) {
           return wasmtime::Error("the time budget is spent");
         }
+        if (limits_.stop.stop_requested()) {
+          return wasmtime::Error("the instance was stopped");
+        }
         Sample(context);
         delta = NextTicks();
         return wasmtime::DeadlineKind::Continue;
@@ -324,6 +327,9 @@ uint64_t Instance::NextTicks() const {
   // Wake for the sample when the call is not due one yet, and on every tick
   // once it is.
   const auto ticks = Ticks(Left());
+  if (limits_.stop.stop_possible()) {
+    return std::min<uint64_t>(ticks, 1);
+  }
   if (limits_.sample_after <= limits_.sample_after.zero()) {
     return ticks;
   }

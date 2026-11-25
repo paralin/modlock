@@ -28,7 +28,8 @@
     "src/spot.ts",
     "src/kit/index.ts",
     "src/quickjs.ts",
-    "src/scriptc.ts"
+    "src/scriptc.ts",
+    "src/worker.ts"
   ],
   "include": ["src/kit/*.ts"]
 }

@@ -224,6 +224,7 @@ add_library(modlock_sdk SHARED
   src/wasm/effects_combat.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
+  src/wasm/worker.cc
   src/wasm/console_lines.cc
   src/wasm/entity_rules.cc
   src/wasm/game_services.cc

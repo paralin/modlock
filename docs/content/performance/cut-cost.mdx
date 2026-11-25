@@ -176,6 +176,87 @@ func init() {
 Use the game clock, such as `frame.timeSeconds`, for anything timed, so the
 work keeps its pace when the mod skips a frame.
 
+## Pace long work with a task
+
+Work too long for one frame but short of a round, such as building a list of
+hiding spots, can run as a task. A task starts on the next frame, after the
+frame handlers, and `pace` returns at once while the frame has time left and
+waits for the next frame once it has none. Between two frames the mod's event
+has returned, so damage, commands and pings run at once, as they do without a
+task. `cancel` ends the task at its next `pace`, and its `finally` blocks run:
+
+<Samples>
+
+```ts
+import { task } from 'modlock'
+
+const build = task(async (t) => {
+  for (const spot of candidates) {
+    score(spot)
+    await t.pace()
+  }
+})
+```
+
+```luau
+local build = modlock.task(function(t)
+	for _, spot in candidates do
+		score(spot)
+		t:pace()
+	end
+end)
+```
+
+</Samples>
+
+A loop that cannot be a task, such as a frame handler's own slice of work, can
+ask `late()` after each unit and stop there. The host gives each mod its share
+of the frame only when `MODLOCK_FRAME_BUDGET` names it, or is `all`; with no
+budget, `pace` never waits and `late()` is always false, so the task runs to
+its end in the frame it starts, as a plain loop would.
+
+## Move computation to a worker
+
+Work that reads no game state, such as decoding a large table or searching it,
+can leave the server's tick altogether. A worker is a script of the mod's own,
+named `*.worker.ts` in the project's root or `src/`, which the build bundles
+into the mod's `data/` directory and the host runs in a second interpreter on
+another thread. It may log and read the mod's files and nothing else, answers one
+request at a time, and keeps its state between them:
+
+<Samples>
+
+```ts
+// table.worker.ts
+import { serve } from 'modlock/worker'
+import { answer } from './table'
+
+serve(answer)
+```
+
+</Samples>
+
+The mod calls it with the same function, and the answer arrives in a later
+frame:
+
+<Samples>
+
+```ts
+import { worker } from 'modlock'
+import { answer } from './table'
+
+const table = worker('table.worker.js', answer)
+const spot = await table.call(question)
+```
+
+</Samples>
+
+The answer is copied into the mod on the tick, at about 2 ms a megabyte, so
+keep large state in the worker and answer with what the mod needs now. A host
+runs workers only for the mods `MODLOCK_WORKERS` names, or for all of them with
+`all`; for any other mod, `call` runs the function in the mod itself as a task,
+so the mod behaves the same and only the tick pays for the work.
+
 ## Send less
 
 Each call's request and reply pass through an encoder and a decoder in your

@@ -120,7 +120,7 @@ func TestBundleRolldownError(t *testing.T) {
 		t.Fatal(err)
 	}
 	p := &Project{Dir: dir, Manifest: &wasm.Manifest{}}
-	_, err = p.bundleRolldown(ctx, library, io.Discard)
+	_, err = p.bundleRolldown(ctx, library, p.scriptEntry(), io.Discard)
 	var check *CheckError
 	if !errors.As(err, &check) {
 		t.Fatalf("got %v, want a CheckError", err)

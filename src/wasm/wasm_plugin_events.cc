@@ -1,6 +1,7 @@
 //go:build deps_only
 
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -636,7 +637,15 @@ void WasmPlugin::DeliverServiceReplies() {
     if (!instance_) {
       return;
     }
+    const auto delivered = std::chrono::steady_clock::now();
     static_cast<void>(mod_.ServiceReplied(replied));
+    if (replied.payload().size() > (64 << 10)) {
+      std::cerr << std::format("[modlock] delivered a {} KiB service reply in {:.1f} ms\n",
+                               replied.payload().size() >> 10,
+                               std::chrono::duration<double, std::milli>(
+                                   std::chrono::steady_clock::now() - delivered)
+                                   .count());
+    }
   }
 }
 

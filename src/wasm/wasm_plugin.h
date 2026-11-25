@@ -35,23 +35,23 @@
 #include "wasm/service_calls.h"
 #include "wasm/settings.h"
 #include "wasm/ui.h"
+#include "wasm/worker.h"
 
 namespace modlock::wasm {
 
 class WasmPlugin;
 
-// FrameBudgets selects the mods whose frames carry a budget, from the
-// MODLOCK_FRAME_BUDGET environment variable: "all", or mod names separated by
-// commas. A mod it leaves out gets frames without a budget, so its library's
-// tasks run to their end in the frame they resume, as plain code does.
-struct FrameBudgets {
+// ModSet selects the mods a host feature applies to, from an environment
+// variable: "all", or mod names or slugs separated by commas. Unset or empty
+// selects none, so the feature stays off unless someone asks for it.
+struct ModSet {
   bool all = false;
   std::set<std::string, std::less<>> mods;
 
-  // FromEnvironment reads MODLOCK_FRAME_BUDGET; unset or empty selects none.
-  static FrameBudgets FromEnvironment();
+  // FromEnvironment reads the variable named variable.
+  static ModSet FromEnvironment(const char* variable);
 
-  // Selects reports whether the mod named name or built as slug gets a budget.
+  // Selects reports whether the mod named name or built as slug is selected.
   bool Selects(std::string_view name, std::string_view slug) const {
     return all || mods.contains(name) || mods.contains(slug);
   }
@@ -81,8 +81,14 @@ struct Mods {
   // files holds a directory per mod for the files mods write, or is empty
   // when the host keeps none.
   std::filesystem::path files;
-  // budgets selects the mods whose frames carry a budget.
-  FrameBudgets budgets = FrameBudgets::FromEnvironment();
+  // budgets selects the mods whose frames carry a budget, from
+  // MODLOCK_FRAME_BUDGET. A mod it leaves out gets frames without one, so
+  // its library's tasks run to their end in the frame they resume.
+  ModSet budgets = ModSet::FromEnvironment("MODLOCK_FRAME_BUDGET");
+  // workers selects the mods that may start workers, from MODLOCK_WORKERS.
+  // A call to kWorkerService from any other mod finds no provider, and its
+  // library runs the work inline instead.
+  ModSet workers = ModSet::FromEnvironment("MODLOCK_WORKERS");
   // roles holds each mod's roles table by mod name, the empty name serving
   // every mod without its own, and roles_revision counts their changes.
   std::map<std::string, players::RolesTable, std::less<>> roles;
@@ -295,9 +301,16 @@ class WasmPlugin final : public Plugin {
   std::expected<wasm::ServiceReply, std::string> CallService(const wasm::ServiceCall& call);
 
   // StartServiceCall starts the mod's call to a service the host provides,
-  // which a later frame ends with a ServiceReplied event.
+  // which a later frame ends with a ServiceReplied event. The service
+  // kWorkerService is the mod's own compute worker: the call's method names
+  // the file of the worker's script and its payload is the request.
   std::expected<wasm::ServiceCallStarted, std::string> StartServiceCall(
       const wasm::StartServiceCallRequest& request);
+
+  // PostToWorker hands payload to the worker that runs script, a file of the
+  // mod, starting that worker on its first request, and ends reply with its
+  // answer.
+  void PostToWorker(const std::string& script, std::string payload, WasmReply reply);
 
   // PlayerSetting returns the value of the setting named key for the player
   // in slot: the kept value while the manifest still accepts it, and the
@@ -626,6 +639,10 @@ class WasmPlugin final : public Plugin {
   // service_calls_ holds the running instance's started service calls until
   // a frame delivers their ends.
   wasm::ServiceCalls service_calls_;
+
+  // workers_ holds the instance's compute workers by the file of their
+  // script, started by the first call that names it.
+  std::map<std::string, std::unique_ptr<wasm::Worker>> workers_;
 
   // calls_ counts the mod's host calls since calls_reported_, the last time
   // they went to the observers.

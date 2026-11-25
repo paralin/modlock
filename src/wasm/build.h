@@ -36,4 +36,9 @@ struct Build {
 std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
                                             const std::filesystem::path& interpreters);
 
+// ReadInterpreter reads the module from interpreters that runs source of
+// runtime, or fails for a compiled runtime or one the host does not know.
+std::expected<std::vector<uint8_t>, std::string> ReadInterpreter(
+    wasm::Manifest::Runtime runtime, const std::filesystem::path& interpreters);
+
 }  // namespace modlock::wasm

@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
+	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/internal/npm"
 	"github.com/paralin/modlock/js"
@@ -70,7 +71,8 @@ func (p *Project) scriptEntry() string {
 // and a dev build with esbuild, which needs no download and keeps the script
 // readable.
 func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) error {
-	// Install the library's declarations and the type checker.
+	// Install the library's declarations, then build the mod's script and each
+	// script its workers run.
 	library, err := js.Library(ctx)
 	if err != nil {
 		return err
@@ -78,6 +80,14 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 	if err := installLibrary(library, p.Dir); err != nil {
 		return err
 	}
+	if err := p.buildMain(ctx, library, output, mode); err != nil {
+		return err
+	}
+	return p.buildWorkers(ctx, library, output, mode)
+}
+
+// buildMain checks the types of the mod's sources and builds its script.
+func (p *Project) buildMain(ctx context.Context, library string, output io.Writer, mode Mode) error {
 	tsgo, err := npm.Tsgo(ctx)
 	if err != nil {
 		return err
@@ -102,7 +112,7 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 	// builds, so it stays playable, and the build ends on a warning that
 	// names why, below the diagnostics where it is seen.
 	if mode == Release {
-		bundled, err := p.bundleRolldown(ctx, library, output)
+		bundled, err := p.bundleRolldown(ctx, library, p.scriptEntry(), output)
 		if err != nil {
 			return err
 		}
@@ -165,6 +175,81 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		}
 	}
 	return p.writeBuild(script, sourceMap, wasm.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+}
+
+// workerSuffix ends the name of a source a mod's worker runs, such as
+// table.worker.ts, which builds to table.worker.js in the built mod's data
+// directory: the host reads a worker's script from the mod's files, and a
+// release ships that directory.
+const workerSuffix = ".worker.ts"
+
+// workerEntries returns the project's worker sources, from its root and its
+// src directory, by their paths from the project.
+func (p *Project) workerEntries() ([]string, error) {
+	var entries []string
+	for _, dir := range []string{".", "src"} {
+		found, err := filepath.Glob(filepath.Join(p.Dir, dir, "*"+workerSuffix))
+		if err != nil {
+			return nil, err
+		}
+		for _, name := range found {
+			rel, err := filepath.Rel(p.Dir, name)
+			if err != nil {
+				return nil, err
+			}
+			entries = append(entries, rel)
+		}
+	}
+	return entries, nil
+}
+
+// buildWorkers bundles each worker source with the library's worker entry
+// into one script, with the bundler the mod's own script uses: Rolldown for a
+// release and esbuild for a dev build. The types were checked with the mod's.
+func (p *Project) buildWorkers(ctx context.Context, library string, output io.Writer, mode Mode) error {
+	entries, err := p.workerEntries()
+	if err != nil || len(entries) == 0 {
+		return err
+	}
+	data := filepath.Join(p.Output(), check.DataDir)
+	if err := os.MkdirAll(data, 0o755); err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		name := strings.TrimSuffix(filepath.Base(entry), ".ts") + ".js"
+		var script []byte
+		if mode == Release {
+			if script, err = p.bundleRolldown(ctx, library, entry, output); err != nil {
+				return errors.Wrap(err, entry)
+			}
+		} else {
+			result := api.Build(api.BuildOptions{
+				EntryPoints:    []string{entry},
+				AbsWorkingDir:  p.Dir,
+				Outfile:        filepath.Join(data, name),
+				SourcesContent: api.SourcesContentExclude,
+				Bundle:         true,
+				Format:         api.FormatIIFE,
+				Platform:       api.PlatformNeutral,
+				MainFields:     []string{"module", "main"},
+				Target:         api.ES2023,
+				Alias:          map[string]string{"modlock": library},
+				LogLevel:       api.LogLevelSilent,
+			})
+			if messages := api.FormatMessages(result.Errors, api.FormatMessagesOptions{Kind: api.ErrorMessage}); len(messages) != 0 {
+				_, _ = io.WriteString(output, strings.Join(messages, ""))
+				return &CheckError{
+					Err:         errors.Errorf("the worker %s does not bundle", entry),
+					Diagnostics: esbuildDiagnostics(p.Dir, result.Errors),
+				}
+			}
+			script = result.OutputFiles[0].Contents
+		}
+		if err := os.WriteFile(filepath.Join(data, name), script, 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // sheetNamespace is the esbuild namespace of a style sheet import.
