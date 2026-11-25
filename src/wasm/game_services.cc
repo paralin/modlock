@@ -323,6 +323,12 @@ std::expected<gameinterop::FreeForAllRelations*, std::string> GameServices::Rela
   return &*relations_;
 }
 
+void GameServices::DisableRelations() {
+  if (relations_) {
+    relations_->SetEnabled(false);
+  }
+}
+
 std::expected<render::WorldTextGameFactory*, std::string> GameServices::Text() {
   // Build the text factory once from the server module.
   if (auto cached = Cache(text_, &render::WorldTextGameFactory::TryCreate); !cached) {
