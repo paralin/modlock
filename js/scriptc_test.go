@@ -24,10 +24,13 @@ var suiteDir = filepath.Join("test", "scriptc")
 
 // pending names the test files that scriptc cannot compile yet, with the
 // reason. scriptc widens a type parameter such as entities.create's designer
-// name or Standings' Extra, so a type built from it does not compile.
+// name or Standings' Extra, so a type built from it does not compile, and
+// its library mode compiles no promise, so a mod that starts a task runs on
+// QuickJS.
 var pending = map[string]string{
 	"host":     "entities.create, keyed by designer name, does not compile under scriptc",
 	"rotation": "Standings, generic over Extra, keeps Standing & Extra values that scriptc does not compile",
+	"tasks":    "tasks are async, and scriptc's library mode links no event loop",
 }
 
 // suiteBuilds is how many test files build at once. Each scriptc build takes
