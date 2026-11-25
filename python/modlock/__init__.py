@@ -2760,18 +2760,18 @@ class Player:
 
     def watch(self, target: int, chase: bool | None = None) -> bool:
         """watch points the player's camera at a hero, through the hero's own view
-        or chasing it, as the game's spectator camera follows it. A spectator watches through
-        their spectator camera, once it exists. A player with a hero watches
-        while the hero stays where it stands, keeping its level, souls and items,
-        until Unwatch returns them to it.
+        or chasing it, as the game's spectator camera follows it. The player's
+        own hero must be dead or removed: while it lives, the client keeps drawing
+        that hero's camera even when Watch succeeds. Use FreeCamera to position
+        the camera while keeping a living hero.
         """
         return _call("Watch", "WatchRequest", {"player": self, "target": target, "chase": chase}) is not None
 
     def free_camera(self, position: Vector, facing: Angles) -> bool:
         """free_camera lets the player fly their camera from a position, with the
         movement keys and the mouse, as the game's roaming spectator camera does.
-        A player with a hero leaves it where it stands, as Watch does, until
-        Unwatch returns them to it; Watch follows a hero again.
+        A player with a living hero leaves it where it stands, keeping its level,
+        souls and items, until Unwatch returns them to it.
         """
         return _call("FreeCamera", "FreeCameraRequest", {"player": self, "position": position, "facing": facing}) is not None
 

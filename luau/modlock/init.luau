@@ -2033,15 +2033,15 @@ export type Player = {
 	-- watches until a hero selection seats them again.
 	spectate: (self: Player) -> boolean,
 	-- watch points the player's camera at a hero, through the hero's own view
-	-- or chasing it, as the game's spectator camera follows it. A spectator watches through
-	-- their spectator camera, once it exists. A player with a hero watches
-	-- while the hero stays where it stands, keeping its level, souls and items,
-	-- until Unwatch returns them to it.
+	-- or chasing it, as the game's spectator camera follows it. The player's
+	-- own hero must be dead or removed: while it lives, the client keeps drawing
+	-- that hero's camera even when Watch succeeds. Use FreeCamera to position
+	-- the camera while keeping a living hero.
 	watch: (self: Player, target: number, chase: boolean?) -> boolean,
 	-- freeCamera lets the player fly their camera from a position, with the
 	-- movement keys and the mouse, as the game's roaming spectator camera does.
-	-- A player with a hero leaves it where it stands, as Watch does, until
-	-- Unwatch returns them to it; Watch follows a hero again.
+	-- A player with a living hero leaves it where it stands, keeping its level,
+	-- souls and items, until Unwatch returns them to it.
 	freeCamera: (self: Player, position: Vector, facing: Angles) -> boolean,
 	-- moveCamera adds one operation to the player's camera, as the game's
 	-- abilities pull it back, widen its view or swing it to a point. Operations
@@ -2350,18 +2350,18 @@ function Player.spectate(self: Player): boolean
 end
 
 -- watch points the player's camera at a hero, through the hero's own view
--- or chasing it, as the game's spectator camera follows it. A spectator watches through
--- their spectator camera, once it exists. A player with a hero watches
--- while the hero stays where it stands, keeping its level, souls and items,
--- until Unwatch returns them to it.
+-- or chasing it, as the game's spectator camera follows it. The player's
+-- own hero must be dead or removed: while it lives, the client keeps drawing
+-- that hero's camera even when Watch succeeds. Use FreeCamera to position
+-- the camera while keeping a living hero.
 function Player.watch(self: Player, target: number, chase: boolean?): boolean
 	return call("Watch", "WatchRequest", { player = self, target = target, chase = chase }) ~= nil
 end
 
 -- freeCamera lets the player fly their camera from a position, with the
 -- movement keys and the mouse, as the game's roaming spectator camera does.
--- A player with a hero leaves it where it stands, as Watch does, until
--- Unwatch returns them to it; Watch follows a hero again.
+-- A player with a living hero leaves it where it stands, keeping its level,
+-- souls and items, until Unwatch returns them to it.
 function Player.freeCamera(self: Player, position: Vector, facing: Angles): boolean
 	return call("FreeCamera", "FreeCameraRequest", { player = self, position = position, facing = facing }) ~= nil
 end

@@ -1044,18 +1044,18 @@ func (p Player) Spectate() error {
 }
 
 // Watch points the player's camera at a hero, through the hero's own view
-// or chasing it, as the game's spectator camera follows it. A spectator watches through
-// their spectator camera, once it exists. A player with a hero watches
-// while the hero stays where it stands, keeping its level, souls and items,
-// until Unwatch returns them to it.
+// or chasing it, as the game's spectator camera follows it. The player's
+// own hero must be dead or removed: while it lives, the client keeps drawing
+// that hero's camera even when Watch succeeds. Use FreeCamera to position
+// the camera while keeping a living hero.
 func (p Player) Watch(target uint32, chase *bool) error {
 	return invoke("Watch", &playerspb.WatchRequest{Player: p.Slot(), Target: target, Chase: chase}, nil)
 }
 
 // FreeCamera lets the player fly their camera from a position, with the
 // movement keys and the mouse, as the game's roaming spectator camera does.
-// A player with a hero leaves it where it stands, as Watch does, until
-// Unwatch returns them to it; Watch follows a hero again.
+// A player with a living hero leaves it where it stands, keeping its level,
+// souls and items, until Unwatch returns them to it.
 func (p Player) FreeCamera(position *Vector, facing *Angles) error {
 	return invoke("FreeCamera", &playerspb.FreeCameraRequest{Player: p.Slot(), Position: position, Facing: facing}, nil)
 }
