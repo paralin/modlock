@@ -371,6 +371,11 @@ type FrameEvent struct {
 	// Controllers holds each watched player's controllers in every frame, with
 	// the presses and releases since the mod's previous frame.
 	Controllers []*controllers.PlayerControllers `protobuf:"bytes,5,rep,name=controllers,proto3" json:"controllers,omitempty"`
+	// BudgetMicroseconds is the time this frame may take, counted from when the
+	// mod receives it, or zero when the host gives the mod no budget. A mod's
+	// library resumes its tasks until the budget runs out and leaves the rest
+	// for the next frame.
+	BudgetMicroseconds uint32 `protobuf:"varint,6,opt,name=budget_microseconds,json=budgetMicroseconds,proto3" json:"budgetMicroseconds,omitempty"`
 }
 
 func (x *FrameEvent) Reset() {
@@ -412,6 +417,13 @@ func (x *FrameEvent) GetControllers() []*controllers.PlayerControllers {
 		return x.Controllers
 	}
 	return nil
+}
+
+func (x *FrameEvent) GetBudgetMicroseconds() uint32 {
+	if x != nil {
+		return x.BudgetMicroseconds
+	}
+	return 0
 }
 
 // CommandEvent carries one command line from a player: a chat line that
@@ -968,6 +980,7 @@ func (m *FrameEvent) CloneVT() *FrameEvent {
 	r := new(FrameEvent)
 	r.Tick = m.Tick
 	r.TimeSeconds = m.TimeSeconds
+	r.BudgetMicroseconds = m.BudgetMicroseconds
 	r.Movement = protobuf_go_lite.CloneVTSlice(m.Movement)
 	r.Interactions = protobuf_go_lite.CloneSlice(m.Interactions)
 	r.Controllers = protobuf_go_lite.CloneVTSlice(m.Controllers)
@@ -1386,6 +1399,9 @@ func (this *FrameEvent) EqualVT(that *FrameEvent) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Controllers, that.Controllers, func() *controllers.PlayerControllers { return &controllers.PlayerControllers{} }) {
+		return false
+	}
+	if this.BudgetMicroseconds != that.BudgetMicroseconds {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2195,6 +2211,11 @@ func (x *FrameEvent) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.BudgetMicroseconds != 0 || s.HasField("budgetMicroseconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("budgetMicroseconds")
+		s.WriteUint32(x.BudgetMicroseconds)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2265,6 +2286,9 @@ func (x *FrameEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Controllers = append(x.Controllers, v)
 			})
+		case "budget_microseconds", "budgetMicroseconds":
+			s.AddField("budget_microseconds")
+			x.BudgetMicroseconds = s.ReadUint32()
 		}
 	})
 }
@@ -3303,6 +3327,11 @@ func (m *FrameEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.BudgetMicroseconds != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.BudgetMicroseconds))
+		i--
+		dAtA[i] = 0x30
+	}
 	if len(m.Controllers) > 0 {
 		for iNdEx := len(m.Controllers) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Controllers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -4039,6 +4068,7 @@ func (m *FrameEvent) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.BudgetMicroseconds)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4402,6 +4432,10 @@ func (x *FrameEvent) MarshalProtoText() string {
 			}
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.BudgetMicroseconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "budget_microseconds")
+		protobuf_go_lite.TextWriteUint(&sb, x.BudgetMicroseconds)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5196,6 +5230,15 @@ func (m *FrameEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BudgetMicroseconds", wireType)
+			}
+			m.BudgetMicroseconds = 0
+			m.BudgetMicroseconds, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

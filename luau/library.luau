@@ -1023,6 +1023,116 @@ local function schedule(delay: number, run: () -> number?): Timer
 	return entry
 end
 
+-- Task is work a mod spreads across frames, so one frame never holds the
+-- server's tick:
+--
+--   local load = modlock.task(function(t)
+--   	for _, row in rows do
+--   		decode(row)
+--   		t:pace()
+--   	end
+--   end)
+--   load:cancel()
+--
+-- A task runs in its own coroutine and starts on the next frame, after the
+-- mod's frame handlers. pace returns at once while the frame is within the
+-- time the host gave the mod and yields to the next frame once it is past it;
+-- frame always yields to the next frame. Between two frames the mod's event
+-- has returned to the host, so damage, commands and pings in the ticks between
+-- run at once against live state. A host that gives the mod no budget sends
+-- zero, and pace then never yields, so a task runs as a plain loop would.
+--
+-- Each frame resumes the tasks that yielded to it in the order they yielded,
+-- each running until it next yields. A resumed task runs one step before pace
+-- can stop it, so a costly task cannot starve the others; the price is that a
+-- frame can overrun its budget by one step of each task. cancel ends a task
+-- at its next pace or frame: its coroutine is closed and runs no further step.
+export type Task = {
+	-- finished reports whether the task ended, by returning, erroring or cancel.
+	finished: boolean,
+	-- cancel ends the task at its next pace or frame.
+	cancel: (self: Task) -> (),
+	-- pace yields to the next frame once this one is past its budget.
+	pace: (self: Task) -> (),
+	-- frame yields to the next frame.
+	frame: (self: Task) -> (),
+}
+
+type TaskEntry = Task & {
+	cancelled: boolean,
+	thread: thread,
+}
+
+-- deadline is the os.clock reading past which the frame is late.
+local deadline = math.huge
+
+-- waitingTasks holds the tasks the next frame resumes, in the order they
+-- yielded.
+local waitingTasks: { TaskEntry } = {}
+
+local taskMethods = {}
+taskMethods.__index = taskMethods
+
+function taskMethods.cancel(self: TaskEntry)
+	self.cancelled = true
+end
+
+function taskMethods.pace(self: TaskEntry)
+	if self.cancelled or modlock.late() then
+		coroutine.yield()
+	end
+end
+
+function taskMethods.frame(self: TaskEntry)
+	coroutine.yield()
+end
+
+-- task starts fn on the next frame and returns its handle.
+function modlock.task(fn: (task: Task) -> ()): Task
+	local entry: TaskEntry = setmetatable({ finished = false, cancelled = false }, taskMethods) :: any
+	entry.thread = coroutine.create(function()
+		fn(entry)
+	end)
+	table.insert(waitingTasks, entry)
+	return entry
+end
+
+-- late reports whether the current frame is past the time the host gave the
+-- mod. It is false whenever the host gave none.
+function modlock.late(): boolean
+	return os.clock() > deadline
+end
+
+-- beginFrame starts the frame's budget, in microseconds, before the frame's
+-- handlers so they count against it. The wire leaves out a zero budget, which
+-- means none, so the field reads nil.
+local function beginFrame(budgetMicroseconds: number?)
+	deadline = if budgetMicroseconds then os.clock() + budgetMicroseconds / 1e6 else math.huge
+end
+
+-- resumeTasks resumes the tasks that yielded to this frame, ending each
+-- cancelled one. A task that yields again waits for the next frame.
+local function resumeTasks()
+	local batch = waitingTasks
+	waitingTasks = {}
+	for _, entry in batch do
+		if entry.cancelled then
+			coroutine.close(entry.thread)
+			entry.finished = true
+			continue
+		end
+		local ok, failure = coroutine.resume(entry.thread)
+		if coroutine.status(entry.thread) == "suspended" then
+			table.insert(waitingTasks, entry)
+			continue
+		end
+		entry.finished = true
+		if not ok then
+			modlock.log("task failed: " .. tostring(failure))
+		end
+	end
+end
+
 -- after runs fn once, seconds from now. Time is the game's, so a paused game
 -- holds its timers. A tick is 1/64 second.
 function modlock.after(seconds: number, fn: () -> ()): Timer
@@ -1448,6 +1558,9 @@ local handlers: ModHandlers = {
 	end,
 
 	frame = function(event)
+		-- Start the frame's budget before the library's clocks and the mod's
+		-- handlers, which count against it, then resume the tasks.
+		beginFrame(event.budgetMicroseconds)
 		if interface then
 			interface.tick(event.timeSeconds)
 		end
@@ -1456,6 +1569,7 @@ local handlers: ModHandlers = {
 		for _, handler in frames do
 			handler(event)
 		end
+		resumeTasks()
 	end,
 
 	command = function(event)

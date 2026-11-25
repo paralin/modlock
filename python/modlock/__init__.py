@@ -2708,6 +2708,11 @@ class FrameEvent:
     # controllers holds each watched player's controllers in every frame, with
     # the presses and releases since the mod's previous frame.
     controllers: list[PlayerControllers] = dataclasses.field(default_factory=lambda: list[PlayerControllers]())
+    # budget_microseconds is the time this frame may take, counted from when the
+    # mod receives it, or zero when the host gives the mod no budget. A mod's
+    # library resumes its tasks until the budget runs out and leaves the rest
+    # for the next frame.
+    budget_microseconds: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -5510,6 +5515,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "movement", "message", repeated=True, message="MovementSample"),
             wire.Field(4, "interactions", "enum", repeated=True, enum=_InteractionKind),
             wire.Field(5, "controllers", "message", repeated=True, message="PlayerControllers"),
+            wire.Field(6, "budget_microseconds", "uint32"),
         ],
     ),
     "CommandEvent": (

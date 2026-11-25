@@ -1073,6 +1073,12 @@ message FrameEvent {
   // Controllers holds each watched player's controllers in every frame, with
   // the presses and releases since the mod's previous frame.
   repeated modlock.wasm.controllers.PlayerControllers controllers = 5;
+
+  // BudgetMicroseconds is the time this frame may take, counted from when the
+  // mod receives it, or zero when the host gives the mod no budget. A mod's
+  // library resumes its tasks until the budget runs out and leaves the rest
+  // for the next frame.
+  uint32 budget_microseconds = 6;
 }
 
 // CommandEvent carries one command line from a player: a chat line that

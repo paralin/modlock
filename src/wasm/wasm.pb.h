@@ -4505,6 +4505,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
     kControllersFieldNumber = 5,
     kTickFieldNumber = 1,
     kTimeSecondsFieldNumber = 2,
+    kBudgetMicrosecondsFieldNumber = 6,
   };
   // repeated .modlock.wasm.movement.MovementSample movement = 3;
   int movement_size() const;
@@ -4579,11 +4580,21 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
   void _internal_set_time_seconds(double value);
 
   public:
+  // uint32 budget_microseconds = 6;
+  void clear_budget_microseconds() ;
+  ::uint32_t budget_microseconds() const;
+  void set_budget_microseconds(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_budget_microseconds() const;
+  void _internal_set_budget_microseconds(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.FrameEvent)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
                                    2, 0,
                                    2>
       _table_;
@@ -4611,6 +4622,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::controllers::PlayerControllers > controllers_;
     ::uint64_t tick_;
     double time_seconds_;
+    ::uint32_t budget_microseconds_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -5647,6 +5659,31 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::controllers::Player
 FrameEvent::_internal_mutable_controllers() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.controllers_;
+}
+
+// uint32 budget_microseconds = 6;
+inline void FrameEvent::clear_budget_microseconds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.budget_microseconds_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline ::uint32_t FrameEvent::budget_microseconds() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.budget_microseconds)
+  return _internal_budget_microseconds();
+}
+inline void FrameEvent::set_budget_microseconds(::uint32_t value) {
+  _internal_set_budget_microseconds(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.budget_microseconds)
+}
+inline ::uint32_t FrameEvent::_internal_budget_microseconds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.budget_microseconds_;
+}
+inline void FrameEvent::_internal_set_budget_microseconds(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.budget_microseconds_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -513,6 +513,13 @@ export interface FrameEvent {
    * the presses and releases since the mod's previous frame.
    */
   controllers?: PlayerControllers[]
+  /**
+   * BudgetMicroseconds is the time this frame may take, counted from when the
+   * mod receives it, or zero when the host gives the mod no budget. A mod's
+   * library resumes its tasks until the budget runs out and leaves the rest
+   * for the next frame.
+   */
+  budgetMicroseconds?: number
 }
 
 export const FrameEvent: MessageType<FrameEvent> =
@@ -524,6 +531,7 @@ export const FrameEvent: MessageType<FrameEvent> =
       [3, 'movement', 11, 1, MovementSample.codec],
       [4, 'interactions', 14, 3, InteractionKind_Enum],
       [5, 'controllers', 11, 1, PlayerControllers.codec],
+      [6, 'budget_microseconds', 13],
     ],
     {
       decode: (r: BinaryReader, end: number, m: FrameEvent): FrameEvent => {
@@ -550,6 +558,9 @@ export const FrameEvent: MessageType<FrameEvent> =
               ;(m.controllers ??= []).push(
                 PlayerControllers.decode(r, r.delimited(), {}),
               )
+              break
+            case 6:
+              m.budgetMicroseconds = r.uint32()
               break
             default:
               r.skip(t)
@@ -582,6 +593,10 @@ export const FrameEvent: MessageType<FrameEvent> =
           const a = m.controllers
           if (a != null)
             for (const e of a) PlayerControllers.writeField(w, 5, e)
+        }
+        {
+          const v = m.budgetMicroseconds
+          if (v) w.uint32(48).uint32(v)
         }
       },
     },

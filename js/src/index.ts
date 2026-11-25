@@ -51,6 +51,7 @@ import { connection, keepPlayers } from './players.js'
 import { settleRestore } from './restore.js'
 import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
+import { beginFrame, resumeTasks } from './tasks.js'
 import { chatShown } from './chat.js'
 import {
   acted,
@@ -71,6 +72,7 @@ export * as vector from './vector.js'
 export { Buttons, Layers } from './bits.js'
 export { callServiceLater, type ServiceDone } from './service-later.js'
 export { after, every, sequence, type Timer } from './timer.js'
+export { late, task, type Task } from './tasks.js'
 export {
   type CameraMove,
   type CameraPlayOptions,
@@ -759,15 +761,19 @@ const handlers: ModHandlers = {
   },
 
   frame(event) {
-    // Advance the library's own clocks before the mod's handlers run.
+    // Start the frame's budget, then advance the library's own clocks before
+    // the mod's handlers run.
+    beginFrame(event.budgetMicroseconds)
     tick(event.timeSeconds)
     advance(event.timeSeconds)
 
-    // Count the frame, then tell the mod.
+    // Count the frame and tell the mod, then resume its tasks with what is
+    // left of the budget.
     frameCount++
     for (const handler of frames) {
       handler(event)
     }
+    resumeTasks()
   },
 
   command(event) {

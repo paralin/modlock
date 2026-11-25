@@ -40,6 +40,23 @@ namespace modlock::wasm {
 
 class WasmPlugin;
 
+// FrameBudgets selects the mods whose frames carry a budget, from the
+// MODLOCK_FRAME_BUDGET environment variable: "all", or mod names separated by
+// commas. A mod it leaves out gets frames without a budget, so its library's
+// tasks run to their end in the frame they resume, as plain code does.
+struct FrameBudgets {
+  bool all = false;
+  std::set<std::string, std::less<>> mods;
+
+  // FromEnvironment reads MODLOCK_FRAME_BUDGET; unset or empty selects none.
+  static FrameBudgets FromEnvironment();
+
+  // Selects reports whether the mod named name or built as slug gets a budget.
+  bool Selects(std::string_view name, std::string_view slug) const {
+    return all || mods.contains(name) || mods.contains(slug);
+  }
+};
+
 // Mods is what a host's mods share: the runtime, the interpreter modules'
 // directory, the game's services, the observers and the running mods by name.
 struct Mods {
@@ -64,6 +81,8 @@ struct Mods {
   // files holds a directory per mod for the files mods write, or is empty
   // when the host keeps none.
   std::filesystem::path files;
+  // budgets selects the mods whose frames carry a budget.
+  FrameBudgets budgets = FrameBudgets::FromEnvironment();
   // roles holds each mod's roles table by mod name, the empty name serving
   // every mod without its own, and roles_revision counts their changes.
   std::map<std::string, players::RolesTable, std::less<>> roles;
@@ -188,6 +207,9 @@ class WasmPlugin final : public Plugin {
 
   // Held reports whether the running instance keeps itself through reloads.
   bool Held() const { return held_; }
+
+  // WantsFrames reports whether a running instance takes frame events.
+  bool WantsFrames() const { return wants_.frames() && instance_; }
 
   // Handoff replaces the handoff state for the game, or for the player in
   // slot when slot is set: what the running build hands the next one. It
@@ -321,6 +343,10 @@ class WasmPlugin final : public Plugin {
   bool Start() override;
   void Tick() override;
   void Stop() override;
+
+  // FrameBudget returns the budget of this mod's frames in microseconds, or
+  // zero when the flag leaves the mod out.
+  uint32_t FrameBudget() const;
 
  private:
   // Begin starts the mod and learns which events it consumes, reporting
