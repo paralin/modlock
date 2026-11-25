@@ -240,7 +240,7 @@ export function command(
   name: string,
   handler: (player: Player, args: string) => void,
 ): void {
-  commands.set(name, { handler })
+  commands.set(name.toLowerCase(), { handler })
 }
 
 /**
@@ -759,7 +759,9 @@ const handlers: ModHandlers = {
     // Split the command line into its name and arguments.
     const line = event.line.trim()
     const space = line.indexOf(' ')
-    const registered = commands.get(space < 0 ? line : line.slice(0, space))
+    const registered = commands.get(
+      (space < 0 ? line : line.slice(0, space)).toLowerCase(),
+    )
     if (!registered) {
       return { claimed: false }
     }
