@@ -39,130 +39,59 @@ Reply Answer(const std::expected<Response, std::string>& result) {
   return reply;
 }
 
+// Absent returns the reply to a call whose part the host left out: absent,
+// or that the host does not support method.
+inline Reply Absent(std::string_view absent, std::string_view method) {
+  if (!absent.empty()) {
+    return Fail(std::string(absent));
+  }
+  return Fail("this host does not support " + std::string(method));
+}
+
 }  // namespace detail
 
-// Host is the game a mod calls into. A call that fails logs why on the host
-// and returns the language's empty value, so a mod can retry on a later
-// frame instead of stopping.
-//
-// HostService declares one virtual method per call. Each returns that the
-// host does not support the call until a subclass overrides it.
-class HostService {
+// PluginCalls are the Host calls the plugin part of the host answers.
+class PluginCalls {
  public:
-  virtual ~HostService() = default;
-
   // Log writes one line to the server log under the mod's name.
-  virtual std::expected<void, std::string> Log(const LogRequest& /*request*/) {
-    return std::unexpected("this host does not support Log");
-  }
-
-  // ServerCommand runs one line at the server console, as if typed there. A
-  // line that sets a variable may set a development-only or cheat-protected
-  // one. A line that reaches the engine's controls for files, logging, the
-  // network or the process, or stores a command to run later, is refused with
-  // the name of the command.
-  virtual std::expected<void, std::string> ServerCommand(const ServerCommandRequest& /*request*/) {
-    return std::unexpected("this host does not support ServerCommand");
-  }
-
-  // Chat sends a server chat line to the player.
-  virtual std::expected<void, std::string> Chat(const effects::ChatRequest& /*request*/) {
-    return std::unexpected("this host does not support Chat");
-  }
-
-  // CenterText shows text in the middle of the player's screen until it is
-  // replaced. Empty text clears it.
-  virtual std::expected<void, std::string> CenterText(
-      const effects::CenterTextRequest& /*request*/) {
-    return std::unexpected("this host does not support CenterText");
-  }
-
-  // Announce shows a game announcement with a title to the player.
-  virtual std::expected<void, std::string> Announce(const effects::AnnounceRequest& /*request*/) {
-    return std::unexpected("this host does not support Announce");
-  }
-
-  // Precache loads heroes and resources with the next world. Call it during
-  // start, before the first world loads; a call after that, such as from a
-  // reload, prepares only the world after the next map change. Name every
-  // hero whose abilities ReplaceAbility gives, with their particles.
-  virtual std::expected<void, std::string> Precache(const PrecacheOptions& /*request*/) {
-    return std::unexpected("this host does not support Precache");
-  }
-
-  // Players lists the player slots with a seat, connected or away, in slot
-  // order. The libraries
-  // answer from the last PlayersChanged instead, once one arrived.
-  virtual std::expected<players::PlayersResponse, std::string> Players() {
-    return std::unexpected("this host does not support Players");
-  }
-
-  // Pawn returns the player's pawn this frame: the hero, or the game's
-  // placeholder with hero 0 that a player joining on a team holds until a hero
-  // is selected. It returns nothing for a spectator and before the game has
-  // made a pawn. The pawn's entity changes whenever the game replaces it.
-  virtual std::expected<players::PawnResponse, std::string> Pawn(
-      const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Pawn");
-  }
-
-  // Pawns returns every player's pawn this frame in one reply, in slot order,
-  // each as Pawn returns it: a mode that reads every hero each frame makes
-  // one call instead of one per player. A slot Pawn answers nothing for is
-  // left out.
-  virtual std::expected<players::PawnsResponse, std::string> Pawns() {
-    return std::unexpected("this host does not support Pawns");
-  }
+  virtual std::expected<void, std::string> Log(const LogRequest& request) = 0;
 
   // PlayerSetting returns the player's value of a setting the manifest
   // declares: the value they chose, or the setting's default. A bot has the
   // defaults.
   virtual std::expected<settings::SettingResponse, std::string> PlayerSetting(
-      const settings::PlayerSettingRequest& /*request*/) {
-    return std::unexpected("this host does not support PlayerSetting");
-  }
+      const settings::PlayerSettingRequest& request) = 0;
 
   // SetPlayerSetting changes the player's value of a setting the manifest
   // declares. The value follows the player to later games and other mods'
   // servers of the same mod; a bot keeps the defaults.
   virtual std::expected<void, std::string> SetPlayerSetting(
-      const settings::SetPlayerSettingRequest& /*request*/) {
-    return std::unexpected("this host does not support SetPlayerSetting");
-  }
+      const settings::SetPlayerSettingRequest& request) = 0;
 
   // AddMetric adds to the player's total of a metric the manifest declares.
   // The host keeps each player's totals in memory and hands them on once,
   // when the player leaves or the mod stops; a bot keeps none.
-  virtual std::expected<void, std::string> AddMetric(const metrics::AddMetricRequest& /*request*/) {
-    return std::unexpected("this host does not support AddMetric");
-  }
+  virtual std::expected<void, std::string> AddMetric(const metrics::AddMetricRequest& request) = 0;
 
   // ReadFile reads one of the mod's files: the host's copy, which the mod
   // wrote or the server's operator placed, else the one the mod ships under
   // data/. A file in neither reads as unset. Names that leave the mod's
   // directories are refused.
-  virtual std::expected<ReadFileResponse, std::string> ReadFile(
-      const ReadFileRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadFile");
-  }
+  virtual std::expected<ReadFileResponse, std::string> ReadFile(const ReadFileRequest& request) = 0;
 
   // ReadFileBytes reads one of the mod's files from the same places as
   // ReadFile, as bytes that need not be text, such as a packed table the mod
   // views in place. A file in neither reads as unset. The host reads the
   // whole file during the call.
   virtual std::expected<ReadFileBytesResponse, std::string> ReadFileBytes(
-      const ReadFileRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadFileBytes");
-  }
+      const ReadFileRequest& request) = 0;
 
   // WriteFile replaces one of the mod's files in the host's copy, which
   // outlives a restart and an update of the mod; the files the mod ships stay
   // as they are. The write is whole or not at all, and the host refuses one
   // past its quota of 4 MiB per mod. A host that keeps no files refuses every
   // write.
-  virtual std::expected<void, std::string> WriteFile(const WriteFileRequest& /*request*/) {
-    return std::unexpected("this host does not support WriteFile");
-  }
+  virtual std::expected<void, std::string> WriteFile(const WriteFileRequest& request) = 0;
 
   // HoldReload keeps the running build through a reload while held is true,
   // such as while a player is partway through something a new build would
@@ -170,9 +99,7 @@ class HostService {
   // on the first frame after the mod releases the hold. A new build starts
   // without a hold.
   virtual std::expected<void, std::string> HoldReload(
-      const abilities::HoldReloadRequest& /*request*/) {
-    return std::unexpected("this host does not support HoldReload");
-  }
+      const abilities::HoldReloadRequest& request) = 0;
 
   // Handoff replaces the handoff state for the game: what the running build
   // hands the next build when the mod reloads, such as which round it plays.
@@ -180,353 +107,294 @@ class HostService {
   // update, whose new build reads it back with HandedOff. The host holds it
   // in memory and never writes it to disk, so it ends when the mod stops or
   // the server restarts. The host refuses state past 64 KiB.
-  virtual std::expected<void, std::string> Handoff(const HandoffRequest& /*request*/) {
-    return std::unexpected("this host does not support Handoff");
-  }
+  virtual std::expected<void, std::string> Handoff(const HandoffRequest& request) = 0;
 
   // HandedOff returns the game's handoff state, or empty.
-  virtual std::expected<HandedOffResponse, std::string> HandedOff() {
-    return std::unexpected("this host does not support HandedOff");
-  }
+  virtual std::expected<HandedOffResponse, std::string> HandedOff() = 0;
 
   // PlayerHandoff replaces the handoff state for the player, such as the
   // panels their HUD shows. It lasts only through a reload of the mod in the
   // same game, in memory, as the game's does, and ends early when the player
   // leaves; only that player reads it back, and a bot keeps none.
-  virtual std::expected<void, std::string> PlayerHandoff(const HandoffPlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support PlayerHandoff");
-  }
+  virtual std::expected<void, std::string> PlayerHandoff(const HandoffPlayerRequest& request) = 0;
 
   // PlayerHandedOff returns the player's handoff state, or empty.
   virtual std::expected<HandedOffResponse, std::string> PlayerHandedOff(
-      const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support PlayerHandedOff");
-  }
+      const players::PlayerRequest& request) = 0;
 
-  // SelectHero gives the player a hero on a team, 2 or 3, and returns the
-  // hero's identifier as Pawn.hero reports it. The hero appears on a later
-  // frame. A hero the player picked through the game's Change Hero wins: the
-  // game removes the old hero before it spawns the pick, and a call in that
-  // gap, up to 5 seconds, fails and leaves the pick to land.
-  virtual std::expected<players::HeroResponse, std::string> SelectHero(
-      const players::SelectHeroRequest& /*request*/) {
-    return std::unexpected("this host does not support SelectHero");
-  }
+  // Ui changes the interface the mod shows the player. The host keeps each
+  // player's tree until the mod stops or the player leaves.
+  virtual std::expected<void, std::string> Ui(const ui::UiRequest& request) = 0;
 
-  // Spectate moves the player to the spectators, without a hero. The player
-  // watches until a hero selection seats them again.
-  virtual std::expected<void, std::string> Spectate(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Spectate");
-  }
+  // CallService calls method of a service the host provides outside Modlock,
+  // such as a game mode's match, and returns the service's answer. The
+  // service defines the payload's encoding.
+  virtual std::expected<ServiceReply, std::string> CallService(const ServiceCall& request) = 0;
 
-  // Watch points the player's camera at a hero, through the hero's own view
-  // or chasing it, as the game's spectator camera follows it. The player's
-  // own hero must be dead or removed: while it lives, the client keeps drawing
-  // that hero's camera even when Watch succeeds. Use FreeCamera to position
-  // the camera while keeping a living hero.
-  virtual std::expected<void, std::string> Watch(const players::WatchRequest& /*request*/) {
-    return std::unexpected("this host does not support Watch");
-  }
+  // StartServiceCall calls method of a service the host provides and
+  // returns at once with a number; the answer arrives in a later frame as a
+  // ServiceReplied event carrying that number. Every call ends once: with
+  // the reply, the service's refusal, a timeout or no provider at all. A
+  // service nobody provides is never asked. The host waits at most 30
+  // seconds, or the call's shorter timeout, and drops the mod's waiting
+  // calls when the mod stops or reloads. A service that answers at once
+  // answers this way too, in the next frame.
+  virtual std::expected<ServiceCallStarted, std::string> StartServiceCall(
+      const StartServiceCallRequest& request) = 0;
 
-  // FreeCamera lets the player fly their camera from a position, with the
-  // movement keys and the mouse, as the game's roaming spectator camera does.
-  // A player with a living hero leaves it where it stands, keeping its level,
-  // souls and items, until Unwatch returns them to it.
-  virtual std::expected<void, std::string> FreeCamera(
-      const players::FreeCameraRequest& /*request*/) {
-    return std::unexpected("this host does not support FreeCamera");
-  }
+ protected:
+  ~PluginCalls() = default;
+};
 
-  // MoveCamera adds one operation to the player's camera, as the game's
-  // abilities pull it back, widen its view or swing it to a point. Operations
-  // run alongside the game's own until they end or ClearCamera removes them.
-  virtual std::expected<void, std::string> MoveCamera(const players::CameraOptions& /*request*/) {
-    return std::unexpected("this host does not support MoveCamera");
-  }
+// PlayersCalls are the Host calls the players part of the host answers.
+class PlayersCalls {
+ public:
+  // Players lists the player slots with a seat, connected or away, in slot
+  // order. The libraries
+  // answer from the last PlayersChanged instead, once one arrived.
+  virtual std::expected<players::PlayersResponse, std::string> Players() = 0;
 
-  // ClearCamera removes a context's camera operations from the player's
-  // camera, or every operation, and the camera returns to its usual place.
-  virtual std::expected<void, std::string> ClearCamera(
-      const players::ClearCameraRequest& /*request*/) {
-    return std::unexpected("this host does not support ClearCamera");
-  }
+  // Pawn returns the player's pawn this frame: the hero, or the game's
+  // placeholder with hero 0 that a player joining on a team holds until a hero
+  // is selected. It returns nothing for a spectator and before the game has
+  // made a pawn. The pawn's entity changes whenever the game replaces it.
+  virtual std::expected<players::PawnResponse, std::string> Pawn(
+      const players::PlayerRequest& request) = 0;
 
-  // Unwatch returns a player watching or flying the free camera from their
-  // hero back to it. Stopping the mod returns every such player.
-  virtual std::expected<void, std::string> Unwatch(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Unwatch");
-  }
+  // Pawns returns every player's pawn this frame in one reply, in slot order,
+  // each as Pawn returns it: a mode that reads every hero each frame makes
+  // one call instead of one per player. A slot Pawn answers nothing for is
+  // left out.
+  virtual std::expected<players::PawnsResponse, std::string> Pawns() = 0;
 
-  // Respawn revives the player's dead hero. A pawn with hero 0 has no hero to
-  // revive; the call fails until SelectHero gives it one.
-  virtual std::expected<void, std::string> Respawn(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Respawn");
-  }
+ protected:
+  ~PlayersCalls() = default;
+};
 
-  // ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
-  // it stands, for a human or a bot alike. The hero keeps its hero,
-  // abilities, items and health, and the player keeps their connection; a
-  // dead hero respawns on its new team, on its timer or through Respawn. A
-  // living hero moved inside the other team's base dies to the base's
-  // defense. A player without a hero joins a team through SelectHero
-  // instead.
-  virtual std::expected<void, std::string> ChangeTeam(
-      const players::ChangeTeamRequest& /*request*/) {
-    return std::unexpected("this host does not support ChangeTeam");
-  }
+// WorldCalls are the Host calls the world part of the host answers.
+class WorldCalls {
+ public:
+  // Precache loads heroes and resources with the next world. Call it during
+  // start, before the first world loads; a call after that, such as from a
+  // reload, prepares only the world after the next map change. Name every
+  // hero whose abilities ReplaceAbility gives, with their particles.
+  virtual std::expected<void, std::string> Precache(const PrecacheOptions& request) = 0;
 
-  // ClearItems removes every item the player's hero owns.
-  virtual std::expected<void, std::string> ClearItems(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support ClearItems");
-  }
+  // CreateModel places a model in the world, solid when the options ask.
+  // The world removes it when the world ends; stopping the mod removes it
+  // too.
+  virtual std::expected<objects::ObjectResponse, std::string> CreateModel(
+      const objects::ModelOptions& request) = 0;
 
-  // Freeze holds the player's hero in place, without input or damage, until
-  // it is released. Stopping the mod releases it.
-  virtual std::expected<void, std::string> Freeze(const players::FreezeRequest& /*request*/) {
-    return std::unexpected("this host does not support Freeze");
-  }
+  // CreateText places text that floats in the world.
+  virtual std::expected<objects::ObjectResponse, std::string> CreateText(
+      const objects::TextOptions& request) = 0;
 
-  // RestoreStamina refills the player's stamina.
-  virtual std::expected<void, std::string> RestoreStamina(
-      const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support RestoreStamina");
-  }
+  // CreateParticle starts a particle effect. Removing the object stops it
+  // and lets its end cap play out, unless the mod already stopped it, such as
+  // with the DestroyImmediately input; moving it moves the effect.
+  virtual std::expected<objects::ObjectResponse, std::string> CreateParticle(
+      const objects::ParticleOptions& request) = 0;
 
-  // SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
-  // regenerates it as usual afterwards.
-  virtual std::expected<void, std::string> SetStamina(
-      const players::SetStaminaRequest& /*request*/) {
-    return std::unexpected("this host does not support SetStamina");
-  }
+  // CreateFog fills a box with tinted fog whose density fades across the
+  // box's boundary. Removing the object clears it; moving it moves the box.
+  virtual std::expected<objects::ObjectResponse, std::string> CreateFog(
+      const objects::FogOptions& request) = 0;
 
-  // RefreshAbility ends the cooldown of the hero's ability named ability,
-  // such as citadel_ability_melee_parry.
-  virtual std::expected<void, std::string> RefreshAbility(
-      const abilities::RefreshAbilityRequest& /*request*/) {
-    return std::unexpected("this host does not support RefreshAbility");
-  }
+  // MoveObject places the object at position, turning it to facing. The
+  // physics step pulls a solid model to its new place over one tick, so a
+  // model moved each frame strikes physics props such as the Hideout ball
+  // with its speed instead of passing through them.
+  virtual std::expected<void, std::string> MoveObject(
+      const objects::MoveObjectRequest& request) = 0;
 
-  // Abilities lists the abilities of the player's hero in the hero's order,
-  // or none without a live hero.
-  virtual std::expected<abilities::AbilitiesResponse, std::string> Abilities(
-      const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Abilities");
-  }
+  // SetText replaces a text object's words.
+  virtual std::expected<void, std::string> SetText(const objects::SetTextRequest& request) = 0;
 
-  // SetAbility changes the upgrades, charges or timers of one of the hero's
-  // abilities. An omitted option stays as it is.
-  virtual std::expected<void, std::string> SetAbility(
-      const abilities::AbilityOptions& /*request*/) {
-    return std::unexpected("this host does not support SetAbility");
-  }
+  // SetObjectHidden hides the object from one player or shows it again.
+  // Other players still see it. A player who leaves sees every object when
+  // they return.
+  virtual std::expected<void, std::string> SetObjectHidden(
+      const objects::SetObjectHiddenRequest& request) = 0;
 
-  // GiveItem gives the hero an item, enabled and free. A hero that owns it
-  // keeps its one copy. With imbue, an imbuing item strengthens the hero's
-  // ability in that slot, 0 to 3, as the shop asks when one is bought; the
-  // call fails, granting nothing, when the ability does not accept it.
-  virtual std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& /*request*/) {
-    return std::unexpected("this host does not support GiveItem");
-  }
+  // ShowObjectOnlyTo sends the object only to the players with the listed
+  // server slots; every other client drops it, or never receives it when the
+  // call follows its creation in the same frame. With no players no client
+  // receives it. The list replaces any earlier one and follows the object
+  // when its entity changes. A player who leaves is taken off every list, so
+  // whoever joins in their slot does not receive the object. A removed object
+  // reaches no client while the engine retires its entity.
+  virtual std::expected<void, std::string> ShowObjectOnlyTo(
+      const objects::ShowObjectOnlyToRequest& request) = 0;
 
-  // BuyItem buys an item for the hero as the shop does, under the shop's own
-  // rules and for the souls it charges, or fails and charges nothing when the
-  // shop refuses, as away from the shop or without the souls. With imbue, an
-  // imbuing item strengthens whatever ability the hero holds in that slot, 0
-  // to 3, including one ReplaceAbility put there, which the game's own
-  // buydependentitem refuses; the call fails, buying nothing, when the
-  // ability does not accept it.
-  virtual std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& /*request*/) {
-    return std::unexpected("this host does not support BuyItem");
-  }
+  // ShowObjectToAll sends the object to every player again, undoing
+  // ShowObjectOnlyTo.
+  virtual std::expected<void, std::string> ShowObjectToAll(
+      const objects::ObjectRequest& request) = 0;
 
-  // TrainAbility trains or upgrades whatever ability the hero holds in a
-  // slot, 0 to 3, as the player holding the upgrade key and pressing the
-  // slot's ability key does: an untrained ability trains for an ability
-  // unlock, and a trained one buys its next tier for ability points. It works
-  // on an ability ReplaceAbility put there, which the game's own commands for
-  // a slot do not reach. When the game refuses, as without an unlock or the
-  // points, the call fails and nothing is spent.
-  virtual std::expected<void, std::string> TrainAbility(
-      const abilities::TrainAbilityRequest& /*request*/) {
-    return std::unexpected("this host does not support TrainAbility");
-  }
+  // RemoveObject takes the object out of the world.
+  virtual std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) = 0;
 
-  // HeroBuild reads a hero's recommended build from the host's game data:
-  // its categories of items in buying order. Items the game does not define
-  // are left out, so every item returned is one GiveItem accepts. A hero
-  // without a build answers with no categories. The call needs a loaded
-  // world.
-  virtual std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
-      const abilities::HeroBuildRequest& /*request*/) {
-    return std::unexpected("this host does not support HeroBuild");
-  }
+  // ObjectEntity returns the entity handle of a model or particle, as traces
+  // report it and particle anchors take it.
+  virtual std::expected<entities::EntityResponse, std::string> ObjectEntity(
+      const objects::ObjectRequest& request) = 0;
 
-  // ReplaceAbility puts the ability named ability, untrained unless keep
-  // carries the old one's progress, in the hero's ability slot index, as
-  // Ability.slot, removing the ability there. The game trains and upgrades an
-  // ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
-  // presses the slot's ability key to spend ability points on it, and training
-  // an untrained one costs an ability unlock. A hero change or ResetHero gives
-  // the hero its own abilities again, so a mod that keeps a swap replaces
-  // again then. An ability from another hero loads its models and particles
-  // only if Precache named that hero and those resources before the world
-  // loaded; otherwise its first effect stalls the game on a blocking load and
-  // the game reports an assertion.
-  virtual std::expected<void, std::string> ReplaceAbility(
-      const abilities::ReplaceAbilityRequest& /*request*/) {
-    return std::unexpected("this host does not support ReplaceAbility");
-  }
+  // AddBot adds a bot player and returns it. The bot leaves when the world
+  // ends or the mod stops.
+  virtual std::expected<players::BotResponse, std::string> AddBot(
+      const players::BotOptions& request) = 0;
 
-  // HoldModifier keeps a modifier, named as GiveModifier names it, on the
-  // hero with no expiry, giving it back whenever the game removes it or the
-  // hero returns. Every hero that gains the modifier from the same ability
-  // keeps it until the hold ends. Releasing leaves the hero's current
-  // modifier until it dies; the mod stopping removes it.
-  virtual std::expected<void, std::string> HoldModifier(
-      const abilities::HoldModifierRequest& /*request*/) {
-    return std::unexpected("this host does not support HoldModifier");
-  }
+  // RemoveBot removes a bot the mod added.
+  virtual std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) = 0;
 
-  // GiveModifier gives the hero a modifier for seconds. An ability's
-  // modifier, named "<ability>/<modifier>", comes as if the hero's own
-  // ability applied it; a hero without that ability, or a modifier named on
-  // its own, such as Street Brawl's zipline boost
-  // modifier_street_brawl_round_start_zipline_boost, applies it with the
-  // hero's first ability. The game may end it sooner, as invisibility ends on
-  // a shot.
-  virtual std::expected<void, std::string> GiveModifier(
-      const abilities::GiveModifierRequest& /*request*/) {
-    return std::unexpected("this host does not support GiveModifier");
-  }
+  // CreateEntity creates an entity the server knows by its designer name,
+  // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+  // written before it spawns. The world removes it when the world ends;
+  // stopping the mod removes it too. It refuses an ability, item or weapon,
+  // which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
+  // a class that runs console lines or loads scripts or entities past a mod's
+  // checks, such as point_servercommand, and key values that name a console
+  // line or a script, such as vscripts.
+  virtual std::expected<entities::EntityResponse, std::string> CreateEntity(
+      const entities::EntityOptions& request) = 0;
 
-  // Teleport moves the player's hero and turns it and the camera. With a
-  // velocity it also sets the hero's motion, as a launch, and the camera
-  // follows the hero.
-  virtual std::expected<void, std::string> Teleport(const movement::TeleportRequest& /*request*/) {
-    return std::unexpected("this host does not support Teleport");
-  }
+  // FireInput sends an input to a live entity, as a map's output would, such
+  // as Skin with the integer 1. The value must have the type the input reads.
+  // It reports false once the entity is gone. It refuses AddOutput and the
+  // script inputs on every entity, and any input to an entity of a class
+  // CreateEntity refuses.
+  virtual std::expected<entities::AliveResponse, std::string> FireInput(
+      const entities::FireInputRequest& request) = 0;
 
-  // Zipline puts the player's hero on a lane's zipline near the hero, riding
-  // it as from the zipline key, with the zipline's intro. It never picks
-  // another lane: it fails when the lane has no zipline the hero's team rides
-  // on this map, or the hero has no zipline ability. For Street Brawl's fast
-  // ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
-  virtual std::expected<void, std::string> Zipline(const movement::ZiplineRequest& /*request*/) {
-    return std::unexpected("this host does not support Zipline");
-  }
+  // RemoveEntity takes an entity the mod created out of the world without
+  // rewards. It reports false when the entity was already gone.
+  virtual std::expected<entities::AliveResponse, std::string> RemoveEntity(
+      const entities::EntityRequest& request) = 0;
 
-  // MovePlayer carries the player's hero to a position as continuous motion,
-  // as a recording plays back. Unlike Teleport it keeps the hero's animated
-  // model drawn when repeated every tick, and leaves the camera alone.
-  virtual std::expected<void, std::string> MovePlayer(
-      const movement::MovePlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support MovePlayer");
-  }
+  // ShowEntityOnlyTo sends an entity the mod created only to the players with
+  // the listed server slots; every other client drops it, or never receives
+  // it when the call follows its creation in the same frame. With no players
+  // no client receives it. The list replaces any earlier one. A player who
+  // leaves is taken off every list, so whoever joins in their slot does not
+  // receive the entity. The rule holds for an entity created with
+  // TransmitAlways too, but not for entities parented to it, which need their
+  // own call. Removing the entity, the world ending or the mod stopping drops
+  // the rule.
+  virtual std::expected<void, std::string> ShowEntityOnlyTo(
+      const entities::ShowEntityOnlyToRequest& request) = 0;
 
-  // Steer replays a recorded movement command on the player's hero, usually a
-  // bot: the game runs the command's buttons and axes, so the hero crouches,
-  // slides, jumps and mantles with its own animation, and the step then ends
-  // on the recorded pose. The steering stays until the next Steer replaces
-  // it, its presses and its pose counting once: on the ticks between, the
-  // game's own movement carries the held command on from the pose. A Steer
-  // without one releases the hero.
-  virtual std::expected<void, std::string> Steer(const movement::SteerRequest& /*request*/) {
-    return std::unexpected("this host does not support Steer");
-  }
+  // ShowEntityToAll sends an entity the mod created to every player the game
+  // would send it to again, undoing ShowEntityOnlyTo.
+  virtual std::expected<void, std::string> ShowEntityToAll(
+      const entities::EntityRequest& request) = 0;
 
-  // Drive gives a bot the controls a player has, where it looks, the
-  // movement axes and the buttons, as its input on every tick until the next
-  // Drive replaces it. The game runs that input as a player's own, so the
-  // hero accelerates, turns, jumps, dashes, slides and casts with its own
-  // movement and animation; the bot's own brain no longer moves it. Presses
-  // count once. A Drive without a command returns the bot to its brain.
-  virtual std::expected<void, std::string> Drive(const movement::DriveRequest& /*request*/) {
-    return std::unexpected("this host does not support Drive");
-  }
+  // SpawnNpc adds a unit that is not a player, such as a trooper, as
+  // CreateEntity does, then sets its health and lane. It thinks from the next
+  // frame. The world removes it when the world ends; stopping
+  // the mod removes it too.
+  virtual std::expected<npcs::NpcResponse, std::string> SpawnNpc(
+      const npcs::NpcOptions& request) = 0;
 
-  // AdjustSouls gives the player delta souls, or takes them when delta is
-  // negative. A spend larger than the player's souls fails and spends
-  // nothing. Silent skips the pickup's sound and number.
-  virtual std::expected<void, std::string> AdjustSouls(
-      const players::AdjustSoulsRequest& /*request*/) {
-    return std::unexpected("this host does not support AdjustSouls");
-  }
+  // ReadNpc returns the unit's state, or nothing once it is gone.
+  virtual std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
+      const npcs::NpcRequest& request) = 0;
 
-  // AdjustAbilityPoints gives the player ability points and ability unlocks,
-  // or takes them when negative, as Pawn.ability_points and
-  // Pawn.ability_unlocks read them. A spend larger than the player holds
-  // fails and spends nothing.
-  virtual std::expected<void, std::string> AdjustAbilityPoints(
-      const players::AdjustAbilityPointsRequest& /*request*/) {
-    return std::unexpected("this host does not support AdjustAbilityPoints");
-  }
+  // MoveNpc places the unit and sets its velocity, which drives its walk
+  // animation. It sets the pose without a teleport, which would reset the
+  // unit's animation, so a mode can steer its units every frame. It reports
+  // false once the unit is gone.
+  virtual std::expected<entities::AliveResponse, std::string> MoveNpc(
+      const npcs::MoveNpcRequest& request) = 0;
 
-  // StartingSouls sets the souls the player's hero spawns with.
-  virtual std::expected<void, std::string> StartingSouls(
-      const players::StartingSoulsRequest& /*request*/) {
-    return std::unexpected("this host does not support StartingSouls");
-  }
+  // SetNpcHealth sets the unit's health, and its maximum when given. It
+  // reports false once the unit is gone.
+  virtual std::expected<entities::AliveResponse, std::string> SetNpcHealth(
+      const npcs::SetNpcHealthRequest& request) = 0;
 
-  // ResetHero rebuilds the player's hero as it first spawned, without items,
-  // ability upgrades, levels or ability points, holding souls.
-  virtual std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& /*request*/) {
-    return std::unexpected("this host does not support ResetHero");
-  }
+  // RemoveNpc takes a unit the mod spawned out of the world without rewards.
+  // It reports false when the unit was already gone.
+  virtual std::expected<entities::AliveResponse, std::string> RemoveNpc(
+      const npcs::NpcRequest& request) = 0;
 
-  // Heal restores health to the player's hero, up to its maximum.
-  virtual std::expected<void, std::string> Heal(const players::HealRequest& /*request*/) {
-    return std::unexpected("this host does not support Heal");
-  }
+  // CreatePickup places an urn, which a hero carries once collected, or a
+  // movement buff. Stopping the mod removes it.
+  virtual std::expected<entities::PickupResponse, std::string> CreatePickup(
+      const entities::CreatePickupRequest& request) = 0;
 
-  // Sound plays a game sound event, such as Damage.Send.Crit, on the
-  // player's hero, and returns its ID. It follows the hero as it moves.
-  // Volume and pitch scale the sound, and listeners limit who hears it.
-  virtual std::expected<effects::SoundResponse, std::string> Sound(
-      const effects::SoundRequest& /*request*/) {
-    return std::unexpected("this host does not support Sound");
-  }
+  // PickupPresent reports whether the pickup still lies in the world,
+  // uncollected.
+  virtual std::expected<entities::AliveResponse, std::string> PickupPresent(
+      const entities::PickupRequest& request) = 0;
 
-  // RestoreHero gives the player's live hero target over the next few
-  // seconds: the build first, then health, stamina and pose once it settles,
-  // then charges and cooldowns. A Restored event reports when the result has
-  // held for a second, or why it could not. A new call replaces the running
-  // one. A pawn with hero 0 has no hero to restore; the call fails until
-  // SelectHero gives it one.
-  virtual std::expected<void, std::string> RestoreHero(
-      const players::RestoreHeroRequest& /*request*/) {
-    return std::unexpected("this host does not support RestoreHero");
-  }
+  // RemovePickup takes the pickup out of the world. It reports false when a
+  // player had collected it.
+  virtual std::expected<entities::AliveResponse, std::string> RemovePickup(
+      const entities::PickupRequest& request) = 0;
 
-  // ScreenEffect plays a full-screen effect on the player's view. Effects of
-  // one kind stack. The player's hero must be alive.
-  virtual std::expected<void, std::string> ScreenEffect(
-      const effects::ScreenEffectRequest& /*request*/) {
-    return std::unexpected("this host does not support ScreenEffect");
-  }
+  // FindEntities returns the handle of every live entity of a class, such as
+  // zip_line_node.
+  virtual std::expected<entities::EntitiesResponse, std::string> FindEntities(
+      const entities::FindEntitiesRequest& request) = 0;
 
-  // ClearScreenEffect ends every running instance of effect on the player's
-  // view.
-  virtual std::expected<void, std::string> ClearScreenEffect(
-      const effects::ClearScreenEffectRequest& /*request*/) {
-    return std::unexpected("this host does not support ClearScreenEffect");
-  }
+  // FindEntitiesByName returns the handle of every live entity with a name,
+  // the targetname a map or the targetname key value of CreateEntity gave it.
+  virtual std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
+      const entities::FindEntitiesByNameRequest& request) = 0;
 
-  // SilenceVoice keeps every hero from speaking the named voice concepts,
-  // until called again. A hero still hears the game's other sounds. Stopping
-  // the mod lets them speak; a name the game does not know fails the call
-  // and the known ones still apply.
-  virtual std::expected<void, std::string> SilenceVoice(
-      const effects::SilenceVoiceRequest& /*request*/) {
-    return std::unexpected("this host does not support SilenceVoice");
-  }
+  // RemoveEntities removes every entity of a class, such as npc_trooper,
+  // without rewards, and returns how many it removed.
+  virtual std::expected<entities::CountResponse, std::string> RemoveEntities(
+      const entities::RemoveEntitiesRequest& request) = 0;
 
-  // SilencePlayerVoice keeps the player's hero from speaking the named voice
-  // concepts until called again, on top of those silenced for everyone.
-  virtual std::expected<void, std::string> SilencePlayerVoice(
-      const effects::SilencePlayerVoiceRequest& /*request*/) {
-    return std::unexpected("this host does not support SilencePlayerVoice");
-  }
+  // ClearMap removes the map's own units and objectives, such as troopers,
+  // guardians and walkers, so a mode can use the map as an arena.
+  virtual std::expected<void, std::string> ClearMap() = 0;
 
+  // MoveEntity places any entity, such as a projectile, and replaces its
+  // facing and motion when given. Without a position it leaves the entity
+  // where it is, so a velocity alone steers a body the physics simulates, such
+  // as a prop_physics, which carries the motion on against the world.
+  virtual std::expected<void, std::string> MoveEntity(
+      const entities::MoveEntityRequest& request) = 0;
+
+  // PushEntity adds a velocity and an angular velocity to any entity. On a
+  // body the physics simulates, such as a prop_physics, it acts like an
+  // impulse that the simulation carries on.
+  virtual std::expected<void, std::string> PushEntity(
+      const entities::PushEntityRequest& request) = 0;
+
+ protected:
+  ~WorldCalls() = default;
+};
+
+// MatchCalls are the Host calls the match part of the host answers.
+class MatchCalls {
+ public:
+  // Pause stops or resumes the game clock, as the pause command would.
+  // Stopping the mod resumes it.
+  virtual std::expected<void, std::string> Pause(const PauseRequest& request) = 0;
+
+  // MatchClock returns the match time in seconds that the scoreboard shows.
+  virtual std::expected<MatchClockResponse, std::string> MatchClock() = 0;
+
+  // HoldMatchClock keeps the match time at seconds every frame until called
+  // again; omitted seconds let it run.
+  virtual std::expected<void, std::string> HoldMatchClock(const HoldMatchClockRequest& request) = 0;
+
+  // Rift reads the Rift objective's state.
+  virtual std::expected<RiftResponse, std::string> Rift() = 0;
+
+  // StartRift opens the Rift objective at position now.
+  virtual std::expected<void, std::string> StartRift(const StartRiftRequest& request) = 0;
+
+ protected:
+  ~MatchCalls() = default;
+};
+
+// FieldsCalls are the Host calls the fields part of the host answers.
+class FieldsCalls {
+ public:
   // ReadField reads one schema field of a live entity, such as the int32
   // m_iHealth of CBaseEntity. The host finds the field by name, so it
   // survives game updates that move it, and refuses an entity that is not of
@@ -537,20 +405,7 @@ class HostService {
   // a model entity CSkeletonInstance and CModelState, such as the uint64
   // m_MeshGroupMask of CModelState that chooses which mesh groups draw.
   virtual std::expected<fields::FieldResponse, std::string> ReadField(
-      const fields::ReadFieldRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadField");
-  }
-
-  // ReadModifierField reads one schema field of a modifier the entity holds,
-  // such as the int32 m_nCameraLevel of CCitadel_Modifier_OrbitCamera on a
-  // pawn holding modifier_citadel_orbit_camera. The answer holds no value
-  // while the entity lacks the modifier. The host cannot check the modifier's
-  // class, so a wrong class reads the wrong bytes, though never past readable
-  // memory.
-  virtual std::expected<fields::FieldResponse, std::string> ReadModifierField(
-      const fields::ReadModifierFieldRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadModifierField");
-  }
+      const fields::ReadFieldRequest& request) = 0;
 
   // WriteField writes one schema field of a live entity and sends the change
   // to the players. The value takes the form ReadField returns for the type.
@@ -566,73 +421,411 @@ class HostService {
   // layout when it changes, not every frame. It refuses the fields that
   // name a console line or a script, such as m_iszPrivateVScripts, here and
   // among the fields CreateEntity writes before spawn.
-  virtual std::expected<void, std::string> WriteField(
-      const fields::WriteFieldRequest& /*request*/) {
-    return std::unexpected("this host does not support WriteField");
-  }
+  virtual std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& request) = 0;
 
   // ReadFieldList reads a field that holds a list, such as the m_vecBannedHeroes
   // of CCitadelGameRules. The type is the type of one element: a number, a
   // handle, a boolean or a vector. A list of structures cannot be read.
   virtual std::expected<fields::FieldListResponse, std::string> ReadFieldList(
-      const fields::ReadFieldRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadFieldList");
-  }
+      const fields::ReadFieldRequest& request) = 0;
 
   // WriteFieldList replaces the elements of a list field and sends the change
   // to the players, growing the list when it holds fewer elements than the
   // new ones.
   virtual std::expected<void, std::string> WriteFieldList(
-      const fields::WriteFieldListRequest& /*request*/) {
-    return std::unexpected("this host does not support WriteFieldList");
-  }
+      const fields::WriteFieldListRequest& request) = 0;
 
   // EntityClass returns a live entity's schema class, such as
   // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
   virtual std::expected<entities::EntityClassResponse, std::string> EntityClass(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support EntityClass");
-  }
+      const entities::EntityRequest& request) = 0;
 
   // EntityName returns a live entity's name, the targetname a map or a spawn
   // key value gave it, or an empty name for an unnamed entity.
   virtual std::expected<entities::EntityNameResponse, std::string> EntityName(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support EntityName");
-  }
+      const entities::EntityRequest& request) = 0;
 
   // EntityPosition returns where a live entity stands, its absolute origin
   // and angles, as MoveEntity places it, and its velocity. Any entity with a
   // place in the world has one, such as one of the map's boxes.
   virtual std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support EntityPosition");
-  }
+      const entities::EntityRequest& request) = 0;
+
+ protected:
+  ~FieldsCalls() = default;
+};
+
+// ModifiersCalls are the Host calls the modifiers part of the host answers.
+class ModifiersCalls {
+ public:
+  // HoldModifier keeps a modifier, named as GiveModifier names it, on the
+  // hero with no expiry, giving it back whenever the game removes it or the
+  // hero returns. Every hero that gains the modifier from the same ability
+  // keeps it until the hold ends. Releasing leaves the hero's current
+  // modifier until it dies; the mod stopping removes it.
+  virtual std::expected<void, std::string> HoldModifier(
+      const abilities::HoldModifierRequest& request) = 0;
+
+  // GiveModifier gives the hero a modifier for seconds. An ability's
+  // modifier, named "<ability>/<modifier>", comes as if the hero's own
+  // ability applied it; a hero without that ability, or a modifier named on
+  // its own, such as Street Brawl's zipline boost
+  // modifier_street_brawl_round_start_zipline_boost, applies it with the
+  // hero's first ability. The game may end it sooner, as invisibility ends on
+  // a shot.
+  virtual std::expected<void, std::string> GiveModifier(
+      const abilities::GiveModifierRequest& request) = 0;
+
+  // ReadModifierField reads one schema field of a modifier the entity holds,
+  // such as the int32 m_nCameraLevel of CCitadel_Modifier_OrbitCamera on a
+  // pawn holding modifier_citadel_orbit_camera. The answer holds no value
+  // while the entity lacks the modifier. The host cannot check the modifier's
+  // class, so a wrong class reads the wrong bytes, though never past readable
+  // memory.
+  virtual std::expected<fields::FieldResponse, std::string> ReadModifierField(
+      const fields::ReadModifierFieldRequest& request) = 0;
 
   // ModifierState reports whether an entity has a modifier state, such as
   // MODIFIER_STATE_PARRY_ACTIVE.
   virtual std::expected<abilities::ActiveResponse, std::string> ModifierState(
-      const abilities::ModifierStateRequest& /*request*/) {
-    return std::unexpected("this host does not support ModifierState");
-  }
+      const abilities::ModifierStateRequest& request) = 0;
 
   // Modifiers lists every modifier an entity holds, such as the stun a
   // hero's ultimate keeps on its target, with its name, class, caster,
   // ability, age, time left and stacks. An entity that holds none answers an
   // empty list.
   virtual std::expected<abilities::ModifiersResponse, std::string> Modifiers(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support Modifiers");
-  }
+      const entities::EntityRequest& request) = 0;
 
   // HoldModifierState holds a modifier state, such as
   // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
   // releases the hold. The hold ends with the entity.
   virtual std::expected<void, std::string> HoldModifierState(
-      const abilities::HoldModifierStateRequest& /*request*/) {
-    return std::unexpected("this host does not support HoldModifierState");
-  }
+      const abilities::HoldModifierStateRequest& request) = 0;
 
+  // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
+  // live entity with no expiry, giving it back whenever the game removes it
+  // while the entity lives. The hold ends with the entity or when active is
+  // false. Releasing leaves the entity's current modifier; the mod stopping
+  // removes it.
+  virtual std::expected<void, std::string> HoldEntityModifier(
+      const abilities::HoldEntityModifierRequest& request) = 0;
+
+  // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
+  // a modifier for seconds. An ability's modifier, named
+  // "<ability>/<modifier>", resolves its parent ability subclass even when the
+  // entity owns no abilities.
+  virtual std::expected<void, std::string> GiveEntityModifier(
+      const abilities::GiveEntityModifierRequest& request) = 0;
+
+ protected:
+  ~ModifiersCalls() = default;
+};
+
+// HeroesCalls are the Host calls the heroes part of the host answers.
+class HeroesCalls {
+ public:
+  // SelectHero gives the player a hero on a team, 2 or 3, and returns the
+  // hero's identifier as Pawn.hero reports it. The hero appears on a later
+  // frame. A hero the player picked through the game's Change Hero wins: the
+  // game removes the old hero before it spawns the pick, and a call in that
+  // gap, up to 5 seconds, fails and leaves the pick to land.
+  virtual std::expected<players::HeroResponse, std::string> SelectHero(
+      const players::SelectHeroRequest& request) = 0;
+
+  // Respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+  // revive; the call fails until SelectHero gives it one.
+  virtual std::expected<void, std::string> Respawn(const players::PlayerRequest& request) = 0;
+
+  // ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
+  // it stands, for a human or a bot alike. The hero keeps its hero,
+  // abilities, items and health, and the player keeps their connection; a
+  // dead hero respawns on its new team, on its timer or through Respawn. A
+  // living hero moved inside the other team's base dies to the base's
+  // defense. A player without a hero joins a team through SelectHero
+  // instead.
+  virtual std::expected<void, std::string> ChangeTeam(
+      const players::ChangeTeamRequest& request) = 0;
+
+  // ClearItems removes every item the player's hero owns.
+  virtual std::expected<void, std::string> ClearItems(const players::PlayerRequest& request) = 0;
+
+  // Freeze holds the player's hero in place, without input or damage, until
+  // it is released. Stopping the mod releases it.
+  virtual std::expected<void, std::string> Freeze(const players::FreezeRequest& request) = 0;
+
+  // RestoreStamina refills the player's stamina.
+  virtual std::expected<void, std::string> RestoreStamina(
+      const players::PlayerRequest& request) = 0;
+
+  // SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
+  // regenerates it as usual afterwards.
+  virtual std::expected<void, std::string> SetStamina(
+      const players::SetStaminaRequest& request) = 0;
+
+  // RefreshAbility ends the cooldown of the hero's ability named ability,
+  // such as citadel_ability_melee_parry.
+  virtual std::expected<void, std::string> RefreshAbility(
+      const abilities::RefreshAbilityRequest& request) = 0;
+
+  // Abilities lists the abilities of the player's hero in the hero's order,
+  // or none without a live hero.
+  virtual std::expected<abilities::AbilitiesResponse, std::string> Abilities(
+      const players::PlayerRequest& request) = 0;
+
+  // SetAbility changes the upgrades, charges or timers of one of the hero's
+  // abilities. An omitted option stays as it is.
+  virtual std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& request) = 0;
+
+  // GiveItem gives the hero an item, enabled and free. A hero that owns it
+  // keeps its one copy. With imbue, an imbuing item strengthens the hero's
+  // ability in that slot, 0 to 3, as the shop asks when one is bought; the
+  // call fails, granting nothing, when the ability does not accept it.
+  virtual std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) = 0;
+
+  // BuyItem buys an item for the hero as the shop does, under the shop's own
+  // rules and for the souls it charges, or fails and charges nothing when the
+  // shop refuses, as away from the shop or without the souls. With imbue, an
+  // imbuing item strengthens whatever ability the hero holds in that slot, 0
+  // to 3, including one ReplaceAbility put there, which the game's own
+  // buydependentitem refuses; the call fails, buying nothing, when the
+  // ability does not accept it.
+  virtual std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& request) = 0;
+
+  // TrainAbility trains or upgrades whatever ability the hero holds in a
+  // slot, 0 to 3, as the player holding the upgrade key and pressing the
+  // slot's ability key does: an untrained ability trains for an ability
+  // unlock, and a trained one buys its next tier for ability points. It works
+  // on an ability ReplaceAbility put there, which the game's own commands for
+  // a slot do not reach. When the game refuses, as without an unlock or the
+  // points, the call fails and nothing is spent.
+  virtual std::expected<void, std::string> TrainAbility(
+      const abilities::TrainAbilityRequest& request) = 0;
+
+  // HeroBuild reads a hero's recommended build from the host's game data:
+  // its categories of items in buying order. Items the game does not define
+  // are left out, so every item returned is one GiveItem accepts. A hero
+  // without a build answers with no categories. The call needs a loaded
+  // world.
+  virtual std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
+      const abilities::HeroBuildRequest& request) = 0;
+
+  // ReplaceAbility puts the ability named ability, untrained unless keep
+  // carries the old one's progress, in the hero's ability slot index, as
+  // Ability.slot, removing the ability there. The game trains and upgrades an
+  // ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+  // presses the slot's ability key to spend ability points on it, and training
+  // an untrained one costs an ability unlock. A hero change or ResetHero gives
+  // the hero its own abilities again, so a mod that keeps a swap replaces
+  // again then. An ability from another hero loads its models and particles
+  // only if Precache named that hero and those resources before the world
+  // loaded; otherwise its first effect stalls the game on a blocking load and
+  // the game reports an assertion.
+  virtual std::expected<void, std::string> ReplaceAbility(
+      const abilities::ReplaceAbilityRequest& request) = 0;
+
+  // AdjustSouls gives the player delta souls, or takes them when delta is
+  // negative. A spend larger than the player's souls fails and spends
+  // nothing. Silent skips the pickup's sound and number.
+  virtual std::expected<void, std::string> AdjustSouls(
+      const players::AdjustSoulsRequest& request) = 0;
+
+  // AdjustAbilityPoints gives the player ability points and ability unlocks,
+  // or takes them when negative, as Pawn.ability_points and
+  // Pawn.ability_unlocks read them. A spend larger than the player holds
+  // fails and spends nothing.
+  virtual std::expected<void, std::string> AdjustAbilityPoints(
+      const players::AdjustAbilityPointsRequest& request) = 0;
+
+  // StartingSouls sets the souls the player's hero spawns with.
+  virtual std::expected<void, std::string> StartingSouls(
+      const players::StartingSoulsRequest& request) = 0;
+
+  // ResetHero rebuilds the player's hero as it first spawned, without items,
+  // ability upgrades, levels or ability points, holding souls.
+  virtual std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) = 0;
+
+  // Kill kills a player's hero, crediting no one.
+  virtual std::expected<void, std::string> Kill(const players::PlayerRequest& request) = 0;
+
+ protected:
+  ~HeroesCalls() = default;
+};
+
+// CameraCalls are the Host calls the camera part of the host answers.
+class CameraCalls {
+ public:
+  // Spectate moves the player to the spectators, without a hero. The player
+  // watches until a hero selection seats them again.
+  virtual std::expected<void, std::string> Spectate(const players::PlayerRequest& request) = 0;
+
+  // Watch points the player's camera at a hero, through the hero's own view
+  // or chasing it, as the game's spectator camera follows it. The player's
+  // own hero must be dead or removed: while it lives, the client keeps drawing
+  // that hero's camera even when Watch succeeds. Use FreeCamera to position
+  // the camera while keeping a living hero.
+  virtual std::expected<void, std::string> Watch(const players::WatchRequest& request) = 0;
+
+  // FreeCamera lets the player fly their camera from a position, with the
+  // movement keys and the mouse, as the game's roaming spectator camera does.
+  // A player with a living hero leaves it where it stands, keeping its level,
+  // souls and items, until Unwatch returns them to it.
+  virtual std::expected<void, std::string> FreeCamera(
+      const players::FreeCameraRequest& request) = 0;
+
+  // MoveCamera adds one operation to the player's camera, as the game's
+  // abilities pull it back, widen its view or swing it to a point. Operations
+  // run alongside the game's own until they end or ClearCamera removes them.
+  virtual std::expected<void, std::string> MoveCamera(const players::CameraOptions& request) = 0;
+
+  // ClearCamera removes a context's camera operations from the player's
+  // camera, or every operation, and the camera returns to its usual place.
+  virtual std::expected<void, std::string> ClearCamera(
+      const players::ClearCameraRequest& request) = 0;
+
+  // Unwatch returns a player watching or flying the free camera from their
+  // hero back to it. Stopping the mod returns every such player.
+  virtual std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) = 0;
+
+ protected:
+  ~CameraCalls() = default;
+};
+
+// MovementCalls are the Host calls the movement part of the host answers.
+class MovementCalls {
+ public:
+  // Teleport moves the player's hero and turns it and the camera. With a
+  // velocity it also sets the hero's motion, as a launch, and the camera
+  // follows the hero.
+  virtual std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) = 0;
+
+  // Zipline puts the player's hero on a lane's zipline near the hero, riding
+  // it as from the zipline key, with the zipline's intro. It never picks
+  // another lane: it fails when the lane has no zipline the hero's team rides
+  // on this map, or the hero has no zipline ability. For Street Brawl's fast
+  // ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+  virtual std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) = 0;
+
+  // MovePlayer carries the player's hero to a position as continuous motion,
+  // as a recording plays back. Unlike Teleport it keeps the hero's animated
+  // model drawn when repeated every tick, and leaves the camera alone.
+  virtual std::expected<void, std::string> MovePlayer(
+      const movement::MovePlayerRequest& request) = 0;
+
+  // Steer replays a recorded movement command on the player's hero, usually a
+  // bot: the game runs the command's buttons and axes, so the hero crouches,
+  // slides, jumps and mantles with its own animation, and the step then ends
+  // on the recorded pose. The steering stays until the next Steer replaces
+  // it, its presses and its pose counting once: on the ticks between, the
+  // game's own movement carries the held command on from the pose. A Steer
+  // without one releases the hero.
+  virtual std::expected<void, std::string> Steer(const movement::SteerRequest& request) = 0;
+
+  // Drive gives a bot the controls a player has, where it looks, the
+  // movement axes and the buttons, as its input on every tick until the next
+  // Drive replaces it. The game runs that input as a player's own, so the
+  // hero accelerates, turns, jumps, dashes, slides and casts with its own
+  // movement and animation; the bot's own brain no longer moves it. Presses
+  // count once. A Drive without a command returns the bot to its brain.
+  virtual std::expected<void, std::string> Drive(const movement::DriveRequest& request) = 0;
+
+  // SetVelocity replaces the motion of a player's hero without moving it.
+  virtual std::expected<void, std::string> SetVelocity(
+      const movement::SetVelocityRequest& request) = 0;
+
+  // WatchMovement adds a player's hero to the movement samples of each Frame
+  // event on a new tick, or removes it.
+  virtual std::expected<void, std::string> WatchMovement(
+      const movement::WatchMovementRequest& request) = 0;
+
+ protected:
+  ~MovementCalls() = default;
+};
+
+// InputCalls are the Host calls the input part of the host answers.
+class InputCalls {
+ public:
+  // BlockInput withholds buttons from every player's hero until called
+  // again, and the spectator buttons from a spectating player's commands.
+  // Stopping the mod releases them.
+  virtual std::expected<void, std::string> BlockInput(const InputRequest& request) = 0;
+
+  // BlockPlayerInput withholds buttons from the player's hero until called
+  // again, and the spectator buttons from their commands while they
+  // spectate, on top of the block on everyone. Zero releases the player.
+  virtual std::expected<void, std::string> BlockPlayerInput(const PlayerInputRequest& request) = 0;
+
+  // Press presses buttons at the player's next input, even through a block.
+  // A bot presses them as a player would.
+  virtual std::expected<void, std::string> Press(const PlayerInputRequest& request) = 0;
+
+  // WatchInput replaces the buttons whose presses and releases arrive as
+  // Input events. Watching does not withhold a press; block it with
+  // BlockInput.
+  virtual std::expected<void, std::string> WatchInput(const InputRequest& request) = 0;
+
+  // RemapInput makes the from buttons act as the to buttons for every
+  // player's hero until called again; from reads as up. With repeat, a held
+  // from button uses the to ability again as soon as it is ready. A zero from
+  // stops remapping, and stopping the mod does too. BlockInput applies after
+  // the remap.
+  virtual std::expected<void, std::string> RemapInput(const RemapInputRequest& request) = 0;
+
+  // Buttons returns the buttons a player holds, as Buttons bits, while the
+  // player is alive or dead.
+  virtual std::expected<ButtonsResponse, std::string> Buttons(
+      const players::PlayerRequest& request) = 0;
+
+  // WatchControllers adds a player's controllers to the controller lists of
+  // each Frame event, or removes them. The player's client reads the devices
+  // only while some mod watches them, and until it answers the player is
+  // listed with no stream.
+  virtual std::expected<void, std::string> WatchControllers(
+      const controllers::WatchControllersRequest& request) = 0;
+
+ protected:
+  ~InputCalls() = default;
+};
+
+// ProjectilesCalls are the Host calls the projectiles part of the host answers.
+class ProjectilesCalls {
+ public:
+  // WatchProjectiles reports the projectiles with these designer names, such
+  // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
+  // call replaces the list; an empty list stops watching.
+  virtual std::expected<void, std::string> WatchProjectiles(
+      const combat::ProjectileOptions& request) = 0;
+
+ protected:
+  ~ProjectilesCalls() = default;
+};
+
+// RestoresCalls are the Host calls the restores part of the host answers.
+class RestoresCalls {
+ public:
+  // RestoreHero gives the player's live hero target over the next few
+  // seconds: the build first, then health, stamina and pose once it settles,
+  // then charges and cooldowns. A Restored event reports when the result has
+  // held for a second, or why it could not. A new call replaces the running
+  // one. A pawn with hero 0 has no hero to restore; the call fails until
+  // SelectHero gives it one.
+  virtual std::expected<void, std::string> RestoreHero(
+      const players::RestoreHeroRequest& request) = 0;
+
+  // RestoreNpcs replaces the map's lane units and objectives with targets
+  // over the next frames. Units of these classes not in the list are
+  // removed, structures that match are kept, and moving units are spawned
+  // again in place. An NpcsRestored event reports when every target stands
+  // as its own unit, or why not. A new call replaces the running one.
+  virtual std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) = 0;
+
+ protected:
+  ~RestoresCalls() = default;
+};
+
+// SeatingCalls are the Host calls the seating part of the host answers.
+class SeatingCalls {
+ public:
   // SetFreeForAll turns free-for-all on or off for the running mod, over the
   // Manifest's free_for_all default. While on, the host seats each new player
   // on the smaller team with no team screen, holds friendly fire on every
@@ -642,9 +835,7 @@ class HostService {
   // has hero 0 a hero with SelectHero. Turning it off releases the friendly
   // fire holds and restores stock team relations; players keep their teams.
   // Clients still draw teammates as allies.
-  virtual std::expected<void, std::string> SetFreeForAll(const SetFreeForAllRequest& /*request*/) {
-    return std::unexpected("this host does not support SetFreeForAll");
-  }
+  virtual std::expected<void, std::string> SetFreeForAll(const SetFreeForAllRequest& request) = 0;
 
   // SetTeamSeating turns team seating on or off for the running mod. While
   // on, the host seats each player who joins with no team on the smaller
@@ -653,1510 +844,1575 @@ class HostService {
   // the mod gives each seated player whose pawn has hero 0 a hero with
   // SelectHero. Free-for-all seats players this
   // way whatever this says. Turning it off leaves players on their teams.
-  virtual std::expected<void, std::string> SetTeamSeating(
-      const SetTeamSeatingRequest& /*request*/) {
-    return std::unexpected("this host does not support SetTeamSeating");
-  }
+  virtual std::expected<void, std::string> SetTeamSeating(const SetTeamSeatingRequest& request) = 0;
 
-  // CreateModel places a model in the world, solid when the options ask.
-  // The world removes it when the world ends; stopping the mod removes it
-  // too.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateModel(
-      const objects::ModelOptions& /*request*/) {
-    return std::unexpected("this host does not support CreateModel");
-  }
+ protected:
+  ~SeatingCalls() = default;
+};
 
-  // CreateText places text that floats in the world.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateText(
-      const objects::TextOptions& /*request*/) {
-    return std::unexpected("this host does not support CreateText");
-  }
+// VoiceCalls are the Host calls the voice part of the host answers.
+class VoiceCalls {
+ public:
+  // SilenceVoice keeps every hero from speaking the named voice concepts,
+  // until called again. A hero still hears the game's other sounds. Stopping
+  // the mod lets them speak; a name the game does not know fails the call
+  // and the known ones still apply.
+  virtual std::expected<void, std::string> SilenceVoice(
+      const effects::SilenceVoiceRequest& request) = 0;
 
-  // CreateParticle starts a particle effect. Removing the object stops it
-  // and lets its end cap play out, unless the mod already stopped it, such as
-  // with the DestroyImmediately input; moving it moves the effect.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateParticle(
-      const objects::ParticleOptions& /*request*/) {
-    return std::unexpected("this host does not support CreateParticle");
-  }
+  // SilencePlayerVoice keeps the player's hero from speaking the named voice
+  // concepts until called again, on top of those silenced for everyone.
+  virtual std::expected<void, std::string> SilencePlayerVoice(
+      const effects::SilencePlayerVoiceRequest& request) = 0;
 
-  // CreateFog fills a box with tinted fog whose density fades across the
-  // box's boundary. Removing the object clears it; moving it moves the box.
-  virtual std::expected<objects::ObjectResponse, std::string> CreateFog(
-      const objects::FogOptions& /*request*/) {
-    return std::unexpected("this host does not support CreateFog");
-  }
+ protected:
+  ~VoiceCalls() = default;
+};
 
-  // MoveObject places the object at position, turning it to facing. The
-  // physics step pulls a solid model to its new place over one tick, so a
-  // model moved each frame strikes physics props such as the Hideout ball
-  // with its speed instead of passing through them.
-  virtual std::expected<void, std::string> MoveObject(
-      const objects::MoveObjectRequest& /*request*/) {
-    return std::unexpected("this host does not support MoveObject");
-  }
+// EffectsCalls are the Host calls the effects part of the host answers.
+class EffectsCalls {
+ public:
+  // ServerCommand runs one line at the server console, as if typed there. A
+  // line that sets a variable may set a development-only or cheat-protected
+  // one. A line that reaches the engine's controls for files, logging, the
+  // network or the process, or stores a command to run later, is refused with
+  // the name of the command.
+  virtual std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) = 0;
 
-  // SetText replaces a text object's words.
-  virtual std::expected<void, std::string> SetText(const objects::SetTextRequest& /*request*/) {
-    return std::unexpected("this host does not support SetText");
-  }
+  // Chat sends a server chat line to the player.
+  virtual std::expected<void, std::string> Chat(const effects::ChatRequest& request) = 0;
 
-  // SetObjectHidden hides the object from one player or shows it again.
-  // Other players still see it. A player who leaves sees every object when
-  // they return.
-  virtual std::expected<void, std::string> SetObjectHidden(
-      const objects::SetObjectHiddenRequest& /*request*/) {
-    return std::unexpected("this host does not support SetObjectHidden");
-  }
+  // CenterText shows text in the middle of the player's screen until it is
+  // replaced. Empty text clears it.
+  virtual std::expected<void, std::string> CenterText(
+      const effects::CenterTextRequest& request) = 0;
 
-  // ShowObjectOnlyTo sends the object only to the players with the listed
-  // server slots; every other client drops it, or never receives it when the
-  // call follows its creation in the same frame. With no players no client
-  // receives it. The list replaces any earlier one and follows the object
-  // when its entity changes. A player who leaves is taken off every list, so
-  // whoever joins in their slot does not receive the object. A removed object
-  // reaches no client while the engine retires its entity.
-  virtual std::expected<void, std::string> ShowObjectOnlyTo(
-      const objects::ShowObjectOnlyToRequest& /*request*/) {
-    return std::unexpected("this host does not support ShowObjectOnlyTo");
-  }
+  // Announce shows a game announcement with a title to the player.
+  virtual std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) = 0;
 
-  // ShowObjectToAll sends the object to every player again, undoing
-  // ShowObjectOnlyTo.
-  virtual std::expected<void, std::string> ShowObjectToAll(
-      const objects::ObjectRequest& /*request*/) {
-    return std::unexpected("this host does not support ShowObjectToAll");
-  }
+  // Heal restores health to the player's hero, up to its maximum.
+  virtual std::expected<void, std::string> Heal(const players::HealRequest& request) = 0;
 
-  // RemoveObject takes the object out of the world.
-  virtual std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& /*request*/) {
-    return std::unexpected("this host does not support RemoveObject");
-  }
+  // Sound plays a game sound event, such as Damage.Send.Crit, on the
+  // player's hero, and returns its ID. It follows the hero as it moves.
+  // Volume and pitch scale the sound, and listeners limit who hears it.
+  virtual std::expected<effects::SoundResponse, std::string> Sound(
+      const effects::SoundRequest& request) = 0;
 
-  // ObjectEntity returns the entity handle of a model or particle, as traces
-  // report it and particle anchors take it.
-  virtual std::expected<entities::EntityResponse, std::string> ObjectEntity(
-      const objects::ObjectRequest& /*request*/) {
-    return std::unexpected("this host does not support ObjectEntity");
-  }
+  // ScreenEffect plays a full-screen effect on the player's view. Effects of
+  // one kind stack. The player's hero must be alive.
+  virtual std::expected<void, std::string> ScreenEffect(
+      const effects::ScreenEffectRequest& request) = 0;
 
-  // AddBot adds a bot player and returns it. The bot leaves when the world
-  // ends or the mod stops.
-  virtual std::expected<players::BotResponse, std::string> AddBot(
-      const players::BotOptions& /*request*/) {
-    return std::unexpected("this host does not support AddBot");
-  }
-
-  // RemoveBot removes a bot the mod added.
-  virtual std::expected<void, std::string> RemoveBot(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support RemoveBot");
-  }
-
-  // BlockInput withholds buttons from every player's hero until called
-  // again, and the spectator buttons from a spectating player's commands.
-  // Stopping the mod releases them.
-  virtual std::expected<void, std::string> BlockInput(const InputRequest& /*request*/) {
-    return std::unexpected("this host does not support BlockInput");
-  }
-
-  // BlockPlayerInput withholds buttons from the player's hero until called
-  // again, and the spectator buttons from their commands while they
-  // spectate, on top of the block on everyone. Zero releases the player.
-  virtual std::expected<void, std::string> BlockPlayerInput(const PlayerInputRequest& /*request*/) {
-    return std::unexpected("this host does not support BlockPlayerInput");
-  }
-
-  // Press presses buttons at the player's next input, even through a block.
-  // A bot presses them as a player would.
-  virtual std::expected<void, std::string> Press(const PlayerInputRequest& /*request*/) {
-    return std::unexpected("this host does not support Press");
-  }
-
-  // WatchInput replaces the buttons whose presses and releases arrive as
-  // Input events. Watching does not withhold a press; block it with
-  // BlockInput.
-  virtual std::expected<void, std::string> WatchInput(const InputRequest& /*request*/) {
-    return std::unexpected("this host does not support WatchInput");
-  }
-
-  // RemapInput makes the from buttons act as the to buttons for every
-  // player's hero until called again; from reads as up. With repeat, a held
-  // from button uses the to ability again as soon as it is ready. A zero from
-  // stops remapping, and stopping the mod does too. BlockInput applies after
-  // the remap.
-  virtual std::expected<void, std::string> RemapInput(const RemapInputRequest& /*request*/) {
-    return std::unexpected("this host does not support RemapInput");
-  }
-
-  // Ui changes the interface the mod shows the player. The host keeps each
-  // player's tree until the mod stops or the player leaves.
-  virtual std::expected<void, std::string> Ui(const ui::UiRequest& /*request*/) {
-    return std::unexpected("this host does not support Ui");
-  }
-
-  // CallService calls method of a service the host provides outside Modlock,
-  // such as a game mode's match, and returns the service's answer. The
-  // service defines the payload's encoding.
-  virtual std::expected<ServiceReply, std::string> CallService(const ServiceCall& /*request*/) {
-    return std::unexpected("this host does not support CallService");
-  }
-
-  // StartServiceCall calls method of a service the host provides and
-  // returns at once with a number; the answer arrives in a later frame as a
-  // ServiceReplied event carrying that number. Every call ends once: with
-  // the reply, the service's refusal, a timeout or no provider at all. A
-  // service nobody provides is never asked. The host waits at most 30
-  // seconds, or the call's shorter timeout, and drops the mod's waiting
-  // calls when the mod stops or reloads. A service that answers at once
-  // answers this way too, in the next frame.
-  virtual std::expected<ServiceCallStarted, std::string> StartServiceCall(
-      const StartServiceCallRequest& /*request*/) {
-    return std::unexpected("this host does not support StartServiceCall");
-  }
-
-  // CreateEntity creates an entity the server knows by its designer name,
-  // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
-  // written before it spawns. The world removes it when the world ends;
-  // stopping the mod removes it too. It refuses an ability, item or weapon,
-  // which only a hero holds: GiveItem and ReplaceAbility give one. It refuses
-  // a class that runs console lines or loads scripts or entities past a mod's
-  // checks, such as point_servercommand, and key values that name a console
-  // line or a script, such as vscripts.
-  virtual std::expected<entities::EntityResponse, std::string> CreateEntity(
-      const entities::EntityOptions& /*request*/) {
-    return std::unexpected("this host does not support CreateEntity");
-  }
-
-  // FireInput sends an input to a live entity, as a map's output would, such
-  // as Skin with the integer 1. The value must have the type the input reads.
-  // It reports false once the entity is gone. It refuses AddOutput and the
-  // script inputs on every entity, and any input to an entity of a class
-  // CreateEntity refuses.
-  virtual std::expected<entities::AliveResponse, std::string> FireInput(
-      const entities::FireInputRequest& /*request*/) {
-    return std::unexpected("this host does not support FireInput");
-  }
-
-  // RemoveEntity takes an entity the mod created out of the world without
-  // rewards. It reports false when the entity was already gone.
-  virtual std::expected<entities::AliveResponse, std::string> RemoveEntity(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support RemoveEntity");
-  }
-
-  // ShowEntityOnlyTo sends an entity the mod created only to the players with
-  // the listed server slots; every other client drops it, or never receives
-  // it when the call follows its creation in the same frame. With no players
-  // no client receives it. The list replaces any earlier one. A player who
-  // leaves is taken off every list, so whoever joins in their slot does not
-  // receive the entity. The rule holds for an entity created with
-  // TransmitAlways too, but not for entities parented to it, which need their
-  // own call. Removing the entity, the world ending or the mod stopping drops
-  // the rule.
-  virtual std::expected<void, std::string> ShowEntityOnlyTo(
-      const entities::ShowEntityOnlyToRequest& /*request*/) {
-    return std::unexpected("this host does not support ShowEntityOnlyTo");
-  }
-
-  // ShowEntityToAll sends an entity the mod created to every player the game
-  // would send it to again, undoing ShowEntityOnlyTo.
-  virtual std::expected<void, std::string> ShowEntityToAll(
-      const entities::EntityRequest& /*request*/) {
-    return std::unexpected("this host does not support ShowEntityToAll");
-  }
-
-  // SpawnNpc adds a unit that is not a player, such as a trooper, as
-  // CreateEntity does, then sets its health and lane. It thinks from the next
-  // frame. The world removes it when the world ends; stopping
-  // the mod removes it too.
-  virtual std::expected<npcs::NpcResponse, std::string> SpawnNpc(
-      const npcs::NpcOptions& /*request*/) {
-    return std::unexpected("this host does not support SpawnNpc");
-  }
-
-  // ReadNpc returns the unit's state, or nothing once it is gone.
-  virtual std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
-      const npcs::NpcRequest& /*request*/) {
-    return std::unexpected("this host does not support ReadNpc");
-  }
-
-  // MoveNpc places the unit and sets its velocity, which drives its walk
-  // animation. It sets the pose without a teleport, which would reset the
-  // unit's animation, so a mode can steer its units every frame. It reports
-  // false once the unit is gone.
-  virtual std::expected<entities::AliveResponse, std::string> MoveNpc(
-      const npcs::MoveNpcRequest& /*request*/) {
-    return std::unexpected("this host does not support MoveNpc");
-  }
-
-  // SetNpcHealth sets the unit's health, and its maximum when given. It
-  // reports false once the unit is gone.
-  virtual std::expected<entities::AliveResponse, std::string> SetNpcHealth(
-      const npcs::SetNpcHealthRequest& /*request*/) {
-    return std::unexpected("this host does not support SetNpcHealth");
-  }
-
-  // RemoveNpc takes a unit the mod spawned out of the world without rewards.
-  // It reports false when the unit was already gone.
-  virtual std::expected<entities::AliveResponse, std::string> RemoveNpc(
-      const npcs::NpcRequest& /*request*/) {
-    return std::unexpected("this host does not support RemoveNpc");
-  }
-
-  // CreatePickup places an urn, which a hero carries once collected, or a
-  // movement buff. Stopping the mod removes it.
-  virtual std::expected<entities::PickupResponse, std::string> CreatePickup(
-      const entities::CreatePickupRequest& /*request*/) {
-    return std::unexpected("this host does not support CreatePickup");
-  }
-
-  // PickupPresent reports whether the pickup still lies in the world,
-  // uncollected.
-  virtual std::expected<entities::AliveResponse, std::string> PickupPresent(
-      const entities::PickupRequest& /*request*/) {
-    return std::unexpected("this host does not support PickupPresent");
-  }
-
-  // RemovePickup takes the pickup out of the world. It reports false when a
-  // player had collected it.
-  virtual std::expected<entities::AliveResponse, std::string> RemovePickup(
-      const entities::PickupRequest& /*request*/) {
-    return std::unexpected("this host does not support RemovePickup");
-  }
-
-  // FindEntities returns the handle of every live entity of a class, such as
-  // zip_line_node.
-  virtual std::expected<entities::EntitiesResponse, std::string> FindEntities(
-      const entities::FindEntitiesRequest& /*request*/) {
-    return std::unexpected("this host does not support FindEntities");
-  }
-
-  // FindEntitiesByName returns the handle of every live entity with a name,
-  // the targetname a map or the targetname key value of CreateEntity gave it.
-  virtual std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
-      const entities::FindEntitiesByNameRequest& /*request*/) {
-    return std::unexpected("this host does not support FindEntitiesByName");
-  }
-
-  // RemoveEntities removes every entity of a class, such as npc_trooper,
-  // without rewards, and returns how many it removed.
-  virtual std::expected<entities::CountResponse, std::string> RemoveEntities(
-      const entities::RemoveEntitiesRequest& /*request*/) {
-    return std::unexpected("this host does not support RemoveEntities");
-  }
-
-  // ClearMap removes the map's own units and objectives, such as troopers,
-  // guardians and walkers, so a mode can use the map as an arena.
-  virtual std::expected<void, std::string> ClearMap() {
-    return std::unexpected("this host does not support ClearMap");
-  }
+  // ClearScreenEffect ends every running instance of effect on the player's
+  // view.
+  virtual std::expected<void, std::string> ClearScreenEffect(
+      const effects::ClearScreenEffectRequest& request) = 0;
 
   // Damage deals a hit as the game would. The mod's Damage events do not
   // include its own hits.
-  virtual std::expected<void, std::string> Damage(const combat::HitOptions& /*request*/) {
-    return std::unexpected("this host does not support Damage");
-  }
+  virtual std::expected<void, std::string> Damage(const combat::HitOptions& request) = 0;
 
   // KillEntity forces a hero or unit to die, optionally crediting an attacker.
   // Already dead victims succeed without another death or reward.
-  virtual std::expected<void, std::string> KillEntity(const combat::KillOptions& /*request*/) {
-    return std::unexpected("this host does not support KillEntity");
-  }
+  virtual std::expected<void, std::string> KillEntity(const combat::KillOptions& request) = 0;
 
   // Trace returns where a line first hits something, or nothing when it hits
   // nothing or the world's collision is not ready.
   virtual std::expected<combat::TraceResponse, std::string> Trace(
-      const combat::TraceOptions& /*request*/) {
-    return std::unexpected("this host does not support Trace");
-  }
-
-  // RestoreNpcs replaces the map's lane units and objectives with targets
-  // over the next frames. Units of these classes not in the list are
-  // removed, structures that match are kept, and moving units are spawned
-  // again in place. An NpcsRestored event reports when every target stands
-  // as its own unit, or why not. A new call replaces the running one.
-  virtual std::expected<void, std::string> RestoreNpcs(
-      const npcs::RestoreNpcsRequest& /*request*/) {
-    return std::unexpected("this host does not support RestoreNpcs");
-  }
-
-  // Pause stops or resumes the game clock, as the pause command would.
-  // Stopping the mod resumes it.
-  virtual std::expected<void, std::string> Pause(const PauseRequest& /*request*/) {
-    return std::unexpected("this host does not support Pause");
-  }
-
-  // MatchClock returns the match time in seconds that the scoreboard shows.
-  virtual std::expected<MatchClockResponse, std::string> MatchClock() {
-    return std::unexpected("this host does not support MatchClock");
-  }
-
-  // HoldMatchClock keeps the match time at seconds every frame until called
-  // again; omitted seconds let it run.
-  virtual std::expected<void, std::string> HoldMatchClock(
-      const HoldMatchClockRequest& /*request*/) {
-    return std::unexpected("this host does not support HoldMatchClock");
-  }
-
-  // Rift reads the Rift objective's state.
-  virtual std::expected<RiftResponse, std::string> Rift() {
-    return std::unexpected("this host does not support Rift");
-  }
-
-  // StartRift opens the Rift objective at position now.
-  virtual std::expected<void, std::string> StartRift(const StartRiftRequest& /*request*/) {
-    return std::unexpected("this host does not support StartRift");
-  }
-
-  // MoveEntity places any entity, such as a projectile, and replaces its
-  // facing and motion when given. Without a position it leaves the entity
-  // where it is, so a velocity alone steers a body the physics simulates, such
-  // as a prop_physics, which carries the motion on against the world.
-  virtual std::expected<void, std::string> MoveEntity(
-      const entities::MoveEntityRequest& /*request*/) {
-    return std::unexpected("this host does not support MoveEntity");
-  }
-
-  // PushEntity adds a velocity and an angular velocity to any entity. On a
-  // body the physics simulates, such as a prop_physics, it acts like an
-  // impulse that the simulation carries on.
-  virtual std::expected<void, std::string> PushEntity(
-      const entities::PushEntityRequest& /*request*/) {
-    return std::unexpected("this host does not support PushEntity");
-  }
+      const combat::TraceOptions& request) = 0;
 
   // EmitSound plays one game sound on any entity, such as a projectile, and
   // returns its ID. Volume and pitch scale the sound, and listeners limit who
   // hears it.
   virtual std::expected<effects::SoundResponse, std::string> EmitSound(
-      const effects::EmitSoundRequest& /*request*/) {
-    return std::unexpected("this host does not support EmitSound");
-  }
+      const effects::EmitSoundRequest& request) = 0;
 
   // AdjustSound changes the volume or pitch of a sound Sound or EmitSound
   // started, while it plays.
   virtual std::expected<void, std::string> AdjustSound(
-      const effects::AdjustSoundRequest& /*request*/) {
-    return std::unexpected("this host does not support AdjustSound");
-  }
+      const effects::AdjustSoundRequest& request) = 0;
 
   // StopSound stops a sound Sound or EmitSound started. A sound that already
   // ended is not an error.
-  virtual std::expected<void, std::string> StopSound(const effects::StopSoundRequest& /*request*/) {
-    return std::unexpected("this host does not support StopSound");
-  }
+  virtual std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) = 0;
 
-  // Kill kills a player's hero, crediting no one.
-  virtual std::expected<void, std::string> Kill(const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Kill");
-  }
-
-  // SetVelocity replaces the motion of a player's hero without moving it.
-  virtual std::expected<void, std::string> SetVelocity(
-      const movement::SetVelocityRequest& /*request*/) {
-    return std::unexpected("this host does not support SetVelocity");
-  }
-
-  // Buttons returns the buttons a player holds, as Buttons bits, while the
-  // player is alive or dead.
-  virtual std::expected<ButtonsResponse, std::string> Buttons(
-      const players::PlayerRequest& /*request*/) {
-    return std::unexpected("this host does not support Buttons");
-  }
-
-  // WatchMovement adds a player's hero to the movement samples of each Frame
-  // event on a new tick, or removes it.
-  virtual std::expected<void, std::string> WatchMovement(
-      const movement::WatchMovementRequest& /*request*/) {
-    return std::unexpected("this host does not support WatchMovement");
-  }
-
-  // WatchControllers adds a player's controllers to the controller lists of
-  // each Frame event, or removes them. The player's client reads the devices
-  // only while some mod watches them, and until it answers the player is
-  // listed with no stream.
-  virtual std::expected<void, std::string> WatchControllers(
-      const controllers::WatchControllersRequest& /*request*/) {
-    return std::unexpected("this host does not support WatchControllers");
-  }
-
-  // WatchProjectiles reports the projectiles with these designer names, such
-  // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
-  // call replaces the list; an empty list stops watching.
-  virtual std::expected<void, std::string> WatchProjectiles(
-      const combat::ProjectileOptions& /*request*/) {
-    return std::unexpected("this host does not support WatchProjectiles");
-  }
-
-  // HoldEntityModifier keeps a modifier, named as GiveModifier names it, on a
-  // live entity with no expiry, giving it back whenever the game removes it
-  // while the entity lives. The hold ends with the entity or when active is
-  // false. Releasing leaves the entity's current modifier; the mod stopping
-  // removes it.
-  virtual std::expected<void, std::string> HoldEntityModifier(
-      const abilities::HoldEntityModifierRequest& /*request*/) {
-    return std::unexpected("this host does not support HoldEntityModifier");
-  }
-
-  // GiveEntityModifier gives a live entity, such as Npc.entity or Pawn.entity,
-  // a modifier for seconds. An ability's modifier, named
-  // "<ability>/<modifier>", resolves its parent ability subclass even when the
-  // entity owns no abilities.
-  virtual std::expected<void, std::string> GiveEntityModifier(
-      const abilities::GiveEntityModifierRequest& /*request*/) {
-    return std::unexpected("this host does not support GiveEntityModifier");
-  }
-
-  // Dispatch runs call on the method it names and returns the reply.
-  Reply Dispatch(const Call& call) {
-    using Handler = Reply (*)(HostService&, const std::string&);
-    static const std::unordered_map<std::string_view, Handler> handlers = {
-        {"Log",
-         [](HostService& host, const std::string& bytes) {
-           LogRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Log request is malformed");
-           }
-           return detail::Answer(host.Log(request));
-         }},
-        {"ServerCommand",
-         [](HostService& host, const std::string& bytes) {
-           ServerCommandRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ServerCommand request is malformed");
-           }
-           return detail::Answer(host.ServerCommand(request));
-         }},
-        {"Chat",
-         [](HostService& host, const std::string& bytes) {
-           effects::ChatRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Chat request is malformed");
-           }
-           return detail::Answer(host.Chat(request));
-         }},
-        {"CenterText",
-         [](HostService& host, const std::string& bytes) {
-           effects::CenterTextRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CenterText request is malformed");
-           }
-           return detail::Answer(host.CenterText(request));
-         }},
-        {"Announce",
-         [](HostService& host, const std::string& bytes) {
-           effects::AnnounceRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Announce request is malformed");
-           }
-           return detail::Answer(host.Announce(request));
-         }},
-        {"Precache",
-         [](HostService& host, const std::string& bytes) {
-           PrecacheOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Precache request is malformed");
-           }
-           return detail::Answer(host.Precache(request));
-         }},
-        {"Players",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.Players());
-         }},
-        {"Pawn",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Pawn request is malformed");
-           }
-           return detail::Answer(host.Pawn(request));
-         }},
-        {"Pawns",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.Pawns());
-         }},
-        {"PlayerSetting",
-         [](HostService& host, const std::string& bytes) {
-           settings::PlayerSettingRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the PlayerSetting request is malformed");
-           }
-           return detail::Answer(host.PlayerSetting(request));
-         }},
-        {"SetPlayerSetting",
-         [](HostService& host, const std::string& bytes) {
-           settings::SetPlayerSettingRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetPlayerSetting request is malformed");
-           }
-           return detail::Answer(host.SetPlayerSetting(request));
-         }},
-        {"AddMetric",
-         [](HostService& host, const std::string& bytes) {
-           metrics::AddMetricRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the AddMetric request is malformed");
-           }
-           return detail::Answer(host.AddMetric(request));
-         }},
-        {"ReadFile",
-         [](HostService& host, const std::string& bytes) {
-           ReadFileRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadFile request is malformed");
-           }
-           return detail::Answer(host.ReadFile(request));
-         }},
-        {"ReadFileBytes",
-         [](HostService& host, const std::string& bytes) {
-           ReadFileRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadFileBytes request is malformed");
-           }
-           return detail::Answer(host.ReadFileBytes(request));
-         }},
-        {"WriteFile",
-         [](HostService& host, const std::string& bytes) {
-           WriteFileRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WriteFile request is malformed");
-           }
-           return detail::Answer(host.WriteFile(request));
-         }},
-        {"HoldReload",
-         [](HostService& host, const std::string& bytes) {
-           abilities::HoldReloadRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HoldReload request is malformed");
-           }
-           return detail::Answer(host.HoldReload(request));
-         }},
-        {"Handoff",
-         [](HostService& host, const std::string& bytes) {
-           HandoffRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Handoff request is malformed");
-           }
-           return detail::Answer(host.Handoff(request));
-         }},
-        {"HandedOff",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.HandedOff());
-         }},
-        {"PlayerHandoff",
-         [](HostService& host, const std::string& bytes) {
-           HandoffPlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the PlayerHandoff request is malformed");
-           }
-           return detail::Answer(host.PlayerHandoff(request));
-         }},
-        {"PlayerHandedOff",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the PlayerHandedOff request is malformed");
-           }
-           return detail::Answer(host.PlayerHandedOff(request));
-         }},
-        {"SelectHero",
-         [](HostService& host, const std::string& bytes) {
-           players::SelectHeroRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SelectHero request is malformed");
-           }
-           return detail::Answer(host.SelectHero(request));
-         }},
-        {"Spectate",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Spectate request is malformed");
-           }
-           return detail::Answer(host.Spectate(request));
-         }},
-        {"Watch",
-         [](HostService& host, const std::string& bytes) {
-           players::WatchRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Watch request is malformed");
-           }
-           return detail::Answer(host.Watch(request));
-         }},
-        {"FreeCamera",
-         [](HostService& host, const std::string& bytes) {
-           players::FreeCameraRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the FreeCamera request is malformed");
-           }
-           return detail::Answer(host.FreeCamera(request));
-         }},
-        {"MoveCamera",
-         [](HostService& host, const std::string& bytes) {
-           players::CameraOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the MoveCamera request is malformed");
-           }
-           return detail::Answer(host.MoveCamera(request));
-         }},
-        {"ClearCamera",
-         [](HostService& host, const std::string& bytes) {
-           players::ClearCameraRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ClearCamera request is malformed");
-           }
-           return detail::Answer(host.ClearCamera(request));
-         }},
-        {"Unwatch",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Unwatch request is malformed");
-           }
-           return detail::Answer(host.Unwatch(request));
-         }},
-        {"Respawn",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Respawn request is malformed");
-           }
-           return detail::Answer(host.Respawn(request));
-         }},
-        {"ChangeTeam",
-         [](HostService& host, const std::string& bytes) {
-           players::ChangeTeamRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ChangeTeam request is malformed");
-           }
-           return detail::Answer(host.ChangeTeam(request));
-         }},
-        {"ClearItems",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ClearItems request is malformed");
-           }
-           return detail::Answer(host.ClearItems(request));
-         }},
-        {"Freeze",
-         [](HostService& host, const std::string& bytes) {
-           players::FreezeRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Freeze request is malformed");
-           }
-           return detail::Answer(host.Freeze(request));
-         }},
-        {"RestoreStamina",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RestoreStamina request is malformed");
-           }
-           return detail::Answer(host.RestoreStamina(request));
-         }},
-        {"SetStamina",
-         [](HostService& host, const std::string& bytes) {
-           players::SetStaminaRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetStamina request is malformed");
-           }
-           return detail::Answer(host.SetStamina(request));
-         }},
-        {"RefreshAbility",
-         [](HostService& host, const std::string& bytes) {
-           abilities::RefreshAbilityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RefreshAbility request is malformed");
-           }
-           return detail::Answer(host.RefreshAbility(request));
-         }},
-        {"Abilities",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Abilities request is malformed");
-           }
-           return detail::Answer(host.Abilities(request));
-         }},
-        {"SetAbility",
-         [](HostService& host, const std::string& bytes) {
-           abilities::AbilityOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetAbility request is malformed");
-           }
-           return detail::Answer(host.SetAbility(request));
-         }},
-        {"GiveItem",
-         [](HostService& host, const std::string& bytes) {
-           abilities::GiveItemRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the GiveItem request is malformed");
-           }
-           return detail::Answer(host.GiveItem(request));
-         }},
-        {"BuyItem",
-         [](HostService& host, const std::string& bytes) {
-           abilities::BuyItemRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the BuyItem request is malformed");
-           }
-           return detail::Answer(host.BuyItem(request));
-         }},
-        {"TrainAbility",
-         [](HostService& host, const std::string& bytes) {
-           abilities::TrainAbilityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the TrainAbility request is malformed");
-           }
-           return detail::Answer(host.TrainAbility(request));
-         }},
-        {"HeroBuild",
-         [](HostService& host, const std::string& bytes) {
-           abilities::HeroBuildRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HeroBuild request is malformed");
-           }
-           return detail::Answer(host.HeroBuild(request));
-         }},
-        {"ReplaceAbility",
-         [](HostService& host, const std::string& bytes) {
-           abilities::ReplaceAbilityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReplaceAbility request is malformed");
-           }
-           return detail::Answer(host.ReplaceAbility(request));
-         }},
-        {"HoldModifier",
-         [](HostService& host, const std::string& bytes) {
-           abilities::HoldModifierRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HoldModifier request is malformed");
-           }
-           return detail::Answer(host.HoldModifier(request));
-         }},
-        {"GiveModifier",
-         [](HostService& host, const std::string& bytes) {
-           abilities::GiveModifierRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the GiveModifier request is malformed");
-           }
-           return detail::Answer(host.GiveModifier(request));
-         }},
-        {"Teleport",
-         [](HostService& host, const std::string& bytes) {
-           movement::TeleportRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Teleport request is malformed");
-           }
-           return detail::Answer(host.Teleport(request));
-         }},
-        {"Zipline",
-         [](HostService& host, const std::string& bytes) {
-           movement::ZiplineRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Zipline request is malformed");
-           }
-           return detail::Answer(host.Zipline(request));
-         }},
-        {"MovePlayer",
-         [](HostService& host, const std::string& bytes) {
-           movement::MovePlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the MovePlayer request is malformed");
-           }
-           return detail::Answer(host.MovePlayer(request));
-         }},
-        {"Steer",
-         [](HostService& host, const std::string& bytes) {
-           movement::SteerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Steer request is malformed");
-           }
-           return detail::Answer(host.Steer(request));
-         }},
-        {"Drive",
-         [](HostService& host, const std::string& bytes) {
-           movement::DriveRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Drive request is malformed");
-           }
-           return detail::Answer(host.Drive(request));
-         }},
-        {"AdjustSouls",
-         [](HostService& host, const std::string& bytes) {
-           players::AdjustSoulsRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the AdjustSouls request is malformed");
-           }
-           return detail::Answer(host.AdjustSouls(request));
-         }},
-        {"AdjustAbilityPoints",
-         [](HostService& host, const std::string& bytes) {
-           players::AdjustAbilityPointsRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the AdjustAbilityPoints request is malformed");
-           }
-           return detail::Answer(host.AdjustAbilityPoints(request));
-         }},
-        {"StartingSouls",
-         [](HostService& host, const std::string& bytes) {
-           players::StartingSoulsRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the StartingSouls request is malformed");
-           }
-           return detail::Answer(host.StartingSouls(request));
-         }},
-        {"ResetHero",
-         [](HostService& host, const std::string& bytes) {
-           players::ResetHeroRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ResetHero request is malformed");
-           }
-           return detail::Answer(host.ResetHero(request));
-         }},
-        {"Heal",
-         [](HostService& host, const std::string& bytes) {
-           players::HealRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Heal request is malformed");
-           }
-           return detail::Answer(host.Heal(request));
-         }},
-        {"Sound",
-         [](HostService& host, const std::string& bytes) {
-           effects::SoundRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Sound request is malformed");
-           }
-           return detail::Answer(host.Sound(request));
-         }},
-        {"RestoreHero",
-         [](HostService& host, const std::string& bytes) {
-           players::RestoreHeroRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RestoreHero request is malformed");
-           }
-           return detail::Answer(host.RestoreHero(request));
-         }},
-        {"ScreenEffect",
-         [](HostService& host, const std::string& bytes) {
-           effects::ScreenEffectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ScreenEffect request is malformed");
-           }
-           return detail::Answer(host.ScreenEffect(request));
-         }},
-        {"ClearScreenEffect",
-         [](HostService& host, const std::string& bytes) {
-           effects::ClearScreenEffectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ClearScreenEffect request is malformed");
-           }
-           return detail::Answer(host.ClearScreenEffect(request));
-         }},
-        {"SilenceVoice",
-         [](HostService& host, const std::string& bytes) {
-           effects::SilenceVoiceRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SilenceVoice request is malformed");
-           }
-           return detail::Answer(host.SilenceVoice(request));
-         }},
-        {"SilencePlayerVoice",
-         [](HostService& host, const std::string& bytes) {
-           effects::SilencePlayerVoiceRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SilencePlayerVoice request is malformed");
-           }
-           return detail::Answer(host.SilencePlayerVoice(request));
-         }},
-        {"ReadField",
-         [](HostService& host, const std::string& bytes) {
-           fields::ReadFieldRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadField request is malformed");
-           }
-           return detail::Answer(host.ReadField(request));
-         }},
-        {"ReadModifierField",
-         [](HostService& host, const std::string& bytes) {
-           fields::ReadModifierFieldRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadModifierField request is malformed");
-           }
-           return detail::Answer(host.ReadModifierField(request));
-         }},
-        {"WriteField",
-         [](HostService& host, const std::string& bytes) {
-           fields::WriteFieldRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WriteField request is malformed");
-           }
-           return detail::Answer(host.WriteField(request));
-         }},
-        {"ReadFieldList",
-         [](HostService& host, const std::string& bytes) {
-           fields::ReadFieldRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadFieldList request is malformed");
-           }
-           return detail::Answer(host.ReadFieldList(request));
-         }},
-        {"WriteFieldList",
-         [](HostService& host, const std::string& bytes) {
-           fields::WriteFieldListRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WriteFieldList request is malformed");
-           }
-           return detail::Answer(host.WriteFieldList(request));
-         }},
-        {"EntityClass",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the EntityClass request is malformed");
-           }
-           return detail::Answer(host.EntityClass(request));
-         }},
-        {"EntityName",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the EntityName request is malformed");
-           }
-           return detail::Answer(host.EntityName(request));
-         }},
-        {"EntityPosition",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the EntityPosition request is malformed");
-           }
-           return detail::Answer(host.EntityPosition(request));
-         }},
-        {"ModifierState",
-         [](HostService& host, const std::string& bytes) {
-           abilities::ModifierStateRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ModifierState request is malformed");
-           }
-           return detail::Answer(host.ModifierState(request));
-         }},
-        {"Modifiers",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Modifiers request is malformed");
-           }
-           return detail::Answer(host.Modifiers(request));
-         }},
-        {"HoldModifierState",
-         [](HostService& host, const std::string& bytes) {
-           abilities::HoldModifierStateRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HoldModifierState request is malformed");
-           }
-           return detail::Answer(host.HoldModifierState(request));
-         }},
-        {"SetFreeForAll",
-         [](HostService& host, const std::string& bytes) {
-           SetFreeForAllRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetFreeForAll request is malformed");
-           }
-           return detail::Answer(host.SetFreeForAll(request));
-         }},
-        {"SetTeamSeating",
-         [](HostService& host, const std::string& bytes) {
-           SetTeamSeatingRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetTeamSeating request is malformed");
-           }
-           return detail::Answer(host.SetTeamSeating(request));
-         }},
-        {"CreateModel",
-         [](HostService& host, const std::string& bytes) {
-           objects::ModelOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreateModel request is malformed");
-           }
-           return detail::Answer(host.CreateModel(request));
-         }},
-        {"CreateText",
-         [](HostService& host, const std::string& bytes) {
-           objects::TextOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreateText request is malformed");
-           }
-           return detail::Answer(host.CreateText(request));
-         }},
-        {"CreateParticle",
-         [](HostService& host, const std::string& bytes) {
-           objects::ParticleOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreateParticle request is malformed");
-           }
-           return detail::Answer(host.CreateParticle(request));
-         }},
-        {"CreateFog",
-         [](HostService& host, const std::string& bytes) {
-           objects::FogOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreateFog request is malformed");
-           }
-           return detail::Answer(host.CreateFog(request));
-         }},
-        {"MoveObject",
-         [](HostService& host, const std::string& bytes) {
-           objects::MoveObjectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the MoveObject request is malformed");
-           }
-           return detail::Answer(host.MoveObject(request));
-         }},
-        {"SetText",
-         [](HostService& host, const std::string& bytes) {
-           objects::SetTextRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetText request is malformed");
-           }
-           return detail::Answer(host.SetText(request));
-         }},
-        {"SetObjectHidden",
-         [](HostService& host, const std::string& bytes) {
-           objects::SetObjectHiddenRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetObjectHidden request is malformed");
-           }
-           return detail::Answer(host.SetObjectHidden(request));
-         }},
-        {"ShowObjectOnlyTo",
-         [](HostService& host, const std::string& bytes) {
-           objects::ShowObjectOnlyToRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ShowObjectOnlyTo request is malformed");
-           }
-           return detail::Answer(host.ShowObjectOnlyTo(request));
-         }},
-        {"ShowObjectToAll",
-         [](HostService& host, const std::string& bytes) {
-           objects::ObjectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ShowObjectToAll request is malformed");
-           }
-           return detail::Answer(host.ShowObjectToAll(request));
-         }},
-        {"RemoveObject",
-         [](HostService& host, const std::string& bytes) {
-           objects::ObjectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemoveObject request is malformed");
-           }
-           return detail::Answer(host.RemoveObject(request));
-         }},
-        {"ObjectEntity",
-         [](HostService& host, const std::string& bytes) {
-           objects::ObjectRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ObjectEntity request is malformed");
-           }
-           return detail::Answer(host.ObjectEntity(request));
-         }},
-        {"AddBot",
-         [](HostService& host, const std::string& bytes) {
-           players::BotOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the AddBot request is malformed");
-           }
-           return detail::Answer(host.AddBot(request));
-         }},
-        {"RemoveBot",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemoveBot request is malformed");
-           }
-           return detail::Answer(host.RemoveBot(request));
-         }},
-        {"BlockInput",
-         [](HostService& host, const std::string& bytes) {
-           InputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the BlockInput request is malformed");
-           }
-           return detail::Answer(host.BlockInput(request));
-         }},
-        {"BlockPlayerInput",
-         [](HostService& host, const std::string& bytes) {
-           PlayerInputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the BlockPlayerInput request is malformed");
-           }
-           return detail::Answer(host.BlockPlayerInput(request));
-         }},
-        {"Press",
-         [](HostService& host, const std::string& bytes) {
-           PlayerInputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Press request is malformed");
-           }
-           return detail::Answer(host.Press(request));
-         }},
-        {"WatchInput",
-         [](HostService& host, const std::string& bytes) {
-           InputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WatchInput request is malformed");
-           }
-           return detail::Answer(host.WatchInput(request));
-         }},
-        {"RemapInput",
-         [](HostService& host, const std::string& bytes) {
-           RemapInputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemapInput request is malformed");
-           }
-           return detail::Answer(host.RemapInput(request));
-         }},
-        {"Ui",
-         [](HostService& host, const std::string& bytes) {
-           ui::UiRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Ui request is malformed");
-           }
-           return detail::Answer(host.Ui(request));
-         }},
-        {"CallService",
-         [](HostService& host, const std::string& bytes) {
-           ServiceCall request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CallService request is malformed");
-           }
-           return detail::Answer(host.CallService(request));
-         }},
-        {"StartServiceCall",
-         [](HostService& host, const std::string& bytes) {
-           StartServiceCallRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the StartServiceCall request is malformed");
-           }
-           return detail::Answer(host.StartServiceCall(request));
-         }},
-        {"CreateEntity",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreateEntity request is malformed");
-           }
-           return detail::Answer(host.CreateEntity(request));
-         }},
-        {"FireInput",
-         [](HostService& host, const std::string& bytes) {
-           entities::FireInputRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the FireInput request is malformed");
-           }
-           return detail::Answer(host.FireInput(request));
-         }},
-        {"RemoveEntity",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemoveEntity request is malformed");
-           }
-           return detail::Answer(host.RemoveEntity(request));
-         }},
-        {"ShowEntityOnlyTo",
-         [](HostService& host, const std::string& bytes) {
-           entities::ShowEntityOnlyToRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ShowEntityOnlyTo request is malformed");
-           }
-           return detail::Answer(host.ShowEntityOnlyTo(request));
-         }},
-        {"ShowEntityToAll",
-         [](HostService& host, const std::string& bytes) {
-           entities::EntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ShowEntityToAll request is malformed");
-           }
-           return detail::Answer(host.ShowEntityToAll(request));
-         }},
-        {"SpawnNpc",
-         [](HostService& host, const std::string& bytes) {
-           npcs::NpcOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SpawnNpc request is malformed");
-           }
-           return detail::Answer(host.SpawnNpc(request));
-         }},
-        {"ReadNpc",
-         [](HostService& host, const std::string& bytes) {
-           npcs::NpcRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the ReadNpc request is malformed");
-           }
-           return detail::Answer(host.ReadNpc(request));
-         }},
-        {"MoveNpc",
-         [](HostService& host, const std::string& bytes) {
-           npcs::MoveNpcRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the MoveNpc request is malformed");
-           }
-           return detail::Answer(host.MoveNpc(request));
-         }},
-        {"SetNpcHealth",
-         [](HostService& host, const std::string& bytes) {
-           npcs::SetNpcHealthRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetNpcHealth request is malformed");
-           }
-           return detail::Answer(host.SetNpcHealth(request));
-         }},
-        {"RemoveNpc",
-         [](HostService& host, const std::string& bytes) {
-           npcs::NpcRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemoveNpc request is malformed");
-           }
-           return detail::Answer(host.RemoveNpc(request));
-         }},
-        {"CreatePickup",
-         [](HostService& host, const std::string& bytes) {
-           entities::CreatePickupRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the CreatePickup request is malformed");
-           }
-           return detail::Answer(host.CreatePickup(request));
-         }},
-        {"PickupPresent",
-         [](HostService& host, const std::string& bytes) {
-           entities::PickupRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the PickupPresent request is malformed");
-           }
-           return detail::Answer(host.PickupPresent(request));
-         }},
-        {"RemovePickup",
-         [](HostService& host, const std::string& bytes) {
-           entities::PickupRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemovePickup request is malformed");
-           }
-           return detail::Answer(host.RemovePickup(request));
-         }},
-        {"FindEntities",
-         [](HostService& host, const std::string& bytes) {
-           entities::FindEntitiesRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the FindEntities request is malformed");
-           }
-           return detail::Answer(host.FindEntities(request));
-         }},
-        {"FindEntitiesByName",
-         [](HostService& host, const std::string& bytes) {
-           entities::FindEntitiesByNameRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the FindEntitiesByName request is malformed");
-           }
-           return detail::Answer(host.FindEntitiesByName(request));
-         }},
-        {"RemoveEntities",
-         [](HostService& host, const std::string& bytes) {
-           entities::RemoveEntitiesRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RemoveEntities request is malformed");
-           }
-           return detail::Answer(host.RemoveEntities(request));
-         }},
-        {"ClearMap",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.ClearMap());
-         }},
-        {"Damage",
-         [](HostService& host, const std::string& bytes) {
-           combat::HitOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Damage request is malformed");
-           }
-           return detail::Answer(host.Damage(request));
-         }},
-        {"KillEntity",
-         [](HostService& host, const std::string& bytes) {
-           combat::KillOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the KillEntity request is malformed");
-           }
-           return detail::Answer(host.KillEntity(request));
-         }},
-        {"Trace",
-         [](HostService& host, const std::string& bytes) {
-           combat::TraceOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Trace request is malformed");
-           }
-           return detail::Answer(host.Trace(request));
-         }},
-        {"RestoreNpcs",
-         [](HostService& host, const std::string& bytes) {
-           npcs::RestoreNpcsRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the RestoreNpcs request is malformed");
-           }
-           return detail::Answer(host.RestoreNpcs(request));
-         }},
-        {"Pause",
-         [](HostService& host, const std::string& bytes) {
-           PauseRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Pause request is malformed");
-           }
-           return detail::Answer(host.Pause(request));
-         }},
-        {"MatchClock",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.MatchClock());
-         }},
-        {"HoldMatchClock",
-         [](HostService& host, const std::string& bytes) {
-           HoldMatchClockRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HoldMatchClock request is malformed");
-           }
-           return detail::Answer(host.HoldMatchClock(request));
-         }},
-        {"Rift",
-         [](HostService& host, const std::string& bytes) {
-           static_cast<void>(bytes);
-           return detail::Answer(host.Rift());
-         }},
-        {"StartRift",
-         [](HostService& host, const std::string& bytes) {
-           StartRiftRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the StartRift request is malformed");
-           }
-           return detail::Answer(host.StartRift(request));
-         }},
-        {"MoveEntity",
-         [](HostService& host, const std::string& bytes) {
-           entities::MoveEntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the MoveEntity request is malformed");
-           }
-           return detail::Answer(host.MoveEntity(request));
-         }},
-        {"PushEntity",
-         [](HostService& host, const std::string& bytes) {
-           entities::PushEntityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the PushEntity request is malformed");
-           }
-           return detail::Answer(host.PushEntity(request));
-         }},
-        {"EmitSound",
-         [](HostService& host, const std::string& bytes) {
-           effects::EmitSoundRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the EmitSound request is malformed");
-           }
-           return detail::Answer(host.EmitSound(request));
-         }},
-        {"AdjustSound",
-         [](HostService& host, const std::string& bytes) {
-           effects::AdjustSoundRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the AdjustSound request is malformed");
-           }
-           return detail::Answer(host.AdjustSound(request));
-         }},
-        {"StopSound",
-         [](HostService& host, const std::string& bytes) {
-           effects::StopSoundRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the StopSound request is malformed");
-           }
-           return detail::Answer(host.StopSound(request));
-         }},
-        {"Kill",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Kill request is malformed");
-           }
-           return detail::Answer(host.Kill(request));
-         }},
-        {"SetVelocity",
-         [](HostService& host, const std::string& bytes) {
-           movement::SetVelocityRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the SetVelocity request is malformed");
-           }
-           return detail::Answer(host.SetVelocity(request));
-         }},
-        {"Buttons",
-         [](HostService& host, const std::string& bytes) {
-           players::PlayerRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the Buttons request is malformed");
-           }
-           return detail::Answer(host.Buttons(request));
-         }},
-        {"WatchMovement",
-         [](HostService& host, const std::string& bytes) {
-           movement::WatchMovementRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WatchMovement request is malformed");
-           }
-           return detail::Answer(host.WatchMovement(request));
-         }},
-        {"WatchControllers",
-         [](HostService& host, const std::string& bytes) {
-           controllers::WatchControllersRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WatchControllers request is malformed");
-           }
-           return detail::Answer(host.WatchControllers(request));
-         }},
-        {"WatchProjectiles",
-         [](HostService& host, const std::string& bytes) {
-           combat::ProjectileOptions request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the WatchProjectiles request is malformed");
-           }
-           return detail::Answer(host.WatchProjectiles(request));
-         }},
-        {"HoldEntityModifier",
-         [](HostService& host, const std::string& bytes) {
-           abilities::HoldEntityModifierRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the HoldEntityModifier request is malformed");
-           }
-           return detail::Answer(host.HoldEntityModifier(request));
-         }},
-        {"GiveEntityModifier",
-         [](HostService& host, const std::string& bytes) {
-           abilities::GiveEntityModifierRequest request;
-           if (!request.ParseFromString(bytes)) {
-             return detail::Fail("the GiveEntityModifier request is malformed");
-           }
-           return detail::Answer(host.GiveEntityModifier(request));
-         }},
-    };
-    const auto handler = handlers.find(call.method());
-    if (handler == handlers.end()) {
-      return detail::Fail("this host has no method " + call.method());
-    }
-    return handler->second(*this, call.request());
-  }
+ protected:
+  ~EffectsCalls() = default;
 };
+
+// Host is the game a mod calls into. A call that fails logs why on the host
+// and returns the language's empty value, so a mod can retry on a later
+// frame instead of stopping.
+//
+// HostCalls names the object that answers each part of Host. A call whose
+// part is null fails with absent, or, when absent is empty, with that this
+// host does not support it.
+struct HostCalls {
+  PluginCalls* plugin = nullptr;
+  PlayersCalls* players = nullptr;
+  WorldCalls* world = nullptr;
+  MatchCalls* match = nullptr;
+  FieldsCalls* fields = nullptr;
+  ModifiersCalls* modifiers = nullptr;
+  HeroesCalls* heroes = nullptr;
+  CameraCalls* camera = nullptr;
+  MovementCalls* movement = nullptr;
+  InputCalls* input = nullptr;
+  ProjectilesCalls* projectiles = nullptr;
+  RestoresCalls* restores = nullptr;
+  SeatingCalls* seating = nullptr;
+  VoiceCalls* voice = nullptr;
+  EffectsCalls* effects = nullptr;
+  std::string_view absent;
+};
+
+// Dispatch runs call on the part that answers the method it names and
+// returns the reply: one lookup by name and one virtual call.
+inline Reply Dispatch(const HostCalls& calls, const Call& call) {
+  using Handler = Reply (*)(const HostCalls&, const std::string&);
+  static const std::unordered_map<std::string_view, Handler> handlers = {
+      {"Log",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "Log");
+         }
+         LogRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Log request is malformed");
+         }
+         return detail::Answer(calls.plugin->Log(request));
+       }},
+      {"PlayerSetting",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "PlayerSetting");
+         }
+         settings::PlayerSettingRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the PlayerSetting request is malformed");
+         }
+         return detail::Answer(calls.plugin->PlayerSetting(request));
+       }},
+      {"SetPlayerSetting",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "SetPlayerSetting");
+         }
+         settings::SetPlayerSettingRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetPlayerSetting request is malformed");
+         }
+         return detail::Answer(calls.plugin->SetPlayerSetting(request));
+       }},
+      {"AddMetric",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "AddMetric");
+         }
+         metrics::AddMetricRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the AddMetric request is malformed");
+         }
+         return detail::Answer(calls.plugin->AddMetric(request));
+       }},
+      {"ReadFile",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "ReadFile");
+         }
+         ReadFileRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadFile request is malformed");
+         }
+         return detail::Answer(calls.plugin->ReadFile(request));
+       }},
+      {"ReadFileBytes",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "ReadFileBytes");
+         }
+         ReadFileRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadFileBytes request is malformed");
+         }
+         return detail::Answer(calls.plugin->ReadFileBytes(request));
+       }},
+      {"WriteFile",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "WriteFile");
+         }
+         WriteFileRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WriteFile request is malformed");
+         }
+         return detail::Answer(calls.plugin->WriteFile(request));
+       }},
+      {"HoldReload",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "HoldReload");
+         }
+         abilities::HoldReloadRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HoldReload request is malformed");
+         }
+         return detail::Answer(calls.plugin->HoldReload(request));
+       }},
+      {"Handoff",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "Handoff");
+         }
+         HandoffRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Handoff request is malformed");
+         }
+         return detail::Answer(calls.plugin->Handoff(request));
+       }},
+      {"HandedOff",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "HandedOff");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.plugin->HandedOff());
+       }},
+      {"PlayerHandoff",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "PlayerHandoff");
+         }
+         HandoffPlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the PlayerHandoff request is malformed");
+         }
+         return detail::Answer(calls.plugin->PlayerHandoff(request));
+       }},
+      {"PlayerHandedOff",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "PlayerHandedOff");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the PlayerHandedOff request is malformed");
+         }
+         return detail::Answer(calls.plugin->PlayerHandedOff(request));
+       }},
+      {"Ui",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "Ui");
+         }
+         ui::UiRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Ui request is malformed");
+         }
+         return detail::Answer(calls.plugin->Ui(request));
+       }},
+      {"CallService",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "CallService");
+         }
+         ServiceCall request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CallService request is malformed");
+         }
+         return detail::Answer(calls.plugin->CallService(request));
+       }},
+      {"StartServiceCall",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.plugin == nullptr) {
+           return detail::Absent(calls.absent, "StartServiceCall");
+         }
+         StartServiceCallRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the StartServiceCall request is malformed");
+         }
+         return detail::Answer(calls.plugin->StartServiceCall(request));
+       }},
+      {"Players",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.players == nullptr) {
+           return detail::Absent(calls.absent, "Players");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.players->Players());
+       }},
+      {"Pawn",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.players == nullptr) {
+           return detail::Absent(calls.absent, "Pawn");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Pawn request is malformed");
+         }
+         return detail::Answer(calls.players->Pawn(request));
+       }},
+      {"Pawns",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.players == nullptr) {
+           return detail::Absent(calls.absent, "Pawns");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.players->Pawns());
+       }},
+      {"Precache",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "Precache");
+         }
+         PrecacheOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Precache request is malformed");
+         }
+         return detail::Answer(calls.world->Precache(request));
+       }},
+      {"CreateModel",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreateModel");
+         }
+         objects::ModelOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreateModel request is malformed");
+         }
+         return detail::Answer(calls.world->CreateModel(request));
+       }},
+      {"CreateText",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreateText");
+         }
+         objects::TextOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreateText request is malformed");
+         }
+         return detail::Answer(calls.world->CreateText(request));
+       }},
+      {"CreateParticle",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreateParticle");
+         }
+         objects::ParticleOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreateParticle request is malformed");
+         }
+         return detail::Answer(calls.world->CreateParticle(request));
+       }},
+      {"CreateFog",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreateFog");
+         }
+         objects::FogOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreateFog request is malformed");
+         }
+         return detail::Answer(calls.world->CreateFog(request));
+       }},
+      {"MoveObject",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "MoveObject");
+         }
+         objects::MoveObjectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the MoveObject request is malformed");
+         }
+         return detail::Answer(calls.world->MoveObject(request));
+       }},
+      {"SetText",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "SetText");
+         }
+         objects::SetTextRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetText request is malformed");
+         }
+         return detail::Answer(calls.world->SetText(request));
+       }},
+      {"SetObjectHidden",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "SetObjectHidden");
+         }
+         objects::SetObjectHiddenRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetObjectHidden request is malformed");
+         }
+         return detail::Answer(calls.world->SetObjectHidden(request));
+       }},
+      {"ShowObjectOnlyTo",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ShowObjectOnlyTo");
+         }
+         objects::ShowObjectOnlyToRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ShowObjectOnlyTo request is malformed");
+         }
+         return detail::Answer(calls.world->ShowObjectOnlyTo(request));
+       }},
+      {"ShowObjectToAll",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ShowObjectToAll");
+         }
+         objects::ObjectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ShowObjectToAll request is malformed");
+         }
+         return detail::Answer(calls.world->ShowObjectToAll(request));
+       }},
+      {"RemoveObject",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemoveObject");
+         }
+         objects::ObjectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemoveObject request is malformed");
+         }
+         return detail::Answer(calls.world->RemoveObject(request));
+       }},
+      {"ObjectEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ObjectEntity");
+         }
+         objects::ObjectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ObjectEntity request is malformed");
+         }
+         return detail::Answer(calls.world->ObjectEntity(request));
+       }},
+      {"AddBot",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "AddBot");
+         }
+         players::BotOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the AddBot request is malformed");
+         }
+         return detail::Answer(calls.world->AddBot(request));
+       }},
+      {"RemoveBot",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemoveBot");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemoveBot request is malformed");
+         }
+         return detail::Answer(calls.world->RemoveBot(request));
+       }},
+      {"CreateEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreateEntity");
+         }
+         entities::EntityOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreateEntity request is malformed");
+         }
+         return detail::Answer(calls.world->CreateEntity(request));
+       }},
+      {"FireInput",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "FireInput");
+         }
+         entities::FireInputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the FireInput request is malformed");
+         }
+         return detail::Answer(calls.world->FireInput(request));
+       }},
+      {"RemoveEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemoveEntity");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemoveEntity request is malformed");
+         }
+         return detail::Answer(calls.world->RemoveEntity(request));
+       }},
+      {"ShowEntityOnlyTo",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ShowEntityOnlyTo");
+         }
+         entities::ShowEntityOnlyToRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ShowEntityOnlyTo request is malformed");
+         }
+         return detail::Answer(calls.world->ShowEntityOnlyTo(request));
+       }},
+      {"ShowEntityToAll",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ShowEntityToAll");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ShowEntityToAll request is malformed");
+         }
+         return detail::Answer(calls.world->ShowEntityToAll(request));
+       }},
+      {"SpawnNpc",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "SpawnNpc");
+         }
+         npcs::NpcOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SpawnNpc request is malformed");
+         }
+         return detail::Answer(calls.world->SpawnNpc(request));
+       }},
+      {"ReadNpc",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ReadNpc");
+         }
+         npcs::NpcRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadNpc request is malformed");
+         }
+         return detail::Answer(calls.world->ReadNpc(request));
+       }},
+      {"MoveNpc",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "MoveNpc");
+         }
+         npcs::MoveNpcRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the MoveNpc request is malformed");
+         }
+         return detail::Answer(calls.world->MoveNpc(request));
+       }},
+      {"SetNpcHealth",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "SetNpcHealth");
+         }
+         npcs::SetNpcHealthRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetNpcHealth request is malformed");
+         }
+         return detail::Answer(calls.world->SetNpcHealth(request));
+       }},
+      {"RemoveNpc",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemoveNpc");
+         }
+         npcs::NpcRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemoveNpc request is malformed");
+         }
+         return detail::Answer(calls.world->RemoveNpc(request));
+       }},
+      {"CreatePickup",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "CreatePickup");
+         }
+         entities::CreatePickupRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CreatePickup request is malformed");
+         }
+         return detail::Answer(calls.world->CreatePickup(request));
+       }},
+      {"PickupPresent",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "PickupPresent");
+         }
+         entities::PickupRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the PickupPresent request is malformed");
+         }
+         return detail::Answer(calls.world->PickupPresent(request));
+       }},
+      {"RemovePickup",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemovePickup");
+         }
+         entities::PickupRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemovePickup request is malformed");
+         }
+         return detail::Answer(calls.world->RemovePickup(request));
+       }},
+      {"FindEntities",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "FindEntities");
+         }
+         entities::FindEntitiesRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the FindEntities request is malformed");
+         }
+         return detail::Answer(calls.world->FindEntities(request));
+       }},
+      {"FindEntitiesByName",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "FindEntitiesByName");
+         }
+         entities::FindEntitiesByNameRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the FindEntitiesByName request is malformed");
+         }
+         return detail::Answer(calls.world->FindEntitiesByName(request));
+       }},
+      {"RemoveEntities",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "RemoveEntities");
+         }
+         entities::RemoveEntitiesRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemoveEntities request is malformed");
+         }
+         return detail::Answer(calls.world->RemoveEntities(request));
+       }},
+      {"ClearMap",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "ClearMap");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.world->ClearMap());
+       }},
+      {"MoveEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "MoveEntity");
+         }
+         entities::MoveEntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the MoveEntity request is malformed");
+         }
+         return detail::Answer(calls.world->MoveEntity(request));
+       }},
+      {"PushEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.world == nullptr) {
+           return detail::Absent(calls.absent, "PushEntity");
+         }
+         entities::PushEntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the PushEntity request is malformed");
+         }
+         return detail::Answer(calls.world->PushEntity(request));
+       }},
+      {"Pause",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.match == nullptr) {
+           return detail::Absent(calls.absent, "Pause");
+         }
+         PauseRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Pause request is malformed");
+         }
+         return detail::Answer(calls.match->Pause(request));
+       }},
+      {"MatchClock",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.match == nullptr) {
+           return detail::Absent(calls.absent, "MatchClock");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.match->MatchClock());
+       }},
+      {"HoldMatchClock",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.match == nullptr) {
+           return detail::Absent(calls.absent, "HoldMatchClock");
+         }
+         HoldMatchClockRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HoldMatchClock request is malformed");
+         }
+         return detail::Answer(calls.match->HoldMatchClock(request));
+       }},
+      {"Rift",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.match == nullptr) {
+           return detail::Absent(calls.absent, "Rift");
+         }
+         static_cast<void>(bytes);
+         return detail::Answer(calls.match->Rift());
+       }},
+      {"StartRift",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.match == nullptr) {
+           return detail::Absent(calls.absent, "StartRift");
+         }
+         StartRiftRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the StartRift request is malformed");
+         }
+         return detail::Answer(calls.match->StartRift(request));
+       }},
+      {"ReadField",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "ReadField");
+         }
+         fields::ReadFieldRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadField request is malformed");
+         }
+         return detail::Answer(calls.fields->ReadField(request));
+       }},
+      {"WriteField",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "WriteField");
+         }
+         fields::WriteFieldRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WriteField request is malformed");
+         }
+         return detail::Answer(calls.fields->WriteField(request));
+       }},
+      {"ReadFieldList",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "ReadFieldList");
+         }
+         fields::ReadFieldRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadFieldList request is malformed");
+         }
+         return detail::Answer(calls.fields->ReadFieldList(request));
+       }},
+      {"WriteFieldList",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "WriteFieldList");
+         }
+         fields::WriteFieldListRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WriteFieldList request is malformed");
+         }
+         return detail::Answer(calls.fields->WriteFieldList(request));
+       }},
+      {"EntityClass",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "EntityClass");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the EntityClass request is malformed");
+         }
+         return detail::Answer(calls.fields->EntityClass(request));
+       }},
+      {"EntityName",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "EntityName");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the EntityName request is malformed");
+         }
+         return detail::Answer(calls.fields->EntityName(request));
+       }},
+      {"EntityPosition",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.fields == nullptr) {
+           return detail::Absent(calls.absent, "EntityPosition");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the EntityPosition request is malformed");
+         }
+         return detail::Answer(calls.fields->EntityPosition(request));
+       }},
+      {"HoldModifier",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "HoldModifier");
+         }
+         abilities::HoldModifierRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HoldModifier request is malformed");
+         }
+         return detail::Answer(calls.modifiers->HoldModifier(request));
+       }},
+      {"GiveModifier",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "GiveModifier");
+         }
+         abilities::GiveModifierRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the GiveModifier request is malformed");
+         }
+         return detail::Answer(calls.modifiers->GiveModifier(request));
+       }},
+      {"ReadModifierField",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "ReadModifierField");
+         }
+         fields::ReadModifierFieldRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReadModifierField request is malformed");
+         }
+         return detail::Answer(calls.modifiers->ReadModifierField(request));
+       }},
+      {"ModifierState",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "ModifierState");
+         }
+         abilities::ModifierStateRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ModifierState request is malformed");
+         }
+         return detail::Answer(calls.modifiers->ModifierState(request));
+       }},
+      {"Modifiers",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "Modifiers");
+         }
+         entities::EntityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Modifiers request is malformed");
+         }
+         return detail::Answer(calls.modifiers->Modifiers(request));
+       }},
+      {"HoldModifierState",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "HoldModifierState");
+         }
+         abilities::HoldModifierStateRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HoldModifierState request is malformed");
+         }
+         return detail::Answer(calls.modifiers->HoldModifierState(request));
+       }},
+      {"HoldEntityModifier",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "HoldEntityModifier");
+         }
+         abilities::HoldEntityModifierRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HoldEntityModifier request is malformed");
+         }
+         return detail::Answer(calls.modifiers->HoldEntityModifier(request));
+       }},
+      {"GiveEntityModifier",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.modifiers == nullptr) {
+           return detail::Absent(calls.absent, "GiveEntityModifier");
+         }
+         abilities::GiveEntityModifierRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the GiveEntityModifier request is malformed");
+         }
+         return detail::Answer(calls.modifiers->GiveEntityModifier(request));
+       }},
+      {"SelectHero",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "SelectHero");
+         }
+         players::SelectHeroRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SelectHero request is malformed");
+         }
+         return detail::Answer(calls.heroes->SelectHero(request));
+       }},
+      {"Respawn",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "Respawn");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Respawn request is malformed");
+         }
+         return detail::Answer(calls.heroes->Respawn(request));
+       }},
+      {"ChangeTeam",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "ChangeTeam");
+         }
+         players::ChangeTeamRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ChangeTeam request is malformed");
+         }
+         return detail::Answer(calls.heroes->ChangeTeam(request));
+       }},
+      {"ClearItems",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "ClearItems");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ClearItems request is malformed");
+         }
+         return detail::Answer(calls.heroes->ClearItems(request));
+       }},
+      {"Freeze",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "Freeze");
+         }
+         players::FreezeRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Freeze request is malformed");
+         }
+         return detail::Answer(calls.heroes->Freeze(request));
+       }},
+      {"RestoreStamina",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "RestoreStamina");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RestoreStamina request is malformed");
+         }
+         return detail::Answer(calls.heroes->RestoreStamina(request));
+       }},
+      {"SetStamina",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "SetStamina");
+         }
+         players::SetStaminaRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetStamina request is malformed");
+         }
+         return detail::Answer(calls.heroes->SetStamina(request));
+       }},
+      {"RefreshAbility",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "RefreshAbility");
+         }
+         abilities::RefreshAbilityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RefreshAbility request is malformed");
+         }
+         return detail::Answer(calls.heroes->RefreshAbility(request));
+       }},
+      {"Abilities",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "Abilities");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Abilities request is malformed");
+         }
+         return detail::Answer(calls.heroes->Abilities(request));
+       }},
+      {"SetAbility",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "SetAbility");
+         }
+         abilities::AbilityOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetAbility request is malformed");
+         }
+         return detail::Answer(calls.heroes->SetAbility(request));
+       }},
+      {"GiveItem",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "GiveItem");
+         }
+         abilities::GiveItemRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the GiveItem request is malformed");
+         }
+         return detail::Answer(calls.heroes->GiveItem(request));
+       }},
+      {"BuyItem",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "BuyItem");
+         }
+         abilities::BuyItemRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the BuyItem request is malformed");
+         }
+         return detail::Answer(calls.heroes->BuyItem(request));
+       }},
+      {"TrainAbility",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "TrainAbility");
+         }
+         abilities::TrainAbilityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the TrainAbility request is malformed");
+         }
+         return detail::Answer(calls.heroes->TrainAbility(request));
+       }},
+      {"HeroBuild",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "HeroBuild");
+         }
+         abilities::HeroBuildRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HeroBuild request is malformed");
+         }
+         return detail::Answer(calls.heroes->HeroBuild(request));
+       }},
+      {"ReplaceAbility",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "ReplaceAbility");
+         }
+         abilities::ReplaceAbilityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ReplaceAbility request is malformed");
+         }
+         return detail::Answer(calls.heroes->ReplaceAbility(request));
+       }},
+      {"AdjustSouls",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "AdjustSouls");
+         }
+         players::AdjustSoulsRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the AdjustSouls request is malformed");
+         }
+         return detail::Answer(calls.heroes->AdjustSouls(request));
+       }},
+      {"AdjustAbilityPoints",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "AdjustAbilityPoints");
+         }
+         players::AdjustAbilityPointsRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the AdjustAbilityPoints request is malformed");
+         }
+         return detail::Answer(calls.heroes->AdjustAbilityPoints(request));
+       }},
+      {"StartingSouls",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "StartingSouls");
+         }
+         players::StartingSoulsRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the StartingSouls request is malformed");
+         }
+         return detail::Answer(calls.heroes->StartingSouls(request));
+       }},
+      {"ResetHero",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "ResetHero");
+         }
+         players::ResetHeroRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ResetHero request is malformed");
+         }
+         return detail::Answer(calls.heroes->ResetHero(request));
+       }},
+      {"Kill",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.heroes == nullptr) {
+           return detail::Absent(calls.absent, "Kill");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Kill request is malformed");
+         }
+         return detail::Answer(calls.heroes->Kill(request));
+       }},
+      {"Spectate",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "Spectate");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Spectate request is malformed");
+         }
+         return detail::Answer(calls.camera->Spectate(request));
+       }},
+      {"Watch",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "Watch");
+         }
+         players::WatchRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Watch request is malformed");
+         }
+         return detail::Answer(calls.camera->Watch(request));
+       }},
+      {"FreeCamera",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "FreeCamera");
+         }
+         players::FreeCameraRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the FreeCamera request is malformed");
+         }
+         return detail::Answer(calls.camera->FreeCamera(request));
+       }},
+      {"MoveCamera",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "MoveCamera");
+         }
+         players::CameraOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the MoveCamera request is malformed");
+         }
+         return detail::Answer(calls.camera->MoveCamera(request));
+       }},
+      {"ClearCamera",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "ClearCamera");
+         }
+         players::ClearCameraRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ClearCamera request is malformed");
+         }
+         return detail::Answer(calls.camera->ClearCamera(request));
+       }},
+      {"Unwatch",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.camera == nullptr) {
+           return detail::Absent(calls.absent, "Unwatch");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Unwatch request is malformed");
+         }
+         return detail::Answer(calls.camera->Unwatch(request));
+       }},
+      {"Teleport",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "Teleport");
+         }
+         movement::TeleportRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Teleport request is malformed");
+         }
+         return detail::Answer(calls.movement->Teleport(request));
+       }},
+      {"Zipline",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "Zipline");
+         }
+         movement::ZiplineRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Zipline request is malformed");
+         }
+         return detail::Answer(calls.movement->Zipline(request));
+       }},
+      {"MovePlayer",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "MovePlayer");
+         }
+         movement::MovePlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the MovePlayer request is malformed");
+         }
+         return detail::Answer(calls.movement->MovePlayer(request));
+       }},
+      {"Steer",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "Steer");
+         }
+         movement::SteerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Steer request is malformed");
+         }
+         return detail::Answer(calls.movement->Steer(request));
+       }},
+      {"Drive",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "Drive");
+         }
+         movement::DriveRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Drive request is malformed");
+         }
+         return detail::Answer(calls.movement->Drive(request));
+       }},
+      {"SetVelocity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "SetVelocity");
+         }
+         movement::SetVelocityRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetVelocity request is malformed");
+         }
+         return detail::Answer(calls.movement->SetVelocity(request));
+       }},
+      {"WatchMovement",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.movement == nullptr) {
+           return detail::Absent(calls.absent, "WatchMovement");
+         }
+         movement::WatchMovementRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WatchMovement request is malformed");
+         }
+         return detail::Answer(calls.movement->WatchMovement(request));
+       }},
+      {"BlockInput",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "BlockInput");
+         }
+         InputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the BlockInput request is malformed");
+         }
+         return detail::Answer(calls.input->BlockInput(request));
+       }},
+      {"BlockPlayerInput",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "BlockPlayerInput");
+         }
+         PlayerInputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the BlockPlayerInput request is malformed");
+         }
+         return detail::Answer(calls.input->BlockPlayerInput(request));
+       }},
+      {"Press",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "Press");
+         }
+         PlayerInputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Press request is malformed");
+         }
+         return detail::Answer(calls.input->Press(request));
+       }},
+      {"WatchInput",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "WatchInput");
+         }
+         InputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WatchInput request is malformed");
+         }
+         return detail::Answer(calls.input->WatchInput(request));
+       }},
+      {"RemapInput",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "RemapInput");
+         }
+         RemapInputRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RemapInput request is malformed");
+         }
+         return detail::Answer(calls.input->RemapInput(request));
+       }},
+      {"Buttons",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "Buttons");
+         }
+         players::PlayerRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Buttons request is malformed");
+         }
+         return detail::Answer(calls.input->Buttons(request));
+       }},
+      {"WatchControllers",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.input == nullptr) {
+           return detail::Absent(calls.absent, "WatchControllers");
+         }
+         controllers::WatchControllersRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WatchControllers request is malformed");
+         }
+         return detail::Answer(calls.input->WatchControllers(request));
+       }},
+      {"WatchProjectiles",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.projectiles == nullptr) {
+           return detail::Absent(calls.absent, "WatchProjectiles");
+         }
+         combat::ProjectileOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the WatchProjectiles request is malformed");
+         }
+         return detail::Answer(calls.projectiles->WatchProjectiles(request));
+       }},
+      {"RestoreHero",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.restores == nullptr) {
+           return detail::Absent(calls.absent, "RestoreHero");
+         }
+         players::RestoreHeroRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RestoreHero request is malformed");
+         }
+         return detail::Answer(calls.restores->RestoreHero(request));
+       }},
+      {"RestoreNpcs",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.restores == nullptr) {
+           return detail::Absent(calls.absent, "RestoreNpcs");
+         }
+         npcs::RestoreNpcsRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the RestoreNpcs request is malformed");
+         }
+         return detail::Answer(calls.restores->RestoreNpcs(request));
+       }},
+      {"SetFreeForAll",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.seating == nullptr) {
+           return detail::Absent(calls.absent, "SetFreeForAll");
+         }
+         SetFreeForAllRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetFreeForAll request is malformed");
+         }
+         return detail::Answer(calls.seating->SetFreeForAll(request));
+       }},
+      {"SetTeamSeating",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.seating == nullptr) {
+           return detail::Absent(calls.absent, "SetTeamSeating");
+         }
+         SetTeamSeatingRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SetTeamSeating request is malformed");
+         }
+         return detail::Answer(calls.seating->SetTeamSeating(request));
+       }},
+      {"SilenceVoice",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.voice == nullptr) {
+           return detail::Absent(calls.absent, "SilenceVoice");
+         }
+         effects::SilenceVoiceRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SilenceVoice request is malformed");
+         }
+         return detail::Answer(calls.voice->SilenceVoice(request));
+       }},
+      {"SilencePlayerVoice",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.voice == nullptr) {
+           return detail::Absent(calls.absent, "SilencePlayerVoice");
+         }
+         effects::SilencePlayerVoiceRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the SilencePlayerVoice request is malformed");
+         }
+         return detail::Answer(calls.voice->SilencePlayerVoice(request));
+       }},
+      {"ServerCommand",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "ServerCommand");
+         }
+         ServerCommandRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ServerCommand request is malformed");
+         }
+         return detail::Answer(calls.effects->ServerCommand(request));
+       }},
+      {"Chat",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Chat");
+         }
+         effects::ChatRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Chat request is malformed");
+         }
+         return detail::Answer(calls.effects->Chat(request));
+       }},
+      {"CenterText",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "CenterText");
+         }
+         effects::CenterTextRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the CenterText request is malformed");
+         }
+         return detail::Answer(calls.effects->CenterText(request));
+       }},
+      {"Announce",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Announce");
+         }
+         effects::AnnounceRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Announce request is malformed");
+         }
+         return detail::Answer(calls.effects->Announce(request));
+       }},
+      {"Heal",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Heal");
+         }
+         players::HealRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Heal request is malformed");
+         }
+         return detail::Answer(calls.effects->Heal(request));
+       }},
+      {"Sound",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Sound");
+         }
+         effects::SoundRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Sound request is malformed");
+         }
+         return detail::Answer(calls.effects->Sound(request));
+       }},
+      {"ScreenEffect",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "ScreenEffect");
+         }
+         effects::ScreenEffectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ScreenEffect request is malformed");
+         }
+         return detail::Answer(calls.effects->ScreenEffect(request));
+       }},
+      {"ClearScreenEffect",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "ClearScreenEffect");
+         }
+         effects::ClearScreenEffectRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the ClearScreenEffect request is malformed");
+         }
+         return detail::Answer(calls.effects->ClearScreenEffect(request));
+       }},
+      {"Damage",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Damage");
+         }
+         combat::HitOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Damage request is malformed");
+         }
+         return detail::Answer(calls.effects->Damage(request));
+       }},
+      {"KillEntity",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "KillEntity");
+         }
+         combat::KillOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the KillEntity request is malformed");
+         }
+         return detail::Answer(calls.effects->KillEntity(request));
+       }},
+      {"Trace",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "Trace");
+         }
+         combat::TraceOptions request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the Trace request is malformed");
+         }
+         return detail::Answer(calls.effects->Trace(request));
+       }},
+      {"EmitSound",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "EmitSound");
+         }
+         effects::EmitSoundRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the EmitSound request is malformed");
+         }
+         return detail::Answer(calls.effects->EmitSound(request));
+       }},
+      {"AdjustSound",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "AdjustSound");
+         }
+         effects::AdjustSoundRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the AdjustSound request is malformed");
+         }
+         return detail::Answer(calls.effects->AdjustSound(request));
+       }},
+      {"StopSound",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.effects == nullptr) {
+           return detail::Absent(calls.absent, "StopSound");
+         }
+         effects::StopSoundRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the StopSound request is malformed");
+         }
+         return detail::Answer(calls.effects->StopSound(request));
+       }},
+  };
+  const auto handler = handlers.find(call.method());
+  if (handler == handlers.end()) {
+    return detail::Fail("this host has no method " + call.method());
+  }
+  return handler->second(calls, call.request());
+}
 
 // Mod is the mod the game delivers events to, one at a time on the server's
 // frame thread.

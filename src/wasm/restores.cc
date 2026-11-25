@@ -14,7 +14,7 @@
 
 namespace modlock::wasm {
 
-Restores::Restores(GameServices& services, Players& players, World& world, ModifierHolds& modifiers,
+Restores::Restores(GameServices& services, Roster& players, World& world, ModifierHolds& modifiers,
                    Heroes& heroes)
     : services_(services),
       players_(players),

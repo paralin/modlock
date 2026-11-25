@@ -206,7 +206,7 @@ add_library(modlock_sdk SHARED
   src/wasm/match.cc
   src/wasm/entity_fields.cc
   src/wasm/modifier_masks.cc
-  src/wasm/players.cc
+  src/wasm/roster.cc
   src/wasm/world.cc
   src/wasm/apart_players.cc
   src/wasm/fields.cc

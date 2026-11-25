@@ -14,8 +14,9 @@
 #include "src/wasm/abilities/abilities.pb.h"
 #include "src/wasm/entities/entities.pb.h"
 #include "src/wasm/fields/fields.pb.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/module.h"
-#include "wasm/players.h"
+#include "wasm/roster.h"
 #include "wasm/world.h"
 
 namespace modlock::wasm {
@@ -28,29 +29,31 @@ class GameServices;
 // each frame after the game recomputes them. Every hold ends with the world,
 // a held player's leaving, or Clear, and Clear takes held modifiers off their
 // entities, so an endless modifier never outlives the mod.
-class ModifierHolds final : public Module {
+class ModifierHolds final : public Module, public ModifiersCalls {
  public:
   // services, players and world outlive the holds.
-  ModifierHolds(GameServices& services, Players& players, World& world)
+  ModifierHolds(GameServices& services, Roster& players, World& world)
       : services_(services), players_(players), world_(world) {}
 
   ModifierHolds(const ModifierHolds&) = delete;
   ModifierHolds& operator=(const ModifierHolds&) = delete;
 
-  std::expected<void, std::string> HoldModifier(const abilities::HoldModifierRequest& request);
-  std::expected<void, std::string> GiveModifier(const abilities::GiveModifierRequest& request);
+  std::expected<void, std::string> HoldModifier(
+      const abilities::HoldModifierRequest& request) override;
+  std::expected<void, std::string> GiveModifier(
+      const abilities::GiveModifierRequest& request) override;
   std::expected<void, std::string> HoldEntityModifier(
-      const abilities::HoldEntityModifierRequest& request);
+      const abilities::HoldEntityModifierRequest& request) override;
   std::expected<void, std::string> GiveEntityModifier(
-      const abilities::GiveEntityModifierRequest& request);
+      const abilities::GiveEntityModifierRequest& request) override;
   std::expected<abilities::ModifiersResponse, std::string> Modifiers(
-      const entities::EntityRequest& request);
+      const entities::EntityRequest& request) override;
   std::expected<fields::FieldResponse, std::string> ReadModifierField(
-      const fields::ReadModifierFieldRequest& request);
+      const fields::ReadModifierFieldRequest& request) override;
   std::expected<abilities::ActiveResponse, std::string> ModifierState(
-      const abilities::ModifierStateRequest& request);
+      const abilities::ModifierStateRequest& request) override;
   std::expected<void, std::string> HoldModifierState(
-      const abilities::HoldModifierStateRequest& request);
+      const abilities::HoldModifierStateRequest& request) override;
 
   // KeepState holds state on the entity with handle from the next frame on,
   // as free-for-all holds friendly fire.
@@ -118,7 +121,7 @@ class ModifierHolds final : public Module {
   void ReleaseModifiers();
 
   GameServices& services_;
-  Players& players_;
+  Roster& players_;
   // world_ removes the held modifiers from their entities on Clear.
   World& world_;
   // states_ is the modifier states held, by entity handle and name; Frame

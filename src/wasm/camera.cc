@@ -16,7 +16,7 @@
 
 namespace modlock::wasm {
 
-Camera::Camera(GameServices& services, Players& players, World& world)
+Camera::Camera(GameServices& services, Roster& players, World& world)
     : services_(services), players_(players), world_(world) {
   services_.CameraSources().Add(this);
 }

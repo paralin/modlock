@@ -6,7 +6,7 @@
 
 namespace modlock::wasm {
 
-ApartPlayers::ApartPlayers(GameServices& services, const Players& players)
+ApartPlayers::ApartPlayers(GameServices& services, const Roster& players)
     : services_(services), players_(players) {
   services_.TransmitSources().Add(this);
 }

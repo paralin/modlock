@@ -16,7 +16,7 @@
 
 namespace modlock::wasm {
 
-Seating::Seating(GameServices& services, Players& players, ModifierHolds& modifiers, Serves serves)
+Seating::Seating(GameServices& services, Roster& players, ModifierHolds& modifiers, Serves serves)
     : services_(services), players_(players), modifiers_(modifiers), serves_(std::move(serves)) {}
 
 void Seating::Frame() {

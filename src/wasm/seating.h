@@ -8,9 +8,10 @@
 #include <string_view>
 
 #include "src/wasm/match.pb.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/modifier_holds.h"
 #include "wasm/module.h"
-#include "wasm/players.h"
+#include "wasm/roster.h"
 #include "wasm/team_seating.h"
 
 namespace modlock::wasm {
@@ -21,20 +22,22 @@ class GameServices;
 // and, while the mod turns them on, team seating, which seats each player
 // without a team on the smaller side, and free-for-all, which also holds
 // friendly fire on every hero and makes teammates enemies.
-class Seating final : public Module {
+class Seating final : public Module, public SeatingCalls {
  public:
   // Serves reports whether the game controls a player's slot.
   using Serves = std::function<bool(int32_t)>;
 
   // services, players and modifiers outlive the seating, and serves stays
   // callable while it lives.
-  Seating(GameServices& services, Players& players, ModifierHolds& modifiers, Serves serves);
+  Seating(GameServices& services, Roster& players, ModifierHolds& modifiers, Serves serves);
 
   Seating(const Seating&) = delete;
   Seating& operator=(const Seating&) = delete;
 
-  std::expected<void, std::string> SetFreeForAll(const wasm::SetFreeForAllRequest& request);
-  std::expected<void, std::string> SetTeamSeating(const wasm::SetTeamSeatingRequest& request);
+  std::expected<void, std::string> SetFreeForAll(
+      const wasm::SetFreeForAllRequest& request) override;
+  std::expected<void, std::string> SetTeamSeating(
+      const wasm::SetTeamSeatingRequest& request) override;
 
   // AssignTeams applies host seats on join and assignment change. The table
   // survives Clear, so a build reload keeps confirmed seats and pending joins.
@@ -86,7 +89,7 @@ class Seating final : public Module {
   void ReleaseFreeForAll();
 
   GameServices& services_;
-  Players& players_;
+  Roster& players_;
   ModifierHolds& modifiers_;
   Serves serves_;
   // free_for_all_ is true while the host seats players and holds friendly fire,

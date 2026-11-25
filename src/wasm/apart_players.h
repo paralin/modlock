@@ -7,7 +7,7 @@
 #include "modlock/gameinterop/transmit_hook.h"
 #include "wasm/hook_sources.h"
 #include "wasm/module.h"
-#include "wasm/players.h"
+#include "wasm/roster.h"
 
 namespace modlock::wasm {
 
@@ -21,7 +21,7 @@ class GameServices;
 class ApartPlayers final : public Module, private TransmitSource {
  public:
   // services and players outlive the apart players.
-  ApartPlayers(GameServices& services, const Players& players);
+  ApartPlayers(GameServices& services, const Roster& players);
   ~ApartPlayers();
 
   ApartPlayers(const ApartPlayers&) = delete;
@@ -35,7 +35,7 @@ class ApartPlayers final : public Module, private TransmitSource {
   void Withhold(gameinterop::TransmitSet& set, const Sources<CameraSource>& cameras) override;
 
   GameServices& services_;
-  const Players& players_;
+  const Roster& players_;
   // apart_ is the slot bits of the players kept out of sight.
   uint64_t apart_ = 0;
 };

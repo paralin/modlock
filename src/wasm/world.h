@@ -22,6 +22,7 @@
 #include "src/wasm/players/players.pb.h"
 #include "src/wasm/wasm.pb.h"
 #include "wasm/hook_sources.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/module.h"
 #include "wasm/visibility.h"
 
@@ -36,7 +37,7 @@ class GameServices;
 // WorldSource. Clear and WorldEnding remove everything the mod placed, so a
 // stopped or reloaded mod leaves nothing behind, and the transmit hook reads
 // the audiences through its TransmitSource while the world lives.
-class World final : public Module, public WorldSource, private TransmitSource {
+class World final : public Module, public WorldSource, private TransmitSource, public WorldCalls {
  public:
   // services and engine outlive the world; the host owns the engine.
   World(GameServices& services, EngineHost* engine);
@@ -74,62 +75,68 @@ class World final : public Module, public WorldSource, private TransmitSource {
 
   // The object calls.
   std::expected<objects::ObjectResponse, std::string> CreateModel(
-      const objects::ModelOptions& request);
+      const objects::ModelOptions& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateText(
-      const objects::TextOptions& request);
+      const objects::TextOptions& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateParticle(
-      const objects::ParticleOptions& request);
-  std::expected<objects::ObjectResponse, std::string> CreateFog(const objects::FogOptions& request);
-  std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& request);
-  std::expected<void, std::string> SetText(const objects::SetTextRequest& request);
-  std::expected<void, std::string> SetObjectHidden(const objects::SetObjectHiddenRequest& request);
+      const objects::ParticleOptions& request) override;
+  std::expected<objects::ObjectResponse, std::string> CreateFog(
+      const objects::FogOptions& request) override;
+  std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& request) override;
+  std::expected<void, std::string> SetText(const objects::SetTextRequest& request) override;
+  std::expected<void, std::string> SetObjectHidden(
+      const objects::SetObjectHiddenRequest& request) override;
   std::expected<void, std::string> ShowObjectOnlyTo(
-      const objects::ShowObjectOnlyToRequest& request);
-  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request);
-  std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request);
+      const objects::ShowObjectOnlyToRequest& request) override;
+  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request) override;
+  std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) override;
   std::expected<entities::EntityResponse, std::string> ObjectEntity(
-      const objects::ObjectRequest& request);
+      const objects::ObjectRequest& request) override;
 
   // The bot calls.
-  std::expected<players::BotResponse, std::string> AddBot(const players::BotOptions& request);
-  std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request);
+  std::expected<players::BotResponse, std::string> AddBot(
+      const players::BotOptions& request) override;
+  std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override;
 
   // Precache loads heroes and resources before the mod places them.
-  std::expected<void, std::string> Precache(const PrecacheOptions& request);
+  std::expected<void, std::string> Precache(const PrecacheOptions& request) override;
 
   // The entity calls.
   std::expected<entities::EntityResponse, std::string> CreateEntity(
-      const entities::EntityOptions& request);
+      const entities::EntityOptions& request) override;
   std::expected<entities::AliveResponse, std::string> FireInput(
-      const entities::FireInputRequest& request);
+      const entities::FireInputRequest& request) override;
   std::expected<entities::AliveResponse, std::string> RemoveEntity(
-      const entities::EntityRequest& request);
+      const entities::EntityRequest& request) override;
   std::expected<void, std::string> ShowEntityOnlyTo(
-      const entities::ShowEntityOnlyToRequest& request);
-  std::expected<void, std::string> ShowEntityToAll(const entities::EntityRequest& request);
-  std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request);
-  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request);
+      const entities::ShowEntityOnlyToRequest& request) override;
+  std::expected<void, std::string> ShowEntityToAll(const entities::EntityRequest& request) override;
+  std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override;
+  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override;
   std::expected<entities::EntitiesResponse, std::string> FindEntities(
-      const entities::FindEntitiesRequest& request);
+      const entities::FindEntitiesRequest& request) override;
   std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
-      const entities::FindEntitiesByNameRequest& request);
+      const entities::FindEntitiesByNameRequest& request) override;
   std::expected<entities::CountResponse, std::string> RemoveEntities(
-      const entities::RemoveEntitiesRequest& request);
-  std::expected<void, std::string> ClearMap();
+      const entities::RemoveEntitiesRequest& request) override;
+  std::expected<void, std::string> ClearMap() override;
 
   // The unit and pickup calls.
-  std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& request);
-  std::expected<npcs::NpcStateResponse, std::string> ReadNpc(const npcs::NpcRequest& request);
-  std::expected<entities::AliveResponse, std::string> MoveNpc(const npcs::MoveNpcRequest& request);
+  std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& request) override;
+  std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
+      const npcs::NpcRequest& request) override;
+  std::expected<entities::AliveResponse, std::string> MoveNpc(
+      const npcs::MoveNpcRequest& request) override;
   std::expected<entities::AliveResponse, std::string> SetNpcHealth(
-      const npcs::SetNpcHealthRequest& request);
-  std::expected<entities::AliveResponse, std::string> RemoveNpc(const npcs::NpcRequest& request);
+      const npcs::SetNpcHealthRequest& request) override;
+  std::expected<entities::AliveResponse, std::string> RemoveNpc(
+      const npcs::NpcRequest& request) override;
   std::expected<entities::PickupResponse, std::string> CreatePickup(
-      const entities::CreatePickupRequest& request);
+      const entities::CreatePickupRequest& request) override;
   std::expected<entities::AliveResponse, std::string> PickupPresent(
-      const entities::PickupRequest& request);
+      const entities::PickupRequest& request) override;
   std::expected<entities::AliveResponse, std::string> RemovePickup(
-      const entities::PickupRequest& request);
+      const entities::PickupRequest& request) override;
 
   // Frame drops the audiences of gone entities, releases ended effects and
   // finishes the units spawned this frame together.

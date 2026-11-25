@@ -6,6 +6,7 @@
 #include <string>
 
 #include "src/wasm/wasm.pb.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/module.h"
 
 namespace modlock::wasm {
@@ -15,16 +16,17 @@ class GameServices;
 // Match is a mod's hold on the match: the clock it holds at a time and the
 // pause it set. Clear releases both, so a stopped mod leaves the match running
 // on its own clock.
-class Match final : public Module {
+class Match final : public Module, public MatchCalls {
  public:
   // services and world outlive the match.
   Match(GameServices& services, WorldSource& world) : services_(services), world_(world) {}
 
-  std::expected<void, std::string> Pause(const wasm::PauseRequest& request);
-  std::expected<wasm::MatchClockResponse, std::string> MatchClock();
-  std::expected<void, std::string> HoldMatchClock(const wasm::HoldMatchClockRequest& request);
-  std::expected<wasm::RiftResponse, std::string> Rift();
-  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request);
+  std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override;
+  std::expected<wasm::MatchClockResponse, std::string> MatchClock() override;
+  std::expected<void, std::string> HoldMatchClock(
+      const wasm::HoldMatchClockRequest& request) override;
+  std::expected<wasm::RiftResponse, std::string> Rift() override;
+  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override;
 
   // Frame sets the held clock again, since the game advances it each frame.
   void Frame() override;

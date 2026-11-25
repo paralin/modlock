@@ -1,0 +1,36 @@
+# host_calls.txt assigns each call of the Host service in wasm.proto to the
+# part of the host that answers it. modlock-sdkgen generates one interface per
+# part, such as HeroesCalls for heroes, and a dispatch that runs each call on
+# the object a host registers for its part, so the wire keeps naming calls
+# alone. Each Host call appears on exactly one line: a part, a colon, and its
+# calls.
+
+plugin: Log PlayerSetting SetPlayerSetting AddMetric ReadFile ReadFileBytes
+    WriteFile HoldReload Handoff HandedOff PlayerHandoff PlayerHandedOff Ui
+    CallService StartServiceCall
+players: Players Pawn Pawns
+world: Precache CreateModel CreateText CreateParticle CreateFog MoveObject
+    SetText SetObjectHidden ShowObjectOnlyTo ShowObjectToAll RemoveObject
+    ObjectEntity AddBot RemoveBot CreateEntity FireInput RemoveEntity
+    ShowEntityOnlyTo ShowEntityToAll SpawnNpc ReadNpc MoveNpc SetNpcHealth
+    RemoveNpc CreatePickup PickupPresent RemovePickup FindEntities
+    FindEntitiesByName RemoveEntities ClearMap MoveEntity PushEntity
+match: Pause MatchClock HoldMatchClock Rift StartRift
+fields: ReadField WriteField ReadFieldList WriteFieldList EntityClass EntityName
+    EntityPosition
+modifiers: HoldModifier GiveModifier ReadModifierField ModifierState Modifiers
+    HoldModifierState HoldEntityModifier GiveEntityModifier
+heroes: SelectHero Respawn ChangeTeam ClearItems Freeze RestoreStamina
+    SetStamina RefreshAbility Abilities SetAbility GiveItem BuyItem TrainAbility
+    HeroBuild ReplaceAbility AdjustSouls AdjustAbilityPoints StartingSouls
+    ResetHero Kill
+camera: Spectate Watch FreeCamera MoveCamera ClearCamera Unwatch
+movement: Teleport Zipline MovePlayer Steer Drive SetVelocity WatchMovement
+input: BlockInput BlockPlayerInput Press WatchInput RemapInput Buttons
+    WatchControllers
+projectiles: WatchProjectiles
+restores: RestoreHero RestoreNpcs
+seating: SetFreeForAll SetTeamSeating
+voice: SilenceVoice SilencePlayerVoice
+effects: ServerCommand Chat CenterText Announce Heal Sound ScreenEffect
+    ClearScreenEffect Damage KillEntity Trace EmitSound AdjustSound StopSound

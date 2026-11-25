@@ -9,7 +9,8 @@
 #include "src/wasm/effects/effects.pb.h"
 #include "src/wasm/players/players.pb.h"
 #include "src/wasm/wasm.pb.h"
-#include "wasm/players.h"
+#include "wasm/host_service.gen.h"
+#include "wasm/roster.h"
 
 namespace modlock::wasm {
 
@@ -19,45 +20,48 @@ class GameServices;
 // server commands, messages, screen effects, sounds, heals, damage, kills and
 // traces. It holds no state, so it runs no hooks and is not one of the game's
 // modules.
-class Effects final {
+class Effects final : public EffectsCalls {
  public:
   // services, engine and players outlive the effects.
-  Effects(GameServices& services, EngineHost* engine, Players& players);
+  Effects(GameServices& services, EngineHost* engine, Roster& players);
 
   Effects(const Effects&) = delete;
   Effects& operator=(const Effects&) = delete;
 
   // ServerCommand runs one server console line.
-  std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request);
+  std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override;
 
   // The messages show text to one player, or to every player.
-  std::expected<void, std::string> Chat(const effects::ChatRequest& request);
-  std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request);
-  std::expected<void, std::string> Announce(const effects::AnnounceRequest& request);
+  std::expected<void, std::string> Chat(const effects::ChatRequest& request) override;
+  std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override;
+  std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override;
 
   // The screen effects show or clear an effect on a player's screen.
-  std::expected<void, std::string> ScreenEffect(const effects::ScreenEffectRequest& request);
+  std::expected<void, std::string> ScreenEffect(
+      const effects::ScreenEffectRequest& request) override;
   std::expected<void, std::string> ClearScreenEffect(
-      const effects::ClearScreenEffectRequest& request);
+      const effects::ClearScreenEffectRequest& request) override;
 
   // The sounds start a sound on a player's hero or an entity, change it or
   // stop it.
-  std::expected<effects::SoundResponse, std::string> Sound(const effects::SoundRequest& request);
+  std::expected<effects::SoundResponse, std::string> Sound(
+      const effects::SoundRequest& request) override;
   std::expected<effects::SoundResponse, std::string> EmitSound(
-      const effects::EmitSoundRequest& request);
-  std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request);
-  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request);
+      const effects::EmitSoundRequest& request) override;
+  std::expected<void, std::string> AdjustSound(const effects::AdjustSoundRequest& request) override;
+  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override;
 
   // Heal raises a live hero's health, at most to its maximum.
-  std::expected<void, std::string> Heal(const players::HealRequest& request);
+  std::expected<void, std::string> Heal(const players::HealRequest& request) override;
 
   // Damage and KillEntity hurt or kill a hero or unit through the game's
   // damage path.
-  std::expected<void, std::string> Damage(const combat::HitOptions& request);
-  std::expected<void, std::string> KillEntity(const combat::KillOptions& request);
+  std::expected<void, std::string> Damage(const combat::HitOptions& request) override;
+  std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override;
 
   // Trace casts a line through the world's collision.
-  std::expected<combat::TraceResponse, std::string> Trace(const combat::TraceOptions& request);
+  std::expected<combat::TraceResponse, std::string> Trace(
+      const combat::TraceOptions& request) override;
 
  private:
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
@@ -78,7 +82,7 @@ class Effects final {
   GameServices& services_;
   // engine_ outlives the effects; the host owns it.
   EngineHost* engine_;
-  Players& players_;
+  Roster& players_;
 };
 
 }  // namespace modlock::wasm

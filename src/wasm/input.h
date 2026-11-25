@@ -8,6 +8,7 @@
 #include "src/wasm/controllers/controllers.pb.h"
 #include "src/wasm/input.pb.h"
 #include "src/wasm/players/players.pb.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
 #include "wasm/module.h"
 
@@ -19,7 +20,7 @@ class GameServices;
 // blocking, pressing, remapping and watching buttons, reading a player's held
 // buttons, and watching their controllers. Its changes reach the shared input
 // hook as an input source while it lives, and Clear releases them all.
-class Input final : public Module {
+class Input final : public Module, public InputCalls {
  public:
   using ButtonChange = InputChanges::ButtonChange;
 
@@ -30,14 +31,16 @@ class Input final : public Module {
   Input(const Input&) = delete;
   Input& operator=(const Input&) = delete;
 
-  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request);
-  std::expected<void, std::string> BlockPlayerInput(const wasm::PlayerInputRequest& request);
-  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request);
-  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request);
-  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request);
-  std::expected<wasm::ButtonsResponse, std::string> Buttons(const players::PlayerRequest& request);
+  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override;
+  std::expected<void, std::string> BlockPlayerInput(
+      const wasm::PlayerInputRequest& request) override;
+  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override;
+  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override;
+  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override;
+  std::expected<wasm::ButtonsResponse, std::string> Buttons(
+      const players::PlayerRequest& request) override;
   std::expected<void, std::string> WatchControllers(
-      const controllers::WatchControllersRequest& request);
+      const controllers::WatchControllersRequest& request) override;
 
   // TakeButtonChanges returns the watched button changes since the last call,
   // in the order players made them.

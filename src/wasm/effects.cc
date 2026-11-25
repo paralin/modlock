@@ -37,7 +37,7 @@ std::expected<gameinterop::engine::ScreenEffectState, std::string> ScreenState(
 
 }  // namespace
 
-Effects::Effects(GameServices& services, EngineHost* engine, Players& players)
+Effects::Effects(GameServices& services, EngineHost* engine, Roster& players)
     : services_(services), engine_(engine), players_(players) {}
 
 std::expected<void, std::string> Effects::ServerCommand(const ServerCommandRequest& request) {

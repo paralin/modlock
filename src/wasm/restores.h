@@ -12,10 +12,11 @@
 #include "src/wasm/players/players.pb.h"
 #include "wasm/hero_restore.h"
 #include "wasm/heroes.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/modifier_holds.h"
 #include "wasm/module.h"
 #include "wasm/npc_restore.h"
-#include "wasm/players.h"
+#include "wasm/roster.h"
 #include "wasm/world.h"
 
 namespace modlock::wasm {
@@ -24,7 +25,7 @@ class GameServices;
 
 // Restores gives heroes and units the state a mod saved for them, over
 // several frames each, and reports each restore once it ends.
-class Restores final : public Module {
+class Restores final : public Module, public RestoresCalls {
  public:
   // Restored is the result of one player's hero restore; an empty error
   // means the target held.
@@ -34,14 +35,14 @@ class Restores final : public Module {
   };
 
   // services, players, world, modifiers and heroes outlive the restores.
-  Restores(GameServices& services, Players& players, World& world, ModifierHolds& modifiers,
+  Restores(GameServices& services, Roster& players, World& world, ModifierHolds& modifiers,
            Heroes& heroes);
 
   Restores(const Restores&) = delete;
   Restores& operator=(const Restores&) = delete;
 
-  std::expected<void, std::string> RestoreHero(const players::RestoreHeroRequest& request);
-  std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request);
+  std::expected<void, std::string> RestoreHero(const players::RestoreHeroRequest& request) override;
+  std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override;
 
   // TakeRestored returns the hero restores that ended since the last call.
   std::vector<Restored> TakeRestored() { return std::exchange(restored_, {}); }
@@ -69,7 +70,7 @@ class Restores final : public Module {
              HeroRestore::Stage stage);
 
   GameServices& services_;
-  Players& players_;
+  Roster& players_;
   World& world_;
   ModifierHolds& modifiers_;
   Heroes& heroes_;

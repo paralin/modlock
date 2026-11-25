@@ -80,20 +80,23 @@ struct Mods {
 
 // PluginGame is one mod's game with the calls that reach its plugin: its log,
 // its interface and the services the host provides.
-class PluginGame final : public wasm::Game {
+class PluginGame final : public wasm::Game, public wasm::PluginCalls {
  public:
   PluginGame(WasmPlugin& plugin, Mods& host, EngineHost* engine)
       : Game(host.game, engine), plugin_(plugin), host_(host) {}
 
-  // AnswersWithoutGame reports whether the plugin answers method itself,
-  // without the game: the calls this class overrides.
-  static bool AnswersWithoutGame(std::string_view method);
+  using Game::Calls;
+
+  // Calls returns the parts that answer the mod's Host calls: the game's
+  // modules and this plugin while a game is open, and only this plugin
+  // without one, when every other call fails with that no game is running.
+  wasm::HostCalls Calls(bool game_open);
 
  private:
   bool Serves(int32_t slot) const override;
+  void Describe(wasm::players::PlayersResponse& players) override;
   std::expected<void, std::string> Log(const wasm::LogRequest& request) override;
   std::expected<void, std::string> Ui(const wasm::ui::UiRequest& request) override;
-  std::expected<wasm::players::PlayersResponse, std::string> Players() override;
   std::expected<wasm::ServiceReply, std::string> CallService(
       const wasm::ServiceCall& request) override;
   std::expected<wasm::ServiceCallStarted, std::string> StartServiceCall(

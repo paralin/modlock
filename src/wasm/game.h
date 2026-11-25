@@ -59,9 +59,9 @@
 #include "wasm/modifier_holds.h"
 #include "wasm/module.h"
 #include "wasm/npc_restore.h"
-#include "wasm/players.h"
 #include "wasm/projectiles.h"
 #include "wasm/restores.h"
+#include "wasm/roster.h"
 #include "wasm/seating.h"
 #include "wasm/team_seating.h"
 #include "wasm/voice.h"
@@ -145,7 +145,7 @@ class GameServices {
   std::expected<const gameinterop::ModuleImage*, std::string> Image();
   std::expected<void*, std::string> Schema();
   std::expected<const gameinterop::HeroDefinitions*, std::string> Heroes();
-  std::expected<const gameinterop::WorldEntities::Calls*, std::string> WorldCalls();
+  std::expected<const gameinterop::WorldEntities::Calls*, std::string> EntityCalls();
   std::expected<const gameinterop::PlayerSelectionCalls*, std::string> Selection();
   std::expected<const gameinterop::AbilityDefinitions*, std::string> Abilities();
   std::expected<const gameinterop::AbilityModifier::Calls*, std::string> ModifierCalls();
@@ -388,15 +388,20 @@ class GameServices {
 // Game answers one mod's calls into the game and owns what the mod placed in
 // it: world objects, units, bots, frozen heroes and input changes. Clear and
 // WorldEnding remove them, so a stopped or reloaded mod leaves nothing behind.
-// The calls that reach beyond the game, Log, Ui and CallService, belong to a
-// subclass.
-class Game : public HostService {
+// Its modules answer the mod's Host calls through Calls; the calls that reach
+// beyond the game, such as Log, Ui and CallService, belong to a subclass.
+class Game {
  public:
   Game(GameServices& services, EngineHost* engine);
-  ~Game() override;
+  virtual ~Game();
 
   Game(const Game&) = delete;
   Game& operator=(const Game&) = delete;
+
+  // Calls returns the modules that answer each part of the mod's Host calls.
+  // The plugin part, the calls that reach beyond the game, is left to a
+  // subclass.
+  HostCalls Calls();
 
   // Frame finishes placing the units the mod spawned last frame and advances
   // its hero restores.
@@ -456,7 +461,7 @@ class Game : public HostService {
   std::optional<int32_t> SlotOfPawn(uint32_t handle) const { return players_.SlotOfPawn(handle); }
 
   // Heroes returns every live hero this frame.
-  std::vector<wasm::Players::Hero> Heroes() { return players_.Heroes(); }
+  std::vector<wasm::Roster::Hero> Heroes() { return players_.Heroes(); }
 
   // AssignTeams applies host seats on join and assignment change. The table
   // survives Clear, so a build reload keeps confirmed seats and pending joins.
@@ -513,542 +518,15 @@ class Game : public HostService {
   // Serves reports whether this game currently controls the player's slot.
   virtual bool Serves(int32_t) const { return true; }
 
-  // Players lists the player slots with a seat, connected or away; a host may
-  // add what it knows of each player.
-  std::expected<players::PlayersResponse, std::string> Players() override {
-    return players_.List();
-  }
+  // Describe adds what a host knows of each player to the list the Players
+  // call returns.
+  virtual void Describe(players::PlayersResponse&) {}
 
   // Impacted delivers a watched projectile's impact to the mod, inside the
   // game's impact.
   virtual void Impacted(const combat::ImpactEvent& event) = 0;
 
  private:
-  // The calls, in the order the Host service declares them.
-  std::expected<void, std::string> ServerCommand(const ServerCommandRequest& request) override {
-    return effects_.ServerCommand(request);
-  }
-
-  std::expected<void, std::string> Chat(const effects::ChatRequest& request) override {
-    return effects_.Chat(request);
-  }
-
-  std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override {
-    return effects_.CenterText(request);
-  }
-
-  std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override {
-    return effects_.Announce(request);
-  }
-
-  std::expected<void, std::string> Precache(const PrecacheOptions& request) override {
-    return world_.Precache(request);
-  }
-
-  std::expected<players::PawnResponse, std::string> Pawn(
-      const players::PlayerRequest& request) override {
-    return players_.Pawn(request);
-  }
-
-  std::expected<players::PawnsResponse, std::string> Pawns() override { return players_.Pawns(); }
-
-  std::expected<players::HeroResponse, std::string> SelectHero(
-      const players::SelectHeroRequest& request) override {
-    return heroes_.SelectHero(request);
-  }
-
-  std::expected<void, std::string> Spectate(const players::PlayerRequest& request) override {
-    return camera_.Spectate(request);
-  }
-
-  std::expected<void, std::string> Watch(const players::WatchRequest& request) override {
-    return camera_.Watch(request);
-  }
-
-  std::expected<void, std::string> FreeCamera(const players::FreeCameraRequest& request) override {
-    return camera_.FreeCamera(request);
-  }
-
-  std::expected<void, std::string> MoveCamera(const players::CameraOptions& request) override {
-    return camera_.MoveCamera(request);
-  }
-
-  std::expected<void, std::string> ClearCamera(
-      const players::ClearCameraRequest& request) override {
-    return camera_.ClearCamera(request);
-  }
-
-  std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) override {
-    return camera_.Unwatch(request);
-  }
-
-  std::expected<void, std::string> Respawn(const players::PlayerRequest& request) override {
-    return heroes_.Respawn(request);
-  }
-
-  std::expected<void, std::string> ChangeTeam(const players::ChangeTeamRequest& request) override {
-    return heroes_.ChangeTeam(request);
-  }
-
-  std::expected<void, std::string> ClearItems(const players::PlayerRequest& request) override {
-    return heroes_.ClearItems(request);
-  }
-
-  std::expected<void, std::string> Freeze(const players::FreezeRequest& request) override {
-    return heroes_.Freeze(request);
-  }
-
-  std::expected<void, std::string> RestoreStamina(const players::PlayerRequest& request) override {
-    return heroes_.RestoreStamina(request);
-  }
-
-  std::expected<void, std::string> SetStamina(const players::SetStaminaRequest& request) override {
-    return heroes_.SetStamina(request);
-  }
-
-  std::expected<void, std::string> RefreshAbility(
-      const abilities::RefreshAbilityRequest& request) override {
-    return heroes_.RefreshAbility(request);
-  }
-
-  std::expected<abilities::AbilitiesResponse, std::string> Abilities(
-      const players::PlayerRequest& request) override {
-    return heroes_.Abilities(request);
-  }
-
-  std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& request) override {
-    return heroes_.SetAbility(request);
-  }
-
-  std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) override {
-    return heroes_.GiveItem(request);
-  }
-
-  std::expected<void, std::string> TrainAbility(
-      const abilities::TrainAbilityRequest& request) override {
-    return heroes_.TrainAbility(request);
-  }
-
-  std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& request) override {
-    return heroes_.BuyItem(request);
-  }
-
-  std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
-      const abilities::HeroBuildRequest& request) override {
-    return heroes_.HeroBuild(request);
-  }
-
-  std::expected<void, std::string> ReplaceAbility(
-      const abilities::ReplaceAbilityRequest& request) override {
-    return heroes_.ReplaceAbility(request);
-  }
-
-  std::expected<void, std::string> HoldModifier(
-      const abilities::HoldModifierRequest& request) override {
-    return modifiers_.HoldModifier(request);
-  }
-
-  std::expected<void, std::string> GiveModifier(
-      const abilities::GiveModifierRequest& request) override {
-    return modifiers_.GiveModifier(request);
-  }
-
-  std::expected<void, std::string> HoldEntityModifier(
-      const abilities::HoldEntityModifierRequest& request) override {
-    return modifiers_.HoldEntityModifier(request);
-  }
-
-  std::expected<void, std::string> GiveEntityModifier(
-      const abilities::GiveEntityModifierRequest& request) override {
-    return modifiers_.GiveEntityModifier(request);
-  }
-
-  std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override {
-    return movement_.Teleport(request);
-  }
-
-  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override {
-    return movement_.Zipline(request);
-  }
-
-  std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override {
-    return movement_.MovePlayer(request);
-  }
-
-  std::expected<void, std::string> Steer(const movement::SteerRequest& request) override {
-    return movement_.Steer(request);
-  }
-
-  std::expected<void, std::string> Drive(const movement::DriveRequest& request) override {
-    return movement_.Drive(request);
-  }
-
-  std::expected<void, std::string> AdjustSouls(
-      const players::AdjustSoulsRequest& request) override {
-    return heroes_.AdjustSouls(request);
-  }
-
-  std::expected<void, std::string> AdjustAbilityPoints(
-      const players::AdjustAbilityPointsRequest& request) override {
-    return heroes_.AdjustAbilityPoints(request);
-  }
-
-  std::expected<void, std::string> StartingSouls(
-      const players::StartingSoulsRequest& request) override {
-    return heroes_.StartingSouls(request);
-  }
-
-  std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) override {
-    return heroes_.ResetHero(request);
-  }
-
-  std::expected<void, std::string> Heal(const players::HealRequest& request) override {
-    return effects_.Heal(request);
-  }
-
-  std::expected<effects::SoundResponse, std::string> Sound(
-      const effects::SoundRequest& request) override {
-    return effects_.Sound(request);
-  }
-
-  std::expected<void, std::string> RestoreHero(
-      const players::RestoreHeroRequest& request) override {
-    return restores_.RestoreHero(request);
-  }
-
-  std::expected<void, std::string> ScreenEffect(
-      const effects::ScreenEffectRequest& request) override {
-    return effects_.ScreenEffect(request);
-  }
-
-  std::expected<void, std::string> ClearScreenEffect(
-      const effects::ClearScreenEffectRequest& request) override {
-    return effects_.ClearScreenEffect(request);
-  }
-
-  std::expected<void, std::string> SilenceVoice(
-      const effects::SilenceVoiceRequest& request) override {
-    return voice_.SilenceVoice(request);
-  }
-
-  std::expected<void, std::string> SilencePlayerVoice(
-      const effects::SilencePlayerVoiceRequest& request) override {
-    return voice_.SilencePlayerVoice(request);
-  }
-
-  std::expected<fields::FieldResponse, std::string> ReadField(
-      const fields::ReadFieldRequest& request) override {
-    return fields_.ReadField(request);
-  }
-
-  std::expected<void, std::string> WriteField(const fields::WriteFieldRequest& request) override {
-    return fields_.WriteField(request);
-  }
-
-  std::expected<fields::FieldListResponse, std::string> ReadFieldList(
-      const fields::ReadFieldRequest& request) override {
-    return fields_.ReadFieldList(request);
-  }
-
-  std::expected<fields::FieldResponse, std::string> ReadModifierField(
-      const fields::ReadModifierFieldRequest& request) override {
-    return modifiers_.ReadModifierField(request);
-  }
-
-  std::expected<abilities::ModifiersResponse, std::string> Modifiers(
-      const entities::EntityRequest& request) override {
-    return modifiers_.Modifiers(request);
-  }
-
-  std::expected<void, std::string> WriteFieldList(
-      const fields::WriteFieldListRequest& request) override {
-    return fields_.WriteFieldList(request);
-  }
-
-  std::expected<entities::EntityClassResponse, std::string> EntityClass(
-      const entities::EntityRequest& request) override {
-    return fields_.EntityClass(request);
-  }
-
-  std::expected<entities::EntityNameResponse, std::string> EntityName(
-      const entities::EntityRequest& request) override {
-    return fields_.EntityName(request);
-  }
-
-  std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
-      const entities::EntityRequest& request) override {
-    return fields_.EntityPosition(request);
-  }
-
-  std::expected<abilities::ActiveResponse, std::string> ModifierState(
-      const abilities::ModifierStateRequest& request) override {
-    return modifiers_.ModifierState(request);
-  }
-
-  std::expected<void, std::string> HoldModifierState(
-      const abilities::HoldModifierStateRequest& request) override {
-    return modifiers_.HoldModifierState(request);
-  }
-
-  std::expected<void, std::string> SetFreeForAll(
-      const wasm::SetFreeForAllRequest& request) override {
-    return seating_.SetFreeForAll(request);
-  }
-
-  std::expected<void, std::string> SetTeamSeating(
-      const wasm::SetTeamSeatingRequest& request) override {
-    return seating_.SetTeamSeating(request);
-  }
-
-  std::expected<objects::ObjectResponse, std::string> CreateModel(
-      const objects::ModelOptions& request) override {
-    return world_.CreateModel(request);
-  }
-
-  std::expected<objects::ObjectResponse, std::string> CreateText(
-      const objects::TextOptions& request) override {
-    return world_.CreateText(request);
-  }
-
-  std::expected<objects::ObjectResponse, std::string> CreateParticle(
-      const objects::ParticleOptions& request) override {
-    return world_.CreateParticle(request);
-  }
-
-  std::expected<objects::ObjectResponse, std::string> CreateFog(
-      const objects::FogOptions& request) override {
-    return world_.CreateFog(request);
-  }
-
-  std::expected<void, std::string> MoveObject(const objects::MoveObjectRequest& request) override {
-    return world_.MoveObject(request);
-  }
-
-  std::expected<void, std::string> SetText(const objects::SetTextRequest& request) override {
-    return world_.SetText(request);
-  }
-
-  std::expected<void, std::string> SetObjectHidden(
-      const objects::SetObjectHiddenRequest& request) override {
-    return world_.SetObjectHidden(request);
-  }
-
-  std::expected<void, std::string> ShowObjectOnlyTo(
-      const objects::ShowObjectOnlyToRequest& request) override {
-    return world_.ShowObjectOnlyTo(request);
-  }
-
-  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request) override {
-    return world_.ShowObjectToAll(request);
-  }
-
-  std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) override {
-    return world_.RemoveObject(request);
-  }
-
-  std::expected<entities::EntityResponse, std::string> ObjectEntity(
-      const objects::ObjectRequest& request) override {
-    return world_.ObjectEntity(request);
-  }
-
-  std::expected<players::BotResponse, std::string> AddBot(
-      const players::BotOptions& request) override {
-    return world_.AddBot(request);
-  }
-
-  std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override {
-    return world_.RemoveBot(request);
-  }
-
-  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override {
-    return input_.BlockInput(request);
-  }
-
-  std::expected<void, std::string> BlockPlayerInput(
-      const wasm::PlayerInputRequest& request) override {
-    return input_.BlockPlayerInput(request);
-  }
-
-  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override {
-    return input_.Press(request);
-  }
-
-  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override {
-    return input_.WatchInput(request);
-  }
-
-  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override {
-    return input_.RemapInput(request);
-  }
-
-  std::expected<entities::EntityResponse, std::string> CreateEntity(
-      const entities::EntityOptions& request) override {
-    return world_.CreateEntity(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> FireInput(
-      const entities::FireInputRequest& request) override {
-    return world_.FireInput(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> RemoveEntity(
-      const entities::EntityRequest& request) override {
-    return world_.RemoveEntity(request);
-  }
-
-  std::expected<void, std::string> ShowEntityOnlyTo(
-      const entities::ShowEntityOnlyToRequest& request) override {
-    return world_.ShowEntityOnlyTo(request);
-  }
-
-  std::expected<void, std::string> ShowEntityToAll(
-      const entities::EntityRequest& request) override {
-    return world_.ShowEntityToAll(request);
-  }
-
-  std::expected<npcs::NpcResponse, std::string> SpawnNpc(const npcs::NpcOptions& request) override {
-    return world_.SpawnNpc(request);
-  }
-
-  std::expected<npcs::NpcStateResponse, std::string> ReadNpc(
-      const npcs::NpcRequest& request) override {
-    return world_.ReadNpc(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> MoveNpc(
-      const npcs::MoveNpcRequest& request) override {
-    return world_.MoveNpc(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> SetNpcHealth(
-      const npcs::SetNpcHealthRequest& request) override {
-    return world_.SetNpcHealth(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> RemoveNpc(
-      const npcs::NpcRequest& request) override {
-    return world_.RemoveNpc(request);
-  }
-
-  std::expected<entities::PickupResponse, std::string> CreatePickup(
-      const entities::CreatePickupRequest& request) override {
-    return world_.CreatePickup(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> PickupPresent(
-      const entities::PickupRequest& request) override {
-    return world_.PickupPresent(request);
-  }
-
-  std::expected<entities::AliveResponse, std::string> RemovePickup(
-      const entities::PickupRequest& request) override {
-    return world_.RemovePickup(request);
-  }
-
-  std::expected<entities::EntitiesResponse, std::string> FindEntities(
-      const entities::FindEntitiesRequest& request) override {
-    return world_.FindEntities(request);
-  }
-
-  std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
-      const entities::FindEntitiesByNameRequest& request) override {
-    return world_.FindEntitiesByName(request);
-  }
-
-  std::expected<entities::CountResponse, std::string> RemoveEntities(
-      const entities::RemoveEntitiesRequest& request) override {
-    return world_.RemoveEntities(request);
-  }
-
-  std::expected<void, std::string> ClearMap() override { return world_.ClearMap(); }
-
-  std::expected<void, std::string> Damage(const combat::HitOptions& request) override {
-    return effects_.Damage(request);
-  }
-
-  std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override {
-    return effects_.KillEntity(request);
-  }
-
-  std::expected<combat::TraceResponse, std::string> Trace(
-      const combat::TraceOptions& request) override {
-    return effects_.Trace(request);
-  }
-
-  std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override {
-    return restores_.RestoreNpcs(request);
-  }
-
-  std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override {
-    return match_.Pause(request);
-  }
-
-  std::expected<wasm::MatchClockResponse, std::string> MatchClock() override {
-    return match_.MatchClock();
-  }
-
-  std::expected<void, std::string> HoldMatchClock(
-      const wasm::HoldMatchClockRequest& request) override {
-    return match_.HoldMatchClock(request);
-  }
-
-  std::expected<wasm::RiftResponse, std::string> Rift() override { return match_.Rift(); }
-
-  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override {
-    return match_.StartRift(request);
-  }
-
-  std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override {
-    return world_.MoveEntity(request);
-  }
-
-  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override {
-    return world_.PushEntity(request);
-  }
-
-  std::expected<effects::SoundResponse, std::string> EmitSound(
-      const effects::EmitSoundRequest& request) override {
-    return effects_.EmitSound(request);
-  }
-
-  std::expected<void, std::string> AdjustSound(
-      const effects::AdjustSoundRequest& request) override {
-    return effects_.AdjustSound(request);
-  }
-
-  std::expected<void, std::string> StopSound(const effects::StopSoundRequest& request) override {
-    return effects_.StopSound(request);
-  }
-
-  std::expected<void, std::string> Kill(const players::PlayerRequest& request) override {
-    return heroes_.Kill(request);
-  }
-
-  std::expected<void, std::string> SetVelocity(
-      const movement::SetVelocityRequest& request) override {
-    return movement_.SetVelocity(request);
-  }
-
-  std::expected<wasm::ButtonsResponse, std::string> Buttons(
-      const players::PlayerRequest& request) override {
-    return input_.Buttons(request);
-  }
-
-  std::expected<void, std::string> WatchMovement(
-      const movement::WatchMovementRequest& request) override {
-    return movement_.WatchMovement(request);
-  }
-
-  std::expected<void, std::string> WatchControllers(
-      const controllers::WatchControllersRequest& request) override {
-    return input_.WatchControllers(request);
-  }
-
-  std::expected<void, std::string> WatchProjectiles(
-      const combat::ProjectileOptions& request) override {
-    return projectiles_.WatchProjectiles(request);
-  }
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
@@ -1058,7 +536,7 @@ class Game : public HostService {
   // they are built, each after the modules it reads. WorldReady runs them in
   // that order; Frame, WorldEnding, Leave and Clear run them in reverse, so a
   // module's frame work and release come before those of the modules it reads.
-  wasm::Players players_{services_};
+  Roster players_{services_, [this](players::PlayersResponse& players) { Describe(players); }};
   wasm::World world_{services_, engine_};
   Match match_{services_, world_};
   ApartPlayers apart_{services_, players_};

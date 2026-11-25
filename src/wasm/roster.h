@@ -3,26 +3,32 @@
 #include <array>
 #include <cstdint>
 #include <expected>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "modlock/gameinterop/pawn_observer.h"
 #include "src/wasm/players/players.pb.h"
+#include "wasm/host_service.gen.h"
 #include "wasm/module.h"
 
 namespace modlock::wasm {
 
 class GameServices;
 
-// Players is a mod's view of the seated players and their heroes. It owns the
+// Roster is a mod's view of the seated players and their heroes. It owns the
 // pawn observer, which samples each player's hero once per frame; the modules
 // that act on heroes reach it through Observer. A world change drops the
 // observer's cached pawns, since the engine frees them with the world.
-class Players final : public Module {
+class Roster final : public Module, public PlayersCalls {
  public:
-  // services outlives the players.
-  explicit Players(GameServices& services);
+  // Describe adds what the host knows of each player to the list Players
+  // returns.
+  using Describe = std::function<void(players::PlayersResponse&)>;
+
+  // services outlives the roster.
+  Roster(GameServices& services, Describe describe);
 
   // Hero is one live hero this frame. Velocity is absent when the game's
   // motion field cannot be read.
@@ -34,14 +40,15 @@ class Players final : public Module {
     std::optional<std::array<float, 3>> velocity;
   };
 
-  // List returns every seated player, connected or away, with its identity,
-  // readiness and presence.
-  players::PlayersResponse List() const;
+  // Players returns every seated player, connected or away, with its
+  // identity, readiness and presence, and what the host adds.
+  std::expected<players::PlayersResponse, std::string> Players() override;
 
   // Pawn answers the player's hero, or no pawn for a slot without one or a
   // spectator; Pawns answers every live hero in slot order.
-  players::PawnResponse Pawn(const players::PlayerRequest& request);
-  players::PawnsResponse Pawns();
+  std::expected<players::PawnResponse, std::string> Pawn(
+      const players::PlayerRequest& request) override;
+  std::expected<players::PawnsResponse, std::string> Pawns() override;
 
   // Live returns the observed pawn of slot for this frame.
   std::expected<gameinterop::PawnObserver::Sample, std::string> Live(int32_t slot);
@@ -75,6 +82,7 @@ class Players final : public Module {
   void FillPawn(int32_t slot, const gameinterop::PawnObserver::Sample& sample, players::Pawn* pawn);
 
   GameServices& services_;
+  Describe describe_;
   gameinterop::PawnObserver observer_;
 };
 

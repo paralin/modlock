@@ -98,7 +98,7 @@ void WasmPlugin::ReportPlayers() {
   reported_ = revision;
 
   // The report lists the players as the mod's Players call does.
-  auto players = static_cast<wasm::HostService&>(game_).Players();
+  auto players = game_.Calls().players->Players();
   if (!players) {
     return;
   }
@@ -312,16 +312,13 @@ void WasmPlugin::Scope(WasmScope scope) {
 }
 
 wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
-  // A mod that serves some players reaches only them. Without a game it
-  // reaches only what the plugin answers itself.
+  // A mod that serves some players reaches only them.
   wasm::Reply reply;
   const auto refused = scope_.Refuse(call);
   if (!refused.empty()) {
     reply.set_error(refused);
-  } else if (GameOpen() || PluginGame::AnswersWithoutGame(call.method())) {
-    reply = game_.Dispatch(call);
   } else {
-    reply.set_error("no game is running");
+    reply = wasm::Dispatch(game_.Calls(GameOpen()), call);
   }
 
   // Its player list holds only its players.
@@ -536,37 +533,27 @@ uint64_t WasmPlugin::SteamId(int32_t slot) {
   return state.occupied && !state.is_bot ? state.xuid : 0;
 }
 
-bool PluginGame::AnswersWithoutGame(std::string_view method) {
-  // Keep this list to the host calls this class overrides.
-  static constexpr std::array<std::string_view, 15> kMethods = {
-      "Log",           "Ui",
-      "CallService",   "StartServiceCall",
-      "PlayerSetting", "SetPlayerSetting",
-      "AddMetric",     "HoldReload",
-      "Handoff",       "HandedOff",
-      "PlayerHandoff", "PlayerHandedOff",
-      "ReadFile",      "ReadFileBytes",
-      "WriteFile",
-  };
-  return std::ranges::find(kMethods, method) != kMethods.end();
+wasm::HostCalls PluginGame::Calls(bool game_open) {
+  if (!game_open) {
+    return {.plugin = this, .absent = "no game is running"};
+  }
+  auto calls = Calls();
+  calls.plugin = this;
+  return calls;
 }
 
-std::expected<wasm::players::PlayersResponse, std::string> PluginGame::Players() {
+void PluginGame::Describe(wasm::players::PlayersResponse& players) {
   // Give each human the roles this mod's table lists for its connection, or
   // the humans' roles when it lists none. A stale entry gives nothing.
-  auto players = Game::Players();
-  if (!players) {
-    return players;
-  }
   auto table = host_.roles.find(plugin_.Slug());
   if (table == host_.roles.end()) {
     table = host_.roles.find("");
   }
   if (table == host_.roles.end()) {
-    return players;
+    return;
   }
   const auto& roles = table->second;
-  for (auto& connection : *players->mutable_players()) {
+  for (auto& connection : *players.mutable_players()) {
     if (connection.bot()) {
       continue;
     }
@@ -579,7 +566,6 @@ std::expected<wasm::players::PlayersResponse, std::string> PluginGame::Players()
       *connection.mutable_roles() = entry->roles();
     }
   }
-  return players;
 }
 
 std::expected<void, std::string> PluginGame::Log(const wasm::LogRequest& request) {
