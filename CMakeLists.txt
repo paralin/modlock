@@ -218,6 +218,7 @@ add_library(modlock_sdk SHARED
   src/wasm/fields.cc
   src/wasm/modifier_holds.cc
   src/wasm/heroes.cc
+  src/wasm/camera.cc
   src/wasm/call_profile.cc
   src/wasm/service_calls.cc
   src/wasm/console_lines.cc

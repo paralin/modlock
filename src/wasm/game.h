@@ -44,6 +44,7 @@
 #include "modlock/render/world_text_game_factory.h"
 #include "src/wasm/wasm.pb.h"
 #include "wasm/apart_players.h"
+#include "wasm/camera.h"
 #include "wasm/controller_table.h"
 #include "wasm/fields.h"
 #include "wasm/hero_restore.h"
@@ -381,7 +382,6 @@ class GameServices {
 // subclass.
 class Game : public HostService,
              private MoverSource,
-             private CameraSource,
              private ProjectileSource,
              private VoiceSource {
  public:
@@ -533,7 +533,6 @@ class Game : public HostService,
   movement::Steering* SteerOf(int32_t slot) override;
   bool Moves() const override;
   void Aim(void* pawn, const std::array<float, 3>& angles) override;
-  std::optional<int32_t> WatchedSlot(int32_t slot) const override;
   bool KeepsMomentum() const override;
   std::vector<HeroMotion> Motions() override;
   bool Silences(int32_t concept_value) const override;
@@ -561,12 +560,30 @@ class Game : public HostService,
     return heroes_.SelectHero(request);
   }
 
-  std::expected<void, std::string> Spectate(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> Watch(const players::WatchRequest& request) override;
-  std::expected<void, std::string> FreeCamera(const players::FreeCameraRequest& request) override;
-  std::expected<void, std::string> MoveCamera(const players::CameraOptions& request) override;
-  std::expected<void, std::string> ClearCamera(const players::ClearCameraRequest& request) override;
-  std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) override;
+  std::expected<void, std::string> Spectate(const players::PlayerRequest& request) override {
+    return camera_.Spectate(request);
+  }
+
+  std::expected<void, std::string> Watch(const players::WatchRequest& request) override {
+    return camera_.Watch(request);
+  }
+
+  std::expected<void, std::string> FreeCamera(const players::FreeCameraRequest& request) override {
+    return camera_.FreeCamera(request);
+  }
+
+  std::expected<void, std::string> MoveCamera(const players::CameraOptions& request) override {
+    return camera_.MoveCamera(request);
+  }
+
+  std::expected<void, std::string> ClearCamera(
+      const players::ClearCameraRequest& request) override {
+    return camera_.ClearCamera(request);
+  }
+
+  std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) override {
+    return camera_.Unwatch(request);
+  }
 
   std::expected<void, std::string> Respawn(const players::PlayerRequest& request) override {
     return heroes_.Respawn(request);
@@ -981,10 +998,6 @@ class Game : public HostService,
   // Combatant resolves a hero or unit that can safely receive damage events.
   std::expected<void*, std::string> Combatant(uint32_t handle);
 
-  // ObserveFrom binds slot's camera, as Watch and FreeCamera do, sets its
-  // observer mode and target and replicates them, and returns the camera pawn.
-  std::expected<void*, std::string> ObserveFrom(int32_t slot, uint8_t mode, uint32_t target);
-
   // TrackProjectiles queues a Launch for each watched projectile that
   // appeared since the last frame.
   void TrackProjectiles();
@@ -1006,10 +1019,6 @@ class Game : public HostService,
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
   EngineHost* engine_;
-  // watched_ maps each player Watch points at a hero to that hero's entity
-  // handle, until another camera call or Unwatch. A player watching a hero
-  // inside an apart game receives that game's heroes.
-  std::map<int32_t, uint32_t> watched_;
   // movers_ is the players whose movement the mod watches.
   std::set<int32_t> movers_;
 
@@ -1062,8 +1071,9 @@ class Game : public HostService,
   Fields fields_{services_, world_};
   ModifierHolds modifiers_{services_, players_, world_};
   wasm::Heroes heroes_{services_, players_};
-  std::array<Module*, 7> modules_{&players_, &world_,     &match_, &apart_,
-                                  &fields_,  &modifiers_, &heroes_};
+  Camera camera_{services_, players_, world_};
+  std::array<Module*, 8> modules_{&players_, &world_,     &match_,  &apart_,
+                                  &fields_,  &modifiers_, &heroes_, &camera_};
 };
 
 }  // namespace modlock::wasm
