@@ -2903,6 +2903,14 @@ local Kind: { [any]: any } = {
 	input = 7,
 	[8] = "avatar",
 	avatar = 8,
+	[9] = "menu",
+	menu = 9,
+	[10] = "menuClose",
+	menuClose = 10,
+	[11] = "documentInput",
+	documentInput = 11,
+	[12] = "documentOutput",
+	documentOutput = 12,
 }
 
 -- Flow holds the wire names of the interface enum Flow.
@@ -3103,6 +3111,16 @@ local ClockFormat: { [any]: any } = {
 	seconds = 1,
 	[2] = "tenths",
 	tenths = 2,
+}
+
+-- MenuMode holds the wire names of the interface enum MenuMode.
+local MenuMode: { [any]: any } = {
+	[0] = "manual",
+	manual = 0,
+	[1] = "toggle",
+	toggle = 1,
+	[2] = "hold",
+	hold = 2,
 }
 
 -- Window holds the wire names of the service enum Window.
@@ -4190,6 +4208,9 @@ schema.Node = {
 	{ number = 39, name = "clock", kind = "message", message = "Clock" },
 	{ number = 40, name = "hideInChat", kind = "bool" },
 	{ number = 41, name = "speaking", kind = "string" },
+	{ number = 42, name = "menu", kind = "message", message = "Menu" },
+	{ number = 43, name = "documentInput", kind = "message", message = "DocumentInput" },
+	{ number = 44, name = "documentText", kind = "string" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4219,6 +4240,16 @@ schema.Cue = {
 	{ number = 2, name = "sound", kind = "string" },
 	{ number = 3, name = "seconds", kind = "float" },
 	{ number = 4, name = "delay", kind = "float" },
+}
+schema.Menu = {
+	{ number = 1, name = "mode", kind = "enum", enum = MenuMode },
+	{ number = 2, name = "openLabel", kind = "string" },
+	{ number = 3, name = "openRequest", kind = "uint32" },
+}
+schema.DocumentInput = {
+	{ number = 1, name = "placeholder", kind = "string" },
+	{ number = 2, name = "submitLabel", kind = "string" },
+	{ number = 3, name = "control", kind = "uint64" },
 }
 schema.TextEntry = {
 	{ number = 1, name = "text", kind = "string" },

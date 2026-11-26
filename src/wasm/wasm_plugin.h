@@ -46,6 +46,7 @@ struct Mods {
   wasm::Runtime runtime;
   std::filesystem::path interpreters;
   wasm::GameServices game;
+  wasm::UiDocuments documents;
   std::vector<WasmHostObserver*> observers;
   std::map<std::string, WasmPlugin*, std::less<>> plugins;
   // extensions holds the services the host provides, by name.

@@ -71,6 +71,19 @@ class FakePanel {
   options: FakePanel[] = []
   selected = ''
   deleteSeconds = -1
+  focused = false
+
+  BHasKeyFocus() {
+    return this.focused
+  }
+  BHasDescendantKeyFocus(): boolean {
+    return this.children.some(
+      (child) => child.BHasKeyFocus() || child.BHasDescendantKeyFocus(),
+    )
+  }
+  SetFocus() {
+    this.focused = true
+  }
 
   constructor(
     readonly paneltype: string,
@@ -844,13 +857,16 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   const drawing = new Drawing(
     $,
     root,
-    () => {},
+    (mod, node) => changes.push(pressCommand(mod, node)),
     undefined,
     (mod, node, value) => changes.push(inputCommand(mod, node, value)),
   )
   const tree = (name: string, disabled = false) =>
     screen(
-      { id: '', children: ['name', 'volume', 'ready', 'team', 'face', 'hero'] },
+      {
+        id: '',
+        children: ['name', 'volume', 'ready', 'team', 'face', 'hero', 'save'],
+      },
       {
         id: 'name',
         kind: 'KIND_INPUT',
@@ -875,9 +891,11 @@ test('draws inputs, avatars and game text, and sends edits', () => {
         token: '#Citadel_HeroName_Haze',
         variables: { count: '3' },
       },
+      { id: 'save', kind: 'KIND_BUTTON', text: 'Save' },
     )
   drawing.draw(tree('Ana'))
-  const [name, volume, ready, team, face, hero] = root.children[0]!.children
+  const [name, volume, ready, team, face, hero, save] =
+    root.children[0]!.children
 
   // Each control is made with its bounds and shows the mod's value.
   expect(name!.paneltype).toBe('TextEntry')
@@ -922,7 +940,8 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   name!.events.get('ontextentrychange')!()
   expect(placeholder.visible).toBe(true)
 
-  // Focus brightens the border until the entry lets the keyboard go.
+  // Focus brightens the border until the entry lets the keyboard go, and
+  // letting it go sends the cleared text at once.
   name!.events.get('onfocus')!()
   expect(name!.style.border).toBe('2px solid rgba(255, 239, 215, 0.700)')
   name!.events.get('onblur')!()
@@ -940,8 +959,26 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   team!.events.get('oninputsubmit')!()
   runScheduled()
   expect(changes).toEqual([
+    // Letting the keyboard go committed the cleared entry.
+    'modlockinput arena name ',
     'modlockinput arena ready 1',
     'modlockinput arena team 0',
+    `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
+  ])
+
+  // A press right after typing carries the typed text first, and an entry
+  // that lets the keyboard go sends what it shows at once.
+  changes.length = 0
+  name!.text = 'Anaïs?'
+  name!.events.get('ontextentrychange')!()
+  save!.events.get('onactivate')!()
+  name!.text = 'Anaïs'
+  name!.events.get('ontextentrychange')!()
+  name!.events.get('onblur')!()
+  runScheduled()
+  expect(changes).toEqual([
+    `modlockinput arena name ${Buffer.from('Anaïs?').toString('base64url')}`,
+    'modlockpress arena save',
     `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
   ])
 
@@ -2677,4 +2714,171 @@ test('the interface layer mounts under the HUD tooltips it can reach', () => {
     'Dashboard',
     'ModlockUi',
   ])
+})
+
+/** menuScreen draws the same native controls across ordinary screen revisions. */
+function menuScreen(mode: string, openRequest = 0, control = '41'): Screen {
+  return screen(
+    { id: '', children: ['surface'] },
+    {
+      id: 'surface',
+      kind: 'KIND_MENU',
+      menu: { mode, openRequest, openLabel: 'Settings' },
+      children: ['close', 'go', 'form', 'output'],
+    },
+    { id: 'close', kind: 'KIND_MENU_CLOSE' },
+    { id: 'go', kind: 'KIND_BUTTON' },
+    { id: 'form', kind: 'KIND_DOCUMENT_INPUT', documentInput: { control } },
+    {
+      id: 'output',
+      kind: 'KIND_DOCUMENT_OUTPUT',
+      documentText: '雪🙂\n<b>Teaching text</b>',
+    },
+  )
+}
+
+test('local menus close and return focus without replaying a press or open request', () => {
+  // Use the actual drawing and its local state, under a controlled stock HUD.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const cursor: boolean[] = []
+  const presses: string[] = []
+  let stock: 'escape' | 'other' | null = null
+  let allowed = true
+  let resumed = 0
+  const drawing = new Drawing(
+    $,
+    root,
+    (_, node) => presses.push(node),
+    undefined,
+    undefined,
+    {
+      allowed: () => allowed,
+      stock: () => stock,
+      capture: (open) => cursor.push(open),
+      resume: () => {
+        resumed++
+      },
+    },
+  )
+  const state = menuScreen('MENU_MODE_HOLD')
+  drawing.draw(state)
+  const content = root.FindChildTraverse('ModlockMenuContent')!
+  const close = content.children[0]!
+  const go = content.children[1]!
+  expect(content.visible).toBe(false)
+  drawing.scoreboard(true)
+  expect(content.visible).toBe(true)
+  go.events.get('onactivate')!()
+  expect(presses).toEqual(['go'])
+  drawing.scoreboard(false)
+  go.events.get('onactivate')!()
+  expect(presses).toEqual(['go'])
+  expect(content.visible).toBe(false)
+  expect(dispatched.some(([event]) => event === 'DropInputFocus')).toBe(true)
+
+  // A locally dismissed held menu does not reopen until a fresh press.
+  drawing.scoreboard(true)
+  close.events.get('onactivate')!()
+  drawing.scoreboard(true)
+  drawing.draw(state)
+  expect(content.visible).toBe(false)
+  drawing.scoreboard(false)
+  drawing.scoreboard(true)
+  const draft = root.FindChildTraverse('ModlockDocumentDraft')!
+  draft.SetFocus()
+  content.events.get('oncancel')!()
+  expect(content.visible).toBe(false)
+  drawing.scoreboard(false)
+
+  // Stock chat/shop wins over a menu and a held key cannot revive it.
+  drawing.scoreboard(true)
+  stock = 'other'
+  runScheduled()
+  expect(content.visible).toBe(false)
+  stock = null
+  drawing.scoreboard(true)
+  expect(content.visible).toBe(false)
+  drawing.scoreboard(false)
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 1))
+  expect(content.visible).toBe(true)
+  drawing.scoreboard(true)
+  drawing.scoreboard(false)
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 1))
+  expect(content.visible).toBe(false)
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 2))
+  stock = 'escape'
+  runScheduled()
+  expect(content.visible).toBe(false)
+  expect(resumed).toBe(1)
+  stock = null
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 3))
+  allowed = false
+  runScheduled()
+  expect(content.visible).toBe(false)
+  allowed = true
+  const replacement = menuScreen('MENU_MODE_TOGGLE', 3)
+  replacement.trees![0]!.generation = 2n
+  drawing.draw(replacement)
+  expect(root.FindChildTraverse('ModlockMenuContent')!.visible).toBe(false)
+  expect(cursor[cursor.length - 1]).toBe(false)
+})
+
+test('document form sends only a whole explicit submit and abandons closed or replaced drafts', () => {
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 1))
+  const content = root.FindChildTraverse('ModlockMenuContent')!
+  const form = root.FindChildTraverse('ModlockDocumentDraft')!
+  const submit = root.FindChildTraverse('ModlockDocumentSubmit')!
+  const output = content.children[3]!
+  expect(output.text).toBe('雪🙂\n<b>Teaching text</b>')
+  expect(output.properties).toMatchObject({
+    allowtextselection: 'true',
+    html: 'false',
+  })
+  form.text = '雪🙂\n'.repeat(6500)
+  form.events.get('ontextentrychange')?.()
+  form.events.get('oninputsubmit')?.()
+  runScheduled()
+  expect(dispatched).toEqual([])
+  submit.events.get('onactivate')!()
+  submit.events.get('onactivate')!()
+  for (let i = 0; i < 100; i++) runScheduled()
+  const lines = dispatched.map((dispatch) => dispatch[1]!)
+  expect(lines[0]).toEndWith(':b:52000')
+  expect(lines[lines.length - 1]).toEndWith(':e')
+  const bytes = Buffer.concat(
+    lines
+      .slice(1, -1)
+      .map((line) =>
+        Buffer.from(line.slice(line.lastIndexOf(':') + 1), 'base64url'),
+      ),
+  )
+  expect(bytes.toString()).toBe(form.text)
+
+  dispatched.length = 0
+  form.text = '雪'.repeat(22000)
+  submit.events.get('onactivate')!()
+  expect(dispatched).toEqual([])
+  form.text = 'Retry with a whole document.'
+  submit.events.get('onactivate')!()
+  drawing.scoreboard(true)
+  runScheduled()
+  expect(
+    dispatched
+      .filter(([event]) => event === 'CitadelConCommand')
+      .map((dispatch) => dispatch[1]!.slice(dispatch[1]!.lastIndexOf(':') + 1)),
+  ).toEqual(['28', 'x'])
+  drawing.scoreboard(false)
+  drawing.scoreboard(true)
+  dispatched.length = 0
+  submit.events.get('onactivate')!()
+  drawing.draw(menuScreen('MENU_MODE_TOGGLE', 1, '42'))
+  runScheduled()
+  expect(
+    dispatched
+      .filter(([event]) => event === 'CitadelConCommand')
+      .map((dispatch) => dispatch[1]!.slice(dispatch[1]!.lastIndexOf(':') + 1)),
+  ).toEqual(['28', 'x'])
+  expect(form.text).toBe('')
 })

@@ -361,4 +361,148 @@ TEST(UiTrees, TakesNoLayoutPressOnceTheModStops) {
   EXPECT_FALSE(trees.Action(5, "card close", kStart));
 }
 
+// DocumentTree places an enabled form below the root and an ordinary short entry beside it.
+Change DocumentTree() {
+  auto change = Set("", modlock::wasm::ui::KIND_PANEL, true);
+  change.mutable_set(0)->add_children("form");
+  change.mutable_set(0)->add_children("name");
+  auto* form = change.add_set();
+  form->set_id("form");
+  form->set_kind(modlock::wasm::ui::KIND_DOCUMENT_INPUT);
+  form->mutable_document_input()->set_control(999);
+  auto* name = change.add_set();
+  name->set_id("name");
+  name->set_kind(modlock::wasm::ui::KIND_INPUT);
+  name->mutable_text_entry();
+  return change;
+}
+
+// EncodeChunk encodes arbitrary bytes as the renderer's unpadded base64url.
+std::string EncodeChunk(std::string_view text) {
+  constexpr std::string_view digits =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  std::string encoded;
+  unsigned int bits = 0;
+  int count = 0;
+  for (const unsigned char byte : text) {
+    bits = (bits << 8) | byte;
+    count += 8;
+    while (count >= 6) {
+      count -= 6;
+      encoded += digits[(bits >> count) & 63];
+    }
+  }
+  if (count) {
+    encoded += digits[(bits << (6 - count)) & 63];
+  }
+  return encoded;
+}
+
+TEST(UiTrees, DeliversOneWholeDocumentToItsCurrentPlayerAndMod) {
+  UiTrees trees;
+  UiTrees other;
+  modlock::wasm::UiDocuments documents;
+  std::optional<Change> stamped;
+  ASSERT_TRUE(trees.Apply(3, DocumentTree(), &stamped));
+  ASSERT_TRUE(trees.Apply(4, DocumentTree()));
+  ASSERT_TRUE(other.Apply(3, DocumentTree()));
+  ASSERT_TRUE(stamped);
+  const auto control = trees.DocumentControl(3);
+  ASSERT_NE(control, 0);
+  EXPECT_NE(control, 999);
+  EXPECT_EQ(stamped->set(1).document_input().control(), control);
+  const auto prefix = std::to_string(control) + ":1:";
+  auto submit = [&](std::string_view frame) {
+    return trees.Document(3, "form", prefix + std::string(frame), documents, kStart);
+  };
+  std::string text;
+  while (text.size() + 8 <= modlock::wasm::UiDocuments::kLimit) {
+    text += "雪🙂\n";
+  }
+  ASSERT_EQ(text.size(), modlock::wasm::UiDocuments::kLimit);
+  EXPECT_FALSE(submit("b:" + std::to_string(text.size())));
+  EXPECT_FALSE(trees.Document(4, "form", prefix + "e", documents, kStart));
+  EXPECT_FALSE(other.Document(3, "form", prefix + "e", documents, kStart));
+  const auto other_prefix = std::to_string(other.DocumentControl(3)) + ":1:";
+  EXPECT_FALSE(other.Document(3, "form", other_prefix + "b:0", documents, kStart));
+  EXPECT_FALSE(other.Document(3, "form", other_prefix + "e", documents, kStart));
+  const auto entry = trees.Input(3, "name", "QW5hw69z");
+  ASSERT_TRUE(entry);
+  EXPECT_EQ(entry->text(), "Anaïs");
+  EXPECT_FALSE(trees.Input(3, "form", "VGV4dA"));
+  for (size_t at = 0; at < text.size(); at += 180) {
+    EXPECT_FALSE(submit("p:" + std::to_string(at) + ":" +
+                        EncodeChunk(std::string_view(text).substr(at, 180))));
+  }
+  const auto event = submit("e");
+  ASSERT_TRUE(event);
+  EXPECT_EQ(event->player(), 3);
+  EXPECT_EQ(event->node(), "form");
+  EXPECT_EQ(event->text(), text);
+  EXPECT_FALSE(submit("e"));
+  EXPECT_FALSE(submit("b:0"));
+  EXPECT_FALSE(submit("e"));
+}
+
+TEST(UiTrees, DropsPartialInvalidExpiredCancelledAndReplacedDocuments) {
+  UiTrees trees;
+  modlock::wasm::UiDocuments documents;
+  ASSERT_TRUE(trees.Apply(3, DocumentTree()));
+  const auto control = trees.DocumentControl(3);
+  auto input = [&](std::string_view frame, auto now) {
+    return trees.Document(3, "form", std::to_string(control) + ":" + std::string(frame), documents,
+                          now);
+  };
+  EXPECT_FALSE(input("1:b:65537", kStart));
+  EXPECT_FALSE(input("1:e", kStart));
+  EXPECT_FALSE(input("2:b:2", kStart));
+  EXPECT_FALSE(input("2:p:1:YWk", kStart));
+  EXPECT_FALSE(input("2:e", kStart));
+  EXPECT_FALSE(input("3:b:2", kStart));
+  EXPECT_FALSE(input("3:e", kStart));
+  EXPECT_FALSE(input("4:b:1", kStart));
+  EXPECT_FALSE(input("4:p:0:_w", kStart));
+  EXPECT_FALSE(input("4:e", kStart));
+  EXPECT_FALSE(input("5:b:1", kStart));
+  EXPECT_FALSE(input("5:p:0:YQ", kStart));
+  EXPECT_FALSE(input("5:p:1:e", kStart));
+  EXPECT_FALSE(input("5:e", kStart));
+  EXPECT_FALSE(input("6:b:0", kStart));
+  EXPECT_FALSE(input("6:x", kStart));
+  EXPECT_FALSE(input("6:e", kStart));
+  EXPECT_FALSE(input("7:b:0", kStart));
+  const auto later = kStart + std::chrono::seconds(21);
+  documents.Expire(later);
+  EXPECT_FALSE(input("7:e", later));
+  EXPECT_FALSE(input("8:b:0", later));
+  ASSERT_TRUE(trees.Apply(3, DocumentTree()));
+  EXPECT_NE(trees.DocumentControl(3), control);
+  EXPECT_FALSE(input("8:e", later));
+  documents.Cancel(3, control);
+  const auto retry = std::to_string(trees.DocumentControl(3)) + ":9:";
+  EXPECT_FALSE(trees.Document(3, "form", retry + "b:0", documents, later));
+  EXPECT_TRUE(trees.Document(3, "form", retry + "e", documents, later));
+  ASSERT_TRUE(trees.Drop(3));
+  ASSERT_TRUE(trees.Apply(3, DocumentTree()));
+  EXPECT_FALSE(trees.Document(3, "form", retry + "b:0", documents, later));
+}
+
+TEST(UiTrees, BoundsAndValidatesDocumentNodesWithoutWideningLabels) {
+  UiTrees trees;
+  auto change = DocumentTree();
+  ASSERT_TRUE(trees.Apply(3, change));
+  const auto control = trees.DocumentControl(3);
+  change.mutable_set(0)->clear_children();
+  EXPECT_FALSE(trees.Apply(3, change));
+  EXPECT_EQ(trees.DocumentControl(3), control);
+  auto label = Set("export", modlock::wasm::ui::KIND_LABEL);
+  label.mutable_set(0)->set_text(std::string(2000, 'x'));
+  EXPECT_FALSE(trees.Apply(3, label));
+  auto output = Set("export", modlock::wasm::ui::KIND_DOCUMENT_OUTPUT);
+  output.mutable_set(0)->set_document_text(std::string(modlock::wasm::UiDocuments::kLimit, 'x'));
+  ASSERT_TRUE(trees.Apply(3, output));
+  output.mutable_set(0)->mutable_document_text()->push_back('x');
+  EXPECT_FALSE(trees.Apply(3, output));
+}
+
 }  // namespace

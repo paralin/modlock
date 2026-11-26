@@ -74,6 +74,8 @@ import {
   utf8,
 } from './data.js'
 import { Voices } from './voice.js'
+import { type MenuHost, Menus, type Surface } from './menu.js'
+import { Documents, type Form } from './document.js'
 
 export {
   actionCommand,
@@ -112,6 +114,9 @@ export interface Panel {
   BHasClass?(name: string): boolean
   /** FindChildrenWithClassTraverse finds the top bar's players by class. */
   FindChildrenWithClassTraverse?(name: string): Panel[]
+  BHasKeyFocus?(): boolean
+  BHasDescendantKeyFocus?(): boolean
+  SetFocus?(): void
   GetChild(index: number): Panel | null
   FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
@@ -370,6 +375,10 @@ const panelTypes: Record<Kind, string> = {
   [Kind.HERO_IMAGE]: 'CitadelHeroImage',
   [Kind.INPUT]: 'Panel',
   [Kind.AVATAR]: 'CitadelAvatarImage',
+  [Kind.MENU]: 'Panel',
+  [Kind.MENU_CLOSE]: 'Button',
+  [Kind.DOCUMENT_INPUT]: 'Panel',
+  [Kind.DOCUMENT_OUTPUT]: 'Label',
 }
 
 /** Control is the control an input draws, as its node names it. */
@@ -536,6 +545,11 @@ export function clockText(clock: Clock, time: number): string {
  */
 type Tip = '' | 'text' | 'item' | 'ability'
 
+/** Pending is a gathered edit waiting to be sent. */
+interface Pending {
+  readonly epoch: number | undefined
+}
+
 /**
  * Drawn is one node's panel, its parent, the properties it was made with as
  * JSON, and its style: the node's own, its hover's, the phase over both, its
@@ -550,6 +564,8 @@ type Tip = '' | 'text' | 'item' | 'ability'
  * classes.
  */
 interface Drawn {
+  menu?: Surface
+  form?: Form
   panel: Panel
   parent: Panel
   made: string
@@ -563,7 +579,11 @@ interface Drawn {
   control: Control | null
   slider: Slider | undefined
   value: string
-  pending: boolean
+  /**
+   * pending is a gathered edit not yet sent, with the epoch of the menu it was
+   * made in, so an edit from a closed opening of the menu is never sent.
+   */
+  pending: Pending | null
   unanswered: string[]
   over: boolean
   focused: boolean
@@ -676,7 +696,19 @@ export class Drawing {
     private readonly press: Press,
     private readonly layouts?: Layouts,
     private readonly change?: Change,
-  ) {}
+    menuHost?: MenuHost,
+  ) {
+    this.menus = new Menus(panorama, menuHost)
+    this.documents = new Documents(panorama, menuHost)
+  }
+
+  private readonly menus: Menus
+  private readonly documents: Documents
+
+  /** scoreboard takes the game's scoreboard action, including key-up. */
+  scoreboard(pressed: boolean): void {
+    this.menus.scoreboard(pressed)
+  }
 
   /** refused holds the files the drawing has logged as not loaded. */
   private readonly refused = new Set<string>()
@@ -697,6 +729,9 @@ export class Drawing {
    * sounds and layout scripts outlast the panels.
    */
   release(): void {
+    // Drop locally owned input before notifying a departing layout.
+    this.menus.close()
+    this.documents.cancel()
     this.notifyUnloading(
       [...this.mods.values()].flatMap((drawn) => [...drawn.nodes.values()]),
     )
@@ -767,6 +802,8 @@ export class Drawing {
       }
     }
     this.follow()
+    this.menus.finish()
+    this.documents.check()
   }
 
   /**
@@ -1088,7 +1125,10 @@ export class Drawing {
   /** focus draws or lifts an entry's focus ring as it takes or loses the keyboard. */
   private focus(mod: string, id: string, panel: Panel, focused: boolean): void {
     const drawn = this.current(mod, id, panel)
-    if (drawn && drawn.focused !== focused) {
+    if (!drawn) return
+    // An entry that lets the keyboard go commits what it shows.
+    if (!focused) this.commit(mod, id, drawn)
+    if (drawn.focused !== focused) {
       drawn.focused = focused
       this.paint(drawn)
     }
@@ -1188,7 +1228,13 @@ export class Drawing {
   private edit(mod: string, id: string, panel: Panel): void {
     // Skip the drawing's own writes and an input that takes no changes.
     const drawn = this.current(mod, id, panel)
-    if (this.writing || !drawn || drawn.disabled || !this.change) {
+    if (
+      this.writing ||
+      !drawn ||
+      drawn.disabled ||
+      !this.change ||
+      (drawn.menu && !this.menus.accepts(drawn.menu))
+    ) {
       return
     }
 
@@ -1197,19 +1243,38 @@ export class Drawing {
     if (!gathers || !this.panorama.Schedule) {
       this.send(mod, id, drawn)
     } else if (!drawn.pending) {
-      drawn.pending = true
+      drawn.pending = { epoch: drawn.menu?.epoch }
       this.panorama.Schedule(0.1, () => {
         const later = this.current(mod, id, panel)
-        if (later?.pending) {
-          later.pending = false
-          this.send(mod, id, later)
-        }
+        if (later) this.commit(mod, id, later)
       })
+    }
+  }
+
+  /**
+   * commit sends drawn's gathered edit now, unless the menu it was made in
+   * has closed since.
+   */
+  private commit(mod: string, id: string, drawn: Drawn): void {
+    const pending = drawn.pending
+    if (!pending) return
+    drawn.pending = null
+    if (pending.epoch === drawn.menu?.epoch) this.send(mod, id, drawn)
+  }
+
+  /**
+   * flush commits every gathered edit of mod's interface, so a press that
+   * follows reaches the mod after the values the player sees.
+   */
+  private flush(mod: string): void {
+    for (const [id, drawn] of this.mods.get(mod)?.nodes ?? []) {
+      this.commit(mod, id, drawn)
     }
   }
 
   /** send sends an input's value as its panel holds it, playing its sound. */
   private send(mod: string, id: string, drawn: Drawn): void {
+    if (drawn.menu && !this.menus.accepts(drawn.menu)) return
     const value = this.attempt('read an input', () =>
       readInput(drawn.control, drawn.panel, drawn.slider),
     )
@@ -1317,7 +1382,12 @@ export class Drawing {
   private wheel(mod: string, id: string, panel: Panel, delta: number): boolean {
     // A removed, disabled or opted-out slider leaves the event unhandled.
     const drawn = this.current(mod, id, panel)
-    if (!drawn?.slider?.wheel || drawn.disabled || !this.change) {
+    if (
+      !drawn?.slider?.wheel ||
+      drawn.disabled ||
+      !this.change ||
+      (drawn.menu && !this.menus.accepts(drawn.menu))
+    ) {
       return false
     }
 
@@ -1409,14 +1479,22 @@ export class Drawing {
   }
 
   /** activate presses a button that is not disabled, playing its sound. */
-  private activate(mod: string, id: string): void {
-    const drawn = this.mods.get(mod)?.nodes.get(id)
-    if (drawn?.disabled) {
+  private activate(mod: string, id: string, panel: Panel): void {
+    // A press counts only on a live, enabled button in an open menu.
+    const drawn = this.current(mod, id, panel)
+    if (
+      !drawn ||
+      drawn.disabled ||
+      (drawn.menu && !this.menus.accepts(drawn.menu))
+    ) {
       return
     }
     if (drawn?.sound) {
       this.panorama.PlaySound?.(drawn.sound)
     }
+
+    // Edits the player typed reach the mod before the press that follows them.
+    this.flush(mod)
     this.press(mod, id)
   }
 
@@ -1433,6 +1511,7 @@ export class Drawing {
     nodes: Map<string, Node>,
     region?: Region,
     parentFlow?: Flow,
+    surface?: Surface,
   ): Panel {
     // Resolve the node's id, kind, and the URL and data of its layout.
     const id = node.id ?? ''
@@ -1464,14 +1543,27 @@ export class Drawing {
     const type = control ? controlTypes[control] : (panelTypes[kind] ?? 'Panel')
     const properties = madeWith(kind, node)
     const made = JSON.stringify([
+      kind,
       properties,
+      node.documentInput?.placeholder,
       node.input?.case === 'dropdown' ? node.input.value.options : null,
     ])
 
     // Resolve its style and the styles laid over it, with the transition
     // that eases between them.
-    const style = {
+    const style: Record<string, string> = {
       ...(control === 'textEntry' ? entryLook : {}),
+      ...(kind === Kind.DOCUMENT_INPUT
+        ? { width: '360px', height: 'fit-children', flowChildren: 'down' }
+        : {}),
+      ...(kind === Kind.DOCUMENT_OUTPUT
+        ? {
+            ...entryLook,
+            height: '130px',
+            whiteSpace: 'normal',
+            overflow: 'squish scroll',
+          }
+        : {}),
       ...(control === 'textEntry' && node.disabled ? entryDisabled : {}),
       ...styleOf(node.style, id === '', parentFlow),
       ...(region ? placed(region) : {}),
@@ -1526,7 +1618,14 @@ export class Drawing {
       loaded = false
       given = ''
       if (kind === Kind.BUTTON) {
-        panel.SetPanelEvent('onactivate', () => this.activate(mod, id))
+        const button = panel
+        panel.SetPanelEvent('onactivate', () => this.activate(mod, id, button))
+      } else if (kind === Kind.MENU_CLOSE) {
+        const button = panel
+        panel.SetPanelEvent('onactivate', () => {
+          const menu = this.current(mod, id, button)?.menu
+          if (menu) this.menus.cancel(menu)
+        })
       }
       if (control) {
         this.listen(mod, id, panel, node)
@@ -1589,6 +1688,7 @@ export class Drawing {
           : {}
     const value = control ? JSON.stringify(node.input?.value) : ''
     const each: Drawn = {
+      menu: surface,
       panel,
       parent,
       made,
@@ -1605,7 +1705,7 @@ export class Drawing {
       slider:
         node.input?.case === 'slider' ? { ...node.input.value } : undefined,
       value,
-      pending: !fresh && old.pending,
+      pending: fresh ? null : old.pending,
       unanswered: fresh ? [] : old.unanswered,
       over,
       focused: !fresh && old.focused,
@@ -1644,6 +1744,8 @@ export class Drawing {
     if (!layout) {
       panel.hittest =
         kind === Kind.BUTTON ||
+        kind === Kind.MENU_CLOSE ||
+        kind === Kind.DOCUMENT_OUTPUT ||
         kind === Kind.INPUT ||
         Object.keys(hover).length !== 0 ||
         !!each.tooltip ||
@@ -1660,6 +1762,21 @@ export class Drawing {
       if (each.clock && clockRunning(each.clock, now())) {
         this.tick()
       }
+    } else if (kind === Kind.DOCUMENT_INPUT && node.documentInput) {
+      each.form = this.documents.form(
+        panel,
+        mod,
+        id,
+        node.documentInput,
+        !!node.disabled,
+        fresh ? undefined : old.form,
+        (form) =>
+          this.current(mod, id, panel)?.form === form &&
+          (!surface || this.menus.accepts(surface)),
+      )
+    } else if (kind === Kind.DOCUMENT_OUTPUT) {
+      if (panel.text !== (node.documentText ?? ''))
+        panel.text = node.documentText ?? ''
     } else if (kind === Kind.IMAGE) {
       panel.SetImage(this.imagePath(mod, node.image ?? ''))
     } else if (control && (fresh || old.value !== value)) {
@@ -1703,9 +1820,23 @@ export class Drawing {
     // Draw each child once, in order; a child seen before would make a cycle.
     // A layout's panels come from its file, not from the tree, and a root's
     // children hang from the panel of its last sheet.
-    const holder = nested[nested.length - 1] ?? panel
+    const menu =
+      kind === Kind.MENU && node.menu && !surface
+        ? this.menus.mount(
+            `${mod}/${id}`,
+            panel,
+            node.menu,
+            style.flowChildren ?? 'none',
+          )
+        : undefined
+    if (menu) menu.dismiss = () => this.documents.dismiss(menu.content)
+    const holder = menu?.content ?? nested[nested.length - 1] ?? panel
     let last: Panel | undefined
-    for (const child of kind === Kind.LAYOUT ? [] : (node.children ?? [])) {
+    for (const child of kind === Kind.LAYOUT ||
+    kind === Kind.DOCUMENT_INPUT ||
+    kind === Kind.DOCUMENT_OUTPUT
+      ? []
+      : (node.children ?? [])) {
       const childNode = nodes.get(child)
       if (!childNode || drawn.has(child) || child === '') {
         continue
@@ -1719,6 +1850,7 @@ export class Drawing {
         nodes,
         undefined,
         node.style?.flow,
+        menu ?? surface,
       )
       if (last) {
         holder.MoveChildAfter(childPanel, last)
@@ -2206,6 +2338,8 @@ function madeWith(kind: Kind, node: Node): Record<string, string> | undefined {
     case Kind.AVATAR:
       // A Steam account's id is the low 32 bits of its Steam id.
       return { accountid: String((node.steamId ?? 0n) & 0xffffffffn) }
+    case Kind.DOCUMENT_OUTPUT:
+      return { allowtextselection: 'true', html: 'false' }
     case Kind.INPUT:
       return controlMadeWith(node)
     default:

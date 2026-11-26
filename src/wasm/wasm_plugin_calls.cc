@@ -269,6 +269,7 @@ void WasmPlugin::Away(int32_t slot) {
 
 void WasmPlugin::DropUi(int32_t slot) {
   // Forget the player's interface, and reset what observers drew of it.
+  host_.documents.Cancel(slot, ui_.DocumentControl(slot));
   if (!ui_.Drop(slot)) {
     return;
   }
@@ -339,10 +340,16 @@ wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
 }
 
 std::expected<void, std::string> WasmPlugin::ApplyUi(const wasm::ui::UiRequest& request) {
-  if (auto applied = ui_.Apply(request.player(), request.change()); !applied) {
+  const auto slot = request.player();
+  const auto previous = ui_.DocumentControl(slot);
+  std::optional<ui::Change> stamped;
+  if (auto applied = ui_.Apply(slot, request.change(), &stamped); !applied) {
     return applied;
   }
-  ShowUi(request.player(), request.change());
+  if (previous != ui_.DocumentControl(slot)) {
+    host_.documents.Cancel(slot, previous);
+  }
+  ShowUi(slot, stamped ? *stamped : request.change());
   return {};
 }
 

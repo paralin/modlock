@@ -224,6 +224,45 @@ The host drops a change to a disabled input or one the player no longer sees.
 The player's edit shows until your mod draws a new value, so store the value
 your handler receives and draw it back.
 
+An entry or slider sends a run of edits once, a tenth of a second after the
+last. It sends at once when it loses the keyboard or when the player presses a
+button in the same interface, so a Save or Apply button's `onPress` runs after
+every `onChange` for the values the player sees.
+
+## Local menus and portable text
+
+Use a TypeScript `<menu>` when settings or a result should give the player a
+cursor and then return it without a server round trip. `mode="toggle"` opens
+and closes on successive presses of the game's scoreboard binding (Tab by
+default). `mode="hold"` opens while that binding is held. The default,
+`mode="manual"`, opens from its optional `openLabel` button when the player
+already has a cursor, or when a positive `openRequest` number increases. Keep
+the menu's JSX key stable and advance that number once per new result, not on
+ordinary redraws. Put a `<menuClose>` inside the menu for an explicit dismiss
+button. Escape, stock overlays taking focus, and loss of the surface dismiss it
+locally. A dismissal never calls the mod.
+
+Use `<documentOutput text={text} />` for a plain-text export the player can
+select and copy with the game's usual controls. `<documentInput>` gives the
+player a multiline draft. It sends nothing while they type or paste, or when
+they press Enter in the draft. The form's button, named by `submitLabel`
+(`"Submit"` by default), sends the whole draft to `onSubmit(player, text)`.
+Use `placeholder` to prompt for the expected format, and `disabled` to suspend
+editing and submission. Each player can have one document input and one
+document output per mod. Both hold at most 65,536 UTF-8 bytes; the ordinary
+`<entry>` keeps its short limit.
+
+The renderer can confirm that it sent a document, not that the host accepted
+it. Show the outcome from `onSubmit`. If nothing changes, the player can
+submit again. Validate the document in the mod, and ask for confirmation
+before replacing a saved record. A cancelled or incomplete transfer reaches
+no callback; the host checks that the sending player still owns the current
+form, not how the player entered the text. Neither control gives a mod
+clipboard access.
+
+Try the built-in controls with `modlock dev examples/interface-session`.
+The example echoes disposable text and keeps no saves.
+
 ## The HUD kit
 
 The HUD kit draws components in the look of the game's own HUD. This sample
