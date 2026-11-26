@@ -857,13 +857,16 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   const drawing = new Drawing(
     $,
     root,
-    () => {},
+    (mod, node) => changes.push(pressCommand(mod, node)),
     undefined,
     (mod, node, value) => changes.push(inputCommand(mod, node, value)),
   )
   const tree = (name: string, disabled = false) =>
     screen(
-      { id: '', children: ['name', 'volume', 'ready', 'team', 'face', 'hero'] },
+      {
+        id: '',
+        children: ['name', 'volume', 'ready', 'team', 'face', 'hero', 'save'],
+      },
       {
         id: 'name',
         kind: 'KIND_INPUT',
@@ -888,9 +891,11 @@ test('draws inputs, avatars and game text, and sends edits', () => {
         token: '#Citadel_HeroName_Haze',
         variables: { count: '3' },
       },
+      { id: 'save', kind: 'KIND_BUTTON', text: 'Save' },
     )
   drawing.draw(tree('Ana'))
-  const [name, volume, ready, team, face, hero] = root.children[0]!.children
+  const [name, volume, ready, team, face, hero, save] =
+    root.children[0]!.children
 
   // Each control is made with its bounds and shows the mod's value.
   expect(name!.paneltype).toBe('TextEntry')
@@ -935,7 +940,8 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   name!.events.get('ontextentrychange')!()
   expect(placeholder.visible).toBe(true)
 
-  // Focus brightens the border until the entry lets the keyboard go.
+  // Focus brightens the border until the entry lets the keyboard go, and
+  // letting it go sends the cleared text at once.
   name!.events.get('onfocus')!()
   expect(name!.style.border).toBe('2px solid rgba(255, 239, 215, 0.700)')
   name!.events.get('onblur')!()
@@ -953,8 +959,26 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   team!.events.get('oninputsubmit')!()
   runScheduled()
   expect(changes).toEqual([
+    // Letting the keyboard go committed the cleared entry.
+    'modlockinput arena name ',
     'modlockinput arena ready 1',
     'modlockinput arena team 0',
+    `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
+  ])
+
+  // A press right after typing carries the typed text first, and an entry
+  // that lets the keyboard go sends what it shows at once.
+  changes.length = 0
+  name!.text = 'Anaïs?'
+  name!.events.get('ontextentrychange')!()
+  save!.events.get('onactivate')!()
+  name!.text = 'Anaïs'
+  name!.events.get('ontextentrychange')!()
+  name!.events.get('onblur')!()
+  runScheduled()
+  expect(changes).toEqual([
+    `modlockinput arena name ${Buffer.from('Anaïs?').toString('base64url')}`,
+    'modlockpress arena save',
     `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
   ])
 

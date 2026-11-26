@@ -545,6 +545,11 @@ export function clockText(clock: Clock, time: number): string {
  */
 type Tip = '' | 'text' | 'item' | 'ability'
 
+/** Pending is a gathered edit waiting to be sent. */
+interface Pending {
+  readonly epoch: number | undefined
+}
+
 /**
  * Drawn is one node's panel, its parent, the properties it was made with as
  * JSON, and its style: the node's own, its hover's, the phase over both, its
@@ -574,7 +579,11 @@ interface Drawn {
   control: Control | null
   slider: Slider | undefined
   value: string
-  pending: boolean
+  /**
+   * pending is a gathered edit not yet sent, with the epoch of the menu it was
+   * made in, so an edit from a closed opening of the menu is never sent.
+   */
+  pending: Pending | null
   unanswered: string[]
   over: boolean
   focused: boolean
@@ -1116,7 +1125,10 @@ export class Drawing {
   /** focus draws or lifts an entry's focus ring as it takes or loses the keyboard. */
   private focus(mod: string, id: string, panel: Panel, focused: boolean): void {
     const drawn = this.current(mod, id, panel)
-    if (drawn && drawn.focused !== focused) {
+    if (!drawn) return
+    // An entry that lets the keyboard go commits what it shows.
+    if (!focused) this.commit(mod, id, drawn)
+    if (drawn.focused !== focused) {
       drawn.focused = focused
       this.paint(drawn)
     }
@@ -1231,15 +1243,32 @@ export class Drawing {
     if (!gathers || !this.panorama.Schedule) {
       this.send(mod, id, drawn)
     } else if (!drawn.pending) {
-      drawn.pending = true
-      const epoch = drawn.menu?.epoch
+      drawn.pending = { epoch: drawn.menu?.epoch }
       this.panorama.Schedule(0.1, () => {
         const later = this.current(mod, id, panel)
-        if (later?.pending) {
-          later.pending = false
-          if (epoch === later.menu?.epoch) this.send(mod, id, later)
-        }
+        if (later) this.commit(mod, id, later)
       })
+    }
+  }
+
+  /**
+   * commit sends drawn's gathered edit now, unless the menu it was made in
+   * has closed since.
+   */
+  private commit(mod: string, id: string, drawn: Drawn): void {
+    const pending = drawn.pending
+    if (!pending) return
+    drawn.pending = null
+    if (pending.epoch === drawn.menu?.epoch) this.send(mod, id, drawn)
+  }
+
+  /**
+   * flush commits every gathered edit of mod's interface, so a press that
+   * follows reaches the mod after the values the player sees.
+   */
+  private flush(mod: string): void {
+    for (const [id, drawn] of this.mods.get(mod)?.nodes ?? []) {
+      this.commit(mod, id, drawn)
     }
   }
 
@@ -1451,6 +1480,7 @@ export class Drawing {
 
   /** activate presses a button that is not disabled, playing its sound. */
   private activate(mod: string, id: string, panel: Panel): void {
+    // A press counts only on a live, enabled button in an open menu.
     const drawn = this.current(mod, id, panel)
     if (
       !drawn ||
@@ -1462,6 +1492,9 @@ export class Drawing {
     if (drawn?.sound) {
       this.panorama.PlaySound?.(drawn.sound)
     }
+
+    // Edits the player typed reach the mod before the press that follows them.
+    this.flush(mod)
     this.press(mod, id)
   }
 
@@ -1672,7 +1705,7 @@ export class Drawing {
       slider:
         node.input?.case === 'slider' ? { ...node.input.value } : undefined,
       value,
-      pending: !fresh && old.pending,
+      pending: fresh ? null : old.pending,
       unanswered: fresh ? [] : old.unanswered,
       over,
       focused: !fresh && old.focused,

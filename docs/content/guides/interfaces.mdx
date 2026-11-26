@@ -224,6 +224,11 @@ The host drops a change to a disabled input or one the player no longer sees.
 The player's edit shows until your mod draws a new value, so store the value
 your handler receives and draw it back.
 
+An entry or slider sends a run of edits once, a tenth of a second after the
+last. It sends at once when it loses the keyboard or when the player presses a
+button in the same interface, so a Save or Apply button's `onPress` runs after
+every `onChange` for the values the player sees.
+
 ## Local menus and portable text
 
 Use a TypeScript `<menu>` when settings or a result should give the player a
