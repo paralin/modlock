@@ -762,6 +762,28 @@ _ActionPhase: dict[Any, Any] = {
 }
 
 
+# Overlay names the stock interface that holds the player's input. When
+# several are open, the renderer names the first of chat, the shop, the
+# build editor, the item draft, a popup and the escape menu.
+type Overlay = Literal["none", "chat", "shop", "builds", "item_draft", "popup", "escape_menu"]
+_Overlay: dict[Any, Any] = {
+    0: "none",
+    "none": 0,
+    1: "chat",
+    "chat": 1,
+    2: "shop",
+    "shop": 2,
+    3: "builds",
+    "builds": 3,
+    4: "item_draft",
+    "item_draft": 4,
+    5: "popup",
+    "popup": 5,
+    6: "escape_menu",
+    "escape_menu": 6,
+}
+
+
 # _HudPart maps each HudPart to its number and back.
 _HudPart: dict[Any, Any] = {
     1: "level_up",
@@ -2545,6 +2567,18 @@ class UiActionEvent:
     action: GameAction | None = None
     # phase is where the press stands.
     phase: ActionPhase | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class UiOverlayEvent:
+    """UiOverlayEvent reports the stock overlay that now holds a player's input,
+    to a mod whose root follows overlays.
+    """
+
+    # player is the player whose input moved.
+    player: Player
+    # overlay is the overlay that holds it, or OVERLAY_NONE.
+    overlay: Overlay | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -5009,6 +5043,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(43, "document_input", "message", message="DocumentInput"),
             wire.Field(44, "document_text", "string"),
             wire.Field(45, "game_actions", "enum", repeated=True, enum=_GameAction),
+            wire.Field(49, "follows_overlay", "bool"),
         ],
     ),
     "Node_VariablesEntry": (
@@ -5324,6 +5359,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "action", "enum", enum=_GameAction),
             wire.Field(3, "phase", "enum", enum=_ActionPhase),
+        ],
+    ),
+    "UiOverlayEvent": (
+        UiOverlayEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "overlay", "enum", enum=_Overlay),
         ],
     ),
     "UiRequest": (
@@ -6248,6 +6290,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
     "UiDocument": ("UiDocumentEvent", "Empty", "ui_document"),
     "UiAction": ("UiActionEvent", "Empty", "ui_action"),
+    "UiOverlay": ("UiOverlayEvent", "Empty", "ui_overlay"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
@@ -7637,6 +7680,8 @@ class _UiHandlers:
     change: Callable[[Player, str, UiValue], object]
     # act runs the handler of a game action a player used.
     act: Callable[[Player, GameAction, ActionPhase], object]
+    # overlay runs the handler of a mod that follows a player's overlays.
+    overlay: Callable[[Player, Overlay], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -7735,6 +7780,14 @@ def _ui_action(event: UiActionEvent) -> None:
     if ui is not None and action is not None and phase is not None:
         player = event.player
         after(0, lambda: ui.act(player, action, phase))
+
+
+def _ui_overlay(event: UiOverlayEvent) -> None:
+    # An overlay change runs with the next frame; the wire leaves out "none".
+    ui = _ui
+    if ui is not None:
+        player, overlay = event.player, event.overlay or "none"
+        after(0, lambda: ui.overlay(player, overlay))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -7944,6 +7997,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_input": _ui_input,
     "ui_document": _ui_document,
     "ui_action": _ui_action,
+    "ui_overlay": _ui_overlay,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

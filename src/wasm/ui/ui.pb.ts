@@ -214,6 +214,63 @@ export const ActionPhase_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * Overlay names the stock interface that holds the player's input. When
+ * several are open, the renderer names the first of chat, the shop, the
+ * build editor, the item draft, a popup and the escape menu.
+ *
+ * @generated from enum modlock.wasm.ui.Overlay
+ */
+export enum Overlay {
+  /**
+   * OVERLAY_NONE means the game has the player's input.
+   */
+  NONE = 0,
+
+  /**
+   * OVERLAY_CHAT is the chat box, open for typing.
+   */
+  CHAT = 1,
+
+  /**
+   * OVERLAY_SHOP is the item shop.
+   */
+  SHOP = 2,
+
+  /**
+   * OVERLAY_BUILDS is the build editor.
+   */
+  BUILDS = 3,
+
+  /**
+   * OVERLAY_ITEM_DRAFT is the item draft's choice.
+   */
+  ITEM_DRAFT = 4,
+
+  /**
+   * OVERLAY_POPUP is a stock popup, such as a confirmation.
+   */
+  POPUP = 5,
+
+  /**
+   * OVERLAY_ESCAPE_MENU is the escape menu, which pauses a local game.
+   */
+  ESCAPE_MENU = 6,
+}
+
+export const Overlay_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Overlay',
+  [
+    [0, 'OVERLAY_NONE'],
+    [1, 'OVERLAY_CHAT'],
+    [2, 'OVERLAY_SHOP'],
+    [3, 'OVERLAY_BUILDS'],
+    [4, 'OVERLAY_ITEM_DRAFT'],
+    [5, 'OVERLAY_POPUP'],
+    [6, 'OVERLAY_ESCAPE_MENU'],
+  ],
+)
+
+/**
  * HudPart is a part of the game's own HUD a mod may hide from a player.
  *
  * @generated from enum modlock.wasm.ui.HudPart
@@ -1132,6 +1189,12 @@ export interface Node {
    */
   gameActions?: GameAction[]
   /**
+   * FollowsOverlay asks, on the root only, for a UiOverlay event each time a
+   * different stock overlay takes the player's input or gives it back, and
+   * once with the current overlay when the root starts to follow.
+   */
+  followsOverlay?: boolean
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -1197,6 +1260,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [43, 'document_input', 11, 0, DocumentInput.codec],
     [44, 'document_text', 9],
     [45, 'game_actions', 14, 3, GameAction_Enum],
+    [49, 'follows_overlay', 8],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1382,6 +1446,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
           case 45:
             for (const e = r.run(t), a = (m.gameActions ??= []); r.pos < e;)
               a.push(r.int32())
+            break
+          case 49:
+            m.followsOverlay = r.bool()
             break
           default:
             r.skip(t)
@@ -1587,6 +1654,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
           for (const e of a) w.int32(e)
           w.join(s)
         }
+      }
+      {
+        const v = m.followsOverlay
+        if (v) w.uint32(392).bool(v)
       }
     },
   },
@@ -4618,6 +4689,65 @@ export const UiActionEvent: MessageType<UiActionEvent> =
         {
           const v = m.phase
           if (v) w.uint32(24).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * UiOverlayEvent reports the stock overlay that now holds a player's input,
+ * to a mod whose root follows overlays.
+ *
+ * @generated from message modlock.wasm.ui.UiOverlayEvent
+ */
+export interface UiOverlayEvent {
+  /**
+   * Player is the player whose input moved.
+   */
+  player?: number
+  /**
+   * Overlay is the overlay that holds it, or OVERLAY_NONE.
+   */
+  overlay?: Overlay
+}
+
+export const UiOverlayEvent: MessageType<UiOverlayEvent> =
+  /* @__PURE__ */ createMessageType<UiOverlayEvent>(
+    'modlock.wasm.ui.UiOverlayEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'overlay', 14, 0, Overlay_Enum],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: UiOverlayEvent,
+      ): UiOverlayEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.overlay = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: UiOverlayEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.overlay
+          if (v) w.uint32(16).int32(v)
         }
       },
     },

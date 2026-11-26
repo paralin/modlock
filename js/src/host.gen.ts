@@ -599,6 +599,31 @@ const actionPhaseNames: Partial<Record<number, ActionPhase>> = {
   3: 'cancelled',
 }
 
+/**
+ * Overlay names the stock interface that holds the player's input. When
+ * several are open, the renderer names the first of chat, the shop, the
+ * build editor, the item draft, a popup and the escape menu.
+ */
+export type Overlay =
+  | 'none'
+  | 'chat'
+  | 'shop'
+  | 'builds'
+  | 'itemDraft'
+  | 'popup'
+  | 'escapeMenu'
+
+/** overlayNames decodes each Overlay; an unknown value has no name. */
+const overlayNames: Partial<Record<number, Overlay>> = {
+  0: 'none',
+  1: 'chat',
+  2: 'shop',
+  3: 'builds',
+  4: 'itemDraft',
+  5: 'popup',
+  6: 'escapeMenu',
+}
+
 /** DocumentFailure says why a document input's submission did not arrive. */
 export type DocumentFailure =
   | 'tooLarge'
@@ -3120,6 +3145,25 @@ function fromUiActionEvent(message: uiPb.UiActionEvent): UiActionEvent {
   }
 }
 
+/**
+ * UiOverlayEvent reports the stock overlay that now holds a player's input,
+ * to a mod whose root follows overlays.
+ */
+export interface UiOverlayEvent {
+  /** player is the player whose input moved. */
+  readonly player: Player
+  /** overlay is the overlay that holds it, or OVERLAY_NONE. */
+  readonly overlay?: Overlay
+}
+
+/** fromUiOverlayEvent decodes an UiOverlayEvent. */
+function fromUiOverlayEvent(message: uiPb.UiOverlayEvent): UiOverlayEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    overlay: overlayNames[message.overlay ?? 0],
+  }
+}
+
 /** StartEvent describes the server the mod starts in. */
 export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
@@ -4865,6 +4909,11 @@ export interface ModHandlers {
    * interface follows.
    */
   uiAction(event: UiActionEvent): void
+  /**
+   * uiOverlay reports the stock overlay that now holds a player's input, to
+   * a mod whose root follows overlays.
+   */
+  uiOverlay(event: UiOverlayEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /** serviceReplied ends one StartServiceCall, in a frame after the call. */
@@ -5019,6 +5068,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiAction':
         handlers.uiAction(fromUiActionEvent(uiPb.UiActionEvent.fromBinary(input)))
+        return reply()
+      case 'UiOverlay':
+        handlers.uiOverlay(fromUiOverlayEvent(uiPb.UiOverlayEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

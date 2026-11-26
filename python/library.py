@@ -1380,6 +1380,8 @@ class _UiHandlers:
     change: Callable[[Player, str, UiValue], object]
     # act runs the handler of a game action a player used.
     act: Callable[[Player, GameAction, ActionPhase], object]
+    # overlay runs the handler of a mod that follows a player's overlays.
+    overlay: Callable[[Player, Overlay], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -1478,6 +1480,14 @@ def _ui_action(event: UiActionEvent) -> None:
     if ui is not None and action is not None and phase is not None:
         player = event.player
         after(0, lambda: ui.act(player, action, phase))
+
+
+def _ui_overlay(event: UiOverlayEvent) -> None:
+    # An overlay change runs with the next frame; the wire leaves out "none".
+    ui = _ui
+    if ui is not None:
+        player, overlay = event.player, event.overlay or "none"
+        after(0, lambda: ui.overlay(player, overlay))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -1687,6 +1697,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_input": _ui_input,
     "ui_document": _ui_document,
     "ui_action": _ui_action,
+    "ui_overlay": _ui_overlay,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

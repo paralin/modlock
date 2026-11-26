@@ -79,6 +79,7 @@ type handlers struct {
 	changes       []func(*UiInputEvent)
 	documents     []func(*UiDocumentEvent)
 	actions       []func(*UiActionEvent)
+	overlays      []func(*UiOverlayEvent)
 	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
@@ -354,6 +355,13 @@ func OnUiAction(handler func(event *UiActionEvent)) {
 	registered.actions = append(registered.actions, handler)
 }
 
+// OnUiOverlay calls handler with each stock overlay that takes or gives back
+// the input of a player whose interface root follows overlays, with the next
+// server frame. Package ui registers it to run the followers' handlers.
+func OnUiOverlay(handler func(event *UiOverlayEvent)) {
+	registered.overlays = append(registered.overlays, handler)
+}
+
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
@@ -478,6 +486,16 @@ func (h *handlers) UiDocument(event *UiDocumentEvent) error {
 func (h *handlers) UiAction(event *UiActionEvent) error {
 	After(0, func() {
 		for _, handler := range h.actions {
+			handler(event)
+		}
+	})
+	return nil
+}
+
+// UiOverlay runs the overlay handlers with the next frame, as a press does.
+func (h *handlers) UiOverlay(event *UiOverlayEvent) error {
+	After(0, func() {
+		for _, handler := range h.overlays {
 			handler(event)
 		}
 	})

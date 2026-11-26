@@ -391,6 +391,8 @@ export type Interface = {
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
+	-- overlay takes the stock overlay that now holds the player's input.
+	overlay: (player: Player, overlay: Overlay) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -1514,6 +1516,16 @@ local handlers: ModHandlers = {
 		if served and action and phase then
 			modlock.after(0, function()
 				served.act(event.player, action, phase)
+			end)
+		end
+	end,
+	uiOverlay = function(event)
+		-- The wire leaves out "none", the overlay's zero value.
+		local served = interface
+		if served then
+			local overlay: Overlay = event.overlay or "none"
+			modlock.after(0, function()
+				served.overlay(event.player, overlay)
 			end)
 		end
 	end,

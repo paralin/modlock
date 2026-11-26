@@ -5,6 +5,7 @@ import {
   ActionPhase,
   GameAction,
   HudPart,
+  Overlay,
   Screen,
 } from '../../src/wasm/ui/ui.pb.js'
 import { gameActionCommand, GameActions } from './actions.js'
@@ -43,7 +44,14 @@ import {
   cursorFreed,
   gameActionMods,
   hiddenParts,
+  overlayMods,
 } from './hud.js'
+import {
+  overlayCommand,
+  OverlayFollow,
+  OverlayReader,
+  stockOf,
+} from './overlay.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -2812,6 +2820,73 @@ test('game actions report each press once, as released or cancelled', () => {
   actions.follow(new Map())
   actions.change(GameAction.SCOREBOARD, false)
   expect(sent).toEqual(['arena:PRESSED'])
+})
+
+test('overlay followers hear the current overlay, then each change', () => {
+  // Only the root's flag counts, and the command names the enum number.
+  expect([
+    ...overlayMods(
+      Screen.fromJson({
+        trees: [
+          { mod: 'arena', nodes: [{ id: '', followsOverlay: true }] },
+          { mod: 'brawl', nodes: [{ id: 'x', followsOverlay: true }] },
+        ],
+      }),
+    ),
+  ]).toEqual(['arena'])
+  expect(overlayCommand('arena', Overlay.ESCAPE_MENU)).toBe(
+    'modlockoverlay arena 6',
+  )
+
+  // The reader names the first open overlay, and the menus see its kind.
+  const hud = gameHud()
+  const reader = new OverlayReader(hud.game)
+  expect(reader.read()).toBe(Overlay.NONE)
+  hud.game.AddClass('ShowEscapeMenu')
+  hud.game.AddClass('gItemDraftOpen')
+  expect(reader.read()).toBe(Overlay.ITEM_DRAFT)
+  hud.chat.AddClass(CHAT_OPEN)
+  expect(reader.read()).toBe(Overlay.CHAT)
+  expect(stockOf(Overlay.CHAT)).toBe('other')
+  expect(stockOf(Overlay.ESCAPE_MENU)).toBe('escape')
+  expect(stockOf(Overlay.NONE)).toBeNull()
+
+  // A chat box the game replaced is found again.
+  hud.chat.DeleteAsync(0)
+  expect(reader.read()).toBe(Overlay.ITEM_DRAFT)
+  hud.add(hud.game, 'Chat', CHAT_OPEN)
+  expect(reader.read()).toBe(Overlay.CHAT)
+
+  // A new follower hears the current overlay at once; each change reaches
+  // every follower once, and a repeat reading reports nothing.
+  const sent: string[] = []
+  let overlay = Overlay.NONE
+  const follow = new OverlayFollow(
+    () => overlay,
+    (mod, now) => sent.push(`${mod}:${Overlay[now]}`),
+    (_, callback) => scheduled.set(scheduled.size + 1000, callback),
+  )
+  follow.follow(new Set(['arena']))
+  overlay = Overlay.SHOP
+  runScheduled()
+  runScheduled()
+  follow.follow(new Set(['arena', 'brawl']))
+  overlay = Overlay.NONE
+  runScheduled()
+  expect(sent).toEqual([
+    'arena:NONE',
+    'arena:SHOP',
+    'brawl:SHOP',
+    'arena:NONE',
+    'brawl:NONE',
+  ])
+
+  // With no followers left the reading stops.
+  follow.follow(new Set())
+  overlay = Overlay.POPUP
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+  expect(sent).toHaveLength(5)
 })
 
 test('local menus close and return focus without replaying a press or open request', () => {

@@ -250,6 +250,64 @@ func (x ActionPhase) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// Overlay names the stock interface that holds the player's input. When
+// several are open, the renderer names the first of chat, the shop, the
+// build editor, the item draft, a popup and the escape menu.
+type Overlay int32
+
+const (
+	// OVERLAY_NONE means the game has the player's input.
+	Overlay_OVERLAY_NONE Overlay = 0
+	// OVERLAY_CHAT is the chat box, open for typing.
+	Overlay_OVERLAY_CHAT Overlay = 1
+	// OVERLAY_SHOP is the item shop.
+	Overlay_OVERLAY_SHOP Overlay = 2
+	// OVERLAY_BUILDS is the build editor.
+	Overlay_OVERLAY_BUILDS Overlay = 3
+	// OVERLAY_ITEM_DRAFT is the item draft's choice.
+	Overlay_OVERLAY_ITEM_DRAFT Overlay = 4
+	// OVERLAY_POPUP is a stock popup, such as a confirmation.
+	Overlay_OVERLAY_POPUP Overlay = 5
+	// OVERLAY_ESCAPE_MENU is the escape menu, which pauses a local game.
+	Overlay_OVERLAY_ESCAPE_MENU Overlay = 6
+)
+
+// Enum value maps for Overlay.
+var (
+	Overlay_name = map[int32]string{
+		0: "OVERLAY_NONE",
+		1: "OVERLAY_CHAT",
+		2: "OVERLAY_SHOP",
+		3: "OVERLAY_BUILDS",
+		4: "OVERLAY_ITEM_DRAFT",
+		5: "OVERLAY_POPUP",
+		6: "OVERLAY_ESCAPE_MENU",
+	}
+	Overlay_value = map[string]int32{
+		"OVERLAY_NONE":        0,
+		"OVERLAY_CHAT":        1,
+		"OVERLAY_SHOP":        2,
+		"OVERLAY_BUILDS":      3,
+		"OVERLAY_ITEM_DRAFT":  4,
+		"OVERLAY_POPUP":       5,
+		"OVERLAY_ESCAPE_MENU": 6,
+	}
+)
+
+func (x Overlay) Enum() *Overlay {
+	p := new(Overlay)
+	*p = x
+	return p
+}
+
+func (x Overlay) String() string {
+	name, valid := Overlay_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // HudPart is a part of the game's own HUD a mod may hide from a player.
 type HudPart int32
 
@@ -1152,6 +1210,10 @@ type Node struct {
 	// hold the player's HUD and no stock overlay, such as chat, the shop or the
 	// escape menu, has the player's input. Only the root's list counts.
 	GameActions []GameAction `protobuf:"varint,45,rep,packed,name=game_actions,json=gameActions,proto3" json:"gameActions,omitempty"`
+	// FollowsOverlay asks, on the root only, for a UiOverlay event each time a
+	// different stock overlay takes the player's input or gives it back, and
+	// once with the current overlay when the root starts to follow.
+	FollowsOverlay bool `protobuf:"varint,49,opt,name=follows_overlay,json=followsOverlay,proto3" json:"followsOverlay,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1480,6 +1542,13 @@ func (x *Node) GetGameActions() []GameAction {
 		return x.GameActions
 	}
 	return nil
+}
+
+func (x *Node) GetFollowsOverlay() bool {
+	if x != nil {
+		return x.FollowsOverlay
+	}
+	return false
 }
 
 type isNode_Input interface {
@@ -3534,6 +3603,36 @@ func (x *UiActionEvent) GetPhase() ActionPhase {
 	return ActionPhase_ACTION_PHASE_UNKNOWN
 }
 
+// UiOverlayEvent reports the stock overlay that now holds a player's input,
+// to a mod whose root follows overlays.
+type UiOverlayEvent struct {
+	unknownFields []byte
+	// Player is the player whose input moved.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Overlay is the overlay that holds it, or OVERLAY_NONE.
+	Overlay Overlay `protobuf:"varint,2,opt,name=overlay,proto3" json:"overlay,omitempty"`
+}
+
+func (x *UiOverlayEvent) Reset() {
+	*x = UiOverlayEvent{}
+}
+
+func (*UiOverlayEvent) ProtoMessage() {}
+
+func (x *UiOverlayEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiOverlayEvent) GetOverlay() Overlay {
+	if x != nil {
+		return x.Overlay
+	}
+	return Overlay_OVERLAY_NONE
+}
+
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
 	unknownFields []byte
@@ -3618,6 +3717,7 @@ func (m *Node) CloneVT() *Node {
 	r.HideInChat = m.HideInChat
 	r.Speaking = m.Speaking
 	r.DocumentText = m.DocumentText
+	r.FollowsOverlay = m.FollowsOverlay
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -4542,6 +4642,23 @@ func (m *UiActionEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *UiOverlayEvent) CloneVT() *UiOverlayEvent {
+	if m == nil {
+		return (*UiOverlayEvent)(nil)
+	}
+	r := new(UiOverlayEvent)
+	r.Player = m.Player
+	r.Overlay = m.Overlay
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *UiOverlayEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *UiRequest) CloneVT() *UiRequest {
 	if m == nil {
 		return (*UiRequest)(nil)
@@ -4696,6 +4813,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualSlice(this.GameActions, that.GameActions) {
+		return false
+	}
+	if this.FollowsOverlay != that.FollowsOverlay {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6070,6 +6190,29 @@ func (this *UiActionEvent) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *UiOverlayEvent) EqualVT(that *UiOverlayEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Overlay != that.Overlay {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UiOverlayEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiOverlayEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *UiRequest) EqualVT(that *UiRequest) bool {
 	if this == that {
 		return true
@@ -6290,6 +6433,46 @@ func (x *ActionPhase) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the ActionPhase from JSON.
 func (x *ActionPhase) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Overlay to JSON.
+func (x Overlay) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Overlay_name)
+}
+
+// MarshalText marshals the Overlay to text.
+func (x Overlay) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Overlay_name)), nil
+}
+
+// MarshalJSON marshals the Overlay to JSON.
+func (x Overlay) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Overlay from JSON.
+func (x *Overlay) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Overlay_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Overlay enum: %v", err)
+		return
+	}
+	*x = Overlay(v)
+}
+
+// UnmarshalText unmarshals the Overlay from text.
+func (x *Overlay) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Overlay_value)
+	if err != nil {
+		return err
+	}
+	*x = Overlay(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Overlay from JSON.
+func (x *Overlay) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -7128,6 +7311,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.FollowsOverlay || s.HasField("followsOverlay") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("followsOverlay")
+		s.WriteBool(x.FollowsOverlay)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -7401,6 +7589,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				v.UnmarshalProtoJSON(s)
 				x.GameActions = append(x.GameActions, v)
 			})
+		case "follows_overlay", "followsOverlay":
+			s.AddField("follows_overlay")
+			x.FollowsOverlay = s.ReadBool()
 		}
 	})
 }
@@ -10158,6 +10349,56 @@ func (x *UiActionEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the UiOverlayEvent message to JSON.
+func (x *UiOverlayEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Overlay != 0 || s.HasField("overlay") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("overlay")
+		x.Overlay.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the UiOverlayEvent to JSON.
+func (x *UiOverlayEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the UiOverlayEvent message from JSON.
+func (x *UiOverlayEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "overlay":
+			s.AddField("overlay")
+			x.Overlay.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the UiOverlayEvent from JSON.
+func (x *UiOverlayEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the UiRequest message to JSON.
 func (x *UiRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -10249,6 +10490,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.FollowsOverlay {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FollowsOverlay)
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0x88
 	}
 	if len(m.GameActions) > 0 {
 		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.GameActions)
@@ -12988,6 +13236,48 @@ func (m *UiActionEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiOverlayEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UiOverlayEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiOverlayEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Overlay != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Overlay))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -13120,6 +13410,7 @@ func (m *Node) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.DocumentText)
 	n += protobuf_go_lite.SizeVarintPacked(2, m.GameActions)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.FollowsOverlay)
 	n += len(m.unknownFields)
 	return n
 }
@@ -13913,6 +14204,18 @@ func (m *UiActionEvent) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiOverlayEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Overlay)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -13945,6 +14248,10 @@ func (x GameAction) MarshalProtoText() string {
 }
 
 func (x ActionPhase) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Overlay) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -14257,6 +14564,10 @@ func (x *Node) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteStringer(&sb, GameAction(v))
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.FollowsOverlay != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "follows_overlay")
+		protobuf_go_lite.TextWriteBool(&sb, x.FollowsOverlay)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -15320,6 +15631,24 @@ func (x *UiActionEvent) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *UiOverlayEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiOverlayEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Overlay != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "overlay")
+		protobuf_go_lite.TextWriteStringer(&sb, Overlay(x.Overlay))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *UiOverlayEvent) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *UiRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiRequest")
@@ -15973,6 +16302,16 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field GameActions", wireType)
 			}
+		case 49:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FollowsOverlay", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.FollowsOverlay = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -19358,6 +19697,69 @@ func (m *UiActionEvent) UnmarshalVT(dAtA []byte) error {
 			var _v uint64
 			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
 			m.Phase = ActionPhase(_v)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *UiOverlayEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UiOverlayEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UiOverlayEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Overlay", wireType)
+			}
+			m.Overlay = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Overlay = Overlay(_v)
 			if err != nil {
 				return err
 			}

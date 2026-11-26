@@ -99,6 +99,18 @@ func FollowAction(p mod.Player, action mod.GameAction, onPhase func(p mod.Player
 	return draw(v)
 }
 
+// FollowOverlay calls onChange with the stock overlay, such as
+// mod.OverlayChat, mod.OverlayShop or mod.OverlayEscapeMenu, that holds
+// player's input: first the current one, then each time a different one
+// takes it, or mod.OverlayNone as the game gets it back. When several are
+// open it names the first of chat, the shop, the build editor, the item
+// draft, a popup and the escape menu. A nil onChange stops following.
+func FollowOverlay(p mod.Player, onChange func(p mod.Player, overlay mod.Overlay)) bool {
+	v := viewOf(p)
+	v.overlay = onChange
+	return draw(v)
+}
+
 // AbilityDisplay shows viewer each row's abilities in place of the ones the
 // game shows for that player's hero: on the player's row of the game's Tab
 // screen, and for viewer's own row on viewer's ability bar too, in the game's

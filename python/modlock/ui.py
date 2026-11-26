@@ -73,6 +73,7 @@ from . import (
     HEROES,
     ActionPhase,
     GameAction,
+    Overlay,
     Player,
     PlayerReturnedEvent,
     Wheel,
@@ -629,6 +630,21 @@ def follow_action(
     return _draw(player)
 
 
+# OverlayHandler takes the stock overlay that now holds player's input.
+type OverlayHandler = Callable[[Player, Overlay], object]
+
+
+def follow_overlay(player: Player, on_change: OverlayHandler | None = None) -> bool:
+    """follow_overlay calls on_change with the stock overlay, such as "chat",
+    "shop" or "escape_menu", that holds player's input: first the current
+    one, then each time a different one takes it, or "none" as the game gets
+    it back. When several are open it names the first of chat, the shop, the
+    build editor, the item draft, a popup and the escape menu. Without
+    on_change the mod stops following."""
+    _view(player).overlay = on_change
+    return _draw(player)
+
+
 class ShownAbility(TypedDict):
     """ShownAbility is the ability ability_display shows in one slot: name is
     its class name, whose window the game shows over it, image its picture, a
@@ -801,6 +817,13 @@ def _act(player: Player, action: GameAction, phase: ActionPhase) -> None:
         handler(player, phase)
 
 
+def _overlaid(player: Player, overlay: Overlay) -> None:
+    """_overlaid runs the handler of the mod that follows the player's overlays."""
+    view = _views.get(player.slot)
+    if view is not None and view.overlay is not None:
+        view.overlay(player, overlay)
+
+
 def _press(player: Player, node: str) -> None:
     """_press runs the handler of the button the player pressed."""
     # A click on the game's ability bar names its slot, which no button's id
@@ -876,6 +899,8 @@ class _View:
     actions: dict[GameAction, ActionHandler] = field(
         default_factory=lambda: dict[GameAction, ActionHandler]()
     )
+    # overlay takes each stock overlay change, while the mod follows them.
+    overlay: OverlayHandler | None = None
     # display is the abilities shown on Tab's rows and the ability bar.
     display: list[AbilityRow] = field(default_factory=lambda: list[AbilityRow]())
     notices: list[_Notice] = field(default_factory=lambda: list[_Notice]())
@@ -1035,6 +1060,7 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
             "cues": list(view.cues),
             "ability_bar_presses": view.bar is not None,
             "game_actions": sorted(view.actions),
+            "follows_overlay": view.overlay is not None,
             "ability_display": display,
         }
     )
@@ -1463,7 +1489,7 @@ def _color(value: str | None) -> int | None:
     return int(digits + "ff" if len(digits) == 6 else digits, 16)
 
 
-_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, tick=_tick))
+_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, overlay=_overlaid, tick=_tick))
 
 
 @on_player_return

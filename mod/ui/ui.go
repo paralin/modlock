@@ -56,6 +56,7 @@ func init() {
 	mod.OnUiPress(press)
 	mod.OnUiInput(change)
 	mod.OnUiAction(act)
+	mod.OnUiOverlay(overlaid)
 	mod.OnPlayers(forget)
 	mod.OnPlayerReturn(returned)
 }

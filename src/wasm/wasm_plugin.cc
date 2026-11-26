@@ -289,6 +289,19 @@ std::expected<void, std::string> WasmPlugin::GameAction(int32_t slot, std::strin
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Overlay(int32_t slot, std::string_view line) {
+  // Refuse an overlay the running mod's root does not follow.
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
+  auto event = ui_.Overlay(slot, line);
+  if (!event) {
+    return std::unexpected(name_ + " " + event.error());
+  }
+  static_cast<void>(mod_.UiOverlay(*event));
+  return {};
+}
+
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
   if (!reply) {

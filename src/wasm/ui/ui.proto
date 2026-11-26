@@ -237,6 +237,11 @@ message Node {
   // hold the player's HUD and no stock overlay, such as chat, the shop or the
   // escape menu, has the player's input. Only the root's list counts.
   repeated GameAction game_actions = 45;
+
+  // FollowsOverlay asks, on the root only, for a UiOverlay event each time a
+  // different stock overlay takes the player's input or gives it back, and
+  // once with the current overlay when the root starts to follow.
+  bool follows_overlay = 49;
 }
 
 // Clock is a time a label counts in the player's game.
@@ -403,6 +408,32 @@ enum ActionPhase {
   // overlay took the player's input or the screen lost the HUD. The release
   // that follows sends nothing.
   ACTION_PHASE_CANCELLED = 3;
+}
+
+// Overlay names the stock interface that holds the player's input. When
+// several are open, the renderer names the first of chat, the shop, the
+// build editor, the item draft, a popup and the escape menu.
+enum Overlay {
+  // OVERLAY_NONE means the game has the player's input.
+  OVERLAY_NONE = 0;
+
+  // OVERLAY_CHAT is the chat box, open for typing.
+  OVERLAY_CHAT = 1;
+
+  // OVERLAY_SHOP is the item shop.
+  OVERLAY_SHOP = 2;
+
+  // OVERLAY_BUILDS is the build editor.
+  OVERLAY_BUILDS = 3;
+
+  // OVERLAY_ITEM_DRAFT is the item draft's choice.
+  OVERLAY_ITEM_DRAFT = 4;
+
+  // OVERLAY_POPUP is a stock popup, such as a confirmation.
+  OVERLAY_POPUP = 5;
+
+  // OVERLAY_ESCAPE_MENU is the escape menu, which pauses a local game.
+  OVERLAY_ESCAPE_MENU = 6;
 }
 
 // HudPart is a part of the game's own HUD a mod may hide from a player.
@@ -1256,6 +1287,16 @@ message UiActionEvent {
 
   // Phase is where the press stands.
   ActionPhase phase = 3;
+}
+
+// UiOverlayEvent reports the stock overlay that now holds a player's input,
+// to a mod whose root follows overlays.
+message UiOverlayEvent {
+  // Player is the player whose input moved.
+  int32 player = 1;
+
+  // Overlay is the overlay that holds it, or OVERLAY_NONE.
+  Overlay overlay = 2;
 }
 
 // UiRequest changes the interface the mod shows one player.

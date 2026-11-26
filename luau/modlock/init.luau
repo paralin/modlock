@@ -530,6 +530,27 @@ local ActionPhase: { [any]: any } = {
 	cancelled = 3,
 }
 
+-- Overlay names the stock interface that holds the player's input. When
+-- several are open, the renderer names the first of chat, the shop, the
+-- build editor, the item draft, a popup and the escape menu.
+export type Overlay = "none" | "chat" | "shop" | "builds" | "itemDraft" | "popup" | "escapeMenu"
+local Overlay: { [any]: any } = {
+	[0] = "none",
+	none = 0,
+	[1] = "chat",
+	chat = 1,
+	[2] = "shop",
+	shop = 2,
+	[3] = "builds",
+	builds = 3,
+	[4] = "itemDraft",
+	itemDraft = 4,
+	[5] = "popup",
+	popup = 5,
+	[6] = "escapeMenu",
+	escapeMenu = 6,
+}
+
 -- DocumentFailure says why a document input's submission did not arrive.
 export type DocumentFailure = "tooLarge" | "expired" | "cancelled" | "malformed"
 local DocumentFailure: { [any]: any } = {
@@ -1879,6 +1900,15 @@ export type UiActionEvent = {
 	action: GameAction?,
 	-- phase is where the press stands.
 	phase: ActionPhase?,
+}
+
+-- UiOverlayEvent reports the stock overlay that now holds a player's input,
+-- to a mod whose root follows overlays.
+export type UiOverlayEvent = {
+	-- player is the player whose input moved.
+	player: Player,
+	-- overlay is the overlay that holds it, or OVERLAY_NONE.
+	overlay: Overlay?,
 }
 
 -- StartEvent describes the server the mod starts in.
@@ -4280,6 +4310,7 @@ schema.Node = {
 	{ number = 43, name = "documentInput", kind = "message", message = "DocumentInput" },
 	{ number = 44, name = "documentText", kind = "string" },
 	{ number = 45, name = "gameActions", kind = "enum", repeated = true, enum = GameAction },
+	{ number = 49, name = "followsOverlay", kind = "bool" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4499,6 +4530,10 @@ schema.UiActionEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "action", kind = "enum", enum = GameAction },
 	{ number = 3, name = "phase", kind = "enum", enum = ActionPhase },
+}
+schema.UiOverlayEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "overlay", kind = "enum", enum = Overlay },
 }
 schema.UiRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -5315,6 +5350,9 @@ export type ModHandlers = {
 	-- uiAction reports a phase of a game action the root of a player's
 	-- interface follows.
 	uiAction: (event: UiActionEvent) -> (),
+	-- uiOverlay reports the stock overlay that now holds a player's input, to
+	-- a mod whose root follows overlays.
+	uiOverlay: (event: UiOverlayEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
@@ -5408,6 +5446,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
 	UiDocument = { request = "UiDocumentEvent", response = "Empty", handler = "uiDocument" },
 	UiAction = { request = "UiActionEvent", response = "Empty", handler = "uiAction" },
+	UiOverlay = { request = "UiOverlayEvent", response = "Empty", handler = "uiOverlay" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
@@ -5847,6 +5886,8 @@ export type Interface = {
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
+	-- overlay takes the stock overlay that now holds the player's input.
+	overlay: (player: Player, overlay: Overlay) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -6970,6 +7011,16 @@ local handlers: ModHandlers = {
 		if served and action and phase then
 			modlock.after(0, function()
 				served.act(event.player, action, phase)
+			end)
+		end
+	end,
+	uiOverlay = function(event)
+		-- The wire leaves out "none", the overlay's zero value.
+		local served = interface
+		if served then
+			local overlay: Overlay = event.overlay or "none"
+			modlock.after(0, function()
+				served.overlay(event.player, overlay)
 			end)
 		end
 	end,

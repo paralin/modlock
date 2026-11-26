@@ -403,6 +403,29 @@ const (
 	ActionPhaseCancelled = uipb.ActionPhase_ACTION_PHASE_CANCELLED
 )
 
+// Overlay names the stock interface that holds the player's input. When
+// several are open, the renderer names the first of chat, the shop, the
+// build editor, the item draft, a popup and the escape menu.
+type Overlay = uipb.Overlay
+
+// The values of Overlay.
+const (
+	// OverlayNone means the game has the player's input.
+	OverlayNone = uipb.Overlay_OVERLAY_NONE
+	// OverlayChat is the chat box, open for typing.
+	OverlayChat = uipb.Overlay_OVERLAY_CHAT
+	// OverlayShop is the item shop.
+	OverlayShop = uipb.Overlay_OVERLAY_SHOP
+	// OverlayBuilds is the build editor.
+	OverlayBuilds = uipb.Overlay_OVERLAY_BUILDS
+	// OverlayItemDraft is the item draft's choice.
+	OverlayItemDraft = uipb.Overlay_OVERLAY_ITEM_DRAFT
+	// OverlayPopup is a stock popup, such as a confirmation.
+	OverlayPopup = uipb.Overlay_OVERLAY_POPUP
+	// OverlayEscapeMenu is the escape menu, which pauses a local game.
+	OverlayEscapeMenu = uipb.Overlay_OVERLAY_ESCAPE_MENU
+)
+
 // DocumentFailure says why a document input's submission did not arrive.
 type DocumentFailure = uipb.DocumentFailure
 
@@ -755,6 +778,10 @@ type DocumentFailed = uipb.DocumentFailed
 // Each press reaches the mod once as pressed, then once as released or
 // cancelled.
 type UiActionEvent = uipb.UiActionEvent
+
+// UiOverlayEvent reports the stock overlay that now holds a player's input,
+// to a mod whose root follows overlays.
+type UiOverlayEvent = uipb.UiOverlayEvent
 
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
@@ -2161,6 +2188,9 @@ type modHandlers interface {
 	// UiAction reports a phase of a game action the root of a player's
 	// interface follows.
 	UiAction(event *UiActionEvent) error
+	// UiOverlay reports the stock overlay that now holds a player's input, to
+	// a mod whose root follows overlays.
+	UiOverlay(event *UiOverlayEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
@@ -2305,6 +2335,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiAction(event))
+	case "UiOverlay":
+		event := &UiOverlayEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiOverlay(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

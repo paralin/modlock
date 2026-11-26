@@ -250,6 +250,11 @@ class WasmPlugin final : public Plugin {
   // UiTrees::GameAction reads them.
   std::expected<void, std::string> GameAction(int32_t slot, std::string_view line);
 
+  // Overlay delivers the stock overlay that now holds the input of the
+  // player in slot, while the mod's root follows overlays: line is the
+  // overlay as UiTrees::Overlay reads it.
+  std::expected<void, std::string> Overlay(int32_t slot, std::string_view line);
+
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 

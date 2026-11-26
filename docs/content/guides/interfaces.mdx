@@ -111,6 +111,7 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 | `freeCursor(player, free)`                     | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                                                                           |
 | `abilityBarPresses(player, onPress?)`          | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                                                                            |
 | `followAction(player, action, onPhase?)`       | Follow a game action, such as `'scoreboard'`, on whichever key the player bound it to: `'pressed'`, then `'released'` or `'cancelled'`; see [Follow a game action](#follow-a-game-action).                    |
+| `followOverlay(player, onChange?)`             | Hear which stock overlay holds the player's input, such as `'chat'`, `'shop'` or `'escapeMenu'`, and `'none'` once the game has it back; see [Follow the stock overlays](#follow-the-stock-overlays).         |
 | `abilityDisplay(viewer, rows?)`                | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                                                                              |
 | `cursorFree(player)`                           | Read whether the player's cursor is up now, however it got there.                                                                                                                                             |
 | `items`, `item(name)`                          | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.                                                                                                                                    |
@@ -145,6 +146,24 @@ mod reads the action whatever key the player bound it to.
 followAction(player, 'scoreboard', (player, phase) => {
   if (phase === 'pressed') showStats(player)
   else hideStats(player)
+})
+```
+
+## Follow the stock overlays
+
+`followOverlay` tells the mod which of the game's own overlays holds the
+player's input, so a mod can pause its own timer, hide a prompt or end a drag
+while the player types in chat or browses the shop. The handler hears the
+current overlay at once, then each change, and `'none'` once the game has the
+input back. The overlays are `'chat'`, `'shop'`, `'builds'`, `'itemDraft'`,
+`'popup'` and `'escapeMenu'`, and when several are open it names the first in
+that order. The renderer reads them ten times a second, and only while some
+mod follows them.
+
+```ts
+followOverlay(player, (player, overlay) => {
+  if (overlay === 'none') resumeRound(player)
+  else pauseRound(player)
 })
 ```
 
