@@ -470,6 +470,9 @@ export interface Props {
   readonly data?: unknown
   readonly sound?: string
   readonly disabled?: boolean
+  readonly focusOrder?: number
+  readonly initialFocus?: boolean
+  readonly submits?: boolean
   readonly onPress?: (player: Player) => void
   readonly onAction?: LayoutPressHandler
   readonly enter?: Style
@@ -590,8 +593,18 @@ export interface AvatarProps extends ElementProps {
  * InputProps are the props every input takes. A disabled input takes no
  * changes.
  */
-export interface InputProps extends ElementProps {
+export interface InputProps extends ElementProps, FocusProps {
   disabled?: boolean
+}
+
+/**
+ * FocusProps place a button or input in the keyboard's reach: focusOrder is
+ * its place in the game's keyboard and controller navigation, lowest first,
+ * and initialFocus gives it the keyboard when its menu opens.
+ */
+export interface FocusProps {
+  focusOrder?: number
+  initialFocus?: boolean
 }
 
 /**
@@ -684,10 +697,12 @@ export interface HeroProps extends ElementProps {
  * cursor. sound is the game's sound event the press plays, such as
  * 'UI.MainMenu.Activate', and a disabled button takes no presses.
  */
-export interface ButtonProps extends ElementProps {
+export interface ButtonProps extends ElementProps, FocusProps {
   children?: Child
   sound?: string
   disabled?: boolean
+  /** submits makes Enter in an entry of the button's menu press it. */
+  submits?: boolean
   onPress?: (player: Player) => void
 }
 
@@ -1903,6 +1918,8 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
       node.kind = Kind.BUTTON
       node.sound = props.sound
       node.disabled = props.disabled
+      if (props.submits) node.submits = true
+      focus(node, props)
       // A disabled button's press runs nothing, whoever sends it.
       if (props.onPress && !props.disabled) {
         layout.part.presses.set(node.id!, { handler: props.onPress })
@@ -1987,6 +2004,13 @@ function classes(names: string | undefined): string[] | undefined {
   return list.length === 0 ? undefined : list
 }
 
+/** focus sets a control's place in the navigation and its initial focus. */
+function focus(node: Node, props: Props): void {
+  if (props.focusOrder)
+    node.focusOrder = Math.max(0, Math.trunc(props.focusOrder))
+  if (props.initialFocus) node.initialFocus = true
+}
+
 /** input lays out an input of kind from props in node. */
 function input(
   layout: Layout,
@@ -1997,6 +2021,7 @@ function input(
   // A disabled input's change runs nothing, whoever sends it.
   node.kind = Kind.INPUT
   node.disabled = props.disabled
+  focus(node, props)
   if (props.onChange && !props.disabled) {
     layout.part.changes.set(node.id!, { handler: props.onChange })
   }

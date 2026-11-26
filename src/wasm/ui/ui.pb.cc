@@ -1154,6 +1154,9 @@ inline constexpr Node::Impl_::Impl_(
         item_{0u},
         free_cursor_asks_{0u},
         ability_{0u},
+        focus_order_{0u},
+        initial_focus_{false},
+        submits_{false},
         follows_overlay_{false},
         follows_placement_{false},
         frame_{static_cast< ::modlock::wasm::ui::Frame >(0)},
@@ -1311,7 +1314,7 @@ const ::uint32_t
         0x085, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_._oneof_case_[0]),
-        54, // hasbit index offset
+        57, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.id_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.kind_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.children_),
@@ -1358,6 +1361,9 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.document_text_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.game_actions_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.follows_overlay_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.focus_order_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.initial_focus_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.submits_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.measure_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.frame_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.follows_placement_),
@@ -1407,10 +1413,13 @@ const ::uint32_t
         38,
         34,
         32,
+        45,
         42,
-        35,
-        44,
         43,
+        44,
+        35,
+        47,
+        46,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Clock, _impl_._has_bits_),
         8, // hasbit index offset
@@ -1888,45 +1897,45 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::ui::Node_VariablesEntry_DoNotUse)},
         {7, sizeof(::modlock::wasm::ui::Node)},
-        {110, sizeof(::modlock::wasm::ui::Clock)},
-        {123, sizeof(::modlock::wasm::ui::AbilityRow)},
-        {136, sizeof(::modlock::wasm::ui::ShownAbility)},
-        {145, sizeof(::modlock::wasm::ui::Cue)},
-        {156, sizeof(::modlock::wasm::ui::Menu)},
-        {167, sizeof(::modlock::wasm::ui::DocumentInput)},
-        {176, sizeof(::modlock::wasm::ui::TextEntry)},
-        {185, sizeof(::modlock::wasm::ui::Slider)},
-        {198, sizeof(::modlock::wasm::ui::Wheel)},
-        {205, sizeof(::modlock::wasm::ui::Toggle)},
-        {210, sizeof(::modlock::wasm::ui::Dropdown)},
-        {217, sizeof(::modlock::wasm::ui::Cycle)},
-        {226, sizeof(::modlock::wasm::ui::Style)},
-        {323, sizeof(::modlock::wasm::ui::Clip)},
-        {328, sizeof(::modlock::wasm::ui::ClipRect)},
-        {339, sizeof(::modlock::wasm::ui::ClipRadial)},
-        {350, sizeof(::modlock::wasm::ui::Gradient)},
-        {357, sizeof(::modlock::wasm::ui::GradientStop)},
-        {364, sizeof(::modlock::wasm::ui::Shadow)},
-        {379, sizeof(::modlock::wasm::ui::Transform)},
-        {396, sizeof(::modlock::wasm::ui::Transition)},
-        {407, sizeof(::modlock::wasm::ui::Curve)},
-        {418, sizeof(::modlock::wasm::ui::Length)},
-        {425, sizeof(::modlock::wasm::ui::Edges)},
-        {436, sizeof(::modlock::wasm::ui::Change)},
-        {447, sizeof(::modlock::wasm::ui::Tree)},
-        {460, sizeof(::modlock::wasm::ui::Region)},
-        {471, sizeof(::modlock::wasm::ui::Screen)},
-        {476, sizeof(::modlock::wasm::ui::UiPressEvent)},
-        {487, sizeof(::modlock::wasm::ui::UiInputEvent)},
-        {506, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
-        {519, sizeof(::modlock::wasm::ui::DocumentDelivered)},
-        {524, sizeof(::modlock::wasm::ui::DocumentFailed)},
-        {529, sizeof(::modlock::wasm::ui::UiActionEvent)},
-        {538, sizeof(::modlock::wasm::ui::UiOverlayEvent)},
-        {545, sizeof(::modlock::wasm::ui::Bounds)},
-        {556, sizeof(::modlock::wasm::ui::UiPlacementEvent)},
-        {567, sizeof(::modlock::wasm::ui::Measured)},
-        {574, sizeof(::modlock::wasm::ui::UiRequest)},
+        {116, sizeof(::modlock::wasm::ui::Clock)},
+        {129, sizeof(::modlock::wasm::ui::AbilityRow)},
+        {142, sizeof(::modlock::wasm::ui::ShownAbility)},
+        {151, sizeof(::modlock::wasm::ui::Cue)},
+        {162, sizeof(::modlock::wasm::ui::Menu)},
+        {173, sizeof(::modlock::wasm::ui::DocumentInput)},
+        {182, sizeof(::modlock::wasm::ui::TextEntry)},
+        {191, sizeof(::modlock::wasm::ui::Slider)},
+        {204, sizeof(::modlock::wasm::ui::Wheel)},
+        {211, sizeof(::modlock::wasm::ui::Toggle)},
+        {216, sizeof(::modlock::wasm::ui::Dropdown)},
+        {223, sizeof(::modlock::wasm::ui::Cycle)},
+        {232, sizeof(::modlock::wasm::ui::Style)},
+        {329, sizeof(::modlock::wasm::ui::Clip)},
+        {334, sizeof(::modlock::wasm::ui::ClipRect)},
+        {345, sizeof(::modlock::wasm::ui::ClipRadial)},
+        {356, sizeof(::modlock::wasm::ui::Gradient)},
+        {363, sizeof(::modlock::wasm::ui::GradientStop)},
+        {370, sizeof(::modlock::wasm::ui::Shadow)},
+        {385, sizeof(::modlock::wasm::ui::Transform)},
+        {402, sizeof(::modlock::wasm::ui::Transition)},
+        {413, sizeof(::modlock::wasm::ui::Curve)},
+        {424, sizeof(::modlock::wasm::ui::Length)},
+        {431, sizeof(::modlock::wasm::ui::Edges)},
+        {442, sizeof(::modlock::wasm::ui::Change)},
+        {453, sizeof(::modlock::wasm::ui::Tree)},
+        {466, sizeof(::modlock::wasm::ui::Region)},
+        {477, sizeof(::modlock::wasm::ui::Screen)},
+        {482, sizeof(::modlock::wasm::ui::UiPressEvent)},
+        {493, sizeof(::modlock::wasm::ui::UiInputEvent)},
+        {512, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
+        {525, sizeof(::modlock::wasm::ui::DocumentDelivered)},
+        {530, sizeof(::modlock::wasm::ui::DocumentFailed)},
+        {535, sizeof(::modlock::wasm::ui::UiActionEvent)},
+        {544, sizeof(::modlock::wasm::ui::UiOverlayEvent)},
+        {551, sizeof(::modlock::wasm::ui::Bounds)},
+        {562, sizeof(::modlock::wasm::ui::UiPlacementEvent)},
+        {573, sizeof(::modlock::wasm::ui::Measured)},
+        {580, sizeof(::modlock::wasm::ui::UiRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_Node_VariablesEntry_DoNotUse_default_instance_._instance,
@@ -1974,7 +1983,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n/github.com/paralin/modlock/src/wasm/ui"
-    "/ui.proto\022\017modlock.wasm.ui\"\333\013\n\004Node\022\n\n\002i"
+    "/ui.proto\022\017modlock.wasm.ui\"\230\014\n\004Node\022\n\n\002i"
     "d\030\001 \001(\t\022#\n\004kind\030\002 \001(\0162\025.modlock.wasm.ui."
     "Kind\022\020\n\010children\030\003 \003(\t\022\014\n\004text\030\004 \001(\t\022\r\n\005"
     "image\030\005 \001(\t\022%\n\005style\030\006 \001(\0132\026.modlock.was"
@@ -2008,211 +2017,212 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "ent_input\030+ \001(\0132\036.modlock.wasm.ui.Docume"
     "ntInput\022\025\n\rdocument_text\030, \001(\t\0221\n\014game_a"
     "ctions\030- \003(\0162\033.modlock.wasm.ui.GameActio"
-    "n\022\027\n\017follows_overlay\0301 \001(\010\022\017\n\007measure\0302 "
-    "\001(\t\022%\n\005frame\0303 \001(\0162\026.modlock.wasm.ui.Fra"
-    "me\022\031\n\021follows_placement\0304 \001(\010\0320\n\016Variabl"
-    "esEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B"
-    "\007\n\005input\"o\n\005Clock\022\017\n\007seconds\030\001 \001(\001\022\n\n\002up"
-    "\030\002 \001(\010\022\016\n\006paused\030\003 \001(\010\022,\n\006format\030\004 \001(\0162\034"
-    ".modlock.wasm.ui.ClockFormat\022\013\n\003run\030\005 \001("
-    "\r\"w\n\nAbilityRow\022\016\n\006player\030\001 \001(\r\022\014\n\004name\030"
-    "\002 \001(\t\022\014\n\004hero\030\003 \001(\t\022\013\n\003own\030\004 \001(\010\0220\n\tabil"
-    "ities\030\005 \003(\0132\035.modlock.wasm.ui.ShownAbili"
-    "ty\"@\n\014ShownAbility\022\017\n\007ability\030\001 \001(\r\022\r\n\005i"
-    "mage\030\002 \001(\t\022\020\n\010upgrades\030\003 \001(\r\"D\n\003Cue\022\016\n\006n"
-    "umber\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\022\017\n\007seconds\030\003 "
-    "\001(\002\022\r\n\005delay\030\004 \001(\002\"k\n\004Menu\022\'\n\004mode\030\001 \001(\016"
-    "2\031.modlock.wasm.ui.MenuMode\022\022\n\nopen_labe"
-    "l\030\002 \001(\t\022\024\n\014open_request\030\003 \001(\r\022\020\n\010priorit"
-    "y\030\004 \001(\005\"K\n\rDocumentInput\022\023\n\013placeholder\030"
-    "\001 \001(\t\022\024\n\014submit_label\030\002 \001(\t\022\017\n\007control\030\003"
-    " \001(\004\"B\n\tTextEntry\022\014\n\004text\030\001 \001(\t\022\023\n\013place"
-    "holder\030\002 \001(\t\022\022\n\nmax_length\030\003 \001(\r\"N\n\006Slid"
-    "er\022\r\n\005value\030\001 \001(\002\022\013\n\003min\030\002 \001(\002\022\013\n\003max\030\003 "
-    "\001(\002\022\014\n\004step\030\004 \001(\002\022\r\n\005wheel\030\005 \001(\010\"(\n\005Whee"
-    "l\022\r\n\005delta\030\001 \001(\002\022\020\n\010fraction\030\002 \001(\002\"\024\n\006To"
-    "ggle\022\n\n\002on\030\001 \001(\010\"-\n\010Dropdown\022\017\n\007options\030"
-    "\001 \003(\t\022\020\n\010selected\030\002 \001(\r\"N\n\005Cycle\022%\n\005styl"
-    "e\030\001 \001(\0132\026.modlock.wasm.ui.Style\022\017\n\007secon"
-    "ds\030\002 \001(\002\022\r\n\005count\030\003 \001(\r\"\277\014\n\005Style\022&\n\005wid"
-    "th\030\001 \001(\0132\027.modlock.wasm.ui.Length\022\'\n\006hei"
-    "ght\030\002 \001(\0132\027.modlock.wasm.ui.Length\022#\n\004fl"
-    "ow\030\003 \001(\0162\025.modlock.wasm.ui.Flow\0220\n\020horiz"
-    "ontal_align\030\004 \001(\0162\026.modlock.wasm.ui.Alig"
-    "n\022.\n\016vertical_align\030\005 \001(\0162\026.modlock.wasm"
-    ".ui.Align\022&\n\006margin\030\006 \001(\0132\026.modlock.wasm"
-    ".ui.Edges\022\'\n\007padding\030\007 \001(\0132\026.modlock.was"
-    "m.ui.Edges\022\022\n\nbackground\030\010 \001(\007\022\r\n\005color\030"
-    "\t \001(\007\022\021\n\tfont_size\030\n \001(\002\022\014\n\004bold\030\013 \001(\010\022*"
-    "\n\ntext_align\030\014 \001(\0162\026.modlock.wasm.ui.Ali"
-    "gn\022\025\n\rborder_radius\030\r \001(\002\022\024\n\007opacity\030\016 \001"
-    "(\002H\000\210\001\001\022#\n\004face\030\017 \001(\0162\025.modlock.wasm.ui."
-    "Face\022\021\n\tuppercase\030\020 \001(\010\022\026\n\016letter_spacin"
-    "g\030\021 \001(\002\022\016\n\006shadow\030\022 \001(\010\022\024\n\014border_width\030"
-    "\023 \001(\002\022\024\n\014border_color\030\024 \001(\007\022\"\n\001x\030\025 \001(\0132\027"
-    ".modlock.wasm.ui.Length\022\"\n\001y\030\026 \001(\0132\027.mod"
-    "lock.wasm.ui.Length\022*\n\tmin_width\030\027 \001(\0132\027"
-    ".modlock.wasm.ui.Length\022*\n\tmax_width\030\030 \001"
-    "(\0132\027.modlock.wasm.ui.Length\022+\n\nmin_heigh"
-    "t\030\031 \001(\0132\027.modlock.wasm.ui.Length\022+\n\nmax_"
-    "height\030\032 \001(\0132\027.modlock.wasm.ui.Length\022\017\n"
-    "\007z_index\030\033 \001(\005\022-\n\noverflow_x\030\034 \001(\0162\031.mod"
-    "lock.wasm.ui.Overflow\022-\n\noverflow_y\030\035 \001("
-    "\0162\031.modlock.wasm.ui.Overflow\022+\n\010gradient"
-    "\030\036 \001(\0132\031.modlock.wasm.ui.Gradient\022+\n\nbox"
-    "_shadow\030\037 \001(\0132\027.modlock.wasm.ui.Shadow\022,"
-    "\n\013text_shadow\030  \001(\0132\027.modlock.wasm.ui.Sh"
-    "adow\022\014\n\004tint\030! \001(\007\022\027\n\nsaturation\030\" \001(\002H\001"
-    "\210\001\001\022\027\n\nbrightness\030# \001(\002H\002\210\001\001\022\025\n\010contrast"
-    "\030$ \001(\002H\003\210\001\001\022\014\n\004blur\030% \001(\002\022\016\n\006italic\030& \001("
-    "\010\022\'\n\006weight\030\' \001(\0162\027.modlock.wasm.ui.Weig"
-    "ht\022\023\n\013line_height\030( \001(\002\022\017\n\007no_wrap\030) \001(\010"
-    "\0224\n\rtext_overflow\030* \001(\0162\035.modlock.wasm.u"
-    "i.TextOverflow\022/\n\ndecoration\030+ \001(\0162\033.mod"
-    "lock.wasm.ui.Decoration\022-\n\ttransform\030, \001"
-    "(\0132\032.modlock.wasm.ui.Transform\022/\n\ntransi"
-    "tion\030- \001(\0132\033.modlock.wasm.ui.Transition\022"
-    "#\n\004clip\030. \001(\0132\025.modlock.wasm.ui.Clip\022\014\n\004"
-    "turn\030/ \001(\002B\n\n\010_opacityB\r\n\013_saturationB\r\n"
-    "\013_brightnessB\013\n\t_contrast\"i\n\004Clip\022)\n\004rec"
-    "t\030\001 \001(\0132\031.modlock.wasm.ui.ClipRectH\000\022-\n\006"
-    "radial\030\002 \001(\0132\033.modlock.wasm.ui.ClipRadia"
-    "lH\000B\007\n\005shape\"D\n\010ClipRect\022\013\n\003top\030\001 \001(\002\022\r\n"
-    "\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left\030\004 \001"
-    "(\002\"r\n\nClipRadial\022\025\n\010center_x\030\001 \001(\002H\000\210\001\001\022"
-    "\025\n\010center_y\030\002 \001(\002H\001\210\001\001\022\r\n\005start\030\003 \001(\002\022\r\n"
-    "\005sweep\030\004 \001(\002B\013\n\t_center_xB\013\n\t_center_y\"g"
-    "\n\010Gradient\022-\n\005shape\030\001 \001(\0162\036.modlock.wasm"
-    ".ui.GradientShape\022,\n\005stops\030\002 \003(\0132\035.modlo"
-    "ck.wasm.ui.GradientStop\")\n\014GradientStop\022"
-    "\n\n\002at\030\001 \001(\002\022\r\n\005color\030\002 \001(\007\"Z\n\006Shadow\022\t\n\001"
-    "x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\014\n\004blur\030\003 \001(\002\022\016\n\006spre"
-    "ad\030\004 \001(\002\022\r\n\005color\030\005 \001(\007\022\r\n\005inset\030\006 \001(\010\"\321"
-    "\001\n\tTransform\022\023\n\013translate_x\030\001 \001(\002\022\023\n\013tra"
-    "nslate_y\030\002 \001(\002\022\024\n\007scale_x\030\003 \001(\002H\000\210\001\001\022\024\n\007"
-    "scale_y\030\004 \001(\002H\001\210\001\001\022\016\n\006rotate\030\005 \001(\002\022\025\n\010or"
-    "igin_x\030\006 \001(\002H\002\210\001\001\022\025\n\010origin_y\030\007 \001(\002H\003\210\001\001"
-    "B\n\n\010_scale_xB\n\n\010_scale_yB\013\n\t_origin_xB\013\n"
-    "\t_origin_y\"|\n\nTransition\022\017\n\007seconds\030\001 \001("
-    "\002\022\r\n\005delay\030\002 \001(\002\022\'\n\006easing\030\003 \001(\0162\027.modlo"
-    "ck.wasm.ui.Easing\022%\n\005curve\030\004 \001(\0132\026.modlo"
-    "ck.wasm.ui.Curve\"7\n\005Curve\022\n\n\002x1\030\001 \001(\002\022\n\n"
-    "\002y1\030\002 \001(\002\022\n\n\002x2\030\003 \001(\002\022\n\n\002y2\030\004 \001(\002\"^\n\006Len"
-    "gth\022\020\n\006pixels\030\001 \001(\002H\000\022\021\n\007percent\030\002 \001(\002H\000"
-    "\022\026\n\014fit_children\030\003 \001(\010H\000\022\016\n\004fill\030\004 \001(\002H\000"
-    "B\007\n\005value\"A\n\005Edges\022\013\n\003top\030\001 \001(\002\022\r\n\005right"
-    "\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"`\n\006"
-    "Change\022\r\n\005reset\030\001 \001(\010\022\"\n\003set\030\002 \003(\0132\025.mod"
-    "lock.wasm.ui.Node\022\017\n\007removed\030\003 \003(\t\022\022\n\nge"
-    "neration\030\004 \001(\004\"\205\001\n\004Tree\022\013\n\003mod\030\001 \001(\t\022$\n\005"
-    "nodes\030\002 \003(\0132\025.modlock.wasm.ui.Node\022\'\n\006re"
-    "gion\030\003 \001(\0132\027.modlock.wasm.ui.Region\022\r\n\005a"
-    "ddon\030\004 \001(\t\022\022\n\ngeneration\030\005 \001(\004\"B\n\006Region"
-    "\022\014\n\004left\030\001 \001(\002\022\013\n\003top\030\002 \001(\002\022\r\n\005width\030\003 \001"
-    "(\002\022\016\n\006height\030\004 \001(\002\".\n\006Screen\022$\n\005trees\030\001 "
-    "\003(\0132\025.modlock.wasm.ui.Tree\"M\n\014UiPressEve"
-    "nt\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\006acti"
-    "on\030\003 \001(\t\022\017\n\007payload\030\004 \001(\t\"\240\001\n\014UiInputEve"
-    "nt\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\004text"
-    "\030\003 \001(\tH\000\022\020\n\006number\030\004 \001(\002H\000\022\014\n\002on\030\005 \001(\010H\000"
-    "\022\020\n\006choice\030\006 \001(\rH\000\022\'\n\005wheel\030\007 \001(\0132\026.modl"
-    "ock.wasm.ui.WheelH\000B\007\n\005value\"\245\001\n\017UiDocum"
-    "entEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\0227"
-    "\n\tdelivered\030\003 \001(\0132\".modlock.wasm.ui.Docu"
-    "mentDeliveredH\000\0221\n\006failed\030\004 \001(\0132\037.modloc"
-    "k.wasm.ui.DocumentFailedH\000B\010\n\006result\"!\n\021"
-    "DocumentDelivered\022\014\n\004text\030\001 \001(\t\"B\n\016Docum"
-    "entFailed\0220\n\006reason\030\001 \001(\0162 .modlock.wasm"
-    ".ui.DocumentFailure\"y\n\rUiActionEvent\022\016\n\006"
-    "player\030\001 \001(\005\022+\n\006action\030\002 \001(\0162\033.modlock.w"
-    "asm.ui.GameAction\022+\n\005phase\030\003 \001(\0162\034.modlo"
-    "ck.wasm.ui.ActionPhase\"K\n\016UiOverlayEvent"
-    "\022\016\n\006player\030\001 \001(\005\022)\n\007overlay\030\002 \001(\0162\030.modl"
-    "ock.wasm.ui.Overlay\"=\n\006Bounds\022\t\n\001x\030\001 \001(\005"
-    "\022\t\n\001y\030\002 \001(\005\022\r\n\005width\030\003 \001(\005\022\016\n\006height\030\004 \001"
-    "(\005\"\236\001\n\020UiPlacementEvent\022\016\n\006player\030\001 \001(\005\022"
-    "\'\n\006screen\030\002 \001(\0132\027.modlock.wasm.ui.Bounds"
-    "\022$\n\003hud\030\003 \001(\0132\027.modlock.wasm.ui.Bounds\022+"
-    "\n\010measured\030\004 \003(\0132\031.modlock.wasm.ui.Measu"
-    "red\"A\n\010Measured\022\014\n\004name\030\001 \001(\t\022\'\n\006bounds\030"
-    "\002 \001(\0132\027.modlock.wasm.ui.Bounds\"D\n\tUiRequ"
-    "est\022\016\n\006player\030\001 \001(\005\022\'\n\006change\030\002 \001(\0132\027.mo"
-    "dlock.wasm.ui.Change*(\n\005Frame\022\020\n\014FRAME_S"
-    "CREEN\020\000\022\r\n\tFRAME_HUD\020\001*Z\n\013ClockFormat\022\030\n"
-    "\024CLOCK_FORMAT_MINUTES\020\000\022\030\n\024CLOCK_FORMAT_"
-    "SECONDS\020\001\022\027\n\023CLOCK_FORMAT_TENTHS\020\002*\230\001\n\007S"
-    "caling\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013SCALING_F"
-    "IT\020\001\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALING_STRET"
-    "CH\020\003\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022SCALING_F"
-    "IT_HEIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001\n\010HeroLo"
-    "ok\022\023\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_LOOK_CAR"
-    "D\020\001\022\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_LOOK_VER"
-    "TICAL\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025\n\021HERO_L"
-    "OOK_MINIMAP\020\005*A\n\nGameAction\022\027\n\023GAME_ACTI"
-    "ON_UNKNOWN\020\000\022\032\n\026GAME_ACTION_SCOREBOARD\020\001"
-    "*x\n\013ActionPhase\022\030\n\024ACTION_PHASE_UNKNOWN\020"
-    "\000\022\030\n\024ACTION_PHASE_PRESSED\020\001\022\031\n\025ACTION_PH"
-    "ASE_RELEASED\020\002\022\032\n\026ACTION_PHASE_CANCELLED"
-    "\020\003*\227\001\n\007Overlay\022\020\n\014OVERLAY_NONE\020\000\022\020\n\014OVER"
-    "LAY_CHAT\020\001\022\020\n\014OVERLAY_SHOP\020\002\022\022\n\016OVERLAY_"
-    "BUILDS\020\003\022\026\n\022OVERLAY_ITEM_DRAFT\020\004\022\021\n\rOVER"
-    "LAY_POPUP\020\005\022\027\n\023OVERLAY_ESCAPE_MENU\020\006*\325\003\n"
-    "\007HudPart\022\024\n\020HUD_PART_UNKNOWN\020\000\022\025\n\021HUD_PA"
-    "RT_LEVEL_UP\020\001\022\027\n\023HUD_PART_OWN_HEALTH\020\002\022\024"
-    "\n\020HUD_PART_TOP_BAR\020\003\022\021\n\rHUD_PART_AMMO\020\004\022"
-    "\022\n\016HUD_PART_SOULS\020\005\022\024\n\020HUD_PART_MINIMAP\020"
-    "\006\022\026\n\022HUD_PART_ABILITIES\020\007\022\023\n\017HUD_PART_ST"
-    "ATUS\020\010\022\022\n\016HUD_PART_STATS\020\t\022\030\n\024HUD_PART_H"
-    "ERO_PICKER\020\n\022\035\n\031HUD_PART_BROKER_COUNTDOW"
-    "N\020\013\022\020\n\014HUD_PART_ALL\020\014\022\034\n\030HUD_PART_MINIMA"
-    "P_PLAYERS\020\r\022\026\n\022HUD_PART_INVENTORY\020\016\022\026\n\022H"
-    "UD_PART_CROSSHAIR\020\017\022\030\n\024HUD_PART_CAST_FAI"
-    "LED\020\020\022\035\n\031HUD_PART_EVENT_INDICATORS\020\021\022\036\n\032"
-    "HUD_PART_STATUS_INDICATORS\020\022*\365\001\n\004Kind\022\016\n"
-    "\nKIND_PANEL\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n\nKIND_IM"
-    "AGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017\n\013KIND_LAYOUT\020\004\022"
-    "\016\n\nKIND_ROUTE\020\005\022\023\n\017KIND_HERO_IMAGE\020\006\022\016\n\n"
-    "KIND_INPUT\020\007\022\017\n\013KIND_AVATAR\020\010\022\r\n\tKIND_ME"
-    "NU\020\t\022\023\n\017KIND_MENU_CLOSE\020\n\022\027\n\023KIND_DOCUME"
-    "NT_INPUT\020\013\022\030\n\024KIND_DOCUMENT_OUTPUT\020\014*J\n\010"
-    "MenuMode\022\024\n\020MENU_MODE_MANUAL\020\000\022\024\n\020MENU_M"
-    "ODE_TOGGLE\020\001\022\022\n\016MENU_MODE_HOLD\020\002*p\n\010Over"
-    "flow\022\024\n\020OVERFLOW_DEFAULT\020\000\022\023\n\017OVERFLOW_S"
-    "QUISH\020\001\022\021\n\rOVERFLOW_CLIP\020\002\022\023\n\017OVERFLOW_S"
-    "CROLL\020\003\022\021\n\rOVERFLOW_SHOW\020\004*\215\001\n\rGradientS"
-    "hape\022\027\n\023GRADIENT_SHAPE_DOWN\020\000\022\030\n\024GRADIEN"
-    "T_SHAPE_RIGHT\020\001\022\025\n\021GRADIENT_SHAPE_UP\020\002\022\027"
-    "\n\023GRADIENT_SHAPE_LEFT\020\003\022\031\n\025GRADIENT_SHAP"
-    "E_RADIAL\020\004*\236\001\n\006Weight\022\022\n\016WEIGHT_DEFAULT\020"
-    "\000\022\017\n\013WEIGHT_THIN\020\001\022\020\n\014WEIGHT_LIGHT\020\002\022\021\n\r"
-    "WEIGHT_NORMAL\020\003\022\021\n\rWEIGHT_MEDIUM\020\004\022\024\n\020WE"
-    "IGHT_SEMI_BOLD\020\005\022\017\n\013WEIGHT_BOLD\020\006\022\020\n\014WEI"
-    "GHT_BLACK\020\007*w\n\014TextOverflow\022\031\n\025TEXT_OVER"
-    "FLOW_DEFAULT\020\000\022\032\n\026TEXT_OVERFLOW_ELLIPSIS"
-    "\020\001\022\030\n\024TEXT_OVERFLOW_SHRINK\020\002\022\026\n\022TEXT_OVE"
-    "RFLOW_CLIP\020\003*R\n\nDecoration\022\023\n\017DECORATION"
-    "_NONE\020\000\022\030\n\024DECORATION_UNDERLINE\020\001\022\025\n\021DEC"
-    "ORATION_STRIKE\020\002*\\\n\006Easing\022\023\n\017EASING_EAS"
-    "E_OUT\020\000\022\022\n\016EASING_EASE_IN\020\001\022\026\n\022EASING_EA"
-    "SE_IN_OUT\020\002\022\021\n\rEASING_LINEAR\020\003*G\n\004Face\022\020"
-    "\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BODY\020\001\022\016\n\nFACE_"
-    "BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*]\n\004Flow\022\r\n\tFLOW_"
-    "NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFLOW_RIGHT\020\002\022\022\n"
-    "\016FLOW_DOWN_WRAP\020\003\022\023\n\017FLOW_RIGHT_WRAP\020\004*9"
-    "\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n\014ALIGN_CENTER"
-    "\020\001\022\r\n\tALIGN_END\020\002*\255\001\n\017DocumentFailure\022\034\n"
-    "\030DOCUMENT_FAILURE_UNKNOWN\020\000\022\036\n\032DOCUMENT_"
-    "FAILURE_TOO_LARGE\020\001\022\034\n\030DOCUMENT_FAILURE_"
-    "EXPIRED\020\002\022\036\n\032DOCUMENT_FAILURE_CANCELLED\020"
-    "\003\022\036\n\032DOCUMENT_FAILURE_MALFORMED\020\004B+Z)git"
-    "hub.com/paralin/modlock/src/wasm/ui;uib\006"
-    "proto3"
+    "n\022\027\n\017follows_overlay\0301 \001(\010\022\023\n\013focus_orde"
+    "r\030. \001(\r\022\025\n\rinitial_focus\030/ \001(\010\022\017\n\007submit"
+    "s\0300 \001(\010\022\017\n\007measure\0302 \001(\t\022%\n\005frame\0303 \001(\0162"
+    "\026.modlock.wasm.ui.Frame\022\031\n\021follows_place"
+    "ment\0304 \001(\010\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001("
+    "\t\022\r\n\005value\030\002 \001(\t:\0028\001B\007\n\005input\"o\n\005Clock\022\017"
+    "\n\007seconds\030\001 \001(\001\022\n\n\002up\030\002 \001(\010\022\016\n\006paused\030\003 "
+    "\001(\010\022,\n\006format\030\004 \001(\0162\034.modlock.wasm.ui.Cl"
+    "ockFormat\022\013\n\003run\030\005 \001(\r\"w\n\nAbilityRow\022\016\n\006"
+    "player\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\014\n\004hero\030\003 \001(\t"
+    "\022\013\n\003own\030\004 \001(\010\0220\n\tabilities\030\005 \003(\0132\035.modlo"
+    "ck.wasm.ui.ShownAbility\"@\n\014ShownAbility\022"
+    "\017\n\007ability\030\001 \001(\r\022\r\n\005image\030\002 \001(\t\022\020\n\010upgra"
+    "des\030\003 \001(\r\"D\n\003Cue\022\016\n\006number\030\001 \001(\r\022\r\n\005soun"
+    "d\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\022\r\n\005delay\030\004 \001(\002\""
+    "k\n\004Menu\022\'\n\004mode\030\001 \001(\0162\031.modlock.wasm.ui."
+    "MenuMode\022\022\n\nopen_label\030\002 \001(\t\022\024\n\014open_req"
+    "uest\030\003 \001(\r\022\020\n\010priority\030\004 \001(\005\"K\n\rDocument"
+    "Input\022\023\n\013placeholder\030\001 \001(\t\022\024\n\014submit_lab"
+    "el\030\002 \001(\t\022\017\n\007control\030\003 \001(\004\"B\n\tTextEntry\022\014"
+    "\n\004text\030\001 \001(\t\022\023\n\013placeholder\030\002 \001(\t\022\022\n\nmax"
+    "_length\030\003 \001(\r\"N\n\006Slider\022\r\n\005value\030\001 \001(\002\022\013"
+    "\n\003min\030\002 \001(\002\022\013\n\003max\030\003 \001(\002\022\014\n\004step\030\004 \001(\002\022\r"
+    "\n\005wheel\030\005 \001(\010\"(\n\005Wheel\022\r\n\005delta\030\001 \001(\002\022\020\n"
+    "\010fraction\030\002 \001(\002\"\024\n\006Toggle\022\n\n\002on\030\001 \001(\010\"-\n"
+    "\010Dropdown\022\017\n\007options\030\001 \003(\t\022\020\n\010selected\030\002"
+    " \001(\r\"N\n\005Cycle\022%\n\005style\030\001 \001(\0132\026.modlock.w"
+    "asm.ui.Style\022\017\n\007seconds\030\002 \001(\002\022\r\n\005count\030\003"
+    " \001(\r\"\277\014\n\005Style\022&\n\005width\030\001 \001(\0132\027.modlock."
+    "wasm.ui.Length\022\'\n\006height\030\002 \001(\0132\027.modlock"
+    ".wasm.ui.Length\022#\n\004flow\030\003 \001(\0162\025.modlock."
+    "wasm.ui.Flow\0220\n\020horizontal_align\030\004 \001(\0162\026"
+    ".modlock.wasm.ui.Align\022.\n\016vertical_align"
+    "\030\005 \001(\0162\026.modlock.wasm.ui.Align\022&\n\006margin"
+    "\030\006 \001(\0132\026.modlock.wasm.ui.Edges\022\'\n\007paddin"
+    "g\030\007 \001(\0132\026.modlock.wasm.ui.Edges\022\022\n\nbackg"
+    "round\030\010 \001(\007\022\r\n\005color\030\t \001(\007\022\021\n\tfont_size\030"
+    "\n \001(\002\022\014\n\004bold\030\013 \001(\010\022*\n\ntext_align\030\014 \001(\0162"
+    "\026.modlock.wasm.ui.Align\022\025\n\rborder_radius"
+    "\030\r \001(\002\022\024\n\007opacity\030\016 \001(\002H\000\210\001\001\022#\n\004face\030\017 \001"
+    "(\0162\025.modlock.wasm.ui.Face\022\021\n\tuppercase\030\020"
+    " \001(\010\022\026\n\016letter_spacing\030\021 \001(\002\022\016\n\006shadow\030\022"
+    " \001(\010\022\024\n\014border_width\030\023 \001(\002\022\024\n\014border_col"
+    "or\030\024 \001(\007\022\"\n\001x\030\025 \001(\0132\027.modlock.wasm.ui.Le"
+    "ngth\022\"\n\001y\030\026 \001(\0132\027.modlock.wasm.ui.Length"
+    "\022*\n\tmin_width\030\027 \001(\0132\027.modlock.wasm.ui.Le"
+    "ngth\022*\n\tmax_width\030\030 \001(\0132\027.modlock.wasm.u"
+    "i.Length\022+\n\nmin_height\030\031 \001(\0132\027.modlock.w"
+    "asm.ui.Length\022+\n\nmax_height\030\032 \001(\0132\027.modl"
+    "ock.wasm.ui.Length\022\017\n\007z_index\030\033 \001(\005\022-\n\no"
+    "verflow_x\030\034 \001(\0162\031.modlock.wasm.ui.Overfl"
+    "ow\022-\n\noverflow_y\030\035 \001(\0162\031.modlock.wasm.ui"
+    ".Overflow\022+\n\010gradient\030\036 \001(\0132\031.modlock.wa"
+    "sm.ui.Gradient\022+\n\nbox_shadow\030\037 \001(\0132\027.mod"
+    "lock.wasm.ui.Shadow\022,\n\013text_shadow\030  \001(\013"
+    "2\027.modlock.wasm.ui.Shadow\022\014\n\004tint\030! \001(\007\022"
+    "\027\n\nsaturation\030\" \001(\002H\001\210\001\001\022\027\n\nbrightness\030#"
+    " \001(\002H\002\210\001\001\022\025\n\010contrast\030$ \001(\002H\003\210\001\001\022\014\n\004blur"
+    "\030% \001(\002\022\016\n\006italic\030& \001(\010\022\'\n\006weight\030\' \001(\0162\027"
+    ".modlock.wasm.ui.Weight\022\023\n\013line_height\030("
+    " \001(\002\022\017\n\007no_wrap\030) \001(\010\0224\n\rtext_overflow\030*"
+    " \001(\0162\035.modlock.wasm.ui.TextOverflow\022/\n\nd"
+    "ecoration\030+ \001(\0162\033.modlock.wasm.ui.Decora"
+    "tion\022-\n\ttransform\030, \001(\0132\032.modlock.wasm.u"
+    "i.Transform\022/\n\ntransition\030- \001(\0132\033.modloc"
+    "k.wasm.ui.Transition\022#\n\004clip\030. \001(\0132\025.mod"
+    "lock.wasm.ui.Clip\022\014\n\004turn\030/ \001(\002B\n\n\010_opac"
+    "ityB\r\n\013_saturationB\r\n\013_brightnessB\013\n\t_co"
+    "ntrast\"i\n\004Clip\022)\n\004rect\030\001 \001(\0132\031.modlock.w"
+    "asm.ui.ClipRectH\000\022-\n\006radial\030\002 \001(\0132\033.modl"
+    "ock.wasm.ui.ClipRadialH\000B\007\n\005shape\"D\n\010Cli"
+    "pRect\022\013\n\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bot"
+    "tom\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"r\n\nClipRadial\022\025\n"
+    "\010center_x\030\001 \001(\002H\000\210\001\001\022\025\n\010center_y\030\002 \001(\002H\001"
+    "\210\001\001\022\r\n\005start\030\003 \001(\002\022\r\n\005sweep\030\004 \001(\002B\013\n\t_ce"
+    "nter_xB\013\n\t_center_y\"g\n\010Gradient\022-\n\005shape"
+    "\030\001 \001(\0162\036.modlock.wasm.ui.GradientShape\022,"
+    "\n\005stops\030\002 \003(\0132\035.modlock.wasm.ui.Gradient"
+    "Stop\")\n\014GradientStop\022\n\n\002at\030\001 \001(\002\022\r\n\005colo"
+    "r\030\002 \001(\007\"Z\n\006Shadow\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022"
+    "\014\n\004blur\030\003 \001(\002\022\016\n\006spread\030\004 \001(\002\022\r\n\005color\030\005"
+    " \001(\007\022\r\n\005inset\030\006 \001(\010\"\321\001\n\tTransform\022\023\n\013tra"
+    "nslate_x\030\001 \001(\002\022\023\n\013translate_y\030\002 \001(\002\022\024\n\007s"
+    "cale_x\030\003 \001(\002H\000\210\001\001\022\024\n\007scale_y\030\004 \001(\002H\001\210\001\001\022"
+    "\016\n\006rotate\030\005 \001(\002\022\025\n\010origin_x\030\006 \001(\002H\002\210\001\001\022\025"
+    "\n\010origin_y\030\007 \001(\002H\003\210\001\001B\n\n\010_scale_xB\n\n\010_sc"
+    "ale_yB\013\n\t_origin_xB\013\n\t_origin_y\"|\n\nTrans"
+    "ition\022\017\n\007seconds\030\001 \001(\002\022\r\n\005delay\030\002 \001(\002\022\'\n"
+    "\006easing\030\003 \001(\0162\027.modlock.wasm.ui.Easing\022%"
+    "\n\005curve\030\004 \001(\0132\026.modlock.wasm.ui.Curve\"7\n"
+    "\005Curve\022\n\n\002x1\030\001 \001(\002\022\n\n\002y1\030\002 \001(\002\022\n\n\002x2\030\003 \001"
+    "(\002\022\n\n\002y2\030\004 \001(\002\"^\n\006Length\022\020\n\006pixels\030\001 \001(\002"
+    "H\000\022\021\n\007percent\030\002 \001(\002H\000\022\026\n\014fit_children\030\003 "
+    "\001(\010H\000\022\016\n\004fill\030\004 \001(\002H\000B\007\n\005value\"A\n\005Edges\022"
+    "\013\n\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bottom\030\003 "
+    "\001(\002\022\014\n\004left\030\004 \001(\002\"`\n\006Change\022\r\n\005reset\030\001 \001"
+    "(\010\022\"\n\003set\030\002 \003(\0132\025.modlock.wasm.ui.Node\022\017"
+    "\n\007removed\030\003 \003(\t\022\022\n\ngeneration\030\004 \001(\004\"\205\001\n\004"
+    "Tree\022\013\n\003mod\030\001 \001(\t\022$\n\005nodes\030\002 \003(\0132\025.modlo"
+    "ck.wasm.ui.Node\022\'\n\006region\030\003 \001(\0132\027.modloc"
+    "k.wasm.ui.Region\022\r\n\005addon\030\004 \001(\t\022\022\n\ngener"
+    "ation\030\005 \001(\004\"B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013\n\003t"
+    "op\030\002 \001(\002\022\r\n\005width\030\003 \001(\002\022\016\n\006height\030\004 \001(\002\""
+    ".\n\006Screen\022$\n\005trees\030\001 \003(\0132\025.modlock.wasm."
+    "ui.Tree\"M\n\014UiPressEvent\022\016\n\006player\030\001 \001(\005\022"
+    "\014\n\004node\030\002 \001(\t\022\016\n\006action\030\003 \001(\t\022\017\n\007payload"
+    "\030\004 \001(\t\"\240\001\n\014UiInputEvent\022\016\n\006player\030\001 \001(\005\022"
+    "\014\n\004node\030\002 \001(\t\022\016\n\004text\030\003 \001(\tH\000\022\020\n\006number\030"
+    "\004 \001(\002H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006choice\030\006 \001(\rH\000\022"
+    "\'\n\005wheel\030\007 \001(\0132\026.modlock.wasm.ui.WheelH\000"
+    "B\007\n\005value\"\245\001\n\017UiDocumentEvent\022\016\n\006player\030"
+    "\001 \001(\005\022\014\n\004node\030\002 \001(\t\0227\n\tdelivered\030\003 \001(\0132\""
+    ".modlock.wasm.ui.DocumentDeliveredH\000\0221\n\006"
+    "failed\030\004 \001(\0132\037.modlock.wasm.ui.DocumentF"
+    "ailedH\000B\010\n\006result\"!\n\021DocumentDelivered\022\014"
+    "\n\004text\030\001 \001(\t\"B\n\016DocumentFailed\0220\n\006reason"
+    "\030\001 \001(\0162 .modlock.wasm.ui.DocumentFailure"
+    "\"y\n\rUiActionEvent\022\016\n\006player\030\001 \001(\005\022+\n\006act"
+    "ion\030\002 \001(\0162\033.modlock.wasm.ui.GameAction\022+"
+    "\n\005phase\030\003 \001(\0162\034.modlock.wasm.ui.ActionPh"
+    "ase\"K\n\016UiOverlayEvent\022\016\n\006player\030\001 \001(\005\022)\n"
+    "\007overlay\030\002 \001(\0162\030.modlock.wasm.ui.Overlay"
+    "\"=\n\006Bounds\022\t\n\001x\030\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\r\n\005widt"
+    "h\030\003 \001(\005\022\016\n\006height\030\004 \001(\005\"\236\001\n\020UiPlacementE"
+    "vent\022\016\n\006player\030\001 \001(\005\022\'\n\006screen\030\002 \001(\0132\027.m"
+    "odlock.wasm.ui.Bounds\022$\n\003hud\030\003 \001(\0132\027.mod"
+    "lock.wasm.ui.Bounds\022+\n\010measured\030\004 \003(\0132\031."
+    "modlock.wasm.ui.Measured\"A\n\010Measured\022\014\n\004"
+    "name\030\001 \001(\t\022\'\n\006bounds\030\002 \001(\0132\027.modlock.was"
+    "m.ui.Bounds\"D\n\tUiRequest\022\016\n\006player\030\001 \001(\005"
+    "\022\'\n\006change\030\002 \001(\0132\027.modlock.wasm.ui.Chang"
+    "e*(\n\005Frame\022\020\n\014FRAME_SCREEN\020\000\022\r\n\tFRAME_HU"
+    "D\020\001*Z\n\013ClockFormat\022\030\n\024CLOCK_FORMAT_MINUT"
+    "ES\020\000\022\030\n\024CLOCK_FORMAT_SECONDS\020\001\022\027\n\023CLOCK_"
+    "FORMAT_TENTHS\020\002*\230\001\n\007Scaling\022\023\n\017SCALING_D"
+    "EFAULT\020\000\022\017\n\013SCALING_FIT\020\001\022\021\n\rSCALING_COV"
+    "ER\020\002\022\023\n\017SCALING_STRETCH\020\003\022\025\n\021SCALING_FIT"
+    "_WIDTH\020\004\022\026\n\022SCALING_FIT_HEIGHT\020\005\022\020\n\014SCAL"
+    "ING_NONE\020\006*\215\001\n\010HeroLook\022\023\n\017HERO_LOOK_SMA"
+    "LL\020\000\022\022\n\016HERO_LOOK_CARD\020\001\022\022\n\016HERO_LOOK_IC"
+    "ON\020\002\022\026\n\022HERO_LOOK_VERTICAL\020\003\022\025\n\021HERO_LOO"
+    "K_TOP_BAR\020\004\022\025\n\021HERO_LOOK_MINIMAP\020\005*A\n\nGa"
+    "meAction\022\027\n\023GAME_ACTION_UNKNOWN\020\000\022\032\n\026GAM"
+    "E_ACTION_SCOREBOARD\020\001*x\n\013ActionPhase\022\030\n\024"
+    "ACTION_PHASE_UNKNOWN\020\000\022\030\n\024ACTION_PHASE_P"
+    "RESSED\020\001\022\031\n\025ACTION_PHASE_RELEASED\020\002\022\032\n\026A"
+    "CTION_PHASE_CANCELLED\020\003*\227\001\n\007Overlay\022\020\n\014O"
+    "VERLAY_NONE\020\000\022\020\n\014OVERLAY_CHAT\020\001\022\020\n\014OVERL"
+    "AY_SHOP\020\002\022\022\n\016OVERLAY_BUILDS\020\003\022\026\n\022OVERLAY"
+    "_ITEM_DRAFT\020\004\022\021\n\rOVERLAY_POPUP\020\005\022\027\n\023OVER"
+    "LAY_ESCAPE_MENU\020\006*\325\003\n\007HudPart\022\024\n\020HUD_PAR"
+    "T_UNKNOWN\020\000\022\025\n\021HUD_PART_LEVEL_UP\020\001\022\027\n\023HU"
+    "D_PART_OWN_HEALTH\020\002\022\024\n\020HUD_PART_TOP_BAR\020"
+    "\003\022\021\n\rHUD_PART_AMMO\020\004\022\022\n\016HUD_PART_SOULS\020\005"
+    "\022\024\n\020HUD_PART_MINIMAP\020\006\022\026\n\022HUD_PART_ABILI"
+    "TIES\020\007\022\023\n\017HUD_PART_STATUS\020\010\022\022\n\016HUD_PART_"
+    "STATS\020\t\022\030\n\024HUD_PART_HERO_PICKER\020\n\022\035\n\031HUD"
+    "_PART_BROKER_COUNTDOWN\020\013\022\020\n\014HUD_PART_ALL"
+    "\020\014\022\034\n\030HUD_PART_MINIMAP_PLAYERS\020\r\022\026\n\022HUD_"
+    "PART_INVENTORY\020\016\022\026\n\022HUD_PART_CROSSHAIR\020\017"
+    "\022\030\n\024HUD_PART_CAST_FAILED\020\020\022\035\n\031HUD_PART_E"
+    "VENT_INDICATORS\020\021\022\036\n\032HUD_PART_STATUS_IND"
+    "ICATORS\020\022*\365\001\n\004Kind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKI"
+    "ND_LABEL\020\001\022\016\n\nKIND_IMAGE\020\002\022\017\n\013KIND_BUTTO"
+    "N\020\003\022\017\n\013KIND_LAYOUT\020\004\022\016\n\nKIND_ROUTE\020\005\022\023\n\017"
+    "KIND_HERO_IMAGE\020\006\022\016\n\nKIND_INPUT\020\007\022\017\n\013KIN"
+    "D_AVATAR\020\010\022\r\n\tKIND_MENU\020\t\022\023\n\017KIND_MENU_C"
+    "LOSE\020\n\022\027\n\023KIND_DOCUMENT_INPUT\020\013\022\030\n\024KIND_"
+    "DOCUMENT_OUTPUT\020\014*J\n\010MenuMode\022\024\n\020MENU_MO"
+    "DE_MANUAL\020\000\022\024\n\020MENU_MODE_TOGGLE\020\001\022\022\n\016MEN"
+    "U_MODE_HOLD\020\002*p\n\010Overflow\022\024\n\020OVERFLOW_DE"
+    "FAULT\020\000\022\023\n\017OVERFLOW_SQUISH\020\001\022\021\n\rOVERFLOW"
+    "_CLIP\020\002\022\023\n\017OVERFLOW_SCROLL\020\003\022\021\n\rOVERFLOW"
+    "_SHOW\020\004*\215\001\n\rGradientShape\022\027\n\023GRADIENT_SH"
+    "APE_DOWN\020\000\022\030\n\024GRADIENT_SHAPE_RIGHT\020\001\022\025\n\021"
+    "GRADIENT_SHAPE_UP\020\002\022\027\n\023GRADIENT_SHAPE_LE"
+    "FT\020\003\022\031\n\025GRADIENT_SHAPE_RADIAL\020\004*\236\001\n\006Weig"
+    "ht\022\022\n\016WEIGHT_DEFAULT\020\000\022\017\n\013WEIGHT_THIN\020\001\022"
+    "\020\n\014WEIGHT_LIGHT\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021\n\r"
+    "WEIGHT_MEDIUM\020\004\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022\017\n"
+    "\013WEIGHT_BOLD\020\006\022\020\n\014WEIGHT_BLACK\020\007*w\n\014Text"
+    "Overflow\022\031\n\025TEXT_OVERFLOW_DEFAULT\020\000\022\032\n\026T"
+    "EXT_OVERFLOW_ELLIPSIS\020\001\022\030\n\024TEXT_OVERFLOW"
+    "_SHRINK\020\002\022\026\n\022TEXT_OVERFLOW_CLIP\020\003*R\n\nDec"
+    "oration\022\023\n\017DECORATION_NONE\020\000\022\030\n\024DECORATI"
+    "ON_UNDERLINE\020\001\022\025\n\021DECORATION_STRIKE\020\002*\\\n"
+    "\006Easing\022\023\n\017EASING_EASE_OUT\020\000\022\022\n\016EASING_E"
+    "ASE_IN\020\001\022\026\n\022EASING_EASE_IN_OUT\020\002\022\021\n\rEASI"
+    "NG_LINEAR\020\003*G\n\004Face\022\020\n\014FACE_DEFAULT\020\000\022\r\n"
+    "\tFACE_BODY\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFACE_SER"
+    "IF\020\003*]\n\004Flow\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLOW_DOWN"
+    "\020\001\022\016\n\nFLOW_RIGHT\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003\022\023"
+    "\n\017FLOW_RIGHT_WRAP\020\004*9\n\005Align\022\017\n\013ALIGN_ST"
+    "ART\020\000\022\020\n\014ALIGN_CENTER\020\001\022\r\n\tALIGN_END\020\002*\255"
+    "\001\n\017DocumentFailure\022\034\n\030DOCUMENT_FAILURE_U"
+    "NKNOWN\020\000\022\036\n\032DOCUMENT_FAILURE_TOO_LARGE\020\001"
+    "\022\034\n\030DOCUMENT_FAILURE_EXPIRED\020\002\022\036\n\032DOCUME"
+    "NT_FAILURE_CANCELLED\020\003\022\036\n\032DOCUMENT_FAILU"
+    "RE_MALFORMED\020\004B+Z)github.com/paralin/mod"
+    "lock/src/wasm/ui;uib\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = {
     false,
     false,
-    9326,
+    9387,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
     "github.com/paralin/modlock/src/wasm/ui/ui.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once,
@@ -2833,7 +2843,7 @@ Node::GetClassData() const {
   return Node_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 49, 15, 189, 9>
+const ::_pbi::TcParseTable<5, 52, 15, 189, 9>
 Node::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Node, _impl_._has_bits_),
@@ -2842,7 +2852,7 @@ Node::_table_ = {
     offsetof(decltype(_table_), field_lookup_table),
     0,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    49,  // num_field_entries
+    52,  // num_field_entries
     15,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Node_class_data_.base(),
@@ -2979,8 +2989,8 @@ Node::_table_ = {
       PROTOBUF_FIELD_OFFSET(Node, _impl_.free_cursor_)}},
   }}, {{
     33, 0, 2,
-    57344, 32,
-    65520, 45,
+    0, 32,
+    65520, 48,
     65535, 65535
   }}, {{
     // string id = 1;
@@ -3073,14 +3083,20 @@ Node::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Node, _impl_.document_text_), _Internal::kHasBitsOffset + 34, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .modlock.wasm.ui.GameAction game_actions = 45;
     {PROTOBUF_FIELD_OFFSET(Node, _impl_.game_actions_), _Internal::kHasBitsOffset + 32, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
+    // uint32 focus_order = 46;
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.focus_order_), _Internal::kHasBitsOffset + 42, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // bool initial_focus = 47;
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.initial_focus_), _Internal::kHasBitsOffset + 43, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // bool submits = 48;
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.submits_), _Internal::kHasBitsOffset + 44, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool follows_overlay = 49;
-    {PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_overlay_), _Internal::kHasBitsOffset + 42, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_overlay_), _Internal::kHasBitsOffset + 45, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // string measure = 50;
     {PROTOBUF_FIELD_OFFSET(Node, _impl_.measure_), _Internal::kHasBitsOffset + 35, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.ui.Frame frame = 51;
-    {PROTOBUF_FIELD_OFFSET(Node, _impl_.frame_), _Internal::kHasBitsOffset + 44, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.frame_), _Internal::kHasBitsOffset + 47, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // bool follows_placement = 52;
-    {PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_placement_), _Internal::kHasBitsOffset + 43, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_placement_), _Internal::kHasBitsOffset + 46, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Style>()},
@@ -3101,7 +3117,7 @@ Node::_table_ = {
           1, 0, 9, 9, 0)},
   }},
   {{
-    "\24\2\0\10\4\5\0\6\4\0\5\0\7\5\13\0\0\0\0\0\0\0\0\5\11\0\0\0\0\7\6\0\0\0\0\0\0\0\0\0\0\10\0\0\15\0\0\7\0\0\0\0\0\0\0\0"
+    "\24\2\0\10\4\5\0\6\4\0\5\0\7\5\13\0\0\0\0\0\0\0\0\5\11\0\0\0\0\7\6\0\0\0\0\0\0\0\0\0\0\10\0\0\15\0\0\0\0\0\7\0\0\0\0\0"
     "modlock.wasm.ui.Node"
     "id"
     "children"
@@ -3245,7 +3261,7 @@ PROTOBUF_NOINLINE void Node::Clear() {
     }
   }
   _impl_.item_ = 0u;
-  if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     ::memset(&_impl_.free_cursor_asks_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.frame_) -
         reinterpret_cast<char*>(&_impl_.free_cursor_asks_)) + sizeof(_impl_.frame_));
@@ -3713,8 +3729,35 @@ PROTOBUF_NOINLINE void Node::Clear() {
     }
   }
 
-  // bool follows_overlay = 49;
+  // uint32 focus_order = 46;
   if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (this_._internal_focus_order() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          46, this_._internal_focus_order(), target);
+    }
+  }
+
+  // bool initial_focus = 47;
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (this_._internal_initial_focus() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          47, this_._internal_initial_focus(), target);
+    }
+  }
+
+  // bool submits = 48;
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (this_._internal_submits() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          48, this_._internal_submits(), target);
+    }
+  }
+
+  // bool follows_overlay = 49;
+  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
     if (this_._internal_follows_overlay() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -3733,7 +3776,7 @@ PROTOBUF_NOINLINE void Node::Clear() {
   }
 
   // .modlock.wasm.ui.Frame frame = 51;
-  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
     if (this_._internal_frame() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -3742,7 +3785,7 @@ PROTOBUF_NOINLINE void Node::Clear() {
   }
 
   // bool follows_placement = 52;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
     if (this_._internal_follows_placement() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -4050,7 +4093,7 @@ PROTOBUF_NOINLINE void Node::Clear() {
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     // uint32 free_cursor_asks = 33;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (this_._internal_free_cursor_asks() != 0) {
@@ -4065,20 +4108,39 @@ PROTOBUF_NOINLINE void Node::Clear() {
                                         this_._internal_ability());
       }
     }
-    // bool follows_overlay = 49;
+    // uint32 focus_order = 46;
     if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      if (this_._internal_focus_order() != 0) {
+        total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
+                                        this_._internal_focus_order());
+      }
+    }
+    // bool initial_focus = 47;
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+      if (this_._internal_initial_focus() != 0) {
+        total_size += 3;
+      }
+    }
+    // bool submits = 48;
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+      if (this_._internal_submits() != 0) {
+        total_size += 3;
+      }
+    }
+    // bool follows_overlay = 49;
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (this_._internal_follows_overlay() != 0) {
         total_size += 3;
       }
     }
     // bool follows_placement = 52;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (this_._internal_follows_placement() != 0) {
         total_size += 3;
       }
     }
     // .modlock.wasm.ui.Frame frame = 51;
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (this_._internal_frame() != 0) {
         total_size += 2 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_frame());
@@ -4414,7 +4476,7 @@ void Node::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (from._internal_free_cursor_asks() != 0) {
         _this->_impl_.free_cursor_asks_ = from._impl_.free_cursor_asks_;
@@ -4426,16 +4488,31 @@ void Node::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      if (from._internal_focus_order() != 0) {
+        _this->_impl_.focus_order_ = from._impl_.focus_order_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+      if (from._internal_initial_focus() != 0) {
+        _this->_impl_.initial_focus_ = from._impl_.initial_focus_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+      if (from._internal_submits() != 0) {
+        _this->_impl_.submits_ = from._impl_.submits_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (from._internal_follows_overlay() != 0) {
         _this->_impl_.follows_overlay_ = from._impl_.follows_overlay_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (from._internal_follows_placement() != 0) {
         _this->_impl_.follows_placement_ = from._impl_.follows_placement_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (from._internal_frame() != 0) {
         _this->_impl_.frame_ = from._impl_.frame_;
       }

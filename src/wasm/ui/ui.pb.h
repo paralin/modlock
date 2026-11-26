@@ -9945,6 +9945,9 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     kItemFieldNumber = 32,
     kFreeCursorAsksFieldNumber = 33,
     kAbilityFieldNumber = 34,
+    kFocusOrderFieldNumber = 46,
+    kInitialFocusFieldNumber = 47,
+    kSubmitsFieldNumber = 48,
     kFollowsOverlayFieldNumber = 49,
     kFollowsPlacementFieldNumber = 52,
     kFrameFieldNumber = 51,
@@ -10551,6 +10554,36 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   void _internal_set_ability(::uint32_t value);
 
   public:
+  // uint32 focus_order = 46;
+  void clear_focus_order() ;
+  ::uint32_t focus_order() const;
+  void set_focus_order(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_focus_order() const;
+  void _internal_set_focus_order(::uint32_t value);
+
+  public:
+  // bool initial_focus = 47;
+  void clear_initial_focus() ;
+  bool initial_focus() const;
+  void set_initial_focus(bool value);
+
+  private:
+  bool _internal_initial_focus() const;
+  void _internal_set_initial_focus(bool value);
+
+  public:
+  // bool submits = 48;
+  void clear_submits() ;
+  bool submits() const;
+  void set_submits(bool value);
+
+  private:
+  bool _internal_submits() const;
+  void _internal_set_submits(bool value);
+
+  public:
   // bool follows_overlay = 49;
   void clear_follows_overlay() ;
   bool follows_overlay() const;
@@ -10669,7 +10702,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 49,
+  static const ::google::protobuf::internal::TcParseTable<5, 52,
                                    15, 189,
                                    9>
       _table_;
@@ -10738,6 +10771,9 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::uint32_t item_;
     ::uint32_t free_cursor_asks_;
     ::uint32_t ability_;
+    ::uint32_t focus_order_;
+    bool initial_focus_;
+    bool submits_;
     bool follows_overlay_;
     bool follows_placement_;
     int frame_;
@@ -14375,7 +14411,7 @@ inline void Node::clear_follows_overlay() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.follows_overlay_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000400U);
+                  0x00002000U);
 }
 inline bool Node::follows_overlay() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.follows_overlay)
@@ -14383,7 +14419,7 @@ inline bool Node::follows_overlay() const {
 }
 inline void Node::set_follows_overlay(bool value) {
   _internal_set_follows_overlay(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[1], 0x00002000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.follows_overlay)
 }
 inline bool Node::_internal_follows_overlay() const {
@@ -14393,6 +14429,81 @@ inline bool Node::_internal_follows_overlay() const {
 inline void Node::_internal_set_follows_overlay(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.follows_overlay_ = value;
+}
+
+// uint32 focus_order = 46;
+inline void Node::clear_focus_order() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_order_ = 0u;
+  ClearHasBit(_impl_._has_bits_[1],
+                  0x00000400U);
+}
+inline ::uint32_t Node::focus_order() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.focus_order)
+  return _internal_focus_order();
+}
+inline void Node::set_focus_order(::uint32_t value) {
+  _internal_set_focus_order(value);
+  SetHasBit(_impl_._has_bits_[1], 0x00000400U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.focus_order)
+}
+inline ::uint32_t Node::_internal_focus_order() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.focus_order_;
+}
+inline void Node::_internal_set_focus_order(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_order_ = value;
+}
+
+// bool initial_focus = 47;
+inline void Node::clear_initial_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.initial_focus_ = false;
+  ClearHasBit(_impl_._has_bits_[1],
+                  0x00000800U);
+}
+inline bool Node::initial_focus() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.initial_focus)
+  return _internal_initial_focus();
+}
+inline void Node::set_initial_focus(bool value) {
+  _internal_set_initial_focus(value);
+  SetHasBit(_impl_._has_bits_[1], 0x00000800U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.initial_focus)
+}
+inline bool Node::_internal_initial_focus() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.initial_focus_;
+}
+inline void Node::_internal_set_initial_focus(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.initial_focus_ = value;
+}
+
+// bool submits = 48;
+inline void Node::clear_submits() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.submits_ = false;
+  ClearHasBit(_impl_._has_bits_[1],
+                  0x00001000U);
+}
+inline bool Node::submits() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.submits)
+  return _internal_submits();
+}
+inline void Node::set_submits(bool value) {
+  _internal_set_submits(value);
+  SetHasBit(_impl_._has_bits_[1], 0x00001000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.submits)
+}
+inline bool Node::_internal_submits() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.submits_;
+}
+inline void Node::_internal_set_submits(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.submits_ = value;
 }
 
 // string measure = 50;
@@ -14465,7 +14576,7 @@ inline void Node::clear_frame() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.frame_ = 0;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00001000U);
+                  0x00008000U);
 }
 inline ::modlock::wasm::ui::Frame Node::frame() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.frame)
@@ -14473,7 +14584,7 @@ inline ::modlock::wasm::ui::Frame Node::frame() const {
 }
 inline void Node::set_frame(::modlock::wasm::ui::Frame value) {
   _internal_set_frame(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00008000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.frame)
 }
 inline ::modlock::wasm::ui::Frame Node::_internal_frame() const {
@@ -14490,7 +14601,7 @@ inline void Node::clear_follows_placement() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.follows_placement_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000800U);
+                  0x00004000U);
 }
 inline bool Node::follows_placement() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.follows_placement)
@@ -14498,7 +14609,7 @@ inline bool Node::follows_placement() const {
 }
 inline void Node::set_follows_placement(bool value) {
   _internal_set_follows_placement(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[1], 0x00004000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.follows_placement)
 }
 inline bool Node::_internal_follows_placement() const {

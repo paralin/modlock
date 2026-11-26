@@ -611,6 +611,8 @@ interface Drawn {
   hideInChat: boolean
   /** speaking is the player name whose voice shows the node, or ''. */
   speaking: string
+  /** submits marks the button Enter in an entry of its menu presses. */
+  submits: boolean
   /** measure is the name the node's bounds are reported by, or ''. */
   measure: string
 }
@@ -1461,6 +1463,7 @@ export class Drawing {
           showPlaceholder(panel)
           edited()
         })
+        panel.SetPanelEvent('oninputsubmit', () => this.submit(mod, id, panel))
         panel.SetPanelEvent('onfocus', () => this.focus(mod, id, panel, true))
         panel.SetPanelEvent('onblur', () => this.focus(mod, id, panel, false))
         break
@@ -1596,6 +1599,19 @@ export class Drawing {
   }
 
   /** activate presses a button that is not disabled, playing its sound. */
+  /** submit presses the button marked to submit when Enter ends an entry. */
+  private submit(mod: string, id: string, panel: Panel): void {
+    // Only a button that shares the entry's menu can take its Enter.
+    const entry = this.current(mod, id, panel)
+    if (!entry) return
+    for (const [button, drawn] of this.mods.get(mod)?.nodes ?? []) {
+      if (drawn.submits && drawn.menu === entry.menu) {
+        this.activate(mod, button, drawn.panel)
+        return
+      }
+    }
+  }
+
   private activate(mod: string, id: string, panel: Panel): void {
     // A press counts only on a live, enabled button in an open menu.
     const drawn = this.current(mod, id, panel)
@@ -1658,7 +1674,7 @@ export class Drawing {
     // options, which a dropdown also makes its panel with.
     const control = kind === Kind.INPUT ? (node.input?.case ?? null) : null
     const type = control ? controlTypes[control] : (panelTypes[kind] ?? 'Panel')
-    const properties = madeWith(kind, node)
+    const properties = focusable(kind, node, madeWith(kind, node))
     const made = JSON.stringify([
       kind,
       properties,
@@ -1835,6 +1851,7 @@ export class Drawing {
       hoverSound: soundOf(node.hoverSound),
       disabled:
         (kind === Kind.BUTTON || kind === Kind.INPUT) && !!node.disabled,
+      submits: kind === Kind.BUTTON && !!node.submits,
       layout,
       loaded,
       unloading: false,
@@ -1874,6 +1891,7 @@ export class Drawing {
     }
     if (kind === Kind.BUTTON || kind === Kind.INPUT) {
       panel.enabled = !each.disabled
+      if (node.initialFocus && surface) surface.initial = panel
     }
     if (kind === Kind.LABEL) {
       panel.text = this.labelText(panel, node, each.clock)
@@ -2464,6 +2482,20 @@ function madeWith(kind: Kind, node: Node): Record<string, string> | undefined {
     default:
       return kind === Kind.IMAGE && scaling ? { scaling } : undefined
   }
+}
+
+/**
+ * focusable adds a control's place in the navigation order to the
+ * properties its panel is made with, since the game reads it only then.
+ */
+function focusable(
+  kind: Kind,
+  node: Node,
+  made: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  const control = kind === Kind.BUTTON || kind === Kind.INPUT
+  if (!control || !node.focusOrder) return made
+  return { ...made, acceptsfocus: 'true', tabindex: String(node.focusOrder) }
 }
 
 /**
