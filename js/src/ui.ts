@@ -412,6 +412,7 @@ export interface MenuProps extends PanelProps {
   mode?: 'manual' | 'hold' | 'toggle'
   openLabel?: string
   openRequest?: number
+  priority?: number
 }
 
 /**
@@ -490,6 +491,7 @@ export interface Props {
   readonly mode?: 'manual' | 'hold' | 'toggle'
   readonly openLabel?: string
   readonly openRequest?: number
+  readonly priority?: number
   readonly submitLabel?: string
   readonly text?: string
   readonly onSubmit?: (player: Player, text: string) => void
@@ -1774,6 +1776,7 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
               : MenuMode.MANUAL,
         openLabel: props.openLabel,
         openRequest: props.openRequest,
+        priority: props.priority,
       }
       node.children = place(layout, props.children, `${at}/`)
       break

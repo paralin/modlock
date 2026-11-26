@@ -3738,6 +3738,7 @@ class MODLOCK_API Menu final : public ::google::protobuf::Message
     kOpenLabelFieldNumber = 2,
     kModeFieldNumber = 1,
     kOpenRequestFieldNumber = 3,
+    kPriorityFieldNumber = 4,
   };
   // string open_label = 2;
   void clear_open_label() ;
@@ -3774,11 +3775,21 @@ class MODLOCK_API Menu final : public ::google::protobuf::Message
   void _internal_set_open_request(::uint32_t value);
 
   public:
+  // int32 priority = 4;
+  void clear_priority() ;
+  ::int32_t priority() const;
+  void set_priority(::int32_t value);
+
+  private:
+  ::int32_t _internal_priority() const;
+  void _internal_set_priority(::int32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Menu)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 39,
                                    2>
       _table_;
@@ -3803,6 +3814,7 @@ class MODLOCK_API Menu final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr open_label_;
     int mode_;
     ::uint32_t open_request_;
+    ::int32_t priority_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -14366,6 +14378,31 @@ inline ::uint32_t Menu::_internal_open_request() const {
 inline void Menu::_internal_set_open_request(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.open_request_ = value;
+}
+
+// int32 priority = 4;
+inline void Menu::clear_priority() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.priority_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::int32_t Menu::priority() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Menu.priority)
+  return _internal_priority();
+}
+inline void Menu::set_priority(::int32_t value) {
+  _internal_set_priority(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Menu.priority)
+}
+inline ::int32_t Menu::_internal_priority() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.priority_;
+}
+inline void Menu::_internal_set_priority(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.priority_ = value;
 }
 
 // -------------------------------------------------------------------

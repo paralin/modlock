@@ -275,8 +275,15 @@ default). `mode="hold"` opens while that binding is held. The default,
 `mode="manual"`, opens from its optional `openLabel` button when the player
 already has a cursor, or when a positive `openRequest` number increases. Keep
 the menu's JSX key stable and advance that number once per new result, not on
-ordinary redraws. Put a `<menuClose>` inside the menu for an explicit dismiss
-button. Escape, stock overlays taking focus, and loss of the surface dismiss it
+ordinary redraws. A request that arrives while the shop, chat or another menu
+holds the cursor waits, and the menu opens once they close, unless you have
+stopped drawing it by then. One request waits at a time. Give a menu a
+`priority` to order your own menus: a request waits while your open menu has a
+higher priority, and otherwise replaces it, so an alert at priority 2 can
+interrupt a warning at priority 1 and the warning can wait behind the alert.
+Another mod's open menu always keeps your request waiting, and the stock
+interface always wins. Put a `<menuClose>` inside the menu for an explicit
+dismiss button. Escape, stock overlays taking focus, and loss of the surface dismiss it
 locally. A dismissal never calls the mod.
 
 Use `<documentOutput text={text} />` for a plain-text export the player can

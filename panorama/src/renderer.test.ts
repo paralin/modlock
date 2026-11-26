@@ -3038,3 +3038,103 @@ test('document form sends only a whole explicit submit, declares an oversized dr
   ).toEqual(['28', 'x'])
   expect(form.text).toBe('')
 })
+
+/** queueScreen draws arena's warning and alert menus and duel's one menu. */
+function queueScreen(
+  warn: number,
+  alert: number,
+  duel = 0,
+  alertShown = true,
+): Screen {
+  const menu = (
+    id: string,
+    openRequest: number,
+    priority: number,
+  ): JsonObject[] => [
+    {
+      id,
+      kind: 'KIND_MENU',
+      menu: { openRequest, priority },
+      children: [`${id}-name`],
+    },
+    { id: `${id}-name`, kind: 'KIND_LABEL', text: id },
+  ]
+  return Screen.fromJson({
+    trees: [
+      {
+        mod: 'arena',
+        nodes: [
+          { id: '', children: alertShown ? ['warn', 'alert'] : ['warn'] },
+          ...menu('warn', warn, 1),
+          ...(alertShown ? menu('alert', alert, 2) : []),
+        ],
+      },
+      {
+        mod: 'duel',
+        nodes: [{ id: '', children: ['other'] }, ...menu('other', duel, 0)],
+      },
+    ],
+  })
+}
+
+/** menuContents finds the contents of the menu whose label reads name. */
+function menuContents(root: FakePanel, name: string): FakePanel | undefined {
+  for (const child of root.children) {
+    if (child.id === 'ModlockMenuContent' && child.children[0]?.text === name)
+      return child
+    const found = menuContents(child, name)
+    if (found) return found
+  }
+}
+
+/** shownMenus names the menus whose contents are visible. */
+function shownMenus(root: FakePanel): string[] {
+  return ['warn', 'alert', 'other'].filter(
+    (name) => menuContents(root, name)?.visible,
+  )
+}
+
+test('a blocked open request waits, by priority within its mod, until nothing blocks it', () => {
+  const root = new FakePanel('Panel', 'ModlockUi')
+  let stock: 'escape' | 'other' | null = 'other'
+  const drawing = new Drawing($, root, () => {}, undefined, undefined, {
+    allowed: () => true,
+    stock: () => stock,
+    capture: () => {},
+    resume: () => {},
+  })
+
+  // The shop declines the warning; it opens once the shop closes.
+  drawing.draw(queueScreen(1, 0))
+  expect(shownMenus(root)).toEqual([])
+  runScheduled()
+  expect(shownMenus(root)).toEqual([])
+  stock = null
+  runScheduled()
+  expect(shownMenus(root)).toEqual(['warn'])
+
+  // The alert outranks the warning; a newer warning waits behind it and
+  // opens when the player dismisses the alert.
+  drawing.draw(queueScreen(1, 1))
+  expect(shownMenus(root)).toEqual(['alert'])
+  drawing.draw(queueScreen(2, 1))
+  expect(shownMenus(root)).toEqual(['alert'])
+  menuContents(root, 'alert')!.events.get('oncancel')!()
+  expect(shownMenus(root)).toEqual(['warn'])
+
+  // A request whose menu the mod withdraws before the shop closes is gone.
+  stock = 'other'
+  runScheduled()
+  drawing.draw(queueScreen(2, 2))
+  drawing.draw(queueScreen(2, 2, 0, false))
+  stock = null
+  runScheduled()
+  expect(shownMenus(root)).toEqual([])
+
+  // Another mod's request never takes an open menu; it waits for dismissal.
+  drawing.draw(queueScreen(3, 2))
+  drawing.draw(queueScreen(3, 2, 1))
+  expect(shownMenus(root)).toEqual(['warn'])
+  menuContents(root, 'warn')!.events.get('oncancel')!()
+  expect(shownMenus(root)).toEqual(['other'])
+})

@@ -4345,6 +4345,7 @@ schema.Menu = {
 	{ number = 1, name = "mode", kind = "enum", enum = MenuMode },
 	{ number = 2, name = "openLabel", kind = "string" },
 	{ number = 3, name = "openRequest", kind = "uint32" },
+	{ number = 4, name = "priority", kind = "int32" },
 }
 schema.DocumentInput = {
 	{ number = 1, name = "placeholder", kind = "string" },

@@ -1800,7 +1800,16 @@ type Menu struct {
 	// OpenLabel names the optional opener shown while the children are hidden.
 	OpenLabel string `protobuf:"bytes,2,opt,name=open_label,json=openLabel,proto3" json:"openLabel,omitempty"`
 	// OpenRequest opens once when it advances within this surface's lifetime.
+	// A request the stock interface or another open menu blocks waits, and
+	// opens once nothing blocks it, unless the menu is gone by then. One
+	// request waits at a time: within a mod the higher priority, otherwise the
+	// newer.
 	OpenRequest uint32 `protobuf:"varint,3,opt,name=open_request,json=openRequest,proto3" json:"openRequest,omitempty"`
+	// Priority orders this mod's own menus: a request waits while the mod's
+	// open menu has a higher priority, and otherwise replaces it. Another mod's
+	// open menu always keeps a request waiting, and the stock interface always
+	// wins.
+	Priority int32 `protobuf:"varint,4,opt,name=priority,proto3" json:"priority,omitempty"`
 }
 
 func (x *Menu) Reset() {
@@ -1826,6 +1835,13 @@ func (x *Menu) GetOpenLabel() string {
 func (x *Menu) GetOpenRequest() uint32 {
 	if x != nil {
 		return x.OpenRequest
+	}
+	return 0
+}
+
+func (x *Menu) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
 	}
 	return 0
 }
@@ -3884,6 +3900,7 @@ func (m *Menu) CloneVT() *Menu {
 	r.Mode = m.Mode
 	r.OpenLabel = m.OpenLabel
 	r.OpenRequest = m.OpenRequest
+	r.Priority = m.Priority
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -5029,6 +5046,9 @@ func (this *Menu) EqualVT(that *Menu) bool {
 		return false
 	}
 	if this.OpenRequest != that.OpenRequest {
+		return false
+	}
+	if this.Priority != that.Priority {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -7917,6 +7937,11 @@ func (x *Menu) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("openRequest")
 		s.WriteUint32(x.OpenRequest)
 	}
+	if x.Priority != 0 || s.HasField("priority") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("priority")
+		s.WriteInt32(x.Priority)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -7943,6 +7968,9 @@ func (x *Menu) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "open_request", "openRequest":
 			s.AddField("open_request")
 			x.OpenRequest = s.ReadUint32()
+		case "priority":
+			s.AddField("priority")
+			x.Priority = s.ReadInt32()
 		}
 	})
 }
@@ -11189,6 +11217,11 @@ func (m *Menu) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Priority != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Priority))
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.OpenRequest != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.OpenRequest))
 		i--
@@ -13544,6 +13577,7 @@ func (m *Menu) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Mode)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.OpenLabel)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.OpenRequest)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Priority)
 	n += len(m.unknownFields)
 	return n
 }
@@ -14706,6 +14740,10 @@ func (x *Menu) MarshalProtoText() string {
 	if x.OpenRequest != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "open_request")
 		protobuf_go_lite.TextWriteUint(&sb, x.OpenRequest)
+	}
+	if x.Priority != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "priority")
+		protobuf_go_lite.TextWriteInt(&sb, x.Priority)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -16729,6 +16767,15 @@ func (m *Menu) UnmarshalVT(dAtA []byte) error {
 			}
 			m.OpenRequest = 0
 			m.OpenRequest, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Priority", wireType)
+			}
+			m.Priority = 0
+			m.Priority, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

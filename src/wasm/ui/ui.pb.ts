@@ -2020,8 +2020,19 @@ export interface Menu {
   openLabel?: string
   /**
    * OpenRequest opens once when it advances within this surface's lifetime.
+   * A request the stock interface or another open menu blocks waits, and
+   * opens once nothing blocks it, unless the menu is gone by then. One
+   * request waits at a time: within a mod the higher priority, otherwise the
+   * newer.
    */
   openRequest?: number
+  /**
+   * Priority orders this mod's own menus: a request waits while the mod's
+   * open menu has a higher priority, and otherwise replaces it. Another mod's
+   * open menu always keeps a request waiting, and the stock interface always
+   * wins.
+   */
+  priority?: number
 }
 
 export const Menu: MessageType<Menu> = /* @__PURE__ */ createMessageType<Menu>(
@@ -2030,6 +2041,7 @@ export const Menu: MessageType<Menu> = /* @__PURE__ */ createMessageType<Menu>(
     [1, 'mode', 14, 0, MenuMode_Enum],
     [2, 'open_label', 9],
     [3, 'open_request', 13],
+    [4, 'priority', 5],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Menu): Menu => {
@@ -2045,6 +2057,9 @@ export const Menu: MessageType<Menu> = /* @__PURE__ */ createMessageType<Menu>(
             break
           case 3:
             m.openRequest = r.uint32()
+            break
+          case 4:
+            m.priority = r.int32()
             break
           default:
             r.skip(t)
@@ -2064,6 +2079,10 @@ export const Menu: MessageType<Menu> = /* @__PURE__ */ createMessageType<Menu>(
       {
         const v = m.openRequest
         if (v) w.uint32(24).uint32(v)
+      }
+      {
+        const v = m.priority
+        if (v) w.uint32(32).int32(v)
       }
     },
   },
