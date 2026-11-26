@@ -229,6 +229,14 @@ message Node {
   // DocumentText is the plain, selectable text of a document output, at most
   // 262,144 UTF-8 bytes.
   string document_text = 44;
+
+  // GameActions asks to follow the game's own bound actions: each press,
+  // release and cancellation of one reaches the mod as a UiActionEvent, on
+  // whichever key the player bound it to. The game keeps doing what the
+  // action does. The renderer reports an action only while the screen may
+  // hold the player's HUD and no stock overlay, such as chat, the shop or the
+  // escape menu, has the player's input. Only the root's list counts.
+  repeated GameAction game_actions = 45;
 }
 
 // Clock is a time a label counts in the player's game.
@@ -369,6 +377,32 @@ enum HeroLook {
 
   // HERO_LOOK_MINIMAP is the hero's minimap icon.
   HERO_LOOK_MINIMAP = 5;
+}
+
+// GameAction is one of the game's own bound actions a mod may follow.
+enum GameAction {
+  // GAME_ACTION_UNKNOWN names no action.
+  GAME_ACTION_UNKNOWN = 0;
+
+  // GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
+  GAME_ACTION_SCOREBOARD = 1;
+}
+
+// ActionPhase is where a press of a game action stands.
+enum ActionPhase {
+  // ACTION_PHASE_UNKNOWN names no phase.
+  ACTION_PHASE_UNKNOWN = 0;
+
+  // ACTION_PHASE_PRESSED starts a press.
+  ACTION_PHASE_PRESSED = 1;
+
+  // ACTION_PHASE_RELEASED ends a press as the player let go.
+  ACTION_PHASE_RELEASED = 2;
+
+  // ACTION_PHASE_CANCELLED ends a press before the player let go, as a stock
+  // overlay took the player's input or the screen lost the HUD. The release
+  // that follows sends nothing.
+  ACTION_PHASE_CANCELLED = 3;
 }
 
 // HudPart is a part of the game's own HUD a mod may hide from a player.
@@ -1208,6 +1242,20 @@ enum DocumentFailure {
   // Malformed is a transfer whose frames were missing, out of order, or
   // not text.
   DOCUMENT_FAILURE_MALFORMED = 4;
+}
+
+// UiActionEvent reports one phase of a game action the mod's root follows.
+// Each press reaches the mod once as pressed, then once as released or
+// cancelled.
+message UiActionEvent {
+  // Player is the player who pressed.
+  int32 player = 1;
+
+  // Action is the game action.
+  GameAction action = 2;
+
+  // Phase is where the press stands.
+  ActionPhase phase = 3;
 }
 
 // UiRequest changes the interface the mod shows one player.

@@ -30,6 +30,11 @@ constexpr std::string_view kInputCommand = "modlockinput ";
 // with the rest as UiTrees::Action reads it.
 constexpr std::string_view kActionCommand = "modlockaction ";
 
+// kGameActionCommand starts the console command a player's game sends at
+// each phase of a game action the mod's root follows: "modlockgame <mod>
+// <action> <phase>", as UiTrees::GameAction reads it.
+constexpr std::string_view kGameActionCommand = "modlockgame ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -180,6 +185,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
       return false;
     }
     if (auto refused = Action(slot, sent.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
+  if (line.starts_with(kGameActionCommand)) {
+    // A game action names this mod, then the action and its phase.
+    const auto sent = line.substr(kGameActionCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = GameAction(slot, sent.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

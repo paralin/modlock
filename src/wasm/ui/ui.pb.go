@@ -168,6 +168,88 @@ func (x HeroLook) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// GameAction is one of the game's own bound actions a mod may follow.
+type GameAction int32
+
+const (
+	// GAME_ACTION_UNKNOWN names no action.
+	GameAction_GAME_ACTION_UNKNOWN GameAction = 0
+	// GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
+	GameAction_GAME_ACTION_SCOREBOARD GameAction = 1
+)
+
+// Enum value maps for GameAction.
+var (
+	GameAction_name = map[int32]string{
+		0: "GAME_ACTION_UNKNOWN",
+		1: "GAME_ACTION_SCOREBOARD",
+	}
+	GameAction_value = map[string]int32{
+		"GAME_ACTION_UNKNOWN":    0,
+		"GAME_ACTION_SCOREBOARD": 1,
+	}
+)
+
+func (x GameAction) Enum() *GameAction {
+	p := new(GameAction)
+	*p = x
+	return p
+}
+
+func (x GameAction) String() string {
+	name, valid := GameAction_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// ActionPhase is where a press of a game action stands.
+type ActionPhase int32
+
+const (
+	// ACTION_PHASE_UNKNOWN names no phase.
+	ActionPhase_ACTION_PHASE_UNKNOWN ActionPhase = 0
+	// ACTION_PHASE_PRESSED starts a press.
+	ActionPhase_ACTION_PHASE_PRESSED ActionPhase = 1
+	// ACTION_PHASE_RELEASED ends a press as the player let go.
+	ActionPhase_ACTION_PHASE_RELEASED ActionPhase = 2
+	// ACTION_PHASE_CANCELLED ends a press before the player let go, as a stock
+	// overlay took the player's input or the screen lost the HUD. The release
+	// that follows sends nothing.
+	ActionPhase_ACTION_PHASE_CANCELLED ActionPhase = 3
+)
+
+// Enum value maps for ActionPhase.
+var (
+	ActionPhase_name = map[int32]string{
+		0: "ACTION_PHASE_UNKNOWN",
+		1: "ACTION_PHASE_PRESSED",
+		2: "ACTION_PHASE_RELEASED",
+		3: "ACTION_PHASE_CANCELLED",
+	}
+	ActionPhase_value = map[string]int32{
+		"ACTION_PHASE_UNKNOWN":   0,
+		"ACTION_PHASE_PRESSED":   1,
+		"ACTION_PHASE_RELEASED":  2,
+		"ACTION_PHASE_CANCELLED": 3,
+	}
+)
+
+func (x ActionPhase) Enum() *ActionPhase {
+	p := new(ActionPhase)
+	*p = x
+	return p
+}
+
+func (x ActionPhase) String() string {
+	name, valid := ActionPhase_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // HudPart is a part of the game's own HUD a mod may hide from a player.
 type HudPart int32
 
@@ -1063,6 +1145,13 @@ type Node struct {
 	// DocumentText is the plain, selectable text of a document output, at most
 	// 262,144 UTF-8 bytes.
 	DocumentText string `protobuf:"bytes,44,opt,name=document_text,json=documentText,proto3" json:"documentText,omitempty"`
+	// GameActions asks to follow the game's own bound actions: each press,
+	// release and cancellation of one reaches the mod as a UiActionEvent, on
+	// whichever key the player bound it to. The game keeps doing what the
+	// action does. The renderer reports an action only while the screen may
+	// hold the player's HUD and no stock overlay, such as chat, the shop or the
+	// escape menu, has the player's input. Only the root's list counts.
+	GameActions []GameAction `protobuf:"varint,45,rep,packed,name=game_actions,json=gameActions,proto3" json:"gameActions,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1384,6 +1473,13 @@ func (x *Node) GetDocumentText() string {
 		return x.DocumentText
 	}
 	return ""
+}
+
+func (x *Node) GetGameActions() []GameAction {
+	if x != nil {
+		return x.GameActions
+	}
+	return nil
 }
 
 type isNode_Input interface {
@@ -3398,6 +3494,46 @@ func (x *DocumentFailed) GetReason() DocumentFailure {
 	return DocumentFailure_DOCUMENT_FAILURE_UNKNOWN
 }
 
+// UiActionEvent reports one phase of a game action the mod's root follows.
+// Each press reaches the mod once as pressed, then once as released or
+// cancelled.
+type UiActionEvent struct {
+	unknownFields []byte
+	// Player is the player who pressed.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Action is the game action.
+	Action GameAction `protobuf:"varint,2,opt,name=action,proto3" json:"action,omitempty"`
+	// Phase is where the press stands.
+	Phase ActionPhase `protobuf:"varint,3,opt,name=phase,proto3" json:"phase,omitempty"`
+}
+
+func (x *UiActionEvent) Reset() {
+	*x = UiActionEvent{}
+}
+
+func (*UiActionEvent) ProtoMessage() {}
+
+func (x *UiActionEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiActionEvent) GetAction() GameAction {
+	if x != nil {
+		return x.Action
+	}
+	return GameAction_GAME_ACTION_UNKNOWN
+}
+
+func (x *UiActionEvent) GetPhase() ActionPhase {
+	if x != nil {
+		return x.Phase
+	}
+	return ActionPhase_ACTION_PHASE_UNKNOWN
+}
+
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
 	unknownFields []byte
@@ -3500,6 +3636,7 @@ func (m *Node) CloneVT() *Node {
 	r.Clock = protobuf_go_lite.CloneVTValue(m.Clock)
 	r.Menu = protobuf_go_lite.CloneVTValue(m.Menu)
 	r.DocumentInput = protobuf_go_lite.CloneVTValue(m.DocumentInput)
+	r.GameActions = protobuf_go_lite.CloneSlice(m.GameActions)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -4387,6 +4524,24 @@ func (m *DocumentFailed) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *UiActionEvent) CloneVT() *UiActionEvent {
+	if m == nil {
+		return (*UiActionEvent)(nil)
+	}
+	r := new(UiActionEvent)
+	r.Player = m.Player
+	r.Action = m.Action
+	r.Phase = m.Phase
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *UiActionEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *UiRequest) CloneVT() *UiRequest {
 	if m == nil {
 		return (*UiRequest)(nil)
@@ -4538,6 +4693,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.DocumentText != that.DocumentText {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.GameActions, that.GameActions) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -5886,6 +6044,32 @@ func (this *DocumentFailed) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *UiActionEvent) EqualVT(that *UiActionEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Action != that.Action {
+		return false
+	}
+	if this.Phase != that.Phase {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UiActionEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiActionEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *UiRequest) EqualVT(that *UiRequest) bool {
 	if this == that {
 		return true
@@ -6026,6 +6210,86 @@ func (x *HeroLook) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the HeroLook from JSON.
 func (x *HeroLook) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the GameAction to JSON.
+func (x GameAction) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), GameAction_name)
+}
+
+// MarshalText marshals the GameAction to text.
+func (x GameAction) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), GameAction_name)), nil
+}
+
+// MarshalJSON marshals the GameAction to JSON.
+func (x GameAction) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the GameAction from JSON.
+func (x *GameAction) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(GameAction_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read GameAction enum: %v", err)
+		return
+	}
+	*x = GameAction(v)
+}
+
+// UnmarshalText unmarshals the GameAction from text.
+func (x *GameAction) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), GameAction_value)
+	if err != nil {
+		return err
+	}
+	*x = GameAction(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the GameAction from JSON.
+func (x *GameAction) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ActionPhase to JSON.
+func (x ActionPhase) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), ActionPhase_name)
+}
+
+// MarshalText marshals the ActionPhase to text.
+func (x ActionPhase) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), ActionPhase_name)), nil
+}
+
+// MarshalJSON marshals the ActionPhase to JSON.
+func (x ActionPhase) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ActionPhase from JSON.
+func (x *ActionPhase) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(ActionPhase_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read ActionPhase enum: %v", err)
+		return
+	}
+	*x = ActionPhase(v)
+}
+
+// UnmarshalText unmarshals the ActionPhase from text.
+func (x *ActionPhase) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), ActionPhase_value)
+	if err != nil {
+		return err
+	}
+	*x = ActionPhase(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the ActionPhase from JSON.
+func (x *ActionPhase) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -6853,6 +7117,17 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("documentText")
 		s.WriteString(x.DocumentText)
 	}
+	if len(x.GameActions) > 0 || s.HasField("gameActions") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("gameActions")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.GameActions {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s)
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -7115,6 +7390,17 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "document_text", "documentText":
 			s.AddField("document_text")
 			x.DocumentText = s.ReadString()
+		case "game_actions", "gameActions":
+			s.AddField("game_actions")
+			if s.ReadNil() {
+				x.GameActions = nil
+				return
+			}
+			s.ReadArray(func() {
+				var v GameAction
+				v.UnmarshalProtoJSON(s)
+				x.GameActions = append(x.GameActions, v)
+			})
 		}
 	})
 }
@@ -9814,6 +10100,64 @@ func (x *DocumentFailed) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the UiActionEvent message to JSON.
+func (x *UiActionEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Action != 0 || s.HasField("action") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("action")
+		x.Action.MarshalProtoJSON(s)
+	}
+	if x.Phase != 0 || s.HasField("phase") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("phase")
+		x.Phase.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the UiActionEvent to JSON.
+func (x *UiActionEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the UiActionEvent message from JSON.
+func (x *UiActionEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "action":
+			s.AddField("action")
+			x.Action.UnmarshalProtoJSON(s)
+		case "phase":
+			s.AddField("phase")
+			x.Phase.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the UiActionEvent from JSON.
+func (x *UiActionEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the UiRequest message to JSON.
 func (x *UiRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -9905,6 +10249,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if len(m.GameActions) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.GameActions)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xea
 	}
 	if len(m.DocumentText) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.DocumentText)
@@ -12590,6 +12941,53 @@ func (m *DocumentFailed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiActionEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UiActionEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiActionEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Phase != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Phase))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Action != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Action))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -12721,6 +13119,7 @@ func (m *Node) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.DocumentText)
+	n += protobuf_go_lite.SizeVarintPacked(2, m.GameActions)
 	n += len(m.unknownFields)
 	return n
 }
@@ -13501,6 +13900,19 @@ func (m *DocumentFailed) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiActionEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Action)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Phase)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -13525,6 +13937,14 @@ func (x Scaling) MarshalProtoText() string {
 }
 
 func (x HeroLook) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x GameAction) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x ActionPhase) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -13829,6 +14249,14 @@ func (x *Node) MarshalProtoText() string {
 	if x.DocumentText != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "document_text")
 		protobuf_go_lite.TextWriteString(&sb, x.DocumentText)
+	}
+	if len(x.GameActions) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "game_actions")
+		for i, v := range x.GameActions {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteStringer(&sb, GameAction(v))
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -14870,6 +15298,28 @@ func (x *DocumentFailed) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *UiActionEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiActionEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Action != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "action")
+		protobuf_go_lite.TextWriteStringer(&sb, GameAction(x.Action))
+	}
+	if x.Phase != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "phase")
+		protobuf_go_lite.TextWriteStringer(&sb, ActionPhase(x.Phase))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *UiActionEvent) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *UiRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiRequest")
@@ -15489,6 +15939,40 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.DocumentText = v
+		case 45:
+			if wireType == 0 {
+				var v GameAction
+				var _v uint64
+				_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				v = GameAction(_v)
+				if err != nil {
+					return err
+				}
+				m.GameActions = append(m.GameActions, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.GameActions) == 0 {
+					m.GameActions = make([]GameAction, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v GameAction
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					v = GameAction(_v)
+					if err != nil {
+						return err
+					}
+					m.GameActions = append(m.GameActions, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GameActions", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -18800,6 +19284,80 @@ func (m *DocumentFailed) UnmarshalVT(dAtA []byte) error {
 			var _v uint64
 			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
 			m.Reason = DocumentFailure(_v)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *UiActionEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UiActionEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UiActionEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			m.Action = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Action = GameAction(_v)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Phase", wireType)
+			}
+			m.Phase = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Phase = ActionPhase(_v)
 			if err != nil {
 				return err
 			}

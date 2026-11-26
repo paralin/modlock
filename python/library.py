@@ -1378,6 +1378,8 @@ class _UiHandlers:
     press: Callable[[Player, str], object]
     # change runs the handler of the input a player changed.
     change: Callable[[Player, str, UiValue], object]
+    # act runs the handler of a game action a player used.
+    act: Callable[[Player, GameAction, ActionPhase], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -1467,6 +1469,15 @@ def _ui_input(event: UiInputEvent) -> None:
 def _ui_document(event: UiDocumentEvent) -> None:
     # This library draws no document input, so no submission can end here.
     pass
+
+
+def _ui_action(event: UiActionEvent) -> None:
+    # A game action runs with the next frame, as a press does.
+    ui = _ui
+    action, phase = event.action, event.phase
+    if ui is not None and action is not None and phase is not None:
+        player = event.player
+        after(0, lambda: ui.act(player, action, phase))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -1675,6 +1686,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_press": _ui_press,
     "ui_input": _ui_input,
     "ui_document": _ui_document,
+    "ui_action": _ui_action,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

@@ -2475,6 +2475,12 @@ class ModClient {
     return Send<void>("UiDocument", event);
   }
 
+  // UiAction reports a phase of a game action the root of a player's
+  // interface follows.
+  std::expected<void, std::string> UiAction(const ui::UiActionEvent& event) {
+    return Send<void>("UiAction", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

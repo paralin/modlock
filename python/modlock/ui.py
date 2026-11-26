@@ -71,6 +71,8 @@ from typing import (
 from . import (
     _SCHEMA,  # pyright: ignore[reportPrivateUsage]
     HEROES,
+    ActionPhase,
+    GameAction,
     Player,
     PlayerReturnedEvent,
     Wheel,
@@ -604,6 +606,29 @@ def ability_bar_presses(player: Player, on_press: AbilityBarHandler | None = Non
     return _draw(player)
 
 
+# ActionHandler takes one phase of a game action player used.
+type ActionHandler = Callable[[Player, ActionPhase], object]
+
+
+def follow_action(
+    player: Player, action: GameAction, on_phase: ActionHandler | None = None
+) -> bool:
+    """follow_action calls on_phase with each phase of action, a game action
+    such as "scoreboard", each time player uses it, on whichever key they
+    bound it to: "pressed" once, then "released" or "cancelled" once. The
+    game still does what the action does. A press made while a stock overlay,
+    such as chat, the shop or the escape menu, has the player's input reports
+    nothing, and one held as such an overlay opens is cancelled. Without
+    on_phase the mod stops following. Actions reach the mod only while its
+    screen holds the player's HUD."""
+    actions = _view(player).actions
+    if on_phase is None:
+        actions.pop(action, None)
+    else:
+        actions[action] = on_phase
+    return _draw(player)
+
+
 class ShownAbility(TypedDict):
     """ShownAbility is the ability ability_display shows in one slot: name is
     its class name, whose window the game shows over it, image its picture, a
@@ -768,6 +793,14 @@ def ui_sound(player: Player, sound: str, seconds: float = 0) -> bool:
     return _draw(player)
 
 
+def _act(player: Player, action: GameAction, phase: ActionPhase) -> None:
+    """_act runs the handler of the game action the player used."""
+    view = _views.get(player.slot)
+    handler = None if view is None else view.actions.get(action)
+    if handler is not None:
+        handler(player, phase)
+
+
 def _press(player: Player, node: str) -> None:
     """_press runs the handler of the button the player pressed."""
     # A click on the game's ability bar names its slot, which no button's id
@@ -839,6 +872,10 @@ class _View:
     cues: list[dict[str, Any]] = field(default_factory=lambda: list[dict[str, Any]]())
     # bar takes clicks on the game's ability bar, while the mod asks for them.
     bar: AbilityBarHandler | None = None
+    # actions takes each phase of the game actions the mod follows.
+    actions: dict[GameAction, ActionHandler] = field(
+        default_factory=lambda: dict[GameAction, ActionHandler]()
+    )
     # display is the abilities shown on Tab's rows and the ability bar.
     display: list[AbilityRow] = field(default_factory=lambda: list[AbilityRow]())
     notices: list[_Notice] = field(default_factory=lambda: list[_Notice]())
@@ -997,6 +1034,7 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
             "sheets": list(_sheets),
             "cues": list(view.cues),
             "ability_bar_presses": view.bar is not None,
+            "game_actions": sorted(view.actions),
             "ability_display": display,
         }
     )
@@ -1425,7 +1463,7 @@ def _color(value: str | None) -> int | None:
     return int(digits + "ff" if len(digits) == 6 else digits, 16)
 
 
-_serve_ui(_UiHandlers(press=_press, change=_change, tick=_tick))
+_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, tick=_tick))
 
 
 @on_player_return

@@ -78,6 +78,27 @@ func AbilityBarPresses(p mod.Player, onPress func(p mod.Player, slot int)) bool 
 	return draw(v)
 }
 
+// FollowAction calls onPhase with each phase of action, a game action such
+// as mod.GameActionScoreboard, each time player uses it, on whichever key
+// they bound it to: pressed once, then released or cancelled once. The game
+// still does what the action does. A press made while a stock overlay, such
+// as chat, the shop or the escape menu, has the player's input reports
+// nothing, and one held as such an overlay opens is cancelled. A nil onPhase
+// stops following. Actions reach the mod only while its screen holds the
+// player's HUD.
+func FollowAction(p mod.Player, action mod.GameAction, onPhase func(p mod.Player, phase mod.ActionPhase)) bool {
+	v := viewOf(p)
+	if onPhase == nil {
+		delete(v.actions, action)
+	} else {
+		if v.actions == nil {
+			v.actions = map[mod.GameAction]func(mod.Player, mod.ActionPhase){}
+		}
+		v.actions[action] = onPhase
+	}
+	return draw(v)
+}
+
 // AbilityDisplay shows viewer each row's abilities in place of the ones the
 // game shows for that player's hero: on the player's row of the game's Tab
 // screen, and for viewer's own row on viewer's ability bar too, in the game's

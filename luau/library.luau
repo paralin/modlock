@@ -389,6 +389,8 @@ export type Interface = {
 	press: (player: Player, node: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	-- act takes a phase of a game action the player's root follows.
+	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -1506,6 +1508,15 @@ local handlers: ModHandlers = {
 	end,
 	-- This library draws no document input, so no submission can end here.
 	uiDocument = function() end,
+	uiAction = function(event)
+		local served = interface
+		local action, phase = event.action, event.phase
+		if served and action and phase then
+			modlock.after(0, function()
+				served.act(event.player, action, phase)
+			end)
+		end
+	end,
 
 	serve = function(event)
 		local handler = services[event.service]

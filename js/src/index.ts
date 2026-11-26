@@ -53,6 +53,7 @@ import { endServiceCall } from './service-later.js'
 import { advance, after } from './timer.js'
 import { chatShown } from './chat.js'
 import {
+  acted,
   away,
   change,
   heard,
@@ -180,6 +181,8 @@ export {
   freeCursor,
   abilityBarPresses,
   type AbilityBarHandler,
+  followAction,
+  type ActionHandler,
   abilityDisplay,
   type AbilityRow,
   type ShownAbility,
@@ -825,6 +828,11 @@ const handlers: ModHandlers = {
   uiDocument(event) {
     // A submission's end runs with the next frame, as a change does.
     after(0, () => submitted(event))
+  },
+
+  uiAction(event) {
+    // A game action runs with the next frame, as a press does.
+    after(0, () => acted(event))
   },
 
   serve(event) {

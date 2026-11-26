@@ -96,6 +96,12 @@ class UiTrees {
   // IsButton reports whether slot's tree holds a button named node.
   bool IsButton(int32_t slot, std::string_view node) const;
 
+  // GameAction reads a game action's phase as a player's game sends it,
+  // "<action> <phase>" with each as its enum's number, and returns the event
+  // the mod hears from slot while slot's root follows that action.
+  [[nodiscard]] std::expected<ui::UiActionEvent, std::string> GameAction(
+      int32_t slot, std::string_view line) const;
+
   // Input checks value, as a player's game sends it, against the input named
   // node in slot's tree and returns the event the mod hears. A text entry's
   // value is its UTF-8 text in unpadded base64url, a slider's a decimal
@@ -153,6 +159,8 @@ class UiTrees {
     uint32_t options = 0;
     // ability_bar is the root's ask for presses on the game's ability bar.
     bool ability_bar = false;
+    // game_actions is the root's list of game actions it follows.
+    std::vector<ui::GameAction> game_actions;
   };
 
   // Keep returns what the host keeps of node.

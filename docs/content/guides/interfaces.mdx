@@ -110,6 +110,7 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 | `showSpeakers(options?)`                       | Show who each player hears on voice chat, as portraits and names at the left edge. TypeScript only.                                                                                                           |
 | `freeCursor(player, free)`                     | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                                                                           |
 | `abilityBarPresses(player, onPress?)`          | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                                                                            |
+| `followAction(player, action, onPhase?)`       | Follow a game action, such as `'scoreboard'`, on whichever key the player bound it to: `'pressed'`, then `'released'` or `'cancelled'`; see [Follow a game action](#follow-a-game-action).                    |
 | `abilityDisplay(viewer, rows?)`                | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                                                                              |
 | `cursorFree(player)`                           | Read whether the player's cursor is up now, however it got there.                                                                                                                                             |
 | `items`, `item(name)`                          | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.                                                                                                                                    |
@@ -129,6 +130,23 @@ then stays away while the screen changes, until the next
 the cursor is up, and nothing while the player has no hero. A mod that wants the
 cursor back calls `freeCursor` again when `cursorFree` reports false, on a press
 or a timer.
+
+## Follow a game action
+
+`followAction` tells the mod when the player uses one of the game's own bound
+actions, so a mod can answer Tab without a key of its own. Each press reaches
+the mod once as `'pressed'` and once more as `'released'`, or as `'cancelled'`
+when chat, the shop, a popup or the escape menu takes the player's input
+before they let go. A press made while one of those is open reports nothing.
+The game still does what the action does, so the scoreboard still shows. A
+mod reads the action whatever key the player bound it to.
+
+```ts
+followAction(player, 'scoreboard', (player, phase) => {
+  if (phase === 'pressed') showStats(player)
+  else hideStats(player)
+})
+```
 
 ## Replace the top bar
 
