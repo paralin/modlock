@@ -134,10 +134,10 @@ TEST(UiTrees, MergesEachPlacementReportIntoTheWholePlacement) {
   auto follows = Set("", modlock::wasm::ui::KIND_PANEL);
   follows.mutable_set(0)->set_follows_placement(true);
   auto* preview = follows.add_set();
-  preview->set_id("/0");
+  preview->set_id("preview");
   preview->set_measure("preview");
   auto* bar = follows.add_set();
-  bar->set_id("/1");
+  bar->set_id("bar");
   bar->set_measure("bar");
   ASSERT_TRUE(trees.Apply(3, follows));
   auto first = trees.Placement(3, "2520 1080 300 0 1920 1080 preview 10 20 300 200 bar 0 -5 40 8");
@@ -157,7 +157,7 @@ TEST(UiTrees, MergesEachPlacementReportIntoTheWholePlacement) {
 
   // Once the tree drops a measured node, its box leaves the placement.
   modlock::wasm::ui::Change removed;
-  removed.add_removed("/1");
+  removed.add_removed("bar");
   ASSERT_TRUE(trees.Apply(3, removed));
   auto third = trees.Placement(3, "2560 1080 0 0 2560 1080");
   ASSERT_TRUE(third) << third.error();
@@ -173,7 +173,7 @@ TEST(UiTrees, MergesEachPlacementReportIntoTheWholePlacement) {
   EXPECT_FALSE(trees.Placement(4, "2520 1080 300 0 1920 1080"));
 
   // A measure name is a word of at most 64 bytes.
-  auto bad = Set("/2", modlock::wasm::ui::KIND_PANEL);
+  auto bad = Set("odd", modlock::wasm::ui::KIND_PANEL);
   bad.mutable_set(0)->set_measure("has space");
   EXPECT_FALSE(trees.Apply(3, bad));
 }
