@@ -3250,3 +3250,59 @@ test('reports a placement whole, then each change, in lines that fit', () => {
   runScheduled()
   expect(scheduled.size).toBe(0)
 })
+
+test('a form focuses its marked control on open and Enter presses its submit button', () => {
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const sent: string[] = []
+  const drawing = new Drawing(
+    $,
+    root,
+    (mod, node) => sent.push(pressCommand(mod, node)),
+    undefined,
+    (mod, node, value) => sent.push(inputCommand(mod, node, value)),
+  )
+  const form = (openRequest: number) =>
+    screen(
+      { id: '', children: ['outside', 'surface'] },
+      { id: 'outside', kind: 'KIND_BUTTON', submits: true },
+      {
+        id: 'surface',
+        kind: 'KIND_MENU',
+        menu: { openRequest },
+        children: ['name', 'cancel', 'save'],
+      },
+      {
+        id: 'name',
+        kind: 'KIND_INPUT',
+        focusOrder: 1,
+        initialFocus: true,
+        textEntry: {},
+      },
+      { id: 'cancel', kind: 'KIND_BUTTON', focusOrder: 3 },
+      { id: 'save', kind: 'KIND_BUTTON', focusOrder: 2, submits: true },
+    )
+  drawing.draw(form(1))
+  const content = root.FindChildTraverse('ModlockMenuContent')!
+  const [name, cancel, save] = content.children
+
+  // The navigation order is made into each panel, and the entry has the
+  // keyboard as the menu opens.
+  expect(name!.properties).toMatchObject({
+    tabindex: '1',
+    acceptsfocus: 'true',
+  })
+  expect(save!.properties).toMatchObject({ tabindex: '2' })
+  expect(cancel!.properties).toMatchObject({ tabindex: '3' })
+  expect(name!.focused).toBe(true)
+  expect(content.focused).toBe(false)
+
+  // Enter sends the typed name, then presses the menu's own submit button,
+  // never the one outside the menu.
+  name!.text = 'Anaïs'
+  name!.events.get('ontextentrychange')!()
+  name!.events.get('oninputsubmit')!()
+  expect(sent).toEqual([
+    `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
+    'modlockpress arena save',
+  ])
+})

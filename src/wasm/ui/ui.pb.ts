@@ -1222,6 +1222,23 @@ export interface Node {
    */
   followsOverlay?: boolean
   /**
+   * FocusOrder places a button or input in the order the game's keyboard
+   * and controller navigation moves through, lowest first; zero leaves the
+   * control to the game's own order. The panel is remade when it changes.
+   */
+  focusOrder?: number
+  /**
+   * InitialFocus gives this button or input the keyboard when the menu that
+   * holds it opens.
+   */
+  initialFocus?: boolean
+  /**
+   * Submits marks the button that Enter in a text entry presses. The entry
+   * and the button share a menu, or both sit outside every menu; the press
+   * follows the entry's edit, as any press does.
+   */
+  submits?: boolean
+  /**
    * Measure names the node in the placement reports its mod hears while
    * the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
    * Names are unique within a tree; of two nodes with one name, the renderer
@@ -1305,6 +1322,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [43, 'document_input', 11, 0, DocumentInput.codec],
     [44, 'document_text', 9],
     [45, 'game_actions', 14, 3, GameAction_Enum],
+    [46, 'focus_order', 13],
+    [47, 'initial_focus', 8],
+    [48, 'submits', 8],
     [49, 'follows_overlay', 8],
     [50, 'measure', 9],
     [51, 'frame', 14, 0, Frame_Enum],
@@ -1494,6 +1514,15 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
           case 45:
             for (const e = r.run(t), a = (m.gameActions ??= []); r.pos < e;)
               a.push(r.int32())
+            break
+          case 46:
+            m.focusOrder = r.uint32()
+            break
+          case 47:
+            m.initialFocus = r.bool()
+            break
+          case 48:
+            m.submits = r.bool()
             break
           case 49:
             m.followsOverlay = r.bool()
@@ -1711,6 +1740,18 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
           for (const e of a) w.int32(e)
           w.join(s)
         }
+      }
+      {
+        const v = m.focusOrder
+        if (v) w.uint32(368).uint32(v)
+      }
+      {
+        const v = m.initialFocus
+        if (v) w.uint32(376).bool(v)
+      }
+      {
+        const v = m.submits
+        if (v) w.uint32(384).bool(v)
       }
       {
         const v = m.followsOverlay

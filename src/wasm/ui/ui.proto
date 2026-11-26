@@ -243,6 +243,20 @@ message Node {
   // once with the current overlay when the root starts to follow.
   bool follows_overlay = 49;
 
+  // FocusOrder places a button or input in the order the game's keyboard
+  // and controller navigation moves through, lowest first; zero leaves the
+  // control to the game's own order. The panel is remade when it changes.
+  uint32 focus_order = 46;
+
+  // InitialFocus gives this button or input the keyboard when the menu that
+  // holds it opens.
+  bool initial_focus = 47;
+
+  // Submits marks the button that Enter in a text entry presses. The entry
+  // and the button share a menu, or both sit outside every menu; the press
+  // follows the entry's edit, as any press does.
+  bool submits = 48;
+
   // Measure names the node in the placement reports its mod hears while
   // the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
   // Names are unique within a tree; of two nodes with one name, the renderer

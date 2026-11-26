@@ -306,6 +306,13 @@ last. It sends at once when it loses the keyboard or when the player presses a
 button in the same interface, so a Save or Apply button's `onPress` runs after
 every `onChange` for the values the player sees.
 
+In TypeScript, a form can direct the keyboard. `focusOrder` on a button or
+input sets its place in the game's keyboard and controller navigation, lowest
+first. `initialFocus` gives a control the keyboard when its menu opens. A
+button with `submits` is pressed when the player presses Enter in an entry of
+the same menu, after the entry's edit, so the player can type a name and press
+Enter to save. Escape still closes the menu without calling the mod.
+
 ## Local menus and portable text
 
 Use a TypeScript `<menu>` when settings or a result should give the player a

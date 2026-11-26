@@ -1252,6 +1252,17 @@ type Node struct {
 	// different stock overlay takes the player's input or gives it back, and
 	// once with the current overlay when the root starts to follow.
 	FollowsOverlay bool `protobuf:"varint,49,opt,name=follows_overlay,json=followsOverlay,proto3" json:"followsOverlay,omitempty"`
+	// FocusOrder places a button or input in the order the game's keyboard
+	// and controller navigation moves through, lowest first; zero leaves the
+	// control to the game's own order. The panel is remade when it changes.
+	FocusOrder uint32 `protobuf:"varint,46,opt,name=focus_order,json=focusOrder,proto3" json:"focusOrder,omitempty"`
+	// InitialFocus gives this button or input the keyboard when the menu that
+	// holds it opens.
+	InitialFocus bool `protobuf:"varint,47,opt,name=initial_focus,json=initialFocus,proto3" json:"initialFocus,omitempty"`
+	// Submits marks the button that Enter in a text entry presses. The entry
+	// and the button share a menu, or both sit outside every menu; the press
+	// follows the entry's edit, as any press does.
+	Submits bool `protobuf:"varint,48,opt,name=submits,proto3" json:"submits,omitempty"`
 	// Measure names the node in the placement reports its mod hears while
 	// the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
 	// Names are unique within a tree; of two nodes with one name, the renderer
@@ -1597,6 +1608,27 @@ func (x *Node) GetGameActions() []GameAction {
 func (x *Node) GetFollowsOverlay() bool {
 	if x != nil {
 		return x.FollowsOverlay
+	}
+	return false
+}
+
+func (x *Node) GetFocusOrder() uint32 {
+	if x != nil {
+		return x.FocusOrder
+	}
+	return 0
+}
+
+func (x *Node) GetInitialFocus() bool {
+	if x != nil {
+		return x.InitialFocus
+	}
+	return false
+}
+
+func (x *Node) GetSubmits() bool {
+	if x != nil {
+		return x.Submits
 	}
 	return false
 }
@@ -3933,6 +3965,9 @@ func (m *Node) CloneVT() *Node {
 	r.Speaking = m.Speaking
 	r.DocumentText = m.DocumentText
 	r.FollowsOverlay = m.FollowsOverlay
+	r.FocusOrder = m.FocusOrder
+	r.InitialFocus = m.InitialFocus
+	r.Submits = m.Submits
 	r.Measure = m.Measure
 	r.Frame = m.Frame
 	r.FollowsPlacement = m.FollowsPlacement
@@ -5087,6 +5122,15 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualSlice(this.GameActions, that.GameActions) {
+		return false
+	}
+	if this.FocusOrder != that.FocusOrder {
+		return false
+	}
+	if this.InitialFocus != that.InitialFocus {
+		return false
+	}
+	if this.Submits != that.Submits {
 		return false
 	}
 	if this.FollowsOverlay != that.FollowsOverlay {
@@ -7718,6 +7762,21 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.FocusOrder != 0 || s.HasField("focusOrder") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("focusOrder")
+		s.WriteUint32(x.FocusOrder)
+	}
+	if x.InitialFocus || s.HasField("initialFocus") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("initialFocus")
+		s.WriteBool(x.InitialFocus)
+	}
+	if x.Submits || s.HasField("submits") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("submits")
+		s.WriteBool(x.Submits)
+	}
 	if x.FollowsOverlay || s.HasField("followsOverlay") {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("followsOverlay")
@@ -8011,6 +8070,15 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				v.UnmarshalProtoJSON(s)
 				x.GameActions = append(x.GameActions, v)
 			})
+		case "focus_order", "focusOrder":
+			s.AddField("focus_order")
+			x.FocusOrder = s.ReadUint32()
+		case "initial_focus", "initialFocus":
+			s.AddField("initial_focus")
+			x.InitialFocus = s.ReadBool()
+		case "submits":
+			s.AddField("submits")
+			x.Submits = s.ReadBool()
 		case "follows_overlay", "followsOverlay":
 			s.AddField("follows_overlay")
 			x.FollowsOverlay = s.ReadBool()
@@ -11173,6 +11241,27 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x88
 	}
+	if m.Submits {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Submits)
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0x80
+	}
+	if m.InitialFocus {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.InitialFocus)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xf8
+	}
+	if m.FocusOrder != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.FocusOrder))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xf0
+	}
 	if len(m.GameActions) > 0 {
 		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.GameActions)
 		i--
@@ -14258,6 +14347,9 @@ func (m *Node) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.DocumentText)
 	n += protobuf_go_lite.SizeVarintPacked(2, m.GameActions)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.FocusOrder)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.InitialFocus)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.Submits)
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FollowsOverlay)
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Measure)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Frame)
@@ -15472,6 +15564,18 @@ func (x *Node) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteStringer(&sb, GameAction(v))
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.FocusOrder != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "focus_order")
+		protobuf_go_lite.TextWriteUint(&sb, x.FocusOrder)
+	}
+	if x.InitialFocus != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "initial_focus")
+		protobuf_go_lite.TextWriteBool(&sb, x.InitialFocus)
+	}
+	if x.Submits != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "submits")
+		protobuf_go_lite.TextWriteBool(&sb, x.Submits)
 	}
 	if x.FollowsOverlay != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "follows_overlay")
@@ -17304,6 +17408,35 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field GameActions", wireType)
 			}
+		case 46:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FocusOrder", wireType)
+			}
+			m.FocusOrder = 0
+			m.FocusOrder, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 47:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InitialFocus", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.InitialFocus = bool(v)
+		case 48:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Submits", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Submits = bool(v)
 		case 49:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FollowsOverlay", wireType)

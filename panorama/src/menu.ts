@@ -23,6 +23,8 @@ export interface Surface {
   mode: MenuMode
   priority: number
   request: number
+  /** initial is the control the latest drawing gives the keyboard on open. */
+  initial?: Panel
   epoch: number
   dismiss?: () => void
 }
@@ -111,6 +113,7 @@ export class Menus {
     }
     current.priority = menu.priority ?? 0
     current.content.style.flowChildren = flow
+    current.initial = undefined
     current.label.text = menu.openLabel ?? ''
     this.next.set(key, current)
 
@@ -243,7 +246,8 @@ export class Menus {
     this.active = surface
     this.visibility(surface)
     this.host?.capture(true)
-    surface.content.SetFocus?.()
+    const initial = surface.initial
+    ;(initial?.IsValid() ? initial : surface.content).SetFocus?.()
     this.follow()
   }
 
