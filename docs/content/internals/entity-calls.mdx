@@ -161,7 +161,7 @@ type fits these fields:
   and a single-value call never reads a list.
 
 A pointer, an embedded structure and any other container hold nothing a mod
-can read or write by value; reach a structure's fields with a dotted name.
+can read or write by value. Reach a structure's fields with a dotted name.
 
 ### The match's state
 
@@ -228,7 +228,7 @@ runs, and the mod keeps running.
 
 `damage` deals ordinary damage through the engine, and `killEntity` forces a
 hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor`, which
-defaults to the attacker, and an optional `ability`; `damage` also takes an
+defaults to the attacker, and an optional `ability`, and `damage` also takes an
 `amount`.
 
 - A handle includes its entity's generation, so a stale handle fails instead of

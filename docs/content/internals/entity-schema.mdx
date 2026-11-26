@@ -59,8 +59,8 @@ is written by hand, so a game update is a new dump.
 
 - **Schema classes.** `schemas.json` lists each class under its module, and the `server` module contains the entity classes. A field has its name, its type as the game
   spells it, and its offset. The generated libraries use the name and type.
-  The host finds the offset by name the first time a mod uses the field. A game
-  update that moves a field needs no new build of a mod.
+  The host finds the offset by name the first time a mod uses the field. A mod's
+  existing build keeps working after a game update that moves a field.
 - **Data descriptions.** A designer name points at its data description, the
   table a map reads when it places the entity. It adds key values and inputs to
   its base and may embed others. A key value has a name, such as `rendercolor`,
@@ -116,8 +116,8 @@ class. The constructor passes the subclass the survey found by default, so
 `create('npc_trooper_boss', ...)` makes a lane Guardian without passing `npc_boss_tier1`. A designer name that never lived has no constructor: the
 type checker rejects `create('path_node', ...)` before the mod runs.
 
-**Typed console values.** Each variable takes the type the game declares;
-each command runs one line.
+**Typed console values.** Each variable takes the type the game declares,
+and each command runs one line.
 
 A mod's bundle contains only what the mod uses. The generator writes output that is stable
 across runs, so a game update shows up as a readable diff of what the game

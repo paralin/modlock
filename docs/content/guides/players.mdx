@@ -13,7 +13,7 @@ The player list contains every seat. Each connection has a player, a name, a
 Steam ID, whether it is a bot, whether it is `away`, and a `generation`, which
 changes when someone new takes the slot. An away player's connection dropped,
 and the game holds their seat until they return or it ends, as
-[joins and leaves](/guides/events#joins-and-leaves) describes; a player who
+[joins and leaves](/guides/events#joins-and-leaves) describes. A player who
 returns keeps their generation.
 
 <Samples>
@@ -108,7 +108,7 @@ You can also find a connection from a Steam ID, and make a Player from a slot:
 | Go         | `mod.ConnectionOfSteamID(steamID)`                   | `mod.PlayerOf(slot)`       |
 
 Each gives the player who holds the slot now. In Go, the zero `mod.Player`
-names nobody. The same `connection` call also takes a player or a slot.
+stands for no player. The same `connection` call also takes a player or a slot.
 
 ### Roles
 
@@ -298,7 +298,7 @@ hero. The function it returns ends the view: the player returns to their hero,
 the freeze and the hold end, and the hero goes back where it stood, unless you
 pass `false` because the mod respawns or moves it itself. Pass a fourth
 argument to park the hero at a spot of your own.
-`spectateFrom` is TypeScript only, imported from `modlock/kit`; in other
+`spectateFrom` is TypeScript only, imported from `modlock/kit`. In other
 languages, compose it from
 `holdModifierState`, `teleport`, `freeze`, `freeCamera` and `unwatch`.
 

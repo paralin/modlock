@@ -41,7 +41,7 @@ command('hello', (player) => {
 > releases. [TypeScript, JavaScript](https://paralin.github.io/modlock/languages/typescript),
 > [Luau](https://paralin.github.io/modlock/languages/luau), [Python](https://paralin.github.io/modlock/languages/python) and
 > [Go](https://paralin.github.io/modlock/languages/go) mods, the `modlock` command line and
-> `modlock publish` all work today.
+> `modlock publish` all work in the current release.
 
 ## Getting started
 
@@ -60,15 +60,15 @@ macOS or Linux, in a terminal:
 curl -fsSL https://raw.githubusercontent.com/paralin/modlock/master/install.sh | sh
 ```
 
-Or install it with npm on any of them, into a project or globally:
+Or install it with npm on Windows, macOS or Linux, into a project or globally:
 
 ```sh
 npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
-You need nothing else for a TypeScript, JavaScript, Luau or Python mod, and a
-Go mod also needs [Go](https://go.dev/dl/). The
+That is all you need for a TypeScript, JavaScript, Luau or Python mod. For a Go
+mod, you also need [Go](https://go.dev/dl/). The
 [install page](https://paralin.github.io/modlock/start/install) explains how to
 download `modlock` by hand and what to do when your terminal cannot find it.
 
@@ -94,8 +94,8 @@ Go, all in the [`examples`](examples) directory.
 ## Documentation
 
 The documentation is at [paralin.github.io/modlock](https://paralin.github.io/modlock/).
-Every sample there comes in TypeScript, Luau, Python and Go, and once you
-choose your language, every page shows its samples in it.
+Every sample there comes in TypeScript, Luau, Python and Go. Once you choose a
+language, every page shows its samples in it.
 
 | Section                                                             | Holds                                                                     |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -106,8 +106,9 @@ choose your language, every page shows its samples in it.
 | [Reference](https://paralin.github.io/modlock/reference/cli)        | The command line, the manifest and publishing.                            |
 | [Internals](https://paralin.github.io/modlock/internals/protocol)   | The protocol, the framework, building from source and native plugins.     |
 
-The site's source is in [`docs`](docs), and running `bun install` and
-`bun run dev` there serves it locally. Complete mods to read and run are in [`examples`](examples).
+The site's source is in [`docs`](docs). Run `bun install` and `bun run dev`
+there to serve the site locally. Complete mods to read and run are in
+[`examples`](examples).
 
 ## Why WebAssembly
 
@@ -115,7 +116,7 @@ The site's source is in [`docs`](docs), and running `bun install` and
   it can reach only the calls the schema declares. Those calls let it read and
   write its own files, but it has no network access and no environment
   variables. When a mod crashes, loops forever or allocates past its limit, the
-  server stops that mod, logs why and keeps the match running. A slow event
+  server stops that mod. It logs why and keeps the match running. A slow event
   still finishes, and the players see a warning in chat. Any player can restart
   a stopped or slow mod with `/restartmod`.
 - **Any language.** You can write a mod in any language that compiles to

@@ -326,9 +326,10 @@ events when it starts the mod.
 Every modifier event has the same fields, but which ones the game fills depends
 on the event: `caster`, the entity the event is about; `player`, the player
 whose hero the caster is, or slot -1; `target`, the other entity, such as the
-victim of a kill; and `ability`, the entity the event names as its source. An
+victim of a kill; and `ability`, the entity the event gives as its source. An
 unfilled entity is 0. These events have been seen in a running game. Where one
-has a typed call for the same moment, use the call, which names its fields:
+has a typed call for the same moment, use the call, which gives each field its
+own name:
 
 | Event                | Fills                                           | Typed call      |
 | -------------------- | ----------------------------------------------- | --------------- |
@@ -412,7 +413,7 @@ such as `heal.GetTargetPlayer()`.
 | ---------------- | ------------ | --------------------------------------------------------------------------------- |
 | `target`         | heal         | The entity healed.                                                                |
 | `targetPlayer`   | heal         | The player whose hero was healed, or slot -1 for a unit.                          |
-| `healer`         | heal         | The entity the heal came from, or 0 when the game names none.                     |
+| `healer`         | heal         | The entity the heal came from, or 0 when the game gives none.                     |
 | `healerPlayer`   | heal         | The player whose hero the healer is, or slot -1.                                  |
 | `ability`        | heal         | The ability or item that healed, or 0.                                            |
 | `applied`        | heal         | The health the heal restored.                                                     |
@@ -500,11 +501,11 @@ mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
 
 </Samples>
 
-A handler can instead mute the ping's voice line for some players and leave
-them its marker and sound: `muteVoice` lists them by slot. The game names the
-line in the ping and each player's game speaks it, so a muted player hears
-nothing of it while the others hear it as usual. This mod lets each player
-mute the pings of a player who spams them:
+A handler can instead mute the ping's voice line for some players and leave them
+its marker and sound: `muteVoice` lists them by slot. The game puts the line's
+name in the ping and each player's game speaks it, so a muted player hears
+nothing of it while the others hear it as usual. This mod lets each player mute
+the pings of a player who spams them:
 
 <Samples>
 
@@ -583,7 +584,7 @@ mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
 
 </Samples>
 
-The handler runs inside the server's ping, so it answers at once; put other
+The handler runs inside the server's ping, so it answers at once. Put other
 work, such as a message to the player, in a timer. When several handlers
 answer, the first that blocks the ping decides, and otherwise each player any
 handler mutes gets the ping without its voice.
@@ -593,10 +594,10 @@ handler mutes gets the ping without its voice.
 | `player`  | The player who pinged.                                                      |
 | `kind`    | `map`, `wheel`, `quickResponse` or `ability`.                               |
 | `option`  | The comms wheel option's id from `scripts/ping_wheel_messages.vdata`, or 0. |
-| `concept` | The game's `EPingConcept` value for the ping, which names its voice line.   |
+| `concept` | The game's `EPingConcept` value for the ping, which selects its voice line. |
 
 ## Where next
 
 - [Timers](/guides/timers) run code later, without counting frames.
-- [Damage](/guides/damage) covers the hit and kill events.
-- [Input](/guides/input) covers buttons.
+- [Damage](/guides/damage) describes the hit and kill events.
+- [Input](/guides/input) describes buttons.

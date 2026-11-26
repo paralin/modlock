@@ -14,8 +14,8 @@ command('hello', (player) => {
 })
 ```
 
-The [guides](/guides/events) show every call in TypeScript and JavaScript;
-choose the language with the switch in the sidebar. [Camera
+The [guides](/guides/events) show every call in TypeScript and JavaScript.
+Choose the language with the switch in the sidebar. [Camera
 curves](/guides/camera) and `ProbeRun` for [testing](/guides/testing) are in
 TypeScript only.
 
@@ -45,8 +45,8 @@ replaces `hud.tsx`. Use one to leave out code that scriptc cannot compile and
 the published mod never runs, such as a test harness, by exporting the same
 names from a smaller module. The QuickJS bundle keeps the namesake. The
 stand-in must be part of the program your `tsconfig.json` lists, which it is
-unless the configuration names its files, and it cannot import its namesake,
-because in that build the namesake's path names the stand-in itself.
+unless the configuration lists its files, and it cannot import its namesake,
+because in that build the namesake's path points to the stand-in itself.
 
 In two cases the build falls back to the QuickJS bundle, and `modlock publish`
 refuses to upload it unless you pass `--allow-fallback`:

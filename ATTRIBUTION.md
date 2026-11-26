@@ -6,7 +6,7 @@ records what came from other projects and under which license.
 ## Deadworks
 
 [Deadworks](https://github.com/Deadworks-net/deadworks) is a server-side modding
-framework for Deadlock, released under the MIT License; its copyright line
+framework for Deadlock, released under the MIT License. Its copyright line
 appears in [LICENSE](LICENSE). Modlock used it as a reference implementation
 for these parts of the engine interface:
 
@@ -47,7 +47,7 @@ texture channels and reveal-mask thresholds. The reference files are
 `Renderer/Shaders/citadel/environment_vertex.slang`,
 `Renderer/Shaders/citadel/environment_blend.frag.slang` and
 `Renderer/Shaders/common/surface_environment_layers.slang`. They are MIT licensed,
-Copyright (c) 2015 ValveResourceFormat Contributors; the notice is in [LICENSE](LICENSE).
+Copyright (c) 2015 ValveResourceFormat Contributors. The notice is in [LICENSE](LICENSE).
 
 ## Third-party libraries
 
