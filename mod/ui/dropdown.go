@@ -32,6 +32,8 @@ type Dropdown struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the dropdown in the placement reports of FollowPlacement.
+	Measure string
 	// Disabled makes the dropdown take no changes.
 	Disabled bool
 	// Options are the choices, in order.
@@ -55,7 +57,7 @@ func (e Dropdown) key() string {
 // draw fills the dropdown's node.
 func (e Dropdown) draw(l *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled

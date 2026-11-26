@@ -16,6 +16,44 @@ import (
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 )
 
+// Frame is the box a mod's root fills.
+type Frame int32
+
+const (
+	// FRAME_SCREEN is the whole screen.
+	Frame_FRAME_SCREEN Frame = 0
+	// FRAME_HUD is the box the game lays its own HUD out in: the whole screen,
+	// or its middle 16:9 when the player keeps a wide screen's HUD there. A root
+	// aligned to its edges sits beside the stock HUD's corners.
+	Frame_FRAME_HUD Frame = 1
+)
+
+// Enum value maps for Frame.
+var (
+	Frame_name = map[int32]string{
+		0: "FRAME_SCREEN",
+		1: "FRAME_HUD",
+	}
+	Frame_value = map[string]int32{
+		"FRAME_SCREEN": 0,
+		"FRAME_HUD":    1,
+	}
+)
+
+func (x Frame) Enum() *Frame {
+	p := new(Frame)
+	*p = x
+	return p
+}
+
+func (x Frame) String() string {
+	name, valid := Frame_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // ClockFormat writes a clock's time.
 type ClockFormat int32
 
@@ -1214,6 +1252,18 @@ type Node struct {
 	// different stock overlay takes the player's input or gives it back, and
 	// once with the current overlay when the root starts to follow.
 	FollowsOverlay bool `protobuf:"varint,49,opt,name=follows_overlay,json=followsOverlay,proto3" json:"followsOverlay,omitempty"`
+	// Measure names the node in the placement reports its mod hears while
+	// the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
+	// Names are unique within a tree; of two nodes with one name, the renderer
+	// reports one.
+	Measure string `protobuf:"bytes,50,opt,name=measure,proto3" json:"measure,omitempty"`
+	// Frame is the box the root fills, on the root only: the screen, or the
+	// part of it where the game lays out its own HUD.
+	Frame Frame `protobuf:"varint,51,opt,name=frame,proto3" json:"frame,omitempty"`
+	// FollowsPlacement asks, on the root only, for a UiPlacement event with the
+	// screen's size, the HUD's frame and the bounds of each measured node: once
+	// when the root starts to follow, then each time one of them changes.
+	FollowsPlacement bool `protobuf:"varint,52,opt,name=follows_placement,json=followsPlacement,proto3" json:"followsPlacement,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1547,6 +1597,27 @@ func (x *Node) GetGameActions() []GameAction {
 func (x *Node) GetFollowsOverlay() bool {
 	if x != nil {
 		return x.FollowsOverlay
+	}
+	return false
+}
+
+func (x *Node) GetMeasure() string {
+	if x != nil {
+		return x.Measure
+	}
+	return ""
+}
+
+func (x *Node) GetFrame() Frame {
+	if x != nil {
+		return x.Frame
+	}
+	return Frame_FRAME_SCREEN
+}
+
+func (x *Node) GetFollowsPlacement() bool {
+	if x != nil {
+		return x.FollowsPlacement
 	}
 	return false
 }
@@ -3649,6 +3720,134 @@ func (x *UiOverlayEvent) GetOverlay() Overlay {
 	return Overlay_OVERLAY_NONE
 }
 
+// Bounds is a box on a player's screen in layout units, the units of a
+// style's pixels, measured from the screen's top left corner. The screen is
+// 1080 layout units tall at every resolution.
+type Bounds struct {
+	unknownFields []byte
+	// X is the box's left edge.
+	X int32 `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	// Y is the box's top edge.
+	Y int32 `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
+	// Width is the box's width.
+	Width int32 `protobuf:"varint,3,opt,name=width,proto3" json:"width,omitempty"`
+	// Height is the box's height.
+	Height int32 `protobuf:"varint,4,opt,name=height,proto3" json:"height,omitempty"`
+}
+
+func (x *Bounds) Reset() {
+	*x = Bounds{}
+}
+
+func (*Bounds) ProtoMessage() {}
+
+func (x *Bounds) GetX() int32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Bounds) GetY() int32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *Bounds) GetWidth() int32 {
+	if x != nil {
+		return x.Width
+	}
+	return 0
+}
+
+func (x *Bounds) GetHeight() int32 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+// UiPlacementEvent reports where a player's screen places a mod's
+// interface, to a mod whose root follows placement. Each event holds the
+// whole placement.
+type UiPlacementEvent struct {
+	unknownFields []byte
+	// Player is the player whose screen this is.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Screen is the whole screen, at the origin.
+	Screen *Bounds `protobuf:"bytes,2,opt,name=screen,proto3" json:"screen,omitempty"`
+	// Hud is the frame the game lays its own HUD out in.
+	Hud *Bounds `protobuf:"bytes,3,opt,name=hud,proto3" json:"hud,omitempty"`
+	// Measured holds the bounds of each node the tree names with measure,
+	// once the renderer has laid it out, in the order of their names.
+	Measured []*Measured `protobuf:"bytes,4,rep,name=measured,proto3" json:"measured,omitempty"`
+}
+
+func (x *UiPlacementEvent) Reset() {
+	*x = UiPlacementEvent{}
+}
+
+func (*UiPlacementEvent) ProtoMessage() {}
+
+func (x *UiPlacementEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiPlacementEvent) GetScreen() *Bounds {
+	if x != nil {
+		return x.Screen
+	}
+	return nil
+}
+
+func (x *UiPlacementEvent) GetHud() *Bounds {
+	if x != nil {
+		return x.Hud
+	}
+	return nil
+}
+
+func (x *UiPlacementEvent) GetMeasured() []*Measured {
+	if x != nil {
+		return x.Measured
+	}
+	return nil
+}
+
+// Measured is the bounds of the node a tree names with measure.
+type Measured struct {
+	unknownFields []byte
+	// Name is the node's measure.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Bounds is where the screen laid the node out.
+	Bounds *Bounds `protobuf:"bytes,2,opt,name=bounds,proto3" json:"bounds,omitempty"`
+}
+
+func (x *Measured) Reset() {
+	*x = Measured{}
+}
+
+func (*Measured) ProtoMessage() {}
+
+func (x *Measured) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Measured) GetBounds() *Bounds {
+	if x != nil {
+		return x.Bounds
+	}
+	return nil
+}
+
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
 	unknownFields []byte
@@ -3734,6 +3933,9 @@ func (m *Node) CloneVT() *Node {
 	r.Speaking = m.Speaking
 	r.DocumentText = m.DocumentText
 	r.FollowsOverlay = m.FollowsOverlay
+	r.Measure = m.Measure
+	r.Frame = m.Frame
+	r.FollowsPlacement = m.FollowsPlacement
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -4676,6 +4878,61 @@ func (m *UiOverlayEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *Bounds) CloneVT() *Bounds {
+	if m == nil {
+		return (*Bounds)(nil)
+	}
+	r := new(Bounds)
+	r.X = m.X
+	r.Y = m.Y
+	r.Width = m.Width
+	r.Height = m.Height
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Bounds) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *UiPlacementEvent) CloneVT() *UiPlacementEvent {
+	if m == nil {
+		return (*UiPlacementEvent)(nil)
+	}
+	r := new(UiPlacementEvent)
+	r.Player = m.Player
+	r.Screen = protobuf_go_lite.CloneVTValue(m.Screen)
+	r.Hud = protobuf_go_lite.CloneVTValue(m.Hud)
+	r.Measured = protobuf_go_lite.CloneVTSlice(m.Measured)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *UiPlacementEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Measured) CloneVT() *Measured {
+	if m == nil {
+		return (*Measured)(nil)
+	}
+	r := new(Measured)
+	r.Name = m.Name
+	r.Bounds = protobuf_go_lite.CloneVTValue(m.Bounds)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Measured) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *UiRequest) CloneVT() *UiRequest {
 	if m == nil {
 		return (*UiRequest)(nil)
@@ -4833,6 +5090,15 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.FollowsOverlay != that.FollowsOverlay {
+		return false
+	}
+	if this.Measure != that.Measure {
+		return false
+	}
+	if this.Frame != that.Frame {
+		return false
+	}
+	if this.FollowsPlacement != that.FollowsPlacement {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6233,6 +6499,87 @@ func (this *UiOverlayEvent) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *Bounds) EqualVT(that *Bounds) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.X != that.X {
+		return false
+	}
+	if this.Y != that.Y {
+		return false
+	}
+	if this.Width != that.Width {
+		return false
+	}
+	if this.Height != that.Height {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Bounds) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Bounds)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *UiPlacementEvent) EqualVT(that *UiPlacementEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Screen, that.Screen) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Hud, that.Hud) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Measured, that.Measured, func() *Measured { return &Measured{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UiPlacementEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiPlacementEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Measured) EqualVT(that *Measured) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Bounds, that.Bounds) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Measured) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Measured)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *UiRequest) EqualVT(that *UiRequest) bool {
 	if this == that {
 		return true
@@ -6254,6 +6601,46 @@ func (this *UiRequest) EqualMessageVT(thatMsg any) bool {
 		return false
 	}
 	return this.EqualVT(that)
+}
+
+// MarshalProtoJSON marshals the Frame to JSON.
+func (x Frame) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Frame_name)
+}
+
+// MarshalText marshals the Frame to text.
+func (x Frame) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Frame_name)), nil
+}
+
+// MarshalJSON marshals the Frame to JSON.
+func (x Frame) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Frame from JSON.
+func (x *Frame) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Frame_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Frame enum: %v", err)
+		return
+	}
+	*x = Frame(v)
+}
+
+// UnmarshalText unmarshals the Frame from text.
+func (x *Frame) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Frame_value)
+	if err != nil {
+		return err
+	}
+	*x = Frame(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Frame from JSON.
+func (x *Frame) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
 // MarshalProtoJSON marshals the ClockFormat to JSON.
@@ -7336,6 +7723,21 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("followsOverlay")
 		s.WriteBool(x.FollowsOverlay)
 	}
+	if x.Measure != "" || s.HasField("measure") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("measure")
+		s.WriteString(x.Measure)
+	}
+	if x.Frame != 0 || s.HasField("frame") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("frame")
+		x.Frame.MarshalProtoJSON(s)
+	}
+	if x.FollowsPlacement || s.HasField("followsPlacement") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("followsPlacement")
+		s.WriteBool(x.FollowsPlacement)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -7612,6 +8014,15 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "follows_overlay", "followsOverlay":
 			s.AddField("follows_overlay")
 			x.FollowsOverlay = s.ReadBool()
+		case "measure":
+			s.AddField("measure")
+			x.Measure = s.ReadString()
+		case "frame":
+			s.AddField("frame")
+			x.Frame.UnmarshalProtoJSON(s)
+		case "follows_placement", "followsPlacement":
+			s.AddField("follows_placement")
+			x.FollowsPlacement = s.ReadBool()
 		}
 	})
 }
@@ -10427,6 +10838,221 @@ func (x *UiOverlayEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Bounds message to JSON.
+func (x *Bounds) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.X != 0 || s.HasField("x") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x")
+		s.WriteInt32(x.X)
+	}
+	if x.Y != 0 || s.HasField("y") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y")
+		s.WriteInt32(x.Y)
+	}
+	if x.Width != 0 || s.HasField("width") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("width")
+		s.WriteInt32(x.Width)
+	}
+	if x.Height != 0 || s.HasField("height") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("height")
+		s.WriteInt32(x.Height)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Bounds to JSON.
+func (x *Bounds) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Bounds message from JSON.
+func (x *Bounds) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "x":
+			s.AddField("x")
+			x.X = s.ReadInt32()
+		case "y":
+			s.AddField("y")
+			x.Y = s.ReadInt32()
+		case "width":
+			s.AddField("width")
+			x.Width = s.ReadInt32()
+		case "height":
+			s.AddField("height")
+			x.Height = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Bounds from JSON.
+func (x *Bounds) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the UiPlacementEvent message to JSON.
+func (x *UiPlacementEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Screen != nil || s.HasField("screen") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("screen")
+		x.Screen.MarshalProtoJSON(s.WithField("screen"))
+	}
+	if x.Hud != nil || s.HasField("hud") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hud")
+		x.Hud.MarshalProtoJSON(s.WithField("hud"))
+	}
+	if len(x.Measured) > 0 || s.HasField("measured") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("measured")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Measured {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("measured"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the UiPlacementEvent to JSON.
+func (x *UiPlacementEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the UiPlacementEvent message from JSON.
+func (x *UiPlacementEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "screen":
+			if s.ReadNil() {
+				x.Screen = nil
+				return
+			}
+			x.Screen = &Bounds{}
+			x.Screen.UnmarshalProtoJSON(s.WithField("screen", true))
+		case "hud":
+			if s.ReadNil() {
+				x.Hud = nil
+				return
+			}
+			x.Hud = &Bounds{}
+			x.Hud.UnmarshalProtoJSON(s.WithField("hud", true))
+		case "measured":
+			s.AddField("measured")
+			if s.ReadNil() {
+				x.Measured = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Measured = append(x.Measured, nil)
+					return
+				}
+				v := &Measured{}
+				v.UnmarshalProtoJSON(s.WithField("measured", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Measured = append(x.Measured, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the UiPlacementEvent from JSON.
+func (x *UiPlacementEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Measured message to JSON.
+func (x *Measured) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Bounds != nil || s.HasField("bounds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("bounds")
+		x.Bounds.MarshalProtoJSON(s.WithField("bounds"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Measured to JSON.
+func (x *Measured) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Measured message from JSON.
+func (x *Measured) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "bounds":
+			if s.ReadNil() {
+				x.Bounds = nil
+				return
+			}
+			x.Bounds = &Bounds{}
+			x.Bounds.UnmarshalProtoJSON(s.WithField("bounds", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Measured from JSON.
+func (x *Measured) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the UiRequest message to JSON.
 func (x *UiRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -10518,6 +11144,27 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.FollowsPlacement {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FollowsPlacement)
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xa0
+	}
+	if m.Frame != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Frame))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0x98
+	}
+	if len(m.Measure) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Measure)
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0x92
 	}
 	if m.FollowsOverlay {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FollowsOverlay)
@@ -13311,6 +13958,174 @@ func (m *UiOverlayEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Bounds) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Bounds) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Bounds) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Height != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Width != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Width))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Y != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Y))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.X != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.X))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UiPlacementEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UiPlacementEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiPlacementEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Measured) > 0 {
+		for iNdEx := len(m.Measured) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Measured[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Hud != nil {
+		size, err := m.Hud.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Screen != nil {
+		size, err := m.Screen.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Measured) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Measured) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Measured) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Bounds != nil {
+		size, err := m.Bounds.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -13444,6 +14259,9 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.DocumentText)
 	n += protobuf_go_lite.SizeVarintPacked(2, m.GameActions)
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FollowsOverlay)
+	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Measure)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Frame)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.FollowsPlacement)
 	n += len(m.unknownFields)
 	return n
 }
@@ -14250,6 +15068,58 @@ func (m *UiOverlayEvent) SizeVT() (n int) {
 	return n
 }
 
+func (m *Bounds) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.X)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Y)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Width)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Height)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *UiPlacementEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Screen != nil {
+		l = m.Screen.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Hud != nil {
+		l = m.Hud.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for _, e := range m.Measured {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Measured) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	if m.Bounds != nil {
+		l = m.Bounds.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -14263,6 +15133,10 @@ func (m *UiRequest) SizeVT() (n int) {
 	}
 	n += len(m.unknownFields)
 	return n
+}
+
+func (x Frame) MarshalProtoText() string {
+	return x.String()
 }
 
 func (x ClockFormat) MarshalProtoText() string {
@@ -14602,6 +15476,18 @@ func (x *Node) MarshalProtoText() string {
 	if x.FollowsOverlay != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "follows_overlay")
 		protobuf_go_lite.TextWriteBool(&sb, x.FollowsOverlay)
+	}
+	if x.Measure != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "measure")
+		protobuf_go_lite.TextWriteString(&sb, x.Measure)
+	}
+	if x.Frame != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "frame")
+		protobuf_go_lite.TextWriteStringer(&sb, Frame(x.Frame))
+	}
+	if x.FollowsPlacement != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "follows_placement")
+		protobuf_go_lite.TextWriteBool(&sb, x.FollowsPlacement)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -15687,6 +16573,84 @@ func (x *UiOverlayEvent) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *Bounds) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Bounds")
+	if x.X != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x")
+		protobuf_go_lite.TextWriteInt(&sb, x.X)
+	}
+	if x.Y != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y")
+		protobuf_go_lite.TextWriteInt(&sb, x.Y)
+	}
+	if x.Width != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "width")
+		protobuf_go_lite.TextWriteInt(&sb, x.Width)
+	}
+	if x.Height != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "height")
+		protobuf_go_lite.TextWriteInt(&sb, x.Height)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Bounds) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *UiPlacementEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiPlacementEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Screen != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "screen")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Screen)
+	}
+	if x.Hud != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hud")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Hud)
+	}
+	if len(x.Measured) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "measured")
+		for i, v := range x.Measured {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Measured{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *UiPlacementEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Measured) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Measured")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Bounds != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "bounds")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Bounds)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Measured) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *UiRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiRequest")
@@ -16350,6 +17314,37 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.FollowsOverlay = bool(v)
+		case 50:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Measure", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Measure = v
+		case 51:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Frame", wireType)
+			}
+			m.Frame = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Frame = Frame(_v)
+			if err != nil {
+				return err
+			}
+		case 52:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FollowsPlacement", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.FollowsPlacement = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -19810,6 +20805,248 @@ func (m *UiOverlayEvent) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Bounds) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Bounds: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Bounds: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
+			}
+			m.X = 0
+			m.X, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y", wireType)
+			}
+			m.Y = 0
+			m.Y, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Width", wireType)
+			}
+			m.Width = 0
+			m.Width, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			m.Height = 0
+			m.Height, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *UiPlacementEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UiPlacementEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UiPlacementEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Screen", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Screen == nil {
+				m.Screen = &Bounds{}
+			}
+			if err := m.Screen.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hud", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Hud == nil {
+				m.Hud = &Bounds{}
+			}
+			if err := m.Hud.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Measured", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Measured = append(m.Measured, &Measured{})
+			if err := m.Measured[len(m.Measured)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Measured) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Measured: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Measured: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bounds", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Bounds == nil {
+				m.Bounds = &Bounds{}
+			}
+			if err := m.Bounds.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

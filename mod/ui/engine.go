@@ -32,6 +32,11 @@ type view struct {
 	// overlay takes each stock overlay that takes or gives back the input,
 	// while the mod follows them.
 	overlay func(p mod.Player, overlay mod.Overlay)
+	// placement takes each report of where the player's screen places the
+	// interface, while the mod follows placement.
+	placement func(p mod.Player, placement Placement)
+	// hudFrame is true while the interface is drawn in the HUD's frame.
+	hudFrame bool
 	// display is the abilities shown on Tab's rows and the ability bar.
 	display []AbilityRow
 	// notices are the toasts showing, oldest first.
@@ -200,6 +205,8 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 		AbilityBarPresses: v.bar != nil,
 		GameActions:       slices.Sorted(maps.Keys(v.actions)),
 		FollowsOverlay:    v.overlay != nil,
+		FollowsPlacement:  v.placement != nil,
+		Frame:             frame(v.hudFrame),
 		AbilityDisplay:    display,
 	})
 
@@ -406,6 +413,26 @@ func overlaid(event *mod.UiOverlayEvent) {
 	if v := lib.views[p.Slot()]; v != nil && v.overlay != nil {
 		v.overlay(p, event.GetOverlay())
 	}
+}
+
+// placed runs the handler of the mod that follows the player's placement.
+func placed(event *mod.UiPlacementEvent) {
+	p := mod.PlayerOf(event.GetPlayer())
+	if v := lib.views[p.Slot()]; v != nil && v.placement != nil {
+		measured := make(map[string]*mod.Bounds, len(event.GetMeasured()))
+		for _, each := range event.GetMeasured() {
+			measured[each.GetName()] = each.GetBounds()
+		}
+		v.placement(p, Placement{Screen: event.GetScreen(), Hud: event.GetHud(), Measured: measured})
+	}
+}
+
+// frame returns the frame a root is drawn in.
+func frame(hud bool) uipb.Frame {
+	if hud {
+		return uipb.Frame_FRAME_HUD
+	}
+	return uipb.Frame_FRAME_SCREEN
 }
 
 // abilitySlot returns the slot a click on the game's ability bar names.

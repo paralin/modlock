@@ -31,6 +31,8 @@ type Slider struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the slider in the placement reports of FollowPlacement.
+	Measure string
 	// Disabled makes the slider take no changes.
 	Disabled bool
 	// Value is the slider's number.
@@ -60,7 +62,7 @@ func (e Slider) key() string {
 // draw fills the slider's node.
 func (e Slider) draw(l *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled

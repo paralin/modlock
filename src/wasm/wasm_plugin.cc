@@ -302,6 +302,19 @@ std::expected<void, std::string> WasmPlugin::Overlay(int32_t slot, std::string_v
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Placement(int32_t slot, std::string_view line) {
+  // Refuse a placement the running mod's root does not follow.
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
+  auto event = ui_.Placement(slot, line);
+  if (!event) {
+    return std::unexpected(name_ + " " + event.error());
+  }
+  static_cast<void>(mod_.UiPlacement(*event));
+  return {};
+}
+
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
   if (!reply) {
@@ -604,7 +617,8 @@ void WasmPlugin::Observe(wasm::FrameEvent& frame) {
 void WasmPlugin::Tick() {
   // Tell the mod about each of its documents that ran out of time.
   if (instance_) {
-    for (const auto& expired : ui_.ExpireDocuments(host_.documents, wasm::UiDocuments::Clock::now())) {
+    for (const auto& expired :
+         ui_.ExpireDocuments(host_.documents, wasm::UiDocuments::Clock::now())) {
       static_cast<void>(mod_.UiDocument(expired));
     }
   }

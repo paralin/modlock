@@ -1911,6 +1911,43 @@ export type UiOverlayEvent = {
 	overlay: Overlay?,
 }
 
+-- Bounds is a box on a player's screen in layout units, the units of a
+-- style's pixels, measured from the screen's top left corner. The screen is
+-- 1080 layout units tall at every resolution.
+export type Bounds = {
+	-- x is the box's left edge.
+	x: number,
+	-- y is the box's top edge.
+	y: number,
+	-- width is the box's width.
+	width: number,
+	-- height is the box's height.
+	height: number,
+}
+
+-- UiPlacementEvent reports where a player's screen places a mod's
+-- interface, to a mod whose root follows placement. Each event holds the
+-- whole placement.
+export type UiPlacementEvent = {
+	-- player is the player whose screen this is.
+	player: Player,
+	-- screen is the whole screen, at the origin.
+	screen: Bounds,
+	-- hud is the frame the game lays its own HUD out in.
+	hud: Bounds,
+	-- measured holds the bounds of each node the tree names with measure,
+	-- once the renderer has laid it out, in the order of their names.
+	measured: { Measured },
+}
+
+-- Measured is the bounds of the node a tree names with measure.
+export type Measured = {
+	-- name is the node's measure.
+	name: string,
+	-- bounds is where the screen laid the node out.
+	bounds: Bounds,
+}
+
 -- StartEvent describes the server the mod starts in.
 export type StartEvent = {
 	-- args holds the arguments that follow -- on the host command line.
@@ -3221,6 +3258,14 @@ local MenuMode: { [any]: any } = {
 	hold = 2,
 }
 
+-- Frame holds the wire names of the interface enum Frame.
+local Frame: { [any]: any } = {
+	[0] = "screen",
+	screen = 0,
+	[1] = "hud",
+	hud = 1,
+}
+
 -- Window holds the wire names of the service enum Window.
 local Window: { [any]: any } = {
 	[1] = "allTime",
@@ -4311,6 +4356,9 @@ schema.Node = {
 	{ number = 44, name = "documentText", kind = "string" },
 	{ number = 45, name = "gameActions", kind = "enum", repeated = true, enum = GameAction },
 	{ number = 49, name = "followsOverlay", kind = "bool" },
+	{ number = 50, name = "measure", kind = "string" },
+	{ number = 51, name = "frame", kind = "enum", enum = Frame },
+	{ number = 52, name = "followsPlacement", kind = "bool" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4535,6 +4583,22 @@ schema.UiActionEvent = {
 schema.UiOverlayEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "overlay", kind = "enum", enum = Overlay },
+}
+schema.Bounds = {
+	{ number = 1, name = "x", kind = "int32" },
+	{ number = 2, name = "y", kind = "int32" },
+	{ number = 3, name = "width", kind = "int32" },
+	{ number = 4, name = "height", kind = "int32" },
+}
+schema.UiPlacementEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "screen", kind = "message", message = "Bounds" },
+	{ number = 3, name = "hud", kind = "message", message = "Bounds" },
+	{ number = 4, name = "measured", kind = "message", repeated = true, message = "Measured" },
+}
+schema.Measured = {
+	{ number = 1, name = "name", kind = "string" },
+	{ number = 2, name = "bounds", kind = "message", message = "Bounds" },
 }
 schema.UiRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -5354,6 +5418,9 @@ export type ModHandlers = {
 	-- uiOverlay reports the stock overlay that now holds a player's input, to
 	-- a mod whose root follows overlays.
 	uiOverlay: (event: UiOverlayEvent) -> (),
+	-- uiPlacement reports where a player's screen places the mod's interface,
+	-- to a mod whose root follows placement.
+	uiPlacement: (event: UiPlacementEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
@@ -5448,6 +5515,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiDocument = { request = "UiDocumentEvent", response = "Empty", handler = "uiDocument" },
 	UiAction = { request = "UiActionEvent", response = "Empty", handler = "uiAction" },
 	UiOverlay = { request = "UiOverlayEvent", response = "Empty", handler = "uiOverlay" },
+	UiPlacement = { request = "UiPlacementEvent", response = "Empty", handler = "uiPlacement" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
@@ -5889,6 +5957,8 @@ export type Interface = {
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- overlay takes the stock overlay that now holds the player's input.
 	overlay: (player: Player, overlay: Overlay) -> (),
+	-- placement takes where the player's screen places the interface.
+	placement: (event: UiPlacementEvent) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -7012,6 +7082,14 @@ local handlers: ModHandlers = {
 		if served and action and phase then
 			modlock.after(0, function()
 				served.act(event.player, action, phase)
+			end)
+		end
+	end,
+	uiPlacement = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.placement(event)
 			end)
 		end
 	end,

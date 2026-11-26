@@ -242,6 +242,32 @@ message Node {
   // different stock overlay takes the player's input or gives it back, and
   // once with the current overlay when the root starts to follow.
   bool follows_overlay = 49;
+
+  // Measure names the node in the placement reports its mod hears while
+  // the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
+  // Names are unique within a tree; of two nodes with one name, the renderer
+  // reports one.
+  string measure = 50;
+
+  // Frame is the box the root fills, on the root only: the screen, or the
+  // part of it where the game lays out its own HUD.
+  Frame frame = 51;
+
+  // FollowsPlacement asks, on the root only, for a UiPlacement event with the
+  // screen's size, the HUD's frame and the bounds of each measured node: once
+  // when the root starts to follow, then each time one of them changes.
+  bool follows_placement = 52;
+}
+
+// Frame is the box a mod's root fills.
+enum Frame {
+  // FRAME_SCREEN is the whole screen.
+  FRAME_SCREEN = 0;
+
+  // FRAME_HUD is the box the game lays its own HUD out in: the whole screen,
+  // or its middle 16:9 when the player keeps a wide screen's HUD there. A root
+  // aligned to its edges sits beside the stock HUD's corners.
+  FRAME_HUD = 1;
 }
 
 // Clock is a time a label counts in the player's game.
@@ -1307,6 +1333,50 @@ message UiOverlayEvent {
 
   // Overlay is the overlay that holds it, or OVERLAY_NONE.
   Overlay overlay = 2;
+}
+
+// Bounds is a box on a player's screen in layout units, the units of a
+// style's pixels, measured from the screen's top left corner. The screen is
+// 1080 layout units tall at every resolution.
+message Bounds {
+  // X is the box's left edge.
+  int32 x = 1;
+
+  // Y is the box's top edge.
+  int32 y = 2;
+
+  // Width is the box's width.
+  int32 width = 3;
+
+  // Height is the box's height.
+  int32 height = 4;
+}
+
+// UiPlacementEvent reports where a player's screen places a mod's
+// interface, to a mod whose root follows placement. Each event holds the
+// whole placement.
+message UiPlacementEvent {
+  // Player is the player whose screen this is.
+  int32 player = 1;
+
+  // Screen is the whole screen, at the origin.
+  Bounds screen = 2;
+
+  // Hud is the frame the game lays its own HUD out in.
+  Bounds hud = 3;
+
+  // Measured holds the bounds of each node the tree names with measure,
+  // once the renderer has laid it out, in the order of their names.
+  repeated Measured measured = 4;
+}
+
+// Measured is the bounds of the node a tree names with measure.
+message Measured {
+  // Name is the node's measure.
+  string name = 1;
+
+  // Bounds is where the screen laid the node out.
+  Bounds bounds = 2;
 }
 
 // UiRequest changes the interface the mod shows one player.

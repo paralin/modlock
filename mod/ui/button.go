@@ -32,6 +32,8 @@ type Button struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the button in the placement reports of FollowPlacement.
+	Measure string
 	// Sound is the game's sound event the press plays.
 	Sound string
 	// Disabled makes the button take no presses.
@@ -55,7 +57,7 @@ func (e Button) key() string {
 // draw fills the button's node.
 func (e Button) draw(l *layout, n *uipb.Node, at string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_BUTTON
 	n.Sound = e.Sound

@@ -111,6 +111,40 @@ func FollowOverlay(p mod.Player, onChange func(p mod.Player, overlay mod.Overlay
 	return draw(v)
 }
 
+// Placement is where a player's screen places the interface, in layout
+// units from the screen's top left, where the screen is 1080 units tall.
+type Placement struct {
+	// Screen is the whole screen, at 0, 0.
+	Screen *mod.Bounds
+	// Hud is the HUD's frame: the screen, or the middle 16:9 of a wider
+	// screen whose player keeps the HUD there.
+	Hud *mod.Bounds
+	// Measured holds the box of each element whose Measure names it, once
+	// the screen has laid it out.
+	Measured map[string]*mod.Bounds
+}
+
+// FollowPlacement calls onPlace with where player's screen places the
+// interface: the whole placement first, then again each time any part of it
+// moves, such as when the player changes resolution or an element's layout
+// settles. Elements that share a Measure report one box. A nil onPlace stops
+// following.
+func FollowPlacement(p mod.Player, onPlace func(p mod.Player, placement Placement)) bool {
+	v := viewOf(p)
+	v.placement = onPlace
+	return draw(v)
+}
+
+// InHudFrame draws player's interface inside the HUD's frame instead of the
+// whole screen. The frame is the screen itself, except on a screen wider
+// than 16:9 where the player keeps the HUD in its middle 16:9, so an
+// interface aligned to the frame's edges lines up with the game's HUD.
+func InHudFrame(p mod.Player, on bool) bool {
+	v := viewOf(p)
+	v.hudFrame = on
+	return draw(v)
+}
+
 // AbilityDisplay shows viewer each row's abilities in place of the ones the
 // game shows for that player's hero: on the player's row of the game's Tab
 // screen, and for viewer's own row on viewer's ability bar too, in the game's

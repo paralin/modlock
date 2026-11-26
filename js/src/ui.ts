@@ -91,6 +91,7 @@ import {
   Easing,
   Face,
   Flow,
+  Frame,
   GameAction as WireGameAction,
   GradientShape,
   HeroLook,
@@ -125,6 +126,8 @@ import {
   type UiDocumentEvent,
   type UiActionEvent,
   type UiOverlayEvent,
+  type UiPlacementEvent,
+  type Bounds,
   type Wheel,
 } from './host.gen.js'
 import { call } from './host.js'
@@ -458,6 +461,7 @@ export interface Props {
   readonly item?: string
   readonly ability?: AbilityTip
   readonly hoverSound?: string
+  readonly measure?: string
   readonly children?: Child
   readonly src?: string
   readonly scaling?: Scaling
@@ -517,6 +521,8 @@ export interface ElementProps {
   item?: string
   ability?: AbilityTip
   hoverSound?: string
+  /** measure names the element in the placement reports of followPlacement. */
+  measure?: string
   /** enter is the style the element's panel starts from when it first shows. */
   enter?: Style
   /** exit is the style the element's panel eases to as it leaves. */
@@ -707,6 +713,8 @@ export interface LayoutProps {
   src: string
   data?: unknown
   onAction?: LayoutPressHandler
+  /** measure names the layout in the placement reports of followPlacement. */
+  measure?: string
 }
 
 /** JSX types the elements a mod's JSX may use. */
@@ -909,6 +917,66 @@ export function followOverlay(
 export function overlaid(event: UiOverlayEvent): void {
   const { player, overlay } = event
   views.get(player.slot)?.overlay?.handler(player, overlay ?? 'none')
+}
+
+/**
+ * Placement is where a player's screen places the interface, in layout
+ * units from the screen's top left, where the screen is 1080 units tall:
+ * the screen's size, the HUD's frame, and the box of each element whose
+ * measure names it.
+ */
+export interface Placement {
+  /** screen is the whole screen, at 0, 0. */
+  readonly screen: Bounds
+  /** hud is the HUD's frame, the middle 16:9 of a wider screen that keeps it there. */
+  readonly hud: Bounds
+  /** measured holds the box of each measured element, by its name. */
+  readonly measured: ReadonlyMap<string, Bounds>
+}
+
+/** PlacementHandler takes where player's screen places the interface. */
+export type PlacementHandler = (player: Player, placement: Placement) => void
+
+/**
+ * followPlacement calls onPlace with where player's screen places the
+ * interface: the whole placement first, then again each time any part of it
+ * moves, such as when the player changes resolution or an element's layout
+ * settles. Elements that share a measure report one box. Without onPlace the
+ * mod stops following.
+ */
+export function followPlacement(
+  player: Player,
+  onPlace?: PlacementHandler,
+): boolean {
+  // Replace the view, so a draw sees whether the root follows placement.
+  const current = view(player)
+  views.set(player.slot, {
+    ...current,
+    placement: onPlace && { handler: onPlace },
+  })
+  return draw(player, [])
+}
+
+/**
+ * inHudFrame draws player's interface inside the HUD's frame instead of the
+ * whole screen. The frame is the screen itself, except on a screen wider
+ * than 16:9 where the player keeps the HUD in its middle 16:9, so an
+ * interface aligned to the frame's edges lines up with the game's HUD.
+ */
+export function inHudFrame(player: Player, on: boolean): boolean {
+  const current = view(player)
+  views.set(player.slot, { ...current, hudFrame: on })
+  return draw(player, [])
+}
+
+/** placed runs the handler of the mod that follows a player's placement. */
+export function placed(event: UiPlacementEvent): void {
+  const { player, screen, hud, measured } = event
+  views.get(player.slot)?.placement?.handler(player, {
+    screen,
+    hud,
+    measured: new Map(measured.map(({ name, bounds }) => [name, bounds])),
+  })
 }
 
 /** ShownAbility is the ability abilityDisplay shows in one slot. */
@@ -1266,6 +1334,10 @@ interface View {
   readonly actions: ReadonlyMap<GameAction, { readonly handler: ActionHandler }>
   /** overlay takes each stock overlay change, while the mod follows them. */
   readonly overlay: { readonly handler: OverlayHandler } | undefined
+  /** placement takes each placement report, while the mod follows placement. */
+  readonly placement: { readonly handler: PlacementHandler } | undefined
+  /** hudFrame is true while the interface is drawn in the HUD's frame. */
+  readonly hudFrame: boolean
   /** display is the abilities shown on Tab's rows and the ability bar. */
   readonly display: readonly AbilityRow[]
   notices: readonly Notice[]
@@ -1323,6 +1395,8 @@ function view(player: Player): View {
       bar: undefined,
       actions: new Map(),
       overlay: undefined,
+      placement: undefined,
+      hudFrame: false,
       display: [],
       notices: [],
     }
@@ -1428,6 +1502,8 @@ function compose(
       (action) => gameActions[action],
     ),
     followsOverlay: current.overlay !== undefined,
+    followsPlacement: current.placement !== undefined,
+    frame: current.hudFrame ? Frame.HUD : Frame.SCREEN,
     abilityDisplay: displayRows(player, current.display),
   }
 
@@ -1865,6 +1941,7 @@ function sparseNode(layout: Layout, props: Props, at: string): Node {
   // whether chat hides it.
   if (props.tooltip !== undefined) node.tooltip = props.tooltip
   if (props.hoverSound !== undefined) node.hoverSound = props.hoverSound
+  if (props.measure !== undefined) node.measure = props.measure
   if (props.item) node.item = itemId(props.item)
   if (props.ability?.name) {
     node.ability = itemId(props.ability.name)

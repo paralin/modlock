@@ -32,6 +32,8 @@ type Label struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the label in the placement reports of FollowPlacement.
+	Measure string
 	// Text is the label's text.
 	Text string
 	// Token names the game's localized text to show in place of Text.
@@ -68,7 +70,7 @@ func (e Label) key() string {
 // draw fills the label's node.
 func (e Label) draw(_ *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_LABEL
 	n.Text = e.Text

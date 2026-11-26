@@ -26,6 +26,8 @@ type Panel struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the panel in the placement reports of FollowPlacement.
+	Measure string
 	// Children are the nodes the panel holds.
 	Children Node
 }
@@ -43,7 +45,7 @@ func (e Panel) key() string {
 // draw fills the panel's node and lays out its children.
 func (e Panel) draw(l *layout, n *uipb.Node, at string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_PANEL
 	n.Children = l.place(e.Children, at+"/", nil)

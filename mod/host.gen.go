@@ -783,6 +783,19 @@ type UiActionEvent = uipb.UiActionEvent
 // to a mod whose root follows overlays.
 type UiOverlayEvent = uipb.UiOverlayEvent
 
+// Bounds is a box on a player's screen in layout units, the units of a
+// style's pixels, measured from the screen's top left corner. The screen is
+// 1080 layout units tall at every resolution.
+type Bounds = uipb.Bounds
+
+// UiPlacementEvent reports where a player's screen places a mod's
+// interface, to a mod whose root follows placement. Each event holds the
+// whole placement.
+type UiPlacementEvent = uipb.UiPlacementEvent
+
+// Measured is the bounds of the node a tree names with measure.
+type Measured = uipb.Measured
+
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
 
@@ -2191,6 +2204,9 @@ type modHandlers interface {
 	// UiOverlay reports the stock overlay that now holds a player's input, to
 	// a mod whose root follows overlays.
 	UiOverlay(event *UiOverlayEvent) error
+	// UiPlacement reports where a player's screen places the mod's interface,
+	// to a mod whose root follows placement.
+	UiPlacement(event *UiPlacementEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
@@ -2341,6 +2357,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiOverlay(event))
+	case "UiPlacement":
+		event := &UiPlacementEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiPlacement(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

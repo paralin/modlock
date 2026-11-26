@@ -1382,6 +1382,8 @@ class _UiHandlers:
     act: Callable[[Player, GameAction, ActionPhase], object]
     # overlay runs the handler of a mod that follows a player's overlays.
     overlay: Callable[[Player, Overlay], object]
+    # placement runs the handler of a mod that follows a player's placement.
+    placement: Callable[[UiPlacementEvent], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -1488,6 +1490,13 @@ def _ui_overlay(event: UiOverlayEvent) -> None:
     if ui is not None:
         player, overlay = event.player, event.overlay or "none"
         after(0, lambda: ui.overlay(player, overlay))
+
+
+def _ui_placement(event: UiPlacementEvent) -> None:
+    # A placement runs with the next frame, as a press does.
+    ui = _ui
+    if ui is not None:
+        after(0, lambda: ui.placement(event))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -1698,6 +1707,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_document": _ui_document,
     "ui_action": _ui_action,
     "ui_overlay": _ui_overlay,
+    "ui_placement": _ui_placement,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

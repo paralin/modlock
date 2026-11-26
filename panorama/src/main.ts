@@ -20,6 +20,7 @@ import {
   gameActionMods,
   hiddenParts,
   overlayMods,
+  placementMods,
 } from './hud.js'
 import type { MenuHost } from './menu.js'
 import {
@@ -28,6 +29,7 @@ import {
   OverlayReader,
   stockOf,
 } from './overlay.js'
+import { PlacementFollow } from './placement.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -102,6 +104,15 @@ const drawing = new Drawing(
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
   menuHost,
 )
+// placing tells each mod whose root follows placement where the screen put
+// its interface.
+const placing = new PlacementFollow(
+  () => drawing.placement(),
+  (line) => $.DispatchEvent('CitadelConCommand', line),
+  (seconds, callback) => {
+    $.Schedule(seconds, callback)
+  },
+)
 const stock = new StockGuard(
   game,
   {
@@ -136,6 +147,7 @@ for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
     stock.leave()
     actions.cancel()
     following.follow(new Set())
+    placing.follow(new Map())
     drawing.release()
     cursor.set(false, 0)
     return false
@@ -162,6 +174,7 @@ new Bridge(
     )
     cursor.set(cursorFreed(screen), cursorAsks(screen))
     drawing.draw(screen)
+    placing.follow(placementMods(screen))
   },
   () => stock.alive(),
 )

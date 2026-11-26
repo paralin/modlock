@@ -128,6 +128,21 @@ export function overlayMods(screen: Screen | null): Set<string> {
   )
 }
 
+/**
+ * placementMods maps each mod whose root in screen follows placement to its
+ * tree's generation.
+ */
+export function placementMods(screen: Screen | null): Map<string, bigint> {
+  return new Map(
+    (screen?.trees ?? [])
+      .filter(
+        (tree) =>
+          tree.nodes?.find((node) => (node.id ?? '') === '')?.followsPlacement,
+      )
+      .map((tree) => [tree.mod ?? '', tree.generation ?? 0n]),
+  )
+}
+
 /** abilityBarMods lists the mods whose roots in screen ask for clicks on the ability bar. */
 export function abilityBarMods(screen: Screen | null): string[] {
   return (screen?.trees ?? [])

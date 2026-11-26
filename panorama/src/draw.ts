@@ -42,6 +42,7 @@ import {
   type Edges,
   Face,
   Flow,
+  Frame,
   type Gradient,
   GradientShape,
   HeroLook,
@@ -102,6 +103,10 @@ export interface Panel {
   readonly actuallayoutwidth?: number
   /** actualuiscale_x converts horizontal layout units to window pixels. */
   readonly actualuiscale_x?: number
+  /** actuallayoutheight is the panel's height in layout units. */
+  readonly actuallayoutheight?: number
+  /** actualuiscale_y converts vertical layout units to window pixels. */
+  readonly actualuiscale_y?: number
   /** GetPositionWithinWindow returns the panel's origin in window pixels. */
   GetPositionWithinWindow?(): { x: number; y: number }
   /** checked reports whether a toggle button is checked. */
@@ -606,7 +611,30 @@ interface Drawn {
   hideInChat: boolean
   /** speaking is the player name whose voice shows the node, or ''. */
   speaking: string
+  /** measure is the name the node's bounds are reported by, or ''. */
+  measure: string
 }
+
+/** Box is a panel's bounds in layout units: x, y, width and height. */
+export type Box = readonly [number, number, number, number]
+
+/**
+ * Measured is where the screen lays out one mod's interface: the screen's
+ * size, the HUD's frame, and the bounds of each node the tree measures.
+ */
+export interface Measured {
+  readonly screen: readonly [number, number]
+  readonly hud: Box
+  readonly boxes: ReadonlyMap<string, Box>
+}
+
+/**
+ * hudFrameClass is the game's class for a panel that fills the box its HUD
+ * lays out in: the screen, or its middle 1920 layout units when the player
+ * keeps a wide screen's HUD there. The game's HUD sheet sizes it, so the
+ * frame follows the player's setting as it changes.
+ */
+const hudFrameClass = 'clamp_width'
 
 /**
  * keptSounds is how many of a mod's sounds the drawing can stop: a sound
@@ -654,8 +682,16 @@ export class Drawing {
   /** mods holds each mod's lifetime and drawn nodes; the root's id is empty. */
   private readonly mods = new Map<
     string,
-    { generation: bigint; nodes: Map<string, Drawn> }
+    {
+      generation: bigint
+      frame: Frame
+      followsPlacement: boolean
+      nodes: Map<string, Drawn>
+    }
   >()
+
+  /** hud is the panel that fills the HUD's frame, once a mod asks for it. */
+  private hud: Panel | null = null
 
   /** routes holds each mod's routes, the value of each by name. */
   private readonly routes = new Map<string, Map<string, string>>()
@@ -845,6 +881,78 @@ export class Drawing {
     })
   }
 
+  /**
+   * hudFrame returns the panel that fills the HUD's frame, making it the
+   * first time: a pass-through panel with the game's own class for it.
+   */
+  private hudFrame(): Panel {
+    // A frame the game deleted with the HUD is made again.
+    if (this.hud?.IsValid()) return this.hud
+    const hud = this.panorama.CreatePanel('Panel', this.parent, 'ModlockHud')
+    this.hud = hud
+
+    // It passes clicks through and fills the screen, until the game's clamp
+    // narrows it to the middle 16:9.
+    hud.hittest = false
+    hud.AddClass(hudFrameClass)
+    hud.style.width = '100%'
+    hud.style.height = '100%'
+    hud.style.horizontalAlign = 'center'
+    return hud
+  }
+
+  /**
+   * placement reads where the screen laid out each mod whose root follows
+   * placement, in layout units from the screen's top left. It reads nothing
+   * until the game has laid out the screen and the HUD frame, and skips a
+   * measured node until its panel is laid out; of two nodes with one name,
+   * the first drawn counts.
+   */
+  placement(): Map<string, Measured> {
+    // Nothing to read before the game sized the screen.
+    const measured = new Map<string, Measured>()
+    const screen = this.parent
+    const width = screen.actuallayoutwidth ?? 0
+    const height = screen.actuallayoutheight ?? 0
+    const origin = screen.GetPositionWithinWindow?.()
+    if (!(width > 0 && height > 0) || !origin) return measured
+
+    // Window pixels become layout units by the screen's own scale.
+    const scaleX = screen.actualuiscale_x || 1
+    const scaleY = screen.actualuiscale_y || 1
+    const box = (panel: Panel): Box | null => {
+      const at = panel.IsValid() ? panel.GetPositionWithinWindow?.() : null
+      if (!at) return null
+      return [
+        Math.round((at.x - origin.x) / scaleX),
+        Math.round((at.y - origin.y) / scaleY),
+        Math.round(panel.actuallayoutwidth ?? 0),
+        Math.round(panel.actuallayoutheight ?? 0),
+      ]
+    }
+
+    // The HUD's frame is made only once a mod follows placement, and read once
+    // the game has laid it out.
+    const following = [...this.mods].filter(([, each]) => each.followsPlacement)
+    if (following.length === 0) return measured
+    const hud = box(this.hudFrame())
+    if (!hud || !(hud[2] > 0)) return measured
+    for (const [mod, { nodes }] of following) {
+      const boxes = new Map<string, Box>()
+      for (const each of nodes.values()) {
+        if (!each.measure || boxes.has(each.measure)) continue
+        const at = box(each.panel)
+        if (at) boxes.set(each.measure, at)
+      }
+      measured.set(mod, {
+        screen: [Math.round(width), Math.round(height)],
+        hud,
+        boxes,
+      })
+    }
+    return measured
+  }
+
   /** drawTree draws one mod's nodes from its root down, in its region. */
   private drawTree(mod: string, tree: Tree): void {
     // Index the mod's nodes by id.
@@ -865,9 +973,14 @@ export class Drawing {
 
     // A clear followed by a redraw can share one sampled screen. Its new
     // generation still replaces the previous layout and its script state.
+    // A root moved to another frame hangs from another panel, so it is
+    // drawn anew as for a new lifetime.
     const old = this.mods.get(mod)
     const generation = tree.generation ?? 0n
-    if (old && old.generation !== generation) {
+    const root = nodes.get('') ?? { id: '' }
+    const frame = root.frame ?? Frame.SCREEN
+    const same = old?.generation === generation && old.frame === frame
+    if (old && !same) {
       this.notifyUnloading(old.nodes.values())
       for (const each of old.nodes.values()) {
         this.untip(each)
@@ -879,11 +992,10 @@ export class Drawing {
     }
 
     // Reuse panels only within the same UI lifetime.
-    const previous =
-      old?.generation === generation ? old.nodes : new Map<string, Drawn>()
+    const previous = same ? old.nodes : new Map<string, Drawn>()
     const drawn = new Map<string, Drawn>()
-    const root = nodes.get('') ?? { id: '' }
-    this.drawNode(mod, root, this.parent, previous, drawn, nodes, tree.region)
+    const parent = frame === Frame.HUD ? this.hudFrame() : this.parent
+    this.drawNode(mod, root, parent, previous, drawn, nodes, tree.region)
 
     // Hand each layout loaded before this draw the routes that changed, an
     // empty value for one the mod no longer sends.
@@ -922,7 +1034,12 @@ export class Drawing {
         this.leave(old)
       }
     }
-    this.mods.set(mod, { generation, nodes: drawn })
+    this.mods.set(mod, {
+      generation,
+      frame,
+      followsPlacement: !!root.followsPlacement,
+      nodes: drawn,
+    })
     this.cue(mod, generation, root.cues ?? [])
   }
 
@@ -1731,6 +1848,7 @@ export class Drawing {
           : null,
       hideInChat: !!node.hideInChat,
       speaking: node.speaking ?? '',
+      measure: node.measure ?? '',
     }
     drawn.set(id, each)
 

@@ -2487,6 +2487,12 @@ class ModClient {
     return Send<void>("UiOverlay", event);
   }
 
+  // UiPlacement reports where a player's screen places the mod's interface,
+  // to a mod whose root follows placement.
+  std::expected<void, std::string> UiPlacement(const ui::UiPlacementEvent& event) {
+    return Send<void>("UiPlacement", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

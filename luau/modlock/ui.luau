@@ -22,6 +22,8 @@ type Player = modlock.Player
 type GameAction = modlock.GameAction
 type ActionPhase = modlock.ActionPhase
 type Overlay = modlock.Overlay
+type Bounds = modlock.Bounds
+type UiPlacementEvent = modlock.UiPlacementEvent
 type Wheel = modlock.Wheel
 
 local ui = {}
@@ -293,7 +295,8 @@ export type HeroLook = "small" | "card" | "icon" | "vertical" | "topBar" | "mini
 -- such as "upgrade_ability_power_shard", whose shop card shows instead,
 -- ability names an ability whose window shows instead of either, and
 -- hoverSound is the game's sound event played as the pointer enters, such as
--- "UI.MainMenu.Hover"; enter is the style the element starts from when it
+-- "UI.MainMenu.Hover"; measure names the element in the placement reports
+-- of followPlacement; enter is the style the element starts from when it
 -- first shows, exit the style it eases to as it leaves, and cycle swings it
 -- to another style and back while it shows. key keeps a list child's place.
 -- An element with a tooltip, item, ability or hoverSound takes the pointer,
@@ -309,6 +312,7 @@ export type PanelProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -327,6 +331,7 @@ export type LabelProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -346,6 +351,7 @@ export type ImageProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -366,6 +372,7 @@ export type HeroProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -388,6 +395,7 @@ export type AvatarProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -410,6 +418,7 @@ export type ButtonProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -432,6 +441,7 @@ export type EntryProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -457,6 +467,7 @@ export type SliderProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -482,6 +493,7 @@ export type ToggleProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -502,6 +514,7 @@ export type DropdownProps = {
 	item: string?,
 	ability: AbilityTip?,
 	hoverSound: string?,
+	measure: string?,
 	enter: Style?,
 	exit: Style?,
 	cycle: Cycle?,
@@ -523,6 +536,8 @@ export type LayoutProps = {
 	style: Style?,
 	src: string,
 	data: any,
+	-- measure names the layout in the placement reports of followPlacement.
+	measure: string?,
 	-- A key of another name is a mistake, which the indexer makes the checker
 	-- report.
 	[number]: never,
@@ -566,6 +581,20 @@ export type ActionHandler = (player: Player, phase: ActionPhase) -> ()
 
 -- OverlayHandler takes the stock overlay that now holds player's input.
 export type OverlayHandler = (player: Player, overlay: Overlay) -> ()
+
+-- Placement is where a player's screen places the interface, in layout units
+-- from the screen's top left, where the screen is 1080 units tall: the
+-- screen's size, the HUD's frame, which is the middle 16:9 of a wider screen
+-- whose player keeps the HUD there, and the box of each element whose
+-- measure names it.
+export type Placement = {
+	screen: Bounds,
+	hud: Bounds,
+	measured: { [string]: Bounds },
+}
+
+-- PlacementHandler takes where player's screen places the interface.
+export type PlacementHandler = (player: Player, placement: Placement) -> ()
 
 -- Node is one node of the interface tree as the wire carries it.
 type Node = { [string]: any }
@@ -620,6 +649,10 @@ type View = {
 	actions: { [GameAction]: ActionHandler },
 	-- overlay takes each stock overlay change, while the mod follows them.
 	overlay: OverlayHandler?,
+	-- placement takes each placement report, while the mod follows placement.
+	placement: PlacementHandler?,
+	-- hudFrame is true while the interface is drawn in the HUD's frame.
+	hudFrame: boolean,
 	-- display is the abilities shown on Tab's rows and the ability bar.
 	display: { AbilityRow },
 	-- notices are the toasts showing, oldest first.
@@ -1242,6 +1275,7 @@ function place(layout: Layout, child: any, at: string, out: { string })
 		ability = if named and ability then itemId(ability.name) else nil,
 		abilityPlayer = if named and ability then ability.player.slot else nil,
 		hoverSound = props.hoverSound,
+		measure = props.measure,
 		enter = wireStyle(props.enter),
 		exit = wireStyle(props.exit),
 		cycle = cycle(props.cycle),
@@ -1417,6 +1451,8 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 		abilityBarPresses = current.bar ~= nil,
 		gameActions = followed(current.actions),
 		followsOverlay = current.overlay ~= nil,
+		followsPlacement = current.placement ~= nil,
+		frame = if current.hudFrame then "hud" else "screen",
 		abilityDisplay = display,
 	})
 
@@ -1464,6 +1500,7 @@ local function view(player: Player): View
 		routes = {},
 		cues = {},
 		actions = {},
+		hudFrame = false,
 		display = {},
 		notices = {},
 	}
@@ -1562,6 +1599,25 @@ end
 -- mod stops following.
 function ui.followOverlay(player: Player, onChange: OverlayHandler?): boolean
 	view(player).overlay = onChange
+	return draw(player)
+end
+
+-- followPlacement calls onPlace with where player's screen places the
+-- interface: the whole placement first, then again each time any part of it
+-- moves, such as when the player changes resolution or an element's layout
+-- settles. Elements that share a measure report one box. Without onPlace the
+-- mod stops following.
+function ui.followPlacement(player: Player, onPlace: PlacementHandler?): boolean
+	view(player).placement = onPlace
+	return draw(player)
+end
+
+-- inHudFrame draws player's interface inside the HUD's frame instead of the
+-- whole screen. The frame is the screen itself, except on a screen wider
+-- than 16:9 where the player keeps the HUD in its middle 16:9, so an
+-- interface aligned to the frame's edges lines up with the game's HUD.
+function ui.inHudFrame(player: Player, on: boolean): boolean
+	view(player).hudFrame = on
 	return draw(player)
 end
 
@@ -1720,6 +1776,19 @@ local function overlaid(player: Player, overlay: Overlay)
 	end
 end
 
+-- placed runs the handler of the mod that follows the player's placement.
+local function placed(event: UiPlacementEvent)
+	local current = views[event.player.slot]
+	local handler = if current then current.placement else nil
+	if handler then
+		local measured = {}
+		for _, each in event.measured do
+			measured[each.name] = each.bounds
+		end
+		handler(event.player, { screen = event.screen, hud = event.hud, measured = measured })
+	end
+end
+
 -- press runs the handler of the button the player pressed.
 local function press(player: Player, node: string)
 	-- A click on the game's ability bar names its slot, which no button's id
@@ -1796,6 +1865,6 @@ end
 
 -- Take the interface's events from the library, which loads without this
 -- module.
-wireCodec = modlock.serveInterface({ press = press, change = change, act = act, overlay = overlaid, tick = tick, players = forget })
+wireCodec = modlock.serveInterface({ press = press, change = change, act = act, overlay = overlaid, placement = placed, tick = tick, players = forget })
 
 return ui

@@ -189,6 +189,11 @@ std::expected<void, std::string> Check(const ui::Node& node) {
   if (node.data().size() > kMaxData) {
     return std::unexpected("node " + node.id() + ": data is too long");
   }
+  if (!node.measure().empty() &&
+      (node.measure().size() > kMaxId || !IsWord(node.measure(), "-."))) {
+    return std::unexpected("node " + node.id() +
+                           ": a measure is at most 64 letters, digits, '_', '-' and '.'");
+  }
   if (node.kind() == ui::KIND_LAYOUT && !IsAddonPath(node.layout(), ".xml")) {
     return std::unexpected("node " + node.id() +
                            ": a layout is a path ending in .xml in the mod's addon");
@@ -408,7 +413,7 @@ uint64_t NextDocumentControl() {
 }  // namespace
 
 DocumentResult UiDocuments::Take(int32_t slot, uint64_t control, uint64_t& last,
-                                std::string_view frame, Clock::time_point now) {
+                                 std::string_view frame, Clock::time_point now) {
   // Match the control and submission before changing any pending transfer.
   if (frame.size() > 320 || Decimal(TakeField(frame)) != control) {
     return std::nullopt;
@@ -430,8 +435,7 @@ DocumentResult UiDocuments::Take(int32_t slot, uint64_t control, uint64_t& last,
     if (*total > kLimit) {
       return std::unexpected(ui::DOCUMENT_FAILURE_TOO_LARGE);
     }
-    const auto until =
-        now + kDeadline + std::chrono::milliseconds(*total * 1000 / kBytesPerSecond);
+    const auto until = now + kDeadline + std::chrono::milliseconds(*total * 1000 / kBytesPerSecond);
     auto [started, inserted] = transfers_.try_emplace(
         slot, Transfer{control, *serial, static_cast<size_t>(*total), until, {}});
     static_cast<void>(inserted);
@@ -615,8 +619,7 @@ uint64_t UiTrees::DocumentControl(int32_t slot) const {
 }
 
 std::optional<ui::UiDocumentEvent> UiTrees::Document(int32_t slot, std::string_view node,
-                                                     std::string_view frame,
-                                                     UiDocuments& documents,
+                                                     std::string_view frame, UiDocuments& documents,
                                                      UiDocuments::Clock::time_point now) {
   // Only the slot's current form takes frames.
   const auto control = DocumentControl(slot);
@@ -679,7 +682,7 @@ bool UiTrees::IsButton(int32_t slot, std::string_view node) const {
 }
 
 std::expected<ui::UiActionEvent, std::string> UiTrees::GameAction(int32_t slot,
-                                                                 std::string_view line) const {
+                                                                  std::string_view line) const {
   // Read the action and the phase, each a small decimal number.
   const auto space = line.find(' ');
   if (space == std::string_view::npos) {
@@ -713,7 +716,7 @@ std::expected<ui::UiActionEvent, std::string> UiTrees::GameAction(int32_t slot,
 }
 
 std::expected<ui::UiOverlayEvent, std::string> UiTrees::Overlay(int32_t slot,
-                                                               std::string_view line) const {
+                                                                std::string_view line) const {
   // Read the overlay, a small decimal number.
   int overlay = 0;
   const auto [end, error] = std::from_chars(line.data(), line.data() + line.size(), overlay);
@@ -735,6 +738,84 @@ std::expected<ui::UiOverlayEvent, std::string> UiTrees::Overlay(int32_t slot,
   return std::unexpected("follows no overlay");
 }
 
+std::expected<ui::UiPlacementEvent, std::string> UiTrees::Placement(int32_t slot,
+                                                                    std::string_view line) {
+  // Refuse a placement for a root that does not follow it.
+  const auto tree = trees_.find(slot);
+  if (tree == trees_.end()) {
+    return std::unexpected("follows no placement");
+  }
+  const auto& nodes = tree->second;
+  if (const auto root = nodes.find(""); root == nodes.end() || !root->second.follows_placement) {
+    return std::unexpected("follows no placement");
+  }
+
+  // Split the line into words, then read the screen's size and the HUD's box.
+  std::vector<std::string_view> words;
+  for (const auto word : std::views::split(line, ' ')) {
+    words.emplace_back(word.begin(), word.end());
+  }
+  const auto number = [](std::string_view text, int32_t& value) {
+    const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+    return error == std::errc() && end == text.data() + text.size() && value >= -kMaxPlacement &&
+           value <= kMaxPlacement;
+  };
+  const auto bounds = [&](size_t at, ui::Bounds& box) {
+    int32_t x = 0, y = 0, width = 0, height = 0;
+    if (!number(words[at], x) || !number(words[at + 1], y) || !number(words[at + 2], width) ||
+        !number(words[at + 3], height) || width < 0 || height < 0) {
+      return false;
+    }
+    box.set_x(x);
+    box.set_y(y);
+    box.set_width(width);
+    box.set_height(height);
+    return true;
+  };
+  ui::Bounds screen;
+  ui::Bounds hud;
+  int32_t width = 0, height = 0;
+  if (words.size() < 6 || (words.size() - 6) % 5 != 0 || !number(words[0], width) ||
+      !number(words[1], height) || width < 0 || height < 0 || !bounds(2, hud)) {
+    return std::unexpected("sent a placement it cannot read");
+  }
+  screen.set_width(width);
+  screen.set_height(height);
+
+  // Read each measured node's box, keeping only the names the tree measures:
+  // the renderer may report a name from the tree it drew a frame ago.
+  std::set<std::string_view> names;
+  for (const auto& [id, node] : nodes) {
+    if (!node.measure.empty()) {
+      names.insert(node.measure);
+    }
+  }
+  auto& layout = placements_[slot];
+  for (size_t at = 6; at < words.size(); at += 5) {
+    ui::Bounds box;
+    if (!bounds(at + 1, box)) {
+      return std::unexpected("sent a placement it cannot read");
+    }
+    if (names.contains(words[at])) {
+      layout.measured[std::string(words[at])] = box;
+    }
+  }
+
+  // The event holds the whole placement: the newest screen and HUD, and each
+  // box the renderer reported for a name the tree still measures.
+  std::erase_if(layout.measured, [&](const auto& each) { return !names.contains(each.first); });
+  ui::UiPlacementEvent event;
+  event.set_player(slot);
+  *event.mutable_screen() = screen;
+  *event.mutable_hud() = hud;
+  for (const auto& [name, box] : layout.measured) {
+    auto* each = event.add_measured();
+    each->set_name(name);
+    *each->mutable_bounds() = box;
+  }
+  return event;
+}
+
 UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   // Keep the kind, and an input's control and state.
   Shown shown;
@@ -749,7 +830,9 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
       shown.game_actions.push_back(static_cast<ui::GameAction>(action));
     }
     shown.follows_overlay = node.follows_overlay();
+    shown.follows_placement = node.follows_placement();
   }
+  shown.measure = node.measure();
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
   }
@@ -918,6 +1001,7 @@ std::expected<ui::UiPressEvent, std::string> UiTrees::Action(
 
 bool UiTrees::Drop(int32_t slot) {
   paces_.erase(slot);
+  placements_.erase(slot);
   document_controls_.erase(slot);
   if (trees_.erase(slot) == 0) {
     return false;
@@ -936,6 +1020,7 @@ std::vector<int32_t> UiTrees::Clear() {
   document_controls_.clear();
   left_.clear();
   paces_.clear();
+  placements_.clear();
   return slots;
 }
 

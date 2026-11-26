@@ -55,6 +55,7 @@ import { chatShown } from './chat.js'
 import {
   acted,
   overlaid,
+  placed,
   away,
   change,
   heard,
@@ -186,6 +187,10 @@ export {
   type ActionHandler,
   followOverlay,
   type OverlayHandler,
+  followPlacement,
+  type Placement,
+  type PlacementHandler,
+  inHudFrame,
   abilityDisplay,
   type AbilityRow,
   type ShownAbility,
@@ -841,6 +846,11 @@ const handlers: ModHandlers = {
   uiOverlay(event) {
     // An overlay change runs with the next frame, as a press does.
     after(0, () => overlaid(event))
+  },
+
+  uiPlacement(event) {
+    // A placement runs with the next frame, as a press does.
+    after(0, () => placed(event))
   },
 
   serve(event) {
