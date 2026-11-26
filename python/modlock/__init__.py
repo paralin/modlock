@@ -778,6 +778,8 @@ _HudPart: dict[Any, Any] = {
     "cast_failed": 16,
     17: "event_indicators",
     "event_indicators": 17,
+    18: "status_indicators",
+    "status_indicators": 18,
 }
 
 

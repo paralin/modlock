@@ -267,6 +267,13 @@ export enum HudPart {
    * item they used or souls they picked up.
    */
   EVENT_INDICATORS = 17,
+
+  /**
+   * HUD_PART_STATUS_INDICATORS is the event indicators that name a crowd
+   * control status applied to the player: stunned, silenced, disarmed, asleep
+   * or immobilized. Damage and healing numbers and items used stay.
+   */
+  STATUS_INDICATORS = 18,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -290,6 +297,7 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [15, 'HUD_PART_CROSSHAIR'],
     [16, 'HUD_PART_CAST_FAILED'],
     [17, 'HUD_PART_EVENT_INDICATORS'],
+    [18, 'HUD_PART_STATUS_INDICATORS'],
   ],
 )
 

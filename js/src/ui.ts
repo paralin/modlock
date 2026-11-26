@@ -351,7 +351,8 @@ export interface Style {
  * 'crosshair' the crosshair with its clip ring, ammo count and stamina pips,
  * 'castFailed' the notice of an ability the player could not cast,
  * 'eventIndicators' the icons and numbers the game floats at each event that
- * affects the player, and 'all' the whole HUD but the mods' own interfaces, the game's tooltips
+ * affects the player, 'statusIndicators' only those that name a crowd control
+ * status, such as a stun, and 'all' the whole HUD but the mods' own interfaces, the game's tooltips
  * and its chat, for a screen that takes the player's whole view. Whatever a
  * part does not name stays.
  */
@@ -372,6 +373,7 @@ export type HudPart =
   | 'crosshair'
   | 'castFailed'
   | 'eventIndicators'
+  | 'statusIndicators'
   | 'all'
 
 /** Child is anything an element may hold. Text becomes a label. */
@@ -1999,6 +2001,7 @@ const hudParts = {
   crosshair: WireHudPart.CROSSHAIR,
   castFailed: WireHudPart.CAST_FAILED,
   eventIndicators: WireHudPart.EVENT_INDICATORS,
+  statusIndicators: WireHudPart.STATUS_INDICATORS,
   all: WireHudPart.ALL,
 } as const
 

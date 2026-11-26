@@ -231,6 +231,10 @@ const (
 	// each event that affects the player, such as a status applied to them, an
 	// item they used or souls they picked up.
 	HudPart_HUD_PART_EVENT_INDICATORS HudPart = 17
+	// HUD_PART_STATUS_INDICATORS is the event indicators that name a crowd
+	// control status applied to the player: stunned, silenced, disarmed, asleep
+	// or immobilized. Damage and healing numbers and items used stay.
+	HudPart_HUD_PART_STATUS_INDICATORS HudPart = 18
 )
 
 // Enum value maps for HudPart.
@@ -254,26 +258,28 @@ var (
 		15: "HUD_PART_CROSSHAIR",
 		16: "HUD_PART_CAST_FAILED",
 		17: "HUD_PART_EVENT_INDICATORS",
+		18: "HUD_PART_STATUS_INDICATORS",
 	}
 	HudPart_value = map[string]int32{
-		"HUD_PART_UNKNOWN":          0,
-		"HUD_PART_LEVEL_UP":         1,
-		"HUD_PART_OWN_HEALTH":       2,
-		"HUD_PART_TOP_BAR":          3,
-		"HUD_PART_AMMO":             4,
-		"HUD_PART_SOULS":            5,
-		"HUD_PART_MINIMAP":          6,
-		"HUD_PART_ABILITIES":        7,
-		"HUD_PART_STATUS":           8,
-		"HUD_PART_STATS":            9,
-		"HUD_PART_HERO_PICKER":      10,
-		"HUD_PART_BROKER_COUNTDOWN": 11,
-		"HUD_PART_ALL":              12,
-		"HUD_PART_MINIMAP_PLAYERS":  13,
-		"HUD_PART_INVENTORY":        14,
-		"HUD_PART_CROSSHAIR":        15,
-		"HUD_PART_CAST_FAILED":      16,
-		"HUD_PART_EVENT_INDICATORS": 17,
+		"HUD_PART_UNKNOWN":           0,
+		"HUD_PART_LEVEL_UP":          1,
+		"HUD_PART_OWN_HEALTH":        2,
+		"HUD_PART_TOP_BAR":           3,
+		"HUD_PART_AMMO":              4,
+		"HUD_PART_SOULS":             5,
+		"HUD_PART_MINIMAP":           6,
+		"HUD_PART_ABILITIES":         7,
+		"HUD_PART_STATUS":            8,
+		"HUD_PART_STATS":             9,
+		"HUD_PART_HERO_PICKER":       10,
+		"HUD_PART_BROKER_COUNTDOWN":  11,
+		"HUD_PART_ALL":               12,
+		"HUD_PART_MINIMAP_PLAYERS":   13,
+		"HUD_PART_INVENTORY":         14,
+		"HUD_PART_CROSSHAIR":         15,
+		"HUD_PART_CAST_FAILED":       16,
+		"HUD_PART_EVENT_INDICATORS":  17,
+		"HUD_PART_STATUS_INDICATORS": 18,
 	}
 )
 

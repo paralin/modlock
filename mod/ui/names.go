@@ -58,7 +58,8 @@ type HeroLook string
 // items, Crosshair the crosshair with its clip ring, count and stamina pips,
 // CastFailed the notice of an ability the player could not cast,
 // EventIndicators the icons and numbers floated at each event that affects
-// the player, and All the whole HUD but the mods' own interfaces, the game's tooltips and
+// the player, StatusIndicators the event indicators of a crowd control status,
+// and All the whole HUD but the mods' own interfaces, the game's tooltips and
 // its chat.
 type HudPart string
 
@@ -196,6 +197,9 @@ const (
 	// EventIndicators is the icons and numbers floated at each event that
 	// affects the player, such as a status or an item used.
 	EventIndicators = "eventIndicators"
+	// StatusIndicators is the event indicators that name a crowd control
+	// status applied to the player, such as a stun.
+	StatusIndicators = "statusIndicators"
 	// All is the whole HUD but the mods' own interfaces, tooltips and chat.
 	All = "all"
 )
