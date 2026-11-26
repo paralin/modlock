@@ -253,6 +253,20 @@ export enum HudPart {
    * warnings stay.
    */
   CROSSHAIR = 15,
+
+  /**
+   * HUD_PART_CAST_FAILED is the notice under the crosshair that names an
+   * ability the player could not cast and why, such as a cooldown or too
+   * little stamina.
+   */
+  CAST_FAILED = 16,
+
+  /**
+   * HUD_PART_EVENT_INDICATORS is the icons and numbers the game floats at
+   * each event that affects the player, such as a status applied to them, an
+   * item they used or souls they picked up.
+   */
+  EVENT_INDICATORS = 17,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -274,6 +288,8 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [13, 'HUD_PART_MINIMAP_PLAYERS'],
     [14, 'HUD_PART_INVENTORY'],
     [15, 'HUD_PART_CROSSHAIR'],
+    [16, 'HUD_PART_CAST_FAILED'],
+    [17, 'HUD_PART_EVENT_INDICATORS'],
   ],
 )
 

@@ -223,6 +223,14 @@ const (
 	// reticle, the clip ring and ammo count, and the stamina pips. The ammo
 	// warnings stay.
 	HudPart_HUD_PART_CROSSHAIR HudPart = 15
+	// HUD_PART_CAST_FAILED is the notice under the crosshair that names an
+	// ability the player could not cast and why, such as a cooldown or too
+	// little stamina.
+	HudPart_HUD_PART_CAST_FAILED HudPart = 16
+	// HUD_PART_EVENT_INDICATORS is the icons and numbers the game floats at
+	// each event that affects the player, such as a status applied to them, an
+	// item they used or souls they picked up.
+	HudPart_HUD_PART_EVENT_INDICATORS HudPart = 17
 )
 
 // Enum value maps for HudPart.
@@ -244,6 +252,8 @@ var (
 		13: "HUD_PART_MINIMAP_PLAYERS",
 		14: "HUD_PART_INVENTORY",
 		15: "HUD_PART_CROSSHAIR",
+		16: "HUD_PART_CAST_FAILED",
+		17: "HUD_PART_EVENT_INDICATORS",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":          0,
@@ -262,6 +272,8 @@ var (
 		"HUD_PART_MINIMAP_PLAYERS":  13,
 		"HUD_PART_INVENTORY":        14,
 		"HUD_PART_CROSSHAIR":        15,
+		"HUD_PART_CAST_FAILED":      16,
+		"HUD_PART_EVENT_INDICATORS": 17,
 	}
 )
 

@@ -450,6 +450,10 @@ func hudPart(value HudPart) uipb.HudPart {
 		return uipb.HudPart_HUD_PART_INVENTORY
 	case Crosshair:
 		return uipb.HudPart_HUD_PART_CROSSHAIR
+	case CastFailed:
+		return uipb.HudPart_HUD_PART_CAST_FAILED
+	case EventIndicators:
+		return uipb.HudPart_HUD_PART_EVENT_INDICATORS
 	case All:
 		return uipb.HudPart_HUD_PART_ALL
 	}

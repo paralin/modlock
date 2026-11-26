@@ -3055,6 +3055,10 @@ local HudPart: { [any]: any } = {
 	inventory = 14,
 	[15] = "crosshair",
 	crosshair = 15,
+	[16] = "castFailed",
+	castFailed = 16,
+	[17] = "eventIndicators",
+	eventIndicators = 17,
 }
 
 -- Scaling holds the wire names of the interface enum Scaling.

@@ -774,6 +774,10 @@ _HudPart: dict[Any, Any] = {
     "inventory": 14,
     15: "crosshair",
     "crosshair": 15,
+    16: "cast_failed",
+    "cast_failed": 16,
+    17: "event_indicators",
+    "event_indicators": 17,
 }
 
 

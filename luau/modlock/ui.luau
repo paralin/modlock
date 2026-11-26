@@ -200,7 +200,9 @@ export type Style = {
 -- countdown in the Broker's window, "minimapPlayers" every player's icon on
 -- the minimap, the player's own included, "inventory" the purchased items
 -- beside the stats, "crosshair" the crosshair with its clip ring, ammo count
--- and stamina pips, and "all" the whole HUD but the mods' own interfaces, the
+-- and stamina pips, "castFailed" the notice of an ability the player could
+-- not cast, "eventIndicators" the icons and numbers the game floats at each
+-- event that affects the player, and "all" the whole HUD but the mods' own interfaces, the
 -- game's tooltips and its chat, for a screen that takes the player's whole
 -- view. Whatever a part does not name stays.
 export type HudPart =
@@ -218,6 +220,8 @@ export type HudPart =
 	| "minimapPlayers"
 	| "inventory"
 	| "crosshair"
+	| "castFailed"
+	| "eventIndicators"
 	| "all"
 
 -- Element is one element of an interface, as its function builds it.
