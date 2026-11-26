@@ -105,8 +105,21 @@ class UiTrees {
   // Overlay reads the stock overlay a player's game reports, its enum's
   // number, and returns the event the mod hears from slot while slot's root
   // follows overlays.
-  [[nodiscard]] std::expected<ui::UiOverlayEvent, std::string> Overlay(
-      int32_t slot, std::string_view line) const;
+  [[nodiscard]] std::expected<ui::UiOverlayEvent, std::string> Overlay(int32_t slot,
+                                                                       std::string_view line) const;
+
+  // Placement reads where a player's game placed the mod's interface, as the
+  // game sends it: the screen's width and height, the HUD's x, y, width and
+  // height, and then each measured node's name, x, y, width and height, all
+  // in layout units and separated by single spaces. A report holds only the
+  // boxes that changed, so Placement merges it into what slot reported
+  // before and returns the whole placement the mod hears, while slot's root
+  // follows placement. It keeps a box only for a name slot's tree measures.
+  [[nodiscard]] std::expected<ui::UiPlacementEvent, std::string> Placement(int32_t slot,
+                                                                           std::string_view line);
+
+  // kMaxPlacement is the largest distance, in layout units, a report holds.
+  static constexpr int32_t kMaxPlacement = 1 << 20;
 
   // Input checks value, as a player's game sends it, against the input named
   // node in slot's tree and returns the event the mod hears. A text entry's
@@ -169,6 +182,10 @@ class UiTrees {
     std::vector<ui::GameAction> game_actions;
     // follows_overlay is the root's ask for each change of stock overlay.
     bool follows_overlay = false;
+    // follows_placement is the root's ask for each change of its placement.
+    bool follows_placement = false;
+    // measure is the name the node's bounds are reported by, or empty.
+    std::string measure;
   };
 
   // Keep returns what the host keeps of node.
@@ -189,6 +206,15 @@ class UiTrees {
 
   // paces_ maps each slot that pressed through a layout to its pace.
   std::map<int32_t, Pace> paces_;
+
+  // Reported is the box of each measured name one player's game reported.
+  // The screen and HUD come whole in every report, so only boxes are kept.
+  struct Reported {
+    std::map<std::string, ui::Bounds, std::less<>> measured;
+  };
+
+  // placements_ maps each slot whose game reported a placement to its boxes.
+  std::map<int32_t, Reported> placements_;
 };
 
 }  // namespace modlock::wasm

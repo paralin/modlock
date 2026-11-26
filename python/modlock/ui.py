@@ -72,10 +72,12 @@ from . import (
     _SCHEMA,  # pyright: ignore[reportPrivateUsage]
     HEROES,
     ActionPhase,
+    Bounds,
     GameAction,
     Overlay,
     Player,
     PlayerReturnedEvent,
+    UiPlacementEvent,
     Wheel,
     _call,  # pyright: ignore[reportPrivateUsage]
     _serve_ui,  # pyright: ignore[reportPrivateUsage]
@@ -311,7 +313,8 @@ class ElementProps(TypedDict, total=False):
     card shows instead, ability names an ability whose window shows instead of
     either, and hover_sound is the game's sound event played as the pointer
     enters, such as "UI.MainMenu.Hover". An element with any of them takes the
-    pointer, so the game behind it does not. enter is the style the element's
+    pointer, so the game behind it does not. measure names the element in the
+    placement reports of follow_placement. enter is the style the element's
     panel starts from when it first shows, exit the style it eases to as it
     leaves, and cycle swings it to another style and back while it shows."""
 
@@ -323,6 +326,7 @@ class ElementProps(TypedDict, total=False):
     item: str
     ability: AbilityTip
     hover_sound: str
+    measure: str
     enter: Style
     exit: Style
     cycle: Cycle
@@ -421,13 +425,15 @@ class ButtonProps(ElementProps, total=False):
 class LayoutProps(TypedDict, total=False):
     """LayoutProps load a layout from the mod's content addon: src is its path
     there, such as "shop.xml", and data is the JSON value its script reads
-    with Modlock.data."""
+    with Modlock.data. measure names the layout in the placement reports of
+    follow_placement."""
 
     key: str | int
     class_: str
     style: Style
     src: Required[str]
     data: object
+    measure: str
 
 
 class Element:
@@ -645,6 +651,42 @@ def follow_overlay(player: Player, on_change: OverlayHandler | None = None) -> b
     return _draw(player)
 
 
+@dataclass(frozen=True, slots=True)
+class Placement:
+    """Placement is where a player's screen places the interface, in layout
+    units from the screen's top left, where the screen is 1080 units tall:
+    the screen's size, the HUD's frame, which is the middle 16:9 of a wider
+    screen whose player keeps the HUD there, and the box of each element
+    whose measure names it."""
+
+    screen: Bounds
+    hud: Bounds
+    measured: Mapping[str, Bounds]
+
+
+# PlacementHandler takes where player's screen places the interface.
+type PlacementHandler = Callable[[Player, Placement], object]
+
+
+def follow_placement(player: Player, on_place: PlacementHandler | None = None) -> bool:
+    """follow_placement calls on_place with where player's screen places the
+    interface: the whole placement first, then again each time any part of
+    it moves, such as when the player changes resolution or an element's
+    layout settles. Elements that share a measure report one box. Without
+    on_place the mod stops following."""
+    _view(player).placement = on_place
+    return _draw(player)
+
+
+def in_hud_frame(player: Player, on: bool) -> bool:
+    """in_hud_frame draws player's interface inside the HUD's frame instead
+    of the whole screen. The frame is the screen itself, except on a screen
+    wider than 16:9 where the player keeps the HUD in its middle 16:9, so an
+    interface aligned to the frame's edges lines up with the game's HUD."""
+    _view(player).hud_frame = on
+    return _draw(player)
+
+
 class ShownAbility(TypedDict):
     """ShownAbility is the ability ability_display shows in one slot: name is
     its class name, whose window the game shows over it, image its picture, a
@@ -817,6 +859,14 @@ def _act(player: Player, action: GameAction, phase: ActionPhase) -> None:
         handler(player, phase)
 
 
+def _placed(event: UiPlacementEvent) -> None:
+    """_placed runs the handler of the mod that follows the player's placement."""
+    view = _views.get(event.player.slot)
+    if view is not None and view.placement is not None:
+        measured = {each.name: each.bounds for each in event.measured}
+        view.placement(event.player, Placement(event.screen, event.hud, measured))
+
+
 def _overlaid(player: Player, overlay: Overlay) -> None:
     """_overlaid runs the handler of the mod that follows the player's overlays."""
     view = _views.get(player.slot)
@@ -901,6 +951,10 @@ class _View:
     )
     # overlay takes each stock overlay change, while the mod follows them.
     overlay: OverlayHandler | None = None
+    # placement takes each placement report, while the mod follows placement.
+    placement: PlacementHandler | None = None
+    # hud_frame is true while the interface is drawn in the HUD's frame.
+    hud_frame: bool = False
     # display is the abilities shown on Tab's rows and the ability bar.
     display: list[AbilityRow] = field(default_factory=lambda: list[AbilityRow]())
     notices: list[_Notice] = field(default_factory=lambda: list[_Notice]())
@@ -1061,6 +1115,8 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
             "ability_bar_presses": view.bar is not None,
             "game_actions": sorted(view.actions),
             "follows_overlay": view.overlay is not None,
+            "follows_placement": view.placement is not None,
+            "frame": "hud" if view.hud_frame else "screen",
             "ability_display": display,
         }
     )
@@ -1129,6 +1185,7 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
         "ability": _item_id(ability["name"]) if ability and ability["name"] else None,
         "ability_player": ability["player"].slot if ability and ability["name"] else None,
         "hover_sound": props.get("hover_sound"),
+        "measure": props.get("measure"),
         "enter": _style(props.get("enter")),
         "exit": _style(props.get("exit")),
         "cycle": _cycle(props.get("cycle")),
@@ -1489,7 +1546,7 @@ def _color(value: str | None) -> int | None:
     return int(digits + "ff" if len(digits) == 6 else digits, 16)
 
 
-_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, overlay=_overlaid, tick=_tick))
+_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, overlay=_overlaid, placement=_placed, tick=_tick))
 
 
 @on_player_return

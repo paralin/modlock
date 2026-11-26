@@ -40,6 +40,11 @@ constexpr std::string_view kGameActionCommand = "modlockgame ";
 // <overlay>", as UiTrees::Overlay reads it.
 constexpr std::string_view kOverlayCommand = "modlockoverlay ";
 
+// kPlacementCommand starts the console command a player's game sends when the
+// placement a mod's root follows changes: "modlockplacement <mod> <report>", as
+// UiTrees::Placement reads the report.
+constexpr std::string_view kPlacementCommand = "modlockplacement ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -216,6 +221,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
       return false;
     }
     if (auto refused = Overlay(slot, sent.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
+  if (line.starts_with(kPlacementCommand)) {
+    // A placement report names this mod, then what changed.
+    const auto sent = line.substr(kPlacementCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = Placement(slot, sent.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

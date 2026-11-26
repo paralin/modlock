@@ -52,6 +52,11 @@ import {
   OverlayReader,
   stockOf,
 } from './overlay.js'
+import {
+  maxPlacementLine,
+  PlacementFollow,
+  placementCommands,
+} from './placement.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -64,6 +69,7 @@ class FakePanel {
   value = 0
   actuallayoutwidth = 200
   actualuiscale_x = 2
+  actuallayoutheight = 0
   GetPositionWithinWindow() {
     return { x: 100, y: 0 }
   }
@@ -3137,4 +3143,110 @@ test('a blocked open request waits, by priority within its mod, until nothing bl
   expect(shownMenus(root)).toEqual(['warn'])
   menuContents(root, 'warn')!.events.get('oncancel')!()
   expect(shownMenus(root)).toEqual(['other'])
+})
+
+test('draws a root in the HUD frame and reads where each measured node sits', () => {
+  // A root in the HUD frame hangs from one pass-through panel that takes the
+  // game's own clamp class.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  root.actuallayoutheight = 1080
+  const drawing = new Drawing($, root, () => {})
+  expect(drawing.placement().size).toBe(0)
+  drawing.draw(
+    screen(
+      { id: '', children: ['a'], frame: 'FRAME_HUD', followsPlacement: true },
+      { id: 'a', kind: 'KIND_PANEL', measure: 'preview' },
+    ),
+  )
+  const hud = root.FindChild('ModlockHud')!
+  expect(hud.classes).toContain('clamp_width')
+  expect(hud.hittest).toBe(false)
+  expect(hud.children).toHaveLength(1)
+
+  // Boxes are in layout units from the screen's top left: window pixels
+  // less the screen's origin, over its scale.
+  hud.actuallayoutheight = 1080
+  const node = hud.children[0]!.children[0]!
+  node.actuallayoutheight = 50
+  node.GetPositionWithinWindow = () => ({ x: 140, y: 20 })
+  const measured = drawing.placement().get('arena')!
+  expect(measured.screen).toEqual([200, 1080])
+  expect(measured.hud).toEqual([0, 0, 200, 1080])
+  expect([...measured.boxes]).toEqual([['preview', [20, 20, 200, 50]]])
+
+  // Moving the root back to the screen draws it anew under the screen.
+  drawing.draw(screen({ id: '', children: [] }))
+  expect(hud.children).toHaveLength(0)
+  expect(root.children.filter((each) => each !== hud)).toHaveLength(1)
+  expect(drawing.placement().size).toBe(0)
+})
+
+test('reports a placement whole, then each change, in lines that fit', () => {
+  // A change too large for one line goes in several, each with the head.
+  const head = 'modlockplacement arena 2520 1080 300 0 1920 1080'
+  const many = Array.from(
+    { length: 40 },
+    (_, i): [string, [number, number, number, number]] => [
+      `node${i}`,
+      [i, i, 10, 10],
+    ],
+  )
+  const lines = placementCommands(
+    'arena',
+    { screen: [2520, 1080], hud: [300, 0, 1920, 1080], boxes: new Map() },
+    many,
+  )
+  expect(lines.length).toBeGreaterThan(1)
+  for (const line of lines) {
+    expect(line.startsWith(head + ' ')).toBe(true)
+    expect(line.length).toBeLessThanOrEqual(maxPlacementLine)
+  }
+  expect(lines.join('').split(' node').length - 1).toBe(40)
+
+  // A new follower hears everything; then only a changed box, or the head
+  // alone when only the HUD moved, and nothing when nothing moved.
+  const sent: string[] = []
+  let hud: [number, number, number, number] = [300, 0, 1920, 1080]
+  let bar: [number, number, number, number] = [10, 20, 30, 40]
+  const read = () =>
+    new Map([
+      [
+        'arena',
+        {
+          screen: [2520, 1080] as const,
+          hud,
+          boxes: new Map([
+            ['preview', [1, 2, 3, 4] as const],
+            ['bar', bar],
+          ]),
+        },
+      ],
+    ])
+  const follow = new PlacementFollow(
+    read,
+    (line) => sent.push(line),
+    (_, callback) => scheduled.set(scheduled.size + 1000, callback),
+  )
+  follow.follow(new Map([['arena', 1n]]))
+  runScheduled()
+  bar = [11, 20, 30, 40]
+  runScheduled()
+  hud = [0, 0, 2520, 1080]
+  runScheduled()
+  expect(sent).toEqual([
+    `${head} preview 1 2 3 4 bar 10 20 30 40`,
+    `${head} bar 11 20 30 40`,
+    'modlockplacement arena 2520 1080 0 0 2520 1080',
+  ])
+
+  // A cleared tree, which the host forgets, hears everything again; once no
+  // mod follows, the reading stops.
+  sent.length = 0
+  follow.follow(new Map([['arena', 2n]]))
+  expect(sent).toEqual([
+    'modlockplacement arena 2520 1080 0 0 2520 1080 preview 1 2 3 4 bar 11 20 30 40',
+  ])
+  follow.follow(new Map())
+  runScheduled()
+  expect(scheduled.size).toBe(0)
 })

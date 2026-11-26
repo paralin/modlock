@@ -393,6 +393,8 @@ export type Interface = {
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- overlay takes the stock overlay that now holds the player's input.
 	overlay: (player: Player, overlay: Overlay) -> (),
+	-- placement takes where the player's screen places the interface.
+	placement: (event: UiPlacementEvent) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -1516,6 +1518,14 @@ local handlers: ModHandlers = {
 		if served and action and phase then
 			modlock.after(0, function()
 				served.act(event.player, action, phase)
+			end)
+		end
+	end,
+	uiPlacement = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.placement(event)
 			end)
 		end
 	end,

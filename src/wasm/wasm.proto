@@ -881,6 +881,10 @@ service Mod {
   // a mod whose root follows overlays.
   rpc UiOverlay(modlock.wasm.ui.UiOverlayEvent) returns (Empty);
 
+  // UiPlacement reports where a player's screen places the mod's interface,
+  // to a mod whose root follows placement.
+  rpc UiPlacement(modlock.wasm.ui.UiPlacementEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

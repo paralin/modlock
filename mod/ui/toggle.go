@@ -30,6 +30,8 @@ type Toggle struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the toggle in the placement reports of FollowPlacement.
+	Measure string
 	// Disabled makes the toggle take no changes.
 	Disabled bool
 	// Text labels the toggle.
@@ -53,7 +55,7 @@ func (e Toggle) key() string {
 // draw fills the toggle's node.
 func (e Toggle) draw(l *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled

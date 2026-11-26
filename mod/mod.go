@@ -80,6 +80,7 @@ type handlers struct {
 	documents     []func(*UiDocumentEvent)
 	actions       []func(*UiActionEvent)
 	overlays      []func(*UiOverlayEvent)
+	placements    []func(*UiPlacementEvent)
 	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
@@ -362,6 +363,13 @@ func OnUiOverlay(handler func(event *UiOverlayEvent)) {
 	registered.overlays = append(registered.overlays, handler)
 }
 
+// OnUiPlacement calls handler with each placement of the interface of a
+// player whose interface root follows placement, with the next server frame.
+// Package ui registers it to run the followers' handlers.
+func OnUiPlacement(handler func(event *UiPlacementEvent)) {
+	registered.placements = append(registered.placements, handler)
+}
+
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
@@ -496,6 +504,17 @@ func (h *handlers) UiAction(event *UiActionEvent) error {
 func (h *handlers) UiOverlay(event *UiOverlayEvent) error {
 	After(0, func() {
 		for _, handler := range h.overlays {
+			handler(event)
+		}
+	})
+	return nil
+}
+
+// UiPlacement runs the placement handlers with the next frame, as a press
+// does.
+func (h *handlers) UiPlacement(event *UiPlacementEvent) error {
+	After(0, func() {
+		for _, handler := range h.placements {
 			handler(event)
 		}
 	})

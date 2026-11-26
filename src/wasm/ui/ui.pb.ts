@@ -11,6 +11,33 @@ import type {
 } from '@aptre/protobuf-es-lite/binary-encoding'
 
 /**
+ * Frame is the box a mod's root fills.
+ *
+ * @generated from enum modlock.wasm.ui.Frame
+ */
+export enum Frame {
+  /**
+   * FRAME_SCREEN is the whole screen.
+   */
+  SCREEN = 0,
+
+  /**
+   * FRAME_HUD is the box the game lays its own HUD out in: the whole screen,
+   * or its middle 16:9 when the player keeps a wide screen's HUD there. A root
+   * aligned to its edges sits beside the stock HUD's corners.
+   */
+  HUD = 1,
+}
+
+export const Frame_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Frame',
+  [
+    [0, 'FRAME_SCREEN'],
+    [1, 'FRAME_HUD'],
+  ],
+)
+
+/**
  * ClockFormat writes a clock's time.
  *
  * @generated from enum modlock.wasm.ui.ClockFormat
@@ -1195,6 +1222,24 @@ export interface Node {
    */
   followsOverlay?: boolean
   /**
+   * Measure names the node in the placement reports its mod hears while
+   * the root follows placement: letters, digits, '_', '-' and '.', at most 64 bytes.
+   * Names are unique within a tree; of two nodes with one name, the renderer
+   * reports one.
+   */
+  measure?: string
+  /**
+   * Frame is the box the root fills, on the root only: the screen, or the
+   * part of it where the game lays out its own HUD.
+   */
+  frame?: Frame
+  /**
+   * FollowsPlacement asks, on the root only, for a UiPlacement event with the
+   * screen's size, the HUD's frame and the bounds of each measured node: once
+   * when the root starts to follow, then each time one of them changes.
+   */
+  followsPlacement?: boolean
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -1261,6 +1306,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [44, 'document_text', 9],
     [45, 'game_actions', 14, 3, GameAction_Enum],
     [49, 'follows_overlay', 8],
+    [50, 'measure', 9],
+    [51, 'frame', 14, 0, Frame_Enum],
+    [52, 'follows_placement', 8],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1449,6 +1497,15 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 49:
             m.followsOverlay = r.bool()
+            break
+          case 50:
+            m.measure = r.string()
+            break
+          case 51:
+            m.frame = r.int32()
+            break
+          case 52:
+            m.followsPlacement = r.bool()
             break
           default:
             r.skip(t)
@@ -1658,6 +1715,18 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.followsOverlay
         if (v) w.uint32(392).bool(v)
+      }
+      {
+        const v = m.measure
+        if (v) w.uint32(402).string(v)
+      }
+      {
+        const v = m.frame
+        if (v) w.uint32(408).int32(v)
+      }
+      {
+        const v = m.followsPlacement
+        if (v) w.uint32(416).bool(v)
       }
     },
   },
@@ -4767,6 +4836,225 @@ export const UiOverlayEvent: MessageType<UiOverlayEvent> =
         {
           const v = m.overlay
           if (v) w.uint32(16).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Bounds is a box on a player's screen in layout units, the units of a
+ * style's pixels, measured from the screen's top left corner. The screen is
+ * 1080 layout units tall at every resolution.
+ *
+ * @generated from message modlock.wasm.ui.Bounds
+ */
+export interface Bounds {
+  /**
+   * X is the box's left edge.
+   */
+  x?: number
+  /**
+   * Y is the box's top edge.
+   */
+  y?: number
+  /**
+   * Width is the box's width.
+   */
+  width?: number
+  /**
+   * Height is the box's height.
+   */
+  height?: number
+}
+
+export const Bounds: MessageType<Bounds> =
+  /* @__PURE__ */ createMessageType<Bounds>(
+    'modlock.wasm.ui.Bounds',
+    () => [
+      [1, 'x', 5],
+      [2, 'y', 5],
+      [3, 'width', 5],
+      [4, 'height', 5],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Bounds): Bounds => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.x = r.int32()
+              break
+            case 2:
+              m.y = r.int32()
+              break
+            case 3:
+              m.width = r.int32()
+              break
+            case 4:
+              m.height = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Bounds, w: Writer): void => {
+        {
+          const v = m.x
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.y
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.width
+          if (v) w.uint32(24).int32(v)
+        }
+        {
+          const v = m.height
+          if (v) w.uint32(32).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * UiPlacementEvent reports where a player's screen places a mod's
+ * interface, to a mod whose root follows placement. Each event holds the
+ * whole placement.
+ *
+ * @generated from message modlock.wasm.ui.UiPlacementEvent
+ */
+export interface UiPlacementEvent {
+  /**
+   * Player is the player whose screen this is.
+   */
+  player?: number
+  /**
+   * Screen is the whole screen, at the origin.
+   */
+  screen?: Bounds
+  /**
+   * Hud is the frame the game lays its own HUD out in.
+   */
+  hud?: Bounds
+  /**
+   * Measured holds the bounds of each node the tree names with measure,
+   * once the renderer has laid it out, in the order of their names.
+   */
+  measured?: Measured[]
+}
+
+export const UiPlacementEvent: MessageType<UiPlacementEvent> =
+  /* @__PURE__ */ createMessageType<UiPlacementEvent>(
+    'modlock.wasm.ui.UiPlacementEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'screen', 11, 0, Bounds.codec],
+      [3, 'hud', 11, 0, Bounds.codec],
+      [4, 'measured', 11, 1, Measured.codec],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: UiPlacementEvent,
+      ): UiPlacementEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.screen = Bounds.decode(r, r.delimited(), m.screen ?? {})
+              break
+            case 3:
+              m.hud = Bounds.decode(r, r.delimited(), m.hud ?? {})
+              break
+            case 4:
+              ;(m.measured ??= []).push(Measured.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: UiPlacementEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.screen
+          if (v != null) Bounds.writeField(w, 2, v)
+        }
+        {
+          const v = m.hud
+          if (v != null) Bounds.writeField(w, 3, v)
+        }
+        {
+          const a = m.measured
+          if (a != null) for (const e of a) Measured.writeField(w, 4, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Measured is the bounds of the node a tree names with measure.
+ *
+ * @generated from message modlock.wasm.ui.Measured
+ */
+export interface Measured {
+  /**
+   * Name is the node's measure.
+   */
+  name?: string
+  /**
+   * Bounds is where the screen laid the node out.
+   */
+  bounds?: Bounds
+}
+
+export const Measured: MessageType<Measured> =
+  /* @__PURE__ */ createMessageType<Measured>(
+    'modlock.wasm.ui.Measured',
+    () => [
+      [1, 'name', 9],
+      [2, 'bounds', 11, 0, Bounds.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Measured): Measured => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.bounds = Bounds.decode(r, r.delimited(), m.bounds ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Measured, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.bounds
+          if (v != null) Bounds.writeField(w, 2, v)
         }
       },
     },

@@ -31,6 +31,8 @@ type shared struct {
 	hoverSound string
 	// cycle swings the element to another style and back.
 	cycle *Cycle
+	// measure names the element in placement reports.
+	measure string
 }
 
 // fill encodes the props every drawn element shares into n.
@@ -56,6 +58,7 @@ func (s *shared) fill(n *uipb.Node) {
 	n.Exit = wireStyle(s.exit)
 	n.Cycle = cycle(s.cycle)
 	n.Classes = classes(s.class)
+	n.Measure = s.measure
 }
 
 // classes splits an element's class into its names, or nil for none.

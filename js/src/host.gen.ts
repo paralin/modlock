@@ -3164,6 +3164,77 @@ function fromUiOverlayEvent(message: uiPb.UiOverlayEvent): UiOverlayEvent {
   }
 }
 
+/**
+ * Bounds is a box on a player's screen in layout units, the units of a
+ * style's pixels, measured from the screen's top left corner. The screen is
+ * 1080 layout units tall at every resolution.
+ */
+export interface Bounds {
+  /** x is the box's left edge. */
+  readonly x: number
+  /** y is the box's top edge. */
+  readonly y: number
+  /** width is the box's width. */
+  readonly width: number
+  /** height is the box's height. */
+  readonly height: number
+}
+
+/** fromBounds decodes a Bounds. */
+function fromBounds(message: uiPb.Bounds): Bounds {
+  return {
+    x: message.x ?? 0,
+    y: message.y ?? 0,
+    width: message.width ?? 0,
+    height: message.height ?? 0,
+  }
+}
+
+/**
+ * UiPlacementEvent reports where a player's screen places a mod's
+ * interface, to a mod whose root follows placement. Each event holds the
+ * whole placement.
+ */
+export interface UiPlacementEvent {
+  /** player is the player whose screen this is. */
+  readonly player: Player
+  /** screen is the whole screen, at the origin. */
+  readonly screen: Bounds
+  /** hud is the frame the game lays its own HUD out in. */
+  readonly hud: Bounds
+  /**
+   * measured holds the bounds of each node the tree names with measure,
+   * once the renderer has laid it out, in the order of their names.
+   */
+  readonly measured: Measured[]
+}
+
+/** fromUiPlacementEvent decodes an UiPlacementEvent. */
+function fromUiPlacementEvent(message: uiPb.UiPlacementEvent): UiPlacementEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    screen: fromBounds(message.screen ?? {}),
+    hud: fromBounds(message.hud ?? {}),
+    measured: (message.measured ?? []).map((v) => fromMeasured(v)),
+  }
+}
+
+/** Measured is the bounds of the node a tree names with measure. */
+export interface Measured {
+  /** name is the node's measure. */
+  readonly name: string
+  /** bounds is where the screen laid the node out. */
+  readonly bounds: Bounds
+}
+
+/** fromMeasured decodes a Measured. */
+function fromMeasured(message: uiPb.Measured): Measured {
+  return {
+    name: message.name ?? '',
+    bounds: fromBounds(message.bounds ?? {}),
+  }
+}
+
 /** StartEvent describes the server the mod starts in. */
 export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
@@ -4914,6 +4985,11 @@ export interface ModHandlers {
    * a mod whose root follows overlays.
    */
   uiOverlay(event: UiOverlayEvent): void
+  /**
+   * uiPlacement reports where a player's screen places the mod's interface,
+   * to a mod whose root follows placement.
+   */
+  uiPlacement(event: UiPlacementEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /** serviceReplied ends one StartServiceCall, in a frame after the call. */
@@ -5071,6 +5147,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiOverlay':
         handlers.uiOverlay(fromUiOverlayEvent(uiPb.UiOverlayEvent.fromBinary(input)))
+        return reply()
+      case 'UiPlacement':
+        handlers.uiPlacement(fromUiPlacementEvent(uiPb.UiPlacementEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

@@ -29,6 +29,8 @@ type Image struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the image in the placement reports of FollowPlacement.
+	Measure string
 	// Src is the image's path in the game's content.
 	Src string
 	// Scaling fits the picture into the image's box.
@@ -48,7 +50,7 @@ func (e Image) key() string {
 // draw fills the image's node.
 func (e Image) draw(_ *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_IMAGE
 	n.Image = e.Src

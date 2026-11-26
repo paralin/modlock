@@ -28,6 +28,8 @@ type Hero struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the hero in the placement reports of FollowPlacement.
+	Measure string
 	// Hero is the hero's id, as Pawn.Hero and mod.Heroes give it.
 	Hero uint32
 	// Look is which of the game's pictures of the hero to show.
@@ -49,7 +51,7 @@ func (e Hero) key() string {
 // draw fills the hero's node.
 func (e Hero) draw(_ *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_HERO_IMAGE
 	n.Hero = int32(e.Hero)

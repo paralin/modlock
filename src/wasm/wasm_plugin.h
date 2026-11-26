@@ -255,6 +255,11 @@ class WasmPlugin final : public Plugin {
   // overlay as UiTrees::Overlay reads it.
   std::expected<void, std::string> Overlay(int32_t slot, std::string_view line);
 
+  // Placement delivers where the game of the player in slot placed the
+  // mod's interface, while the mod's root follows placement: line is the
+  // report as UiTrees::Placement reads it.
+  std::expected<void, std::string> Placement(int32_t slot, std::string_view line);
+
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 

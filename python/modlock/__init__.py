@@ -695,6 +695,15 @@ _CameraParam: dict[Any, Any] = {
 }
 
 
+# _Frame maps each Frame to its number and back.
+_Frame: dict[Any, Any] = {
+    0: "screen",
+    "screen": 0,
+    1: "hud",
+    "hud": 1,
+}
+
+
 # _ClockFormat maps each ClockFormat to its number and back.
 _ClockFormat: dict[Any, Any] = {
     0: "minutes",
@@ -2579,6 +2588,51 @@ class UiOverlayEvent:
     player: Player
     # overlay is the overlay that holds it, or OVERLAY_NONE.
     overlay: Overlay | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Bounds:
+    """Bounds is a box on a player's screen in layout units, the units of a
+    style's pixels, measured from the screen's top left corner. The screen is
+    1080 layout units tall at every resolution.
+    """
+
+    # x is the box's left edge.
+    x: int = 0
+    # y is the box's top edge.
+    y: int = 0
+    # width is the box's width.
+    width: int = 0
+    # height is the box's height.
+    height: int = 0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class UiPlacementEvent:
+    """UiPlacementEvent reports where a player's screen places a mod's
+    interface, to a mod whose root follows placement. Each event holds the
+    whole placement.
+    """
+
+    # player is the player whose screen this is.
+    player: Player
+    # screen is the whole screen, at the origin.
+    screen: Bounds
+    # hud is the frame the game lays its own HUD out in.
+    hud: Bounds
+    # measured holds the bounds of each node the tree names with measure,
+    # once the renderer has laid it out, in the order of their names.
+    measured: list[Measured] = dataclasses.field(default_factory=lambda: list[Measured]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Measured:
+    """Measured is the bounds of the node a tree names with measure."""
+
+    # name is the node's measure.
+    name: str = ""
+    # bounds is where the screen laid the node out.
+    bounds: Bounds
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -5044,6 +5098,9 @@ _SCHEMA: wire.Schema = {
             wire.Field(44, "document_text", "string"),
             wire.Field(45, "game_actions", "enum", repeated=True, enum=_GameAction),
             wire.Field(49, "follows_overlay", "bool"),
+            wire.Field(50, "measure", "string"),
+            wire.Field(51, "frame", "enum", enum=_Frame),
+            wire.Field(52, "follows_placement", "bool"),
         ],
     ),
     "Node_VariablesEntry": (
@@ -5367,6 +5424,31 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "overlay", "enum", enum=_Overlay),
+        ],
+    ),
+    "Bounds": (
+        Bounds,
+        [
+            wire.Field(1, "x", "int32"),
+            wire.Field(2, "y", "int32"),
+            wire.Field(3, "width", "int32"),
+            wire.Field(4, "height", "int32"),
+        ],
+    ),
+    "UiPlacementEvent": (
+        UiPlacementEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "screen", "message", message="Bounds"),
+            wire.Field(3, "hud", "message", message="Bounds"),
+            wire.Field(4, "measured", "message", repeated=True, message="Measured"),
+        ],
+    ),
+    "Measured": (
+        Measured,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "bounds", "message", message="Bounds"),
         ],
     ),
     "UiRequest": (
@@ -6292,6 +6374,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiDocument": ("UiDocumentEvent", "Empty", "ui_document"),
     "UiAction": ("UiActionEvent", "Empty", "ui_action"),
     "UiOverlay": ("UiOverlayEvent", "Empty", "ui_overlay"),
+    "UiPlacement": ("UiPlacementEvent", "Empty", "ui_placement"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
@@ -7683,6 +7766,8 @@ class _UiHandlers:
     act: Callable[[Player, GameAction, ActionPhase], object]
     # overlay runs the handler of a mod that follows a player's overlays.
     overlay: Callable[[Player, Overlay], object]
+    # placement runs the handler of a mod that follows a player's placement.
+    placement: Callable[[UiPlacementEvent], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -7789,6 +7874,13 @@ def _ui_overlay(event: UiOverlayEvent) -> None:
     if ui is not None:
         player, overlay = event.player, event.overlay or "none"
         after(0, lambda: ui.overlay(player, overlay))
+
+
+def _ui_placement(event: UiPlacementEvent) -> None:
+    # A placement runs with the next frame, as a press does.
+    ui = _ui
+    if ui is not None:
+        after(0, lambda: ui.placement(event))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -7999,6 +8091,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_document": _ui_document,
     "ui_action": _ui_action,
     "ui_overlay": _ui_overlay,
+    "ui_placement": _ui_placement,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

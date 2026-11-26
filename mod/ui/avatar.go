@@ -28,6 +28,8 @@ type Avatar struct {
 	Ability *AbilityTip
 	// HoverSound is the game's sound event played as the pointer enters.
 	HoverSound string
+	// Measure names the avatar in the placement reports of FollowPlacement.
+	Measure string
 	// SteamID is whose picture the avatar shows.
 	SteamID uint64
 }
@@ -45,7 +47,7 @@ func (e Avatar) key() string {
 // draw fills the avatar's node.
 func (e Avatar) draw(_ *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle}
+	s := shared{e.Class, &e.Style, e.Hover, e.Enter, e.Exit, e.Tooltip, e.Item, e.Ability, e.HoverSound, e.Cycle, e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_AVATAR
 	n.SteamId = e.SteamID

@@ -16,6 +16,8 @@ type Layout struct {
 	Src string
 	// Data is the JSON text the layout's script reads, or "" for none.
 	Data string
+	// Measure names the layout in the placement reports of FollowPlacement.
+	Measure string
 }
 
 // Render returns the layout itself.
@@ -31,7 +33,7 @@ func (e Layout) key() string {
 // draw fills the layout's node.
 func (e Layout) draw(_ *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
-	s := shared{class: e.Class, style: &e.Style}
+	s := shared{class: e.Class, style: &e.Style, measure: e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_LAYOUT
 	n.Layout = e.Src
