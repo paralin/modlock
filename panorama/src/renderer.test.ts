@@ -1234,11 +1234,13 @@ function gameHud() {
   const clip = add(crosshair, 'ammo_panel')
   const lowAmmo = add(game, 'low_ammo_label')
 
-  // Lay out the souls, the minimap, the abilities and the stats.
+  // Lay out the souls, the minimap, the abilities, the stats and the notices.
   const souls = add(game, 'gold_and_ap_container')
   const minimap = add(game, 'minimap_persp')
   const abilities = add(game, 'AbilitiesContainer')
   const stats = add(game, 'hudPlayerStats')
+  const castFailed = add(game, 'cast_failed_box')
+  const indicators = add(game, 'HudEventIndicatorsPanel')
   return {
     game,
     add,
@@ -1257,6 +1259,8 @@ function gameHud() {
     minimap,
     abilities,
     stats,
+    castFailed,
+    indicators,
   }
 }
 
@@ -1371,22 +1375,31 @@ test("hides the game's HUD parts while a live screen claims them", () => {
   expect(hud.scores.attributes.get(HIDDEN_MARK)).toBe('')
   expect(hud.bars.visible).toBe(true)
 
-  // The souls, minimap, abilities and stats hide whole.
+  // The souls, minimap, abilities, stats and notices hide whole.
   stock.screen(
     parts(
       'HUD_PART_SOULS',
       'HUD_PART_MINIMAP',
       'HUD_PART_ABILITIES',
       'HUD_PART_STATS',
+      'HUD_PART_CAST_FAILED',
+      'HUD_PART_EVENT_INDICATORS',
     ),
   )
-  for (const panel of [hud.souls, hud.minimap, hud.abilities, hud.stats])
-    expect(panel.visible).toBe(false)
+  const whole = [
+    hud.souls,
+    hud.minimap,
+    hud.abilities,
+    hud.stats,
+    hud.castFailed,
+    hud.indicators,
+  ]
+  for (const panel of whole) expect(panel.visible).toBe(false)
   expect(hud.health.visible).toBe(true)
 
   // A relay that ended shows everything again, and the ticks stop.
   stock.screen(null)
-  for (const panel of [hud.souls, hud.boon, later, hud.clip])
+  for (const panel of [...whole, hud.boon, later, hud.clip])
     expect(panel.visible).toBe(true)
   runScheduled()
   expect(scheduled.size).toBe(0)

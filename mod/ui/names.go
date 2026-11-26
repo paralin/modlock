@@ -56,7 +56,9 @@ type HeroLook string
 // without a hero picks one on, BrokerCountdown the Broker's countdown,
 // MinimapPlayers every player's icon on the minimap, Inventory the purchased
 // items, Crosshair the crosshair with its clip ring, count and stamina pips,
-// and All the whole HUD but the mods' own interfaces, the game's tooltips and
+// CastFailed the notice of an ability the player could not cast,
+// EventIndicators the icons and numbers floated at each event that affects
+// the player, and All the whole HUD but the mods' own interfaces, the game's tooltips and
 // its chat.
 type HudPart string
 
@@ -189,6 +191,11 @@ const (
 	Inventory = "inventory"
 	// Crosshair is the crosshair with its clip ring, count and stamina pips.
 	Crosshair = "crosshair"
+	// CastFailed is the notice of an ability the player could not cast.
+	CastFailed = "castFailed"
+	// EventIndicators is the icons and numbers floated at each event that
+	// affects the player, such as a status or an item used.
+	EventIndicators = "eventIndicators"
 	// All is the whole HUD but the mods' own interfaces, tooltips and chat.
 	All = "all"
 )

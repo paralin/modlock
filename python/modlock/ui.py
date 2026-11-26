@@ -239,7 +239,9 @@ class Style(TypedDict, total=False):
 # Broker's window, "minimap_players" every player's icon on the minimap, the
 # player's own included, "inventory" the purchased items beside the stats,
 # "crosshair" the crosshair with its clip ring, ammo count and stamina pips,
-# and "all" the whole HUD but the mods' own interfaces, the game's tooltips and
+# "cast_failed" the notice of an ability the player could not cast,
+# "event_indicators" the icons and numbers the game floats at each event that
+# affects the player, and "all" the whole HUD but the mods' own interfaces, the game's tooltips and
 # its chat, for a screen that takes the player's whole view. Whatever a part
 # does not name stays.
 type HudPart = Literal[
@@ -257,6 +259,8 @@ type HudPart = Literal[
     "minimap_players",
     "inventory",
     "crosshair",
+    "cast_failed",
+    "event_indicators",
     "all",
 ]
 

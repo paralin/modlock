@@ -169,6 +169,8 @@ export const finders: Partial<Record<HudPart, Finder>> = {
   [HudPart.INVENTORY]: (hud) => ownPanel(hud, 'ModsContainer'),
   // The ammo warnings sit beside the crosshair, not in it.
   [HudPart.CROSSHAIR]: (hud) => ownPanel(hud, 'crosshair'),
+  [HudPart.CAST_FAILED]: (hud) => ownPanel(hud, 'cast_failed_box'),
+  [HudPart.EVENT_INDICATORS]: (hud) => ownPanel(hud, 'HudEventIndicatorsPanel'),
   [HudPart.ALL]: (hud, scope) => everything(hud, scope),
 }
 
