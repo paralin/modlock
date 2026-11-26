@@ -705,6 +705,12 @@ func (e CPhysicsProp) InputWake() (bool, error) {
 	return mod.FireInput(e.Handle, "Wake", nil, nil)
 }
 
+// InputSpawnBox sends SpawnBox. Spawn a new box on the attachment, replacing
+// the current one.
+func (e CPropParadeFloat) InputSpawnBox() (bool, error) {
+	return mod.FireInput(e.Handle, "SpawnBox", nil, nil)
+}
+
 // InputClose sends Close. Close the door.
 func (e CCitadel_DoorwayPortal) InputClose() (bool, error) {
 	return mod.FireInput(e.Handle, "Close", nil, nil)

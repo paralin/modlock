@@ -2217,9 +2217,11 @@ describe("CCitadelItemPickupIdol", "CCitadelItemPickup", {
 
 export type CCitadelItemPickupRejuv = CCitadelItemPickup & {
 	m_bPickedUp: boolean?,
+	m_nDropNumber: number?,
 }
 describe("CCitadelItemPickupRejuv", "CCitadelItemPickup", {
 	m_bPickedUp = "bool",
+	m_nDropNumber = "int32",
 })
 
 export type CCitadelItemPickupRejuvHeroTest = CCitadelItemPickupRejuv
@@ -2429,8 +2431,22 @@ describe("CCitadel_BreakableProp", "CBaseAnimGraph", {
 export type CCitadel_BreakableProp_Hideout = CCitadel_BreakableProp
 describe("CCitadel_BreakableProp_Hideout", "CCitadel_BreakableProp", {})
 
+export type CCitadel_BreakableProp_ParadeFloatBox = CCitadel_BreakableProp
+describe("CCitadel_BreakableProp_ParadeFloatBox", "CCitadel_BreakableProp", {})
+
 export type CCitadel_BreakableProp_PunchableTroll = CCitadel_BreakableProp
 describe("CCitadel_BreakableProp_PunchableTroll", "CCitadel_BreakableProp", {})
+
+export type CPropParadeFloat = CCitadel_BreakableProp & {
+	m_iszBoxSubclass: string?,
+	-- Spawn a new box on the attachment, replacing the current one.
+	inputSpawnBox: (self: any) -> boolean,
+}
+describe("CPropParadeFloat", "CCitadel_BreakableProp", {
+	m_iszBoxSubclass = "string",
+}, {
+	SpawnBox = "",
+})
 
 export type CCitadel_DeployablePreview = CBaseAnimGraph
 describe("CCitadel_DeployablePreview", "CBaseAnimGraph", {})
@@ -2590,6 +2606,9 @@ describe("CCitadel_Pickup_SoulBag", "CCitadel_Pickup", {
 	m_iGoldReward = "int32",
 	m_hVictimPlayer = "CCitadelPlayerPawn",
 })
+
+export type CCitadel_Pickup_Turkey = CCitadel_Pickup
+describe("CCitadel_Pickup_Turkey", "CCitadel_Pickup", {})
 
 export type CCitadel_PickupItemSpawner = CBaseAnimGraph & {
 	m_tNextDropTime: number?,
@@ -7134,6 +7153,7 @@ export type CAbility_Fencer_Lunge = CCitadelBaseAbility & {
 	m_bStartedInAir: boolean?,
 	m_iRemainingCasts: number?,
 	m_RecastEndTime: number?,
+	m_FirstCastTime: number?,
 	m_eLungeDirection: number?,
 	m_flHeldTime: number?,
 	m_vecHitEnemies: { number }?,
@@ -7153,6 +7173,7 @@ describe("CAbility_Fencer_Lunge", "CCitadelBaseAbility", {
 	m_bStartedInAir = "bool",
 	m_iRemainingCasts = "uint8",
 	m_RecastEndTime = "float32",
+	m_FirstCastTime = "float32",
 	m_eLungeDirection = "uint8",
 	m_flHeldTime = "float32",
 	m_vecHitEnemies = "list:handle",
@@ -7199,11 +7220,13 @@ describe("CAbility_Mirage_SandPhantom", "CCitadelBaseAbility", {
 
 export type CAbility_Mirage_Tornado = CCitadelBaseAbility & {
 	m_RecastWindowEnd: number?,
+	m_FirstCastTime: number?,
 	m_anglesCharging: modlock.Angles?,
 	m_flChargeStartTime: number?,
 }
 describe("CAbility_Mirage_Tornado", "CCitadelBaseAbility", {
 	m_RecastWindowEnd = "float32",
+	m_FirstCastTime = "float32",
 	m_anglesCharging = "angles",
 	m_flChargeStartTime = "float32",
 })
@@ -8335,6 +8358,7 @@ export type CCitadel_Ability_Climb_Rope = CCitadelBaseAbility & {
 	m_vLastPos: modlock.Vector?,
 	m_bRequestStopClimbing: boolean?,
 	m_bRequestJumpToRoof: boolean?,
+	m_bLatchedNearTop: boolean?,
 	m_flMoveDownStartTime: number?,
 	m_eClimbState: number?,
 }
@@ -8347,6 +8371,7 @@ describe("CCitadel_Ability_Climb_Rope", "CCitadelBaseAbility", {
 	m_vLastPos = "vector",
 	m_bRequestStopClimbing = "bool",
 	m_bRequestJumpToRoof = "bool",
+	m_bLatchedNearTop = "bool",
 	m_flMoveDownStartTime = "float32",
 	m_eClimbState = "uint32",
 })
@@ -8655,25 +8680,25 @@ describe("CCitadel_Ability_Fealty", "CCitadelBaseAbility", {
 })
 
 export type CCitadel_Ability_Fencer_Riposte = CCitadelBaseAbility & {
-	m_hTarget: CBaseEntity?,
+	m_vecDeflectedTargets: { number }?,
 	m_vRiposteStartPosition: modlock.Vector?,
 	m_vDashDirection: modlock.Vector?,
+	m_hDashTarget: CBaseEntity?,
 	m_flStateStartTime: number?,
 	m_nCurrentRiposteState: number?,
 	m_flSuccessfulRiposteTime: number?,
-	m_vecHitEnemies: { number }?,
 	m_vecLastPosition: modlock.Vector?,
 	m_flStuckTime: number?,
 	m_nParriedFXIndex: number?,
 }
 describe("CCitadel_Ability_Fencer_Riposte", "CCitadelBaseAbility", {
-	m_hTarget = "CBaseEntity",
+	m_vecDeflectedTargets = "list:handle",
 	m_vRiposteStartPosition = "vector",
 	m_vDashDirection = "vector",
+	m_hDashTarget = "CBaseEntity",
 	m_flStateStartTime = "float32",
 	m_nCurrentRiposteState = "uint8",
 	m_flSuccessfulRiposteTime = "float32",
-	m_vecHitEnemies = "list:handle",
 	m_vecLastPosition = "vector",
 	m_flStuckTime = "float32",
 	m_nParriedFXIndex = "int32",
@@ -8687,6 +8712,7 @@ export type CCitadel_Ability_Fencer_ThrowBlade = CCitadelBaseAbility & {
 	m_nExplodeParticleIndex: number?,
 	m_bHitEnemyPlayer: boolean?,
 	m_tRecastEndTime: number?,
+	m_tFirstCastTime: number?,
 }
 describe("CCitadel_Ability_Fencer_ThrowBlade", "CCitadelBaseAbility", {
 	m_vCastPosition = "vector",
@@ -8696,6 +8722,7 @@ describe("CCitadel_Ability_Fencer_ThrowBlade", "CCitadelBaseAbility", {
 	m_nExplodeParticleIndex = "int32",
 	m_bHitEnemyPlayer = "bool",
 	m_tRecastEndTime = "float32",
+	m_tFirstCastTime = "float32",
 })
 
 export type CCitadel_Ability_FireBomb = CCitadelBaseAbility & {
@@ -9088,6 +9115,10 @@ export type CCitadel_Ability_Jump = CCitadelBaseAbility & {
 	m_nConsecutiveAirJumps: number?,
 	m_nConsecutiveWallJumps: number?,
 	m_flLateralInputSuppressEndTime: number?,
+	m_bFailedAirJump: boolean?,
+	m_flFailedAirJumpPenaltyEndTime: number?,
+	m_nFailedAirJumpPenaltyStacks: number?,
+	m_bGroundJumpAirDragPenalty: boolean?,
 }
 describe("CCitadel_Ability_Jump", "CCitadelBaseAbility", {
 	m_flLastTimeOnZipLine = "float32",
@@ -9118,6 +9149,10 @@ describe("CCitadel_Ability_Jump", "CCitadelBaseAbility", {
 	m_nConsecutiveAirJumps = "int8",
 	m_nConsecutiveWallJumps = "int8",
 	m_flLateralInputSuppressEndTime = "float32",
+	m_bFailedAirJump = "bool",
+	m_flFailedAirJumpPenaltyEndTime = "float32",
+	m_nFailedAirJumpPenaltyStacks = "int8",
+	m_bGroundJumpAirDragPenalty = "bool",
 })
 
 export type CCitadel_Ability_Kobun = CCitadelBaseAbility & {
@@ -16793,6 +16828,9 @@ export type CCitadelGameRules = CTeamplayRules & {
 	m_timeKothGiveUp: number?,
 	m_nAmberGold: number?,
 	m_nSapphireGold: number?,
+	m_nKothTrailingTeam: number?,
+	m_nKothTrailingBonusGold: number?,
+	m_nKothTrailingBonusResist: number?,
 	m_vKothCashInCurrentLocation: modlock.Vector?,
 	m_hCurrentHeroDrafterRebels: CBaseEntity?,
 	m_hCurrentHeroDrafterCombine: CBaseEntity?,
@@ -16825,6 +16863,8 @@ export type CCitadelGameRules = CTeamplayRules & {
 	m_iMidbossKillCount: number?,
 	m_iAmberRejuvCount: number?,
 	m_iSapphireRejuvCount: number?,
+	m_tAmberRejuvExpireTime: number?,
+	m_tSapphireRejuvExpireTime: number?,
 	m_tNextMidBossSpawnTime: number?,
 	m_vecNeutralCampTimerOrigins: { modlock.Vector }?,
 	m_vecNeutralCampNextSpawnTimes: { number }?,
@@ -16888,6 +16928,9 @@ describe("CCitadelGameRules", "CTeamplayRules", {
 	m_timeKothGiveUp = "float32",
 	m_nAmberGold = "int32",
 	m_nSapphireGold = "int32",
+	m_nKothTrailingTeam = "int32",
+	m_nKothTrailingBonusGold = "int32",
+	m_nKothTrailingBonusResist = "int32",
 	m_vKothCashInCurrentLocation = "vector",
 	m_hCurrentHeroDrafterRebels = "CBaseEntity",
 	m_hCurrentHeroDrafterCombine = "CBaseEntity",
@@ -16920,6 +16963,8 @@ describe("CCitadelGameRules", "CTeamplayRules", {
 	m_iMidbossKillCount = "int32",
 	m_iAmberRejuvCount = "int32",
 	m_iSapphireRejuvCount = "int32",
+	m_tAmberRejuvExpireTime = "float32",
+	m_tSapphireRejuvExpireTime = "float32",
 	m_tNextMidBossSpawnTime = "float32",
 	m_vecNeutralCampTimerOrigins = "list:vector",
 	m_vecNeutralCampNextSpawnTimes = "list:float32",
@@ -20546,7 +20591,9 @@ type ClassName0 =
 	| "CCitadel_Artist_VisionBlocker"
 	| "CCitadel_BreakableProp"
 	| "CCitadel_BreakableProp_Hideout"
+	| "CCitadel_BreakableProp_ParadeFloatBox"
 	| "CCitadel_BreakableProp_PunchableTroll"
+	| "CPropParadeFloat"
 	| "CCitadel_DeployablePreview"
 	| "CCitadel_DoorwayPortal"
 	| "CCitadel_FissureWall"
@@ -20567,6 +20614,7 @@ type ClassName0 =
 	| "CCitadel_Pickup_Modifier"
 	| "CCitadel_Pickup_NecroDeath"
 	| "CCitadel_Pickup_SoulBag"
+	| "CCitadel_Pickup_Turkey"
 	| "CCitadel_PickupItemSpawner"
 	| "CCitadel_PickupSpawner"
 	| "CCitadel_SmokeGrenade_Blocker"
@@ -20841,11 +20889,11 @@ type ClassName0 =
 	| "CTriggerVolume"
 	| "CWorld"
 	| "CBaseNPCMaker"
+
+type ClassName1 =
 	| "CNPCMaker"
 	| "CTemplateNPCMaker"
 	| "CBasePlayerController"
-
-type ClassName1 =
 	| "CCitadelPlayerController"
 	| "CBaseTrackedStatsEntity"
 	| "CMatchTrackedStatsEntity"
@@ -21243,11 +21291,11 @@ type ClassName1 =
 	| "CCitadel_Ability_Thumper_2"
 	| "CCitadel_Ability_Thumper_3"
 	| "CCitadel_Ability_Thumper_4"
+
+type ClassName2 =
 	| "CCitadel_Ability_Trapper_Fear"
 	| "CCitadel_Ability_Trapper_PoisonJar"
 	| "CCitadel_Ability_Trapper_SpiderJar"
-
-type ClassName2 =
 	| "CCitadel_Ability_Trapper_WebWall"
 	| "CCitadel_Ability_Trappers_Bolo"
 	| "CCitadel_Ability_TriggerTower"
@@ -21645,11 +21693,11 @@ type ClassName2 =
 	| "CPhysFixed"
 	| "CPhysHinge"
 	| "CPhysHingeAlias_phys_hinge_local"
+
+type ClassName3 =
 	| "CPhysLength"
 	| "CPhysPulley"
 	| "CPhysSlideConstraint"
-
-type ClassName3 =
 	| "CPhysWheelConstraint"
 	| "CRagdollConstraint"
 	| "CSplineConstraint"

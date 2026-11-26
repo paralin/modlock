@@ -782,6 +782,11 @@ var CitadelAllowTeamChangeWhenAssigned = Variable[bool]{"citadel_allow_team_chan
 // entities.
 var CitadelAlwaysTransmitAbilities = Variable[bool]{"citadel_always_transmit_abilities"}
 
+// CitadelArcherChargedShotRicochetAimDebug: Seconds to draw the Charged Shot
+// ricochet aim cone (yellow), natural reflection (white) and biased shot
+// (green). 0 disables.
+var CitadelArcherChargedShotRicochetAimDebug = Variable[float32]{"citadel_archer_charged_shot_ricochet_aim_debug"}
+
 // CitadelAutobuyRefundTime: Time Allowed for a full refund when buy anywhere
 // (Auto/Quick Buy) is enabled.
 var CitadelAutobuyRefundTime = Variable[float32]{"citadel_autobuy_refund_time"}
@@ -957,6 +962,66 @@ var CitadelBotDirectorZiplineMin = Variable[float32]{"citadel_bot_director_zipli
 var CitadelBotDirectorZiplineStable = Variable[float32]{"citadel_bot_director_zipline_stable"}
 
 var CitadelBotDisconnectTakeoverEnabled = Variable[bool]{"citadel_bot_disconnect_takeover_enabled"}
+
+// CitadelBotDrill: Sandbox bot drill. 1: diving Danny, 2: flying Vindicta, 3:
+// Abrams Shoulder Charge and melee, 4: Grey Talon Rain of Arrows and Charged
+// Shot, 5: Paradox Kinetic Carbine and Paradoxical Swap, 6: Viscous Goo Ball,
+// 7: Viscous Puddle Punch, 8: Bebop Grapple Arm, 9: Graves Borrowed Decree
+// parry, 10: Baba Threadsap, 11: Billy combo, 12: Baba Granny Long Legs, 13:
+// Lash Death Slam and Ground Strike, 14: Silver wolf form, 15: Holliday Bounce
+// Pad and Powder Keg, 16: McGinnis Spectral Wall and Heavy Barrage.
+var CitadelBotDrill = Variable[int32]{"citadel_bot_drill"}
+
+// CitadelBotDrillAirJumps: Air jumps the Lash bot drill target makes after
+// Grapple to gain height.
+var CitadelBotDrillAirJumps = Variable[int32]{"citadel_bot_drill_air_jumps"}
+
+// CitadelBotDrillAttackDelayMax: Longest wait in seconds between a bot drill
+// target's attacks.
+var CitadelBotDrillAttackDelayMax = Variable[float32]{"citadel_bot_drill_attack_delay_max"}
+
+// CitadelBotDrillAttackDelayMin: Shortest wait in seconds between a bot drill
+// target's attacks.
+var CitadelBotDrillAttackDelayMin = Variable[float32]{"citadel_bot_drill_attack_delay_min"}
+
+// CitadelBotDrillChargedShotChance: Chance per flight that the Grey Talon bot
+// drill target fires a Charged Shot.
+var CitadelBotDrillChargedShotChance = Variable[float32]{"citadel_bot_drill_charged_shot_chance"}
+
+// CitadelBotDrillChaseDistance: Distance in meters from its start the bot drill
+// target stops chasing the player at.
+var CitadelBotDrillChaseDistance = Variable[float32]{"citadel_bot_drill_chase_distance"}
+
+// CitadelBotDrillComboSwings: Melee attacks the Abrams and Billy bot drill
+// targets finish their combos with.
+var CitadelBotDrillComboSwings = Variable[int32]{"citadel_bot_drill_combo_swings"}
+
+// CitadelBotDrillDistance: Distance in meters from the player the bot drill
+// target starts at.
+var CitadelBotDrillDistance = Variable[float32]{"citadel_bot_drill_distance"}
+
+// CitadelBotDrillHeight: Height in meters the bot drill target flies at.
+var CitadelBotDrillHeight = Variable[float32]{"citadel_bot_drill_height"}
+
+// CitadelBotDrillParryChargePercent: Heavy melee charge percent at which the
+// Graves bot drill target parries.
+var CitadelBotDrillParryChargePercent = Variable[float32]{"citadel_bot_drill_parry_charge_percent"}
+
+// CitadelBotDrillResetDelay: Seconds after landing or finishing an attack
+// before the bot drill target returns to its start.
+var CitadelBotDrillResetDelay = Variable[float32]{"citadel_bot_drill_reset_delay"}
+
+// CitadelBotDrillRetreatDistance: Distance in meters from the player the
+// McGinnis bot drill target dashes away at.
+var CitadelBotDrillRetreatDistance = Variable[float32]{"citadel_bot_drill_retreat_distance"}
+
+// CitadelBotDrillRoamDistance: Distance in meters from its start a roaming bot
+// drill target moves around in.
+var CitadelBotDrillRoamDistance = Variable[float32]{"citadel_bot_drill_roam_distance"}
+
+// CitadelBotDrillWallDistance: Distance in meters behind the player the
+// McGinnis bot drill target deploys Spectral Wall at.
+var CitadelBotDrillWallDistance = Variable[float32]{"citadel_bot_drill_wall_distance"}
 
 // CitadelBotForwardBack: Forces citadel bots to move back and forth.
 var CitadelBotForwardBack = Variable[bool]{"citadel_bot_forward_back"}
@@ -1187,10 +1252,15 @@ var CitadelCombatLogEnabledInLobbies = Variable[bool]{"citadel_combat_log_enable
 // the fight).
 var CitadelCombatlogFightIdleTime = Variable[float32]{"citadel_combatlog_fight_idle_time"}
 
-// CitadelComebackRedirectFraction: Fraction of the comeback souls earned by a
-// player above the enemy team's average net worth that is redirected to the
-// tick gold pool for the two lowest net worth teammates.
+// CitadelComebackRedirectFraction: Max fraction of the comeback souls earned by
+// a player above their own team's average net worth that is redirected to the
+// tick gold pool for the two lowest net worth teammates. Ramps from 0 at the
+// team average.
 var CitadelComebackRedirectFraction = Variable[float32]{"citadel_comeback_redirect_fraction"}
+
+// CitadelComebackRedirectMaxRatio: Player net worth / own team average net
+// worth at which citadel_comeback_redirect_fraction is reached.
+var CitadelComebackRedirectMaxRatio = Variable[float32]{"citadel_comeback_redirect_max_ratio"}
 
 var CitadelControlPointCaptureRateScale = Variable[float32]{"citadel_control_point_capture_rate_scale"}
 
@@ -2466,6 +2536,37 @@ var CitadelRrKillstreakForDeathLine = Variable[int32]{"citadel_rr_killstreak_for
 
 var CitadelSatVolumeDesatAmount = Variable[float32]{"citadel_sat_volume_desat_amount"}
 
+// CitadelSeasonalThanksgiving: If enabled, the Thanksgiving parade floats spawn
+// when the match starts.
+var CitadelSeasonalThanksgiving = Variable[bool]{"citadel_seasonal_thanksgiving"}
+
+// CitadelSeasonalThanksgivingFloatBoxRespawnTime: Seconds after a parade
+// float's box is broken before a new one appears on the float. Negative never
+// respawns it.
+var CitadelSeasonalThanksgivingFloatBoxRespawnTime = Variable[float32]{"citadel_seasonal_thanksgiving_float_box_respawn_time"}
+
+// CitadelSeasonalThanksgivingFloatFirstBoxMatchTime: Seconds of match time
+// before a parade float gets its first box. Until then it has none, and rides
+// at its raised height. 0 gives it one as soon as it spawns.
+var CitadelSeasonalThanksgivingFloatFirstBoxMatchTime = Variable[float32]{"citadel_seasonal_thanksgiving_float_first_box_match_time"}
+
+// CitadelSeasonalThanksgivingFloatInitialDistance: How far down the lane 4
+// zipline, in units along its path, from the first node inside the move range
+// the first parade float spawns. The rest are spaced on from there.
+var CitadelSeasonalThanksgivingFloatInitialDistance = Variable[float32]{"citadel_seasonal_thanksgiving_float_initial_distance"}
+
+// CitadelSeasonalThanksgivingFloatMoveRangeMaxY: World Y of the +Y end of the
+// parade floats' path. A float driving toward +Y that passes this teleports
+// back to the -Y end.
+var CitadelSeasonalThanksgivingFloatMoveRangeMaxY = Variable[float32]{"citadel_seasonal_thanksgiving_float_move_range_max_y"}
+
+// CitadelSeasonalThanksgivingFloatMoveRangeMinY: World Y of the -Y end of the
+// parade floats' path. No path limit unless this is below
+// citadel_seasonal_thanksgiving_float_move_range_max_y.
+var CitadelSeasonalThanksgivingFloatMoveRangeMinY = Variable[float32]{"citadel_seasonal_thanksgiving_float_move_range_min_y"}
+
+var CitadelSeasonalThanksgivingFloatSpacing = Variable[float32]{"citadel_seasonal_thanksgiving_float_spacing"}
+
 // CitadelSecureGoldBehindMaxBonus: Max extra secure rate (fraction of baseline)
 // for a player behind the enemy team's average net worth.
 var CitadelSecureGoldBehindMaxBonus = Variable[float32]{"citadel_secure_gold_behind_max_bonus"}
@@ -2758,7 +2859,7 @@ var CitadelTimeScale = Variable[float32]{"citadel_time_scale"}
 var CitadelTrackPlayerVsPlayerAccuracy = Variable[bool]{"citadel_track_player_vs_player_accuracy"}
 
 // CitadelTrailingteamBiasThresholdMax: Max Difference between teams to get full
-// trailing bonuses for Koth/Urn.
+// trailing bonuses for Urn.
 var CitadelTrailingteamBiasThresholdMax = Variable[float32]{"citadel_trailingteam_bias_threshold_max"}
 
 // CitadelTrailingteamBiasThresholdMin: Min Difference between teams to start

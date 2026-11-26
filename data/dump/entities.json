@@ -1,5 +1,5 @@
 {
- "build": "6868",
+ "build": "6871",
  "classes": [
   {
    "designer_name": "abiilty_boho_channeltether",
@@ -2552,6 +2552,12 @@
    "base": "citadel_breakable_prop"
   },
   {
+   "designer_name": "citadel_breakable_prop_parade_float_box",
+   "class_name": "CCitadel_BreakableProp_ParadeFloatBox",
+   "data_map": "CCitadel_BreakableProp",
+   "base": "citadel_breakable_prop"
+  },
+  {
    "designer_name": "citadel_breakable_prop_punchable_troll",
    "class_name": "CCitadel_BreakableProp_PunchableTroll",
    "data_map": "CCitadel_BreakableProp",
@@ -2970,6 +2976,12 @@
    "class_name": "CCitadel_PickupSpawner",
    "data_map": "CCitadel_PickupSpawner",
    "base": "baseanimgraph"
+  },
+  {
+   "designer_name": "citadel_pickup_turkey",
+   "class_name": "CCitadel_Pickup_Turkey",
+   "data_map": "CBaseAnimGraph",
+   "base": "citadel_pickup"
   },
   {
    "designer_name": "citadel_player_controller",
@@ -5772,6 +5784,12 @@
    "class_name": "CDynamicPropAlias_prop_dynamic_override",
    "data_map": "CDynamicProp",
    "base": "prop_dynamic"
+  },
+  {
+   "designer_name": "prop_parade_float",
+   "class_name": "CPropParadeFloat",
+   "data_map": "CPropParadeFloat",
+   "base": "citadel_breakable_prop"
   },
   {
    "designer_name": "prop_physics",
@@ -20913,6 +20931,18 @@
    "base": "CPropDoorRotating"
   },
   {
+   "name": "CPropParadeFloat",
+   "base": "CCitadel_BreakableProp",
+   "key_values": [
+    {
+     "name": "box_subclass",
+     "field": "m_iszBoxSubclass",
+     "type": "KEY_TYPE_STRING",
+     "count": 1
+    }
+   ]
+  },
+  {
    "name": "CPulseGameBlackboard",
    "base": "CBaseEntity",
    "key_values": [
@@ -31248,6 +31278,11 @@
      "type": "PVAL_STRING"
     }
    ]
+  },
+  {
+   "entity": "prop_parade_float",
+   "name": "SpawnBox",
+   "description": "Spawn a new box on the attachment, replacing the current one."
   },
   {
    "entity": "prop_physics",

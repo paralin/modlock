@@ -5391,6 +5391,13 @@ export class CCitadelItemPickupRejuv extends CCitadelItemPickup {
   set m_bPickedUp(value: boolean | undefined) {
     put(this, 'CCitadelItemPickupRejuv', 'm_bPickedUp', 'bool', value)
   }
+
+  get m_nDropNumber(): number | undefined {
+    return readField(this.handle, 'CCitadelItemPickupRejuv', 'm_nDropNumber', 'int32') as number | undefined
+  }
+  set m_nDropNumber(value: number | undefined) {
+    put(this, 'CCitadelItemPickupRejuv', 'm_nDropNumber', 'int32', value)
+  }
 }
 
 export class CCitadelItemPickupRejuvHeroTest extends CCitadelItemPickupRejuv {}
@@ -5820,7 +5827,20 @@ export class CCitadel_BreakableProp extends CBaseAnimGraph {
 
 export class CCitadel_BreakableProp_Hideout extends CCitadel_BreakableProp {}
 
+export class CCitadel_BreakableProp_ParadeFloatBox extends CCitadel_BreakableProp {}
+
 export class CCitadel_BreakableProp_PunchableTroll extends CCitadel_BreakableProp {}
+
+export class CPropParadeFloat extends CCitadel_BreakableProp {
+  get m_iszBoxSubclass(): string | undefined {
+    return readField(this.handle, 'CPropParadeFloat', 'm_iszBoxSubclass', 'string') as string | undefined
+  }
+
+  /** Spawn a new box on the attachment, replacing the current one. */
+  inputSpawnBox(activator?: number): boolean {
+    return fireInput(this.handle, 'SpawnBox', undefined, activator)
+  }
+}
 
 export class CCitadel_DeployablePreview extends CBaseAnimGraph {}
 
@@ -6122,6 +6142,8 @@ export class CCitadel_Pickup_SoulBag extends CCitadel_Pickup {
     putHandle(this, 'CCitadel_Pickup_SoulBag', 'm_hVictimPlayer', value)
   }
 }
+
+export class CCitadel_Pickup_Turkey extends CCitadel_Pickup {}
 
 export class CCitadel_PickupItemSpawner extends CBaseAnimGraph {
   get m_tNextDropTime(): number | undefined {
@@ -16721,6 +16743,13 @@ export class CAbility_Fencer_Lunge extends CCitadelBaseAbility {
     put(this, 'CAbility_Fencer_Lunge', 'm_RecastEndTime', 'float32', value)
   }
 
+  get m_FirstCastTime(): number | undefined {
+    return readField(this.handle, 'CAbility_Fencer_Lunge', 'm_FirstCastTime', 'float32') as number | undefined
+  }
+  set m_FirstCastTime(value: number | undefined) {
+    put(this, 'CAbility_Fencer_Lunge', 'm_FirstCastTime', 'float32', value)
+  }
+
   get m_eLungeDirection(): number | undefined {
     return readField(this.handle, 'CAbility_Fencer_Lunge', 'm_eLungeDirection', 'uint8') as number | undefined
   }
@@ -16872,6 +16901,13 @@ export class CAbility_Mirage_Tornado extends CCitadelBaseAbility {
   }
   set m_RecastWindowEnd(value: number | undefined) {
     put(this, 'CAbility_Mirage_Tornado', 'm_RecastWindowEnd', 'float32', value)
+  }
+
+  get m_FirstCastTime(): number | undefined {
+    return readField(this.handle, 'CAbility_Mirage_Tornado', 'm_FirstCastTime', 'float32') as number | undefined
+  }
+  set m_FirstCastTime(value: number | undefined) {
+    put(this, 'CAbility_Mirage_Tornado', 'm_FirstCastTime', 'float32', value)
   }
 
   get m_anglesCharging(): Angles | undefined {
@@ -19265,6 +19301,13 @@ export class CCitadel_Ability_Climb_Rope extends CCitadelBaseAbility {
     put(this, 'CCitadel_Ability_Climb_Rope', 'm_bRequestJumpToRoof', 'bool', value)
   }
 
+  get m_bLatchedNearTop(): boolean | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Climb_Rope', 'm_bLatchedNearTop', 'bool') as boolean | undefined
+  }
+  set m_bLatchedNearTop(value: boolean | undefined) {
+    put(this, 'CCitadel_Ability_Climb_Rope', 'm_bLatchedNearTop', 'bool', value)
+  }
+
   get m_flMoveDownStartTime(): number | undefined {
     return readField(this.handle, 'CCitadel_Ability_Climb_Rope', 'm_flMoveDownStartTime', 'float32') as number | undefined
   }
@@ -19933,12 +19976,11 @@ export class CCitadel_Ability_Fealty extends CCitadelBaseAbility {
 }
 
 export class CCitadel_Ability_Fencer_Riposte extends CCitadelBaseAbility {
-  get m_hTarget(): CBaseEntity | undefined {
-    const target = readHandle(this, 'CCitadel_Ability_Fencer_Riposte', 'm_hTarget')
-    return target === undefined ? undefined : new CBaseEntity(target)
+  get m_vecDeflectedTargets(): number[] {
+    return readFieldList(this.handle, 'CCitadel_Ability_Fencer_Riposte', 'm_vecDeflectedTargets', 'handle') as number[]
   }
-  set m_hTarget(value: CBaseEntity | undefined) {
-    putHandle(this, 'CCitadel_Ability_Fencer_Riposte', 'm_hTarget', value)
+  set m_vecDeflectedTargets(value: number[]) {
+    writeFieldList(this.handle, 'CCitadel_Ability_Fencer_Riposte', 'm_vecDeflectedTargets', 'handle', value)
   }
 
   get m_vRiposteStartPosition(): Vector | undefined {
@@ -19953,6 +19995,14 @@ export class CCitadel_Ability_Fencer_Riposte extends CCitadelBaseAbility {
   }
   set m_vDashDirection(value: Vector | undefined) {
     put(this, 'CCitadel_Ability_Fencer_Riposte', 'm_vDashDirection', 'vector', value)
+  }
+
+  get m_hDashTarget(): CBaseEntity | undefined {
+    const target = readHandle(this, 'CCitadel_Ability_Fencer_Riposte', 'm_hDashTarget')
+    return target === undefined ? undefined : new CBaseEntity(target)
+  }
+  set m_hDashTarget(value: CBaseEntity | undefined) {
+    putHandle(this, 'CCitadel_Ability_Fencer_Riposte', 'm_hDashTarget', value)
   }
 
   get m_flStateStartTime(): number | undefined {
@@ -19974,13 +20024,6 @@ export class CCitadel_Ability_Fencer_Riposte extends CCitadelBaseAbility {
   }
   set m_flSuccessfulRiposteTime(value: number | undefined) {
     put(this, 'CCitadel_Ability_Fencer_Riposte', 'm_flSuccessfulRiposteTime', 'float32', value)
-  }
-
-  get m_vecHitEnemies(): number[] {
-    return readFieldList(this.handle, 'CCitadel_Ability_Fencer_Riposte', 'm_vecHitEnemies', 'handle') as number[]
-  }
-  set m_vecHitEnemies(value: number[]) {
-    writeFieldList(this.handle, 'CCitadel_Ability_Fencer_Riposte', 'm_vecHitEnemies', 'handle', value)
   }
 
   get m_vecLastPosition(): Vector | undefined {
@@ -20053,6 +20096,13 @@ export class CCitadel_Ability_Fencer_ThrowBlade extends CCitadelBaseAbility {
   }
   set m_tRecastEndTime(value: number | undefined) {
     put(this, 'CCitadel_Ability_Fencer_ThrowBlade', 'm_tRecastEndTime', 'float32', value)
+  }
+
+  get m_tFirstCastTime(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Fencer_ThrowBlade', 'm_tFirstCastTime', 'float32') as number | undefined
+  }
+  set m_tFirstCastTime(value: number | undefined) {
+    put(this, 'CCitadel_Ability_Fencer_ThrowBlade', 'm_tFirstCastTime', 'float32', value)
   }
 }
 
@@ -20963,6 +21013,34 @@ export class CCitadel_Ability_Jump extends CCitadelBaseAbility {
   }
   set m_flLateralInputSuppressEndTime(value: number | undefined) {
     put(this, 'CCitadel_Ability_Jump', 'm_flLateralInputSuppressEndTime', 'float32', value)
+  }
+
+  get m_bFailedAirJump(): boolean | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Jump', 'm_bFailedAirJump', 'bool') as boolean | undefined
+  }
+  set m_bFailedAirJump(value: boolean | undefined) {
+    put(this, 'CCitadel_Ability_Jump', 'm_bFailedAirJump', 'bool', value)
+  }
+
+  get m_flFailedAirJumpPenaltyEndTime(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Jump', 'm_flFailedAirJumpPenaltyEndTime', 'float32') as number | undefined
+  }
+  set m_flFailedAirJumpPenaltyEndTime(value: number | undefined) {
+    put(this, 'CCitadel_Ability_Jump', 'm_flFailedAirJumpPenaltyEndTime', 'float32', value)
+  }
+
+  get m_nFailedAirJumpPenaltyStacks(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Jump', 'm_nFailedAirJumpPenaltyStacks', 'int8') as number | undefined
+  }
+  set m_nFailedAirJumpPenaltyStacks(value: number | undefined) {
+    put(this, 'CCitadel_Ability_Jump', 'm_nFailedAirJumpPenaltyStacks', 'int8', value)
+  }
+
+  get m_bGroundJumpAirDragPenalty(): boolean | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Jump', 'm_bGroundJumpAirDragPenalty', 'bool') as boolean | undefined
+  }
+  set m_bGroundJumpAirDragPenalty(value: boolean | undefined) {
+    put(this, 'CCitadel_Ability_Jump', 'm_bGroundJumpAirDragPenalty', 'bool', value)
   }
 }
 
@@ -37567,6 +37645,27 @@ export class CCitadelGameRules extends CTeamplayRules {
     put(this, 'CCitadelGameRules', 'm_nSapphireGold', 'int32', value)
   }
 
+  get m_nKothTrailingTeam(): number | undefined {
+    return readField(this.handle, 'CCitadelGameRules', 'm_nKothTrailingTeam', 'int32') as number | undefined
+  }
+  set m_nKothTrailingTeam(value: number | undefined) {
+    put(this, 'CCitadelGameRules', 'm_nKothTrailingTeam', 'int32', value)
+  }
+
+  get m_nKothTrailingBonusGold(): number | undefined {
+    return readField(this.handle, 'CCitadelGameRules', 'm_nKothTrailingBonusGold', 'int32') as number | undefined
+  }
+  set m_nKothTrailingBonusGold(value: number | undefined) {
+    put(this, 'CCitadelGameRules', 'm_nKothTrailingBonusGold', 'int32', value)
+  }
+
+  get m_nKothTrailingBonusResist(): number | undefined {
+    return readField(this.handle, 'CCitadelGameRules', 'm_nKothTrailingBonusResist', 'int32') as number | undefined
+  }
+  set m_nKothTrailingBonusResist(value: number | undefined) {
+    put(this, 'CCitadelGameRules', 'm_nKothTrailingBonusResist', 'int32', value)
+  }
+
   get m_vKothCashInCurrentLocation(): Vector | undefined {
     return readField(this.handle, 'CCitadelGameRules', 'm_vKothCashInCurrentLocation', 'vector') as Vector | undefined
   }
@@ -37791,6 +37890,20 @@ export class CCitadelGameRules extends CTeamplayRules {
   }
   set m_iSapphireRejuvCount(value: number | undefined) {
     put(this, 'CCitadelGameRules', 'm_iSapphireRejuvCount', 'int32', value)
+  }
+
+  get m_tAmberRejuvExpireTime(): number | undefined {
+    return readField(this.handle, 'CCitadelGameRules', 'm_tAmberRejuvExpireTime', 'float32') as number | undefined
+  }
+  set m_tAmberRejuvExpireTime(value: number | undefined) {
+    put(this, 'CCitadelGameRules', 'm_tAmberRejuvExpireTime', 'float32', value)
+  }
+
+  get m_tSapphireRejuvExpireTime(): number | undefined {
+    return readField(this.handle, 'CCitadelGameRules', 'm_tSapphireRejuvExpireTime', 'float32') as number | undefined
+  }
+  set m_tSapphireRejuvExpireTime(value: number | undefined) {
+    put(this, 'CCitadelGameRules', 'm_tSapphireRejuvExpireTime', 'float32', value)
   }
 
   get m_tNextMidBossSpawnTime(): number | undefined {

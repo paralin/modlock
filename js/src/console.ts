@@ -624,6 +624,11 @@ export interface Variables {
   /** Enable to always force transmit ability entities. */
   citadel_always_transmit_abilities: boolean
   /**
+   * Seconds to draw the Charged Shot ricochet aim cone (yellow), natural
+   * reflection (white) and biased shot (green). 0 disables.
+   */
+  citadel_archer_charged_shot_ricochet_aim_debug: number
+  /**
    * Time Allowed for a full refund when buy anywhere (Auto/Quick Buy) is
    * enabled.
    */
@@ -733,6 +738,67 @@ export interface Variables {
   /** How much to push out a lane before deprioritizing it. */
   citadel_bot_director_zipline_stable: number
   citadel_bot_disconnect_takeover_enabled: boolean
+  /**
+   * Sandbox bot drill. 1: diving Danny, 2: flying Vindicta, 3: Abrams Shoulder
+   * Charge and melee, 4: Grey Talon Rain of Arrows and Charged Shot, 5: Paradox
+   * Kinetic Carbine and Paradoxical Swap, 6: Viscous Goo Ball, 7: Viscous
+   * Puddle Punch, 8: Bebop Grapple Arm, 9: Graves Borrowed Decree parry, 10:
+   * Baba Threadsap, 11: Billy combo, 12: Baba Granny Long Legs, 13: Lash Death
+   * Slam and Ground Strike, 14: Silver wolf form, 15: Holliday Bounce Pad and
+   * Powder Keg, 16: McGinnis Spectral Wall and Heavy Barrage.
+   */
+  citadel_bot_drill: number
+  /**
+   * Air jumps the Lash bot drill target makes after Grapple to gain height.
+   */
+  citadel_bot_drill_air_jumps: number
+  /** Longest wait in seconds between a bot drill target's attacks. */
+  citadel_bot_drill_attack_delay_max: number
+  /** Shortest wait in seconds between a bot drill target's attacks. */
+  citadel_bot_drill_attack_delay_min: number
+  /**
+   * Chance per flight that the Grey Talon bot drill target fires a Charged
+   * Shot.
+   */
+  citadel_bot_drill_charged_shot_chance: number
+  /**
+   * Distance in meters from its start the bot drill target stops chasing the
+   * player at.
+   */
+  citadel_bot_drill_chase_distance: number
+  /**
+   * Melee attacks the Abrams and Billy bot drill targets finish their combos
+   * with.
+   */
+  citadel_bot_drill_combo_swings: number
+  /** Distance in meters from the player the bot drill target starts at. */
+  citadel_bot_drill_distance: number
+  /** Height in meters the bot drill target flies at. */
+  citadel_bot_drill_height: number
+  /**
+   * Heavy melee charge percent at which the Graves bot drill target parries.
+   */
+  citadel_bot_drill_parry_charge_percent: number
+  /**
+   * Seconds after landing or finishing an attack before the bot drill target
+   * returns to its start.
+   */
+  citadel_bot_drill_reset_delay: number
+  /**
+   * Distance in meters from the player the McGinnis bot drill target dashes
+   * away at.
+   */
+  citadel_bot_drill_retreat_distance: number
+  /**
+   * Distance in meters from its start a roaming bot drill target moves around
+   * in.
+   */
+  citadel_bot_drill_roam_distance: number
+  /**
+   * Distance in meters behind the player the McGinnis bot drill target deploys
+   * Spectral Wall at.
+   */
+  citadel_bot_drill_wall_distance: number
   /** Forces citadel bots to move back and forth. */
   citadel_bot_forward_back: boolean
   /** Aim Pitch in Hero Testing. */
@@ -896,11 +962,16 @@ export interface Variables {
    */
   citadel_combatlog_fight_idle_time: number
   /**
-   * Fraction of the comeback souls earned by a player above the enemy team's
-   * average net worth that is redirected to the tick gold pool for the two
-   * lowest net worth teammates.
+   * Max fraction of the comeback souls earned by a player above their own
+   * team's average net worth that is redirected to the tick gold pool for the
+   * two lowest net worth teammates. Ramps from 0 at the team average.
    */
   citadel_comeback_redirect_fraction: number
+  /**
+   * Player net worth / own team average net worth at which
+   * citadel_comeback_redirect_fraction is reached.
+   */
+  citadel_comeback_redirect_max_ratio: number
   citadel_control_point_capture_rate_scale: number
   citadel_control_point_decay_delay: number
   citadel_control_point_decay_rate: number
@@ -1790,6 +1861,38 @@ export interface Variables {
   citadel_rr_killstreak_for_death_line: number
   citadel_sat_volume_desat_amount: number
   /**
+   * If enabled, the Thanksgiving parade floats spawn when the match starts.
+   */
+  citadel_seasonal_thanksgiving: boolean
+  /**
+   * Seconds after a parade float's box is broken before a new one appears on
+   * the float. Negative never respawns it.
+   */
+  citadel_seasonal_thanksgiving_float_box_respawn_time: number
+  /**
+   * Seconds of match time before a parade float gets its first box. Until then
+   * it has none, and rides at its raised height. 0 gives it one as soon as it
+   * spawns.
+   */
+  citadel_seasonal_thanksgiving_float_first_box_match_time: number
+  /**
+   * How far down the lane 4 zipline, in units along its path, from the first
+   * node inside the move range the first parade float spawns. The rest are
+   * spaced on from there.
+   */
+  citadel_seasonal_thanksgiving_float_initial_distance: number
+  /**
+   * World Y of the +Y end of the parade floats' path. A float driving toward +Y
+   * that passes this teleports back to the -Y end.
+   */
+  citadel_seasonal_thanksgiving_float_move_range_max_y: number
+  /**
+   * World Y of the -Y end of the parade floats' path. No path limit unless this
+   * is below citadel_seasonal_thanksgiving_float_move_range_max_y.
+   */
+  citadel_seasonal_thanksgiving_float_move_range_min_y: number
+  citadel_seasonal_thanksgiving_float_spacing: number
+  /**
    * Max extra secure rate (fraction of baseline) for a player behind the enemy
    * team's average net worth.
    */
@@ -2028,9 +2131,7 @@ export interface Variables {
    */
   citadel_time_scale: number
   citadel_track_player_vs_player_accuracy: boolean
-  /**
-   * Max Difference between teams to get full trailing bonuses for Koth/Urn.
-   */
+  /** Max Difference between teams to get full trailing bonuses for Urn. */
   citadel_trailingteam_bias_threshold_max: number
   /**
    * Min Difference between teams to start getting trailing bonuses for
@@ -6554,6 +6655,8 @@ export interface Commands {
   citadel_bot_give_all_bots_all_items: true
   /** Give all bots on a particular team gold. */
   citadel_bot_give_team_gold: true
+  /** <amount> Gives all bots unsecured souls. */
+  citadel_bot_give_unsecured_souls: true
   /** Kick bot <name>. */
   citadel_bot_kick: true
   /** List ent id of all players that are bots in this game. */
@@ -6664,6 +6767,8 @@ usage: <hero_target>. */
   citadel_give_permanent_buffs: true
   /** <player name> <gold> Gives the specified player gold. */
   citadel_give_player_gold: true
+  /** <amount> Gives your hero unsecured souls. */
+  citadel_give_unsecured_souls: true
   /** <line> makes the guide bot say the specified line. */
   citadel_guide_bot_say: true
   /** Restore the unit under your crosshair to full health. */
@@ -6733,6 +6838,11 @@ usage: <hero_target>. */
   citadel_spawn_midboss_breakables: true
   /** Spawns any neutral camps within 800 units (~20m). */
   citadel_spawn_nearby_neutrals: true
+  /**
+   * Spawns one of each parade float type in a line starting at the given
+   * position. Usage: citadel_spawn_parade_floats <x> <y> <z>.
+   */
+  citadel_spawn_parade_floats: true
   /** Spawns a pickup using a pickup subclass. */
   citadel_spawn_pickup: true
   /**

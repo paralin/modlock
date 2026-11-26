@@ -817,7 +817,7 @@ slots {
   id: "game-server.game-frame"
   module: "server.dll"
   class_name: "CSource2Server"
-  index: 19
+  index: 20
   pattern: "48 89 5C 24 20 88 54 24 10"
   shape: "void ISource2Server::GameFrame(bool simulating, bool first_tick, bool last_tick)"
 }

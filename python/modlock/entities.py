@@ -2265,8 +2265,10 @@ class CCitadelItemPickupIdol(CCitadelItemPickup):
 
 class CCitadelItemPickupRejuv(CCitadelItemPickup):
     m_bPickedUp: bool | None
+    m_nDropNumber: int | None
     _fields = {
         "m_bPickedUp": "bool",
+        "m_nDropNumber": "int32",
     }
 
 
@@ -2489,8 +2491,26 @@ class CCitadel_BreakableProp_Hideout(CCitadel_BreakableProp):
     pass
 
 
+class CCitadel_BreakableProp_ParadeFloatBox(CCitadel_BreakableProp):
+    pass
+
+
 class CCitadel_BreakableProp_PunchableTroll(CCitadel_BreakableProp):
     pass
+
+
+class CPropParadeFloat(CCitadel_BreakableProp):
+    m_iszBoxSubclass: str | None
+    _fields = {
+        "m_iszBoxSubclass": "string",
+    }
+    _inputs = {
+        "SpawnBox": "",
+    }
+    if TYPE_CHECKING:
+        def input_SpawnBox(self, activator: int | None = None) -> bool:
+            # Spawn a new box on the attachment, replacing the current one.
+            ...
 
 
 class CCitadel_DeployablePreview(CBaseAnimGraph):
@@ -2663,6 +2683,10 @@ class CCitadel_Pickup_SoulBag(CCitadel_Pickup):
         "m_iGoldReward": "int32",
         "m_hVictimPlayer": "CCitadelPlayerPawn",
     }
+
+
+class CCitadel_Pickup_Turkey(CCitadel_Pickup):
+    pass
 
 
 class CCitadel_PickupItemSpawner(CBaseAnimGraph):
@@ -7429,6 +7453,7 @@ class CAbility_Fencer_Lunge(CCitadelBaseAbility):
     m_bStartedInAir: bool | None
     m_iRemainingCasts: int | None
     m_RecastEndTime: float | None
+    m_FirstCastTime: float | None
     m_eLungeDirection: int | None
     m_flHeldTime: float | None
     m_vecHitEnemies: list[int]
@@ -7447,6 +7472,7 @@ class CAbility_Fencer_Lunge(CCitadelBaseAbility):
         "m_bStartedInAir": "bool",
         "m_iRemainingCasts": "uint8",
         "m_RecastEndTime": "float32",
+        "m_FirstCastTime": "float32",
         "m_eLungeDirection": "uint8",
         "m_flHeldTime": "float32",
         "m_vecHitEnemies": "list:handle",
@@ -7494,10 +7520,12 @@ class CAbility_Mirage_SandPhantom(CCitadelBaseAbility):
 
 class CAbility_Mirage_Tornado(CCitadelBaseAbility):
     m_RecastWindowEnd: float | None
+    m_FirstCastTime: float | None
     m_anglesCharging: Angles | None
     m_flChargeStartTime: float | None
     _fields = {
         "m_RecastWindowEnd": "float32",
+        "m_FirstCastTime": "float32",
         "m_anglesCharging": "angles",
         "m_flChargeStartTime": "float32",
     }
@@ -8692,6 +8720,7 @@ class CCitadel_Ability_Climb_Rope(CCitadelBaseAbility):
     m_vLastPos: Vector | None
     m_bRequestStopClimbing: bool | None
     m_bRequestJumpToRoof: bool | None
+    m_bLatchedNearTop: bool | None
     m_flMoveDownStartTime: float | None
     m_eClimbState: int | None
     _fields = {
@@ -8703,6 +8732,7 @@ class CCitadel_Ability_Climb_Rope(CCitadelBaseAbility):
         "m_vLastPos": "vector",
         "m_bRequestStopClimbing": "bool",
         "m_bRequestJumpToRoof": "bool",
+        "m_bLatchedNearTop": "bool",
         "m_flMoveDownStartTime": "float32",
         "m_eClimbState": "uint32",
     }
@@ -9025,24 +9055,24 @@ class CCitadel_Ability_Fealty(CCitadelBaseAbility):
 
 
 class CCitadel_Ability_Fencer_Riposte(CCitadelBaseAbility):
-    m_hTarget: CBaseEntity | None
+    m_vecDeflectedTargets: list[int]
     m_vRiposteStartPosition: Vector | None
     m_vDashDirection: Vector | None
+    m_hDashTarget: CBaseEntity | None
     m_flStateStartTime: float | None
     m_nCurrentRiposteState: int | None
     m_flSuccessfulRiposteTime: float | None
-    m_vecHitEnemies: list[int]
     m_vecLastPosition: Vector | None
     m_flStuckTime: float | None
     m_nParriedFXIndex: int | None
     _fields = {
-        "m_hTarget": "CBaseEntity",
+        "m_vecDeflectedTargets": "list:handle",
         "m_vRiposteStartPosition": "vector",
         "m_vDashDirection": "vector",
+        "m_hDashTarget": "CBaseEntity",
         "m_flStateStartTime": "float32",
         "m_nCurrentRiposteState": "uint8",
         "m_flSuccessfulRiposteTime": "float32",
-        "m_vecHitEnemies": "list:handle",
         "m_vecLastPosition": "vector",
         "m_flStuckTime": "float32",
         "m_nParriedFXIndex": "int32",
@@ -9057,6 +9087,7 @@ class CCitadel_Ability_Fencer_ThrowBlade(CCitadelBaseAbility):
     m_nExplodeParticleIndex: int | None
     m_bHitEnemyPlayer: bool | None
     m_tRecastEndTime: float | None
+    m_tFirstCastTime: float | None
     _fields = {
         "m_vCastPosition": "vector",
         "m_qCastAngles": "angles",
@@ -9065,6 +9096,7 @@ class CCitadel_Ability_Fencer_ThrowBlade(CCitadelBaseAbility):
         "m_nExplodeParticleIndex": "int32",
         "m_bHitEnemyPlayer": "bool",
         "m_tRecastEndTime": "float32",
+        "m_tFirstCastTime": "float32",
     }
 
 
@@ -9478,6 +9510,10 @@ class CCitadel_Ability_Jump(CCitadelBaseAbility):
     m_nConsecutiveAirJumps: int | None
     m_nConsecutiveWallJumps: int | None
     m_flLateralInputSuppressEndTime: float | None
+    m_bFailedAirJump: bool | None
+    m_flFailedAirJumpPenaltyEndTime: float | None
+    m_nFailedAirJumpPenaltyStacks: int | None
+    m_bGroundJumpAirDragPenalty: bool | None
     _fields = {
         "m_flLastTimeOnZipLine": "float32",
         "m_flLastOnGroundTime": "float32",
@@ -9507,6 +9543,10 @@ class CCitadel_Ability_Jump(CCitadelBaseAbility):
         "m_nConsecutiveAirJumps": "int8",
         "m_nConsecutiveWallJumps": "int8",
         "m_flLateralInputSuppressEndTime": "float32",
+        "m_bFailedAirJump": "bool",
+        "m_flFailedAirJumpPenaltyEndTime": "float32",
+        "m_nFailedAirJumpPenaltyStacks": "int8",
+        "m_bGroundJumpAirDragPenalty": "bool",
     }
 
 
@@ -17708,6 +17748,9 @@ class CCitadelGameRules(CTeamplayRules):
     m_timeKothGiveUp: float | None
     m_nAmberGold: int | None
     m_nSapphireGold: int | None
+    m_nKothTrailingTeam: int | None
+    m_nKothTrailingBonusGold: int | None
+    m_nKothTrailingBonusResist: int | None
     m_vKothCashInCurrentLocation: Vector | None
     m_hCurrentHeroDrafterRebels: CBaseEntity | None
     m_hCurrentHeroDrafterCombine: CBaseEntity | None
@@ -17740,6 +17783,8 @@ class CCitadelGameRules(CTeamplayRules):
     m_iMidbossKillCount: int | None
     m_iAmberRejuvCount: int | None
     m_iSapphireRejuvCount: int | None
+    m_tAmberRejuvExpireTime: float | None
+    m_tSapphireRejuvExpireTime: float | None
     m_tNextMidBossSpawnTime: float | None
     m_vecNeutralCampTimerOrigins: list[Vector]
     m_vecNeutralCampNextSpawnTimes: list[float]
@@ -17802,6 +17847,9 @@ class CCitadelGameRules(CTeamplayRules):
         "m_timeKothGiveUp": "float32",
         "m_nAmberGold": "int32",
         "m_nSapphireGold": "int32",
+        "m_nKothTrailingTeam": "int32",
+        "m_nKothTrailingBonusGold": "int32",
+        "m_nKothTrailingBonusResist": "int32",
         "m_vKothCashInCurrentLocation": "vector",
         "m_hCurrentHeroDrafterRebels": "CBaseEntity",
         "m_hCurrentHeroDrafterCombine": "CBaseEntity",
@@ -17834,6 +17882,8 @@ class CCitadelGameRules(CTeamplayRules):
         "m_iMidbossKillCount": "int32",
         "m_iAmberRejuvCount": "int32",
         "m_iSapphireRejuvCount": "int32",
+        "m_tAmberRejuvExpireTime": "float32",
+        "m_tSapphireRejuvExpireTime": "float32",
         "m_tNextMidBossSpawnTime": "float32",
         "m_vecNeutralCampTimerOrigins": "list:vector",
         "m_vecNeutralCampNextSpawnTimes": "list:float32",
@@ -21171,7 +21221,9 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadel_Artist_VisionBlocker": CCitadel_Artist_VisionBlocker,
     "CCitadel_BreakableProp": CCitadel_BreakableProp,
     "CCitadel_BreakableProp_Hideout": CCitadel_BreakableProp_Hideout,
+    "CCitadel_BreakableProp_ParadeFloatBox": CCitadel_BreakableProp_ParadeFloatBox,
     "CCitadel_BreakableProp_PunchableTroll": CCitadel_BreakableProp_PunchableTroll,
+    "CPropParadeFloat": CPropParadeFloat,
     "CCitadel_DeployablePreview": CCitadel_DeployablePreview,
     "CCitadel_DoorwayPortal": CCitadel_DoorwayPortal,
     "CCitadel_FissureWall": CCitadel_FissureWall,
@@ -21192,6 +21244,7 @@ _CLASSES: dict[str, type[CEntityInstance]] = {
     "CCitadel_Pickup_Modifier": CCitadel_Pickup_Modifier,
     "CCitadel_Pickup_NecroDeath": CCitadel_Pickup_NecroDeath,
     "CCitadel_Pickup_SoulBag": CCitadel_Pickup_SoulBag,
+    "CCitadel_Pickup_Turkey": CCitadel_Pickup_Turkey,
     "CCitadel_PickupItemSpawner": CCitadel_PickupItemSpawner,
     "CCitadel_PickupSpawner": CCitadel_PickupSpawner,
     "CCitadel_SmokeGrenade_Blocker": CCitadel_SmokeGrenade_Blocker,

@@ -8004,6 +8004,18 @@ func (e CCitadelGameRules) NSapphireGold() Number[int32] {
 	return Number[int32]{e.field("m_nSapphireGold")}
 }
 
+func (e CCitadelGameRules) NKothTrailingTeam() Number[int32] {
+	return Number[int32]{e.field("m_nKothTrailingTeam")}
+}
+
+func (e CCitadelGameRules) NKothTrailingBonusGold() Number[int32] {
+	return Number[int32]{e.field("m_nKothTrailingBonusGold")}
+}
+
+func (e CCitadelGameRules) NKothTrailingBonusResist() Number[int32] {
+	return Number[int32]{e.field("m_nKothTrailingBonusResist")}
+}
+
 func (e CCitadelGameRules) VKothCashInCurrentLocation() Vector {
 	return Vector{e.field("m_vKothCashInCurrentLocation")}
 }
@@ -8130,6 +8142,14 @@ func (e CCitadelGameRules) IAmberRejuvCount() Number[int32] {
 
 func (e CCitadelGameRules) ISapphireRejuvCount() Number[int32] {
 	return Number[int32]{e.field("m_iSapphireRejuvCount")}
+}
+
+func (e CCitadelGameRules) TAmberRejuvExpireTime() Number[float32] {
+	return Number[float32]{e.field("m_tAmberRejuvExpireTime")}
+}
+
+func (e CCitadelGameRules) TSapphireRejuvExpireTime() Number[float32] {
+	return Number[float32]{e.field("m_tSapphireRejuvExpireTime")}
 }
 
 func (e CCitadelGameRules) TNextMidBossSpawnTime() Number[float32] {

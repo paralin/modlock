@@ -288,6 +288,10 @@ func (e CAbility_Fencer_Lunge) RecastEndTime() Number[float32] {
 	return Number[float32]{e.field("m_RecastEndTime")}
 }
 
+func (e CAbility_Fencer_Lunge) FirstCastTime() Number[float32] {
+	return Number[float32]{e.field("m_FirstCastTime")}
+}
+
 func (e CAbility_Fencer_Lunge) ELungeDirection() Number[uint8] {
 	return Number[uint8]{e.field("m_eLungeDirection")}
 }
@@ -388,6 +392,10 @@ func (e CAbility_Mirage_Tornado) field(name string) Field {
 
 func (e CAbility_Mirage_Tornado) RecastWindowEnd() Number[float32] {
 	return Number[float32]{e.field("m_RecastWindowEnd")}
+}
+
+func (e CAbility_Mirage_Tornado) FirstCastTime() Number[float32] {
+	return Number[float32]{e.field("m_FirstCastTime")}
 }
 
 func (e CAbility_Mirage_Tornado) AnglesCharging() Angles {
@@ -2144,6 +2152,10 @@ func (e CCitadel_Ability_Climb_Rope) BRequestJumpToRoof() Bool {
 	return Bool{e.field("m_bRequestJumpToRoof")}
 }
 
+func (e CCitadel_Ability_Climb_Rope) BLatchedNearTop() Bool {
+	return Bool{e.field("m_bLatchedNearTop")}
+}
+
 func (e CCitadel_Ability_Climb_Rope) FlMoveDownStartTime() Number[float32] {
 	return Number[float32]{e.field("m_flMoveDownStartTime")}
 }
@@ -2632,8 +2644,8 @@ func (e CCitadel_Ability_Fencer_Riposte) field(name string) Field {
 	return Field{e.Handle, "CCitadel_Ability_Fencer_Riposte", name}
 }
 
-func (e CCitadel_Ability_Fencer_Riposte) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget")}
+func (e CCitadel_Ability_Fencer_Riposte) VecDeflectedTargets() List[uint32] {
+	return List[uint32]{e.field("m_vecDeflectedTargets")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) VRiposteStartPosition() Vector {
@@ -2642,6 +2654,10 @@ func (e CCitadel_Ability_Fencer_Riposte) VRiposteStartPosition() Vector {
 
 func (e CCitadel_Ability_Fencer_Riposte) VDashDirection() Vector {
 	return Vector{e.field("m_vDashDirection")}
+}
+
+func (e CCitadel_Ability_Fencer_Riposte) HDashTarget() Handle[CBaseEntity] {
+	return Handle[CBaseEntity]{e.field("m_hDashTarget")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) FlStateStartTime() Number[float32] {
@@ -2654,10 +2670,6 @@ func (e CCitadel_Ability_Fencer_Riposte) NCurrentRiposteState() Number[uint8] {
 
 func (e CCitadel_Ability_Fencer_Riposte) FlSuccessfulRiposteTime() Number[float32] {
 	return Number[float32]{e.field("m_flSuccessfulRiposteTime")}
-}
-
-func (e CCitadel_Ability_Fencer_Riposte) VecHitEnemies() List[uint32] {
-	return List[uint32]{e.field("m_vecHitEnemies")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) VecLastPosition() Vector {
@@ -2704,6 +2716,10 @@ func (e CCitadel_Ability_Fencer_ThrowBlade) BHitEnemyPlayer() Bool {
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) TRecastEndTime() Number[float32] {
 	return Number[float32]{e.field("m_tRecastEndTime")}
+}
+
+func (e CCitadel_Ability_Fencer_ThrowBlade) TFirstCastTime() Number[float32] {
+	return Number[float32]{e.field("m_tFirstCastTime")}
 }
 
 type CCitadel_Ability_FireBomb CEntityInstance
@@ -3364,6 +3380,22 @@ func (e CCitadel_Ability_Jump) NConsecutiveWallJumps() Number[int8] {
 
 func (e CCitadel_Ability_Jump) FlLateralInputSuppressEndTime() Number[float32] {
 	return Number[float32]{e.field("m_flLateralInputSuppressEndTime")}
+}
+
+func (e CCitadel_Ability_Jump) BFailedAirJump() Bool {
+	return Bool{e.field("m_bFailedAirJump")}
+}
+
+func (e CCitadel_Ability_Jump) FlFailedAirJumpPenaltyEndTime() Number[float32] {
+	return Number[float32]{e.field("m_flFailedAirJumpPenaltyEndTime")}
+}
+
+func (e CCitadel_Ability_Jump) NFailedAirJumpPenaltyStacks() Number[int8] {
+	return Number[int8]{e.field("m_nFailedAirJumpPenaltyStacks")}
+}
+
+func (e CCitadel_Ability_Jump) BGroundJumpAirDragPenalty() Bool {
+	return Bool{e.field("m_bGroundJumpAirDragPenalty")}
 }
 
 type CCitadel_Ability_Kobun CEntityInstance

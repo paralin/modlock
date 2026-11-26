@@ -329,6 +329,7 @@ type BooleanVariable0 =
 	| "citadel_report_card_tasks_complete"
 	| "citadel_require_server_bullet_impacts_on_important_hits"
 	| "citadel_restore_components_only_during_sellback"
+	| "citadel_seasonal_thanksgiving"
 	| "citadel_secure_souls_only_at_soul_dealer"
 	| "citadel_server_mm_ignore_engine_version"
 	| "citadel_solo_bot_match"
@@ -408,9 +409,9 @@ type BooleanVariable0 =
 	| "citadel_use_new_abandon_rules_force_enabled"
 	| "citadel_use_new_abandon_rules_ranked"
 	| "citadel_use_new_abandon_rules_unranked"
-	| "citadel_use_pvs_for_players"
 
 type BooleanVariable1 =
+	| "citadel_use_pvs_for_players"
 	| "citadel_use_stateful_ready_on_client"
 	| "citadel_use_unit_query_system"
 	| "citadel_use_wip_models"
@@ -810,9 +811,9 @@ type BooleanVariable1 =
 	| "nav_test_split_obstacle_dirty"
 	| "nav_test_split_obstacle_leave"
 	| "nav_test_split_obstacle_update_pos"
-	| "navlocal_constrain"
 
 type BooleanVariable2 =
+	| "navlocal_constrain"
 	| "navlocal_debug_navlink_isect"
 	| "navlocal_parallel_trace_path_for_obstacle"
 	| "navspace_create_water_smooth_connections"
@@ -1212,9 +1213,9 @@ type BooleanVariable2 =
 	| "steamlearn_spew_um_times"
 	| "sv_allchat"
 	| "sv_alltalk"
-	| "sv_audio_debug_bullet_material"
 
 type BooleanVariable3 =
+	| "sv_audio_debug_bullet_material"
 	| "sv_audio_debug_pawn_surface_data"
 	| "sv_audio_log_citadel_audio_filter"
 	| "sv_audio_log_participant_start_messages"
@@ -1525,6 +1526,7 @@ type NumberVariable0 =
 	| "citadel_air_drag_min"
 	| "citadel_aircontrol_speed_fast"
 	| "citadel_aircontrol_speed_slow"
+	| "citadel_archer_charged_shot_ricochet_aim_debug"
 	| "citadel_autobuy_refund_time"
 	| "citadel_averaged_normal_debug_draw"
 	| "citadel_barrack_boss_aggro_radius"
@@ -1569,6 +1571,20 @@ type NumberVariable0 =
 	| "citadel_bot_director_respawn_window"
 	| "citadel_bot_director_zipline_min"
 	| "citadel_bot_director_zipline_stable"
+	| "citadel_bot_drill"
+	| "citadel_bot_drill_air_jumps"
+	| "citadel_bot_drill_attack_delay_max"
+	| "citadel_bot_drill_attack_delay_min"
+	| "citadel_bot_drill_charged_shot_chance"
+	| "citadel_bot_drill_chase_distance"
+	| "citadel_bot_drill_combo_swings"
+	| "citadel_bot_drill_distance"
+	| "citadel_bot_drill_height"
+	| "citadel_bot_drill_parry_charge_percent"
+	| "citadel_bot_drill_reset_delay"
+	| "citadel_bot_drill_retreat_distance"
+	| "citadel_bot_drill_roam_distance"
+	| "citadel_bot_drill_wall_distance"
 	| "citadel_bot_hero_testing_pitch"
 	| "citadel_bot_melee"
 	| "citadel_bot_net_worth_max_spawn_time"
@@ -1619,6 +1635,7 @@ type NumberVariable0 =
 	| "citadel_cinematic_intro_enabled"
 	| "citadel_combatlog_fight_idle_time"
 	| "citadel_comeback_redirect_fraction"
+	| "citadel_comeback_redirect_max_ratio"
 	| "citadel_control_point_capture_rate_scale"
 	| "citadel_control_point_decay_delay"
 	| "citadel_control_point_decay_rate"
@@ -1789,6 +1806,8 @@ type NumberVariable0 =
 	| "citadel_minion_gold_reward"
 	| "citadel_minion_gold_reward_bonus_per_minute"
 	| "citadel_movement_plane_overlap_mult"
+
+type NumberVariable1 =
 	| "citadel_movement_slip_accel"
 	| "citadel_movement_solver_iterations"
 	| "citadel_movespeed_bonus_max"
@@ -1805,8 +1824,6 @@ type NumberVariable0 =
 	| "citadel_neutral_player_range_strong_meters"
 	| "citadel_neutral_player_range_weak_meters"
 	| "citadel_neutral_scorer_time_window"
-
-type NumberVariable1 =
 	| "citadel_neutral_sleep_time"
 	| "citadel_neutral_spawn_interval_override"
 	| "citadel_neutral_tether_distance_window"
@@ -1949,6 +1966,12 @@ type NumberVariable1 =
 	| "citadel_report_card_dismissal_timeout"
 	| "citadel_rr_killstreak_for_death_line"
 	| "citadel_sat_volume_desat_amount"
+	| "citadel_seasonal_thanksgiving_float_box_respawn_time"
+	| "citadel_seasonal_thanksgiving_float_first_box_match_time"
+	| "citadel_seasonal_thanksgiving_float_initial_distance"
+	| "citadel_seasonal_thanksgiving_float_move_range_max_y"
+	| "citadel_seasonal_thanksgiving_float_move_range_min_y"
+	| "citadel_seasonal_thanksgiving_float_spacing"
 	| "citadel_secure_gold_behind_max_bonus"
 	| "citadel_secure_gold_behind_max_delta"
 	| "citadel_secure_gold_fixed"
@@ -2185,6 +2208,8 @@ type NumberVariable1 =
 	| "diffcheck_playerslot"
 	| "dota_spatial_audio_mix"
 	| "dsp_automatic"
+
+type NumberVariable2 =
 	| "dsp_db_min"
 	| "dsp_db_mixdrop"
 	| "dsp_dist_max"
@@ -2207,8 +2232,6 @@ type NumberVariable1 =
 	| "ent_steadystate_delay"
 	| "ent_steadystate_interval"
 	| "ent_text_flags_active"
-
-type NumberVariable2 =
 	| "entity_log_load_unserialize"
 	| "experimental_citadel_tick_rate_override"
 	| "fathom_force_spotted"
@@ -2587,6 +2610,8 @@ type NumberVariable2 =
 	| "r_AirboatViewDampenFreq"
 	| "r_AirboatViewZHeight"
 	| "r_JeepViewDampenDamp"
+
+type NumberVariable3 =
 	| "r_JeepViewDampenFreq"
 	| "r_JeepViewZHeight"
 	| "r_aoproxy_cull_dist"
@@ -2609,8 +2634,6 @@ type NumberVariable2 =
 	| "r_dof_override_far_crisp"
 	| "r_dof_override_near_blurry"
 	| "r_dof_override_near_crisp"
-
-type NumberVariable3 =
 	| "r_dof_override_tilt_to_ground"
 	| "r_draw_particle_children_with_parents"
 	| "r_extra_render_frames"
@@ -2989,6 +3012,8 @@ type NumberVariable3 =
 	| "tv_playcast_max_rcvage"
 	| "tv_playcast_max_rtdelay"
 	| "tv_playcast_retry_timeout"
+
+type NumberVariable4 =
 	| "tv_playcast_slow_playback_fragment_count"
 	| "tv_port"
 	| "tv_port1"
@@ -3011,8 +3036,6 @@ type NumberVariable3 =
 	| "voice_stall_ms"
 	| "voice_threshold"
 	| "voice_threshold_attack"
-
-type NumberVariable4 =
 	| "voice_threshold_delay"
 	| "voice_threshold_hold"
 	| "voice_threshold_ramp_min_db"
@@ -3265,6 +3288,7 @@ type CommandName0 =
 	| "citadel_bot_give_all_abilities_base"
 	| "citadel_bot_give_all_bots_all_items"
 	| "citadel_bot_give_team_gold"
+	| "citadel_bot_give_unsecured_souls"
 	| "citadel_bot_kick"
 	| "citadel_bot_list_ents"
 	| "citadel_bot_list_objectives_ent"
@@ -3304,6 +3328,7 @@ type CommandName0 =
 	| "citadel_give_halloween_candy"
 	| "citadel_give_permanent_buffs"
 	| "citadel_give_player_gold"
+	| "citadel_give_unsecured_souls"
 	| "citadel_guide_bot_say"
 	| "citadel_heal_target"
 	| "citadel_increment_killstreak"
@@ -3334,6 +3359,7 @@ type CommandName0 =
 	| "citadel_spawn_escort"
 	| "citadel_spawn_midboss_breakables"
 	| "citadel_spawn_nearby_neutrals"
+	| "citadel_spawn_parade_floats"
 	| "citadel_spawn_pickup"
 	| "citadel_spawn_pickup_item"
 	| "citadel_spawn_trooper"
@@ -3579,11 +3605,11 @@ type CommandName0 =
 	| "key_findbinding"
 	| "key_listboundkeys"
 	| "kick"
+
+type CommandName1 =
 	| "kickid"
 	| "kickid_hltv"
 	| "kill"
-
-type CommandName1 =
 	| "kill_all_shrines"
 	| "killvector"
 	| "lightbinner_precompute"
@@ -3981,11 +4007,11 @@ type CommandName1 =
 	| "snd_sos_print_class_sizes"
 	| "snd_sos_print_field_name_strings"
 	| "snd_sos_print_groups"
+
+type CommandName2 =
 	| "snd_sos_print_operator_stack"
 	| "snd_sos_print_operator_stack_operator"
 	| "snd_sos_print_operator_stacks"
-
-type CommandName2 =
 	| "snd_sos_print_operators"
 	| "snd_sos_print_stack_exec_list"
 	| "snd_sos_print_strings"

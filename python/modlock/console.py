@@ -377,6 +377,7 @@ type BooleanVariable = Literal[
     "citadel_report_card_tasks_complete",
     "citadel_require_server_bullet_impacts_on_important_hits",
     "citadel_restore_components_only_during_sellback",
+    "citadel_seasonal_thanksgiving",
     "citadel_secure_souls_only_at_soul_dealer",
     "citadel_server_mm_ignore_engine_version",
     "citadel_solo_bot_match",
@@ -1567,6 +1568,7 @@ type NumberVariable = Literal[
     "citadel_air_drag_min",
     "citadel_aircontrol_speed_fast",
     "citadel_aircontrol_speed_slow",
+    "citadel_archer_charged_shot_ricochet_aim_debug",
     "citadel_autobuy_refund_time",
     "citadel_averaged_normal_debug_draw",
     "citadel_barrack_boss_aggro_radius",
@@ -1611,6 +1613,20 @@ type NumberVariable = Literal[
     "citadel_bot_director_respawn_window",
     "citadel_bot_director_zipline_min",
     "citadel_bot_director_zipline_stable",
+    "citadel_bot_drill",
+    "citadel_bot_drill_air_jumps",
+    "citadel_bot_drill_attack_delay_max",
+    "citadel_bot_drill_attack_delay_min",
+    "citadel_bot_drill_charged_shot_chance",
+    "citadel_bot_drill_chase_distance",
+    "citadel_bot_drill_combo_swings",
+    "citadel_bot_drill_distance",
+    "citadel_bot_drill_height",
+    "citadel_bot_drill_parry_charge_percent",
+    "citadel_bot_drill_reset_delay",
+    "citadel_bot_drill_retreat_distance",
+    "citadel_bot_drill_roam_distance",
+    "citadel_bot_drill_wall_distance",
     "citadel_bot_hero_testing_pitch",
     "citadel_bot_melee",
     "citadel_bot_net_worth_max_spawn_time",
@@ -1661,6 +1677,7 @@ type NumberVariable = Literal[
     "citadel_cinematic_intro_enabled",
     "citadel_combatlog_fight_idle_time",
     "citadel_comeback_redirect_fraction",
+    "citadel_comeback_redirect_max_ratio",
     "citadel_control_point_capture_rate_scale",
     "citadel_control_point_decay_delay",
     "citadel_control_point_decay_rate",
@@ -1989,6 +2006,12 @@ type NumberVariable = Literal[
     "citadel_report_card_dismissal_timeout",
     "citadel_rr_killstreak_for_death_line",
     "citadel_sat_volume_desat_amount",
+    "citadel_seasonal_thanksgiving_float_box_respawn_time",
+    "citadel_seasonal_thanksgiving_float_first_box_match_time",
+    "citadel_seasonal_thanksgiving_float_initial_distance",
+    "citadel_seasonal_thanksgiving_float_move_range_max_y",
+    "citadel_seasonal_thanksgiving_float_move_range_min_y",
+    "citadel_seasonal_thanksgiving_float_spacing",
     "citadel_secure_gold_behind_max_bonus",
     "citadel_secure_gold_behind_max_delta",
     "citadel_secure_gold_fixed",
@@ -3299,6 +3322,7 @@ type CommandName = Literal[
     "citadel_bot_give_all_abilities_base",
     "citadel_bot_give_all_bots_all_items",
     "citadel_bot_give_team_gold",
+    "citadel_bot_give_unsecured_souls",
     "citadel_bot_kick",
     "citadel_bot_list_ents",
     "citadel_bot_list_objectives_ent",
@@ -3338,6 +3362,7 @@ type CommandName = Literal[
     "citadel_give_halloween_candy",
     "citadel_give_permanent_buffs",
     "citadel_give_player_gold",
+    "citadel_give_unsecured_souls",
     "citadel_guide_bot_say",
     "citadel_heal_target",
     "citadel_increment_killstreak",
@@ -3368,6 +3393,7 @@ type CommandName = Literal[
     "citadel_spawn_escort",
     "citadel_spawn_midboss_breakables",
     "citadel_spawn_nearby_neutrals",
+    "citadel_spawn_parade_floats",
     "citadel_spawn_pickup",
     "citadel_spawn_pickup_item",
     "citadel_spawn_trooper",
@@ -4632,6 +4658,9 @@ Settings = TypedDict(
         "citadel_allow_team_change_when_assigned": bool,
         # Enable to always force transmit ability entities.
         "citadel_always_transmit_abilities": bool,
+        # Seconds to draw the Charged Shot ricochet aim cone (yellow), natural
+        # reflection (white) and biased shot (green). 0 disables.
+        "citadel_archer_charged_shot_ricochet_aim_debug": float,
         # Time Allowed for a full refund when buy anywhere (Auto/Quick Buy) is
         # enabled.
         "citadel_autobuy_refund_time": float,
@@ -4731,6 +4760,50 @@ Settings = TypedDict(
         # How much to push out a lane before deprioritizing it.
         "citadel_bot_director_zipline_stable": float,
         "citadel_bot_disconnect_takeover_enabled": bool,
+        # Sandbox bot drill. 1: diving Danny, 2: flying Vindicta, 3: Abrams
+        # Shoulder Charge and melee, 4: Grey Talon Rain of Arrows and Charged
+        # Shot, 5: Paradox Kinetic Carbine and Paradoxical Swap, 6: Viscous Goo
+        # Ball, 7: Viscous Puddle Punch, 8: Bebop Grapple Arm, 9: Graves
+        # Borrowed Decree parry, 10: Baba Threadsap, 11: Billy combo, 12: Baba
+        # Granny Long Legs, 13: Lash Death Slam and Ground Strike, 14: Silver
+        # wolf form, 15: Holliday Bounce Pad and Powder Keg, 16: McGinnis
+        # Spectral Wall and Heavy Barrage.
+        "citadel_bot_drill": float,
+        # Air jumps the Lash bot drill target makes after Grapple to gain
+        # height.
+        "citadel_bot_drill_air_jumps": float,
+        # Longest wait in seconds between a bot drill target's attacks.
+        "citadel_bot_drill_attack_delay_max": float,
+        # Shortest wait in seconds between a bot drill target's attacks.
+        "citadel_bot_drill_attack_delay_min": float,
+        # Chance per flight that the Grey Talon bot drill target fires a Charged
+        # Shot.
+        "citadel_bot_drill_charged_shot_chance": float,
+        # Distance in meters from its start the bot drill target stops chasing
+        # the player at.
+        "citadel_bot_drill_chase_distance": float,
+        # Melee attacks the Abrams and Billy bot drill targets finish their
+        # combos with.
+        "citadel_bot_drill_combo_swings": float,
+        # Distance in meters from the player the bot drill target starts at.
+        "citadel_bot_drill_distance": float,
+        # Height in meters the bot drill target flies at.
+        "citadel_bot_drill_height": float,
+        # Heavy melee charge percent at which the Graves bot drill target
+        # parries.
+        "citadel_bot_drill_parry_charge_percent": float,
+        # Seconds after landing or finishing an attack before the bot drill
+        # target returns to its start.
+        "citadel_bot_drill_reset_delay": float,
+        # Distance in meters from the player the McGinnis bot drill target
+        # dashes away at.
+        "citadel_bot_drill_retreat_distance": float,
+        # Distance in meters from its start a roaming bot drill target moves
+        # around in.
+        "citadel_bot_drill_roam_distance": float,
+        # Distance in meters behind the player the McGinnis bot drill target
+        # deploys Spectral Wall at.
+        "citadel_bot_drill_wall_distance": float,
         # Forces citadel bots to move back and forth.
         "citadel_bot_forward_back": bool,
         # Aim Pitch in Hero Testing.
@@ -4867,10 +4940,13 @@ Settings = TypedDict(
         # involved in a fight did anything to anyone else involved in the
         # fight).
         "citadel_combatlog_fight_idle_time": float,
-        # Fraction of the comeback souls earned by a player above the enemy
+        # Max fraction of the comeback souls earned by a player above their own
         # team's average net worth that is redirected to the tick gold pool for
-        # the two lowest net worth teammates.
+        # the two lowest net worth teammates. Ramps from 0 at the team average.
         "citadel_comeback_redirect_fraction": float,
+        # Player net worth / own team average net worth at which
+        # citadel_comeback_redirect_fraction is reached.
+        "citadel_comeback_redirect_max_ratio": float,
         "citadel_control_point_capture_rate_scale": float,
         "citadel_control_point_decay_delay": float,
         "citadel_control_point_decay_rate": float,
@@ -5611,6 +5687,27 @@ Settings = TypedDict(
         # with killstreak instead of victim's death line.
         "citadel_rr_killstreak_for_death_line": float,
         "citadel_sat_volume_desat_amount": float,
+        # If enabled, the Thanksgiving parade floats spawn when the match
+        # starts.
+        "citadel_seasonal_thanksgiving": bool,
+        # Seconds after a parade float's box is broken before a new one appears
+        # on the float. Negative never respawns it.
+        "citadel_seasonal_thanksgiving_float_box_respawn_time": float,
+        # Seconds of match time before a parade float gets its first box. Until
+        # then it has none, and rides at its raised height. 0 gives it one as
+        # soon as it spawns.
+        "citadel_seasonal_thanksgiving_float_first_box_match_time": float,
+        # How far down the lane 4 zipline, in units along its path, from the
+        # first node inside the move range the first parade float spawns. The
+        # rest are spaced on from there.
+        "citadel_seasonal_thanksgiving_float_initial_distance": float,
+        # World Y of the +Y end of the parade floats' path. A float driving
+        # toward +Y that passes this teleports back to the -Y end.
+        "citadel_seasonal_thanksgiving_float_move_range_max_y": float,
+        # World Y of the -Y end of the parade floats' path. No path limit unless
+        # this is below citadel_seasonal_thanksgiving_float_move_range_max_y.
+        "citadel_seasonal_thanksgiving_float_move_range_min_y": float,
+        "citadel_seasonal_thanksgiving_float_spacing": float,
         # Max extra secure rate (fraction of baseline) for a player behind the
         # enemy team's average net worth.
         "citadel_secure_gold_behind_max_bonus": float,
@@ -5796,8 +5893,7 @@ Settings = TypedDict(
         # value.
         "citadel_time_scale": float,
         "citadel_track_player_vs_player_accuracy": bool,
-        # Max Difference between teams to get full trailing bonuses for
-        # Koth/Urn.
+        # Max Difference between teams to get full trailing bonuses for Urn.
         "citadel_trailingteam_bias_threshold_max": float,
         # Min Difference between teams to start getting trailing bonuses for
         # Koth/Urn.

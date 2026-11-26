@@ -2414,6 +2414,10 @@ func (e CCitadelItemPickupRejuv) BPickedUp() Bool {
 	return Bool{e.field("m_bPickedUp")}
 }
 
+func (e CCitadelItemPickupRejuv) NDropNumber() Number[int32] {
+	return Number[int32]{e.field("m_nDropNumber")}
+}
+
 type CCitadelItemPickupRejuvHeroTest CEntityInstance
 
 type CCitadel_Bounce_Pad CEntityInstance
@@ -2728,7 +2732,19 @@ func (e CCitadel_BreakableProp) NMeleeHitsTaken() Number[int32] {
 
 type CCitadel_BreakableProp_Hideout CEntityInstance
 
+type CCitadel_BreakableProp_ParadeFloatBox CEntityInstance
+
 type CCitadel_BreakableProp_PunchableTroll CEntityInstance
+
+type CPropParadeFloat CEntityInstance
+
+func (e CPropParadeFloat) field(name string) Field {
+	return Field{e.Handle, "CPropParadeFloat", name}
+}
+
+func (e CPropParadeFloat) IszBoxSubclass() Text {
+	return Text{e.field("m_iszBoxSubclass")}
+}
 
 type CCitadel_DeployablePreview CEntityInstance
 
@@ -2953,6 +2969,8 @@ func (e CCitadel_Pickup_SoulBag) IGoldReward() Number[int32] {
 func (e CCitadel_Pickup_SoulBag) HVictimPlayer() Handle[CCitadelPlayerPawn] {
 	return Handle[CCitadelPlayerPawn]{e.field("m_hVictimPlayer")}
 }
+
+type CCitadel_Pickup_Turkey CEntityInstance
 
 type CCitadel_PickupItemSpawner CEntityInstance
 

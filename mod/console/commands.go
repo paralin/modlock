@@ -278,6 +278,9 @@ var CitadelBotGiveAllBotsAllItems = Command{"citadel_bot_give_all_bots_all_items
 // CitadelBotGiveTeamGold: Give all bots on a particular team gold.
 var CitadelBotGiveTeamGold = Command{"citadel_bot_give_team_gold"}
 
+// CitadelBotGiveUnsecuredSouls: <amount> Gives all bots unsecured souls.
+var CitadelBotGiveUnsecuredSouls = Command{"citadel_bot_give_unsecured_souls"}
+
 // CitadelBotKick: Kick bot <name>.
 var CitadelBotKick = Command{"citadel_bot_kick"}
 
@@ -415,6 +418,9 @@ var CitadelGivePermanentBuffs = Command{"citadel_give_permanent_buffs"}
 // CitadelGivePlayerGold: <player name> <gold> Gives the specified player gold.
 var CitadelGivePlayerGold = Command{"citadel_give_player_gold"}
 
+// CitadelGiveUnsecuredSouls: <amount> Gives your hero unsecured souls.
+var CitadelGiveUnsecuredSouls = Command{"citadel_give_unsecured_souls"}
+
 // CitadelGuideBotSay: <line> makes the guide bot say the specified line.
 var CitadelGuideBotSay = Command{"citadel_guide_bot_say"}
 
@@ -511,6 +517,11 @@ var CitadelSpawnMidbossBreakables = Command{"citadel_spawn_midboss_breakables"}
 
 // CitadelSpawnNearbyNeutrals: Spawns any neutral camps within 800 units (~20m).
 var CitadelSpawnNearbyNeutrals = Command{"citadel_spawn_nearby_neutrals"}
+
+// CitadelSpawnParadeFloats: Spawns one of each parade float type in a line
+// starting at the given position. Usage: citadel_spawn_parade_floats <x> <y>
+// <z>.
+var CitadelSpawnParadeFloats = Command{"citadel_spawn_parade_floats"}
 
 // CitadelSpawnPickup: Spawns a pickup using a pickup subclass.
 var CitadelSpawnPickup = Command{"citadel_spawn_pickup"}

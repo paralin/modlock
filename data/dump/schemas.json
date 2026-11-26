@@ -1,5 +1,5 @@
 {
- "build": "6868",
+ "build": "6871",
  "classes": [
   {
    "name": "AnimationDecodeDebugDumpElement_t",
@@ -82918,7 +82918,7 @@
   {
    "name": "CAbilityChargedShotVData",
    "module": "server",
-   "size": 4904,
+   "size": 4912,
    "alignment": 8,
    "bases": [
     {
@@ -82958,6 +82958,22 @@
      "name": "m_flWallRicochetSpeedScale",
      "type": "float32",
      "offset": 4900,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flWallRicochetAimMagnetismHalfAngleCone",
+     "type": "float32",
+     "offset": 4904,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flWallRicochetAimMagnetismConeLength",
+     "type": "float32",
+     "offset": 4908,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -83764,7 +83780,7 @@
   {
    "name": "CAbilityGooGrenadeVData",
    "module": "server",
-   "size": 4744,
+   "size": 4768,
    "alignment": 8,
    "bases": [
     {
@@ -83824,6 +83840,31 @@
      "name": "m_flMaxRestitution",
      "type": "float32",
      "offset": 4740
+    },
+    {
+     "name": "m_flClimbHeight",
+     "type": "float32",
+     "offset": 4744
+    },
+    {
+     "name": "m_flLedgeForwardClearance",
+     "type": "float32",
+     "offset": 4748
+    },
+    {
+     "name": "m_flLedgeExtraDropHeight",
+     "type": "float32",
+     "offset": 4752
+    },
+    {
+     "name": "m_flEdgeBounceMaxNormalDot",
+     "type": "float32",
+     "offset": 4756
+    },
+    {
+     "name": "m_bDebug",
+     "type": "bool",
+     "offset": 4760
     }
    ],
    "metadata": [
@@ -84665,7 +84706,7 @@
   {
    "name": "CAbilityJumpVData",
    "module": "server",
-   "size": 5192,
+   "size": 5208,
    "alignment": 8,
    "bases": [
     {
@@ -84758,9 +84799,24 @@
      ]
     },
     {
+     "name": "m_flFailedAirJumpGroundJumpAirDrag",
+     "type": "float32",
+     "offset": 4976
+    },
+    {
+     "name": "m_flFailedAirJumpPenaltyGroundTime",
+     "type": "float32",
+     "offset": 4980
+    },
+    {
+     "name": "m_nFailedAirJumpPenaltyJumpsToMaxAirDrag",
+     "type": "int32",
+     "offset": 4984
+    },
+    {
      "name": "m_strDashJumpSound",
      "type": "CSoundEventName",
-     "offset": 4976,
+     "offset": 4992,
      "metadata": [
       "MPropertyGroupName"
      ]
@@ -84768,7 +84824,7 @@
     {
      "name": "m_flDashJumpStartTime",
      "type": "float32",
-     "offset": 4992,
+     "offset": 5008,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -84776,12 +84832,12 @@
     {
      "name": "m_flDashJumpEndTime",
      "type": "float32",
-     "offset": 4996
+     "offset": 5012
     },
     {
      "name": "m_flDashJumpDistanceInMeters",
      "type": "float32",
-     "offset": 5000,
+     "offset": 5016,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84789,32 +84845,32 @@
     {
      "name": "m_flDashJumpVerticalSpeed",
      "type": "float32",
-     "offset": 5008
+     "offset": 5024
     },
     {
      "name": "m_flDashJumpMissMaxSpeed",
      "type": "float32",
-     "offset": 5012
+     "offset": 5028
     },
     {
      "name": "m_flDashJumpMantleDisableTime",
      "type": "float32",
-     "offset": 5016
+     "offset": 5032
     },
     {
      "name": "m_flDashJumpExtraAirControlTime",
      "type": "float32",
-     "offset": 5020
+     "offset": 5036
     },
     {
      "name": "m_flDashJumpExtraAirControlPercent",
      "type": "float32",
-     "offset": 5024
+     "offset": 5040
     },
     {
      "name": "m_WallJumpExecutedSound",
      "type": "CSoundEventName",
-     "offset": 5032,
+     "offset": 5048,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -84823,7 +84879,7 @@
     {
      "name": "m_CornerBoostExecutedSound",
      "type": "CSoundEventName",
-     "offset": 5048,
+     "offset": 5064,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84831,7 +84887,7 @@
     {
      "name": "m_flCollidedWallMaxDist",
      "type": "float32",
-     "offset": 5064,
+     "offset": 5080,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84839,7 +84895,7 @@
     {
      "name": "m_flRemapSpeedToWallJumpVelocityDist",
      "type": "CRemapFloat",
-     "offset": 5068,
+     "offset": 5084,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84847,7 +84903,7 @@
     {
      "name": "m_flWallJumpFullPowerRechargeTime",
      "type": "float32",
-     "offset": 5084,
+     "offset": 5100,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84855,7 +84911,7 @@
     {
      "name": "m_flWallJumpPowerMin",
      "type": "float32",
-     "offset": 5088,
+     "offset": 5104,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84863,7 +84919,7 @@
     {
      "name": "m_flWallJumpPowerBias",
      "type": "float32",
-     "offset": 5092,
+     "offset": 5108,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84871,7 +84927,7 @@
     {
      "name": "m_flWallJumpUpSpeed",
      "type": "float32",
-     "offset": 5096,
+     "offset": 5112,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84879,7 +84935,7 @@
     {
      "name": "m_flWallJumpMaxLateralSpeed",
      "type": "float32",
-     "offset": 5100,
+     "offset": 5116,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84887,7 +84943,7 @@
     {
      "name": "m_WallJumpLateralSpeedFalloffVsAlongSpeed",
      "type": "CPiecewiseCurve",
-     "offset": 5104,
+     "offset": 5120,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84895,7 +84951,7 @@
     {
      "name": "m_flWallJumpMinOutSpeed",
      "type": "float32",
-     "offset": 5168,
+     "offset": 5184,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84903,7 +84959,7 @@
     {
      "name": "m_flWallJumpMaxOutSpeed",
      "type": "float32",
-     "offset": 5172,
+     "offset": 5188,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84911,7 +84967,7 @@
     {
      "name": "m_flWallJumpLateralInputSuppressTime",
      "type": "float32",
-     "offset": 5176,
+     "offset": 5192,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84919,7 +84975,7 @@
     {
      "name": "m_flWallJumpReturnToWallBonusAccel",
      "type": "float32",
-     "offset": 5180,
+     "offset": 5196,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -84927,7 +84983,7 @@
     {
      "name": "m_flSlowedSlideJumpFactor",
      "type": "float32",
-     "offset": 5184,
+     "offset": 5200,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -85206,7 +85262,7 @@
   {
    "name": "CAbilityLashUltimateVData",
    "module": "server",
-   "size": 5480,
+   "size": 5488,
    "alignment": 8,
    "bases": [
     {
@@ -85218,7 +85274,7 @@
     {
      "name": "m_TargetPreviewParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4272,
+     "offset": 4280,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -85226,27 +85282,27 @@
     {
      "name": "m_LaunchParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4496
+     "offset": 4504
     },
     {
      "name": "m_UltimateCastParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4720
+     "offset": 4728
     },
     {
      "name": "m_UltimateCastEnemyParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4944
+     "offset": 4952
     },
     {
      "name": "m_AllyIndicatorParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5168
+     "offset": 5176
     },
     {
      "name": "m_GrappleEnemyModifier",
      "type": "CEmbeddedSubclass\u003c CCitadel_Modifier_LashGrappleEnemy_Debuff \u003e",
-     "offset": 5392,
+     "offset": 5400,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -85254,7 +85310,7 @@
     {
      "name": "m_GrabSound",
      "type": "CSoundEventName",
-     "offset": 5408,
+     "offset": 5416,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -85262,17 +85318,17 @@
     {
      "name": "m_MissSound",
      "type": "CSoundEventName",
-     "offset": 5424
+     "offset": 5432
     },
     {
      "name": "m_ThrowSound",
      "type": "CSoundEventName",
-     "offset": 5440
+     "offset": 5448
     },
     {
      "name": "m_flAirSpeedMax",
      "type": "float32",
-     "offset": 5456,
+     "offset": 5464,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -85280,22 +85336,22 @@
     {
      "name": "m_flFallSpeedMax",
      "type": "float32",
-     "offset": 5460
+     "offset": 5468
     },
     {
      "name": "m_flAirDrag",
      "type": "float32",
-     "offset": 5464
+     "offset": 5472
     },
     {
      "name": "m_flMaxPitchRangeScale",
      "type": "float32",
-     "offset": 5468
+     "offset": 5476
     },
     {
      "name": "m_flThrowAnimTossPoint",
      "type": "float32",
-     "offset": 5472
+     "offset": 5480
     }
    ],
    "metadata": [
@@ -89187,7 +89243,7 @@
   {
    "name": "CAbility_Fencer_Lunge",
    "module": "server",
-   "size": 9768,
+   "size": 9776,
    "alignment": 8,
    "bases": [
     {
@@ -89242,44 +89298,49 @@
      "offset": 5348
     },
     {
+     "name": "m_FirstCastTime",
+     "type": "GameTime_t",
+     "offset": 5352
+    },
+    {
      "name": "m_eLungeDirection",
      "type": "uint8",
-     "offset": 5352
+     "offset": 5356
     },
     {
      "name": "m_flHeldTime",
      "type": "float32",
-     "offset": 5356
+     "offset": 5360
     },
     {
      "name": "m_vecHitEnemies",
      "type": "CUtlVector\u003c CHandle\u003c CBaseEntity \u003e \u003e",
-     "offset": 5360
+     "offset": 5368
     },
     {
      "name": "m_vLastPosition",
      "type": "VectorWS",
-     "offset": 5384
+     "offset": 5392
     },
     {
      "name": "m_flStuckTime",
      "type": "GameTime_t",
-     "offset": 5396
+     "offset": 5404
     },
     {
      "name": "m_nGlintParticleIndex",
      "type": "ParticleIndex_t",
-     "offset": 5404
+     "offset": 5412
     },
     {
      "name": "m_flLastOuterCircleProgress",
      "type": "float32",
-     "offset": 6052
+     "offset": 6060
     },
     {
      "name": "m_nPowerLevel",
      "type": "int32",
-     "offset": 6064
+     "offset": 6072
     }
    ],
    "metadata": [
@@ -89492,7 +89553,7 @@
   {
    "name": "CAbility_Fencer_Ultimate",
    "module": "server",
-   "size": 7864,
+   "size": 8040,
    "alignment": 8,
    "bases": [
     {
@@ -89561,7 +89622,7 @@
   {
    "name": "CAbility_Fencer_Ultimate_VData",
    "module": "server",
-   "size": 5672,
+   "size": 5688,
    "alignment": 8,
    "bases": [
     {
@@ -89627,9 +89688,14 @@
      "offset": 4296
     },
     {
+     "name": "m_LowHealthGlowModifier",
+     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
+     "offset": 4312
+    },
+    {
      "name": "m_TargetPreviewParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4312,
+     "offset": 4328,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -89637,32 +89703,32 @@
     {
      "name": "m_DashImpactEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4536
+     "offset": 4552
     },
     {
      "name": "m_DashSwingEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4760
+     "offset": 4776
     },
     {
      "name": "m_DashLineEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4984
+     "offset": 5000
     },
     {
      "name": "m_UltHoldEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5208
+     "offset": 5224
     },
     {
      "name": "m_DirPreviewEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5432
+     "offset": 5448
     },
     {
      "name": "m_strDashHitEnemy",
      "type": "CSoundEventName",
-     "offset": 5656,
+     "offset": 5672,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -89797,7 +89863,7 @@
   {
    "name": "CAbility_Mirage_Tornado",
    "module": "server",
-   "size": 7072,
+   "size": 7080,
    "alignment": 8,
    "bases": [
     {
@@ -89812,14 +89878,19 @@
      "offset": 5292
     },
     {
+     "name": "m_FirstCastTime",
+     "type": "GameTime_t",
+     "offset": 5296
+    },
+    {
      "name": "m_anglesCharging",
      "type": "QAngle",
-     "offset": 7056
+     "offset": 7064
     },
     {
      "name": "m_flChargeStartTime",
      "type": "GameTime_t",
-     "offset": 7068
+     "offset": 7076
     }
    ]
   },
@@ -93020,7 +93091,7 @@
   {
    "name": "CBaseLockonAbilityVData",
    "module": "server",
-   "size": 4272,
+   "size": 4280,
    "alignment": 8,
    "bases": [
     {
@@ -93049,6 +93120,14 @@
      "name": "m_strApplyMaxLockonStack",
      "type": "CSoundEventName",
      "offset": 4256
+    },
+    {
+     "name": "m_bShowLostLOSOnHUD",
+     "type": "bool",
+     "offset": 4272,
+     "metadata": [
+      "MPropertyStartGroup"
+     ]
     }
    ],
    "metadata": [
@@ -94890,7 +94969,7 @@
   {
    "name": "CBaseTieredLockonAbilityVData",
    "module": "server",
-   "size": 4296,
+   "size": 4304,
    "alignment": 8,
    "bases": [
     {
@@ -94902,7 +94981,7 @@
     {
      "name": "m_vecLockonStackDurations",
      "type": "CUtlVector\u003c float32 \u003e",
-     "offset": 4272,
+     "offset": 4280,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -98707,7 +98786,7 @@
   {
    "name": "CCitadelGameRules",
    "module": "server",
-   "size": 10712,
+   "size": 10736,
    "alignment": 255,
    "bases": [
     {
@@ -98907,314 +98986,339 @@
      "offset": 684
     },
     {
+     "name": "m_nKothTrailingTeam",
+     "type": "int32",
+     "offset": 688
+    },
+    {
+     "name": "m_nKothTrailingBonusGold",
+     "type": "int32",
+     "offset": 692
+    },
+    {
+     "name": "m_nKothTrailingBonusResist",
+     "type": "int32",
+     "offset": 696
+    },
+    {
      "name": "m_vKothCashInCurrentLocation",
      "type": "VectorWS",
-     "offset": 688
+     "offset": 700
     },
     {
      "name": "m_hCurrentHeroDrafterRebels",
      "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 700
+     "offset": 712
     },
     {
      "name": "m_hCurrentHeroDrafterCombine",
      "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 704
+     "offset": 716
     },
     {
      "name": "m_bDontUploadStats",
      "type": "bool",
-     "offset": 708
+     "offset": 720
     },
     {
      "name": "m_bIsEndGameTest",
      "type": "bool",
-     "offset": 709
+     "offset": 721
     },
     {
      "name": "m_bSpawnedBots",
      "type": "bool",
-     "offset": 792
+     "offset": 808
     },
     {
      "name": "m_bGuideBotAssigned",
      "type": "bool",
-     "offset": 793
+     "offset": 809
     },
     {
      "name": "m_timeLastSpawnCrates",
      "type": "float32",
-     "offset": 796
+     "offset": 812
     },
     {
      "name": "m_timeNextKothSpawn",
      "type": "float32",
-     "offset": 800
+     "offset": 816
     },
     {
      "name": "m_timeNextKothSpawnWindowTime",
      "type": "float32",
-     "offset": 804
+     "offset": 820
     },
     {
      "name": "m_vNextKothLocation",
      "type": "VectorWS",
-     "offset": 808
+     "offset": 824
     },
     {
      "name": "m_vKothSpawnLocationDeck",
      "type": "CUtlVector\u003c VectorWS \u003e",
-     "offset": 824
+     "offset": 840
     },
     {
      "name": "m_nKothSpawnWarnings",
      "type": "int32",
-     "offset": 848
+     "offset": 864
     },
     {
      "name": "m_bNotifiedClientsOfNextCrateSpawn",
      "type": "bool",
-     "offset": 852
+     "offset": 868
     },
     {
      "name": "m_bEarlyCratesSpawned",
      "type": "bool",
-     "offset": 853
+     "offset": 869
     },
     {
      "name": "m_bIsEarlyCrateGamestate",
      "type": "bool",
-     "offset": 854
+     "offset": 870
     },
     {
      "name": "m_nNumCorruptedItemShopSpawns",
      "type": "int32",
-     "offset": 856
+     "offset": 872
     },
     {
      "name": "m_flGameTimeAllPlayersDisconnected",
      "type": "GameTime_t",
-     "offset": 904
+     "offset": 920
     },
     {
      "name": "m_nNextHeroDraftPosition",
      "type": "int32",
-     "offset": 908
+     "offset": 924
     },
     {
      "name": "m_CheckIdleTimer",
      "type": "CountdownTimer",
-     "offset": 5592
+     "offset": 5608
     },
     {
      "name": "m_CheckCheatersTimer",
      "type": "CountdownTimer",
-     "offset": 5616
+     "offset": 5632
     },
     {
      "name": "m_flTimeScaleStart",
      "type": "GameTime_t",
-     "offset": 5992
+     "offset": 6008
     },
     {
      "name": "m_flTimeScaleEndTime",
      "type": "GameTime_t",
-     "offset": 5996
+     "offset": 6012
     },
     {
      "name": "m_flTimeScaleRampInEndTime",
      "type": "GameTime_t",
-     "offset": 6000
+     "offset": 6016
     },
     {
      "name": "m_flTimeScaleRampOutStartTime",
      "type": "GameTime_t",
-     "offset": 6004
+     "offset": 6020
     },
     {
      "name": "m_flTimeScaleRampInTime",
      "type": "float32",
-     "offset": 6008
+     "offset": 6024
     },
     {
      "name": "m_flTimeScaleDuration",
      "type": "float32",
-     "offset": 6012
+     "offset": 6028
     },
     {
      "name": "m_flTimeScaleRampOutTime",
      "type": "float32",
-     "offset": 6016
+     "offset": 6032
     },
     {
      "name": "m_flTimeScale",
      "type": "float32",
-     "offset": 6020
+     "offset": 6036
     },
     {
      "name": "m_flOriginalTimeScale",
      "type": "float32",
-     "offset": 6024
+     "offset": 6040
     },
     {
      "name": "m_bTimeScaleActive",
      "type": "bool",
-     "offset": 6028
+     "offset": 6044
     },
     {
      "name": "m_iMidbossKillCount",
      "type": "int32",
-     "offset": 6032
+     "offset": 6048
     },
     {
      "name": "m_iAmberRejuvCount",
      "type": "int32",
-     "offset": 6036
+     "offset": 6052
     },
     {
      "name": "m_iSapphireRejuvCount",
      "type": "int32",
-     "offset": 6040
+     "offset": 6056
+    },
+    {
+     "name": "m_tAmberRejuvExpireTime",
+     "type": "GameTime_t",
+     "offset": 6060
+    },
+    {
+     "name": "m_tSapphireRejuvExpireTime",
+     "type": "GameTime_t",
+     "offset": 6064
     },
     {
      "name": "m_tNextMidBossSpawnTime",
      "type": "float32",
-     "offset": 6044
+     "offset": 6068
     },
     {
      "name": "m_vecNeutralCampTimerOrigins",
      "type": "CNetworkUtlVectorBase\u003c VectorWS \u003e",
-     "offset": 6048
+     "offset": 6072
     },
     {
      "name": "m_vecNeutralCampNextSpawnTimes",
      "type": "CNetworkUtlVectorBase\u003c float32 \u003e",
-     "offset": 6072
+     "offset": 6096
     },
     {
      "name": "m_vecNeutralCampTimerIsMidBoss",
      "type": "CNetworkUtlVectorBase\u003c bool \u003e",
-     "offset": 6096
+     "offset": 6120
     },
     {
      "name": "m_bServerPaused",
      "type": "bool",
-     "offset": 10152
+     "offset": 10176
     },
     {
      "name": "m_iPauseTeam",
      "type": "int32",
-     "offset": 10156
+     "offset": 10180
     },
     {
      "name": "m_nMatchClockUpdateTick",
      "type": "int32",
-     "offset": 10160
+     "offset": 10184
     },
     {
      "name": "m_flMatchClockAtLastUpdate",
      "type": "float32",
-     "offset": 10164
+     "offset": 10188
     },
     {
      "name": "m_flPauseTime",
      "type": "float64",
-     "offset": 10168
+     "offset": 10192
     },
     {
      "name": "m_pausingPlayerId",
      "type": "CPlayerSlot",
-     "offset": 10176
+     "offset": 10200
     },
     {
      "name": "m_unpausingPlayerId",
      "type": "CPlayerSlot",
-     "offset": 10180
+     "offset": 10204
     },
     {
      "name": "m_fPauseRawTime",
      "type": "float32",
-     "offset": 10184
+     "offset": 10208
     },
     {
      "name": "m_fPauseCurTime",
      "type": "float32",
-     "offset": 10188
+     "offset": 10212
     },
     {
      "name": "m_fUnpauseRawTime",
      "type": "float32",
-     "offset": 10192
+     "offset": 10216
     },
     {
      "name": "m_fUnpauseCurTime",
      "type": "float32",
-     "offset": 10196
+     "offset": 10220
     },
     {
      "name": "m_nLastPreGameCount",
      "type": "int32",
-     "offset": 10280
+     "offset": 10304
     },
     {
      "name": "m_eGGTeam",
      "type": "int32",
-     "offset": 10284
+     "offset": 10308
     },
     {
      "name": "m_flGGEndsAtTime",
      "type": "GameTime_t",
-     "offset": 10288
+     "offset": 10312
     },
     {
      "name": "m_bGGMarkAsNotScored",
      "type": "bool",
-     "offset": 10292
+     "offset": 10316
     },
     {
      "name": "m_unMatchID",
      "type": "MatchID_t",
-     "offset": 10296
+     "offset": 10320
     },
     {
      "name": "m_sGameplayExperiment",
      "type": "CUtlString",
-     "offset": 10304
+     "offset": 10328
     },
     {
      "name": "m_ExperimentTokenHashCode",
      "type": "uint32",
-     "offset": 10312
+     "offset": 10336
     },
     {
      "name": "m_nPlayerDeathEventID",
      "type": "int32",
-     "offset": 10316
+     "offset": 10340
     },
     {
      "name": "m_nReplayChangedEvent",
      "type": "int32",
-     "offset": 10320
+     "offset": 10344
     },
     {
      "name": "m_nGameOverEvent",
      "type": "int32",
-     "offset": 10324
+     "offset": 10348
     },
     {
      "name": "m_flHeroDiedTime",
      "type": "GameTime_t",
-     "offset": 10360
+     "offset": 10384
     },
     {
      "name": "m_pPlayOfTheGame",
      "type": "CCitadelPlayOfTheGame*",
-     "offset": 10368
+     "offset": 10392
     },
     {
      "name": "m_tStreetBrawl",
      "type": "CStreetBrawlController",
-     "offset": 10384
+     "offset": 10408
     }
    ]
   },
@@ -100070,6 +100174,14 @@
      "metadata": [
       "MNotSaved"
      ]
+    },
+    {
+     "name": "m_nDropNumber",
+     "type": "int32",
+     "offset": 22472,
+     "metadata": [
+      "MNotSaved"
+     ]
     }
    ]
   },
@@ -100918,6 +101030,11 @@
      "name": "m_bRevealing",
      "type": "bool",
      "offset": 348
+    },
+    {
+     "name": "m_bFullyInvis",
+     "type": "bool",
+     "offset": 349
     },
     {
      "name": "m_flRevealStartLevel",
@@ -101912,7 +102029,7 @@
   {
    "name": "CCitadelPlayerBot",
    "module": "server",
-   "size": 19432,
+   "size": 19440,
    "alignment": 255
   },
   {
@@ -104881,7 +104998,7 @@
   {
    "name": "CCitadelWeaponInfo",
    "module": "server",
-   "size": 2256,
+   "size": 2328,
    "alignment": 8,
    "fields": [
     {
@@ -105432,9 +105549,19 @@
      ]
     },
     {
+     "name": "m_bUseBulletSpeedScaleCurve",
+     "type": "bool",
+     "offset": 320
+    },
+    {
+     "name": "m_flBulletSpeedScaleOverDistance",
+     "type": "CPiecewiseCurve",
+     "offset": 328
+    },
+    {
      "name": "m_flCurveTime",
      "type": "float32",
-     "offset": 320,
+     "offset": 392,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105442,7 +105569,7 @@
     {
      "name": "m_bCanZoom",
      "type": "bool",
-     "offset": 324,
+     "offset": 396,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -105451,7 +105578,7 @@
     {
      "name": "m_flZoomFOV",
      "type": "float32",
-     "offset": 328,
+     "offset": 400,
      "metadata": [
       "MPropertyDescription",
       "MPropertySuppressExpr"
@@ -105460,7 +105587,7 @@
     {
      "name": "m_flZoomFOV_Relative",
      "type": "float32",
-     "offset": 332,
+     "offset": 404,
      "metadata": [
       "MPropertySuppressExpr",
       "MPropertyDescription"
@@ -105469,7 +105596,7 @@
     {
      "name": "m_flZoomMoveSpeedPercent",
      "type": "float32",
-     "offset": 336,
+     "offset": 408,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -105478,17 +105605,17 @@
     {
      "name": "m_flShootMoveSpeedPercent",
      "type": "float32",
-     "offset": 340
+     "offset": 412
     },
     {
      "name": "m_flReloadMoveSpeedPercent",
      "type": "float32",
-     "offset": 344
+     "offset": 416
     },
     {
      "name": "m_bUsesSpreadPattern",
      "type": "bool",
-     "offset": 348,
+     "offset": 420,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -105497,7 +105624,7 @@
     {
      "name": "m_Spread",
      "type": "float32",
-     "offset": 352,
+     "offset": 424,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105505,7 +105632,7 @@
     {
      "name": "m_bFirstShotPerfectAccuracy",
      "type": "bool",
-     "offset": 356,
+     "offset": 428,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105513,7 +105640,7 @@
     {
      "name": "m_AimingShootSpreadPenalty",
      "type": "CRangeFloat",
-     "offset": 360,
+     "offset": 432,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105521,7 +105648,7 @@
     {
      "name": "m_flScatterYawScale",
      "type": "float32",
-     "offset": 368,
+     "offset": 440,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105529,7 +105656,7 @@
     {
      "name": "m_flShootSpreadPenaltyPerShot",
      "type": "float32",
-     "offset": 372,
+     "offset": 444,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105537,7 +105664,7 @@
     {
      "name": "m_ShootSpreadPenaltyPerShotNormalization",
      "type": "CitadelSpreadPerShotNormalization_t",
-     "offset": 376,
+     "offset": 448,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105545,7 +105672,7 @@
     {
      "name": "m_flShootSpreadPenaltyDecayDelay",
      "type": "float32",
-     "offset": 396,
+     "offset": 468,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105553,7 +105680,7 @@
     {
      "name": "m_flShootSpreadPenaltyDecay",
      "type": "float32",
-     "offset": 400,
+     "offset": 472,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105561,7 +105688,7 @@
     {
      "name": "m_flSpreadPenaltyDecay",
      "type": "float32",
-     "offset": 404,
+     "offset": 476,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105569,7 +105696,7 @@
     {
      "name": "m_flShootingUpSpreadPenalty",
      "type": "float32",
-     "offset": 408,
+     "offset": 480,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105577,7 +105704,7 @@
     {
      "name": "m_flAutoReplenishClip",
      "type": "float32",
-     "offset": 412,
+     "offset": 484,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105585,7 +105712,7 @@
     {
      "name": "m_NpcAimingSpread",
      "type": "CRangeFloat",
-     "offset": 416,
+     "offset": 488,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105593,7 +105720,7 @@
     {
      "name": "m_vecScatterOffsets",
      "type": "CUtlVector\u003c Vector2D \u003e",
-     "offset": 424,
+     "offset": 496,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105601,7 +105728,7 @@
     {
      "name": "m_flPelletScatterFactor",
      "type": "float32",
-     "offset": 448,
+     "offset": 520,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105609,7 +105736,7 @@
     {
      "name": "m_flPelletScatterSpreadFactor",
      "type": "float32",
-     "offset": 452,
+     "offset": 524,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105617,7 +105744,7 @@
     {
      "name": "m_bApplySpreadToFirstPellet",
      "type": "bool",
-     "offset": 456,
+     "offset": 528,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105625,7 +105752,7 @@
     {
      "name": "m_vecOriginOffsets",
      "type": "CUtlVector\u003c Vector2D \u003e",
-     "offset": 464,
+     "offset": 536,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105633,7 +105760,7 @@
     {
      "name": "m_flVerticalPunch",
      "type": "float32",
-     "offset": 488,
+     "offset": 560,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -105642,7 +105769,7 @@
     {
      "name": "m_flHorizontalPunch",
      "type": "float32",
-     "offset": 492,
+     "offset": 564,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105650,17 +105777,17 @@
     {
      "name": "m_HorizontalRecoil",
      "type": "CitadelWeaponRecoilData_t",
-     "offset": 496
+     "offset": 568
     },
     {
      "name": "m_VerticallRecoil",
      "type": "CitadelWeaponRecoilData_t",
-     "offset": 516
+     "offset": 588
     },
     {
      "name": "m_flRecoilSpeed",
      "type": "float32",
-     "offset": 536,
+     "offset": 608,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105668,7 +105795,7 @@
     {
      "name": "m_flRecoilRecoveryDelayFactor",
      "type": "float32",
-     "offset": 540,
+     "offset": 612,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105676,7 +105803,7 @@
     {
      "name": "m_flRecoilRecoverySpeed",
      "type": "float32",
-     "offset": 544,
+     "offset": 616,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105684,7 +105811,7 @@
     {
      "name": "m_flRecoilShotIndexRecoveryTimeFactor",
      "type": "float32",
-     "offset": 548,
+     "offset": 620,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105692,12 +105819,12 @@
     {
      "name": "m_nRecoilSeed",
      "type": "int32",
-     "offset": 552
+     "offset": 624
     },
     {
      "name": "m_szBulletTravelTracerParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 560,
+     "offset": 632,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -105706,12 +105833,12 @@
     {
      "name": "m_szSelfBulletTravelTracerParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 784
+     "offset": 856
     },
     {
      "name": "m_flRecycleTime",
      "type": "float32",
-     "offset": 1008,
+     "offset": 1080,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105719,22 +105846,22 @@
     {
      "name": "m_szBulletLinkParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 1016
+     "offset": 1088
     },
     {
      "name": "m_szChargedBulletTravelTracerParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 1240
+     "offset": 1312
     },
     {
      "name": "m_bUseDesatForFriendlyNonHeroTracer",
      "type": "bool",
-     "offset": 1464
+     "offset": 1536
     },
     {
      "name": "m_eAttachmentSourceType",
      "type": "EAttachmentSourceType",
-     "offset": 1468,
+     "offset": 1540,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105742,7 +105869,7 @@
     {
      "name": "m_strCustomAttachmentSource",
      "type": "CUtlString",
-     "offset": 1472,
+     "offset": 1544,
      "metadata": [
       "MPropertySuppressExpr"
      ]
@@ -105750,12 +105877,12 @@
     {
      "name": "m_szMuzzleFlashEffectName",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 1480
+     "offset": 1552
     },
     {
      "name": "m_strWeaponImpactEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 1704,
+     "offset": 1776,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105763,7 +105890,7 @@
     {
      "name": "m_mapImpactEffects",
      "type": "CUtlOrderedMap\u003c CUtlStringToken, PerSurfaceImpactEffects_t \u003e",
-     "offset": 1928,
+     "offset": 2000,
      "metadata": [
       "MPropertyFriendlyName",
       "MPropertyDescription"
@@ -105772,7 +105899,7 @@
     {
      "name": "m_bUseWeaponAbilityName",
      "type": "bool",
-     "offset": 1968,
+     "offset": 2040,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105780,7 +105907,7 @@
     {
      "name": "m_flDamageForce",
      "type": "float32",
-     "offset": 1972,
+     "offset": 2044,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -105788,7 +105915,7 @@
     {
      "name": "m_strShootSound",
      "type": "CSoundEventName",
-     "offset": 1976,
+     "offset": 2048,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -105796,82 +105923,82 @@
     {
      "name": "m_strFirstShotSound",
      "type": "CSoundEventName",
-     "offset": 1992
+     "offset": 2064
     },
     {
      "name": "m_strShotReleaseSound",
      "type": "CSoundEventName",
-     "offset": 2008
+     "offset": 2080
     },
     {
      "name": "m_strBulletLoopingSound",
      "type": "CSoundEventName",
-     "offset": 2024
+     "offset": 2096
     },
     {
      "name": "m_strBulletWhizSound",
      "type": "CSoundEventName",
-     "offset": 2040
+     "offset": 2112
     },
     {
      "name": "m_strBulletImpactSound",
      "type": "CSoundEventName",
-     "offset": 2056
+     "offset": 2128
     },
     {
      "name": "m_flBulletWhizDistance",
      "type": "float32",
-     "offset": 2072
+     "offset": 2144
     },
     {
      "name": "m_strReloadSound",
      "type": "CSoundEventName",
-     "offset": 2080
+     "offset": 2152
     },
     {
      "name": "m_strReloadEndSound",
      "type": "CSoundEventName",
-     "offset": 2096
+     "offset": 2168
     },
     {
      "name": "m_strLocalPlayerBulletImpactSound",
      "type": "CSoundEventName",
-     "offset": 2112
+     "offset": 2184
     },
     {
      "name": "m_strLocalPlayerBulletImpactHeavySound",
      "type": "CSoundEventName",
-     "offset": 2128
+     "offset": 2200
     },
     {
      "name": "m_strZoomInSound",
      "type": "CSoundEventName",
-     "offset": 2144
+     "offset": 2216
     },
     {
      "name": "m_strZoomOutSound",
      "type": "CSoundEventName",
-     "offset": 2160
+     "offset": 2232
     },
     {
      "name": "m_strSpinUpSound",
      "type": "CSoundEventName",
-     "offset": 2176
+     "offset": 2248
     },
     {
      "name": "m_strSpinDownSound",
      "type": "CSoundEventName",
-     "offset": 2192
+     "offset": 2264
     },
     {
      "name": "m_strSpinUpLoopSound",
      "type": "CSoundEventName",
-     "offset": 2208
+     "offset": 2280
     },
     {
      "name": "m_flMaxLagCompensation",
      "type": "float32",
-     "offset": 2252,
+     "offset": 2324,
      "metadata": [
       "MPropertyStartGroup",
       "MPropertyDescription"
@@ -109415,7 +109542,7 @@
   {
    "name": "CCitadel_Ability_Baba_Ultimate2_VData",
    "module": "server",
-   "size": 5040,
+   "size": 5048,
    "alignment": 8,
    "bases": [
     {
@@ -109427,7 +109554,7 @@
     {
      "name": "m_CastDelayParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4296,
+     "offset": 4304,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -109435,17 +109562,17 @@
     {
      "name": "m_ChannelParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4520
+     "offset": 4528
     },
     {
      "name": "m_LaunchParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4744
+     "offset": 4752
     },
     {
      "name": "m_flChannelingMaxFallSpeed",
      "type": "float32",
-     "offset": 4968,
+     "offset": 4976,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -109453,7 +109580,7 @@
     {
      "name": "m_strSnapSound",
      "type": "CSoundEventName",
-     "offset": 4976,
+     "offset": 4984,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -109461,12 +109588,12 @@
     {
      "name": "m_strRampSound",
      "type": "CSoundEventName",
-     "offset": 4992
+     "offset": 5000
     },
     {
      "name": "m_strEmptyReleaseSound",
      "type": "CSoundEventName",
-     "offset": 5008,
+     "offset": 5016,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -109474,7 +109601,7 @@
     {
      "name": "m_flPostChannelDelay",
      "type": "float32",
-     "offset": 5024,
+     "offset": 5032,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -109482,7 +109609,7 @@
     {
      "name": "m_strAG2UltFinishedAction",
      "type": "CGlobalSymbol",
-     "offset": 5032,
+     "offset": 5040,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -113200,6 +113327,11 @@
      "offset": 5433
     },
     {
+     "name": "m_bLatchedNearTop",
+     "type": "bool",
+     "offset": 5434
+    },
+    {
      "name": "m_flMoveDownStartTime",
      "type": "GameTime_t",
      "offset": 5436
@@ -113324,29 +113456,34 @@
      "offset": 4300
     },
     {
-     "name": "m_flTimeToHintRefresh",
+     "name": "m_flMinTimeToRoofCheckLatchDist",
      "type": "float32",
      "offset": 4304
     },
     {
-     "name": "m_iMaxHintCount",
+     "name": "m_flTimeToHintRefresh",
      "type": "float32",
      "offset": 4308
     },
     {
-     "name": "m_flClimbRopeSlowDurationOnHit",
+     "name": "m_iMaxHintCount",
      "type": "float32",
      "offset": 4312
     },
     {
-     "name": "m_flCameraRotateSpeed",
+     "name": "m_flClimbRopeSlowDurationOnHit",
      "type": "float32",
      "offset": 4316
     },
     {
-     "name": "m_flCameraRotateMaxTime",
+     "name": "m_flCameraRotateSpeed",
      "type": "float32",
      "offset": 4320
+    },
+    {
+     "name": "m_flCameraRotateMaxTime",
+     "type": "float32",
+     "offset": 4324
     },
     {
      "name": "m_ClimbRopeSlowOnHitModifier",
@@ -113832,7 +113969,7 @@
   {
    "name": "CCitadel_Ability_DeadpackRocketeerVData",
    "module": "server",
-   "size": 6352,
+   "size": 6360,
    "alignment": 8,
    "bases": [
     {
@@ -113908,34 +114045,44 @@
      "offset": 4556
     },
     {
-     "name": "m_flIntentSpaceVerticalWithXYInput",
+     "name": "m_flIntentSpaceOpposingSpringStrength",
      "type": "float32",
      "offset": 4560
     },
     {
-     "name": "m_flIntentSpaceVerticalZInputOnly",
+     "name": "m_flIntentSpaceLateralSpringStrengthScale",
      "type": "float32",
      "offset": 4564
     },
     {
-     "name": "m_flVerticalIntentDiminishRangeBegin",
+     "name": "m_flIntentSpaceVerticalWithXYInput",
      "type": "float32",
      "offset": 4568
     },
     {
-     "name": "m_flVerticalIntentDiminishRangeEnd",
+     "name": "m_flIntentSpaceVerticalZInputOnly",
      "type": "float32",
      "offset": 4572
     },
     {
-     "name": "m_flVerticalIntentDiminishFracAtRangeEnd",
+     "name": "m_flVerticalIntentDiminishRangeBegin",
      "type": "float32",
      "offset": 4576
     },
     {
+     "name": "m_flVerticalIntentDiminishRangeEnd",
+     "type": "float32",
+     "offset": 4580
+    },
+    {
+     "name": "m_flVerticalIntentDiminishFracAtRangeEnd",
+     "type": "float32",
+     "offset": 4584
+    },
+    {
      "name": "m_flSlowEffectivenessLateral",
      "type": "float32",
-     "offset": 4580,
+     "offset": 4588,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -113943,17 +114090,17 @@
     {
      "name": "m_flSlowEffectivenessVertical",
      "type": "float32",
-     "offset": 4584
+     "offset": 4592
     },
     {
      "name": "m_flSlowEffectivenessMovementAbilitySilenceFrac",
      "type": "float32",
-     "offset": 4588
+     "offset": 4596
     },
     {
      "name": "m_flAirDrag",
      "type": "float32",
-     "offset": 4592,
+     "offset": 4600,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -113961,27 +114108,27 @@
     {
      "name": "m_flAirDashDistancePct",
      "type": "float32",
-     "offset": 4596
+     "offset": 4604
     },
     {
      "name": "m_flAirSpeed",
      "type": "float32",
-     "offset": 4600
+     "offset": 4608
     },
     {
      "name": "m_flDashJumpJetpackLockoutDuration",
      "type": "float32",
-     "offset": 4604
+     "offset": 4612
     },
     {
      "name": "m_flJumpHeightIncreasePercent",
      "type": "float32",
-     "offset": 4608
+     "offset": 4616
     },
     {
      "name": "m_flColdHitHeatRemovedPercent",
      "type": "float32",
-     "offset": 4612,
+     "offset": 4620,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -113989,7 +114136,7 @@
     {
      "name": "m_flSputterChance",
      "type": "float32",
-     "offset": 4616,
+     "offset": 4624,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -113997,17 +114144,17 @@
     {
      "name": "m_flSputterDuration",
      "type": "float32",
-     "offset": 4620
+     "offset": 4628
     },
     {
      "name": "m_flSputterImmuneDuration",
      "type": "float32",
-     "offset": 4624
+     "offset": 4632
     },
     {
      "name": "m_FallSpeedReductionCurve",
      "type": "CPiecewiseCurve",
-     "offset": 4632,
+     "offset": 4640,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114015,27 +114162,27 @@
     {
      "name": "m_flGravityReductionDuration_AirDash",
      "type": "float32",
-     "offset": 4696
+     "offset": 4704
     },
     {
      "name": "m_flGravityReductionDuration_Shoot",
      "type": "float32",
-     "offset": 4700
+     "offset": 4708
     },
     {
      "name": "m_flGravityReductionDuration_Ability",
      "type": "float32",
-     "offset": 4704
+     "offset": 4712
     },
     {
      "name": "m_flGravityReductionDuration_JetpackInput",
      "type": "float32",
-     "offset": 4708
+     "offset": 4716
     },
     {
      "name": "m_ImpulseAccelCurve",
      "type": "CPiecewiseCurve",
-     "offset": 4712,
+     "offset": 4720,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114043,27 +114190,27 @@
     {
      "name": "m_flPlayerCollisionSphereSize",
      "type": "float32",
-     "offset": 4776
+     "offset": 4784
     },
     {
      "name": "m_flPlayerCollisionLookaheadFrames",
      "type": "float32",
-     "offset": 4780
+     "offset": 4788
     },
     {
      "name": "m_flTrackAmount",
      "type": "float32",
-     "offset": 4784
+     "offset": 4792
     },
     {
      "name": "m_flMinAimAngle",
      "type": "float32",
-     "offset": 4788
+     "offset": 4796
     },
     {
      "name": "m_flFromGroundThrustAddZ",
      "type": "float32",
-     "offset": 4792,
+     "offset": 4800,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114071,32 +114218,32 @@
     {
      "name": "m_flFromGroundThrustXYMultiplier",
      "type": "float32",
-     "offset": 4796
+     "offset": 4804
     },
     {
      "name": "m_flFromGroundThrustFwd",
      "type": "float32",
-     "offset": 4800
+     "offset": 4808
     },
     {
      "name": "m_flFromGroundNoThrustAddZ",
      "type": "float32",
-     "offset": 4804
+     "offset": 4812
     },
     {
      "name": "m_flInSlideThrustMultiplier",
      "type": "float32",
-     "offset": 4808
+     "offset": 4816
     },
     {
      "name": "m_flTimeOnGroundBeforeLaunchAllowed",
      "type": "float32",
-     "offset": 4812
+     "offset": 4820
     },
     {
      "name": "m_flBounceBackZSpeed",
      "type": "float32",
-     "offset": 4816,
+     "offset": 4824,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114104,12 +114251,12 @@
     {
      "name": "m_flBounceBackXYSpeedLimit",
      "type": "float32",
-     "offset": 4820
+     "offset": 4828
     },
     {
      "name": "m_strMaxHeatLoopingSound",
      "type": "CSoundEventName",
-     "offset": 4824,
+     "offset": 4832,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114117,62 +114264,62 @@
     {
      "name": "m_strLaunchGroundSound",
      "type": "CSoundEventName",
-     "offset": 4840
+     "offset": 4848
     },
     {
      "name": "m_strLaunchAirSound",
      "type": "CSoundEventName",
-     "offset": 4856
+     "offset": 4864
     },
     {
      "name": "m_strRocketeerLoopingSound",
      "type": "CSoundEventName",
-     "offset": 4872
+     "offset": 4880
     },
     {
      "name": "m_strRocketeerLoopStopSound",
      "type": "CSoundEventName",
-     "offset": 4888
+     "offset": 4896
     },
     {
      "name": "m_strRocketeerOverheatedLoopingSound",
      "type": "CSoundEventName",
-     "offset": 4904
+     "offset": 4912
     },
     {
      "name": "m_strRocketeerAirDashJumpSound",
      "type": "CSoundEventName",
-     "offset": 4920
+     "offset": 4928
     },
     {
      "name": "m_strHeatWarningSound",
      "type": "CSoundEventName",
-     "offset": 4936
+     "offset": 4944
     },
     {
      "name": "m_strMaxHeatSound",
      "type": "CSoundEventName",
-     "offset": 4952
+     "offset": 4960
     },
     {
      "name": "m_strChimeraDiveSound",
      "type": "CSoundEventName",
-     "offset": 4968
+     "offset": 4976
     },
     {
      "name": "m_flHeatWarningFraction",
      "type": "float32",
-     "offset": 4984
+     "offset": 4992
     },
     {
      "name": "m_strLaunchInCooldownSound",
      "type": "CSoundEventName",
-     "offset": 4992
+     "offset": 5000
     },
     {
      "name": "m_DeathExplosionWarningFX",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5008,
+     "offset": 5016,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114180,27 +114327,27 @@
     {
      "name": "m_ExplosionFX",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5232
+     "offset": 5240
     },
     {
      "name": "m_VTOLImpactOnGroundFX",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5456
+     "offset": 5464
     },
     {
      "name": "m_VTOLTargetingPreviewFX",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5680
+     "offset": 5688
     },
     {
      "name": "m_AmbientParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5904
+     "offset": 5912
     },
     {
      "name": "m_LaunchInCooldownParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 6128
+     "offset": 6136
     }
    ],
    "metadata": [
@@ -114568,7 +114715,7 @@
   {
    "name": "CCitadel_Ability_Deadpack_UltimateVData",
    "module": "server",
-   "size": 4840,
+   "size": 4856,
    "alignment": 8,
    "bases": [
     {
@@ -114609,9 +114756,14 @@
      "offset": 4496
     },
     {
+     "name": "m_LowHealthGlowModifier",
+     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
+     "offset": 4512
+    },
+    {
      "name": "m_strGoingUpSounds",
      "type": "CUtlOrderedMap\u003c ECitadelAudioLoopSounds, CSoundEventName \u003e",
-     "offset": 4512,
+     "offset": 4528,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114619,17 +114771,17 @@
     {
      "name": "m_strGoingDownSounds",
      "type": "CUtlOrderedMap\u003c ECitadelAudioLoopSounds, CSoundEventName \u003e",
-     "offset": 4552
+     "offset": 4568
     },
     {
      "name": "m_strImpactSound",
      "type": "CSoundEventName",
-     "offset": 4592
+     "offset": 4608
     },
     {
      "name": "m_flShakeAmp",
      "type": "float32",
-     "offset": 4608,
+     "offset": 4624,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114637,12 +114789,12 @@
     {
      "name": "m_flShakeFreq",
      "type": "float32",
-     "offset": 4612
+     "offset": 4628
     },
     {
      "name": "m_flGoingUpSpeedOverTime",
      "type": "CPiecewiseCurve",
-     "offset": 4616,
+     "offset": 4632,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -114650,47 +114802,47 @@
     {
      "name": "m_flGoingDownSpeedOverTime",
      "type": "CPiecewiseCurve",
-     "offset": 4680
+     "offset": 4696
     },
     {
      "name": "m_flApexSpeedByDistance",
      "type": "CPiecewiseCurve",
-     "offset": 4744
+     "offset": 4760
     },
     {
      "name": "m_flLateralSpeedGoingUp",
      "type": "float32",
-     "offset": 4808
+     "offset": 4824
     },
     {
      "name": "m_flLateralSpeedGoingDown",
      "type": "float32",
-     "offset": 4812
+     "offset": 4828
     },
     {
      "name": "m_flChargeTime",
      "type": "float32",
-     "offset": 4816
+     "offset": 4832
     },
     {
      "name": "m_flGrabDistance",
      "type": "float32",
-     "offset": 4820
+     "offset": 4836
     },
     {
      "name": "m_flCameraTurnRateMax",
      "type": "float32",
-     "offset": 4824
+     "offset": 4840
     },
     {
      "name": "m_flSpinRateGoingDownDegreesPerSec",
      "type": "float32",
-     "offset": 4828
+     "offset": 4844
     },
     {
      "name": "m_flMaxPossibleFlyHeight",
      "type": "float32",
-     "offset": 4832
+     "offset": 4848
     }
    ],
    "metadata": [
@@ -117171,7 +117323,7 @@
   {
    "name": "CCitadel_Ability_Fencer_Riposte",
    "module": "server",
-   "size": 9008,
+   "size": 8664,
    "alignment": 8,
    "bases": [
     {
@@ -117181,54 +117333,54 @@
    ],
    "fields": [
     {
-     "name": "m_hTarget",
-     "type": "CHandle\u003c CBaseEntity \u003e",
+     "name": "m_vecDeflectedTargets",
+     "type": "CNetworkUtlVectorBase\u003c CHandle\u003c CBaseEntity \u003e \u003e",
      "offset": 5288
     },
     {
      "name": "m_vRiposteStartPosition",
      "type": "VectorWS",
-     "offset": 5292
+     "offset": 5312
     },
     {
      "name": "m_vDashDirection",
      "type": "Vector",
-     "offset": 5304
+     "offset": 5324
+    },
+    {
+     "name": "m_hDashTarget",
+     "type": "CHandle\u003c CBaseEntity \u003e",
+     "offset": 5336
     },
     {
      "name": "m_flStateStartTime",
      "type": "GameTime_t",
-     "offset": 5316
+     "offset": 5340
     },
     {
      "name": "m_nCurrentRiposteState",
      "type": "uint8",
-     "offset": 5320
+     "offset": 5344
     },
     {
      "name": "m_flSuccessfulRiposteTime",
      "type": "GameTime_t",
-     "offset": 5324
-    },
-    {
-     "name": "m_vecHitEnemies",
-     "type": "CUtlVector\u003c CHandle\u003c CBaseEntity \u003e \u003e",
-     "offset": 8320
+     "offset": 5348
     },
     {
      "name": "m_vecLastPosition",
      "type": "VectorWS",
-     "offset": 8344
+     "offset": 7992
     },
     {
      "name": "m_flStuckTime",
      "type": "GameTime_t",
-     "offset": 8356
+     "offset": 8004
     },
     {
      "name": "m_nParriedFXIndex",
      "type": "ParticleIndex_t",
-     "offset": 8360
+     "offset": 8008
     }
    ],
    "metadata": [
@@ -117238,7 +117390,7 @@
   {
    "name": "CCitadel_Ability_Fencer_RiposteVData",
    "module": "server",
-   "size": 5064,
+   "size": 5520,
    "alignment": 8,
    "bases": [
     {
@@ -117266,9 +117418,19 @@
      "offset": 4672
     },
     {
+     "name": "m_BulletReflectAttackerHitFx",
+     "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
+     "offset": 4896
+    },
+    {
+     "name": "m_BulletReflectImpactParticle",
+     "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
+     "offset": 5120
+    },
+    {
      "name": "m_strDashStart",
      "type": "CSoundEventName",
-     "offset": 4896,
+     "offset": 5344,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -117276,50 +117438,50 @@
     {
      "name": "m_strStunImpactSound",
      "type": "CSoundEventName",
-     "offset": 4912
+     "offset": 5360
     },
     {
      "name": "m_strAvoidDamage",
      "type": "CSoundEventName",
-     "offset": 4928
+     "offset": 5376
     },
     {
      "name": "m_strStartParry",
      "type": "CSoundEventName",
-     "offset": 4944
+     "offset": 5392
     },
     {
      "name": "m_strTargetingLoopSound",
      "type": "CSoundEventName",
-     "offset": 4960
+     "offset": 5408
     },
     {
      "name": "m_strTargetingExpireSound",
      "type": "CSoundEventName",
-     "offset": 4976
+     "offset": 5424
     },
     {
-     "name": "m_DebuffModifier",
+     "name": "m_strBulletReflectSound",
+     "type": "CSoundEventName",
+     "offset": 5440
+    },
+    {
+     "name": "m_TargetLifestealModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4992,
+     "offset": 5456,
      "metadata": [
       "MPropertyStartGroup"
      ]
     },
     {
-     "name": "m_TargetLifestealModifier",
+     "name": "m_PommelDebuffModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 5008
-    },
-    {
-     "name": "m_ImmobilizeModifier",
-     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 5024
+     "offset": 5472
     },
     {
      "name": "m_flAirSpeedMax",
      "type": "float32",
-     "offset": 5040,
+     "offset": 5488,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -117327,22 +117489,32 @@
     {
      "name": "m_flAirDrag",
      "type": "float32",
-     "offset": 5044
+     "offset": 5492
     },
     {
      "name": "m_flFallSpeedMax",
      "type": "float32",
-     "offset": 5048
+     "offset": 5496
     },
     {
      "name": "m_flParryMoveSpeed",
      "type": "float32",
-     "offset": 5052
+     "offset": 5500
     },
     {
      "name": "m_flDashAnimDelay",
      "type": "float32",
-     "offset": 5056
+     "offset": 5504
+    },
+    {
+     "name": "m_flPommelKnockUpSpeed",
+     "type": "float32",
+     "offset": 5508
+    },
+    {
+     "name": "m_flPommelKnockBackSpeed",
+     "type": "float32",
+     "offset": 5512
     }
    ],
    "metadata": [
@@ -117398,6 +117570,11 @@
      "name": "m_tRecastEndTime",
      "type": "GameTime_t",
      "offset": 5328
+    },
+    {
+     "name": "m_tFirstCastTime",
+     "type": "GameTime_t",
+     "offset": 5332
     }
    ]
   },
@@ -120114,7 +120291,7 @@
   {
    "name": "CCitadel_Ability_Jump",
    "module": "server",
-   "size": 6544,
+   "size": 6552,
    "alignment": 8,
    "bases": [
     {
@@ -120272,6 +120449,26 @@
      "name": "m_flLateralInputSuppressEndTime",
      "type": "GameTime_t",
      "offset": 6536
+    },
+    {
+     "name": "m_bFailedAirJump",
+     "type": "bool",
+     "offset": 6540
+    },
+    {
+     "name": "m_flFailedAirJumpPenaltyEndTime",
+     "type": "GameTime_t",
+     "offset": 6544
+    },
+    {
+     "name": "m_nFailedAirJumpPenaltyStacks",
+     "type": "int8",
+     "offset": 6548
+    },
+    {
+     "name": "m_bGroundJumpAirDragPenalty",
+     "type": "bool",
+     "offset": 6549
     }
    ],
    "metadata": [
@@ -121654,6 +121851,11 @@
      "metadata": [
       "MPropertyStartGroup"
      ]
+    },
+    {
+     "name": "m_flEnemyStopCheckRadius",
+     "type": "float32",
+     "offset": 5348
     },
     {
      "name": "m_SpeedCurve",
@@ -124784,7 +124986,7 @@
   {
    "name": "CCitadel_Ability_Priest_Flashbang_VData",
    "module": "server",
-   "size": 4736,
+   "size": 4744,
    "alignment": 8,
    "bases": [
     {
@@ -124846,9 +125048,14 @@
      "offset": 4728
     },
     {
+     "name": "m_flClimbHeight",
+     "type": "float32",
+     "offset": 4732
+    },
+    {
      "name": "m_bDebug",
      "type": "bool",
-     "offset": 4732
+     "offset": 4736
     }
    ],
    "metadata": [
@@ -127200,19 +127407,12 @@
   {
    "name": "CCitadel_Ability_RiposteTargetSelect",
    "module": "server",
-   "size": 5312,
+   "size": 5304,
    "alignment": 8,
    "bases": [
     {
      "name": "CCitadelBaseTriggerAbility",
      "module": "server"
-    }
-   ],
-   "fields": [
-    {
-     "name": "pRiposteAbility",
-     "type": "CCitadel_Ability_Fencer_Riposte*",
-     "offset": 5304
     }
    ]
   },
@@ -136307,6 +136507,11 @@
      ]
     },
     {
+     "name": "m_nTrooperMeleeHits",
+     "type": "int32",
+     "offset": 44
+    },
+    {
      "name": "m_strHitSound",
      "type": "CSoundEventName",
      "offset": 48,
@@ -137347,6 +137552,151 @@
      "offset": 1552,
      "metadata": [
       "MPropertyStartGroup",
+      "MPropertyDescription"
+     ]
+    }
+   ],
+   "metadata": [
+    "MGetKV3ClassDefaults"
+   ],
+   "flags": [
+    "MHasKV3TransferPolymorphicClassname"
+   ]
+  },
+  {
+   "name": "CCitadel_BreakableProp_ParadeFloatBox",
+   "module": "server",
+   "size": 3680,
+   "alignment": 16,
+   "bases": [
+    {
+     "name": "CCitadel_BreakableProp",
+     "module": "server"
+    }
+   ]
+  },
+  {
+   "name": "CCitadel_BreakableProp_ParadeFloatBoxVData",
+   "module": "server",
+   "size": 1824,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CCitadel_BreakablePropVData",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_flDroppedItemMinSpeed",
+     "type": "float32",
+     "offset": 1552,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDroppedItemMaxSpeed",
+     "type": "float32",
+     "offset": 1556,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDroppedItemMinUpSpeed",
+     "type": "float32",
+     "offset": 1560,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDroppedItemMaxUpSpeed",
+     "type": "float32",
+     "offset": 1564,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flSwayAngle",
+     "type": "float32",
+     "offset": 1568,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flSwayPeriod",
+     "type": "float32",
+     "offset": 1572,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription",
+      "MPropertySuppressExpr"
+     ]
+    },
+    {
+     "name": "m_RopeParticle",
+     "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
+     "offset": 1576,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flRopeRadius",
+     "type": "float32",
+     "offset": 1800,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDropTwoChance",
+     "type": "float32",
+     "offset": 1804,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDropThreeChance",
+     "type": "float32",
+     "offset": 1808,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flExtraDropTurkeyChance",
+     "type": "float32",
+     "offset": 1812,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flExtraDropPowerupChance",
+     "type": "float32",
+     "offset": 1816,
+     "metadata": [
+      "MPropertyFriendlyName",
       "MPropertyDescription"
      ]
     }
@@ -138921,7 +139271,7 @@
   {
    "name": "CCitadel_Ice_Path_Shard_Physics",
    "module": "server",
-   "size": 2256,
+   "size": 2264,
    "alignment": 8,
    "bases": [
     {
@@ -151364,6 +151714,87 @@
    ]
   },
   {
+   "name": "CCitadel_Modifier_EatTurkeyBuff",
+   "module": "server",
+   "size": 344,
+   "alignment": 255,
+   "bases": [
+    {
+     "name": "CCitadelModifier",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_flRegenPerSecond",
+     "type": "float32",
+     "offset": 336
+    }
+   ]
+  },
+  {
+   "name": "CCitadel_Modifier_EatTurkeyBuffVData",
+   "module": "server",
+   "size": 1976,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CCitadelModifierVData",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_OverstuffedModifier",
+     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
+     "offset": 1944,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flOverstuffedDuration",
+     "type": "float32",
+     "offset": 1960,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flTotalHealthRegen",
+     "type": "float32",
+     "offset": 1964,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flTotalHealthRegenPerMinute",
+     "type": "float32",
+     "offset": 1968,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flStaminaOnPickup",
+     "type": "float32",
+     "offset": 1972,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    }
+   ],
+   "metadata": [
+    "MGetKV3ClassDefaults"
+   ],
+   "flags": [
+    "MHasKV3TransferPolymorphicClassname"
+   ]
+  },
+  {
    "name": "CCitadel_Modifier_Econ",
    "module": "server",
    "size": 344,
@@ -158145,7 +158576,7 @@
   {
    "name": "CCitadel_Modifier_Low_Health_GlowVData",
    "module": "server",
-   "size": 2168,
+   "size": 2176,
    "alignment": 8,
    "bases": [
     {
@@ -158158,6 +158589,14 @@
      "name": "m_GlowParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
      "offset": 1944,
+     "metadata": [
+      "MPropertyStartGroup"
+     ]
+    },
+    {
+     "name": "m_bShowAsLowHealth",
+     "type": "bool",
+     "offset": 2168,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161301,7 +161740,7 @@
   {
    "name": "CCitadel_Modifier_NeutralSelfAoEVData",
    "module": "server",
-   "size": 4600,
+   "size": 4672,
    "alignment": 8,
    "bases": [
     {
@@ -161313,7 +161752,7 @@
     {
      "name": "m_flRadius",
      "type": "float32",
-     "offset": 4344,
+     "offset": 4416,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161321,22 +161760,22 @@
     {
      "name": "m_flHeight",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_flDPS",
      "type": "float32",
-     "offset": 4352
+     "offset": 4424
     },
     {
      "name": "m_flTickRate",
      "type": "float32",
-     "offset": 4356
+     "offset": 4428
     },
     {
      "name": "m_RadiusParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4360,
+     "offset": 4432,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161344,7 +161783,7 @@
     {
      "name": "m_strAttackHitSound",
      "type": "CSoundEventName",
-     "offset": 4584,
+     "offset": 4656,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161372,7 +161811,7 @@
   {
    "name": "CCitadel_Modifier_NeutralSelfCastBombVData",
    "module": "server",
-   "size": 5312,
+   "size": 5384,
    "alignment": 8,
    "bases": [
     {
@@ -161384,7 +161823,7 @@
     {
      "name": "m_flRadius",
      "type": "float32",
-     "offset": 4344,
+     "offset": 4416,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161392,17 +161831,17 @@
     {
      "name": "m_flExplodeTime",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 4352
+     "offset": 4424
     },
     {
      "name": "m_BombAttachedParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4360,
+     "offset": 4432,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161410,22 +161849,22 @@
     {
      "name": "m_BombAttachedStatusEffectParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4584
+     "offset": 4656
     },
     {
      "name": "m_RadiusParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4808
+     "offset": 4880
     },
     {
      "name": "m_ExplodeParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5032
+     "offset": 5104
     },
     {
      "name": "m_strExplodeSound",
      "type": "CSoundEventName",
-     "offset": 5256,
+     "offset": 5328,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -161433,17 +161872,17 @@
     {
      "name": "m_strTickTockSound",
      "type": "CSoundEventName",
-     "offset": 5272
+     "offset": 5344
     },
     {
      "name": "m_strTickTockFastSound",
      "type": "CSoundEventName",
-     "offset": 5288
+     "offset": 5360
     },
     {
      "name": "m_DetonateWarningTime",
      "type": "float32",
-     "offset": 5304
+     "offset": 5376
     }
    ],
    "metadata": [
@@ -161537,7 +161976,7 @@
   {
    "name": "CCitadel_Modifier_Neutral_DoT_DebuffVData",
    "module": "server",
-   "size": 4352,
+   "size": 4424,
    "alignment": 8,
    "bases": [
     {
@@ -161549,12 +161988,12 @@
     {
      "name": "m_flTickRate",
      "type": "float32",
-     "offset": 4344
+     "offset": 4416
     },
     {
      "name": "m_flDPS",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     }
    ],
    "metadata": [
@@ -163989,19 +164428,12 @@
   {
    "name": "CCitadel_Modifier_Punkgoat_BlastedShred",
    "module": "server",
-   "size": 520,
+   "size": 512,
    "alignment": 255,
    "bases": [
     {
      "name": "CCitadelModifier",
      "module": "server"
-    }
-   ],
-   "fields": [
-    {
-     "name": "m_flBulletDamageAccum",
-     "type": "float32",
-     "offset": 336
     }
    ]
   },
@@ -164280,7 +164712,7 @@
   {
    "name": "CCitadel_Modifier_RatKing_RatArmor",
    "module": "server",
-   "size": 1232,
+   "size": 1248,
    "alignment": 255,
    "bases": [
     {
@@ -173951,7 +174383,7 @@
   {
    "name": "CCitadel_Neutral_Attack_BulletToPointModifierVData",
    "module": "server",
-   "size": 5128,
+   "size": 5200,
    "alignment": 8,
    "bases": [
     {
@@ -173963,7 +174395,7 @@
     {
      "name": "m_nBulletCount",
      "type": "int32",
-     "offset": 4344,
+     "offset": 4416,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -173971,32 +174403,32 @@
     {
      "name": "m_flFireRate",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_flTargetPosRNG",
      "type": "float32",
-     "offset": 4352
+     "offset": 4424
     },
     {
      "name": "m_flTargetOffsetPerShot",
      "type": "float32",
-     "offset": 4356
+     "offset": 4428
     },
     {
      "name": "m_flBulletSpeed",
      "type": "float32",
-     "offset": 4360
+     "offset": 4432
     },
     {
      "name": "m_flNoTargetDistance",
      "type": "float32",
-     "offset": 4364
+     "offset": 4436
     },
     {
      "name": "m_flLobGravityScale",
      "type": "float32",
-     "offset": 4368,
+     "offset": 4440,
      "metadata": [
       "MPropertySuppressExpr",
       "MPropertyDescription"
@@ -174005,7 +174437,7 @@
     {
      "name": "m_flHangTime",
      "type": "float32",
-     "offset": 4372,
+     "offset": 4444,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -174013,7 +174445,7 @@
     {
      "name": "m_flModifierDuration",
      "type": "float32",
-     "offset": 4376,
+     "offset": 4448,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174021,12 +174453,12 @@
     {
      "name": "m_GroundPointModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4384
+     "offset": 4456
     },
     {
      "name": "m_flImpactEffectRadius",
      "type": "float32",
-     "offset": 4400,
+     "offset": 4472,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174034,17 +174466,17 @@
     {
      "name": "m_ImpactParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4408
+     "offset": 4480
     },
     {
      "name": "m_TracerParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4632
+     "offset": 4704
     },
     {
      "name": "m_MuzzleFlashParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4856,
+     "offset": 4928,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -174052,7 +174484,7 @@
     {
      "name": "m_strMuzzleFlashParticleConfig",
      "type": "CUtlString",
-     "offset": 5080,
+     "offset": 5152,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -174060,7 +174492,7 @@
     {
      "name": "m_bAG2UseActionShootForAttack",
      "type": "bool",
-     "offset": 5088,
+     "offset": 5160,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -174068,7 +174500,7 @@
     {
      "name": "m_ShootSound",
      "type": "CSoundEventName",
-     "offset": 5096,
+     "offset": 5168,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174076,7 +174508,7 @@
     {
      "name": "m_HitSound",
      "type": "CSoundEventName",
-     "offset": 5112
+     "offset": 5184
     }
    ],
    "metadata": [
@@ -174101,7 +174533,7 @@
   {
    "name": "CCitadel_Neutral_Attack_ExplodeOnDeathVData",
    "module": "server",
-   "size": 4608,
+   "size": 4680,
    "alignment": 8,
    "bases": [
     {
@@ -174113,7 +174545,7 @@
     {
      "name": "m_flExplodeDamage",
      "type": "float32",
-     "offset": 4344,
+     "offset": 4416,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174121,12 +174553,12 @@
     {
      "name": "m_flExplodeRadius",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_ExplodeSound",
      "type": "CSoundEventName",
-     "offset": 4352,
+     "offset": 4424,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174134,7 +174566,7 @@
     {
      "name": "m_ExplodeParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4368,
+     "offset": 4440,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174142,7 +174574,7 @@
     {
      "name": "m_ExplodeDebuffModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4592,
+     "offset": 4664,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174197,7 +174629,7 @@
   {
    "name": "CCitadel_Neutral_Attack_LobBookVData",
    "module": "server",
-   "size": 5152,
+   "size": 5224,
    "alignment": 8,
    "bases": [
     {
@@ -174209,12 +174641,12 @@
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 5128
+     "offset": 5200
     },
     {
      "name": "m_AutoShotCounterModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 5136,
+     "offset": 5208,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174242,7 +174674,7 @@
   {
    "name": "CCitadel_Neutral_Attack_LobFireVData",
    "module": "server",
-   "size": 5136,
+   "size": 5208,
    "alignment": 8,
    "bases": [
     {
@@ -174254,7 +174686,7 @@
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 5128,
+     "offset": 5200,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174289,7 +174721,7 @@
   {
    "name": "CCitadel_Neutral_Attack_LobSporesVData",
    "module": "server",
-   "size": 5144,
+   "size": 5216,
    "alignment": 8,
    "bases": [
     {
@@ -174301,7 +174733,7 @@
     {
      "name": "m_flCenterShotRadius",
      "type": "float32",
-     "offset": 5128,
+     "offset": 5200,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174309,12 +174741,12 @@
     {
      "name": "m_flMinRadius",
      "type": "float32",
-     "offset": 5132
+     "offset": 5204
     },
     {
      "name": "m_flMaxRadius",
      "type": "float32",
-     "offset": 5136
+     "offset": 5208
     }
    ],
    "metadata": [
@@ -174346,7 +174778,7 @@
   {
    "name": "CCitadel_Neutral_Attack_SludgeVData",
    "module": "server",
-   "size": 5376,
+   "size": 5448,
    "alignment": 8,
    "bases": [
     {
@@ -174358,12 +174790,12 @@
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 5128
+     "offset": 5200
     },
     {
      "name": "m_ExplodeParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 5136,
+     "offset": 5208,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174371,7 +174803,7 @@
     {
      "name": "m_OnHitModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifierAura \u003e",
-     "offset": 5360,
+     "offset": 5432,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174411,7 +174843,7 @@
   {
    "name": "CCitadel_Neutral_CurvedBombAttackVData",
    "module": "server",
-   "size": 5136,
+   "size": 5208,
    "alignment": 8,
    "bases": [
     {
@@ -174423,12 +174855,12 @@
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 5128
+     "offset": 5200
     },
     {
      "name": "m_flTargetSpeedInheritance",
      "type": "float32",
-     "offset": 5132,
+     "offset": 5204,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -174553,7 +174985,7 @@
   {
    "name": "CCitadel_Neutral_LaserBeamVData",
    "module": "server",
-   "size": 5136,
+   "size": 5208,
    "alignment": 8,
    "bases": [
     {
@@ -174565,47 +174997,47 @@
     {
      "name": "m_flBeamDPS",
      "type": "float32",
-     "offset": 4344
+     "offset": 4416
     },
     {
      "name": "m_flStartDistancem",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_flBeamMoveSpeedm",
      "type": "float32",
-     "offset": 4352
+     "offset": 4424
     },
     {
      "name": "m_flAuraDropTickRate",
      "type": "float32",
-     "offset": 4356
+     "offset": 4428
     },
     {
      "name": "m_flAuraDuration",
      "type": "float32",
-     "offset": 4360
+     "offset": 4432
     },
     {
      "name": "m_flBeamWidth",
      "type": "float32",
-     "offset": 4364
+     "offset": 4436
     },
     {
      "name": "m_flBeamLength",
      "type": "float32",
-     "offset": 4368
+     "offset": 4440
     },
     {
      "name": "m_flMaxTurnRate",
      "type": "float32",
-     "offset": 4372
+     "offset": 4444
     },
     {
      "name": "m_GroundAuraModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifierAura \u003e",
-     "offset": 4376,
+     "offset": 4448,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174613,7 +175045,7 @@
     {
      "name": "m_BeamParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4392,
+     "offset": 4464,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174621,22 +175053,22 @@
     {
      "name": "m_BeamChargingEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4616
+     "offset": 4688
     },
     {
      "name": "m_BeamPreviewEffect",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4840
+     "offset": 4912
     },
     {
      "name": "m_flBeamPreviewRadius",
      "type": "float32",
-     "offset": 5064
+     "offset": 5136
     },
     {
      "name": "m_BeamStartSound",
      "type": "CSoundEventName",
-     "offset": 5072,
+     "offset": 5144,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174644,17 +175076,17 @@
     {
      "name": "m_BeamStopSound",
      "type": "CSoundEventName",
-     "offset": 5088
+     "offset": 5160
     },
     {
      "name": "m_BeamPointStartLoopSound",
      "type": "CSoundEventName",
-     "offset": 5104
+     "offset": 5176
     },
     {
      "name": "m_BeamPointClosestLoopSound",
      "type": "CSoundEventName",
-     "offset": 5120
+     "offset": 5192
     }
    ],
    "metadata": [
@@ -174679,7 +175111,7 @@
   {
    "name": "CCitadel_Neutral_LightMeleeVData",
    "module": "server",
-   "size": 4840,
+   "size": 4912,
    "alignment": 8,
    "bases": [
     {
@@ -174691,22 +175123,22 @@
     {
      "name": "m_flForwardOffset",
      "type": "float32",
-     "offset": 4344
+     "offset": 4416
     },
     {
      "name": "m_flMeleeRadius",
      "type": "float32",
-     "offset": 4348
+     "offset": 4420
     },
     {
      "name": "m_flDamage",
      "type": "float32",
-     "offset": 4352
+     "offset": 4424
     },
     {
      "name": "m_strAttackHitSound",
      "type": "CSoundEventName",
-     "offset": 4360,
+     "offset": 4432,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174714,12 +175146,12 @@
     {
      "name": "m_strAttackMissSound",
      "type": "CSoundEventName",
-     "offset": 4376
+     "offset": 4448
     },
     {
      "name": "m_MeleeSwingParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4392,
+     "offset": 4464,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -174727,7 +175159,7 @@
     {
      "name": "m_MeleeImpactParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 4616
+     "offset": 4688
     }
    ],
    "metadata": [
@@ -174752,7 +175184,7 @@
   {
    "name": "CCitadel_Neutral_SelfCastModifierVData",
    "module": "server",
-   "size": 4368,
+   "size": 4440,
    "alignment": 8,
    "bases": [
     {
@@ -174764,12 +175196,12 @@
     {
      "name": "m_flModifierDuration",
      "type": "float32",
-     "offset": 4344
+     "offset": 4416
     },
     {
      "name": "m_SelfCastModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4352,
+     "offset": 4424,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -175584,6 +176016,80 @@
      "name": "m_flHoverTurnRate",
      "type": "float32",
      "offset": 2584
+    }
+   ],
+   "metadata": [
+    "MGetKV3ClassDefaults"
+   ],
+   "flags": [
+    "MHasKV3TransferPolymorphicClassname"
+   ]
+  },
+  {
+   "name": "CCitadel_Pickup_Turkey",
+   "module": "server",
+   "size": 2944,
+   "alignment": 16,
+   "bases": [
+    {
+     "name": "CCitadel_Pickup",
+     "module": "server"
+    }
+   ]
+  },
+  {
+   "name": "CCitadel_Pickup_Turkey_VData",
+   "module": "server",
+   "size": 2616,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CCitadel_Pickup_VData",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_flBuffDuration",
+     "type": "float32",
+     "offset": 2576,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_TurkeyBuffModifier",
+     "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
+     "offset": 2584,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flHoverRate",
+     "type": "float32",
+     "offset": 2600,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flHoverHeight",
+     "type": "float32",
+     "offset": 2604,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flHoverTurnRate",
+     "type": "float32",
+     "offset": 2608,
+     "metadata": [
+      "MPropertyDescription"
+     ]
     }
    ],
    "metadata": [
@@ -194000,7 +194506,7 @@
   {
    "name": "CModifierNeutralAbilityVData",
    "module": "server",
-   "size": 4344,
+   "size": 4416,
    "alignment": 8,
    "bases": [
     {
@@ -194045,7 +194551,7 @@
     {
      "name": "m_strShootAttachment",
      "type": "CUtlString",
-     "offset": 4224,
+     "offset": 4296,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -194053,7 +194559,7 @@
     {
      "name": "m_strCastDelaySound",
      "type": "CSoundEventName",
-     "offset": 4232,
+     "offset": 4304,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -194061,22 +194567,22 @@
     {
      "name": "m_strChannelSound",
      "type": "CSoundEventName",
-     "offset": 4248
+     "offset": 4320
     },
     {
      "name": "m_strChannelLoopSound",
      "type": "CSoundEventName",
-     "offset": 4264
+     "offset": 4336
     },
     {
      "name": "m_strCastSound",
      "type": "CSoundEventName",
-     "offset": 4280
+     "offset": 4352
     },
     {
      "name": "m_AutoCastDelayModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4296,
+     "offset": 4368,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -194084,12 +194590,12 @@
     {
      "name": "m_AutoChannelModifier",
      "type": "CEmbeddedSubclass\u003c CCitadelModifier \u003e",
-     "offset": 4312
+     "offset": 4384
     },
     {
      "name": "m_flAutoCastDelayKillDelay",
      "type": "float32",
-     "offset": 4328,
+     "offset": 4400,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -194097,7 +194603,7 @@
     {
      "name": "m_eAG2PreCastAction",
      "type": "ENeutralNPCAction",
-     "offset": 4332,
+     "offset": 4404,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -194105,12 +194611,12 @@
     {
      "name": "m_eAG2CastCompleteAction",
      "type": "ENeutralNPCAction",
-     "offset": 4336
+     "offset": 4408
     },
     {
      "name": "m_eAG2ChannelAction",
      "type": "ENeutralNPCAction",
-     "offset": 4340
+     "offset": 4412
     }
    ],
    "metadata": [
@@ -194503,7 +195009,7 @@
   {
    "name": "CModifierProperty",
    "module": "server",
-   "size": 16208,
+   "size": 16272,
    "alignment": 16,
    "fields": [
     {
@@ -194530,7 +195036,7 @@
     {
      "name": "m_bPredictedOwner",
      "type": "bool",
-     "offset": 16017,
+     "offset": 16081,
      "metadata": [
       "MNotSaved"
      ]
@@ -194538,12 +195044,12 @@
     {
      "name": "m_bAllowModifiersOnDeadEntities",
      "type": "bool",
-     "offset": 16018
+     "offset": 16082
     },
     {
      "name": "m_iLockRefCount",
      "type": "int8",
-     "offset": 16019,
+     "offset": 16083,
      "metadata": [
       "MNotSaved"
      ]
@@ -194551,7 +195057,7 @@
     {
      "name": "m_hHandle",
      "type": "ModifierPropRuntimeHandle_t",
-     "offset": 16020,
+     "offset": 16084,
      "metadata": [
       "MNotSaved"
      ]
@@ -194559,7 +195065,7 @@
     {
      "name": "m_nBroadcastEventListenerMask",
      "type": "uint32",
-     "offset": 16024,
+     "offset": 16088,
      "metadata": [
       "MNotSaved"
      ]
@@ -194567,7 +195073,7 @@
     {
      "name": "m_nCachedHighestParticleIndex",
      "type": "ParticleIndex_t",
-     "offset": 16028,
+     "offset": 16092,
      "metadata": [
       "MNotSaved"
      ]
@@ -194575,7 +195081,7 @@
     {
      "name": "m_pNotifyOwnerEvents",
      "type": "CUtlVector\u003c OwnerModifierEventListener_t \u003e*",
-     "offset": 16032,
+     "offset": 16096,
      "metadata": [
       "MKV3TransferSaveOpsForField"
      ]
@@ -194583,27 +195089,27 @@
     {
      "name": "m_nDisabledGroups",
      "type": "uint32",
-     "offset": 16040
+     "offset": 16104
     },
     {
      "name": "m_bvEnabledStateMask",
      "type": "uint32[12]",
-     "offset": 16044
+     "offset": 16108
     },
     {
      "name": "m_bvDisabledStateMask",
      "type": "uint32[12]",
-     "offset": 16092
+     "offset": 16156
     },
     {
      "name": "m_bvEnabledPredictedStateMask",
      "type": "uint32[12]",
-     "offset": 16140
+     "offset": 16204
     },
     {
      "name": "m_bParentWantsModifierStateChangeCallback",
      "type": "bool",
-     "offset": 16200
+     "offset": 16264
     }
    ],
    "metadata": [
@@ -201161,7 +201667,7 @@
   {
    "name": "CNPC_NeutralSinnerSacrificeHideoutVData",
    "module": "server",
-   "size": 4536,
+   "size": 4544,
    "alignment": 8,
    "bases": [
     {
@@ -201173,17 +201679,17 @@
     {
      "name": "m_sLocHint01",
      "type": "CUtlString",
-     "offset": 4512
+     "offset": 4520
     },
     {
      "name": "m_sLocHint02",
      "type": "CUtlString",
-     "offset": 4520
+     "offset": 4528
     },
     {
      "name": "m_flRespawnTime",
      "type": "float32",
-     "offset": 4528
+     "offset": 4536
     }
    ],
    "metadata": [
@@ -201196,7 +201702,7 @@
   {
    "name": "CNPC_NeutralSinnerSacrificeVData",
    "module": "server",
-   "size": 4512,
+   "size": 4520,
    "alignment": 8,
    "bases": [
     {
@@ -201215,9 +201721,17 @@
      ]
     },
     {
-     "name": "m_flVaultMiniGameTime",
+     "name": "m_flRetaliateDamageMaxHealthPercent",
      "type": "float32",
      "offset": 3876,
+     "metadata": [
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flVaultMiniGameTime",
+     "type": "float32",
+     "offset": 3880,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -201225,77 +201739,77 @@
     {
      "name": "m_flVaultMiniGameHitWindow",
      "type": "float32",
-     "offset": 3880
+     "offset": 3884
     },
     {
      "name": "m_flVaultMiniGameWheelScrollTime",
      "type": "float32",
-     "offset": 3884
+     "offset": 3888
     },
     {
      "name": "m_iVaultSuccessLightBuffDropCount",
      "type": "int32",
-     "offset": 3888
+     "offset": 3892
     },
     {
      "name": "m_iVaultSuccessHeavyBuffDropCount",
      "type": "int32",
-     "offset": 3892
+     "offset": 3896
     },
     {
      "name": "m_flMiniGameFastSpeed",
      "type": "float32",
-     "offset": 3896
+     "offset": 3900
     },
     {
      "name": "m_flMiniGameFastChance",
      "type": "float32",
-     "offset": 3900
+     "offset": 3904
     },
     {
      "name": "m_strFastMaterialGroup",
      "type": "CModelMaterialGroupName",
-     "offset": 3904
+     "offset": 3912
     },
     {
      "name": "m_flVaultLightScrollTime",
      "type": "float32",
-     "offset": 3912
+     "offset": 3920
     },
     {
      "name": "m_flVaultWheelScrollTime",
      "type": "float32",
-     "offset": 3916
+     "offset": 3924
     },
     {
      "name": "m_flVaultLightFastFlashTime",
      "type": "float32",
-     "offset": 3920
+     "offset": 3928
     },
     {
      "name": "m_flVaultSuccessLightsScroll",
      "type": "float32",
-     "offset": 3924
+     "offset": 3932
     },
     {
      "name": "m_flVaultSuccessWheelScroll",
      "type": "float32",
-     "offset": 3928
+     "offset": 3936
     },
     {
      "name": "m_flVaultSuccessDestroyTime",
      "type": "float32",
-     "offset": 3932
+     "offset": 3940
     },
     {
      "name": "m_VaultSuccessParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 3936
+     "offset": 3944
     },
     {
      "name": "m_VaultIdleLoopSound",
      "type": "CSoundEventName",
-     "offset": 4160,
+     "offset": 4168,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -201303,107 +201817,107 @@
     {
      "name": "m_VaultStartActiveSound",
      "type": "CSoundEventName",
-     "offset": 4176
+     "offset": 4184
     },
     {
      "name": "m_VaultActiveLoopSound",
      "type": "CSoundEventName",
-     "offset": 4192
+     "offset": 4200
     },
     {
      "name": "m_VaultStartCriticalSound",
      "type": "CSoundEventName",
-     "offset": 4208
+     "offset": 4216
     },
     {
      "name": "m_VaultStartFastCriticalSound",
      "type": "CSoundEventName",
-     "offset": 4224
+     "offset": 4232
     },
     {
      "name": "m_VaultCriticalLoopSound",
      "type": "CSoundEventName",
-     "offset": 4240
+     "offset": 4248
     },
     {
      "name": "m_VaultHitSuccessSoundLight",
      "type": "CSoundEventName",
-     "offset": 4256
+     "offset": 4264
     },
     {
      "name": "m_VaultHitSuccessSoundHeavy",
      "type": "CSoundEventName",
-     "offset": 4272
+     "offset": 4280
     },
     {
      "name": "m_VaultHitFailSound",
      "type": "CSoundEventName",
-     "offset": 4288
+     "offset": 4296
     },
     {
      "name": "m_VaultLightPowerupGainedSound",
      "type": "CSoundEventName",
-     "offset": 4304
+     "offset": 4312
     },
     {
      "name": "m_VaultHeavyPowerupGainedSound",
      "type": "CSoundEventName",
-     "offset": 4320
+     "offset": 4328
     },
     {
      "name": "m_VaultHit01",
      "type": "CSoundEventName",
-     "offset": 4336
+     "offset": 4344
     },
     {
      "name": "m_VaultHit02",
      "type": "CSoundEventName",
-     "offset": 4352
+     "offset": 4360
     },
     {
      "name": "m_VaultHit03",
      "type": "CSoundEventName",
-     "offset": 4368
+     "offset": 4376
     },
     {
      "name": "m_VaultHit04",
      "type": "CSoundEventName",
-     "offset": 4384
+     "offset": 4392
     },
     {
      "name": "m_VaultHit05",
      "type": "CSoundEventName",
-     "offset": 4400
+     "offset": 4408
     },
     {
      "name": "m_VaultHit06",
      "type": "CSoundEventName",
-     "offset": 4416
+     "offset": 4424
     },
     {
      "name": "m_VaultHit07",
      "type": "CSoundEventName",
-     "offset": 4432
+     "offset": 4440
     },
     {
      "name": "m_VaultLight",
      "type": "CSoundEventName",
-     "offset": 4448
+     "offset": 4456
     },
     {
      "name": "m_VaultFastLightFlash",
      "type": "CSoundEventName",
-     "offset": 4464
+     "offset": 4472
     },
     {
      "name": "m_VaultLightHitWindow",
      "type": "CSoundEventName",
-     "offset": 4480
+     "offset": 4488
     },
     {
      "name": "m_VaultWheelSuccessDing",
      "type": "CSoundEventName",
-     "offset": 4496
+     "offset": 4504
     }
    ],
    "metadata": [
@@ -201751,7 +202265,7 @@
   {
    "name": "CNPC_Neutral_SinnersSacrifice",
    "module": "server",
-   "size": 6912,
+   "size": 6944,
    "alignment": 16,
    "bases": [
     {
@@ -201785,7 +202299,7 @@
   {
    "name": "CNPC_Neutral_SinnersSacrifice_Hideout",
    "module": "server",
-   "size": 6928,
+   "size": 6960,
    "alignment": 16,
    "bases": [
     {
@@ -201795,7 +202309,7 @@
     {
      "name": "IHideoutInteractable",
      "module": "server",
-     "offset": 6912
+     "offset": 6944
     }
    ]
   },
@@ -210318,6 +210832,194 @@
    ]
   },
   {
+   "name": "CPropParadeFloat",
+   "module": "server",
+   "size": 3744,
+   "alignment": 16,
+   "bases": [
+    {
+     "name": "CCitadel_BreakableProp",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_iszBoxSubclass",
+     "type": "CUtlSymbolLarge",
+     "offset": 3632
+    }
+   ]
+  },
+  {
+   "name": "CPropParadeFloatVData",
+   "module": "server",
+   "size": 1640,
+   "alignment": 8,
+   "bases": [
+    {
+     "name": "CCitadel_BreakablePropVData",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_sBulletHitSound",
+     "type": "CSoundEventName",
+     "offset": 1552,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flShotOffsetPerDamage",
+     "type": "float32",
+     "offset": 1568,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flMaxShotOffset",
+     "type": "float32",
+     "offset": 1572,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flMaxShotTilt",
+     "type": "float32",
+     "offset": 1576,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flShotOffsetEaseInTime",
+     "type": "float32",
+     "offset": 1580,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flShotOffsetHalfLife",
+     "type": "float32",
+     "offset": 1584,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_angSpawnAngles",
+     "type": "QAngle",
+     "offset": 1588,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flTurnRate",
+     "type": "float32",
+     "offset": 1600,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flMoveSpeed",
+     "type": "float32",
+     "offset": 1604,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_nZiplineLane",
+     "type": "int32",
+     "offset": 1608,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flHeightAboveZipline",
+     "type": "float32",
+     "offset": 1612,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flRaiseHeight",
+     "type": "float32",
+     "offset": 1616,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flRaiseSpeed",
+     "type": "float32",
+     "offset": 1620,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flDistanceToEndRise",
+     "type": "float32",
+     "offset": 1624,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    },
+    {
+     "name": "m_flMaxRiseHeight",
+     "type": "float32",
+     "offset": 1628,
+     "metadata": [
+      "MPropertyFriendlyName",
+      "MPropertyDescription",
+      "MPropertySuppressExpr"
+     ]
+    },
+    {
+     "name": "m_flBoxFallbackZ",
+     "type": "float32",
+     "offset": 1632,
+     "metadata": [
+      "MPropertyStartGroup",
+      "MPropertyFriendlyName",
+      "MPropertyDescription"
+     ]
+    }
+   ],
+   "metadata": [
+    "MGetKV3ClassDefaults"
+   ],
+   "flags": [
+    "MHasKV3TransferPolymorphicClassname"
+   ]
+  },
+  {
    "name": "CPulseCell_ApplyAnimGraphParam",
    "module": "server",
    "size": 360,
@@ -216751,7 +217453,7 @@
   {
    "name": "CTakeDamageInfo",
    "module": "server",
-   "size": 256,
+   "size": 264,
    "alignment": 8,
    "fields": [
     {
@@ -216944,9 +217646,33 @@
      ]
     },
     {
+     "name": "m_flOwnerEventMitigationScale",
+     "type": "float32",
+     "offset": 196,
+     "metadata": [
+      "MNotSaved"
+     ]
+    },
+    {
      "name": "m_bCannotBeDeferred",
      "type": "bool",
-     "offset": 196,
+     "offset": 200,
+     "metadata": [
+      "MNotSaved"
+     ]
+    },
+    {
+     "name": "m_bOutgoingDamageScaleApplied",
+     "type": "bool",
+     "offset": 201,
+     "metadata": [
+      "MNotSaved"
+     ]
+    },
+    {
+     "name": "m_bPureDamageUsesDamageAmps",
+     "type": "bool",
+     "offset": 202,
      "metadata": [
       "MNotSaved"
      ]
@@ -216954,7 +217680,7 @@
     {
      "name": "m_bIgnoresSelfBubble",
      "type": "bool",
-     "offset": 197,
+     "offset": 203,
      "metadata": [
       "MNotSaved"
      ]
@@ -216962,12 +217688,12 @@
     {
      "name": "m_DestructibleHitGroupRequests",
      "type": "CUtlLeanVector\u003c DestructiblePartDamageRequest_t \u003e",
-     "offset": 232
+     "offset": 240
     },
     {
      "name": "m_bInTakeDamageFlow",
      "type": "bool",
-     "offset": 248,
+     "offset": 256,
      "metadata": [
       "MNotSaved"
      ]
@@ -220891,19 +221617,34 @@
      "offset": 1256
     },
     {
-     "name": "m_bForceHideHUDPanel",
+     "name": "m_bTooltipShowEnemyMovementAbilities",
      "type": "bool",
      "offset": 1257
     },
     {
-     "name": "m_bForceShowHUDPanel",
+     "name": "m_bTooltipShowEnemyFlyingAbilities",
      "type": "bool",
      "offset": 1258
     },
     {
-     "name": "m_bUsesFlightControls",
+     "name": "m_bTooltipShowAsMovementAbility",
      "type": "bool",
      "offset": 1259
+    },
+    {
+     "name": "m_bForceHideHUDPanel",
+     "type": "bool",
+     "offset": 1260
+    },
+    {
+     "name": "m_bForceShowHUDPanel",
+     "type": "bool",
+     "offset": 1261
+    },
+    {
+     "name": "m_bUsesFlightControls",
+     "type": "bool",
+     "offset": 1262
     },
     {
      "name": "m_strFlyUpLocString",
@@ -222039,7 +222780,7 @@
   {
    "name": "CitadelGenericData_t",
    "module": "server",
-   "size": 5688,
+   "size": 5696,
    "alignment": 8,
    "fields": [
     {
@@ -222323,32 +223064,32 @@
     {
      "name": "m_TeleporterParams",
      "type": "TeleporterParams_t",
-     "offset": 4344
+     "offset": 4352
     },
     {
      "name": "m_ObjectiveParams",
      "type": "ObjectivesParams_t",
-     "offset": 4840
+     "offset": 4848
     },
     {
      "name": "m_BreakablePowerupLootParams",
      "type": "BreakablePowerupLootParams_t",
-     "offset": 4888
+     "offset": 4896
     },
     {
      "name": "m_BreakableSpawnTimeDesc",
      "type": "CUtlVector\u003c BreakableSpawnTimeDesc_t \u003e",
-     "offset": 4936
+     "offset": 4944
     },
     {
      "name": "m_mapStatTypeImages",
      "type": "CUtlOrderedMap\u003c EStatsType, CUtlString \u003e",
-     "offset": 4960
+     "offset": 4968
     },
     {
      "name": "m_AimSpringStrength",
      "type": "CRemapFloat",
-     "offset": 5000,
+     "offset": 5008,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -222356,7 +223097,7 @@
     {
      "name": "m_TargetingSpringStrength",
      "type": "CRemapFloat",
-     "offset": 5016,
+     "offset": 5024,
      "metadata": [
       "MPropertyDescription"
      ]
@@ -222364,12 +223105,12 @@
     {
      "name": "m_mapResourceTypes",
      "type": "CUtlOrderedMap\u003c EAbilityResourceType, HeroAbilityResourceDef_t \u003e",
-     "offset": 5032
+     "offset": 5040
     },
     {
      "name": "m_vecWeaponGroups",
      "type": "CUtlVector\u003c ShopGroups_t \u003e",
-     "offset": 5072,
+     "offset": 5080,
      "metadata": [
       "MPropertyStartGroup"
      ]
@@ -222377,17 +223118,17 @@
     {
      "name": "m_vecArmorGroups",
      "type": "CUtlVector\u003c ShopGroups_t \u003e",
-     "offset": 5096
+     "offset": 5104
     },
     {
      "name": "m_vecSpiritGroups",
      "type": "CUtlVector\u003c ShopGroups_t \u003e",
-     "offset": 5120
+     "offset": 5128
     },
     {
      "name": "m_StreetBrawl",
      "type": "GameModeStreetBrawl_t",
-     "offset": 5144,
+     "offset": 5152,
      "metadata": [
       "MPropertyFlattenIntoParentRow",
       "MPropertyStartGroup"
@@ -228038,7 +228779,7 @@
   {
    "name": "KothParams_t",
    "module": "server",
-   "size": 744,
+   "size": 752,
    "alignment": 8,
    "fields": [
     {
@@ -228051,39 +228792,44 @@
      "offset": 4
     },
     {
+     "name": "m_flTrailingBonusFullDeficitPercent",
+     "type": "float32",
+     "offset": 8
+    },
+    {
      "name": "m_KothEarlyWarningParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 8
+     "offset": 16
     },
     {
      "name": "m_KothSpawnLocationParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 232
+     "offset": 240
     },
     {
      "name": "m_KothOnSpawnParticle",
      "type": "CResourceNameTyped\u003c CWeakHandle\u003c InfoForResourceTypeIParticleSystemDefinition \u003e \u003e",
-     "offset": 456
+     "offset": 464
     },
     {
      "name": "m_strKothSpawnLoopStartSound",
      "type": "CSoundEventName",
-     "offset": 680
+     "offset": 688
     },
     {
      "name": "m_strKothSpawnLoopSound",
      "type": "CSoundEventName",
-     "offset": 696
+     "offset": 704
     },
     {
      "name": "m_strKothPreSpawnLoopSound",
      "type": "CSoundEventName",
-     "offset": 712
+     "offset": 720
     },
     {
      "name": "m_strKothSpawnCompleteSound",
      "type": "CSoundEventName",
-     "offset": 728
+     "offset": 736
     }
    ],
    "metadata": [
@@ -228217,7 +228963,7 @@
   {
    "name": "LockonTarget_t",
    "module": "server",
-   "size": 104,
+   "size": 112,
    "alignment": 255,
    "fields": [
     {
@@ -228259,6 +229005,11 @@
      "name": "m_hTarget",
      "type": "CHandle\u003c CBaseEntity \u003e",
      "offset": 76
+    },
+    {
+     "name": "m_bHasLOS",
+     "type": "bool",
+     "offset": 80
     }
    ]
   },
@@ -232021,7 +232772,7 @@
   {
    "name": "SummaryTakeDamageInfo_t",
    "module": "server",
-   "size": 376,
+   "size": 384,
    "alignment": 8,
    "fields": [
     {
@@ -232036,12 +232787,12 @@
     {
      "name": "result",
      "type": "CTakeDamageResult",
-     "offset": 264
+     "offset": 272
     },
     {
      "name": "hTarget",
      "type": "CHandle\u003c CBaseEntity \u003e",
-     "offset": 368
+     "offset": 376
     }
    ],
    "metadata": [
@@ -256323,8 +257074,20 @@
      "value": "86"
     },
     {
-     "name": "CITADEL_ABILITY_BEHAVIOR_COUNT",
+     "name": "CITADEL_ABILITY_BEHAVIOR_COUNTS_AS_ABILITY_USE",
      "value": "87"
+    },
+    {
+     "name": "CITADEL_ABILITY_BEHAVIOR_DOES_NOT_COUNT_AS_ABILITY_USE",
+     "value": "88"
+    },
+    {
+     "name": "CITADEL_ABILITY_BEHAVIOR_FLYING",
+     "value": "89"
+    },
+    {
+     "name": "CITADEL_ABILITY_BEHAVIOR_COUNT",
+     "value": "90"
     }
    ]
   },
@@ -262754,12 +263517,16 @@
      "value": "107"
     },
     {
-     "name": "MODIFIER_EVENT_OVERRIDE_CURRENCY_CHANGE",
+     "name": "MODIFIER_EVENT_OWNER_DEFER_ADJUSTED_DAMAGE",
      "value": "108"
     },
     {
-     "name": "MODIFIER_EVENT_COUNT",
+     "name": "MODIFIER_EVENT_OVERRIDE_CURRENCY_CHANGE",
      "value": "109"
+    },
+    {
+     "name": "MODIFIER_EVENT_COUNT",
+     "value": "110"
     },
     {
      "name": "MODIFIER_EVENT_INVALID",
@@ -263860,376 +264627,384 @@
      "value": "261"
     },
     {
-     "name": "MODIFIER_STATE_PRIEST_TRAP",
+     "name": "MODIFIER_STATE_NEAR_PUNCHABLE_ITEM",
      "value": "262"
     },
     {
-     "name": "MODIFIER_STATE_PRIEST_KNOCKBACK",
+     "name": "MODIFIER_STATE_PRIEST_TRAP",
      "value": "263"
     },
     {
-     "name": "MODIFIER_STATE_PRIEST_MELEEBLESSED",
+     "name": "MODIFIER_STATE_PRIEST_KNOCKBACK",
      "value": "264"
     },
     {
-     "name": "MODIFIER_STATE_SPLITSHOT_ACTIVE",
+     "name": "MODIFIER_STATE_PRIEST_MELEEBLESSED",
      "value": "265"
     },
     {
-     "name": "MODIFIER_STATE_RICOCHET_ACTIVE",
+     "name": "MODIFIER_STATE_SPLITSHOT_ACTIVE",
      "value": "266"
     },
     {
-     "name": "MODIFIER_STATE_NECRO_GUNTETHER",
+     "name": "MODIFIER_STATE_RICOCHET_ACTIVE",
      "value": "267"
     },
     {
-     "name": "MODIFIER_STATE_NECRO_WITHER",
+     "name": "MODIFIER_STATE_NECRO_GUNTETHER",
      "value": "268"
     },
     {
-     "name": "MODIFIER_STATE_NECRO_BUFF",
+     "name": "MODIFIER_STATE_NECRO_WITHER",
      "value": "269"
     },
     {
-     "name": "MODIFIER_STATE_NECRO_PICKUP_TARGET",
+     "name": "MODIFIER_STATE_NECRO_BUFF",
      "value": "270"
     },
     {
-     "name": "MODIFIER_STATE_WEREWOLF",
+     "name": "MODIFIER_STATE_NECRO_PICKUP_TARGET",
      "value": "271"
     },
     {
-     "name": "MODIFIER_STATE_WEREWOLF_ONTHEHUNT",
+     "name": "MODIFIER_STATE_WEREWOLF",
      "value": "272"
     },
     {
-     "name": "MODIFIER_STATE_WEREWOLF_READY",
+     "name": "MODIFIER_STATE_WEREWOLF_ONTHEHUNT",
      "value": "273"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_JETPACKING",
+     "name": "MODIFIER_STATE_WEREWOLF_READY",
      "value": "274"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_JETPACKING_REDUCED",
+     "name": "MODIFIER_STATE_DEADPACK_JETPACKING",
      "value": "275"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_JETPACK_LOCKOUT",
+     "name": "MODIFIER_STATE_DEADPACK_JETPACKING_REDUCED",
      "value": "276"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_JETPACK_INPUT_DISABLED",
+     "name": "MODIFIER_STATE_DEADPACK_JETPACK_LOCKOUT",
      "value": "277"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_OVERHEATING",
+     "name": "MODIFIER_STATE_DEADPACK_JETPACK_INPUT_DISABLED",
      "value": "278"
     },
     {
-     "name": "MODIFIER_STATE_DEADPACK_OVERCHARGED",
+     "name": "MODIFIER_STATE_DEADPACK_OVERHEATING",
      "value": "279"
     },
     {
-     "name": "MODIFIER_STATE_VISIBLE_TO_PROVIDER",
+     "name": "MODIFIER_STATE_DEADPACK_OVERCHARGED",
      "value": "280"
     },
     {
-     "name": "MODIFIER_STATE_VAMPIRE",
+     "name": "MODIFIER_STATE_VISIBLE_TO_PROVIDER",
      "value": "281"
     },
     {
-     "name": "MODIFIER_STATE_IGNORE_OUT_OF_PLAY_AREA_CHECK",
+     "name": "MODIFIER_STATE_VAMPIRE",
      "value": "282"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_ATTACHED",
+     "name": "MODIFIER_STATE_IGNORE_OUT_OF_PLAY_AREA_CHECK",
      "value": "283"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_MOVING_TO_ATTACH",
+     "name": "MODIFIER_STATE_FAMILIAR_ATTACHED",
      "value": "284"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_ATTACH_LOCKOUT",
+     "name": "MODIFIER_STATE_FAMILIAR_MOVING_TO_ATTACH",
      "value": "285"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_INFESTED",
+     "name": "MODIFIER_STATE_FAMILIAR_ATTACH_LOCKOUT",
      "value": "286"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_INFEST_WAITING",
+     "name": "MODIFIER_STATE_FAMILIAR_INFESTED",
      "value": "287"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_SPIRIT_STOLEN",
+     "name": "MODIFIER_STATE_FAMILIAR_INFEST_WAITING",
      "value": "288"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_CLONE",
+     "name": "MODIFIER_STATE_FAMILIAR_SPIRIT_STOLEN",
      "value": "289"
     },
     {
-     "name": "MODIFIER_STATE_FAMILIAR_ABILITY_KEEPALIVE",
+     "name": "MODIFIER_STATE_FAMILIAR_CLONE",
      "value": "290"
     },
     {
-     "name": "MODIFIER_STATE_IS_TINY_CHARACTER",
+     "name": "MODIFIER_STATE_FAMILIAR_ABILITY_KEEPALIVE",
      "value": "291"
     },
     {
-     "name": "MODIFIER_STATE_SHRUNK_CHARACTER",
+     "name": "MODIFIER_STATE_IS_TINY_CHARACTER",
      "value": "292"
     },
     {
-     "name": "MODIFIER_STATE_PITCH_UP_VOICE",
+     "name": "MODIFIER_STATE_SHRUNK_CHARACTER",
      "value": "293"
     },
     {
-     "name": "MODIFIER_STATE_USE_SHRUNKEN_CAMERA_OFFSETS",
+     "name": "MODIFIER_STATE_PITCH_UP_VOICE",
      "value": "294"
     },
     {
-     "name": "MODIFIER_STATE_FEAR_IMMUNE",
+     "name": "MODIFIER_STATE_USE_SHRUNKEN_CAMERA_OFFSETS",
      "value": "295"
     },
     {
-     "name": "MODIFIER_STATE_UNICORN_RADIANT_FLARED",
+     "name": "MODIFIER_STATE_FEAR_IMMUNE",
      "value": "296"
     },
     {
-     "name": "MODIFIER_STATE_FACE_VELOCITY_DIRECTION",
+     "name": "MODIFIER_STATE_UNICORN_RADIANT_FLARED",
      "value": "297"
     },
     {
-     "name": "MODIFIER_STATE_ZIPLINE_LOCKED",
+     "name": "MODIFIER_STATE_FACE_VELOCITY_DIRECTION",
      "value": "298"
     },
     {
-     "name": "MODIFIER_STATE_CINEMATIC_INTRO",
+     "name": "MODIFIER_STATE_ZIPLINE_LOCKED",
      "value": "299"
     },
     {
-     "name": "MODIFIER_STATE_SUPPRESS_TROOPER_KILLGOLD",
+     "name": "MODIFIER_STATE_CINEMATIC_INTRO",
      "value": "300"
     },
     {
-     "name": "MODIFIER_STATE_PRISMATIC_GUARDED",
+     "name": "MODIFIER_STATE_SUPPRESS_TROOPER_KILLGOLD",
      "value": "301"
     },
     {
-     "name": "MODIFIER_STATE_IS_SMALL_DEPLOYABLE",
+     "name": "MODIFIER_STATE_PRISMATIC_GUARDED",
      "value": "302"
     },
     {
-     "name": "MODIFIER_STATE_ALLOW_IN_TUNNELS_NO_DUCK",
+     "name": "MODIFIER_STATE_IS_SMALL_DEPLOYABLE",
      "value": "303"
     },
     {
-     "name": "MODIFIER_STATE_IN_TUNNEL",
+     "name": "MODIFIER_STATE_ALLOW_IN_TUNNELS_NO_DUCK",
      "value": "304"
     },
     {
-     "name": "MODIFIER_STATE_NEAR_HEAVY_PUNCHABLE_DESTROY",
+     "name": "MODIFIER_STATE_IN_TUNNEL",
      "value": "305"
     },
     {
-     "name": "MODIFIER_STATE_DISABLE_PINGS",
+     "name": "MODIFIER_STATE_NEAR_HEAVY_PUNCHABLE_DESTROY",
      "value": "306"
     },
     {
-     "name": "MODIFIER_STATE_IS_IN_CHARGE_MELEE",
+     "name": "MODIFIER_STATE_DISABLE_PINGS",
      "value": "307"
     },
     {
-     "name": "MODIFIER_STATE_CAMERA_TRANSITION_DISABLED",
+     "name": "MODIFIER_STATE_IS_IN_CHARGE_MELEE",
      "value": "308"
     },
     {
-     "name": "MODIFIER_STATE_CAMERA_TRANSITION_ALWAYS",
+     "name": "MODIFIER_STATE_CAMERA_TRANSITION_DISABLED",
      "value": "309"
     },
     {
-     "name": "MODIFIER_STATE_CAMERA_ORBIT_MODE",
+     "name": "MODIFIER_STATE_CAMERA_TRANSITION_ALWAYS",
      "value": "310"
     },
     {
-     "name": "MODIFIER_STATE_CASTING_HOOK",
+     "name": "MODIFIER_STATE_CAMERA_ORBIT_MODE",
      "value": "311"
     },
     {
-     "name": "MODIFIER_STATE_HAS_FIREBEETLES_DEBUFF",
+     "name": "MODIFIER_STATE_CASTING_HOOK",
      "value": "312"
     },
     {
-     "name": "MODIFIER_STATE_CATAPULTED",
+     "name": "MODIFIER_STATE_HAS_FIREBEETLES_DEBUFF",
      "value": "313"
     },
     {
-     "name": "MODIFIER_STATE_AFTERBURNING",
+     "name": "MODIFIER_STATE_CATAPULTED",
      "value": "314"
     },
     {
-     "name": "MODIFIER_STATE_ALLOW_RELOAD_WHEN_FULL",
+     "name": "MODIFIER_STATE_AFTERBURNING",
      "value": "315"
     },
     {
-     "name": "MODIFIER_STATE_BARRIER_ACTIVE",
+     "name": "MODIFIER_STATE_ALLOW_RELOAD_WHEN_FULL",
      "value": "316"
     },
     {
-     "name": "MODIFIER_STATE_SUPER_TROOPER",
+     "name": "MODIFIER_STATE_BARRIER_ACTIVE",
      "value": "317"
     },
     {
-     "name": "MODIFIER_STATE_DO_NOT_DRAW_PARTICLES",
+     "name": "MODIFIER_STATE_SUPER_TROOPER",
      "value": "318"
     },
     {
-     "name": "MODIFIER_STATE_HAS_OBJECTIVE_HEALTHBAR",
+     "name": "MODIFIER_STATE_DO_NOT_DRAW_PARTICLES",
      "value": "319"
     },
     {
-     "name": "MODIFIER_STATE_RATKING_PLAGUE",
+     "name": "MODIFIER_STATE_HAS_OBJECTIVE_HEALTHBAR",
      "value": "320"
     },
     {
-     "name": "MODIFIER_STATE_MOD_NO_CLEANSE",
+     "name": "MODIFIER_STATE_RATKING_PLAGUE",
      "value": "321"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_FLOWSTATE",
+     "name": "MODIFIER_STATE_MOD_NO_CLEANSE",
      "value": "322"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_BISHOP_TARGET",
+     "name": "MODIFIER_STATE_ARTIST_FLOWSTATE",
      "value": "323"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_ROOK_IMMUNE",
+     "name": "MODIFIER_STATE_CHESSMASTER_BISHOP_TARGET",
      "value": "324"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_BUFFALLY",
+     "name": "MODIFIER_STATE_CHESSMASTER_ROOK_IMMUNE",
      "value": "325"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_PIECE",
+     "name": "MODIFIER_STATE_CHESSMASTER_BUFFALLY",
      "value": "326"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_COOLDOWN",
+     "name": "MODIFIER_STATE_CHESSMASTER_PIECE",
      "value": "327"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_MOVING",
+     "name": "MODIFIER_STATE_CHESSMASTER_COOLDOWN",
      "value": "328"
     },
     {
-     "name": "MODIFIER_STATE_CHESSMASTER_BLACKPIECE",
+     "name": "MODIFIER_STATE_CHESSMASTER_MOVING",
      "value": "329"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_CLOUD_ARMED",
+     "name": "MODIFIER_STATE_CHESSMASTER_BLACKPIECE",
      "value": "330"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_TETHER",
+     "name": "MODIFIER_STATE_ARTIST_CLOUD_ARMED",
      "value": "331"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_BAMBOO_IMMUNE",
+     "name": "MODIFIER_STATE_ARTIST_TETHER",
      "value": "332"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_ENHANCED_SLIDE",
+     "name": "MODIFIER_STATE_ARTIST_BAMBOO_IMMUNE",
      "value": "333"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_PREVENT_BULLET_CREATION",
+     "name": "MODIFIER_STATE_ARTIST_ENHANCED_SLIDE",
      "value": "334"
     },
     {
-     "name": "MODIFIER_STATE_ARTIST_PERMANENT_BUFF",
+     "name": "MODIFIER_STATE_ARTIST_PREVENT_BULLET_CREATION",
      "value": "335"
     },
     {
-     "name": "MODIFIER_STATE_KOTH_TROOPER",
+     "name": "MODIFIER_STATE_ARTIST_PERMANENT_BUFF",
      "value": "336"
     },
     {
-     "name": "MODIFIER_STATE_HIDEOUT_EDIT_MODE",
+     "name": "MODIFIER_STATE_KOTH_TROOPER",
      "value": "337"
     },
     {
-     "name": "MODIFIER_STATE_ITEMS_IGNORE_IMMOBILIZE",
+     "name": "MODIFIER_STATE_HIDEOUT_EDIT_MODE",
      "value": "338"
     },
     {
-     "name": "MODIFIER_STATE_ITEMS_IGNORE_COMBAT_ABILITIES_DISABLED",
+     "name": "MODIFIER_STATE_ITEMS_IGNORE_IMMOBILIZE",
      "value": "339"
     },
     {
-     "name": "MODIFIER_STATE_RATKING_HOLDING_BANNER",
+     "name": "MODIFIER_STATE_ITEMS_IGNORE_COMBAT_ABILITIES_DISABLED",
      "value": "340"
     },
     {
-     "name": "MODIFIER_STATE_DOORMAN_LUGGAGE_DRAGGED",
+     "name": "MODIFIER_STATE_RATKING_HOLDING_BANNER",
      "value": "341"
     },
     {
-     "name": "MODIFIER_STATE_BABA_BENCHRUN",
+     "name": "MODIFIER_STATE_DOORMAN_LUGGAGE_DRAGGED",
      "value": "342"
     },
     {
-     "name": "MODIFIER_STATE_DISPLAY_DAMAGE_BLOCK_TEXT",
+     "name": "MODIFIER_STATE_BABA_BENCHRUN",
      "value": "343"
     },
     {
-     "name": "MODIFIER_STATE_IN_CORRUPTED_ITEM_SHOP",
+     "name": "MODIFIER_STATE_DISPLAY_DAMAGE_BLOCK_TEXT",
      "value": "344"
     },
     {
-     "name": "MODIFIER_STATE_HIDEOUT_GAME",
+     "name": "MODIFIER_STATE_IN_CORRUPTED_ITEM_SHOP",
      "value": "345"
     },
     {
-     "name": "MODIFIER_STATE_PARRY_IGNORES_MELEE_DISABLED",
+     "name": "MODIFIER_STATE_HIDEOUT_GAME",
      "value": "346"
     },
     {
-     "name": "MODIFIER_STATE_FULL_SPEED_DUCKING",
+     "name": "MODIFIER_STATE_PARRY_IGNORES_MELEE_DISABLED",
      "value": "347"
     },
     {
-     "name": "MODIFIER_STATE_FREE_WALL_JUMPS",
+     "name": "MODIFIER_STATE_FULL_SPEED_DUCKING",
      "value": "348"
     },
     {
-     "name": "MODIFIER_STATE_DISABLE_LOOK_TARGET",
+     "name": "MODIFIER_STATE_FREE_WALL_JUMPS",
      "value": "349"
     },
     {
-     "name": "MODIFIER_STATE_FEARED",
+     "name": "MODIFIER_STATE_DISABLE_LOOK_TARGET",
      "value": "350"
     },
     {
-     "name": "MODIFIER_STATE_NEAR_HALLOWEEN_TROLL",
+     "name": "MODIFIER_STATE_FEARED",
      "value": "351"
     },
     {
-     "name": "MODIFIER_STATE_HAS_EATCANDY_ABILITY",
+     "name": "MODIFIER_STATE_NEAR_HALLOWEEN_TROLL",
      "value": "352"
     },
     {
-     "name": "MODIFIER_STATE_NEAR_HALLOWEEN_CAULDRON",
+     "name": "MODIFIER_STATE_HAS_EATCANDY_ABILITY",
      "value": "353"
     },
     {
-     "name": "MODIFIER_STATE_COUNT",
+     "name": "MODIFIER_STATE_NEAR_HALLOWEEN_CAULDRON",
      "value": "354"
+    },
+    {
+     "name": "MODIFIER_STATE_LOW_HEALTH_TARGET",
+     "value": "355"
+    },
+    {
+     "name": "MODIFIER_STATE_COUNT",
+     "value": "356"
     },
     {
      "name": "MODIFIER_STATE_INVALID",
@@ -264634,632 +265409,636 @@
      "value": "97"
     },
     {
-     "name": "MODIFIER_VALUE_CYCLE_TIME_PERCENTAGE",
+     "name": "MODIFIER_VALUE_FIRE_RATE_SLOW_RESISTANCE",
      "value": "98"
     },
     {
-     "name": "MODIFIER_VALUE_SPREAD_SCALE",
+     "name": "MODIFIER_VALUE_CYCLE_TIME_PERCENTAGE",
      "value": "99"
     },
     {
-     "name": "MODIFIER_VALUE_CYCLE_TIME",
+     "name": "MODIFIER_VALUE_SPREAD_SCALE",
      "value": "100"
     },
     {
-     "name": "MODIFIER_VALUE_AMMO_COST_REDUCTION",
+     "name": "MODIFIER_VALUE_CYCLE_TIME",
      "value": "101"
     },
     {
-     "name": "MODIFIER_VALUE_STATUS_RESISTANCE",
+     "name": "MODIFIER_VALUE_AMMO_COST_REDUCTION",
      "value": "102"
     },
     {
-     "name": "MODIFIER_VALUE_COOLDOWN_REDUCTION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_STATUS_RESISTANCE",
      "value": "103"
     },
     {
-     "name": "MODIFIER_VALUE_COOLDOWN_MAX_TIME",
+     "name": "MODIFIER_VALUE_COOLDOWN_REDUCTION_PERCENTAGE",
      "value": "104"
     },
     {
-     "name": "MODIFIER_VALUE_COOLDOWN_BETWEEN_CHARGE_REDUCTION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_COOLDOWN_MAX_TIME",
      "value": "105"
     },
     {
-     "name": "MODIFIER_VALUE_COOLDOWN_STOPPED",
+     "name": "MODIFIER_VALUE_COOLDOWN_BETWEEN_CHARGE_REDUCTION_PERCENTAGE",
      "value": "106"
     },
     {
-     "name": "MODIFIER_VALUE_IGNORE_COOLDOWN",
+     "name": "MODIFIER_VALUE_COOLDOWN_STOPPED",
      "value": "107"
     },
     {
-     "name": "MODIFIER_VALUE_ITEM_COOLDOWN_REDUCTION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_IGNORE_COOLDOWN",
      "value": "108"
     },
     {
-     "name": "MODIFIER_VALUE_ULTIMATE_COOLDOWN_REDUCTION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_ITEM_COOLDOWN_REDUCTION_PERCENTAGE",
      "value": "109"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_ABILITY_CHARGES",
+     "name": "MODIFIER_VALUE_ULTIMATE_COOLDOWN_REDUCTION_PERCENTAGE",
      "value": "110"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_ABILITY_DURATION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_BONUS_ABILITY_CHARGES",
      "value": "111"
     },
     {
-     "name": "MODIFIER_VALUE_ENABLE_CHARGES",
+     "name": "MODIFIER_VALUE_BONUS_ABILITY_DURATION_PERCENTAGE",
      "value": "112"
     },
     {
-     "name": "MODIFIER_VALUE_MELEEATTACK_SPEED",
+     "name": "MODIFIER_VALUE_ENABLE_CHARGES",
      "value": "113"
     },
     {
-     "name": "MODIFIER_VALUE_MELEE_TRAVEL_DISTANCE_PERCENTAGE",
+     "name": "MODIFIER_VALUE_MELEEATTACK_SPEED",
      "value": "114"
     },
     {
-     "name": "MODIFIER_VALUE_PARRY_COOLDOWN_REDUCTION_FIXED",
+     "name": "MODIFIER_VALUE_MELEE_TRAVEL_DISTANCE_PERCENTAGE",
      "value": "115"
     },
     {
-     "name": "MODIFIER_VALUE_FIREARM_ACCURACY_PERCENTAGE",
+     "name": "MODIFIER_VALUE_PARRY_COOLDOWN_REDUCTION_FIXED",
      "value": "116"
     },
     {
-     "name": "MODIFIER_VALUE_TURN_SIDEMOVE_PERCENTAGE",
+     "name": "MODIFIER_VALUE_FIREARM_ACCURACY_PERCENTAGE",
      "value": "117"
     },
     {
-     "name": "MODIFIER_VALUE_CHARGE_SPEED",
+     "name": "MODIFIER_VALUE_TURN_SIDEMOVE_PERCENTAGE",
      "value": "118"
     },
     {
-     "name": "MODIFIER_VALUE_TELEPORT_COOLDOWN_REDUCTION_PERCENT",
+     "name": "MODIFIER_VALUE_CHARGE_SPEED",
      "value": "119"
     },
     {
-     "name": "MODIFIER_VALUE_FALL_SPEED_MAX",
+     "name": "MODIFIER_VALUE_TELEPORT_COOLDOWN_REDUCTION_PERCENT",
      "value": "120"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_SPEED_MAX",
+     "name": "MODIFIER_VALUE_FALL_SPEED_MAX",
      "value": "121"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_EVASION",
+     "name": "MODIFIER_VALUE_AIR_SPEED_MAX",
      "value": "122"
     },
     {
-     "name": "MODIFIER_VALUE_PARRY_PIERCE",
+     "name": "MODIFIER_VALUE_BULLET_EVASION",
      "value": "123"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHIELD_HEALTH",
+     "name": "MODIFIER_VALUE_PARRY_PIERCE",
      "value": "124"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHIELD_HEALTH_MAX",
+     "name": "MODIFIER_VALUE_BULLET_SHIELD_HEALTH",
      "value": "125"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHIELD_DAMAGE_PERCENT",
+     "name": "MODIFIER_VALUE_BULLET_SHIELD_HEALTH_MAX",
      "value": "126"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_SHIELD_DAMAGE_PERCENT",
+     "name": "MODIFIER_VALUE_BULLET_SHIELD_DAMAGE_PERCENT",
      "value": "127"
     },
     {
-     "name": "MODIFIER_VALUE_BARRIER_HEALTH",
+     "name": "MODIFIER_VALUE_TECH_SHIELD_DAMAGE_PERCENT",
      "value": "128"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_CRIT_DAMAGE_PERCENT",
+     "name": "MODIFIER_VALUE_BARRIER_HEALTH",
      "value": "129"
     },
     {
-     "name": "MODIFIER_VALUE_WEAPON_CRIT_CHANCE_PERCENT",
+     "name": "MODIFIER_VALUE_BONUS_CRIT_DAMAGE_PERCENT",
      "value": "130"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_WEAPON_DAMAGE_CLOSE_RANGE_MAX_RANGE",
+     "name": "MODIFIER_VALUE_WEAPON_CRIT_CHANCE_PERCENT",
      "value": "131"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_BULLET_DAMAGE_LONG_RANGE_MIN_RANGE",
+     "name": "MODIFIER_VALUE_BONUS_WEAPON_DAMAGE_CLOSE_RANGE_MAX_RANGE",
      "value": "132"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_RANGE_ADDITIVE",
+     "name": "MODIFIER_VALUE_BONUS_BULLET_DAMAGE_LONG_RANGE_MIN_RANGE",
      "value": "133"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_RANGE_PERCENT",
+     "name": "MODIFIER_VALUE_TECH_RANGE_ADDITIVE",
      "value": "134"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_RANGE_CLAMP",
+     "name": "MODIFIER_VALUE_TECH_RANGE_PERCENT",
      "value": "135"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_RADIUS_ADDITIVE",
+     "name": "MODIFIER_VALUE_TECH_RANGE_CLAMP",
      "value": "136"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_RADIUS_PERCENT",
+     "name": "MODIFIER_VALUE_TECH_RADIUS_ADDITIVE",
      "value": "137"
     },
     {
-     "name": "MODIFIER_VALUE_TURN_ANGLE_PER_SECOND_MAX",
+     "name": "MODIFIER_VALUE_TECH_RADIUS_PERCENT",
      "value": "138"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_JUMP_VERTICAL_SPEED_PERCENT",
+     "name": "MODIFIER_VALUE_TURN_ANGLE_PER_SECOND_MAX",
      "value": "139"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_JUMPS",
+     "name": "MODIFIER_VALUE_BONUS_JUMP_VERTICAL_SPEED_PERCENT",
      "value": "140"
     },
     {
-     "name": "MODIFIER_VALUE_FREE_AIR_JUMPS",
+     "name": "MODIFIER_VALUE_AIR_JUMPS",
      "value": "141"
     },
     {
-     "name": "MODIFIER_VALUE_DOWN_DASH_SPEED_PERCENT",
+     "name": "MODIFIER_VALUE_FREE_AIR_JUMPS",
      "value": "142"
     },
     {
-     "name": "MODIFIER_VALUE_ZIP_LINE_SPEED_ADDITIVE",
+     "name": "MODIFIER_VALUE_DOWN_DASH_SPEED_PERCENT",
      "value": "143"
     },
     {
-     "name": "MODIFIER_VALUE_ZIP_LINE_SPEED_PERCENTAGE",
+     "name": "MODIFIER_VALUE_ZIP_LINE_SPEED_ADDITIVE",
      "value": "144"
     },
     {
-     "name": "MODIFIER_VALUE_CLIMB_ROPE_SPEED_PERCENTAGE",
+     "name": "MODIFIER_VALUE_ZIP_LINE_SPEED_PERCENTAGE",
      "value": "145"
     },
     {
-     "name": "MODIFIER_VALUE_GROUND_FRICTION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_CLIMB_ROPE_SPEED_PERCENTAGE",
      "value": "146"
     },
     {
-     "name": "MODIFIER_VALUE_GROUND_ACCELERATION_PERCENTAGE",
+     "name": "MODIFIER_VALUE_GROUND_FRICTION_PERCENTAGE",
      "value": "147"
     },
     {
-     "name": "MODIFIER_VALUE_INVISIBILITY_LEVEL",
+     "name": "MODIFIER_VALUE_GROUND_ACCELERATION_PERCENTAGE",
      "value": "148"
     },
     {
-     "name": "MODIFIER_VALUE_CLOAK_FACTOR",
+     "name": "MODIFIER_VALUE_INVISIBILITY_LEVEL",
      "value": "149"
     },
     {
-     "name": "MODIFIER_VALUE_CLOAK_DESAT_FACTOR",
+     "name": "MODIFIER_VALUE_CLOAK_FACTOR",
      "value": "150"
     },
     {
-     "name": "MODIFIER_VALUE_PARTICLE_TINT_OVERRIDE",
+     "name": "MODIFIER_VALUE_CLOAK_DESAT_FACTOR",
      "value": "151"
     },
     {
-     "name": "MODIFIER_VALUE_PARTICLE_DESAT_OVERRIDE",
+     "name": "MODIFIER_VALUE_PARTICLE_TINT_OVERRIDE",
      "value": "152"
     },
     {
-     "name": "MODIFIER_VALUE_DIMENSION_TYPE",
+     "name": "MODIFIER_VALUE_PARTICLE_DESAT_OVERRIDE",
      "value": "153"
     },
     {
-     "name": "MODIFIER_VALUE_GAMEPLAY_TIME_SCALE_ADDITIVE",
+     "name": "MODIFIER_VALUE_DIMENSION_TYPE",
      "value": "154"
     },
     {
-     "name": "MODIFIER_VALUE_GAMEPLAY_TIME_SCALE_PERCENT",
+     "name": "MODIFIER_VALUE_GAMEPLAY_TIME_SCALE_ADDITIVE",
      "value": "155"
     },
     {
-     "name": "MODIFIER_VALUE_ANIMATION_TIME_SCALE_ADDITIVE",
+     "name": "MODIFIER_VALUE_GAMEPLAY_TIME_SCALE_PERCENT",
      "value": "156"
     },
     {
-     "name": "MODIFIER_VALUE_ANIMATION_TIME_SCALE_PERCENT",
+     "name": "MODIFIER_VALUE_ANIMATION_TIME_SCALE_ADDITIVE",
      "value": "157"
     },
     {
-     "name": "MODIFIER_VALUE_ANIMATION_FRAME_SKIP_RATE",
+     "name": "MODIFIER_VALUE_ANIMATION_TIME_SCALE_PERCENT",
      "value": "158"
     },
     {
-     "name": "MODIFIER_VALUE_MOVEMENT_TIME_SCALE_ADDITIVE",
+     "name": "MODIFIER_VALUE_ANIMATION_FRAME_SKIP_RATE",
      "value": "159"
     },
     {
-     "name": "MODIFIER_VALUE_MOVEMENT_TIME_SCALE_PERCENT",
+     "name": "MODIFIER_VALUE_MOVEMENT_TIME_SCALE_ADDITIVE",
      "value": "160"
     },
     {
-     "name": "MODIFIER_VALUE_RUSH_MOVEMENT_TIME_SCALE_PERCENT",
+     "name": "MODIFIER_VALUE_MOVEMENT_TIME_SCALE_PERCENT",
      "value": "161"
     },
     {
-     "name": "MODIFIER_VALUE_PARTICLE_TIME_SCALE_ADDITIVE",
+     "name": "MODIFIER_VALUE_RUSH_MOVEMENT_TIME_SCALE_PERCENT",
      "value": "162"
     },
     {
-     "name": "MODIFIER_VALUE_PARTICLE_TIME_SCALE_PERCENT",
+     "name": "MODIFIER_VALUE_PARTICLE_TIME_SCALE_ADDITIVE",
      "value": "163"
     },
     {
-     "name": "MODIFIER_VALUE_STAMINA",
+     "name": "MODIFIER_VALUE_PARTICLE_TIME_SCALE_PERCENT",
      "value": "164"
     },
     {
-     "name": "MODIFIER_VALUE_STAMINA_REGEN_PER_SECOND_ADDITIVE",
+     "name": "MODIFIER_VALUE_STAMINA",
      "value": "165"
     },
     {
-     "name": "MODIFIER_VALUE_STAMINA_REGEN_PER_SECOND_PERCENTAGE",
+     "name": "MODIFIER_VALUE_STAMINA_REGEN_PER_SECOND_ADDITIVE",
      "value": "166"
     },
     {
-     "name": "MODIFIER_VALUE_WEAPON_POWER",
+     "name": "MODIFIER_VALUE_STAMINA_REGEN_PER_SECOND_PERCENTAGE",
      "value": "167"
     },
     {
-     "name": "MODIFIER_VALUE_ARMOR_POWER",
+     "name": "MODIFIER_VALUE_WEAPON_POWER",
      "value": "168"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_POWER",
+     "name": "MODIFIER_VALUE_ARMOR_POWER",
      "value": "169"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_POWER_PERCENT",
+     "name": "MODIFIER_VALUE_TECH_POWER",
      "value": "170"
     },
     {
-     "name": "MODIFIER_VALUE_STOLEN_TECH_POWER",
+     "name": "MODIFIER_VALUE_TECH_POWER_PERCENT",
      "value": "171"
     },
     {
-     "name": "MODIFIER_VALUE_WEAPON_POWER_PERCENT",
+     "name": "MODIFIER_VALUE_STOLEN_TECH_POWER",
      "value": "172"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_CONTROL_PERCENT",
+     "name": "MODIFIER_VALUE_WEAPON_POWER_PERCENT",
      "value": "173"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_CONTROL_ACCEL_PERCENT",
+     "name": "MODIFIER_VALUE_AIR_CONTROL_PERCENT",
      "value": "174"
     },
     {
-     "name": "MODIFIER_VALUE_ABILITY_PROJECTILE_SPEED_PERCENT",
+     "name": "MODIFIER_VALUE_AIR_CONTROL_ACCEL_PERCENT",
      "value": "175"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_BULLET_SPEED_PERCENT",
+     "name": "MODIFIER_VALUE_ABILITY_PROJECTILE_SPEED_PERCENT",
      "value": "176"
     },
     {
-     "name": "MODIFIER_VALUE_BASE_BULLET_SPEED_OVERRIDE",
+     "name": "MODIFIER_VALUE_BONUS_BULLET_SPEED_PERCENT",
      "value": "177"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND",
+     "name": "MODIFIER_VALUE_BASE_BULLET_SPEED_OVERRIDE",
      "value": "178"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_FRIENDLY",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND",
      "value": "179"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_ENEMY",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_FRIENDLY",
      "value": "180"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_ENEMY",
      "value": "181"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ_LEFT_TO_RIGHT",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ",
      "value": "182"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ_RIGHT_TO_LEFT",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ_LEFT_TO_RIGHT",
      "value": "183"
     },
     {
-     "name": "MODIFIER_VALUE_TRACER_REPLACEMENT",
+     "name": "MODIFIER_VALUE_BULLET_SHOOT_SOUND_WHIZ_RIGHT_TO_LEFT",
      "value": "184"
     },
     {
-     "name": "MODIFIER_VALUE_TRACER_ADDITIONAL",
+     "name": "MODIFIER_VALUE_TRACER_REPLACEMENT",
      "value": "185"
     },
     {
-     "name": "MODIFIER_VALUE_CAMERA_TARGET_OVERRIDE",
+     "name": "MODIFIER_VALUE_TRACER_ADDITIONAL",
      "value": "186"
     },
     {
-     "name": "MODIFIER_VALUE_VISUAL_ORIGIN_OVERRIDE",
+     "name": "MODIFIER_VALUE_CAMERA_TARGET_OVERRIDE",
      "value": "187"
     },
     {
-     "name": "MODIFIER_VALUE_SPECTATING_SPEED_OVERRIDE",
+     "name": "MODIFIER_VALUE_VISUAL_ORIGIN_OVERRIDE",
      "value": "188"
     },
     {
-     "name": "MODIFIER_VALUE_WEAPON_DAMAGE_TO_NPC_INCREASE",
+     "name": "MODIFIER_VALUE_SPECTATING_SPEED_OVERRIDE",
      "value": "189"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_DRAG",
+     "name": "MODIFIER_VALUE_WEAPON_DAMAGE_TO_NPC_INCREASE",
      "value": "190"
     },
     {
-     "name": "MODIFIER_VALUE_FALLING_DRAG",
+     "name": "MODIFIER_VALUE_AIR_DRAG",
      "value": "191"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_DAMAGE_TAKEN_HEALS_ATTACKER",
+     "name": "MODIFIER_VALUE_FALLING_DRAG",
      "value": "192"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_DAMAGE_TAKEN_HEALS_ATTACKER",
+     "name": "MODIFIER_VALUE_TECH_DAMAGE_TAKEN_HEALS_ATTACKER",
      "value": "193"
     },
     {
-     "name": "MODIFIER_VALUE_TECH_LIFESTEAL",
+     "name": "MODIFIER_VALUE_BULLET_DAMAGE_TAKEN_HEALS_ATTACKER",
      "value": "194"
     },
     {
-     "name": "MODIFIER_VALUE_BULLET_LIFESTEAL",
+     "name": "MODIFIER_VALUE_TECH_LIFESTEAL",
      "value": "195"
     },
     {
-     "name": "MODIFIER_VALUE_OVERRIDE_BULLET_ATTACKER",
+     "name": "MODIFIER_VALUE_BULLET_LIFESTEAL",
      "value": "196"
     },
     {
-     "name": "MODIFIER_VALUE_OVERRIDE_MELEE_HIT_SOUND",
+     "name": "MODIFIER_VALUE_OVERRIDE_BULLET_ATTACKER",
      "value": "197"
     },
     {
-     "name": "MODIFIER_VALUE_OVERRIDE_MELEE_MISS_SOUND",
+     "name": "MODIFIER_VALUE_OVERRIDE_MELEE_HIT_SOUND",
      "value": "198"
     },
     {
-     "name": "MODIFIER_VALUE_IMBUED_BONUS_DAMAGE",
+     "name": "MODIFIER_VALUE_OVERRIDE_MELEE_MISS_SOUND",
      "value": "199"
     },
     {
-     "name": "MODIFIER_VALUE_IMBUED_BONUS_DURATION",
+     "name": "MODIFIER_VALUE_IMBUED_BONUS_DAMAGE",
      "value": "200"
     },
     {
-     "name": "MODIFIER_VALUE_INTRA_BURST_SHOT_CYCLE_TIME_OVERRIDE",
+     "name": "MODIFIER_VALUE_IMBUED_BONUS_DURATION",
      "value": "201"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_BURST_SHOT_PERCENT",
+     "name": "MODIFIER_VALUE_INTRA_BURST_SHOT_CYCLE_TIME_OVERRIDE",
      "value": "202"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_BURST_SHOT_CONSTANT",
+     "name": "MODIFIER_VALUE_BONUS_BURST_SHOT_PERCENT",
      "value": "203"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_RATE_OVERRIDE",
+     "name": "MODIFIER_VALUE_BONUS_BURST_SHOT_CONSTANT",
      "value": "204"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_DECAY_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_RATE_OVERRIDE",
      "value": "205"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_MAX_CYCLE_TIME_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_DECAY_OVERRIDE",
      "value": "206"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_MAX_BURST_FIRE_COOLDOWN_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_MAX_CYCLE_TIME_OVERRIDE",
      "value": "207"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_CURRENT_SPIN_RATE_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_MAX_BURST_FIRE_COOLDOWN_OVERRIDE",
      "value": "208"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_UP_SOUND_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_CURRENT_SPIN_RATE_OVERRIDE",
      "value": "209"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_DOWN_SOUND_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_UP_SOUND_OVERRIDE",
      "value": "210"
     },
     {
-     "name": "MODIFIER_VALUE_SPIN_LOOP_SOUND_OVERRIDE",
+     "name": "MODIFIER_VALUE_SPIN_DOWN_SOUND_OVERRIDE",
      "value": "211"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_CHANNEL_TIME_PERCENTAGE",
+     "name": "MODIFIER_VALUE_SPIN_LOOP_SOUND_OVERRIDE",
      "value": "212"
     },
     {
-     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_MAX_ADDITIVE",
+     "name": "MODIFIER_VALUE_BONUS_CHANNEL_TIME_PERCENTAGE",
      "value": "213"
     },
     {
-     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_REGEN_PER_SECOND_ADDITIVE",
+     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_MAX_ADDITIVE",
      "value": "214"
     },
     {
-     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_REGEN_PER_SECOND_PERCENTAGE",
+     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_REGEN_PER_SECOND_ADDITIVE",
      "value": "215"
     },
     {
-     "name": "MODIFIER_VALUE_PENDING_INCOMING_DAMAGE",
+     "name": "MODIFIER_VALUE_ABILITY_RESOURCE_REGEN_PER_SECOND_PERCENTAGE",
      "value": "216"
     },
     {
-     "name": "MODIFIER_VALUE_PENDING_INCOMING_HEAL",
+     "name": "MODIFIER_VALUE_PENDING_INCOMING_DAMAGE",
      "value": "217"
     },
     {
-     "name": "MODIFIER_VALUE_CAMERA_WOBBLE_INTENSITY",
+     "name": "MODIFIER_VALUE_PENDING_INCOMING_HEAL",
      "value": "218"
     },
     {
-     "name": "MODIFIER_VALUE_CAMERA_WOBBLE_SPEED",
+     "name": "MODIFIER_VALUE_CAMERA_WOBBLE_INTENSITY",
      "value": "219"
     },
     {
-     "name": "MODIFIER_VALUE_RESPAWN_TIME_ADDITIVE",
+     "name": "MODIFIER_VALUE_CAMERA_WOBBLE_SPEED",
      "value": "220"
     },
     {
-     "name": "MODIFIER_VALUE_RESPAWN_TIME_PERCENTAGE",
+     "name": "MODIFIER_VALUE_RESPAWN_TIME_ADDITIVE",
      "value": "221"
     },
     {
-     "name": "MODIFIER_VALUE_RESPAWN_RAMP_TIME_REDUCTION_PERCENT",
+     "name": "MODIFIER_VALUE_RESPAWN_TIME_PERCENTAGE",
      "value": "222"
     },
     {
-     "name": "MODIFIER_VALUE_BOON_COUNT",
+     "name": "MODIFIER_VALUE_RESPAWN_RAMP_TIME_REDUCTION_PERCENT",
      "value": "223"
     },
     {
-     "name": "MODIFIER_VALUE_FOOTSTEP_ADDITIONAL",
+     "name": "MODIFIER_VALUE_BOON_COUNT",
      "value": "224"
     },
     {
-     "name": "MODIFIER_VALUE_FOOTSTEP_OVERRIDE",
+     "name": "MODIFIER_VALUE_FOOTSTEP_ADDITIONAL",
      "value": "225"
     },
     {
-     "name": "MODIFIER_VALUE_MODEL_SCALE",
+     "name": "MODIFIER_VALUE_FOOTSTEP_OVERRIDE",
      "value": "226"
     },
     {
-     "name": "MODIFIER_VALUE_MODEL_CHANGE",
+     "name": "MODIFIER_VALUE_MODEL_SCALE",
      "value": "227"
     },
     {
-     "name": "MODIFIER_VALUE_MODEL_SWAP",
+     "name": "MODIFIER_VALUE_MODEL_CHANGE",
      "value": "228"
     },
     {
-     "name": "MODIFIER_VALUE_HERO_BULLET_LIFESTEAL_EFFECTIVENESS",
+     "name": "MODIFIER_VALUE_MODEL_SWAP",
      "value": "229"
     },
     {
-     "name": "MODIFIER_VALUE_HERO_SPIRIT_LIFESTEAL_EFFECTIVENESS",
+     "name": "MODIFIER_VALUE_HERO_BULLET_LIFESTEAL_EFFECTIVENESS",
      "value": "230"
     },
     {
-     "name": "MODIFIER_VALUE_PARRY_FX_OVERRIDE",
+     "name": "MODIFIER_VALUE_HERO_SPIRIT_LIFESTEAL_EFFECTIVENESS",
      "value": "231"
     },
     {
-     "name": "MODIFIER_VALUE_CAMERA_ENTITY_OVERRIDE",
+     "name": "MODIFIER_VALUE_PARRY_FX_OVERRIDE",
      "value": "232"
     },
     {
-     "name": "MODIFIER_VALUE_CAMERA_LEVEL",
+     "name": "MODIFIER_VALUE_CAMERA_ENTITY_OVERRIDE",
      "value": "233"
     },
     {
-     "name": "MODIFIER_VALUE_VISION_RADIUS",
+     "name": "MODIFIER_VALUE_CAMERA_LEVEL",
      "value": "234"
     },
     {
-     "name": "MODIFIER_VALUE_MINIMAP_POSITION_OVERRIDE",
+     "name": "MODIFIER_VALUE_VISION_RADIUS",
      "value": "235"
     },
     {
-     "name": "MODIFIER_VALUE_MINIMAP_CSS_CLASS",
+     "name": "MODIFIER_VALUE_MINIMAP_POSITION_OVERRIDE",
      "value": "236"
     },
     {
-     "name": "MODIFIER_VALUE_HERO_CARD_OVERRIDE",
+     "name": "MODIFIER_VALUE_MINIMAP_CSS_CLASS",
      "value": "237"
     },
     {
-     "name": "MODIFIER_VALUE_SELFCAST_TARGET_OVERRIDE",
+     "name": "MODIFIER_VALUE_HERO_CARD_OVERRIDE",
      "value": "238"
     },
     {
-     "name": "MODIFIER_VALUE_HERO_ATTACH_PARENT",
+     "name": "MODIFIER_VALUE_SELFCAST_TARGET_OVERRIDE",
      "value": "239"
     },
     {
-     "name": "MODIFIER_VALUE_DOORWAY_MINIMAP_RANGE",
+     "name": "MODIFIER_VALUE_HERO_ATTACH_PARENT",
      "value": "240"
     },
     {
-     "name": "MODIFIER_VALUE_MATERIAL_SWAP",
+     "name": "MODIFIER_VALUE_DOORWAY_MINIMAP_RANGE",
      "value": "241"
     },
     {
-     "name": "MODIFIER_VALUE_MINIMAP_ZOOM",
+     "name": "MODIFIER_VALUE_MATERIAL_SWAP",
      "value": "242"
     },
     {
-     "name": "MODIFIER_VALUE_PARRY_STUN_TIME_BONUS",
+     "name": "MODIFIER_VALUE_MINIMAP_ZOOM",
      "value": "243"
     },
     {
-     "name": "MODIFIER_VALUE_PARRY_COOLDOWN_REDUCTION_PERCENT",
+     "name": "MODIFIER_VALUE_PARRY_STUN_TIME_BONUS",
      "value": "244"
     },
     {
-     "name": "MODIFIER_VALUE_AIR_DASH_DISTANCE_INCREASE_PERCENT",
+     "name": "MODIFIER_VALUE_PARRY_COOLDOWN_REDUCTION_PERCENT",
      "value": "245"
     },
     {
-     "name": "MODIFIER_VALUE_BONUS_MELEE_RANGE",
+     "name": "MODIFIER_VALUE_AIR_DASH_DISTANCE_INCREASE_PERCENT",
      "value": "246"
     },
     {
-     "name": "MODIFIER_VALUE_JUMP_CHARGE_UP_TIME",
+     "name": "MODIFIER_VALUE_BONUS_MELEE_RANGE",
      "value": "247"
     },
     {
-     "name": "MODIFIER_VALUE_RATKING_ARMOR_HEALTH",
+     "name": "MODIFIER_VALUE_JUMP_CHARGE_UP_TIME",
      "value": "248"
     },
     {
-     "name": "MODIFIER_VALUE_RATKING_ARMOR_HEALTH_MAX",
+     "name": "MODIFIER_VALUE_RATKING_ARMOR_HEALTH",
      "value": "249"
     },
     {
-     "name": "MODIFIER_VALUE_RATKING_NIBBLE_STACKS",
+     "name": "MODIFIER_VALUE_RATKING_ARMOR_HEALTH_MAX",
      "value": "250"
     },
     {
-     "name": "MODIFIER_VALUE_WEAPON_OBSTRUCTION_ORIGIN_OVERRIDE",
+     "name": "MODIFIER_VALUE_RATKING_NIBBLE_STACKS",
      "value": "251"
     },
     {
-     "name": "MODIFIER_VALUE_ABILITY_CAST_SPEED_PERCENT",
+     "name": "MODIFIER_VALUE_WEAPON_OBSTRUCTION_ORIGIN_OVERRIDE",
      "value": "252"
     },
     {
-     "name": "MODIFIER_VALUE_DEFERRED_DAMAGE_PERCENT",
+     "name": "MODIFIER_VALUE_ABILITY_CAST_SPEED_PERCENT",
      "value": "253"
     },
     {
-     "name": "MODIFIER_VALUE_COUNT",
+     "name": "MODIFIER_VALUE_DEFERRED_DAMAGE_PERCENT",
      "value": "254"
+    },
+    {
+     "name": "MODIFIER_VALUE_COUNT",
+     "value": "255"
     },
     {
      "name": "MODIFIER_VALUE_INVALID",
