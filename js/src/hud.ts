@@ -376,8 +376,15 @@ export interface RosterRow {
    * cursor, such as to open a card about that player.
    */
   onPress?: (player: Player) => void
-  /** selected edges the portrait in the accent, as for the row a card shows. */
+  /** selected edges the portrait in the accent, as for the row a menu shows. */
   selected?: boolean
+  /**
+   * menu draws beside the row: left of the roster, its top level with the
+   * row's, such as the menu a press of the row opens. One menu shows at a
+   * time, the first row's that has one, and only while that row has room.
+   * rosterKey leaves the menu out, so a caller keys its contents itself.
+   */
+  menu?: UiElement
 }
 
 /** RosterGroup is one category of players under a heading, such as a team. */
@@ -458,6 +465,9 @@ const rosterHeading = 24
 
 /** rosterGroupGap is the space above every group but the first. */
 const rosterGroupGap = 10
+
+/** rosterMenuGap is the space between a row's menu and the roster. */
+const rosterMenuGap = 8
 
 /** rosterGap is the space between the roster's end and what it must clear. */
 const rosterGap = 12
@@ -614,22 +624,69 @@ export function Roster(props: RosterProps): UiElement | null {
   const plan = rosterPlan(props)
   if (!plan) return null
 
-  // The groups stack down the right edge.
+  // The groups stack down the right edge, and a row's menu hangs to their
+  // left, level with its row. The column keeps its place whether a menu
+  // shows, so opening one keeps every row's panels.
   const { groups, top, layout } = plan
+  const menu = rosterMenu(groups, layout)
   return element(
     'panel',
     {
       width: 'fit',
       height: 'fit',
-      flow: 'down',
+      flow: 'right',
       horizontalAlign: 'right',
       verticalAlign: 'top',
       margin: [top, 24, 0, 0],
     },
-    groups.map((group, index) =>
-      rosterGroup(group, index, layout, layout.lines[index]!),
-    ),
+    [
+      menu &&
+        element(
+          'panel',
+          { margin: [menu.offset, rosterMenuGap, 0, 0] },
+          menu.element,
+          'menu',
+        ),
+      element(
+        'panel',
+        { flow: 'down', horizontalAlign: 'right' },
+        groups.map((group, index) =>
+          rosterGroup(group, index, layout, layout.lines[index]!),
+        ),
+        'column',
+      ),
+    ],
   )
+}
+
+/**
+ * rosterMenu finds the first shown row with a menu, and how far its top sits
+ * below the roster's: the gaps and headings of the groups above it, then
+ * its line's place in its group. A row the roster had no room for shows no
+ * menu.
+ */
+function rosterMenu(
+  groups: readonly RosterGroup[],
+  layout: RosterLayout,
+): { element: UiElement; offset: number } | undefined {
+  let offset = 0
+  for (const [index, group] of groups.entries()) {
+    offset +=
+      (index > 0 ? rosterGroupGap : 0) +
+      (group.title === undefined ? 0 : rosterHeading)
+    const lines = layout.lines[index]!
+    const room = lines * layout.columns
+    const shown = group.rows.length > room ? room - 1 : group.rows.length
+    const at = group.rows.findIndex((row) => row.menu !== undefined)
+    if (at >= 0 && at < shown) {
+      return {
+        element: group.rows[at]!.menu!,
+        offset: offset + Math.floor(at / layout.columns) * layout.density.pitch,
+      }
+    }
+    offset += lines * layout.density.pitch
+  }
+  return undefined
 }
 
 /**

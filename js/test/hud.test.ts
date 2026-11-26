@@ -134,7 +134,9 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     activity: 'Free roam',
   }))
   const roster = Roster({ rows })!
-  const group = (r: UiElement, at = 0) => kids(kids(r)[at]!).filter(Boolean)
+  // The groups stand in the roster's last column, after any menu.
+  const column = (r: UiElement) => kids(kids(r).at(-1)!)
+  const group = (r: UiElement, at = 0) => kids(column(r)[at]!)
   expect(group(roster)).toHaveLength(4)
 
   // Each row's portrait edge is accented on the viewer's own row, holds the
@@ -201,8 +203,8 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
       ],
     })!
   const small = teams(2, 6)
-  expect(kids(small)).toHaveLength(2)
-  expect(kids(kids(kids(small)[0]!)[0]!)[0]!.props.children).toBe('Seekers')
+  expect(column(small)).toHaveLength(2)
+  expect(kids(kids(column(small)[0]!)[0]!)[0]!.props.children).toBe('Seekers')
   const portraitOf = (r: UiElement) => {
     const first = group(r)[1]!
     const row = first.key?.startsWith('line-') ? kids(first)[0]! : first
@@ -214,12 +216,38 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
   expect(portraitOf(crowd)).toBe(24)
   expect(group(crowd, 1)[1]!.key).toBe('line-0')
   const shown = (r: UiElement) =>
-    kids(r)
+    column(r)
       .flatMap((g) => kids(g).filter(Boolean).slice(1))
       .flatMap((l) => (l.key?.startsWith('line-') ? kids(l) : [l]))
   expect(shown(crowd)).toHaveLength(32)
   // An out player's row dims.
   expect(shown(crowd)[0]!.props.style?.opacity).toBe(0.55)
+
+  // A row's menu hangs left of the column, its top level with its row's:
+  // past the first group's heading and its rows, the second's gap, heading
+  // and the lines above the row.
+  const menu = Text({ role: 'label', children: 'menu' })
+  const opened = Roster({
+    groups: [
+      { key: 'seekers', title: 'Seekers', rows: team(2, 0) },
+      {
+        key: 'hiders',
+        title: 'Hiders',
+        rows: team(6, 100).map((row, i) => (i === 3 ? { ...row, menu } : row)),
+      },
+    ],
+  })!
+  const [hang, beside] = kids(opened)
+  expect(opened.props.style?.flow).toBe('right')
+  expect(hang!.key).toBe('menu')
+  expect(beside!.key).toBe('column')
+  expect(kids(hang!)[0]).toBe(menu)
+  expect(hang!.props.style?.margin).toEqual([
+    24 + 2 * 52 + 10 + 24 + 3 * 52,
+    8,
+    0,
+    0,
+  ])
 
   // A band too short for every player keeps a line for each group and counts
   // the rest.
