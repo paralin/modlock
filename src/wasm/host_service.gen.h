@@ -2469,6 +2469,12 @@ class ModClient {
     return Send<void>("UiInput", event);
   }
 
+  // UiDocument reports the end of a submission from a player's document
+  // input, with its whole text or why it failed.
+  std::expected<void, std::string> UiDocument(const ui::UiDocumentEvent& event) {
+    return Send<void>("UiDocument", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

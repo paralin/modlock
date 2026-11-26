@@ -835,6 +835,55 @@ func (x Align) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// DocumentFailure says why a document input's submission did not arrive.
+type DocumentFailure int32
+
+const (
+	DocumentFailure_DOCUMENT_FAILURE_UNKNOWN DocumentFailure = 0
+	// TooLarge is a document longer than 262,144 UTF-8 bytes.
+	DocumentFailure_DOCUMENT_FAILURE_TOO_LARGE DocumentFailure = 1
+	// Expired is a transfer that did not finish within its deadline: 20
+	// seconds and one more for each 14,400 bytes the document declares.
+	DocumentFailure_DOCUMENT_FAILURE_EXPIRED DocumentFailure = 2
+	// Cancelled is a transfer the player stopped, as by closing its menu.
+	DocumentFailure_DOCUMENT_FAILURE_CANCELLED DocumentFailure = 3
+	// Malformed is a transfer whose frames were missing, out of order, or
+	// not text.
+	DocumentFailure_DOCUMENT_FAILURE_MALFORMED DocumentFailure = 4
+)
+
+// Enum value maps for DocumentFailure.
+var (
+	DocumentFailure_name = map[int32]string{
+		0: "DOCUMENT_FAILURE_UNKNOWN",
+		1: "DOCUMENT_FAILURE_TOO_LARGE",
+		2: "DOCUMENT_FAILURE_EXPIRED",
+		3: "DOCUMENT_FAILURE_CANCELLED",
+		4: "DOCUMENT_FAILURE_MALFORMED",
+	}
+	DocumentFailure_value = map[string]int32{
+		"DOCUMENT_FAILURE_UNKNOWN":   0,
+		"DOCUMENT_FAILURE_TOO_LARGE": 1,
+		"DOCUMENT_FAILURE_EXPIRED":   2,
+		"DOCUMENT_FAILURE_CANCELLED": 3,
+		"DOCUMENT_FAILURE_MALFORMED": 4,
+	}
+)
+
+func (x DocumentFailure) Enum() *DocumentFailure {
+	p := new(DocumentFailure)
+	*p = x
+	return p
+}
+
+func (x DocumentFailure) String() string {
+	name, valid := DocumentFailure_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Node is one panel in a tree. The root's id is empty; it is a full-screen
 // panel that lets clicks through to the game.
 type Node struct {
@@ -1011,7 +1060,8 @@ type Node struct {
 	Menu *Menu `protobuf:"bytes,42,opt,name=menu,proto3" json:"menu,omitempty"`
 	// DocumentInput configures a form that sends one whole document on submit.
 	DocumentInput *DocumentInput `protobuf:"bytes,43,opt,name=document_input,json=documentInput,proto3" json:"documentInput,omitempty"`
-	// DocumentText is the plain, selectable text of a document output.
+	// DocumentText is the plain, selectable text of a document output, at most
+	// 262,144 UTF-8 bytes.
 	DocumentText string `protobuf:"bytes,44,opt,name=document_text,json=documentText,proto3" json:"documentText,omitempty"`
 }
 
@@ -3198,8 +3248,7 @@ type isUiInputEvent_Value interface {
 }
 
 type UiInputEvent_Text struct {
-	// Text is a text entry's text or the whole document explicitly submitted
-	// by a document input. Documents are at most 65,536 UTF-8 bytes.
+	// Text is a text entry's text.
 	Text string `protobuf:"bytes,3,opt,name=text,proto3,oneof"`
 }
 
@@ -3232,6 +3281,122 @@ func (*UiInputEvent_On) isUiInputEvent_Value() {}
 func (*UiInputEvent_Choice) isUiInputEvent_Value() {}
 
 func (*UiInputEvent_Wheel) isUiInputEvent_Value() {}
+
+// UiDocumentEvent ends one submission from a player's document input: the
+// whole document, or why it did not arrive.
+type UiDocumentEvent struct {
+	unknownFields []byte
+	// Player is the player who submitted.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Node is the id of the document input.
+	Node string `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
+	// Result is the submission's outcome.
+	//
+	// Types that are assignable to Result:
+	//	*UiDocumentEvent_Delivered
+	//	*UiDocumentEvent_Failed
+	Result isUiDocumentEvent_Result `protobuf_oneof:"result"`
+}
+
+func (x *UiDocumentEvent) Reset() {
+	*x = UiDocumentEvent{}
+}
+
+func (*UiDocumentEvent) ProtoMessage() {}
+
+func (x *UiDocumentEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiDocumentEvent) GetNode() string {
+	if x != nil {
+		return x.Node
+	}
+	return ""
+}
+
+func (m *UiDocumentEvent) GetResult() isUiDocumentEvent_Result {
+	if m != nil {
+		return m.Result
+	}
+	return nil
+}
+
+func (x *UiDocumentEvent) GetDelivered() *DocumentDelivered {
+	if x, ok := x.GetResult().(*UiDocumentEvent_Delivered); ok {
+		return x.Delivered
+	}
+	return nil
+}
+
+func (x *UiDocumentEvent) GetFailed() *DocumentFailed {
+	if x, ok := x.GetResult().(*UiDocumentEvent_Failed); ok {
+		return x.Failed
+	}
+	return nil
+}
+
+type isUiDocumentEvent_Result interface {
+	isUiDocumentEvent_Result()
+}
+
+type UiDocumentEvent_Delivered struct {
+	// Delivered holds the whole document.
+	Delivered *DocumentDelivered `protobuf:"bytes,3,opt,name=delivered,proto3,oneof"`
+}
+
+type UiDocumentEvent_Failed struct {
+	// Failed says why the document did not arrive. The player can submit
+	// again.
+	Failed *DocumentFailed `protobuf:"bytes,4,opt,name=failed,proto3,oneof"`
+}
+
+func (*UiDocumentEvent_Delivered) isUiDocumentEvent_Result() {}
+
+func (*UiDocumentEvent_Failed) isUiDocumentEvent_Result() {}
+
+// DocumentDelivered is a submission that arrived whole.
+type DocumentDelivered struct {
+	unknownFields []byte
+	// Text is the document the player submitted, at most 262,144 UTF-8 bytes.
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+}
+
+func (x *DocumentDelivered) Reset() {
+	*x = DocumentDelivered{}
+}
+
+func (*DocumentDelivered) ProtoMessage() {}
+
+func (x *DocumentDelivered) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+// DocumentFailed is a submission that ended without its document.
+type DocumentFailed struct {
+	unknownFields []byte
+	// Reason says why it ended.
+	Reason DocumentFailure `protobuf:"varint,1,opt,name=reason,proto3" json:"reason,omitempty"`
+}
+
+func (x *DocumentFailed) Reset() {
+	*x = DocumentFailed{}
+}
+
+func (*DocumentFailed) ProtoMessage() {}
+
+func (x *DocumentFailed) GetReason() DocumentFailure {
+	if x != nil {
+		return x.Reason
+	}
+	return DocumentFailure_DOCUMENT_FAILURE_UNKNOWN
+}
 
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
@@ -4139,6 +4304,86 @@ func (m *UiInputEvent_Wheel) CloneVT() *UiInputEvent_Wheel {
 }
 
 func (m *UiInputEvent_Wheel) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
+func (m *UiDocumentEvent) CloneVT() *UiDocumentEvent {
+	if m == nil {
+		return (*UiDocumentEvent)(nil)
+	}
+	r := new(UiDocumentEvent)
+	r.Player = m.Player
+	r.Node = m.Node
+	if m.Result != nil {
+		r.Result = m.Result.(interface {
+			CloneOneofVT() isUiDocumentEvent_Result
+		}).CloneOneofVT()
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *UiDocumentEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *UiDocumentEvent_Delivered) CloneVT() *UiDocumentEvent_Delivered {
+	if m == nil {
+		return (*UiDocumentEvent_Delivered)(nil)
+	}
+	r := new(UiDocumentEvent_Delivered)
+	r.Delivered = protobuf_go_lite.CloneVTValue(m.Delivered)
+	return r
+}
+
+func (m *UiDocumentEvent_Delivered) CloneOneofVT() isUiDocumentEvent_Result {
+	return m.CloneVT()
+}
+
+func (m *UiDocumentEvent_Failed) CloneVT() *UiDocumentEvent_Failed {
+	if m == nil {
+		return (*UiDocumentEvent_Failed)(nil)
+	}
+	r := new(UiDocumentEvent_Failed)
+	r.Failed = protobuf_go_lite.CloneVTValue(m.Failed)
+	return r
+}
+
+func (m *UiDocumentEvent_Failed) CloneOneofVT() isUiDocumentEvent_Result {
+	return m.CloneVT()
+}
+
+func (m *DocumentDelivered) CloneVT() *DocumentDelivered {
+	if m == nil {
+		return (*DocumentDelivered)(nil)
+	}
+	r := new(DocumentDelivered)
+	r.Text = m.Text
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *DocumentDelivered) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *DocumentFailed) CloneVT() *DocumentFailed {
+	if m == nil {
+		return (*DocumentFailed)(nil)
+	}
+	r := new(DocumentFailed)
+	r.Reason = m.Reason
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *DocumentFailed) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -5532,6 +5777,115 @@ func (this *UiInputEvent_Wheel) EqualVT(thatIface isUiInputEvent_Value) bool {
 	return true
 }
 
+func (this *UiDocumentEvent) EqualVT(that *UiDocumentEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Result == nil && that.Result != nil {
+		return false
+	} else if this.Result != nil {
+		if that.Result == nil {
+			return false
+		}
+		if !this.Result.(interface {
+			EqualVT(isUiDocumentEvent_Result) bool
+		}).EqualVT(that.Result) {
+			return false
+		}
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Node != that.Node {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UiDocumentEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiDocumentEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *UiDocumentEvent_Delivered) EqualVT(thatIface isUiDocumentEvent_Result) bool {
+	that, ok := thatIface.(*UiDocumentEvent_Delivered)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Delivered, that.Delivered, func() *DocumentDelivered { return &DocumentDelivered{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *UiDocumentEvent_Failed) EqualVT(thatIface isUiDocumentEvent_Result) bool {
+	that, ok := thatIface.(*UiDocumentEvent_Failed)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Failed, that.Failed, func() *DocumentFailed { return &DocumentFailed{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *DocumentDelivered) EqualVT(that *DocumentDelivered) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Text != that.Text {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *DocumentDelivered) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*DocumentDelivered)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *DocumentFailed) EqualVT(that *DocumentFailed) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Reason != that.Reason {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *DocumentFailed) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*DocumentFailed)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *UiRequest) EqualVT(that *UiRequest) bool {
 	if this == that {
 		return true
@@ -6152,6 +6506,46 @@ func (x *Align) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the Align from JSON.
 func (x *Align) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the DocumentFailure to JSON.
+func (x DocumentFailure) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), DocumentFailure_name)
+}
+
+// MarshalText marshals the DocumentFailure to text.
+func (x DocumentFailure) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), DocumentFailure_name)), nil
+}
+
+// MarshalJSON marshals the DocumentFailure to JSON.
+func (x DocumentFailure) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the DocumentFailure from JSON.
+func (x *DocumentFailure) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(DocumentFailure_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read DocumentFailure enum: %v", err)
+		return
+	}
+	*x = DocumentFailure(v)
+}
+
+// UnmarshalText unmarshals the DocumentFailure from text.
+func (x *DocumentFailure) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), DocumentFailure_value)
+	if err != nil {
+		return err
+	}
+	*x = DocumentFailure(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the DocumentFailure from JSON.
+func (x *DocumentFailure) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -9256,6 +9650,170 @@ func (x *UiInputEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the UiDocumentEvent message to JSON.
+func (x *UiDocumentEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Node != "" || s.HasField("node") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("node")
+		s.WriteString(x.Node)
+	}
+	if x.Result != nil {
+		switch ov := x.Result.(type) {
+		case *UiDocumentEvent_Delivered:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("delivered")
+			ov.Delivered.MarshalProtoJSON(s.WithField("delivered"))
+		case *UiDocumentEvent_Failed:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("failed")
+			ov.Failed.MarshalProtoJSON(s.WithField("failed"))
+		}
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the UiDocumentEvent to JSON.
+func (x *UiDocumentEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the UiDocumentEvent message from JSON.
+func (x *UiDocumentEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "node":
+			s.AddField("node")
+			x.Node = s.ReadString()
+		case "delivered":
+			ov := &UiDocumentEvent_Delivered{}
+			x.Result = ov
+			if s.ReadNil() {
+				ov.Delivered = nil
+				return
+			}
+			ov.Delivered = &DocumentDelivered{}
+			ov.Delivered.UnmarshalProtoJSON(s.WithField("delivered", true))
+		case "failed":
+			ov := &UiDocumentEvent_Failed{}
+			x.Result = ov
+			if s.ReadNil() {
+				ov.Failed = nil
+				return
+			}
+			ov.Failed = &DocumentFailed{}
+			ov.Failed.UnmarshalProtoJSON(s.WithField("failed", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the UiDocumentEvent from JSON.
+func (x *UiDocumentEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the DocumentDelivered message to JSON.
+func (x *DocumentDelivered) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Text != "" || s.HasField("text") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("text")
+		s.WriteString(x.Text)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the DocumentDelivered to JSON.
+func (x *DocumentDelivered) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the DocumentDelivered message from JSON.
+func (x *DocumentDelivered) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "text":
+			s.AddField("text")
+			x.Text = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the DocumentDelivered from JSON.
+func (x *DocumentDelivered) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the DocumentFailed message to JSON.
+func (x *DocumentFailed) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Reason != 0 || s.HasField("reason") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reason")
+		x.Reason.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the DocumentFailed to JSON.
+func (x *DocumentFailed) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the DocumentFailed message from JSON.
+func (x *DocumentFailed) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "reason":
+			s.AddField("reason")
+			x.Reason.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the DocumentFailed from JSON.
+func (x *DocumentFailed) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the UiRequest message to JSON.
 func (x *UiRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -11859,6 +12417,179 @@ func (m *UiInputEvent_Wheel) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiDocumentEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UiDocumentEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiDocumentEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if vtmsg, ok := m.Result.(interface {
+		MarshalToSizedBufferVT([]byte) (int, error)
+	}); ok {
+		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+	}
+	if len(m.Node) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UiDocumentEvent_Delivered) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiDocumentEvent_Delivered) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Delivered != nil {
+		size, err := m.Delivered.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UiDocumentEvent_Failed) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiDocumentEvent_Failed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Failed != nil {
+		size, err := m.Failed.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x22
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DocumentDelivered) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DocumentDelivered) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *DocumentDelivered) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Text) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Text)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DocumentFailed) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DocumentFailed) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *DocumentFailed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Reason != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Reason))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -12703,6 +13434,73 @@ func (m *UiInputEvent_Wheel) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiDocumentEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
+	if vtmsg, ok := m.Result.(interface{ SizeVT() int }); ok {
+		n += vtmsg.SizeVT()
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *UiDocumentEvent_Delivered) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Delivered != nil {
+		l = m.Delivered.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *UiDocumentEvent_Failed) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Failed != nil {
+		l = m.Failed.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *DocumentDelivered) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Text)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *DocumentFailed) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Reason)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -12775,6 +13573,10 @@ func (x Flow) MarshalProtoText() string {
 }
 
 func (x Align) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x DocumentFailure) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -14003,6 +14805,68 @@ func (x *UiInputEvent) MarshalProtoText() string {
 }
 
 func (x *UiInputEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *UiDocumentEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiDocumentEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Node != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
+		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	switch body := x.Result.(type) {
+	case *UiDocumentEvent_Delivered:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "delivered")
+		if body.Delivered == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &DocumentDelivered{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Delivered)
+		}
+	case *UiDocumentEvent_Failed:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "failed")
+		if body.Failed == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &DocumentFailed{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Failed)
+		}
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *UiDocumentEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *DocumentDelivered) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "DocumentDelivered")
+	if x.Text != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, x.Text)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *DocumentDelivered) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *DocumentFailed) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "DocumentFailed")
+	if x.Reason != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reason")
+		protobuf_go_lite.TextWriteStringer(&sb, DocumentFailure(x.Reason))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *DocumentFailed) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -17730,6 +18594,215 @@ func (m *UiInputEvent) UnmarshalVT(dAtA []byte) error {
 				m.Value = &UiInputEvent_Wheel{Wheel: v}
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *UiDocumentEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UiDocumentEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UiDocumentEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Node = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Delivered", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Result.(*UiDocumentEvent_Delivered); ok {
+				if err := oneof.Delivered.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &DocumentDelivered{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Result = &UiDocumentEvent_Delivered{Delivered: v}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Failed", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Result.(*UiDocumentEvent_Failed); ok {
+				if err := oneof.Failed.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &DocumentFailed{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Result = &UiDocumentEvent_Failed{Failed: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *DocumentDelivered) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DocumentDelivered: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DocumentDelivered: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Text = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *DocumentFailed) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DocumentFailed: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DocumentFailed: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			m.Reason = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Reason = DocumentFailure(_v)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

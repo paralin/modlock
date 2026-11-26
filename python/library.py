@@ -1464,6 +1464,11 @@ def _ui_input(event: UiInputEvent) -> None:
         after(0, lambda: ui.change(player, node, value))
 
 
+def _ui_document(event: UiDocumentEvent) -> None:
+    # This library draws no document input, so no submission can end here.
+    pass
+
+
 def _console(method: str, payload: bytes) -> bytes:
     """_console runs one line typed at the mod's console, modlock dev's and
     modlock play's lines that start with >, and returns what Python's own
@@ -1669,6 +1674,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,
+    "ui_document": _ui_document,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

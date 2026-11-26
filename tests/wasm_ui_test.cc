@@ -438,13 +438,13 @@ TEST(UiTrees, DeliversOneWholeDocumentToItsCurrentPlayerAndMod) {
   ASSERT_TRUE(event);
   EXPECT_EQ(event->player(), 3);
   EXPECT_EQ(event->node(), "form");
-  EXPECT_EQ(event->text(), text);
+  EXPECT_EQ(event->delivered().text(), text);
   EXPECT_FALSE(submit("e"));
   EXPECT_FALSE(submit("b:0"));
   EXPECT_FALSE(submit("e"));
 }
 
-TEST(UiTrees, DropsPartialInvalidExpiredCancelledAndReplacedDocuments) {
+TEST(UiTrees, ReportsEachFailedSubmissionOnceAndDropsReplacedDocuments) {
   UiTrees trees;
   modlock::wasm::UiDocuments documents;
   ASSERT_TRUE(trees.Apply(3, DocumentTree()));
@@ -453,27 +453,43 @@ TEST(UiTrees, DropsPartialInvalidExpiredCancelledAndReplacedDocuments) {
     return trees.Document(3, "form", std::to_string(control) + ":" + std::string(frame), documents,
                           now);
   };
-  EXPECT_FALSE(input("1:b:65537", kStart));
+  auto failure = [&](std::string_view frame) -> std::optional<modlock::wasm::ui::DocumentFailure> {
+    const auto event = input(frame, kStart);
+    if (!event || !event->has_failed()) {
+      return std::nullopt;
+    }
+    EXPECT_EQ(event->player(), 3);
+    EXPECT_EQ(event->node(), "form");
+    return event->failed().reason();
+  };
+  EXPECT_EQ(failure("1:b:262145"), modlock::wasm::ui::DOCUMENT_FAILURE_TOO_LARGE);
   EXPECT_FALSE(input("1:e", kStart));
   EXPECT_FALSE(input("2:b:2", kStart));
-  EXPECT_FALSE(input("2:p:1:YWk", kStart));
+  EXPECT_EQ(failure("2:p:1:YWk"), modlock::wasm::ui::DOCUMENT_FAILURE_MALFORMED);
   EXPECT_FALSE(input("2:e", kStart));
   EXPECT_FALSE(input("3:b:2", kStart));
-  EXPECT_FALSE(input("3:e", kStart));
+  EXPECT_EQ(failure("3:e"), modlock::wasm::ui::DOCUMENT_FAILURE_MALFORMED);
   EXPECT_FALSE(input("4:b:1", kStart));
   EXPECT_FALSE(input("4:p:0:_w", kStart));
-  EXPECT_FALSE(input("4:e", kStart));
+  EXPECT_EQ(failure("4:e"), modlock::wasm::ui::DOCUMENT_FAILURE_MALFORMED);
   EXPECT_FALSE(input("5:b:1", kStart));
   EXPECT_FALSE(input("5:p:0:YQ", kStart));
-  EXPECT_FALSE(input("5:p:1:e", kStart));
+  EXPECT_EQ(failure("5:p:1:e"), modlock::wasm::ui::DOCUMENT_FAILURE_MALFORMED);
   EXPECT_FALSE(input("5:e", kStart));
   EXPECT_FALSE(input("6:b:0", kStart));
-  EXPECT_FALSE(input("6:x", kStart));
+  EXPECT_EQ(failure("6:x"), modlock::wasm::ui::DOCUMENT_FAILURE_CANCELLED);
   EXPECT_FALSE(input("6:e", kStart));
+
+  // A frame past the deadline ends the transfer as expired, once.
   EXPECT_FALSE(input("7:b:0", kStart));
   const auto later = kStart + std::chrono::seconds(21);
-  documents.Expire(later);
+  const auto expired = input("7:e", later);
+  ASSERT_TRUE(expired);
+  EXPECT_EQ(expired->failed().reason(), modlock::wasm::ui::DOCUMENT_FAILURE_EXPIRED);
   EXPECT_FALSE(input("7:e", later));
+  EXPECT_TRUE(trees.ExpireDocuments(documents, later).empty());
+
+  // A replaced form drops the old submission without an event.
   EXPECT_FALSE(input("8:b:0", later));
   ASSERT_TRUE(trees.Apply(3, DocumentTree()));
   EXPECT_NE(trees.DocumentControl(3), control);
@@ -485,6 +501,33 @@ TEST(UiTrees, DropsPartialInvalidExpiredCancelledAndReplacedDocuments) {
   ASSERT_TRUE(trees.Drop(3));
   ASSERT_TRUE(trees.Apply(3, DocumentTree()));
   EXPECT_FALSE(trees.Document(3, "form", retry + "b:0", documents, later));
+}
+
+TEST(UiTrees, ScalesTheDocumentDeadlineAndTellsOnlyItsOwnMod) {
+  UiTrees trees;
+  UiTrees other;
+  modlock::wasm::UiDocuments documents;
+  ASSERT_TRUE(trees.Apply(3, DocumentTree()));
+  ASSERT_TRUE(other.Apply(4, DocumentTree()));
+  const auto mine = std::to_string(trees.DocumentControl(3)) + ":1:";
+  const auto theirs = std::to_string(other.DocumentControl(4)) + ":1:";
+
+  // A whole-size document gets 20 seconds and its sending time, about 18.2.
+  EXPECT_FALSE(trees.Document(3, "form", mine + "b:262144", documents, kStart));
+  EXPECT_FALSE(other.Document(4, "form", theirs + "b:0", documents, kStart));
+  EXPECT_TRUE(trees.ExpireDocuments(documents, kStart + std::chrono::seconds(37)).empty());
+  const auto past = kStart + std::chrono::seconds(39);
+  const auto events = trees.ExpireDocuments(documents, past);
+  ASSERT_EQ(events.size(), 1);
+  EXPECT_EQ(events[0].player(), 3);
+  EXPECT_EQ(events[0].node(), "form");
+  EXPECT_EQ(events[0].failed().reason(), modlock::wasm::ui::DOCUMENT_FAILURE_EXPIRED);
+  EXPECT_TRUE(trees.ExpireDocuments(documents, past).empty());
+
+  // The other mod's expired transfer waits for that mod's own expiry.
+  const auto theirs_expired = other.ExpireDocuments(documents, past);
+  ASSERT_EQ(theirs_expired.size(), 1);
+  EXPECT_EQ(theirs_expired[0].player(), 4);
 }
 
 TEST(UiTrees, BoundsAndValidatesDocumentNodesWithoutWideningLabels) {

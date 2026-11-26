@@ -337,9 +337,17 @@ func (w *tsWriter) writeInterface(m *message) error {
 		for _, f := range fields {
 			if o := f.oneof; o != nil {
 				if o.fields[0] == f {
-					// Decode the selected case before erasing its wire discriminator.
+					// Decode the selected case before erasing its wire
+					// discriminator. A case that needs no conversion passes its
+					// value through; when every case converts, nothing is left
+					// to pass, and the plain value would widen the union.
 					name := "message." + lowerCamel(o.name)
-					decoded := name + "?.value"
+					decoded := "undefined"
+					for _, c := range o.fields {
+						if w.fromValue(c, "v") == "v" {
+							decoded = name + "?.value"
+						}
+					}
 					for _, c := range o.fields {
 						if w.fromValue(c, "v") != "v" {
 							decoded = fmt.Sprintf("%s?.case === %q ? %s : (%s)", name, lowerCamel(c.name), w.fromValue(c, name+".value"), decoded)

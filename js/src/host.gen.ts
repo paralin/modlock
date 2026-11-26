@@ -577,6 +577,21 @@ const cameraParamValues: Record<CameraParam, playersPb.CameraParam> = {
   horizontalOffset: 4,
 }
 
+/** DocumentFailure says why a document input's submission did not arrive. */
+export type DocumentFailure =
+  | 'tooLarge'
+  | 'expired'
+  | 'cancelled'
+  | 'malformed'
+
+/** documentFailureNames decodes each DocumentFailure; an unknown value has no name. */
+const documentFailureNames: Partial<Record<number, DocumentFailure>> = {
+  1: 'tooLarge',
+  2: 'expired',
+  3: 'cancelled',
+  4: 'malformed',
+}
+
 /** PingKind is how a player pinged. */
 export type PingKind =
   | 'map'
@@ -3010,6 +3025,56 @@ function fromUiInputEvent(message: uiPb.UiInputEvent): UiInputEvent {
   }
 }
 
+/**
+ * UiDocumentEvent ends one submission from a player's document input: the
+ * whole document, or why it did not arrive.
+ */
+export interface UiDocumentEvent {
+  /** player is the player who submitted. */
+  readonly player: Player
+  /** node is the id of the document input. */
+  readonly node: string
+  /** result is the submission's outcome. */
+  readonly result?: DocumentDelivered | DocumentFailed
+}
+
+/** fromUiDocumentEvent decodes an UiDocumentEvent. */
+function fromUiDocumentEvent(message: uiPb.UiDocumentEvent): UiDocumentEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    node: message.node ?? '',
+    result: message.result?.case === "failed" ? fromDocumentFailed(message.result.value) : (message.result?.case === "delivered" ? fromDocumentDelivered(message.result.value) : (undefined)),
+  }
+}
+
+/** DocumentDelivered is a submission that arrived whole. */
+export interface DocumentDelivered {
+  /**
+   * text is the document the player submitted, at most 262,144 UTF-8 bytes.
+   */
+  readonly text: string
+}
+
+/** fromDocumentDelivered decodes a DocumentDelivered. */
+function fromDocumentDelivered(message: uiPb.DocumentDelivered): DocumentDelivered {
+  return {
+    text: message.text ?? '',
+  }
+}
+
+/** DocumentFailed is a submission that ended without its document. */
+export interface DocumentFailed {
+  /** reason says why it ended. */
+  readonly reason?: DocumentFailure
+}
+
+/** fromDocumentFailed decodes a DocumentFailed. */
+function fromDocumentFailed(message: uiPb.DocumentFailed): DocumentFailed {
+  return {
+    reason: documentFailureNames[message.reason ?? 0],
+  }
+}
+
 /** StartEvent describes the server the mod starts in. */
 export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
@@ -4745,6 +4810,11 @@ export interface ModHandlers {
   uiPress(event: UiPressEvent): void
   /** uiInput reports a change to an input in a player's interface. */
   uiInput(event: UiInputEvent): void
+  /**
+   * uiDocument reports the end of a submission from a player's document
+   * input, with its whole text or why it failed.
+   */
+  uiDocument(event: UiDocumentEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /** serviceReplied ends one StartServiceCall, in a frame after the call. */
@@ -4893,6 +4963,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiInput':
         handlers.uiInput(fromUiInputEvent(uiPb.UiInputEvent.fromBinary(input)))
+        return reply()
+      case 'UiDocument':
+        handlers.uiDocument(fromUiDocumentEvent(uiPb.UiDocumentEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

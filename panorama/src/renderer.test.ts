@@ -2835,7 +2835,7 @@ test('local menus close and return focus without replaying a press or open reque
   expect(cursor[cursor.length - 1]).toBe(false)
 })
 
-test('document form sends only a whole explicit submit and abandons closed or replaced drafts', () => {
+test('document form sends only a whole explicit submit, declares an oversized draft, and abandons closed or replaced drafts', () => {
   const root = new FakePanel('Panel', 'ModlockUi')
   const drawing = new Drawing($, root, () => {})
   drawing.draw(menuScreen('MENU_MODE_TOGGLE', 1))
@@ -2869,9 +2869,13 @@ test('document form sends only a whole explicit submit and abandons closed or re
   expect(bytes.toString()).toBe(form.text)
 
   dispatched.length = 0
-  form.text = '雪'.repeat(22000)
+  form.text = '雪'.repeat(88000)
   submit.events.get('onactivate')!()
-  expect(dispatched).toEqual([])
+  runScheduled()
+  expect(dispatched).toHaveLength(1)
+  const declared = Number(dispatched[0]![1]!.split(':b:')[1])
+  expect(declared).toBeGreaterThan(262144)
+  dispatched.length = 0
   form.text = 'Retry with a whole document.'
   submit.events.get('onactivate')!()
   drawing.scoreboard(true)

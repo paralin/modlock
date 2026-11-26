@@ -8,11 +8,11 @@ import type { Panel, Panorama } from './draw.js'
 import type { MenuHost } from './menu.js'
 
 /** maxDocument is the byte limit for input and output, including newlines. */
-export const maxDocument = 65536
+export const maxDocument = 262144
 
 /** documentProperties gives stock multiline entries one sentinel character
  * beyond the byte limit, so a pasted value cannot look valid after clipping. */
-export const documentProperties = { multiline: 'true', maxchars: '65537' }
+export const documentProperties = { multiline: 'true', maxchars: '262145' }
 
 /** Form is one local draft and the host control lifetime that can accept it. */
 export interface Form {
@@ -174,18 +174,22 @@ export class Documents {
       return
     const text = form.entry.text
     const bytes = utf8(text, maxDocument + 4)
-    if (
-      bytes.length > maxDocument ||
-      text.includes('\0') ||
-      /[\uD800-\uDFFF]/u.test(text)
-    ) {
-      form.status.text = 'Use valid text up to 64 KiB.'
+    if (text.includes('\0') || /[\uD800-\uDFFF]/u.test(text)) {
+      form.status.text = 'Use valid text up to 256 KiB.'
       return
     }
 
     // Take a snapshot so later edits cannot change the in-flight bytes.
     this.serial = Math.max(Date.now(), this.serial + 1)
     const prefix = `${form.prefix}${this.serial}:`
+
+    // Declare a draft past the limit without its bytes, so the host refuses
+    // it and the mod hears why.
+    if (bytes.length > maxDocument) {
+      this.command(`${prefix}b:${bytes.length}`)
+      form.status.text = 'Use valid text up to 256 KiB.'
+      return
+    }
     const sending: Transfer = { form, prefix, bytes, sent: 0 }
     this.active = sending
     form.submit.enabled = false

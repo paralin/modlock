@@ -249,14 +249,20 @@ they press Enter in the draft. The form's button, named by `submitLabel`
 (`"Submit"` by default), sends the whole draft to `onSubmit(player, text)`.
 Use `placeholder` to prompt for the expected format, and `disabled` to suspend
 editing and submission. Each player can have one document input and one
-document output per mod. Both hold at most 65,536 UTF-8 bytes; the ordinary
-`<entry>` keeps its short limit.
+document output per mod. Both hold at most 262,144 UTF-8 bytes (256 KiB); the
+ordinary `<entry>` keeps its short limit.
 
-The renderer can confirm that it sent a document, not that the host accepted
-it. Show the outcome from `onSubmit`. If nothing changes, the player can
-submit again. Validate the document in the mod, and ask for confirmation
-before replacing a saved record. A cancelled or incomplete transfer reaches
-no callback; the host checks that the sending player still owns the current
+Each submission ends in exactly one callback. A whole document reaches
+`onSubmit(player, text)`. Any other end reaches `onFailure(player, failure)`
+with its reason: `tooLarge` for a draft past the limit, `expired` for a
+transfer that did not finish in time, `cancelled` when the player closed the
+menu while it sent, and `malformed` for frames that were missing or not text.
+A transfer has 20 seconds plus its sending time, about one second for each
+14,400 bytes, so a full-size document has about 38 seconds. Show the outcome
+from these callbacks, since the renderer knows only that it sent the draft.
+A mod that replaces or removes the form ends its submission with no callback.
+Validate the document in the mod, and ask for confirmation before replacing a
+saved record. The host checks that the sending player still owns the current
 form, not how the player entered the text. Neither control gives a mod
 clipboard access.
 

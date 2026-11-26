@@ -512,6 +512,19 @@ local CameraParam: { [any]: any } = {
 	horizontalOffset = 4,
 }
 
+-- DocumentFailure says why a document input's submission did not arrive.
+export type DocumentFailure = "tooLarge" | "expired" | "cancelled" | "malformed"
+local DocumentFailure: { [any]: any } = {
+	[1] = "tooLarge",
+	tooLarge = 1,
+	[2] = "expired",
+	expired = 2,
+	[3] = "cancelled",
+	cancelled = 3,
+	[4] = "malformed",
+	malformed = 4,
+}
+
 -- PingKind is how a player pinged.
 export type PingKind = "map" | "wheel" | "quickResponse" | "ability"
 local PingKind: { [any]: any } = {
@@ -1813,6 +1826,29 @@ export type UiInputEvent = {
 	node: string,
 	-- value is the input's new value, in the kind its control holds.
 	value: (string | number | boolean | Wheel)?,
+}
+
+-- UiDocumentEvent ends one submission from a player's document input: the
+-- whole document, or why it did not arrive.
+export type UiDocumentEvent = {
+	-- player is the player who submitted.
+	player: Player,
+	-- node is the id of the document input.
+	node: string,
+	-- result is the submission's outcome.
+	result: (DocumentDelivered | DocumentFailed)?,
+}
+
+-- DocumentDelivered is a submission that arrived whole.
+export type DocumentDelivered = {
+	-- text is the document the player submitted, at most 262,144 UTF-8 bytes.
+	text: string,
+}
+
+-- DocumentFailed is a submission that ended without its document.
+export type DocumentFailed = {
+	-- reason says why it ended.
+	reason: DocumentFailure?,
 }
 
 -- StartEvent describes the server the mod starts in.
@@ -4416,6 +4452,18 @@ schema.UiInputEvent = {
 	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
 	{ number = 7, name = "wheel", kind = "message", oneof = "value", message = "Wheel" },
 }
+schema.UiDocumentEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "node", kind = "string" },
+	{ number = 3, name = "delivered", kind = "message", oneof = "result", message = "DocumentDelivered" },
+	{ number = 4, name = "failed", kind = "message", oneof = "result", message = "DocumentFailed" },
+}
+schema.DocumentDelivered = {
+	{ number = 1, name = "text", kind = "string" },
+}
+schema.DocumentFailed = {
+	{ number = 1, name = "reason", kind = "enum", enum = DocumentFailure },
+}
 schema.UiRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "change", kind = "message", message = "Change" },
@@ -5225,6 +5273,9 @@ export type ModHandlers = {
 	uiPress: (event: UiPressEvent) -> (),
 	-- uiInput reports a change to an input in a player's interface.
 	uiInput: (event: UiInputEvent) -> (),
+	-- uiDocument reports the end of a submission from a player's document
+	-- input, with its whole text or why it failed.
+	uiDocument: (event: UiDocumentEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
@@ -5316,6 +5367,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	World = { request = "WorldEvent", response = "Empty", handler = "world" },
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
+	UiDocument = { request = "UiDocumentEvent", response = "Empty", handler = "uiDocument" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
@@ -6868,6 +6920,8 @@ local handlers: ModHandlers = {
 			end)
 		end
 	end,
+	-- This library draws no document input, so no submission can end here.
+	uiDocument = function() end,
 
 	serve = function(event)
 		local handler = services[event.service]

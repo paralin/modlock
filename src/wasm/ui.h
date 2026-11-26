@@ -15,24 +15,39 @@
 
 namespace modlock::wasm {
 
+// DocumentResult is what one frame settles for a submission: nothing yet, or
+// the whole document or why it failed.
+using DocumentResult = std::optional<std::expected<std::string, ui::DocumentFailure>>;
+
 // UiDocuments assembles at most one submission per authenticated player,
 // across all of the host's mods. It never retains a callback or a player id
 // claimed by the client.
 class UiDocuments {
  public:
   using Clock = std::chrono::steady_clock;
-  static constexpr size_t kLimit = 65536;
+  static constexpr size_t kLimit = 262144;
 
-  // Take processes a frame for the currently authorized control. A value is
-  // returned only after an explicit end with exactly the declared UTF-8 bytes.
-  std::optional<std::string> Take(int32_t slot, uint64_t control, uint64_t& last,
-                                  std::string_view frame, Clock::time_point now);
+  // kDeadline and kBytesPerSecond bound a transfer's life: a fixed start-up
+  // allowance and the renderer's pace of four 180-byte frames every 50 ms,
+  // so a document of any allowed size has its sending time and the same
+  // margin.
+  static constexpr auto kDeadline = std::chrono::seconds(20);
+  static constexpr size_t kBytesPerSecond = 14400;
+
+  // Take processes a frame for the currently authorized control. A frame that
+  // does not belong to the control's current submission settles nothing. The
+  // document is returned only after an explicit end with exactly the
+  // declared UTF-8 bytes; any other end returns its failure once.
+  DocumentResult Take(int32_t slot, uint64_t control, uint64_t& last, std::string_view frame,
+                      Clock::time_point now);
 
   // Cancel discards the in-flight bytes if they belong to this control.
   void Cancel(int32_t slot, uint64_t control);
 
-  // Expire releases unfinished submissions after their fixed deadline.
-  void Expire(Clock::time_point now);
+  // Expire ends the unfinished submissions of controls, keyed by slot, that
+  // passed their deadline, and returns their slots. Each mod passes only its
+  // own controls, so it hears exactly its own expiries.
+  std::vector<int32_t> Expire(Clock::time_point now, const std::map<int32_t, uint64_t>& controls);
 
  private:
   struct Transfer {
@@ -44,7 +59,6 @@ class UiDocuments {
   };
 
   std::map<int32_t, Transfer> transfers_;
-  Clock::time_point check_at_;
 };
 
 // UiTrees follows the interface trees one mod shows its players, one tree per
@@ -68,10 +82,16 @@ class UiTrees {
   // DocumentControls lists the form lifetimes to cancel when this mod stops.
   const std::map<int32_t, uint64_t>& DocumentControls() const { return document_controls_; }
 
-  // Document takes one renderer frame only for the current reachable form.
-  std::optional<ui::UiInputEvent> Document(int32_t slot, std::string_view node,
-                                           std::string_view frame, UiDocuments& documents,
-                                           UiDocuments::Clock::time_point now);
+  // Document takes one renderer frame only for the current reachable form,
+  // and returns the event that ends its submission.
+  std::optional<ui::UiDocumentEvent> Document(int32_t slot, std::string_view node,
+                                              std::string_view frame, UiDocuments& documents,
+                                              UiDocuments::Clock::time_point now);
+
+  // ExpireDocuments ends this mod's submissions that passed their deadline
+  // and returns an expiry event for each.
+  std::vector<ui::UiDocumentEvent> ExpireDocuments(UiDocuments& documents,
+                                                   UiDocuments::Clock::time_point now);
 
   // IsButton reports whether slot's tree holds a button named node.
   bool IsButton(int32_t slot, std::string_view node) const;

@@ -1,14 +1,30 @@
 // A typed interface backed by disposable text, not a save or addon script.
-import { command, log, onPlayerJoin, type Player, show } from 'modlock'
+import {
+  command,
+  type DocumentFailure,
+  log,
+  onPlayerJoin,
+  type Player,
+  show,
+} from 'modlock'
 
 /** sample crosses chunk boundaries with mixed Unicode and line breaks. */
 const sample = '雪🙂\n'.repeat(6500)
+
+/** failures says each failed submission's reason in the player's words. */
+const failures: Record<DocumentFailure, string> = {
+  tooLarge: 'it is longer than 256 KiB',
+  expired: 'it took too long to arrive',
+  cancelled: 'the menu closed while it was sending',
+  malformed: 'part of it went missing on the way',
+}
 
 /** draw shows one player a local settings menu and a document form. */
 function draw(
   player: Player,
   mode: 'toggle' | 'hold',
   submitted?: string,
+  failed?: DocumentFailure,
 ): void {
   show(
     player,
@@ -32,11 +48,13 @@ function draw(
       >
         <label style={{ fontSize: 28, bold: true }}>Text exchange</label>
         <label>
-          {submitted === undefined
-            ? 'Select and copy the sample, or paste a document to test Submit.'
-            : submitted === sample
-              ? 'Received the whole sample.'
-              : 'Received your document.'}
+          {failed
+            ? `Not received: ${failures[failed]}. Submit again.`
+            : submitted === undefined
+              ? 'Select and copy the sample, or paste a document to test Submit.'
+              : submitted === sample
+                ? 'Received the whole sample.'
+                : 'Received your document.'}
         </label>
         <documentOutput
           text={submitted ?? sample}
@@ -54,6 +72,10 @@ function draw(
               'UTF-16 units',
             )
             draw(sender, mode, text)
+          }}
+          onFailure={(sender, failure) => {
+            log('document failed:', failure ?? 'unknown')
+            draw(sender, mode, submitted, failure ?? 'malformed')
           }}
         />
         <menuClose

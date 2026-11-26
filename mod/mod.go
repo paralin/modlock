@@ -77,6 +77,7 @@ type handlers struct {
 	settings      []func(p Player, key, value string)
 	presses       []func(p Player, node string)
 	changes       []func(*UiInputEvent)
+	documents     []func(*UiDocumentEvent)
 	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
@@ -338,6 +339,13 @@ func OnUiInput(handler func(event *UiInputEvent)) {
 	registered.changes = append(registered.changes, handler)
 }
 
+// OnUiDocument calls handler with the end of each submission from a player's
+// document input, with the next server frame: the whole document, or why it
+// did not arrive.
+func OnUiDocument(handler func(event *UiDocumentEvent)) {
+	registered.documents = append(registered.documents, handler)
+}
+
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
@@ -442,6 +450,16 @@ func (h *handlers) UiPress(event *UiPressEvent) error {
 func (h *handlers) UiInput(event *UiInputEvent) error {
 	After(0, func() {
 		for _, handler := range h.changes {
+			handler(event)
+		}
+	})
+	return nil
+}
+
+// UiDocument runs the document handlers with the next frame, as a change does.
+func (h *handlers) UiDocument(event *UiDocumentEvent) error {
+	After(0, func() {
+		for _, handler := range h.documents {
 			handler(event)
 		}
 	})

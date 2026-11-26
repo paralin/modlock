@@ -60,6 +60,7 @@ import {
   left,
   press,
   returned,
+  submitted,
   tick,
 } from './ui.js'
 export * as vector from './vector.js'
@@ -819,6 +820,11 @@ const handlers: ModHandlers = {
   uiInput(event) {
     // A change runs with the next frame, as a press does.
     after(0, () => change(event.player, event.node, event.value))
+  },
+
+  uiDocument(event) {
+    // A submission's end runs with the next frame, as a change does.
+    after(0, () => submitted(event))
   },
 
   serve(event) {

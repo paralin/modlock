@@ -379,6 +379,23 @@ const (
 	CameraParamHorizontalOffset = playerspb.CameraParam_CAMERA_PARAM_HORIZONTAL_OFFSET
 )
 
+// DocumentFailure says why a document input's submission did not arrive.
+type DocumentFailure = uipb.DocumentFailure
+
+// The values of DocumentFailure.
+const (
+	// TooLarge is a document longer than 262,144 UTF-8 bytes.
+	DocumentFailureTooLarge = uipb.DocumentFailure_DOCUMENT_FAILURE_TOO_LARGE
+	// Expired is a transfer that did not finish within its deadline: 20
+	// seconds and one more for each 14,400 bytes the document declares.
+	DocumentFailureExpired = uipb.DocumentFailure_DOCUMENT_FAILURE_EXPIRED
+	// Cancelled is a transfer the player stopped, as by closing its menu.
+	DocumentFailureCancelled = uipb.DocumentFailure_DOCUMENT_FAILURE_CANCELLED
+	// Malformed is a transfer whose frames were missing, out of order, or
+	// not text.
+	DocumentFailureMalformed = uipb.DocumentFailure_DOCUMENT_FAILURE_MALFORMED
+)
+
 // PingKind is how a player pinged.
 type PingKind = wasmpb.PingKind
 
@@ -693,6 +710,22 @@ type UiInputEventChoice = uipb.UiInputEvent_Choice
 
 // UiInputEventWheel sets UiInputEvent.Value to Wheel.
 type UiInputEventWheel = uipb.UiInputEvent_Wheel
+
+// UiDocumentEvent ends one submission from a player's document input: the
+// whole document, or why it did not arrive.
+type UiDocumentEvent = uipb.UiDocumentEvent
+
+// UiDocumentEventDelivered sets UiDocumentEvent.Result to Delivered.
+type UiDocumentEventDelivered = uipb.UiDocumentEvent_Delivered
+
+// UiDocumentEventFailed sets UiDocumentEvent.Result to Failed.
+type UiDocumentEventFailed = uipb.UiDocumentEvent_Failed
+
+// DocumentDelivered is a submission that arrived whole.
+type DocumentDelivered = uipb.DocumentDelivered
+
+// DocumentFailed is a submission that ended without its document.
+type DocumentFailed = uipb.DocumentFailed
 
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
@@ -2093,6 +2126,9 @@ type modHandlers interface {
 	UiPress(event *UiPressEvent) error
 	// UiInput reports a change to an input in a player's interface.
 	UiInput(event *UiInputEvent) error
+	// UiDocument reports the end of a submission from a player's document
+	// input, with its whole text or why it failed.
+	UiDocument(event *UiDocumentEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
@@ -2225,6 +2261,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiInput(event))
+	case "UiDocument":
+		event := &UiDocumentEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiDocument(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
