@@ -768,6 +768,48 @@ export const Align_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * DocumentFailure says why a document input's submission did not arrive.
+ *
+ * @generated from enum modlock.wasm.ui.DocumentFailure
+ */
+export enum DocumentFailure {
+  UNKNOWN = 0,
+
+  /**
+   * TooLarge is a document longer than 262,144 UTF-8 bytes.
+   */
+  TOO_LARGE = 1,
+
+  /**
+   * Expired is a transfer that did not finish within its deadline: 20
+   * seconds and one more for each 14,400 bytes the document declares.
+   */
+  EXPIRED = 2,
+
+  /**
+   * Cancelled is a transfer the player stopped, as by closing its menu.
+   */
+  CANCELLED = 3,
+
+  /**
+   * Malformed is a transfer whose frames were missing, out of order, or
+   * not text.
+   */
+  MALFORMED = 4,
+}
+
+export const DocumentFailure_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.DocumentFailure',
+  [
+    [0, 'DOCUMENT_FAILURE_UNKNOWN'],
+    [1, 'DOCUMENT_FAILURE_TOO_LARGE'],
+    [2, 'DOCUMENT_FAILURE_EXPIRED'],
+    [3, 'DOCUMENT_FAILURE_CANCELLED'],
+    [4, 'DOCUMENT_FAILURE_MALFORMED'],
+  ],
+)
+
+/**
  * Node is one panel in a tree. The root's id is empty; it is a full-screen
  * panel that lets clicks through to the game.
  *
@@ -1012,7 +1054,8 @@ export interface Node {
    */
   documentInput?: DocumentInput
   /**
-   * DocumentText is the plain, selectable text of a document output.
+   * DocumentText is the plain, selectable text of a document output, at most
+   * 262,144 UTF-8 bytes.
    */
   documentText?: string
   /**
@@ -4229,6 +4272,194 @@ export const UiInputEvent: MessageType<UiInputEvent> =
           const o = m.value
           if (o?.case === 'wheel' && o.value != null)
             Wheel.writeField(w, 7, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * UiDocumentEvent ends one submission from a player's document input: the
+ * whole document, or why it did not arrive.
+ *
+ * @generated from message modlock.wasm.ui.UiDocumentEvent
+ */
+export interface UiDocumentEvent {
+  /**
+   * Player is the player who submitted.
+   */
+  player?: number
+  /**
+   * Node is the id of the document input.
+   */
+  node?: string
+  /**
+   * Result is the submission's outcome.
+   *
+   * @generated from oneof modlock.wasm.ui.UiDocumentEvent.result
+   */
+  result?:
+    | { value?: undefined; case: undefined }
+    | { value: DocumentDelivered; case: 'delivered' }
+    | { value: DocumentFailed; case: 'failed' }
+}
+
+export const UiDocumentEvent: MessageType<UiDocumentEvent> =
+  /* @__PURE__ */ createMessageType<UiDocumentEvent>(
+    'modlock.wasm.ui.UiDocumentEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'node', 9],
+      [3, 'delivered', 11, 0, DocumentDelivered.codec, 'result'],
+      [4, 'failed', 11, 0, DocumentFailed.codec, 'result'],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: UiDocumentEvent,
+      ): UiDocumentEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.node = r.string()
+              break
+            case 3:
+              m.result = {
+                case: 'delivered',
+                value: DocumentDelivered.decode(
+                  r,
+                  r.delimited(),
+                  m.result?.case === 'delivered' ? m.result.value : {},
+                ),
+              }
+              break
+            case 4:
+              m.result = {
+                case: 'failed',
+                value: DocumentFailed.decode(
+                  r,
+                  r.delimited(),
+                  m.result?.case === 'failed' ? m.result.value : {},
+                ),
+              }
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: UiDocumentEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.node
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const o = m.result
+          if (o?.case === 'delivered' && o.value != null)
+            DocumentDelivered.writeField(w, 3, o.value)
+        }
+        {
+          const o = m.result
+          if (o?.case === 'failed' && o.value != null)
+            DocumentFailed.writeField(w, 4, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * DocumentDelivered is a submission that arrived whole.
+ *
+ * @generated from message modlock.wasm.ui.DocumentDelivered
+ */
+export interface DocumentDelivered {
+  /**
+   * Text is the document the player submitted, at most 262,144 UTF-8 bytes.
+   */
+  text?: string
+}
+
+export const DocumentDelivered: MessageType<DocumentDelivered> =
+  /* @__PURE__ */ createMessageType<DocumentDelivered>(
+    'modlock.wasm.ui.DocumentDelivered',
+    () => [[1, 'text', 9]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: DocumentDelivered,
+      ): DocumentDelivered => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.text = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: DocumentDelivered, w: Writer): void => {
+        {
+          const v = m.text
+          if (v) w.uint32(10).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * DocumentFailed is a submission that ended without its document.
+ *
+ * @generated from message modlock.wasm.ui.DocumentFailed
+ */
+export interface DocumentFailed {
+  /**
+   * Reason says why it ended.
+   */
+  reason?: DocumentFailure
+}
+
+export const DocumentFailed: MessageType<DocumentFailed> =
+  /* @__PURE__ */ createMessageType<DocumentFailed>(
+    'modlock.wasm.ui.DocumentFailed',
+    () => [[1, 'reason', 14, 0, DocumentFailure_Enum]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: DocumentFailed,
+      ): DocumentFailed => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.reason = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: DocumentFailed, w: Writer): void => {
+        {
+          const v = m.reason
+          if (v) w.uint32(8).int32(v)
         }
       },
     },

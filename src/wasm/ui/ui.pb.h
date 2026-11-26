@@ -68,6 +68,8 @@ enum ClockFormat : int;
 extern const uint32_t ClockFormat_internal_data_[];
 enum Decoration : int;
 extern const uint32_t Decoration_internal_data_[];
+enum DocumentFailure : int;
+extern const uint32_t DocumentFailure_internal_data_[];
 enum Easing : int;
 extern const uint32_t Easing_internal_data_[];
 enum Face : int;
@@ -128,6 +130,14 @@ class Cycle;
 struct CycleDefaultTypeInternal;
 MODLOCK_API extern CycleDefaultTypeInternal _Cycle_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Cycle_class_data_;
+class DocumentDelivered;
+struct DocumentDeliveredDefaultTypeInternal;
+MODLOCK_API extern DocumentDeliveredDefaultTypeInternal _DocumentDelivered_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DocumentDelivered_class_data_;
+class DocumentFailed;
+struct DocumentFailedDefaultTypeInternal;
+MODLOCK_API extern DocumentFailedDefaultTypeInternal _DocumentFailed_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DocumentFailed_class_data_;
 class DocumentInput;
 struct DocumentInputDefaultTypeInternal;
 MODLOCK_API extern DocumentInputDefaultTypeInternal _DocumentInput_default_instance_;
@@ -208,6 +218,10 @@ class Tree;
 struct TreeDefaultTypeInternal;
 MODLOCK_API extern TreeDefaultTypeInternal _Tree_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Tree_class_data_;
+class UiDocumentEvent;
+struct UiDocumentEventDefaultTypeInternal;
+MODLOCK_API extern UiDocumentEventDefaultTypeInternal _UiDocumentEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiDocumentEvent_class_data_;
 class UiInputEvent;
 struct UiInputEventDefaultTypeInternal;
 MODLOCK_API extern UiInputEventDefaultTypeInternal _UiInputEvent_default_instance_;
@@ -238,6 +252,9 @@ internal::EnumTraitsT<::modlock::wasm::ui::ClockFormat_internal_data_>
 template <>
 internal::EnumTraitsT<::modlock::wasm::ui::Decoration_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::ui::Decoration>;
+template <>
+internal::EnumTraitsT<::modlock::wasm::ui::DocumentFailure_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::ui::DocumentFailure>;
 template <>
 internal::EnumTraitsT<::modlock::wasm::ui::Easing_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::ui::Easing>;
@@ -880,6 +897,45 @@ inline const ::std::string& Align_Name(Align value) {
 inline bool Align_Parse(
     ::absl::string_view name, Align* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<Align>(Align_descriptor(), name,
+                                           value);
+}
+enum DocumentFailure : int {
+  DOCUMENT_FAILURE_UNKNOWN = 0,
+  DOCUMENT_FAILURE_TOO_LARGE = 1,
+  DOCUMENT_FAILURE_EXPIRED = 2,
+  DOCUMENT_FAILURE_CANCELLED = 3,
+  DOCUMENT_FAILURE_MALFORMED = 4,
+  DocumentFailure_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  DocumentFailure_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t DocumentFailure_internal_data_[];
+inline constexpr DocumentFailure DocumentFailure_MIN =
+    static_cast<DocumentFailure>(0);
+inline constexpr DocumentFailure DocumentFailure_MAX =
+    static_cast<DocumentFailure>(4);
+inline bool DocumentFailure_IsValid(int value) {
+  return 0 <= value && value <= 4;
+}
+inline constexpr int DocumentFailure_ARRAYSIZE = 4 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL DocumentFailure_descriptor();
+template <typename T>
+const ::std::string& DocumentFailure_Name(T value) {
+  static_assert(::std::is_same<T, DocumentFailure>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to DocumentFailure_Name().");
+  return DocumentFailure_Name(static_cast<DocumentFailure>(value));
+}
+template <>
+inline const ::std::string& DocumentFailure_Name(DocumentFailure value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<DocumentFailure_descriptor, 0, 4>(
+      static_cast<int>(value));
+}
+inline bool DocumentFailure_Parse(
+    ::absl::string_view name, DocumentFailure* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<DocumentFailure>(DocumentFailure_descriptor(), name,
                                            value);
 }
 
@@ -4317,6 +4373,391 @@ class MODLOCK_API DocumentInput final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DocumentInput_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API DocumentFailed final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.DocumentFailed) */ {
+ public:
+  inline DocumentFailed() : DocumentFailed(nullptr) {}
+  ~DocumentFailed() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(DocumentFailed* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(DocumentFailed));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR DocumentFailed(::google::protobuf::internal::ConstantInitialized);
+
+  inline DocumentFailed(const DocumentFailed& from) : DocumentFailed(nullptr, from) {}
+  inline DocumentFailed(DocumentFailed&& from) noexcept
+      : DocumentFailed(nullptr, ::std::move(from)) {}
+  inline DocumentFailed& operator=(const DocumentFailed& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DocumentFailed& operator=(DocumentFailed&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DocumentFailed& default_instance() {
+    return *reinterpret_cast<const DocumentFailed*>(
+        &_DocumentFailed_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 34;
+  friend void swap(DocumentFailed& a, DocumentFailed& b) { a.Swap(&b); }
+  inline void Swap(DocumentFailed* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DocumentFailed* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DocumentFailed* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<DocumentFailed>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const DocumentFailed& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const DocumentFailed& from) { DocumentFailed::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(DocumentFailed* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.DocumentFailed"; }
+
+  explicit DocumentFailed(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  DocumentFailed(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const DocumentFailed& from);
+  DocumentFailed(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, DocumentFailed&& from) noexcept
+      : DocumentFailed(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kReasonFieldNumber = 1,
+  };
+  // .modlock.wasm.ui.DocumentFailure reason = 1;
+  void clear_reason() ;
+  ::modlock::wasm::ui::DocumentFailure reason() const;
+  void set_reason(::modlock::wasm::ui::DocumentFailure value);
+
+  private:
+  ::modlock::wasm::ui::DocumentFailure _internal_reason() const;
+  void _internal_set_reason(::modlock::wasm::ui::DocumentFailure value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.DocumentFailed)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const DocumentFailed& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    int reason_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DocumentFailed_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API DocumentDelivered final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.DocumentDelivered) */ {
+ public:
+  inline DocumentDelivered() : DocumentDelivered(nullptr) {}
+  ~DocumentDelivered() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(DocumentDelivered* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(DocumentDelivered));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR DocumentDelivered(::google::protobuf::internal::ConstantInitialized);
+
+  inline DocumentDelivered(const DocumentDelivered& from) : DocumentDelivered(nullptr, from) {}
+  inline DocumentDelivered(DocumentDelivered&& from) noexcept
+      : DocumentDelivered(nullptr, ::std::move(from)) {}
+  inline DocumentDelivered& operator=(const DocumentDelivered& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DocumentDelivered& operator=(DocumentDelivered&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DocumentDelivered& default_instance() {
+    return *reinterpret_cast<const DocumentDelivered*>(
+        &_DocumentDelivered_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 33;
+  friend void swap(DocumentDelivered& a, DocumentDelivered& b) { a.Swap(&b); }
+  inline void Swap(DocumentDelivered* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DocumentDelivered* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DocumentDelivered* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<DocumentDelivered>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const DocumentDelivered& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const DocumentDelivered& from) { DocumentDelivered::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(DocumentDelivered* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.DocumentDelivered"; }
+
+  explicit DocumentDelivered(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  DocumentDelivered(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const DocumentDelivered& from);
+  DocumentDelivered(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, DocumentDelivered&& from) noexcept
+      : DocumentDelivered(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kTextFieldNumber = 1,
+  };
+  // string text = 1;
+  void clear_text() ;
+  const ::std::string& text() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_text(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_text();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_text();
+  void set_allocated_text(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_text() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_text(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_text();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.DocumentDelivered)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 46,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const DocumentDelivered& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr text_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull DocumentDelivered_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Curve final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Curve) */ {
  public:
@@ -5771,6 +6212,271 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiInputEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API UiDocumentEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.UiDocumentEvent) */ {
+ public:
+  inline UiDocumentEvent() : UiDocumentEvent(nullptr) {}
+  ~UiDocumentEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(UiDocumentEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(UiDocumentEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR UiDocumentEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline UiDocumentEvent(const UiDocumentEvent& from) : UiDocumentEvent(nullptr, from) {}
+  inline UiDocumentEvent(UiDocumentEvent&& from) noexcept
+      : UiDocumentEvent(nullptr, ::std::move(from)) {}
+  inline UiDocumentEvent& operator=(const UiDocumentEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UiDocumentEvent& operator=(UiDocumentEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UiDocumentEvent& default_instance() {
+    return *reinterpret_cast<const UiDocumentEvent*>(
+        &_UiDocumentEvent_default_instance_);
+  }
+  enum ResultCase {
+    kDelivered = 3,
+    kFailed = 4,
+    RESULT_NOT_SET = 0,
+  };
+  static constexpr int kIndexInFileMessages = 32;
+  friend void swap(UiDocumentEvent& a, UiDocumentEvent& b) { a.Swap(&b); }
+  inline void Swap(UiDocumentEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UiDocumentEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UiDocumentEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<UiDocumentEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const UiDocumentEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const UiDocumentEvent& from) { UiDocumentEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(UiDocumentEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.UiDocumentEvent"; }
+
+  explicit UiDocumentEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  UiDocumentEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UiDocumentEvent& from);
+  UiDocumentEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, UiDocumentEvent&& from) noexcept
+      : UiDocumentEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNodeFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+    kDeliveredFieldNumber = 3,
+    kFailedFieldNumber = 4,
+  };
+  // string node = 2;
+  void clear_node() ;
+  const ::std::string& node() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_node(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_node();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_node();
+  void set_allocated_node(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_node() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // .modlock.wasm.ui.DocumentDelivered delivered = 3;
+  bool has_delivered() const;
+  private:
+  bool _internal_has_delivered() const;
+
+  public:
+  void clear_delivered() ;
+  const ::modlock::wasm::ui::DocumentDelivered& delivered() const;
+  [[nodiscard]] ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE release_delivered();
+  ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NONNULL mutable_delivered();
+  void set_allocated_delivered(::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_delivered(::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE unsafe_arena_release_delivered();
+
+  private:
+  const ::modlock::wasm::ui::DocumentDelivered& _internal_delivered() const;
+  ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NONNULL _internal_mutable_delivered();
+
+  public:
+  // .modlock.wasm.ui.DocumentFailed failed = 4;
+  bool has_failed() const;
+  private:
+  bool _internal_has_failed() const;
+
+  public:
+  void clear_failed() ;
+  const ::modlock::wasm::ui::DocumentFailed& failed() const;
+  [[nodiscard]] ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE release_failed();
+  ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NONNULL mutable_failed();
+  void set_allocated_failed(::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_failed(::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE unsafe_arena_release_failed();
+
+  private:
+  const ::modlock::wasm::ui::DocumentFailed& _internal_failed() const;
+  ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NONNULL _internal_mutable_failed();
+
+  public:
+  void clear_result();
+  ResultCase result_case() const;
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.UiDocumentEvent)
+ private:
+  class _Internal;
+  void set_has_delivered();
+  void set_has_failed();
+  inline bool has_result() const;
+  inline void clear_has_result();
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 4,
+                                   2, 44,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const UiDocumentEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr node_;
+    ::int32_t player_;
+    union ResultUnion {
+      constexpr ResultUnion() : _constinit_{} {}
+      ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE delivered_;
+      ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE failed_;
+    } result_;
+    ::uint32_t _oneof_case_[1];
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiDocumentEvent_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API Transition final : public ::google::protobuf::Message
@@ -9238,7 +9944,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -18823,6 +19529,371 @@ inline UiInputEvent::ValueCase UiInputEvent::value_case() const {
 }
 // -------------------------------------------------------------------
 
+// UiDocumentEvent
+
+// int32 player = 1;
+inline void UiDocumentEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t UiDocumentEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiDocumentEvent.player)
+  return _internal_player();
+}
+inline void UiDocumentEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiDocumentEvent.player)
+}
+inline ::int32_t UiDocumentEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void UiDocumentEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// string node = 2;
+inline void UiDocumentEvent::clear_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& UiDocumentEvent::node() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiDocumentEvent.node)
+  return _internal_node();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void UiDocumentEvent::set_node(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.node_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiDocumentEvent.node)
+}
+inline ::std::string* PROTOBUF_NONNULL UiDocumentEvent::mutable_node()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_node();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiDocumentEvent.node)
+  return _s;
+}
+inline const ::std::string& UiDocumentEvent::_internal_node() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.node_.Get();
+}
+inline void UiDocumentEvent::_internal_set_node(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL UiDocumentEvent::_internal_mutable_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.node_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE UiDocumentEvent::release_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiDocumentEvent.node)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.node_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  return released;
+}
+inline void UiDocumentEvent::set_allocated_node(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.node_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.node_.IsDefault()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.UiDocumentEvent.node)
+}
+
+// .modlock.wasm.ui.DocumentDelivered delivered = 3;
+inline bool UiDocumentEvent::has_delivered() const {
+  return result_case() == kDelivered;
+}
+inline bool UiDocumentEvent::_internal_has_delivered() const {
+  return result_case() == kDelivered;
+}
+inline void UiDocumentEvent::set_has_delivered() {
+  _impl_._oneof_case_[0] = kDelivered;
+}
+inline void UiDocumentEvent::clear_delivered() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (result_case() == kDelivered) {
+    if (GetArena() == nullptr) {
+      delete _impl_.result_.delivered_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.result_.delivered_);
+    }
+    clear_has_result();
+  }
+}
+inline ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE UiDocumentEvent::release_delivered() {
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiDocumentEvent.delivered)
+  if (result_case() == kDelivered) {
+    clear_has_result();
+    auto* temp = _impl_.result_.delivered_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.result_.delivered_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::wasm::ui::DocumentDelivered& UiDocumentEvent::_internal_delivered() const {
+  return result_case() == kDelivered ? static_cast<const ::modlock::wasm::ui::DocumentDelivered&>(*_impl_.result_.delivered_)
+                     : reinterpret_cast<const ::modlock::wasm::ui::DocumentDelivered&>(::modlock::wasm::ui::_DocumentDelivered_default_instance_);
+}
+inline const ::modlock::wasm::ui::DocumentDelivered& UiDocumentEvent::delivered() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiDocumentEvent.delivered)
+  return _internal_delivered();
+}
+inline ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE UiDocumentEvent::unsafe_arena_release_delivered() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.wasm.ui.UiDocumentEvent.delivered)
+  if (result_case() == kDelivered) {
+    clear_has_result();
+    auto* temp = _impl_.result_.delivered_;
+    _impl_.result_.delivered_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void UiDocumentEvent::unsafe_arena_set_allocated_delivered(
+    ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_result();
+  if (value) {
+    set_has_delivered();
+    _impl_.result_.delivered_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.UiDocumentEvent.delivered)
+}
+inline ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NONNULL UiDocumentEvent::_internal_mutable_delivered() {
+  if (result_case() != kDelivered) {
+    clear_result();
+    set_has_delivered();
+    _impl_.result_.delivered_ = 
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::DocumentDelivered>(GetArena());
+  }
+  return _impl_.result_.delivered_;
+}
+inline ::modlock::wasm::ui::DocumentDelivered* PROTOBUF_NONNULL UiDocumentEvent::mutable_delivered()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::wasm::ui::DocumentDelivered* _msg = _internal_mutable_delivered();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiDocumentEvent.delivered)
+  return _msg;
+}
+
+// .modlock.wasm.ui.DocumentFailed failed = 4;
+inline bool UiDocumentEvent::has_failed() const {
+  return result_case() == kFailed;
+}
+inline bool UiDocumentEvent::_internal_has_failed() const {
+  return result_case() == kFailed;
+}
+inline void UiDocumentEvent::set_has_failed() {
+  _impl_._oneof_case_[0] = kFailed;
+}
+inline void UiDocumentEvent::clear_failed() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (result_case() == kFailed) {
+    if (GetArena() == nullptr) {
+      delete _impl_.result_.failed_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.result_.failed_);
+    }
+    clear_has_result();
+  }
+}
+inline ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE UiDocumentEvent::release_failed() {
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiDocumentEvent.failed)
+  if (result_case() == kFailed) {
+    clear_has_result();
+    auto* temp = _impl_.result_.failed_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.result_.failed_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::wasm::ui::DocumentFailed& UiDocumentEvent::_internal_failed() const {
+  return result_case() == kFailed ? static_cast<const ::modlock::wasm::ui::DocumentFailed&>(*_impl_.result_.failed_)
+                     : reinterpret_cast<const ::modlock::wasm::ui::DocumentFailed&>(::modlock::wasm::ui::_DocumentFailed_default_instance_);
+}
+inline const ::modlock::wasm::ui::DocumentFailed& UiDocumentEvent::failed() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiDocumentEvent.failed)
+  return _internal_failed();
+}
+inline ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE UiDocumentEvent::unsafe_arena_release_failed() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.wasm.ui.UiDocumentEvent.failed)
+  if (result_case() == kFailed) {
+    clear_has_result();
+    auto* temp = _impl_.result_.failed_;
+    _impl_.result_.failed_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void UiDocumentEvent::unsafe_arena_set_allocated_failed(
+    ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_result();
+  if (value) {
+    set_has_failed();
+    _impl_.result_.failed_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.UiDocumentEvent.failed)
+}
+inline ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NONNULL UiDocumentEvent::_internal_mutable_failed() {
+  if (result_case() != kFailed) {
+    clear_result();
+    set_has_failed();
+    _impl_.result_.failed_ = 
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::DocumentFailed>(GetArena());
+  }
+  return _impl_.result_.failed_;
+}
+inline ::modlock::wasm::ui::DocumentFailed* PROTOBUF_NONNULL UiDocumentEvent::mutable_failed()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::wasm::ui::DocumentFailed* _msg = _internal_mutable_failed();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiDocumentEvent.failed)
+  return _msg;
+}
+
+inline bool UiDocumentEvent::has_result() const {
+  return result_case() != RESULT_NOT_SET;
+}
+inline void UiDocumentEvent::clear_has_result() {
+  _impl_._oneof_case_[0] = RESULT_NOT_SET;
+}
+inline UiDocumentEvent::ResultCase UiDocumentEvent::result_case() const {
+  return UiDocumentEvent::ResultCase(_impl_._oneof_case_[0]);
+}
+// -------------------------------------------------------------------
+
+// DocumentDelivered
+
+// string text = 1;
+inline void DocumentDelivered::clear_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.text_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& DocumentDelivered::text() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.DocumentDelivered.text)
+  return _internal_text();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void DocumentDelivered::set_text(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.text_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.DocumentDelivered.text)
+}
+inline ::std::string* PROTOBUF_NONNULL DocumentDelivered::mutable_text()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_text();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.DocumentDelivered.text)
+  return _s;
+}
+inline const ::std::string& DocumentDelivered::_internal_text() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.text_.Get();
+}
+inline void DocumentDelivered::_internal_set_text(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.text_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL DocumentDelivered::_internal_mutable_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.text_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE DocumentDelivered::release_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.DocumentDelivered.text)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.text_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.text_.Set("", GetArena());
+  }
+  return released;
+}
+inline void DocumentDelivered::set_allocated_text(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.text_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.text_.IsDefault()) {
+    _impl_.text_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.DocumentDelivered.text)
+}
+
+// -------------------------------------------------------------------
+
+// DocumentFailed
+
+// .modlock.wasm.ui.DocumentFailure reason = 1;
+inline void DocumentFailed::clear_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::ui::DocumentFailure DocumentFailed::reason() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.DocumentFailed.reason)
+  return _internal_reason();
+}
+inline void DocumentFailed::set_reason(::modlock::wasm::ui::DocumentFailure value) {
+  _internal_set_reason(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.DocumentFailed.reason)
+}
+inline ::modlock::wasm::ui::DocumentFailure DocumentFailed::_internal_reason() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::ui::DocumentFailure>(_impl_.reason_);
+}
+inline void DocumentFailed::_internal_set_reason(::modlock::wasm::ui::DocumentFailure value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // UiRequest
 
 // int32 player = 1;
@@ -19051,6 +20122,12 @@ struct is_proto_enum<::modlock::wasm::ui::Align> : std::true_type {};
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::ui::Align>() {
   return ::modlock::wasm::ui::Align_descriptor();
+}
+template <>
+struct is_proto_enum<::modlock::wasm::ui::DocumentFailure> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::ui::DocumentFailure>() {
+  return ::modlock::wasm::ui::DocumentFailure_descriptor();
 }
 
 }  // namespace protobuf

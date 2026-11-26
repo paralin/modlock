@@ -952,6 +952,20 @@ _Align: dict[Any, Any] = {
 }
 
 
+# DocumentFailure says why a document input's submission did not arrive.
+type DocumentFailure = Literal["too_large", "expired", "cancelled", "malformed"]
+_DocumentFailure: dict[Any, Any] = {
+    1: "too_large",
+    "too_large": 1,
+    2: "expired",
+    "expired": 2,
+    3: "cancelled",
+    "cancelled": 3,
+    4: "malformed",
+    "malformed": 4,
+}
+
+
 # PingKind is how a player pinged.
 type PingKind = Literal["map", "wheel", "quick_response", "ability"]
 _PingKind: dict[Any, Any] = {
@@ -2466,6 +2480,36 @@ class UiInputEvent:
     node: str = ""
     # value is the input's new value, in the kind its control holds.
     value: str | float | bool | int | Wheel | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class UiDocumentEvent:
+    """UiDocumentEvent ends one submission from a player's document input: the
+    whole document, or why it did not arrive.
+    """
+
+    # player is the player who submitted.
+    player: Player
+    # node is the id of the document input.
+    node: str = ""
+    # result is the submission's outcome.
+    result: DocumentDelivered | DocumentFailed | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class DocumentDelivered:
+    """DocumentDelivered is a submission that arrived whole."""
+
+    # text is the document the player submitted, at most 262,144 UTF-8 bytes.
+    text: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class DocumentFailed:
+    """DocumentFailed is a submission that ended without its document."""
+
+    # reason says why it ended.
+    reason: DocumentFailure | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -5217,6 +5261,27 @@ _SCHEMA: wire.Schema = {
             wire.Field(7, "wheel", "message", oneof="value", message="Wheel"),
         ],
     ),
+    "UiDocumentEvent": (
+        UiDocumentEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "node", "string"),
+            wire.Field(3, "delivered", "message", oneof="result", message="DocumentDelivered"),
+            wire.Field(4, "failed", "message", oneof="result", message="DocumentFailed"),
+        ],
+    ),
+    "DocumentDelivered": (
+        DocumentDelivered,
+        [
+            wire.Field(1, "text", "string"),
+        ],
+    ),
+    "DocumentFailed": (
+        DocumentFailed,
+        [
+            wire.Field(1, "reason", "enum", enum=_DocumentFailure),
+        ],
+    ),
     "UiRequest": (
         None,
         [
@@ -6137,6 +6202,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "World": ("WorldEvent", "Empty", "world"),
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
+    "UiDocument": ("UiDocumentEvent", "Empty", "ui_document"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
@@ -7610,6 +7676,11 @@ def _ui_input(event: UiInputEvent) -> None:
         after(0, lambda: ui.change(player, node, value))
 
 
+def _ui_document(event: UiDocumentEvent) -> None:
+    # This library draws no document input, so no submission can end here.
+    pass
+
+
 def _console(method: str, payload: bytes) -> bytes:
     """_console runs one line typed at the mod's console, modlock dev's and
     modlock play's lines that start with >, and returns what Python's own
@@ -7815,6 +7886,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,
+    "ui_document": _ui_document,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

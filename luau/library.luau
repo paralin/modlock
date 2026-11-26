@@ -1504,6 +1504,8 @@ local handlers: ModHandlers = {
 			end)
 		end
 	end,
+	-- This library draws no document input, so no submission can end here.
+	uiDocument = function() end,
 
 	serve = function(event)
 		local handler = services[event.service]

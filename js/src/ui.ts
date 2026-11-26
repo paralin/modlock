@@ -117,6 +117,8 @@ import {
   type ChatEvent,
   type Player,
   readField,
+  type DocumentFailure,
+  type UiDocumentEvent,
   type Wheel,
 } from './host.gen.js'
 import { call } from './host.js'
@@ -406,15 +408,22 @@ export interface MenuProps extends PanelProps {
   openRequest?: number
 }
 
-/** DocumentInputProps describes a blank draft submitted only with its button. */
+/**
+ * DocumentInputProps describes a blank draft submitted only with its button.
+ * onSubmit receives each document that arrives whole, and onFailure each
+ * submission that ended without one, so the mod can tell the player. A
+ * failure is undefined when a newer host gives a reason this library does not
+ * name.
+ */
 export interface DocumentInputProps extends ElementProps {
   placeholder?: string
   submitLabel?: string
   disabled?: boolean
   onSubmit: (player: Player, text: string) => void
+  onFailure?: (player: Player, failure?: DocumentFailure) => void
 }
 
-/** DocumentOutputProps shows up to 65,536 UTF-8 bytes the player can select. */
+/** DocumentOutputProps shows up to 262,144 UTF-8 bytes the player can select. */
 export interface DocumentOutputProps extends ElementProps {
   text: string
 }
@@ -478,6 +487,7 @@ export interface Props {
   readonly submitLabel?: string
   readonly text?: string
   readonly onSubmit?: (player: Player, text: string) => void
+  readonly onFailure?: (player: Player, failure?: DocumentFailure) => void
 }
 
 /**
@@ -1119,6 +1129,20 @@ export function change(
 }
 
 /**
+ * submitted runs the handler of the document input whose submission ended,
+ * with the whole document or why it failed.
+ */
+export function submitted(event: UiDocumentEvent): void {
+  const handlers = partOf(event.player.slot, event.node)?.documents.get(
+    event.node,
+  )
+  const result = event.result
+  if (!handlers || !result) return
+  if ('text' in result) handlers.submit(event.player, result.text)
+  else handlers.fail?.(event.player, result.reason)
+}
+
+/**
  * tick advances the clock to the frame at seconds and fades expiring notices.
  * It redraws a player only on the frame one of their notices expires, since
  * the renderer animates the fade itself; a frame with no expiry renders
@@ -1415,6 +1439,8 @@ interface Part {
   readonly changes: Map<string, { readonly handler: ChangeHandler }>
   /** actions maps each layout's id to its press handler, as presses does. */
   readonly actions: Map<string, { readonly handler: LayoutPressHandler }>
+  /** documents maps each enabled document input's id to its handlers. */
+  readonly documents: Map<string, DocumentHandlers>
   /** wheels holds only the enabled sliders that opted in to wheel events. */
   readonly wheels: Map<
     string,
@@ -1454,6 +1480,12 @@ interface Screen {
 const screens = new Map<number, Screen>()
 
 /** partOf finds the layer of slot's screen that holds the node with id. */
+/** DocumentHandlers are a document input's handlers for its two outcomes. */
+interface DocumentHandlers {
+  readonly submit: (player: Player, text: string) => void
+  readonly fail?: (player: Player, failure?: DocumentFailure) => void
+}
+
 function partOf(slot: number, id: string): Part | undefined {
   for (const part of screens.get(slot)?.parts.values() ?? []) {
     if (part.nodes.has(id)) return part
@@ -1492,6 +1524,7 @@ class Layout {
       presses: new Map(),
       changes: new Map(),
       actions: new Map(),
+      documents: new Map(),
       wheels: new Map(),
       placed: new Map(),
       top: [],
@@ -1542,6 +1575,8 @@ class Layout {
       if (action) part.actions.set(id, action)
       const wheel = previous.wheels.get(id)
       if (wheel) part.wheels.set(id, wheel)
+      const document = previous.documents.get(id)
+      if (document) part.documents.set(id, document)
     }
     for (const at of placed.elements) {
       part.placed.set(at, previous.placed.get(at)!)
@@ -1669,7 +1704,10 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
       }
       node.disabled = props.disabled || !props.onSubmit
       if (props.onSubmit && !node.disabled) {
-        layout.part.changes.set(node.id!, { handler: props.onSubmit })
+        layout.part.documents.set(node.id!, {
+          submit: props.onSubmit,
+          fail: props.onFailure,
+        })
       }
       break
     case 'documentOutput':

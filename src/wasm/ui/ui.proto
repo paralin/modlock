@@ -226,7 +226,8 @@ message Node {
   // DocumentInput configures a form that sends one whole document on submit.
   DocumentInput document_input = 43;
 
-  // DocumentText is the plain, selectable text of a document output.
+  // DocumentText is the plain, selectable text of a document output, at most
+  // 262,144 UTF-8 bytes.
   string document_text = 44;
 }
 
@@ -1141,8 +1142,7 @@ message UiInputEvent {
 
   // Value is the input's new value, in the kind its control holds.
   oneof value {
-    // Text is a text entry's text or the whole document explicitly submitted
-    // by a document input. Documents are at most 65,536 UTF-8 bytes.
+    // Text is a text entry's text.
     string text = 3;
 
     // Number is a slider's value.
@@ -1157,6 +1157,57 @@ message UiInputEvent {
     // Wheel is a wheel step over a slider that opted in to wheel events.
     Wheel wheel = 7;
   }
+}
+
+// UiDocumentEvent ends one submission from a player's document input: the
+// whole document, or why it did not arrive.
+message UiDocumentEvent {
+  // Player is the player who submitted.
+  int32 player = 1;
+
+  // Node is the id of the document input.
+  string node = 2;
+
+  // Result is the submission's outcome.
+  oneof result {
+    // Delivered holds the whole document.
+    DocumentDelivered delivered = 3;
+
+    // Failed says why the document did not arrive. The player can submit
+    // again.
+    DocumentFailed failed = 4;
+  }
+}
+
+// DocumentDelivered is a submission that arrived whole.
+message DocumentDelivered {
+  // Text is the document the player submitted, at most 262,144 UTF-8 bytes.
+  string text = 1;
+}
+
+// DocumentFailed is a submission that ended without its document.
+message DocumentFailed {
+  // Reason says why it ended.
+  DocumentFailure reason = 1;
+}
+
+// DocumentFailure says why a document input's submission did not arrive.
+enum DocumentFailure {
+  DOCUMENT_FAILURE_UNKNOWN = 0;
+
+  // TooLarge is a document longer than 262,144 UTF-8 bytes.
+  DOCUMENT_FAILURE_TOO_LARGE = 1;
+
+  // Expired is a transfer that did not finish within its deadline: 20
+  // seconds and one more for each 14,400 bytes the document declares.
+  DOCUMENT_FAILURE_EXPIRED = 2;
+
+  // Cancelled is a transfer the player stopped, as by closing its menu.
+  DOCUMENT_FAILURE_CANCELLED = 3;
+
+  // Malformed is a transfer whose frames were missing, out of order, or
+  // not text.
+  DOCUMENT_FAILURE_MALFORMED = 4;
 }
 
 // UiRequest changes the interface the mod shows one player.

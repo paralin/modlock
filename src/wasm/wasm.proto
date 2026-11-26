@@ -869,6 +869,10 @@ service Mod {
   // UiInput reports a change to an input in a player's interface.
   rpc UiInput(modlock.wasm.ui.UiInputEvent) returns (Empty);
 
+  // UiDocument reports the end of a submission from a player's document
+  // input, with its whole text or why it failed.
+  rpc UiDocument(modlock.wasm.ui.UiDocumentEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

@@ -247,7 +247,7 @@ std::expected<void, std::string> WasmPlugin::Input(int32_t slot, std::string_vie
   if (value.starts_with("d:")) {
     if (auto document = ui_.Document(slot, node, value.substr(2), host_.documents,
                                      wasm::UiDocuments::Clock::now())) {
-      static_cast<void>(mod_.UiInput(*document));
+      static_cast<void>(mod_.UiDocument(*document));
     }
     return {};
   }
@@ -576,7 +576,13 @@ void WasmPlugin::Observe(wasm::FrameEvent& frame) {
 }
 
 void WasmPlugin::Tick() {
-  host_.documents.Expire(wasm::UiDocuments::Clock::now());
+  // Tell the mod about each of its documents that ran out of time.
+  if (instance_) {
+    for (const auto& expired : ui_.ExpireDocuments(host_.documents, wasm::UiDocuments::Clock::now())) {
+      static_cast<void>(mod_.UiDocument(expired));
+    }
+  }
+
   // A build that waited for the hold's release replaces the running one
   // outside the mod's own calls.
   if (waiting_ && !held_) {

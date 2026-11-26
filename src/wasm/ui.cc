@@ -407,8 +407,8 @@ uint64_t NextDocumentControl() {
 
 }  // namespace
 
-std::optional<std::string> UiDocuments::Take(int32_t slot, uint64_t control, uint64_t& last,
-                                             std::string_view frame, Clock::time_point now) {
+DocumentResult UiDocuments::Take(int32_t slot, uint64_t control, uint64_t& last,
+                                std::string_view frame, Clock::time_point now) {
   // Match the control and submission before changing any pending transfer.
   if (frame.size() > 320 || Decimal(TakeField(frame)) != control) {
     return std::nullopt;
@@ -418,20 +418,22 @@ std::optional<std::string> UiDocuments::Take(int32_t slot, uint64_t control, uin
     return std::nullopt;
   }
   auto found = transfers_.find(slot);
-  if (found != transfers_.end() && now >= found->second.until) {
-    transfers_.erase(found);
-    found = transfers_.end();
-  }
+
+  // A submission starts only while the player has none in flight. One past
+  // the limit fails at once, before any of its bytes arrive.
   if (frame.starts_with("b:")) {
     const auto total = Decimal(frame.substr(2));
-    if (!total || *total > kLimit || *serial <= last || found != transfers_.end()) {
+    if (!total || *serial <= last || found != transfers_.end()) {
       return std::nullopt;
     }
     last = *serial;
+    if (*total > kLimit) {
+      return std::unexpected(ui::DOCUMENT_FAILURE_TOO_LARGE);
+    }
+    const auto until =
+        now + kDeadline + std::chrono::milliseconds(*total * 1000 / kBytesPerSecond);
     auto [started, inserted] = transfers_.try_emplace(
-        slot,
-        Transfer{
-            control, *serial, static_cast<size_t>(*total), now + std::chrono::seconds(20), {}});
+        slot, Transfer{control, *serial, static_cast<size_t>(*total), until, {}});
     static_cast<void>(inserted);
     started->second.bytes.reserve(static_cast<size_t>(*total));
     return std::nullopt;
@@ -440,29 +442,41 @@ std::optional<std::string> UiDocuments::Take(int32_t slot, uint64_t control, uin
       found->second.serial != *serial) {
     return std::nullopt;
   }
+
+  // A frame after the deadline ends the transfer as expired, even before the
+  // tick's expiry reaches it.
   auto& transfer = found->second;
-  const bool finish = frame == "e";
+  if (now >= transfer.until) {
+    transfers_.erase(found);
+    return std::unexpected(ui::DOCUMENT_FAILURE_EXPIRED);
+  }
   if (frame.starts_with("p:")) {
-    frame.remove_prefix(2);
-    const auto offset = Decimal(TakeField(frame));
+    // Read the chunk from a copy, so a malformed chunk never leaves frame
+    // looking like an end or a cancel below.
+    auto chunk = frame.substr(2);
+    const auto offset = Decimal(TakeField(chunk));
     constexpr size_t kChunk = 180;
     const auto count = std::min(kChunk, transfer.total - transfer.bytes.size());
-    if (offset == transfer.bytes.size() && count != 0 && frame.size() == (count * 4 + 2) / 3) {
-      if (auto decoded = DecodeBase64Url(frame); decoded && decoded->size() == count) {
+    if (offset == transfer.bytes.size() && count != 0 && chunk.size() == (count * 4 + 2) / 3) {
+      if (auto decoded = DecodeBase64Url(chunk); decoded && decoded->size() == count) {
         transfer.bytes.append(*decoded);
         return std::nullopt;
       }
     }
   }
+
   // Any other frame ends this transfer. Remove it before calling the mod so
   // replayed completion or changes made inside its callback cannot deliver twice.
   auto bytes = std::move(transfer.bytes);
   const auto complete = bytes.size() == transfer.total;
   transfers_.erase(found);
-  if (finish && complete && !bytes.contains('\0') && IsUtf8(bytes)) {
+  if (frame == "x") {
+    return std::unexpected(ui::DOCUMENT_FAILURE_CANCELLED);
+  }
+  if (frame == "e" && complete && !bytes.contains('\0') && IsUtf8(bytes)) {
     return bytes;
   }
-  return std::nullopt;
+  return std::unexpected(ui::DOCUMENT_FAILURE_MALFORMED);
 }
 
 void UiDocuments::Cancel(int32_t slot, uint64_t control) {
@@ -472,12 +486,21 @@ void UiDocuments::Cancel(int32_t slot, uint64_t control) {
   }
 }
 
-void UiDocuments::Expire(Clock::time_point now) {
-  if (transfers_.empty() || now < check_at_) {
-    return;
+std::vector<int32_t> UiDocuments::Expire(Clock::time_point now,
+                                         const std::map<int32_t, uint64_t>& controls) {
+  // A player has at most one transfer, so the walk is short.
+  std::vector<int32_t> expired;
+  for (auto each = transfers_.begin(); each != transfers_.end();) {
+    const auto owner = controls.find(each->first);
+    if (now >= each->second.until && owner != controls.end() &&
+        owner->second == each->second.control) {
+      expired.push_back(each->first);
+      each = transfers_.erase(each);
+    } else {
+      ++each;
+    }
   }
-  check_at_ = now + std::chrono::seconds(1);
-  std::erase_if(transfers_, [now](const auto& each) { return now >= each.second.until; });
+  return expired;
 }
 
 std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& change,
@@ -591,9 +614,11 @@ uint64_t UiTrees::DocumentControl(int32_t slot) const {
   return found == document_controls_.end() ? 0 : found->second;
 }
 
-std::optional<ui::UiInputEvent> UiTrees::Document(int32_t slot, std::string_view node,
-                                                  std::string_view frame, UiDocuments& documents,
-                                                  UiDocuments::Clock::time_point now) {
+std::optional<ui::UiDocumentEvent> UiTrees::Document(int32_t slot, std::string_view node,
+                                                     std::string_view frame,
+                                                     UiDocuments& documents,
+                                                     UiDocuments::Clock::time_point now) {
+  // Only the slot's current form takes frames.
   const auto control = DocumentControl(slot);
   if (!control) {
     return std::nullopt;
@@ -603,15 +628,40 @@ std::optional<ui::UiInputEvent> UiTrees::Document(int32_t slot, std::string_view
   if (found == tree.end() || found->second.document_control != control) {
     return std::nullopt;
   }
-  auto value = documents.Take(slot, control, found->second.last_submission, frame, now);
-  if (!value) {
+  auto result = documents.Take(slot, control, found->second.last_submission, frame, now);
+  if (!result) {
     return std::nullopt;
   }
-  ui::UiInputEvent event;
+
+  // The frame ended the submission: report its text or its failure.
+  ui::UiDocumentEvent event;
   event.set_player(slot);
   event.set_node(node);
-  event.set_text(std::move(*value));
+  if (*result) {
+    event.mutable_delivered()->set_text(std::move(**result));
+  } else {
+    event.mutable_failed()->set_reason(result->error());
+  }
   return event;
+}
+
+std::vector<ui::UiDocumentEvent> UiTrees::ExpireDocuments(UiDocuments& documents,
+                                                          UiDocuments::Clock::time_point now) {
+  // Name each expired submission by the form that holds its control.
+  std::vector<ui::UiDocumentEvent> events;
+  for (const auto slot : documents.Expire(now, document_controls_)) {
+    auto& event = events.emplace_back();
+    event.set_player(slot);
+    event.mutable_failed()->set_reason(ui::DOCUMENT_FAILURE_EXPIRED);
+    const auto control = document_controls_.at(slot);
+    for (const auto& [id, shown] : trees_.at(slot)) {
+      if (shown.document_control == control) {
+        event.set_node(id);
+        break;
+      }
+    }
+  }
+  return events;
 }
 
 bool UiTrees::IsButton(int32_t slot, std::string_view node) const {
