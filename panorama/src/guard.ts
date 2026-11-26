@@ -97,6 +97,15 @@ export interface Scope {
   readonly restoring: boolean
 }
 
+/** STATUS_CLASSES are the classes the game gives a crowd control indicator, spelled as it spells them. */
+const STATUS_CLASSES = [
+  'Stunned',
+  'Silenced',
+  'Disarmed',
+  'Asleep',
+  'Immobolized',
+]
+
 /** Finder returns a part's panels under the game's HUD. */
 export type Finder = (hud: GuardPanel, scope: Scope) => GuardPanel[]
 
@@ -171,6 +180,14 @@ export const finders: Partial<Record<HudPart, Finder>> = {
   [HudPart.CROSSHAIR]: (hud) => ownPanel(hud, 'crosshair'),
   [HudPart.CAST_FAILED]: (hud) => ownPanel(hud, 'cast_failed_box'),
   [HudPart.EVENT_INDICATORS]: (hud) => ownPanel(hud, 'HudEventIndicatorsPanel'),
+  // The game marks each status indicator with its status's class
+  // (hud_event_indicator_status_impact.css), and makes one per event.
+  [HudPart.STATUS_INDICATORS]: (hud) => {
+    const indicators = hud.FindChildTraverse('HudEventIndicatorsPanel')
+    return STATUS_CLASSES.flatMap(
+      (status) => indicators?.FindChildrenWithClassTraverse(status) ?? [],
+    )
+  },
   [HudPart.ALL]: (hud, scope) => everything(hud, scope),
 }
 

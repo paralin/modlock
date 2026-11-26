@@ -448,6 +448,11 @@ enum HudPart {
   // each event that affects the player, such as a status applied to them, an
   // item they used or souls they picked up.
   HUD_PART_EVENT_INDICATORS = 17;
+
+  // HUD_PART_STATUS_INDICATORS is the event indicators that name a crowd
+  // control status applied to the player: stunned, silenced, disarmed, asleep
+  // or immobilized. Damage and healing numbers and items used stay.
+  HUD_PART_STATUS_INDICATORS = 18;
 }
 
 // Kind selects the panel a node draws.

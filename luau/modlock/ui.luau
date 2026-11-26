@@ -202,7 +202,8 @@ export type Style = {
 -- beside the stats, "crosshair" the crosshair with its clip ring, ammo count
 -- and stamina pips, "castFailed" the notice of an ability the player could
 -- not cast, "eventIndicators" the icons and numbers the game floats at each
--- event that affects the player, and "all" the whole HUD but the mods' own interfaces, the
+-- event that affects the player, "statusIndicators" only those that name a
+-- crowd control status, such as a stun, and "all" the whole HUD but the mods' own interfaces, the
 -- game's tooltips and its chat, for a screen that takes the player's whole
 -- view. Whatever a part does not name stays.
 export type HudPart =
@@ -222,6 +223,7 @@ export type HudPart =
 	| "crosshair"
 	| "castFailed"
 	| "eventIndicators"
+	| "statusIndicators"
 	| "all"
 
 -- Element is one element of an interface, as its function builds it.

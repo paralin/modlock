@@ -1434,9 +1434,21 @@ test("hides the game's HUD parts while a live screen claims them", () => {
   for (const panel of whole) expect(panel.visible).toBe(false)
   expect(hud.health.visible).toBe(true)
 
+  // Status indicators hide only the crowd control ones, and one the game
+  // floats later hides on the next tick.
+  const stun = hud.add(hud.indicators, '', 'WindowRoot', 'Stunned')
+  const damage = hud.add(hud.indicators, '', 'WindowRoot', 'cumulative')
+  stock.screen(parts('HUD_PART_STATUS_INDICATORS'))
+  expect(stun.visible).toBe(false)
+  expect(damage.visible).toBe(true)
+  expect(hud.indicators.visible).toBe(true)
+  const silence = hud.add(hud.indicators, '', 'WindowRoot', 'Silenced')
+  runScheduled()
+  expect(silence.visible).toBe(false)
+
   // A relay that ended shows everything again, and the ticks stop.
   stock.screen(null)
-  for (const panel of [...whole, hud.boon, later, hud.clip])
+  for (const panel of [...whole, hud.boon, later, hud.clip, stun, silence])
     expect(panel.visible).toBe(true)
   runScheduled()
   expect(scheduled.size).toBe(0)
