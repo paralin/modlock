@@ -1823,7 +1823,8 @@ export class Drawing {
     const menu =
       kind === Kind.MENU && node.menu && !surface
         ? this.menus.mount(
-            `${mod}/${id}`,
+            mod,
+            id,
             panel,
             node.menu,
             style.flowChildren ?? 'none',

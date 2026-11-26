@@ -5096,6 +5096,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "mode", "enum", enum=_MenuMode),
             wire.Field(2, "open_label", "string"),
             wire.Field(3, "open_request", "uint32"),
+            wire.Field(4, "priority", "int32"),
         ],
     ),
     "DocumentInput": (

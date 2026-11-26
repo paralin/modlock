@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Consumed while blocked: a request the shop declines is lost",
+    "replace": [
+      ["IF Blocked(p) THEN pending' = p", "IF Blocked(p) THEN pending' = None"]
+    ],
+    "expect": "KeptWhenBlocked"
+  },
+  {
+    "name": "No priority: a warning displaces its own mod's open alert",
+    "replace": [
+      ["(Mod[x] # Mod[s] \\/ Priority[x] > Priority[s])", "Mod[x] # Mod[s]"]
+    ],
+    "expect": "PriorityHolds"
+  },
+  {
+    "name": "Ignores the overlay: a waiting menu opens over the shop",
+    "replace": [["Blocked(s) == stock \\/", "Blocked(s) == FALSE \\/"]],
+    "expect": "StockWins"
+  },
+  {
+    "name": "No tick: a waiting request never opens after the overlay clears",
+    "replace": [["/\\ SF_vars(Tick) ", ""]],
+    "expect": "ShowsWhenClear"
+  },
+  {
+    "name": "Withdrawn but kept: a removed menu stays waiting",
+    "replace": [
+      [
+        "/\\ pending' = IF pending = s THEN None ELSE pending\n",
+        "/\\ UNCHANGED pending\n"
+      ]
+    ],
+    "expect": "OnlyMounted"
+  }
+]
