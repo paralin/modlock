@@ -32,15 +32,28 @@ export function test(name: string, body: () => void): void {
 /** it is test. */
 export const it = test
 
-/** same reports whether a and b are the same JSON value. */
+/**
+ * same reports whether a and b are the same JSON value. Key order is not part
+ * of a value, since builds differ in the order they create an object's keys.
+ */
 function same(a: unknown, b: unknown): boolean {
-  return json(a) === json(b)
+  return json(a, sorted) === json(b, sorted)
 }
 
-/** json writes value as JSON, a bigint as its digits. */
-function json(value: unknown): string {
+/** sorted returns a plain object with its keys in order, and anything else as it is. */
+function sorted(v: unknown): unknown {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) return v
+  const out: Record<string, unknown> = {}
+  for (const key of Object.keys(v).sort()) {
+    out[key] = (v as Record<string, unknown>)[key]
+  }
+  return out
+}
+
+/** json writes value as JSON, a bigint as its digits, each value through order. */
+function json(value: unknown, order = (v: unknown) => v): string {
   return JSON.stringify(value, (_, v: unknown) =>
-    typeof v === 'bigint' ? String(v) : v,
+    order(typeof v === 'bigint' ? String(v) : v),
   )
 }
 
