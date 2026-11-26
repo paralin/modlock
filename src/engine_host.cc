@@ -12,6 +12,7 @@
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/frame_hook.h"
+#include "modlock/gameinterop/game_data.h"
 #include "modlock/gameinterop/game_rules.h"
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/respawn_guard.h"
@@ -186,6 +187,11 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     }
     impl_->modules.push_back(std::move(*loaded));
   }
+
+  // Resolve the game data before any hook rewrites the code its patterns
+  // read. A gap disables only the features that need it, so the host logs it
+  // and plays on.
+  gameinterop::ResolveGameData();
 
   // Keep every ability from a client its owner does not reach, whatever any
   // mod does, since such an ability crashes the client. A server without the

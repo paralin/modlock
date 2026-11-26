@@ -44,11 +44,6 @@ void Game::WorldReady() {
   static_cast<void>(services_.EntityCalls());
   static_cast<void>(services_.Selection());
 
-  // Find every recorded server function now. Each is a scan of the whole
-  // module, which would otherwise run inside the first call that needs it.
-  if (const auto image = services_.Image()) {
-    gameinterop::ResolveModuleSignatures(**image, gameinterop::GameModule::kServer);
-  }
   for (auto* module : modules_) {
     module->WorldReady();
   }

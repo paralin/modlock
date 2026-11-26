@@ -150,6 +150,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/free_for_all_relations.cc
   src/gameinterop/transmit_hook.cc
   src/gameinterop/frame_timing.cc
+  src/gameinterop/game_data.cc
   src/gameinterop/game_rules.cc
   src/gameinterop/game_signatures.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/gameinterop/game_signatures_data.cc

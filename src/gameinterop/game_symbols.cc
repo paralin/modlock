@@ -173,14 +173,17 @@ std::expected<void*, std::string> ResolveSignature(const ModuleImage& image, std
   return ResolveKept(image, *signature);
 }
 
-size_t ResolveModuleSignatures(const ModuleImage& image, GameModule module) {
-  size_t unresolved = 0;
+std::vector<GameDataGap> ResolveModuleSignatures(const ModuleImage& image, GameModule module) {
+  std::vector<GameDataGap> gaps;
   for (const auto& signature : GameSignatures()) {
-    if (signature.In(module) && !ResolveKept(image, signature)) {
-      ++unresolved;
+    if (!signature.In(module)) {
+      continue;
+    }
+    if (auto address = ResolveKept(image, signature); !address) {
+      gaps.push_back({.id = std::string(signature.id), .error = std::move(address.error())});
     }
   }
-  return unresolved;
+  return gaps;
 }
 
 std::expected<void, std::string> ResolveSignatures(const ModuleImage& image,

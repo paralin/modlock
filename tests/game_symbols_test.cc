@@ -290,9 +290,12 @@ signatures { id: "b.engine" modules: GAME_MODULE_ENGINE pattern: "DD" shape: "a 
 
   // Resolving a module's signatures keeps both hits and misses.
   LoadedImage missing(0x3000);
-  EXPECT_EQ(ResolveModuleSignatures(missing, GameModule::kServer), 1);
+  const auto gaps = ResolveModuleSignatures(missing, GameModule::kServer);
+  ASSERT_EQ(gaps.size(), 1);
+  EXPECT_EQ(gaps.front().id, "a.server");
+  EXPECT_NE(gaps.front().error.find("a.server"), std::string::npos);
   missing.bytes[4] = 0xcc;
-  EXPECT_EQ(ResolveModuleSignatures(missing, GameModule::kServer), 1);
+  EXPECT_EQ(ResolveModuleSignatures(missing, GameModule::kServer).size(), 1);
   EXPECT_EQ(missing.reads, 1);
 
   // Cached misses never read the image, at either size.
@@ -313,7 +316,7 @@ signatures { id: "b.engine" modules: GAME_MODULE_ENGINE pattern: "DD" shape: "a 
   LoadedImage module(0x4000);
   module.bytes[8] = 0xdd;
   module.bytes[4] = 0xcc;
-  EXPECT_EQ(ResolveModuleSignatures(module, GameModule::kServer), 0);
+  EXPECT_TRUE(ResolveModuleSignatures(module, GameModule::kServer).empty());
 
   // It keeps the module's addresses and leaves another module's alone.
   module.bytes[4] = 0xe9;

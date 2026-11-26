@@ -130,10 +130,21 @@ struct GameSignatureLoad {
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> ResolveSignature(
     const ModuleImage& image, std::string_view id);
 
+// GameDataGap is a recorded signature or virtual slot that did not resolve in
+// the running game. Only the features that need it are unavailable.
+struct GameDataGap {
+  // id is the recorded id, such as "ability.think".
+  std::string id;
+  // error says why it did not resolve, naming the id.
+  std::string error;
+};
+
 // ResolveModuleSignatures resolves every recorded signature of module in
-// image and returns how many did not resolve. Run on a loaded image before
-// play, it moves each scan out of the first call that needs the address.
-MODLOCK_API size_t ResolveModuleSignatures(const ModuleImage& image, GameModule module);
+// image and returns those that did not resolve, in id order. Run on a loaded
+// image before play, it moves each scan out of the first call that needs the
+// address.
+MODLOCK_API std::vector<GameDataGap> ResolveModuleSignatures(const ModuleImage& image,
+                                                             GameModule module);
 
 // SignatureCall names a recorded signature and the pointer its address fills,
 // usually a function pointer in a table of resolved calls.
