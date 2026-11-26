@@ -2481,6 +2481,12 @@ class ModClient {
     return Send<void>("UiAction", event);
   }
 
+  // UiOverlay reports the stock overlay that now holds a player's input, to
+  // a mod whose root follows overlays.
+  std::expected<void, std::string> UiOverlay(const ui::UiOverlayEvent& event) {
+    return Send<void>("UiOverlay", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

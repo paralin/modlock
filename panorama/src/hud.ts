@@ -116,6 +116,18 @@ export function gameActionMods(
   return following
 }
 
+/** overlayMods lists the mods whose roots in screen follow the stock overlays. */
+export function overlayMods(screen: Screen | null): Set<string> {
+  return new Set(
+    (screen?.trees ?? [])
+      .filter(
+        (tree) =>
+          tree.nodes?.find((node) => (node.id ?? '') === '')?.followsOverlay,
+      )
+      .map((tree) => tree.mod ?? ''),
+  )
+}
+
 /** abilityBarMods lists the mods whose roots in screen ask for clicks on the ability bar. */
 export function abilityBarMods(screen: Screen | null): string[] {
   return (screen?.trees ?? [])

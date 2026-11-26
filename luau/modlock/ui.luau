@@ -21,6 +21,7 @@ local modlock = require("@modlock")
 type Player = modlock.Player
 type GameAction = modlock.GameAction
 type ActionPhase = modlock.ActionPhase
+type Overlay = modlock.Overlay
 type Wheel = modlock.Wheel
 
 local ui = {}
@@ -563,6 +564,9 @@ export type AbilityBarHandler = (player: Player, slot: number) -> ()
 -- ActionHandler takes one phase of a game action player used.
 export type ActionHandler = (player: Player, phase: ActionPhase) -> ()
 
+-- OverlayHandler takes the stock overlay that now holds player's input.
+export type OverlayHandler = (player: Player, overlay: Overlay) -> ()
+
 -- Node is one node of the interface tree as the wire carries it.
 type Node = { [string]: any }
 
@@ -614,6 +618,8 @@ type View = {
 	bar: AbilityBarHandler?,
 	-- actions takes each phase of the game actions the mod follows.
 	actions: { [GameAction]: ActionHandler },
+	-- overlay takes each stock overlay change, while the mod follows them.
+	overlay: OverlayHandler?,
 	-- display is the abilities shown on Tab's rows and the ability bar.
 	display: { AbilityRow },
 	-- notices are the toasts showing, oldest first.
@@ -1410,6 +1416,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 		cues = table.clone(current.cues),
 		abilityBarPresses = current.bar ~= nil,
 		gameActions = followed(current.actions),
+		followsOverlay = current.overlay ~= nil,
 		abilityDisplay = display,
 	})
 
@@ -1544,6 +1551,17 @@ end
 -- player's HUD.
 function ui.followAction(player: Player, action: GameAction, onPhase: ActionHandler?): boolean
 	view(player).actions[action] = onPhase
+	return draw(player)
+end
+
+-- followOverlay calls onChange with the stock overlay, such as "chat",
+-- "shop" or "escapeMenu", that holds player's input: first the current one,
+-- then each time a different one takes it, or "none" as the game gets it
+-- back. When several are open it names the first of chat, the shop, the build
+-- editor, the item draft, a popup and the escape menu. Without onChange the
+-- mod stops following.
+function ui.followOverlay(player: Player, onChange: OverlayHandler?): boolean
+	view(player).overlay = onChange
 	return draw(player)
 end
 
@@ -1693,6 +1711,15 @@ local function act(player: Player, action: GameAction, phase: ActionPhase)
 	end
 end
 
+-- overlaid runs the handler of the mod that follows the player's overlays.
+local function overlaid(player: Player, overlay: Overlay)
+	local current = views[player.slot]
+	local handler = if current then current.overlay else nil
+	if handler then
+		handler(player, overlay)
+	end
+end
+
 -- press runs the handler of the button the player pressed.
 local function press(player: Player, node: string)
 	-- A click on the game's ability bar names its slot, which no button's id
@@ -1769,6 +1796,6 @@ end
 
 -- Take the interface's events from the library, which loads without this
 -- module.
-wireCodec = modlock.serveInterface({ press = press, change = change, act = act, tick = tick, players = forget })
+wireCodec = modlock.serveInterface({ press = press, change = change, act = act, overlay = overlaid, tick = tick, players = forget })
 
 return ui

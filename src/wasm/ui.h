@@ -102,6 +102,12 @@ class UiTrees {
   [[nodiscard]] std::expected<ui::UiActionEvent, std::string> GameAction(
       int32_t slot, std::string_view line) const;
 
+  // Overlay reads the stock overlay a player's game reports, its enum's
+  // number, and returns the event the mod hears from slot while slot's root
+  // follows overlays.
+  [[nodiscard]] std::expected<ui::UiOverlayEvent, std::string> Overlay(
+      int32_t slot, std::string_view line) const;
+
   // Input checks value, as a player's game sends it, against the input named
   // node in slot's tree and returns the event the mod hears. A text entry's
   // value is its UTF-8 text in unpadded base64url, a slider's a decimal
@@ -161,6 +167,8 @@ class UiTrees {
     bool ability_bar = false;
     // game_actions is the root's list of game actions it follows.
     std::vector<ui::GameAction> game_actions;
+    // follows_overlay is the root's ask for each change of stock overlay.
+    bool follows_overlay = false;
   };
 
   // Keep returns what the host keeps of node.

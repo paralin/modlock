@@ -118,11 +118,13 @@ import {
   type ActionPhase,
   type ChatEvent,
   type GameAction,
+  type Overlay,
   type Player,
   readField,
   type DocumentFailure,
   type UiDocumentEvent,
   type UiActionEvent,
+  type UiOverlayEvent,
   type Wheel,
 } from './host.gen.js'
 import { call } from './host.js'
@@ -877,6 +879,36 @@ export function acted(event: UiActionEvent): void {
   views.get(player.slot)?.actions.get(action)?.handler(player, phase)
 }
 
+/** OverlayHandler takes the stock overlay that now holds player's input. */
+export type OverlayHandler = (player: Player, overlay: Overlay) => void
+
+/**
+ * followOverlay calls onChange with the stock overlay, such as 'chat', 'shop'
+ * or 'escapeMenu', that holds player's input: first the current one, then
+ * each time a different one takes it, or 'none' as the game gets it back.
+ * When several are open it names the first of chat, the shop, the build
+ * editor, the item draft, a popup and the escape menu. Without onChange the
+ * mod stops following.
+ */
+export function followOverlay(
+  player: Player,
+  onChange?: OverlayHandler,
+): boolean {
+  // Replace the view, so a draw sees whether the root follows overlays.
+  const current = view(player)
+  views.set(player.slot, {
+    ...current,
+    overlay: onChange && { handler: onChange },
+  })
+  return draw(player, [])
+}
+
+/** overlaid runs the handler of the mod that follows a player's overlays. */
+export function overlaid(event: UiOverlayEvent): void {
+  const { player, overlay } = event
+  views.get(player.slot)?.overlay?.handler(player, overlay ?? 'none')
+}
+
 /** ShownAbility is the ability abilityDisplay shows in one slot. */
 export interface ShownAbility {
   /** name is the ability's class name, whose window the game shows over it. */
@@ -1230,6 +1262,8 @@ interface View {
   readonly bar: { readonly handler: AbilityBarHandler } | undefined
   /** actions takes each phase of the game actions the mod follows. */
   readonly actions: ReadonlyMap<GameAction, { readonly handler: ActionHandler }>
+  /** overlay takes each stock overlay change, while the mod follows them. */
+  readonly overlay: { readonly handler: OverlayHandler } | undefined
   /** display is the abilities shown on Tab's rows and the ability bar. */
   readonly display: readonly AbilityRow[]
   notices: readonly Notice[]
@@ -1286,6 +1320,7 @@ function view(player: Player): View {
       cues: [],
       bar: undefined,
       actions: new Map(),
+      overlay: undefined,
       display: [],
       notices: [],
     }
@@ -1390,6 +1425,7 @@ function compose(
     gameActions: [...current.actions.keys()].map(
       (action) => gameActions[action],
     ),
+    followsOverlay: current.overlay !== undefined,
     abilityDisplay: displayRows(player, current.display),
   }
 

@@ -29,6 +29,9 @@ type view struct {
 	bar func(p mod.Player, slot int)
 	// actions takes each phase of the game actions the mod follows.
 	actions map[mod.GameAction]func(p mod.Player, phase mod.ActionPhase)
+	// overlay takes each stock overlay that takes or gives back the input,
+	// while the mod follows them.
+	overlay func(p mod.Player, overlay mod.Overlay)
 	// display is the abilities shown on Tab's rows and the ability bar.
 	display []AbilityRow
 	// notices are the toasts showing, oldest first.
@@ -196,6 +199,7 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 		Cues:              slices.Clone(v.cues),
 		AbilityBarPresses: v.bar != nil,
 		GameActions:       slices.Sorted(maps.Keys(v.actions)),
+		FollowsOverlay:    v.overlay != nil,
 		AbilityDisplay:    display,
 	})
 
@@ -393,6 +397,14 @@ func act(event *mod.UiActionEvent) {
 		if h := v.actions[event.GetAction()]; h != nil {
 			h(p, event.GetPhase())
 		}
+	}
+}
+
+// overlaid runs the handler of the mod that follows the player's overlays.
+func overlaid(event *mod.UiOverlayEvent) {
+	p := mod.PlayerOf(event.GetPlayer())
+	if v := lib.views[p.Slot()]; v != nil && v.overlay != nil {
+		v.overlay(p, event.GetOverlay())
 	}
 }
 

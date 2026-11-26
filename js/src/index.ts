@@ -54,6 +54,7 @@ import { advance, after } from './timer.js'
 import { chatShown } from './chat.js'
 import {
   acted,
+  overlaid,
   away,
   change,
   heard,
@@ -183,6 +184,8 @@ export {
   type AbilityBarHandler,
   followAction,
   type ActionHandler,
+  followOverlay,
+  type OverlayHandler,
   abilityDisplay,
   type AbilityRow,
   type ShownAbility,
@@ -833,6 +836,11 @@ const handlers: ModHandlers = {
   uiAction(event) {
     // A game action runs with the next frame, as a press does.
     after(0, () => acted(event))
+  },
+
+  uiOverlay(event) {
+    // An overlay change runs with the next frame, as a press does.
+    after(0, () => overlaid(event))
   },
 
   serve(event) {

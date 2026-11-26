@@ -79,6 +79,39 @@ TEST(UiTrees, TakesGameActionsOnlyWhileTheRootFollowsThem) {
   EXPECT_FALSE(trees.GameAction(3, "1 2"));
 }
 
+TEST(UiTrees, TakesOverlaysOnlyWhileTheRootFollowsThem) {
+  // A root that does not follow overlays takes none.
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  EXPECT_FALSE(trees.Overlay(3, "1"));
+
+  // A root that follows them takes each overlay, none included.
+  auto follows = Set("", modlock::wasm::ui::KIND_PANEL);
+  follows.mutable_set(0)->set_follows_overlay(true);
+  ASSERT_TRUE(trees.Apply(3, follows));
+  auto chat = trees.Overlay(3, "1");
+  ASSERT_TRUE(chat) << chat.error();
+  EXPECT_EQ(chat->player(), 3);
+  EXPECT_EQ(chat->overlay(), modlock::wasm::ui::OVERLAY_CHAT);
+  EXPECT_EQ(trees.Overlay(3, "0")->overlay(), modlock::wasm::ui::OVERLAY_NONE);
+  EXPECT_EQ(trees.Overlay(3, "6")->overlay(), modlock::wasm::ui::OVERLAY_ESCAPE_MENU);
+
+  // An unknown overlay, another player and a malformed line are refused.
+  for (const char* line : {"7", "-1", "1 1", "a", ""}) {
+    EXPECT_FALSE(trees.Overlay(3, line)) << line;
+  }
+  EXPECT_FALSE(trees.Overlay(4, "1"));
+
+  // A child's flag does not count, and a root that stops following takes none.
+  auto child = Set("panel", modlock::wasm::ui::KIND_PANEL);
+  child.mutable_set(0)->set_follows_overlay(true);
+  ASSERT_TRUE(trees.Apply(4, Set("", modlock::wasm::ui::KIND_PANEL)));
+  ASSERT_TRUE(trees.Apply(4, child));
+  EXPECT_FALSE(trees.Overlay(4, "1"));
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  EXPECT_FALSE(trees.Overlay(3, "1"));
+}
+
 TEST(UiTrees, TakesAbilityBarPressesOnlyWhileTheRootAsks) {
   // A root without the ask takes no bar press, even with a button of that id.
   UiTrees trees;

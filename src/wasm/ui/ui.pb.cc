@@ -90,6 +90,32 @@ struct UiPressEventDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UiPressEventDefaultTypeInternal _UiPressEvent_default_instance_;
 
+inline constexpr UiOverlayEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_{0},
+        overlay_{static_cast< ::modlock::wasm::ui::Overlay >(0)} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR UiOverlayEvent::UiOverlayEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(UiOverlayEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct UiOverlayEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR UiOverlayEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~UiOverlayEventDefaultTypeInternal() {}
+  union {
+    UiOverlayEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UiOverlayEventDefaultTypeInternal _UiOverlayEvent_default_instance_;
+
 inline constexpr UiActionEvent::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -1040,6 +1066,7 @@ inline constexpr Node::Impl_::Impl_(
         item_{0u},
         free_cursor_asks_{0u},
         ability_{0u},
+        follows_overlay_{false},
         input_{},
         _oneof_case_{} {}
 
@@ -1178,7 +1205,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[18];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[19];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = nullptr;
 const ::uint32_t
@@ -1194,7 +1221,7 @@ const ::uint32_t
         0x085, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_._oneof_case_[0]),
-        50, // hasbit index offset
+        51, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.id_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.kind_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.children_),
@@ -1240,6 +1267,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.document_input_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.document_text_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.game_actions_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.follows_overlay_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Node, _impl_.input_),
         6,
         21,
@@ -1286,6 +1314,7 @@ const ::uint32_t
         37,
         34,
         32,
+        41,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Clock, _impl_._has_bits_),
         8, // hasbit index offset
@@ -1713,6 +1742,13 @@ const ::uint32_t
         1,
         2,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiOverlayEvent, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiOverlayEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiOverlayEvent, _impl_.overlay_),
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiRequest, _impl_._has_bits_),
         5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiRequest, _impl_.player_),
@@ -1725,41 +1761,42 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::ui::Node_VariablesEntry_DoNotUse)},
         {7, sizeof(::modlock::wasm::ui::Node)},
-        {102, sizeof(::modlock::wasm::ui::Clock)},
-        {115, sizeof(::modlock::wasm::ui::AbilityRow)},
-        {128, sizeof(::modlock::wasm::ui::ShownAbility)},
-        {137, sizeof(::modlock::wasm::ui::Cue)},
-        {148, sizeof(::modlock::wasm::ui::Menu)},
-        {157, sizeof(::modlock::wasm::ui::DocumentInput)},
-        {166, sizeof(::modlock::wasm::ui::TextEntry)},
-        {175, sizeof(::modlock::wasm::ui::Slider)},
-        {188, sizeof(::modlock::wasm::ui::Wheel)},
-        {195, sizeof(::modlock::wasm::ui::Toggle)},
-        {200, sizeof(::modlock::wasm::ui::Dropdown)},
-        {207, sizeof(::modlock::wasm::ui::Cycle)},
-        {216, sizeof(::modlock::wasm::ui::Style)},
-        {313, sizeof(::modlock::wasm::ui::Clip)},
-        {318, sizeof(::modlock::wasm::ui::ClipRect)},
-        {329, sizeof(::modlock::wasm::ui::ClipRadial)},
-        {340, sizeof(::modlock::wasm::ui::Gradient)},
-        {347, sizeof(::modlock::wasm::ui::GradientStop)},
-        {354, sizeof(::modlock::wasm::ui::Shadow)},
-        {369, sizeof(::modlock::wasm::ui::Transform)},
-        {386, sizeof(::modlock::wasm::ui::Transition)},
-        {397, sizeof(::modlock::wasm::ui::Curve)},
-        {408, sizeof(::modlock::wasm::ui::Length)},
-        {415, sizeof(::modlock::wasm::ui::Edges)},
-        {426, sizeof(::modlock::wasm::ui::Change)},
-        {437, sizeof(::modlock::wasm::ui::Tree)},
-        {450, sizeof(::modlock::wasm::ui::Region)},
-        {461, sizeof(::modlock::wasm::ui::Screen)},
-        {466, sizeof(::modlock::wasm::ui::UiPressEvent)},
-        {477, sizeof(::modlock::wasm::ui::UiInputEvent)},
-        {496, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
-        {509, sizeof(::modlock::wasm::ui::DocumentDelivered)},
-        {514, sizeof(::modlock::wasm::ui::DocumentFailed)},
-        {519, sizeof(::modlock::wasm::ui::UiActionEvent)},
-        {528, sizeof(::modlock::wasm::ui::UiRequest)},
+        {104, sizeof(::modlock::wasm::ui::Clock)},
+        {117, sizeof(::modlock::wasm::ui::AbilityRow)},
+        {130, sizeof(::modlock::wasm::ui::ShownAbility)},
+        {139, sizeof(::modlock::wasm::ui::Cue)},
+        {150, sizeof(::modlock::wasm::ui::Menu)},
+        {159, sizeof(::modlock::wasm::ui::DocumentInput)},
+        {168, sizeof(::modlock::wasm::ui::TextEntry)},
+        {177, sizeof(::modlock::wasm::ui::Slider)},
+        {190, sizeof(::modlock::wasm::ui::Wheel)},
+        {197, sizeof(::modlock::wasm::ui::Toggle)},
+        {202, sizeof(::modlock::wasm::ui::Dropdown)},
+        {209, sizeof(::modlock::wasm::ui::Cycle)},
+        {218, sizeof(::modlock::wasm::ui::Style)},
+        {315, sizeof(::modlock::wasm::ui::Clip)},
+        {320, sizeof(::modlock::wasm::ui::ClipRect)},
+        {331, sizeof(::modlock::wasm::ui::ClipRadial)},
+        {342, sizeof(::modlock::wasm::ui::Gradient)},
+        {349, sizeof(::modlock::wasm::ui::GradientStop)},
+        {356, sizeof(::modlock::wasm::ui::Shadow)},
+        {371, sizeof(::modlock::wasm::ui::Transform)},
+        {388, sizeof(::modlock::wasm::ui::Transition)},
+        {399, sizeof(::modlock::wasm::ui::Curve)},
+        {410, sizeof(::modlock::wasm::ui::Length)},
+        {417, sizeof(::modlock::wasm::ui::Edges)},
+        {428, sizeof(::modlock::wasm::ui::Change)},
+        {439, sizeof(::modlock::wasm::ui::Tree)},
+        {452, sizeof(::modlock::wasm::ui::Region)},
+        {463, sizeof(::modlock::wasm::ui::Screen)},
+        {468, sizeof(::modlock::wasm::ui::UiPressEvent)},
+        {479, sizeof(::modlock::wasm::ui::UiInputEvent)},
+        {498, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
+        {511, sizeof(::modlock::wasm::ui::DocumentDelivered)},
+        {516, sizeof(::modlock::wasm::ui::DocumentFailed)},
+        {521, sizeof(::modlock::wasm::ui::UiActionEvent)},
+        {530, sizeof(::modlock::wasm::ui::UiOverlayEvent)},
+        {537, sizeof(::modlock::wasm::ui::UiRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_Node_VariablesEntry_DoNotUse_default_instance_._instance,
@@ -1798,12 +1835,13 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_DocumentDelivered_default_instance_._instance,
     &::modlock::wasm::ui::_DocumentFailed_default_instance_._instance,
     &::modlock::wasm::ui::_UiActionEvent_default_instance_._instance,
+    &::modlock::wasm::ui::_UiOverlayEvent_default_instance_._instance,
     &::modlock::wasm::ui::_UiRequest_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n/github.com/paralin/modlock/src/wasm/ui"
-    "/ui.proto\022\017modlock.wasm.ui\"\357\n\n\004Node\022\n\n\002i"
+    "/ui.proto\022\017modlock.wasm.ui\"\210\013\n\004Node\022\n\n\002i"
     "d\030\001 \001(\t\022#\n\004kind\030\002 \001(\0162\025.modlock.wasm.ui."
     "Kind\022\020\n\010children\030\003 \003(\t\022\014\n\004text\030\004 \001(\t\022\r\n\005"
     "image\030\005 \001(\t\022%\n\005style\030\006 \001(\0132\026.modlock.was"
@@ -1837,199 +1875,206 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "ent_input\030+ \001(\0132\036.modlock.wasm.ui.Docume"
     "ntInput\022\025\n\rdocument_text\030, \001(\t\0221\n\014game_a"
     "ctions\030- \003(\0162\033.modlock.wasm.ui.GameActio"
-    "n\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu"
-    "e\030\002 \001(\t:\0028\001B\007\n\005input\"o\n\005Clock\022\017\n\007seconds"
-    "\030\001 \001(\001\022\n\n\002up\030\002 \001(\010\022\016\n\006paused\030\003 \001(\010\022,\n\006fo"
-    "rmat\030\004 \001(\0162\034.modlock.wasm.ui.ClockFormat"
-    "\022\013\n\003run\030\005 \001(\r\"w\n\nAbilityRow\022\016\n\006player\030\001 "
-    "\001(\r\022\014\n\004name\030\002 \001(\t\022\014\n\004hero\030\003 \001(\t\022\013\n\003own\030\004"
-    " \001(\010\0220\n\tabilities\030\005 \003(\0132\035.modlock.wasm.u"
-    "i.ShownAbility\"@\n\014ShownAbility\022\017\n\007abilit"
-    "y\030\001 \001(\r\022\r\n\005image\030\002 \001(\t\022\020\n\010upgrades\030\003 \001(\r"
-    "\"D\n\003Cue\022\016\n\006number\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\022\017"
-    "\n\007seconds\030\003 \001(\002\022\r\n\005delay\030\004 \001(\002\"Y\n\004Menu\022\'"
-    "\n\004mode\030\001 \001(\0162\031.modlock.wasm.ui.MenuMode\022"
-    "\022\n\nopen_label\030\002 \001(\t\022\024\n\014open_request\030\003 \001("
-    "\r\"K\n\rDocumentInput\022\023\n\013placeholder\030\001 \001(\t\022"
-    "\024\n\014submit_label\030\002 \001(\t\022\017\n\007control\030\003 \001(\004\"B"
-    "\n\tTextEntry\022\014\n\004text\030\001 \001(\t\022\023\n\013placeholder"
-    "\030\002 \001(\t\022\022\n\nmax_length\030\003 \001(\r\"N\n\006Slider\022\r\n\005"
-    "value\030\001 \001(\002\022\013\n\003min\030\002 \001(\002\022\013\n\003max\030\003 \001(\002\022\014\n"
-    "\004step\030\004 \001(\002\022\r\n\005wheel\030\005 \001(\010\"(\n\005Wheel\022\r\n\005d"
-    "elta\030\001 \001(\002\022\020\n\010fraction\030\002 \001(\002\"\024\n\006Toggle\022\n"
-    "\n\002on\030\001 \001(\010\"-\n\010Dropdown\022\017\n\007options\030\001 \003(\t\022"
-    "\020\n\010selected\030\002 \001(\r\"N\n\005Cycle\022%\n\005style\030\001 \001("
-    "\0132\026.modlock.wasm.ui.Style\022\017\n\007seconds\030\002 \001"
-    "(\002\022\r\n\005count\030\003 \001(\r\"\277\014\n\005Style\022&\n\005width\030\001 \001"
-    "(\0132\027.modlock.wasm.ui.Length\022\'\n\006height\030\002 "
-    "\001(\0132\027.modlock.wasm.ui.Length\022#\n\004flow\030\003 \001"
-    "(\0162\025.modlock.wasm.ui.Flow\0220\n\020horizontal_"
-    "align\030\004 \001(\0162\026.modlock.wasm.ui.Align\022.\n\016v"
-    "ertical_align\030\005 \001(\0162\026.modlock.wasm.ui.Al"
-    "ign\022&\n\006margin\030\006 \001(\0132\026.modlock.wasm.ui.Ed"
-    "ges\022\'\n\007padding\030\007 \001(\0132\026.modlock.wasm.ui.E"
-    "dges\022\022\n\nbackground\030\010 \001(\007\022\r\n\005color\030\t \001(\007\022"
-    "\021\n\tfont_size\030\n \001(\002\022\014\n\004bold\030\013 \001(\010\022*\n\ntext"
-    "_align\030\014 \001(\0162\026.modlock.wasm.ui.Align\022\025\n\r"
-    "border_radius\030\r \001(\002\022\024\n\007opacity\030\016 \001(\002H\000\210\001"
-    "\001\022#\n\004face\030\017 \001(\0162\025.modlock.wasm.ui.Face\022\021"
-    "\n\tuppercase\030\020 \001(\010\022\026\n\016letter_spacing\030\021 \001("
-    "\002\022\016\n\006shadow\030\022 \001(\010\022\024\n\014border_width\030\023 \001(\002\022"
-    "\024\n\014border_color\030\024 \001(\007\022\"\n\001x\030\025 \001(\0132\027.modlo"
-    "ck.wasm.ui.Length\022\"\n\001y\030\026 \001(\0132\027.modlock.w"
-    "asm.ui.Length\022*\n\tmin_width\030\027 \001(\0132\027.modlo"
-    "ck.wasm.ui.Length\022*\n\tmax_width\030\030 \001(\0132\027.m"
-    "odlock.wasm.ui.Length\022+\n\nmin_height\030\031 \001("
-    "\0132\027.modlock.wasm.ui.Length\022+\n\nmax_height"
-    "\030\032 \001(\0132\027.modlock.wasm.ui.Length\022\017\n\007z_ind"
-    "ex\030\033 \001(\005\022-\n\noverflow_x\030\034 \001(\0162\031.modlock.w"
-    "asm.ui.Overflow\022-\n\noverflow_y\030\035 \001(\0162\031.mo"
-    "dlock.wasm.ui.Overflow\022+\n\010gradient\030\036 \001(\013"
-    "2\031.modlock.wasm.ui.Gradient\022+\n\nbox_shado"
-    "w\030\037 \001(\0132\027.modlock.wasm.ui.Shadow\022,\n\013text"
-    "_shadow\030  \001(\0132\027.modlock.wasm.ui.Shadow\022\014"
-    "\n\004tint\030! \001(\007\022\027\n\nsaturation\030\" \001(\002H\001\210\001\001\022\027\n"
-    "\nbrightness\030# \001(\002H\002\210\001\001\022\025\n\010contrast\030$ \001(\002"
-    "H\003\210\001\001\022\014\n\004blur\030% \001(\002\022\016\n\006italic\030& \001(\010\022\'\n\006w"
-    "eight\030\' \001(\0162\027.modlock.wasm.ui.Weight\022\023\n\013"
-    "line_height\030( \001(\002\022\017\n\007no_wrap\030) \001(\010\0224\n\rte"
-    "xt_overflow\030* \001(\0162\035.modlock.wasm.ui.Text"
-    "Overflow\022/\n\ndecoration\030+ \001(\0162\033.modlock.w"
-    "asm.ui.Decoration\022-\n\ttransform\030, \001(\0132\032.m"
-    "odlock.wasm.ui.Transform\022/\n\ntransition\030-"
-    " \001(\0132\033.modlock.wasm.ui.Transition\022#\n\004cli"
-    "p\030. \001(\0132\025.modlock.wasm.ui.Clip\022\014\n\004turn\030/"
-    " \001(\002B\n\n\010_opacityB\r\n\013_saturationB\r\n\013_brig"
-    "htnessB\013\n\t_contrast\"i\n\004Clip\022)\n\004rect\030\001 \001("
-    "\0132\031.modlock.wasm.ui.ClipRectH\000\022-\n\006radial"
-    "\030\002 \001(\0132\033.modlock.wasm.ui.ClipRadialH\000B\007\n"
-    "\005shape\"D\n\010ClipRect\022\013\n\003top\030\001 \001(\002\022\r\n\005right"
-    "\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"r\n\n"
-    "ClipRadial\022\025\n\010center_x\030\001 \001(\002H\000\210\001\001\022\025\n\010cen"
-    "ter_y\030\002 \001(\002H\001\210\001\001\022\r\n\005start\030\003 \001(\002\022\r\n\005sweep"
-    "\030\004 \001(\002B\013\n\t_center_xB\013\n\t_center_y\"g\n\010Grad"
-    "ient\022-\n\005shape\030\001 \001(\0162\036.modlock.wasm.ui.Gr"
-    "adientShape\022,\n\005stops\030\002 \003(\0132\035.modlock.was"
-    "m.ui.GradientStop\")\n\014GradientStop\022\n\n\002at\030"
-    "\001 \001(\002\022\r\n\005color\030\002 \001(\007\"Z\n\006Shadow\022\t\n\001x\030\001 \001("
-    "\002\022\t\n\001y\030\002 \001(\002\022\014\n\004blur\030\003 \001(\002\022\016\n\006spread\030\004 \001"
-    "(\002\022\r\n\005color\030\005 \001(\007\022\r\n\005inset\030\006 \001(\010\"\321\001\n\tTra"
-    "nsform\022\023\n\013translate_x\030\001 \001(\002\022\023\n\013translate"
-    "_y\030\002 \001(\002\022\024\n\007scale_x\030\003 \001(\002H\000\210\001\001\022\024\n\007scale_"
-    "y\030\004 \001(\002H\001\210\001\001\022\016\n\006rotate\030\005 \001(\002\022\025\n\010origin_x"
-    "\030\006 \001(\002H\002\210\001\001\022\025\n\010origin_y\030\007 \001(\002H\003\210\001\001B\n\n\010_s"
-    "cale_xB\n\n\010_scale_yB\013\n\t_origin_xB\013\n\t_orig"
-    "in_y\"|\n\nTransition\022\017\n\007seconds\030\001 \001(\002\022\r\n\005d"
-    "elay\030\002 \001(\002\022\'\n\006easing\030\003 \001(\0162\027.modlock.was"
-    "m.ui.Easing\022%\n\005curve\030\004 \001(\0132\026.modlock.was"
-    "m.ui.Curve\"7\n\005Curve\022\n\n\002x1\030\001 \001(\002\022\n\n\002y1\030\002 "
-    "\001(\002\022\n\n\002x2\030\003 \001(\002\022\n\n\002y2\030\004 \001(\002\"^\n\006Length\022\020\n"
-    "\006pixels\030\001 \001(\002H\000\022\021\n\007percent\030\002 \001(\002H\000\022\026\n\014fi"
-    "t_children\030\003 \001(\010H\000\022\016\n\004fill\030\004 \001(\002H\000B\007\n\005va"
-    "lue\"A\n\005Edges\022\013\n\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002"
-    "\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"`\n\006Change"
-    "\022\r\n\005reset\030\001 \001(\010\022\"\n\003set\030\002 \003(\0132\025.modlock.w"
-    "asm.ui.Node\022\017\n\007removed\030\003 \003(\t\022\022\n\ngenerati"
-    "on\030\004 \001(\004\"\205\001\n\004Tree\022\013\n\003mod\030\001 \001(\t\022$\n\005nodes\030"
-    "\002 \003(\0132\025.modlock.wasm.ui.Node\022\'\n\006region\030\003"
-    " \001(\0132\027.modlock.wasm.ui.Region\022\r\n\005addon\030\004"
-    " \001(\t\022\022\n\ngeneration\030\005 \001(\004\"B\n\006Region\022\014\n\004le"
-    "ft\030\001 \001(\002\022\013\n\003top\030\002 \001(\002\022\r\n\005width\030\003 \001(\002\022\016\n\006"
-    "height\030\004 \001(\002\".\n\006Screen\022$\n\005trees\030\001 \003(\0132\025."
-    "modlock.wasm.ui.Tree\"M\n\014UiPressEvent\022\016\n\006"
-    "player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\006action\030\003 \001"
-    "(\t\022\017\n\007payload\030\004 \001(\t\"\240\001\n\014UiInputEvent\022\016\n\006"
-    "player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\004text\030\003 \001(\t"
-    "H\000\022\020\n\006number\030\004 \001(\002H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006ch"
-    "oice\030\006 \001(\rH\000\022\'\n\005wheel\030\007 \001(\0132\026.modlock.wa"
-    "sm.ui.WheelH\000B\007\n\005value\"\245\001\n\017UiDocumentEve"
-    "nt\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\0227\n\tdeli"
-    "vered\030\003 \001(\0132\".modlock.wasm.ui.DocumentDe"
-    "liveredH\000\0221\n\006failed\030\004 \001(\0132\037.modlock.wasm"
-    ".ui.DocumentFailedH\000B\010\n\006result\"!\n\021Docume"
-    "ntDelivered\022\014\n\004text\030\001 \001(\t\"B\n\016DocumentFai"
-    "led\0220\n\006reason\030\001 \001(\0162 .modlock.wasm.ui.Do"
-    "cumentFailure\"y\n\rUiActionEvent\022\016\n\006player"
-    "\030\001 \001(\005\022+\n\006action\030\002 \001(\0162\033.modlock.wasm.ui"
-    ".GameAction\022+\n\005phase\030\003 \001(\0162\034.modlock.was"
-    "m.ui.ActionPhase\"D\n\tUiRequest\022\016\n\006player\030"
-    "\001 \001(\005\022\'\n\006change\030\002 \001(\0132\027.modlock.wasm.ui."
-    "Change*Z\n\013ClockFormat\022\030\n\024CLOCK_FORMAT_MI"
-    "NUTES\020\000\022\030\n\024CLOCK_FORMAT_SECONDS\020\001\022\027\n\023CLO"
-    "CK_FORMAT_TENTHS\020\002*\230\001\n\007Scaling\022\023\n\017SCALIN"
-    "G_DEFAULT\020\000\022\017\n\013SCALING_FIT\020\001\022\021\n\rSCALING_"
-    "COVER\020\002\022\023\n\017SCALING_STRETCH\020\003\022\025\n\021SCALING_"
-    "FIT_WIDTH\020\004\022\026\n\022SCALING_FIT_HEIGHT\020\005\022\020\n\014S"
-    "CALING_NONE\020\006*\215\001\n\010HeroLook\022\023\n\017HERO_LOOK_"
-    "SMALL\020\000\022\022\n\016HERO_LOOK_CARD\020\001\022\022\n\016HERO_LOOK"
-    "_ICON\020\002\022\026\n\022HERO_LOOK_VERTICAL\020\003\022\025\n\021HERO_"
-    "LOOK_TOP_BAR\020\004\022\025\n\021HERO_LOOK_MINIMAP\020\005*A\n"
-    "\nGameAction\022\027\n\023GAME_ACTION_UNKNOWN\020\000\022\032\n\026"
-    "GAME_ACTION_SCOREBOARD\020\001*x\n\013ActionPhase\022"
-    "\030\n\024ACTION_PHASE_UNKNOWN\020\000\022\030\n\024ACTION_PHAS"
-    "E_PRESSED\020\001\022\031\n\025ACTION_PHASE_RELEASED\020\002\022\032"
-    "\n\026ACTION_PHASE_CANCELLED\020\003*\325\003\n\007HudPart\022\024"
-    "\n\020HUD_PART_UNKNOWN\020\000\022\025\n\021HUD_PART_LEVEL_U"
-    "P\020\001\022\027\n\023HUD_PART_OWN_HEALTH\020\002\022\024\n\020HUD_PART"
-    "_TOP_BAR\020\003\022\021\n\rHUD_PART_AMMO\020\004\022\022\n\016HUD_PAR"
-    "T_SOULS\020\005\022\024\n\020HUD_PART_MINIMAP\020\006\022\026\n\022HUD_P"
-    "ART_ABILITIES\020\007\022\023\n\017HUD_PART_STATUS\020\010\022\022\n\016"
-    "HUD_PART_STATS\020\t\022\030\n\024HUD_PART_HERO_PICKER"
-    "\020\n\022\035\n\031HUD_PART_BROKER_COUNTDOWN\020\013\022\020\n\014HUD"
-    "_PART_ALL\020\014\022\034\n\030HUD_PART_MINIMAP_PLAYERS\020"
-    "\r\022\026\n\022HUD_PART_INVENTORY\020\016\022\026\n\022HUD_PART_CR"
-    "OSSHAIR\020\017\022\030\n\024HUD_PART_CAST_FAILED\020\020\022\035\n\031H"
-    "UD_PART_EVENT_INDICATORS\020\021\022\036\n\032HUD_PART_S"
-    "TATUS_INDICATORS\020\022*\365\001\n\004Kind\022\016\n\nKIND_PANE"
-    "L\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n\nKIND_IMAGE\020\002\022\017\n\013K"
-    "IND_BUTTON\020\003\022\017\n\013KIND_LAYOUT\020\004\022\016\n\nKIND_RO"
-    "UTE\020\005\022\023\n\017KIND_HERO_IMAGE\020\006\022\016\n\nKIND_INPUT"
-    "\020\007\022\017\n\013KIND_AVATAR\020\010\022\r\n\tKIND_MENU\020\t\022\023\n\017KI"
-    "ND_MENU_CLOSE\020\n\022\027\n\023KIND_DOCUMENT_INPUT\020\013"
-    "\022\030\n\024KIND_DOCUMENT_OUTPUT\020\014*J\n\010MenuMode\022\024"
-    "\n\020MENU_MODE_MANUAL\020\000\022\024\n\020MENU_MODE_TOGGLE"
-    "\020\001\022\022\n\016MENU_MODE_HOLD\020\002*p\n\010Overflow\022\024\n\020OV"
-    "ERFLOW_DEFAULT\020\000\022\023\n\017OVERFLOW_SQUISH\020\001\022\021\n"
-    "\rOVERFLOW_CLIP\020\002\022\023\n\017OVERFLOW_SCROLL\020\003\022\021\n"
-    "\rOVERFLOW_SHOW\020\004*\215\001\n\rGradientShape\022\027\n\023GR"
-    "ADIENT_SHAPE_DOWN\020\000\022\030\n\024GRADIENT_SHAPE_RI"
-    "GHT\020\001\022\025\n\021GRADIENT_SHAPE_UP\020\002\022\027\n\023GRADIENT"
-    "_SHAPE_LEFT\020\003\022\031\n\025GRADIENT_SHAPE_RADIAL\020\004"
-    "*\236\001\n\006Weight\022\022\n\016WEIGHT_DEFAULT\020\000\022\017\n\013WEIGH"
-    "T_THIN\020\001\022\020\n\014WEIGHT_LIGHT\020\002\022\021\n\rWEIGHT_NOR"
-    "MAL\020\003\022\021\n\rWEIGHT_MEDIUM\020\004\022\024\n\020WEIGHT_SEMI_"
-    "BOLD\020\005\022\017\n\013WEIGHT_BOLD\020\006\022\020\n\014WEIGHT_BLACK\020"
-    "\007*w\n\014TextOverflow\022\031\n\025TEXT_OVERFLOW_DEFAU"
-    "LT\020\000\022\032\n\026TEXT_OVERFLOW_ELLIPSIS\020\001\022\030\n\024TEXT"
-    "_OVERFLOW_SHRINK\020\002\022\026\n\022TEXT_OVERFLOW_CLIP"
-    "\020\003*R\n\nDecoration\022\023\n\017DECORATION_NONE\020\000\022\030\n"
-    "\024DECORATION_UNDERLINE\020\001\022\025\n\021DECORATION_ST"
-    "RIKE\020\002*\\\n\006Easing\022\023\n\017EASING_EASE_OUT\020\000\022\022\n"
-    "\016EASING_EASE_IN\020\001\022\026\n\022EASING_EASE_IN_OUT\020"
-    "\002\022\021\n\rEASING_LINEAR\020\003*G\n\004Face\022\020\n\014FACE_DEF"
-    "AULT\020\000\022\r\n\tFACE_BODY\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n"
-    "\nFACE_SERIF\020\003*]\n\004Flow\022\r\n\tFLOW_NONE\020\000\022\r\n\t"
-    "FLOW_DOWN\020\001\022\016\n\nFLOW_RIGHT\020\002\022\022\n\016FLOW_DOWN"
-    "_WRAP\020\003\022\023\n\017FLOW_RIGHT_WRAP\020\004*9\n\005Align\022\017\n"
-    "\013ALIGN_START\020\000\022\020\n\014ALIGN_CENTER\020\001\022\r\n\tALIG"
-    "N_END\020\002*\255\001\n\017DocumentFailure\022\034\n\030DOCUMENT_"
-    "FAILURE_UNKNOWN\020\000\022\036\n\032DOCUMENT_FAILURE_TO"
-    "O_LARGE\020\001\022\034\n\030DOCUMENT_FAILURE_EXPIRED\020\002\022"
-    "\036\n\032DOCUMENT_FAILURE_CANCELLED\020\003\022\036\n\032DOCUM"
-    "ENT_FAILURE_MALFORMED\020\004B+Z)github.com/pa"
-    "ralin/modlock/src/wasm/ui;uib\006proto3"
+    "n\022\027\n\017follows_overlay\0301 \001(\010\0320\n\016VariablesE"
+    "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\007\n\005"
+    "input\"o\n\005Clock\022\017\n\007seconds\030\001 \001(\001\022\n\n\002up\030\002 "
+    "\001(\010\022\016\n\006paused\030\003 \001(\010\022,\n\006format\030\004 \001(\0162\034.mo"
+    "dlock.wasm.ui.ClockFormat\022\013\n\003run\030\005 \001(\r\"w"
+    "\n\nAbilityRow\022\016\n\006player\030\001 \001(\r\022\014\n\004name\030\002 \001"
+    "(\t\022\014\n\004hero\030\003 \001(\t\022\013\n\003own\030\004 \001(\010\0220\n\tabiliti"
+    "es\030\005 \003(\0132\035.modlock.wasm.ui.ShownAbility\""
+    "@\n\014ShownAbility\022\017\n\007ability\030\001 \001(\r\022\r\n\005imag"
+    "e\030\002 \001(\t\022\020\n\010upgrades\030\003 \001(\r\"D\n\003Cue\022\016\n\006numb"
+    "er\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002"
+    "\022\r\n\005delay\030\004 \001(\002\"Y\n\004Menu\022\'\n\004mode\030\001 \001(\0162\031."
+    "modlock.wasm.ui.MenuMode\022\022\n\nopen_label\030\002"
+    " \001(\t\022\024\n\014open_request\030\003 \001(\r\"K\n\rDocumentIn"
+    "put\022\023\n\013placeholder\030\001 \001(\t\022\024\n\014submit_label"
+    "\030\002 \001(\t\022\017\n\007control\030\003 \001(\004\"B\n\tTextEntry\022\014\n\004"
+    "text\030\001 \001(\t\022\023\n\013placeholder\030\002 \001(\t\022\022\n\nmax_l"
+    "ength\030\003 \001(\r\"N\n\006Slider\022\r\n\005value\030\001 \001(\002\022\013\n\003"
+    "min\030\002 \001(\002\022\013\n\003max\030\003 \001(\002\022\014\n\004step\030\004 \001(\002\022\r\n\005"
+    "wheel\030\005 \001(\010\"(\n\005Wheel\022\r\n\005delta\030\001 \001(\002\022\020\n\010f"
+    "raction\030\002 \001(\002\"\024\n\006Toggle\022\n\n\002on\030\001 \001(\010\"-\n\010D"
+    "ropdown\022\017\n\007options\030\001 \003(\t\022\020\n\010selected\030\002 \001"
+    "(\r\"N\n\005Cycle\022%\n\005style\030\001 \001(\0132\026.modlock.was"
+    "m.ui.Style\022\017\n\007seconds\030\002 \001(\002\022\r\n\005count\030\003 \001"
+    "(\r\"\277\014\n\005Style\022&\n\005width\030\001 \001(\0132\027.modlock.wa"
+    "sm.ui.Length\022\'\n\006height\030\002 \001(\0132\027.modlock.w"
+    "asm.ui.Length\022#\n\004flow\030\003 \001(\0162\025.modlock.wa"
+    "sm.ui.Flow\0220\n\020horizontal_align\030\004 \001(\0162\026.m"
+    "odlock.wasm.ui.Align\022.\n\016vertical_align\030\005"
+    " \001(\0162\026.modlock.wasm.ui.Align\022&\n\006margin\030\006"
+    " \001(\0132\026.modlock.wasm.ui.Edges\022\'\n\007padding\030"
+    "\007 \001(\0132\026.modlock.wasm.ui.Edges\022\022\n\nbackgro"
+    "und\030\010 \001(\007\022\r\n\005color\030\t \001(\007\022\021\n\tfont_size\030\n "
+    "\001(\002\022\014\n\004bold\030\013 \001(\010\022*\n\ntext_align\030\014 \001(\0162\026."
+    "modlock.wasm.ui.Align\022\025\n\rborder_radius\030\r"
+    " \001(\002\022\024\n\007opacity\030\016 \001(\002H\000\210\001\001\022#\n\004face\030\017 \001(\016"
+    "2\025.modlock.wasm.ui.Face\022\021\n\tuppercase\030\020 \001"
+    "(\010\022\026\n\016letter_spacing\030\021 \001(\002\022\016\n\006shadow\030\022 \001"
+    "(\010\022\024\n\014border_width\030\023 \001(\002\022\024\n\014border_color"
+    "\030\024 \001(\007\022\"\n\001x\030\025 \001(\0132\027.modlock.wasm.ui.Leng"
+    "th\022\"\n\001y\030\026 \001(\0132\027.modlock.wasm.ui.Length\022*"
+    "\n\tmin_width\030\027 \001(\0132\027.modlock.wasm.ui.Leng"
+    "th\022*\n\tmax_width\030\030 \001(\0132\027.modlock.wasm.ui."
+    "Length\022+\n\nmin_height\030\031 \001(\0132\027.modlock.was"
+    "m.ui.Length\022+\n\nmax_height\030\032 \001(\0132\027.modloc"
+    "k.wasm.ui.Length\022\017\n\007z_index\030\033 \001(\005\022-\n\nove"
+    "rflow_x\030\034 \001(\0162\031.modlock.wasm.ui.Overflow"
+    "\022-\n\noverflow_y\030\035 \001(\0162\031.modlock.wasm.ui.O"
+    "verflow\022+\n\010gradient\030\036 \001(\0132\031.modlock.wasm"
+    ".ui.Gradient\022+\n\nbox_shadow\030\037 \001(\0132\027.modlo"
+    "ck.wasm.ui.Shadow\022,\n\013text_shadow\030  \001(\0132\027"
+    ".modlock.wasm.ui.Shadow\022\014\n\004tint\030! \001(\007\022\027\n"
+    "\nsaturation\030\" \001(\002H\001\210\001\001\022\027\n\nbrightness\030# \001"
+    "(\002H\002\210\001\001\022\025\n\010contrast\030$ \001(\002H\003\210\001\001\022\014\n\004blur\030%"
+    " \001(\002\022\016\n\006italic\030& \001(\010\022\'\n\006weight\030\' \001(\0162\027.m"
+    "odlock.wasm.ui.Weight\022\023\n\013line_height\030( \001"
+    "(\002\022\017\n\007no_wrap\030) \001(\010\0224\n\rtext_overflow\030* \001"
+    "(\0162\035.modlock.wasm.ui.TextOverflow\022/\n\ndec"
+    "oration\030+ \001(\0162\033.modlock.wasm.ui.Decorati"
+    "on\022-\n\ttransform\030, \001(\0132\032.modlock.wasm.ui."
+    "Transform\022/\n\ntransition\030- \001(\0132\033.modlock."
+    "wasm.ui.Transition\022#\n\004clip\030. \001(\0132\025.modlo"
+    "ck.wasm.ui.Clip\022\014\n\004turn\030/ \001(\002B\n\n\010_opacit"
+    "yB\r\n\013_saturationB\r\n\013_brightnessB\013\n\t_cont"
+    "rast\"i\n\004Clip\022)\n\004rect\030\001 \001(\0132\031.modlock.was"
+    "m.ui.ClipRectH\000\022-\n\006radial\030\002 \001(\0132\033.modloc"
+    "k.wasm.ui.ClipRadialH\000B\007\n\005shape\"D\n\010ClipR"
+    "ect\022\013\n\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006botto"
+    "m\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"r\n\nClipRadial\022\025\n\010c"
+    "enter_x\030\001 \001(\002H\000\210\001\001\022\025\n\010center_y\030\002 \001(\002H\001\210\001"
+    "\001\022\r\n\005start\030\003 \001(\002\022\r\n\005sweep\030\004 \001(\002B\013\n\t_cent"
+    "er_xB\013\n\t_center_y\"g\n\010Gradient\022-\n\005shape\030\001"
+    " \001(\0162\036.modlock.wasm.ui.GradientShape\022,\n\005"
+    "stops\030\002 \003(\0132\035.modlock.wasm.ui.GradientSt"
+    "op\")\n\014GradientStop\022\n\n\002at\030\001 \001(\002\022\r\n\005color\030"
+    "\002 \001(\007\"Z\n\006Shadow\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\014\n"
+    "\004blur\030\003 \001(\002\022\016\n\006spread\030\004 \001(\002\022\r\n\005color\030\005 \001"
+    "(\007\022\r\n\005inset\030\006 \001(\010\"\321\001\n\tTransform\022\023\n\013trans"
+    "late_x\030\001 \001(\002\022\023\n\013translate_y\030\002 \001(\002\022\024\n\007sca"
+    "le_x\030\003 \001(\002H\000\210\001\001\022\024\n\007scale_y\030\004 \001(\002H\001\210\001\001\022\016\n"
+    "\006rotate\030\005 \001(\002\022\025\n\010origin_x\030\006 \001(\002H\002\210\001\001\022\025\n\010"
+    "origin_y\030\007 \001(\002H\003\210\001\001B\n\n\010_scale_xB\n\n\010_scal"
+    "e_yB\013\n\t_origin_xB\013\n\t_origin_y\"|\n\nTransit"
+    "ion\022\017\n\007seconds\030\001 \001(\002\022\r\n\005delay\030\002 \001(\002\022\'\n\006e"
+    "asing\030\003 \001(\0162\027.modlock.wasm.ui.Easing\022%\n\005"
+    "curve\030\004 \001(\0132\026.modlock.wasm.ui.Curve\"7\n\005C"
+    "urve\022\n\n\002x1\030\001 \001(\002\022\n\n\002y1\030\002 \001(\002\022\n\n\002x2\030\003 \001(\002"
+    "\022\n\n\002y2\030\004 \001(\002\"^\n\006Length\022\020\n\006pixels\030\001 \001(\002H\000"
+    "\022\021\n\007percent\030\002 \001(\002H\000\022\026\n\014fit_children\030\003 \001("
+    "\010H\000\022\016\n\004fill\030\004 \001(\002H\000B\007\n\005value\"A\n\005Edges\022\013\n"
+    "\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001("
+    "\002\022\014\n\004left\030\004 \001(\002\"`\n\006Change\022\r\n\005reset\030\001 \001(\010"
+    "\022\"\n\003set\030\002 \003(\0132\025.modlock.wasm.ui.Node\022\017\n\007"
+    "removed\030\003 \003(\t\022\022\n\ngeneration\030\004 \001(\004\"\205\001\n\004Tr"
+    "ee\022\013\n\003mod\030\001 \001(\t\022$\n\005nodes\030\002 \003(\0132\025.modlock"
+    ".wasm.ui.Node\022\'\n\006region\030\003 \001(\0132\027.modlock."
+    "wasm.ui.Region\022\r\n\005addon\030\004 \001(\t\022\022\n\ngenerat"
+    "ion\030\005 \001(\004\"B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013\n\003top"
+    "\030\002 \001(\002\022\r\n\005width\030\003 \001(\002\022\016\n\006height\030\004 \001(\002\".\n"
+    "\006Screen\022$\n\005trees\030\001 \003(\0132\025.modlock.wasm.ui"
+    ".Tree\"M\n\014UiPressEvent\022\016\n\006player\030\001 \001(\005\022\014\n"
+    "\004node\030\002 \001(\t\022\016\n\006action\030\003 \001(\t\022\017\n\007payload\030\004"
+    " \001(\t\"\240\001\n\014UiInputEvent\022\016\n\006player\030\001 \001(\005\022\014\n"
+    "\004node\030\002 \001(\t\022\016\n\004text\030\003 \001(\tH\000\022\020\n\006number\030\004 "
+    "\001(\002H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006choice\030\006 \001(\rH\000\022\'\n"
+    "\005wheel\030\007 \001(\0132\026.modlock.wasm.ui.WheelH\000B\007"
+    "\n\005value\"\245\001\n\017UiDocumentEvent\022\016\n\006player\030\001 "
+    "\001(\005\022\014\n\004node\030\002 \001(\t\0227\n\tdelivered\030\003 \001(\0132\".m"
+    "odlock.wasm.ui.DocumentDeliveredH\000\0221\n\006fa"
+    "iled\030\004 \001(\0132\037.modlock.wasm.ui.DocumentFai"
+    "ledH\000B\010\n\006result\"!\n\021DocumentDelivered\022\014\n\004"
+    "text\030\001 \001(\t\"B\n\016DocumentFailed\0220\n\006reason\030\001"
+    " \001(\0162 .modlock.wasm.ui.DocumentFailure\"y"
+    "\n\rUiActionEvent\022\016\n\006player\030\001 \001(\005\022+\n\006actio"
+    "n\030\002 \001(\0162\033.modlock.wasm.ui.GameAction\022+\n\005"
+    "phase\030\003 \001(\0162\034.modlock.wasm.ui.ActionPhas"
+    "e\"K\n\016UiOverlayEvent\022\016\n\006player\030\001 \001(\005\022)\n\007o"
+    "verlay\030\002 \001(\0162\030.modlock.wasm.ui.Overlay\"D"
+    "\n\tUiRequest\022\016\n\006player\030\001 \001(\005\022\'\n\006change\030\002 "
+    "\001(\0132\027.modlock.wasm.ui.Change*Z\n\013ClockFor"
+    "mat\022\030\n\024CLOCK_FORMAT_MINUTES\020\000\022\030\n\024CLOCK_F"
+    "ORMAT_SECONDS\020\001\022\027\n\023CLOCK_FORMAT_TENTHS\020\002"
+    "*\230\001\n\007Scaling\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013SCA"
+    "LING_FIT\020\001\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALING"
+    "_STRETCH\020\003\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022SCA"
+    "LING_FIT_HEIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001\n\010"
+    "HeroLook\022\023\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_LO"
+    "OK_CARD\020\001\022\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_LO"
+    "OK_VERTICAL\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025\n\021"
+    "HERO_LOOK_MINIMAP\020\005*A\n\nGameAction\022\027\n\023GAM"
+    "E_ACTION_UNKNOWN\020\000\022\032\n\026GAME_ACTION_SCOREB"
+    "OARD\020\001*x\n\013ActionPhase\022\030\n\024ACTION_PHASE_UN"
+    "KNOWN\020\000\022\030\n\024ACTION_PHASE_PRESSED\020\001\022\031\n\025ACT"
+    "ION_PHASE_RELEASED\020\002\022\032\n\026ACTION_PHASE_CAN"
+    "CELLED\020\003*\227\001\n\007Overlay\022\020\n\014OVERLAY_NONE\020\000\022\020"
+    "\n\014OVERLAY_CHAT\020\001\022\020\n\014OVERLAY_SHOP\020\002\022\022\n\016OV"
+    "ERLAY_BUILDS\020\003\022\026\n\022OVERLAY_ITEM_DRAFT\020\004\022\021"
+    "\n\rOVERLAY_POPUP\020\005\022\027\n\023OVERLAY_ESCAPE_MENU"
+    "\020\006*\325\003\n\007HudPart\022\024\n\020HUD_PART_UNKNOWN\020\000\022\025\n\021"
+    "HUD_PART_LEVEL_UP\020\001\022\027\n\023HUD_PART_OWN_HEAL"
+    "TH\020\002\022\024\n\020HUD_PART_TOP_BAR\020\003\022\021\n\rHUD_PART_A"
+    "MMO\020\004\022\022\n\016HUD_PART_SOULS\020\005\022\024\n\020HUD_PART_MI"
+    "NIMAP\020\006\022\026\n\022HUD_PART_ABILITIES\020\007\022\023\n\017HUD_P"
+    "ART_STATUS\020\010\022\022\n\016HUD_PART_STATS\020\t\022\030\n\024HUD_"
+    "PART_HERO_PICKER\020\n\022\035\n\031HUD_PART_BROKER_CO"
+    "UNTDOWN\020\013\022\020\n\014HUD_PART_ALL\020\014\022\034\n\030HUD_PART_"
+    "MINIMAP_PLAYERS\020\r\022\026\n\022HUD_PART_INVENTORY\020"
+    "\016\022\026\n\022HUD_PART_CROSSHAIR\020\017\022\030\n\024HUD_PART_CA"
+    "ST_FAILED\020\020\022\035\n\031HUD_PART_EVENT_INDICATORS"
+    "\020\021\022\036\n\032HUD_PART_STATUS_INDICATORS\020\022*\365\001\n\004K"
+    "ind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n\nK"
+    "IND_IMAGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017\n\013KIND_LAY"
+    "OUT\020\004\022\016\n\nKIND_ROUTE\020\005\022\023\n\017KIND_HERO_IMAGE"
+    "\020\006\022\016\n\nKIND_INPUT\020\007\022\017\n\013KIND_AVATAR\020\010\022\r\n\tK"
+    "IND_MENU\020\t\022\023\n\017KIND_MENU_CLOSE\020\n\022\027\n\023KIND_"
+    "DOCUMENT_INPUT\020\013\022\030\n\024KIND_DOCUMENT_OUTPUT"
+    "\020\014*J\n\010MenuMode\022\024\n\020MENU_MODE_MANUAL\020\000\022\024\n\020"
+    "MENU_MODE_TOGGLE\020\001\022\022\n\016MENU_MODE_HOLD\020\002*p"
+    "\n\010Overflow\022\024\n\020OVERFLOW_DEFAULT\020\000\022\023\n\017OVER"
+    "FLOW_SQUISH\020\001\022\021\n\rOVERFLOW_CLIP\020\002\022\023\n\017OVER"
+    "FLOW_SCROLL\020\003\022\021\n\rOVERFLOW_SHOW\020\004*\215\001\n\rGra"
+    "dientShape\022\027\n\023GRADIENT_SHAPE_DOWN\020\000\022\030\n\024G"
+    "RADIENT_SHAPE_RIGHT\020\001\022\025\n\021GRADIENT_SHAPE_"
+    "UP\020\002\022\027\n\023GRADIENT_SHAPE_LEFT\020\003\022\031\n\025GRADIEN"
+    "T_SHAPE_RADIAL\020\004*\236\001\n\006Weight\022\022\n\016WEIGHT_DE"
+    "FAULT\020\000\022\017\n\013WEIGHT_THIN\020\001\022\020\n\014WEIGHT_LIGHT"
+    "\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021\n\rWEIGHT_MEDIUM\020\004"
+    "\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022\017\n\013WEIGHT_BOLD\020\006\022"
+    "\020\n\014WEIGHT_BLACK\020\007*w\n\014TextOverflow\022\031\n\025TEX"
+    "T_OVERFLOW_DEFAULT\020\000\022\032\n\026TEXT_OVERFLOW_EL"
+    "LIPSIS\020\001\022\030\n\024TEXT_OVERFLOW_SHRINK\020\002\022\026\n\022TE"
+    "XT_OVERFLOW_CLIP\020\003*R\n\nDecoration\022\023\n\017DECO"
+    "RATION_NONE\020\000\022\030\n\024DECORATION_UNDERLINE\020\001\022"
+    "\025\n\021DECORATION_STRIKE\020\002*\\\n\006Easing\022\023\n\017EASI"
+    "NG_EASE_OUT\020\000\022\022\n\016EASING_EASE_IN\020\001\022\026\n\022EAS"
+    "ING_EASE_IN_OUT\020\002\022\021\n\rEASING_LINEAR\020\003*G\n\004"
+    "Face\022\020\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BODY\020\001\022\016\n"
+    "\nFACE_BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*]\n\004Flow\022\r\n"
+    "\tFLOW_NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFLOW_RIGH"
+    "T\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003\022\023\n\017FLOW_RIGHT_WR"
+    "AP\020\004*9\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n\014ALIGN_"
+    "CENTER\020\001\022\r\n\tALIGN_END\020\002*\255\001\n\017DocumentFail"
+    "ure\022\034\n\030DOCUMENT_FAILURE_UNKNOWN\020\000\022\036\n\032DOC"
+    "UMENT_FAILURE_TOO_LARGE\020\001\022\034\n\030DOCUMENT_FA"
+    "ILURE_EXPIRED\020\002\022\036\n\032DOCUMENT_FAILURE_CANC"
+    "ELLED\020\003\022\036\n\032DOCUMENT_FAILURE_MALFORMED\020\004B"
+    "+Z)github.com/paralin/modlock/src/wasm/u"
+    "i;uib\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = {
     false,
     false,
-    8636,
+    8892,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
     "github.com/paralin/modlock/src/wasm/ui/ui.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once,
     nullptr,
     0,
-    37,
+    38,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto::offsets,
@@ -2069,81 +2114,87 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ActionPhase_descripto
 }
 PROTOBUF_CONSTINIT const uint32_t ActionPhase_internal_data_[] = {
     262144u, 0u, };
-const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL HudPart_descriptor() {
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Overlay_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[5];
+}
+PROTOBUF_CONSTINIT const uint32_t Overlay_internal_data_[] = {
+    458752u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL HudPart_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[6];
 }
 PROTOBUF_CONSTINIT const uint32_t HudPart_internal_data_[] = {
     1245184u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Kind_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[6];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[7];
 }
 PROTOBUF_CONSTINIT const uint32_t Kind_internal_data_[] = {
     851968u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL MenuMode_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[7];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[8];
 }
 PROTOBUF_CONSTINIT const uint32_t MenuMode_internal_data_[] = {
     196608u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Overflow_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[8];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[9];
 }
 PROTOBUF_CONSTINIT const uint32_t Overflow_internal_data_[] = {
     327680u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL GradientShape_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[9];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[10];
 }
 PROTOBUF_CONSTINIT const uint32_t GradientShape_internal_data_[] = {
     327680u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Weight_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[10];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[11];
 }
 PROTOBUF_CONSTINIT const uint32_t Weight_internal_data_[] = {
     524288u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TextOverflow_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[11];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[12];
 }
 PROTOBUF_CONSTINIT const uint32_t TextOverflow_internal_data_[] = {
     262144u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Decoration_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[12];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[13];
 }
 PROTOBUF_CONSTINIT const uint32_t Decoration_internal_data_[] = {
     196608u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Easing_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[13];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[14];
 }
 PROTOBUF_CONSTINIT const uint32_t Easing_internal_data_[] = {
     262144u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Face_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[14];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[15];
 }
 PROTOBUF_CONSTINIT const uint32_t Face_internal_data_[] = {
     262144u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Flow_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[15];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[16];
 }
 PROTOBUF_CONSTINIT const uint32_t Flow_internal_data_[] = {
     327680u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Align_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[16];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[17];
 }
 PROTOBUF_CONSTINIT const uint32_t Align_internal_data_[] = {
     196608u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL DocumentFailure_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[17];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[18];
 }
 PROTOBUF_CONSTINIT const uint32_t DocumentFailure_internal_data_[] = {
     327680u, 0u, };
@@ -2399,9 +2450,9 @@ Node::Node(
                offsetof(Impl_, item_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, item_),
-           offsetof(Impl_, ability_) -
+           offsetof(Impl_, follows_overlay_) -
                offsetof(Impl_, item_) +
-               sizeof(Impl_::ability_));
+               sizeof(Impl_::follows_overlay_));
   switch (input_case()) {
     case INPUT_NOT_SET:
       break;
@@ -2461,9 +2512,9 @@ inline void Node::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, clock_),
            0,
-           offsetof(Impl_, ability_) -
+           offsetof(Impl_, follows_overlay_) -
                offsetof(Impl_, clock_) +
-               sizeof(Impl_::ability_));
+               sizeof(Impl_::follows_overlay_));
 }
 Node::~Node() {
   // @@protoc_insertion_point(destructor:modlock.wasm.ui.Node)
@@ -2629,16 +2680,16 @@ Node::GetClassData() const {
   return Node_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 45, 15, 174, 7>
+const ::_pbi::TcParseTable<5, 46, 15, 174, 9>
 Node::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Node, _impl_._has_bits_),
     0, // no _extensions_
-    45, 248,  // max_field_number, fast_idx_mask
+    49, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     0,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    45,  // num_field_entries
+    46,  // num_field_entries
     15,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Node_class_data_.base(),
@@ -2774,8 +2825,9 @@ Node::_table_ = {
      {504, 27, 0,
       PROTOBUF_FIELD_OFFSET(Node, _impl_.free_cursor_)}},
   }}, {{
-    33, 0, 1,
+    33, 0, 2,
     57344, 32,
+    65534, 45,
     65535, 65535
   }}, {{
     // string id = 1;
@@ -2868,6 +2920,8 @@ Node::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Node, _impl_.document_text_), _Internal::kHasBitsOffset + 34, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .modlock.wasm.ui.GameAction game_actions = 45;
     {PROTOBUF_FIELD_OFFSET(Node, _impl_.game_actions_), _Internal::kHasBitsOffset + 32, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
+    // bool follows_overlay = 49;
+    {PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_overlay_), _Internal::kHasBitsOffset + 41, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Style>()},
@@ -3032,7 +3086,11 @@ PROTOBUF_NOINLINE void Node::Clear() {
         reinterpret_cast<char*>(&_impl_.free_cursor_asks_) -
         reinterpret_cast<char*>(&_impl_.item_)) + sizeof(_impl_.free_cursor_asks_));
   }
-  _impl_.ability_ = 0u;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    ::memset(&_impl_.ability_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.follows_overlay_) -
+        reinterpret_cast<char*>(&_impl_.ability_)) + sizeof(_impl_.follows_overlay_));
+  }
   clear_input();
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -3496,6 +3554,15 @@ PROTOBUF_NOINLINE void Node::Clear() {
     }
   }
 
+  // bool follows_overlay = 49;
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (this_._internal_follows_overlay() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          49, this_._internal_follows_overlay(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3796,12 +3863,18 @@ PROTOBUF_NOINLINE void Node::Clear() {
       }
     }
   }
-   {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
     // uint32 ability = 34;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (this_._internal_ability() != 0) {
         total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
                                         this_._internal_ability());
+      }
+    }
+    // bool follows_overlay = 49;
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (this_._internal_follows_overlay() != 0) {
+        total_size += 3;
       }
     }
   }
@@ -4130,9 +4203,16 @@ void Node::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    if (from._internal_ability() != 0) {
-      _this->_impl_.ability_ = from._impl_.ability_;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (from._internal_ability() != 0) {
+        _this->_impl_.ability_ = from._impl_.ability_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (from._internal_follows_overlay() != 0) {
+        _this->_impl_.follows_overlay_ = from._impl_.follows_overlay_;
+      }
     }
   }
   _this->_impl_._has_bits_.Or(from._impl_._has_bits_);
@@ -4230,8 +4310,8 @@ void Node::InternalSwap(Node* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.speaking_, &other->_impl_.speaking_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.document_text_, &other->_impl_.document_text_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Node, _impl_.ability_)
-      + sizeof(Node::_impl_.ability_)
+      PROTOBUF_FIELD_OFFSET(Node, _impl_.follows_overlay_)
+      + sizeof(Node::_impl_.follows_overlay_)
       - PROTOBUF_FIELD_OFFSET(Node, _impl_.clock_)>(
           reinterpret_cast<char*>(&_impl_.clock_),
           reinterpret_cast<char*>(&other->_impl_.clock_));
@@ -17555,6 +17635,299 @@ void UiActionEvent::InternalSwap(UiActionEvent* PROTOBUF_RESTRICT PROTOBUF_NONNU
 }
 
 ::google::protobuf::Metadata UiActionEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class UiOverlayEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<UiOverlayEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_._has_bits_);
+};
+
+UiOverlayEvent::UiOverlayEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, UiOverlayEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.ui.UiOverlayEvent)
+}
+UiOverlayEvent::UiOverlayEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UiOverlayEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, UiOverlayEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE UiOverlayEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void UiOverlayEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, overlay_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::overlay_));
+}
+UiOverlayEvent::~UiOverlayEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.ui.UiOverlayEvent)
+  SharedDtor(*this);
+}
+inline void UiOverlayEvent::SharedDtor(MessageLite& self) {
+  UiOverlayEvent& this_ = static_cast<UiOverlayEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL UiOverlayEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) UiOverlayEvent(arena);
+}
+constexpr auto UiOverlayEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(UiOverlayEvent),
+                                            alignof(UiOverlayEvent));
+}
+constexpr auto UiOverlayEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_UiOverlayEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &UiOverlayEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<UiOverlayEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &UiOverlayEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<UiOverlayEvent>(), &UiOverlayEvent::ByteSizeLong,
+              &UiOverlayEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_._cached_size_),
+          false,
+      },
+      &UiOverlayEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull UiOverlayEvent_class_data_ =
+        UiOverlayEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+UiOverlayEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&UiOverlayEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(UiOverlayEvent_class_data_.tc_table);
+  return UiOverlayEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+UiOverlayEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    UiOverlayEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::ui::UiOverlayEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.wasm.ui.Overlay overlay = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiOverlayEvent, _impl_.overlay_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.overlay_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiOverlayEvent, _impl_.player_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.player_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // .modlock.wasm.ui.Overlay overlay = 2;
+    {PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.overlay_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void UiOverlayEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.ui.UiOverlayEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.overlay_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.overlay_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL UiOverlayEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const UiOverlayEvent& this_ = static_cast<const UiOverlayEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL UiOverlayEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const UiOverlayEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.ui.UiOverlayEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // .modlock.wasm.ui.Overlay overlay = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_overlay() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          2, this_._internal_overlay(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.ui.UiOverlayEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t UiOverlayEvent::ByteSizeLong(const MessageLite& base) {
+  const UiOverlayEvent& this_ = static_cast<const UiOverlayEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t UiOverlayEvent::ByteSizeLong() const {
+  const UiOverlayEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.ui.UiOverlayEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // .modlock.wasm.ui.Overlay overlay = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_overlay() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_overlay());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void UiOverlayEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<UiOverlayEvent*>(&to_msg);
+  auto& from = static_cast<const UiOverlayEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.ui.UiOverlayEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_overlay() != 0) {
+        _this->_impl_.overlay_ = from._impl_.overlay_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void UiOverlayEvent::CopyFrom(const UiOverlayEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.ui.UiOverlayEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void UiOverlayEvent::InternalSwap(UiOverlayEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.overlay_)
+      + sizeof(UiOverlayEvent::_impl_.overlay_)
+      - PROTOBUF_FIELD_OFFSET(UiOverlayEvent, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
+}
+
+::google::protobuf::Metadata UiOverlayEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

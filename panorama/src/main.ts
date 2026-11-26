@@ -8,13 +8,7 @@
 import { GameAction } from '../../src/wasm/ui/ui.pb.js'
 import { gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
-import {
-  AddonLayouts,
-  CHAT_OPEN,
-  Drawing,
-  inputCommand,
-  pressCommand,
-} from './draw.js'
+import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
 import { StockGuard } from './guard.js'
 import { gameHud, mountInterfaceLayer } from './mount.js'
 import {
@@ -25,8 +19,15 @@ import {
   cursorFreed,
   gameActionMods,
   hiddenParts,
+  overlayMods,
 } from './hud.js'
 import type { MenuHost } from './menu.js'
+import {
+  overlayCommand,
+  OverlayFollow,
+  OverlayReader,
+  stockOf,
+} from './overlay.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -49,35 +50,19 @@ const cursor = new Cursor((event, ...values) => {
   $.DispatchEvent(event, ...values)
 }, game)
 // menuHost tells the menus and the game actions when a stock overlay has the
-// player's input.
+// player's input, and following mods hear which one it is.
+const overlays = new OverlayReader(game)
+const following = new OverlayFollow(
+  () => overlays.read(),
+  (mod, overlay) =>
+    $.DispatchEvent('CitadelConCommand', overlayCommand(mod, overlay)),
+  (seconds, callback) => {
+    $.Schedule(seconds, callback)
+  },
+)
 const menuHost: MenuHost = {
   allowed: () => stock.allowed(),
-  stock: () => {
-    // Chat, the shop and stock popups keep their input when already open.
-    const chat = game.FindChildTraverse('Chat')
-    if (
-      chat?.BHasClass(CHAT_OPEN) ||
-      chat?.FindChildTraverse('ChatInput')?.BHasKeyFocus?.() ||
-      game.FindChildTraverse('CitadelHudHeroShop')?.BHasClass('gShopOpen') ||
-      game.BHasClass('gEditingBuilds') ||
-      game.BHasClass('gItemDraftOpen')
-    )
-      return 'other'
-    const manager = game.FindChild('PopupManager')
-    if (manager) {
-      for (let i = 0; i < manager.GetChildCount(); i++) {
-        const panel = manager.GetChild(i)
-        if (panel?.BHasClass('PopupPanel') && !panel.BHasClass('Hidden'))
-          return 'other'
-      }
-    }
-    if (
-      game.BHasClass('ShowEscapeMenu') ||
-      game.FindChild('EscapeMenu')?.BHasClass('ShowEscapeMenu')
-    )
-      return 'escape'
-    return null
-  },
+  stock: () => stockOf(overlays.read()),
   capture: (open) => cursor.menuCapture(open),
   resume: () => {
     $.DispatchEvent('CitadelResumePlaying', game)
@@ -150,6 +135,7 @@ for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
     // End every press and give back what the screen held.
     stock.leave()
     actions.cancel()
+    following.follow(new Set())
     drawing.release()
     cursor.set(false, 0)
     return false
@@ -168,6 +154,7 @@ new Bridge(
     // Each part of the renderer follows what the new screen asks of it.
     layouts.follow(screen)
     actions.follow(gameActionMods(screen))
+    following.follow(overlayMods(screen))
     stock.screen(
       screen ? hiddenParts(screen) : null,
       abilityBarMods(screen),

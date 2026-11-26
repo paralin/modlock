@@ -92,6 +92,8 @@ enum MenuMode : int;
 extern const uint32_t MenuMode_internal_data_[];
 enum Overflow : int;
 extern const uint32_t Overflow_internal_data_[];
+enum Overlay : int;
+extern const uint32_t Overlay_internal_data_[];
 enum Scaling : int;
 extern const uint32_t Scaling_internal_data_[];
 enum TextOverflow : int;
@@ -234,6 +236,10 @@ class UiInputEvent;
 struct UiInputEventDefaultTypeInternal;
 MODLOCK_API extern UiInputEventDefaultTypeInternal _UiInputEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiInputEvent_class_data_;
+class UiOverlayEvent;
+struct UiOverlayEventDefaultTypeInternal;
+MODLOCK_API extern UiOverlayEventDefaultTypeInternal _UiOverlayEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiOverlayEvent_class_data_;
 class UiPressEvent;
 struct UiPressEventDefaultTypeInternal;
 MODLOCK_API extern UiPressEventDefaultTypeInternal _UiPressEvent_default_instance_;
@@ -296,6 +302,9 @@ internal::EnumTraitsT<::modlock::wasm::ui::MenuMode_internal_data_>
 template <>
 internal::EnumTraitsT<::modlock::wasm::ui::Overflow_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::ui::Overflow>;
+template <>
+internal::EnumTraitsT<::modlock::wasm::ui::Overlay_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::ui::Overlay>;
 template <>
 internal::EnumTraitsT<::modlock::wasm::ui::Scaling_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::ui::Scaling>;
@@ -501,6 +510,47 @@ inline const ::std::string& ActionPhase_Name(ActionPhase value) {
 inline bool ActionPhase_Parse(
     ::absl::string_view name, ActionPhase* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<ActionPhase>(ActionPhase_descriptor(), name,
+                                           value);
+}
+enum Overlay : int {
+  OVERLAY_NONE = 0,
+  OVERLAY_CHAT = 1,
+  OVERLAY_SHOP = 2,
+  OVERLAY_BUILDS = 3,
+  OVERLAY_ITEM_DRAFT = 4,
+  OVERLAY_POPUP = 5,
+  OVERLAY_ESCAPE_MENU = 6,
+  Overlay_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  Overlay_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t Overlay_internal_data_[];
+inline constexpr Overlay Overlay_MIN =
+    static_cast<Overlay>(0);
+inline constexpr Overlay Overlay_MAX =
+    static_cast<Overlay>(6);
+inline bool Overlay_IsValid(int value) {
+  return 0 <= value && value <= 6;
+}
+inline constexpr int Overlay_ARRAYSIZE = 6 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Overlay_descriptor();
+template <typename T>
+const ::std::string& Overlay_Name(T value) {
+  static_assert(::std::is_same<T, Overlay>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to Overlay_Name().");
+  return Overlay_Name(static_cast<Overlay>(value));
+}
+template <>
+inline const ::std::string& Overlay_Name(Overlay value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<Overlay_descriptor, 0, 6>(
+      static_cast<int>(value));
+}
+inline bool Overlay_Parse(
+    ::absl::string_view name, Overlay* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Overlay>(Overlay_descriptor(), name,
                                            value);
 }
 enum HudPart : int {
@@ -1473,6 +1523,208 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiPressEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API UiOverlayEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.UiOverlayEvent) */ {
+ public:
+  inline UiOverlayEvent() : UiOverlayEvent(nullptr) {}
+  ~UiOverlayEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(UiOverlayEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(UiOverlayEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR UiOverlayEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline UiOverlayEvent(const UiOverlayEvent& from) : UiOverlayEvent(nullptr, from) {}
+  inline UiOverlayEvent(UiOverlayEvent&& from) noexcept
+      : UiOverlayEvent(nullptr, ::std::move(from)) {}
+  inline UiOverlayEvent& operator=(const UiOverlayEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UiOverlayEvent& operator=(UiOverlayEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UiOverlayEvent& default_instance() {
+    return *reinterpret_cast<const UiOverlayEvent*>(
+        &_UiOverlayEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 36;
+  friend void swap(UiOverlayEvent& a, UiOverlayEvent& b) { a.Swap(&b); }
+  inline void Swap(UiOverlayEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UiOverlayEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UiOverlayEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<UiOverlayEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const UiOverlayEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const UiOverlayEvent& from) { UiOverlayEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(UiOverlayEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.UiOverlayEvent"; }
+
+  explicit UiOverlayEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  UiOverlayEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UiOverlayEvent& from);
+  UiOverlayEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, UiOverlayEvent&& from) noexcept
+      : UiOverlayEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerFieldNumber = 1,
+    kOverlayFieldNumber = 2,
+  };
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // .modlock.wasm.ui.Overlay overlay = 2;
+  void clear_overlay() ;
+  ::modlock::wasm::ui::Overlay overlay() const;
+  void set_overlay(::modlock::wasm::ui::Overlay value);
+
+  private:
+  ::modlock::wasm::ui::Overlay _internal_overlay() const;
+  void _internal_set_overlay(::modlock::wasm::ui::Overlay value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.UiOverlayEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const UiOverlayEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t player_;
+    int overlay_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiOverlayEvent_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API UiActionEvent final : public ::google::protobuf::Message
@@ -8946,6 +9198,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     kItemFieldNumber = 32,
     kFreeCursorAsksFieldNumber = 33,
     kAbilityFieldNumber = 34,
+    kFollowsOverlayFieldNumber = 49,
     kTextEntryFieldNumber = 19,
     kSliderFieldNumber = 20,
     kToggleFieldNumber = 21,
@@ -9534,6 +9787,16 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   void _internal_set_ability(::uint32_t value);
 
   public:
+  // bool follows_overlay = 49;
+  void clear_follows_overlay() ;
+  bool follows_overlay() const;
+  void set_follows_overlay(bool value);
+
+  private:
+  bool _internal_follows_overlay() const;
+  void _internal_set_follows_overlay(bool value);
+
+  public:
   // .modlock.wasm.ui.TextEntry text_entry = 19;
   bool has_text_entry() const;
   private:
@@ -9622,9 +9885,9 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 45,
+  static const ::google::protobuf::internal::TcParseTable<5, 46,
                                    15, 174,
-                                   7>
+                                   9>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -9690,6 +9953,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::uint32_t item_;
     ::uint32_t free_cursor_asks_;
     ::uint32_t ability_;
+    bool follows_overlay_;
     union InputUnion {
       constexpr InputUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
@@ -10268,7 +10532,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 36;
+  static constexpr int kIndexInFileMessages = 37;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -13317,6 +13581,31 @@ inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
 Node::_internal_mutable_game_actions() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.game_actions_;
+}
+
+// bool follows_overlay = 49;
+inline void Node::clear_follows_overlay() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.follows_overlay_ = false;
+  ClearHasBit(_impl_._has_bits_[1],
+                  0x00000200U);
+}
+inline bool Node::follows_overlay() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.follows_overlay)
+  return _internal_follows_overlay();
+}
+inline void Node::set_follows_overlay(bool value) {
+  _internal_set_follows_overlay(value);
+  SetHasBit(_impl_._has_bits_[1], 0x00000200U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.follows_overlay)
+}
+inline bool Node::_internal_follows_overlay() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.follows_overlay_;
+}
+inline void Node::_internal_set_follows_overlay(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.follows_overlay_ = value;
 }
 
 inline bool Node::has_input() const {
@@ -20347,6 +20636,60 @@ inline void UiActionEvent::_internal_set_phase(::modlock::wasm::ui::ActionPhase 
 
 // -------------------------------------------------------------------
 
+// UiOverlayEvent
+
+// int32 player = 1;
+inline void UiOverlayEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t UiOverlayEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiOverlayEvent.player)
+  return _internal_player();
+}
+inline void UiOverlayEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiOverlayEvent.player)
+}
+inline ::int32_t UiOverlayEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void UiOverlayEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// .modlock.wasm.ui.Overlay overlay = 2;
+inline void UiOverlayEvent::clear_overlay() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.overlay_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::ui::Overlay UiOverlayEvent::overlay() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiOverlayEvent.overlay)
+  return _internal_overlay();
+}
+inline void UiOverlayEvent::set_overlay(::modlock::wasm::ui::Overlay value) {
+  _internal_set_overlay(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiOverlayEvent.overlay)
+}
+inline ::modlock::wasm::ui::Overlay UiOverlayEvent::_internal_overlay() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::ui::Overlay>(_impl_.overlay_);
+}
+inline void UiOverlayEvent::_internal_set_overlay(::modlock::wasm::ui::Overlay value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.overlay_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // UiRequest
 
 // int32 player = 1;
@@ -20515,6 +20858,12 @@ struct is_proto_enum<::modlock::wasm::ui::ActionPhase> : std::true_type {};
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::ui::ActionPhase>() {
   return ::modlock::wasm::ui::ActionPhase_descriptor();
+}
+template <>
+struct is_proto_enum<::modlock::wasm::ui::Overlay> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::ui::Overlay>() {
+  return ::modlock::wasm::ui::Overlay_descriptor();
 }
 template <>
 struct is_proto_enum<::modlock::wasm::ui::HudPart> : std::true_type {};

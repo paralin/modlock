@@ -877,6 +877,10 @@ service Mod {
   // interface follows.
   rpc UiAction(modlock.wasm.ui.UiActionEvent) returns (Empty);
 
+  // UiOverlay reports the stock overlay that now holds a player's input, to
+  // a mod whose root follows overlays.
+  rpc UiOverlay(modlock.wasm.ui.UiOverlayEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

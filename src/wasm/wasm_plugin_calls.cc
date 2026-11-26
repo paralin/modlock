@@ -35,6 +35,11 @@ constexpr std::string_view kActionCommand = "modlockaction ";
 // <action> <phase>", as UiTrees::GameAction reads it.
 constexpr std::string_view kGameActionCommand = "modlockgame ";
 
+// kOverlayCommand starts the console command a player's game sends when a
+// different stock overlay holds the player's input: "modlockoverlay <mod>
+// <overlay>", as UiTrees::Overlay reads it.
+constexpr std::string_view kOverlayCommand = "modlockoverlay ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -198,6 +203,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
       return false;
     }
     if (auto refused = GameAction(slot, sent.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
+  if (line.starts_with(kOverlayCommand)) {
+    // An overlay report names this mod, then the overlay.
+    const auto sent = line.substr(kOverlayCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = Overlay(slot, sent.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

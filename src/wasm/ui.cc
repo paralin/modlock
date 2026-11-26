@@ -712,6 +712,29 @@ std::expected<ui::UiActionEvent, std::string> UiTrees::GameAction(int32_t slot,
   return std::unexpected("follows no game action " + std::to_string(action));
 }
 
+std::expected<ui::UiOverlayEvent, std::string> UiTrees::Overlay(int32_t slot,
+                                                               std::string_view line) const {
+  // Read the overlay, a small decimal number.
+  int overlay = 0;
+  const auto [end, error] = std::from_chars(line.data(), line.data() + line.size(), overlay);
+  if (error != std::errc() || end != line.data() + line.size() || !ui::Overlay_IsValid(overlay)) {
+    return std::unexpected("sent an overlay it cannot read");
+  }
+
+  // Refuse an overlay for a root that does not follow them.
+  const auto tree = trees_.find(slot);
+  if (tree != trees_.end()) {
+    const auto root = tree->second.find("");
+    if (root != tree->second.end() && root->second.follows_overlay) {
+      ui::UiOverlayEvent event;
+      event.set_player(slot);
+      event.set_overlay(static_cast<ui::Overlay>(overlay));
+      return event;
+    }
+  }
+  return std::unexpected("follows no overlay");
+}
+
 UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   // Keep the kind, and an input's control and state.
   Shown shown;
@@ -725,6 +748,7 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
     for (const auto action : node.game_actions()) {
       shown.game_actions.push_back(static_cast<ui::GameAction>(action));
     }
+    shown.follows_overlay = node.follows_overlay();
   }
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
