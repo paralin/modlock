@@ -577,6 +577,28 @@ const cameraParamValues: Record<CameraParam, playersPb.CameraParam> = {
   horizontalOffset: 4,
 }
 
+/** GameAction is one of the game's own bound actions a mod may follow. */
+export type GameAction =
+  | 'scoreboard'
+
+/** gameActionNames decodes each GameAction; an unknown value has no name. */
+const gameActionNames: Partial<Record<number, GameAction>> = {
+  1: 'scoreboard',
+}
+
+/** ActionPhase is where a press of a game action stands. */
+export type ActionPhase =
+  | 'pressed'
+  | 'released'
+  | 'cancelled'
+
+/** actionPhaseNames decodes each ActionPhase; an unknown value has no name. */
+const actionPhaseNames: Partial<Record<number, ActionPhase>> = {
+  1: 'pressed',
+  2: 'released',
+  3: 'cancelled',
+}
+
 /** DocumentFailure says why a document input's submission did not arrive. */
 export type DocumentFailure =
   | 'tooLarge'
@@ -3075,6 +3097,29 @@ function fromDocumentFailed(message: uiPb.DocumentFailed): DocumentFailed {
   }
 }
 
+/**
+ * UiActionEvent reports one phase of a game action the mod's root follows.
+ * Each press reaches the mod once as pressed, then once as released or
+ * cancelled.
+ */
+export interface UiActionEvent {
+  /** player is the player who pressed. */
+  readonly player: Player
+  /** action is the game action. */
+  readonly action?: GameAction
+  /** phase is where the press stands. */
+  readonly phase?: ActionPhase
+}
+
+/** fromUiActionEvent decodes an UiActionEvent. */
+function fromUiActionEvent(message: uiPb.UiActionEvent): UiActionEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    action: gameActionNames[message.action ?? 0],
+    phase: actionPhaseNames[message.phase ?? 0],
+  }
+}
+
 /** StartEvent describes the server the mod starts in. */
 export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
@@ -4815,6 +4860,11 @@ export interface ModHandlers {
    * input, with its whole text or why it failed.
    */
   uiDocument(event: UiDocumentEvent): void
+  /**
+   * uiAction reports a phase of a game action the root of a player's
+   * interface follows.
+   */
+  uiAction(event: UiActionEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /** serviceReplied ends one StartServiceCall, in a frame after the call. */
@@ -4966,6 +5016,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiDocument':
         handlers.uiDocument(fromUiDocumentEvent(uiPb.UiDocumentEvent.fromBinary(input)))
+        return reply()
+      case 'UiAction':
+        handlers.uiAction(fromUiActionEvent(uiPb.UiActionEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

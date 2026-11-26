@@ -46,6 +46,39 @@ TEST(UiTrees, TracksButtons) {
   EXPECT_FALSE(trees.IsButton(3, "ready"));
 }
 
+TEST(UiTrees, TakesGameActionsOnlyWhileTheRootFollowsThem) {
+  // A root that follows nothing takes no game action.
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  EXPECT_FALSE(trees.GameAction(3, "1 1"));
+
+  // A root that follows the scoreboard takes each phase of it.
+  auto follows = Set("", modlock::wasm::ui::KIND_PANEL);
+  follows.mutable_set(0)->add_game_actions(modlock::wasm::ui::GAME_ACTION_SCOREBOARD);
+  ASSERT_TRUE(trees.Apply(3, follows));
+  auto pressed = trees.GameAction(3, "1 1");
+  ASSERT_TRUE(pressed) << pressed.error();
+  EXPECT_EQ(pressed->player(), 3);
+  EXPECT_EQ(pressed->action(), modlock::wasm::ui::GAME_ACTION_SCOREBOARD);
+  EXPECT_EQ(pressed->phase(), modlock::wasm::ui::ACTION_PHASE_PRESSED);
+  EXPECT_EQ(trees.GameAction(3, "1 3")->phase(), modlock::wasm::ui::ACTION_PHASE_CANCELLED);
+
+  // An unknown action or phase, another player and a malformed line are refused.
+  for (const char* line : {"2 1", "1 0", "1 4", "1", "1 1 1", "a 1", "1 -1", ""}) {
+    EXPECT_FALSE(trees.GameAction(3, line)) << line;
+  }
+  EXPECT_FALSE(trees.GameAction(4, "1 1"));
+
+  // A child's list does not count, and a root that stops following takes none.
+  auto child = Set("panel", modlock::wasm::ui::KIND_PANEL);
+  child.mutable_set(0)->add_game_actions(modlock::wasm::ui::GAME_ACTION_SCOREBOARD);
+  ASSERT_TRUE(trees.Apply(4, Set("", modlock::wasm::ui::KIND_PANEL)));
+  ASSERT_TRUE(trees.Apply(4, child));
+  EXPECT_FALSE(trees.GameAction(4, "1 1"));
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  EXPECT_FALSE(trees.GameAction(3, "1 2"));
+}
+
 TEST(UiTrees, TakesAbilityBarPressesOnlyWhileTheRootAsks) {
   // A root without the ask takes no bar press, even with a button of that id.
   UiTrees trees;

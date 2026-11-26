@@ -742,6 +742,26 @@ _HeroLook: dict[Any, Any] = {
 }
 
 
+# GameAction is one of the game's own bound actions a mod may follow.
+type GameAction = Literal["scoreboard"]
+_GameAction: dict[Any, Any] = {
+    1: "scoreboard",
+    "scoreboard": 1,
+}
+
+
+# ActionPhase is where a press of a game action stands.
+type ActionPhase = Literal["pressed", "released", "cancelled"]
+_ActionPhase: dict[Any, Any] = {
+    1: "pressed",
+    "pressed": 1,
+    2: "released",
+    "released": 2,
+    3: "cancelled",
+    "cancelled": 3,
+}
+
+
 # _HudPart maps each HudPart to its number and back.
 _HudPart: dict[Any, Any] = {
     1: "level_up",
@@ -2510,6 +2530,21 @@ class DocumentFailed:
 
     # reason says why it ended.
     reason: DocumentFailure | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class UiActionEvent:
+    """UiActionEvent reports one phase of a game action the mod's root follows.
+    Each press reaches the mod once as pressed, then once as released or
+    cancelled.
+    """
+
+    # player is the player who pressed.
+    player: Player
+    # action is the game action.
+    action: GameAction | None = None
+    # phase is where the press stands.
+    phase: ActionPhase | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -4973,6 +5008,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(42, "menu", "message", message="Menu"),
             wire.Field(43, "document_input", "message", message="DocumentInput"),
             wire.Field(44, "document_text", "string"),
+            wire.Field(45, "game_actions", "enum", repeated=True, enum=_GameAction),
         ],
     ),
     "Node_VariablesEntry": (
@@ -5280,6 +5316,14 @@ _SCHEMA: wire.Schema = {
         DocumentFailed,
         [
             wire.Field(1, "reason", "enum", enum=_DocumentFailure),
+        ],
+    ),
+    "UiActionEvent": (
+        UiActionEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "action", "enum", enum=_GameAction),
+            wire.Field(3, "phase", "enum", enum=_ActionPhase),
         ],
     ),
     "UiRequest": (
@@ -6203,6 +6247,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
     "UiDocument": ("UiDocumentEvent", "Empty", "ui_document"),
+    "UiAction": ("UiActionEvent", "Empty", "ui_action"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
@@ -7590,6 +7635,8 @@ class _UiHandlers:
     press: Callable[[Player, str], object]
     # change runs the handler of the input a player changed.
     change: Callable[[Player, str, UiValue], object]
+    # act runs the handler of a game action a player used.
+    act: Callable[[Player, GameAction, ActionPhase], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -7679,6 +7726,15 @@ def _ui_input(event: UiInputEvent) -> None:
 def _ui_document(event: UiDocumentEvent) -> None:
     # This library draws no document input, so no submission can end here.
     pass
+
+
+def _ui_action(event: UiActionEvent) -> None:
+    # A game action runs with the next frame, as a press does.
+    ui = _ui
+    action, phase = event.action, event.phase
+    if ui is not None and action is not None and phase is not None:
+        player = event.player
+        after(0, lambda: ui.act(player, action, phase))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -7887,6 +7943,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_press": _ui_press,
     "ui_input": _ui_input,
     "ui_document": _ui_document,
+    "ui_action": _ui_action,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

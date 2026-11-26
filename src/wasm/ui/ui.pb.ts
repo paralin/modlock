@@ -150,6 +150,70 @@ export const HeroLook_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * GameAction is one of the game's own bound actions a mod may follow.
+ *
+ * @generated from enum modlock.wasm.ui.GameAction
+ */
+export enum GameAction {
+  /**
+   * GAME_ACTION_UNKNOWN names no action.
+   */
+  UNKNOWN = 0,
+
+  /**
+   * GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
+   */
+  SCOREBOARD = 1,
+}
+
+export const GameAction_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.GameAction',
+  [
+    [0, 'GAME_ACTION_UNKNOWN'],
+    [1, 'GAME_ACTION_SCOREBOARD'],
+  ],
+)
+
+/**
+ * ActionPhase is where a press of a game action stands.
+ *
+ * @generated from enum modlock.wasm.ui.ActionPhase
+ */
+export enum ActionPhase {
+  /**
+   * ACTION_PHASE_UNKNOWN names no phase.
+   */
+  UNKNOWN = 0,
+
+  /**
+   * ACTION_PHASE_PRESSED starts a press.
+   */
+  PRESSED = 1,
+
+  /**
+   * ACTION_PHASE_RELEASED ends a press as the player let go.
+   */
+  RELEASED = 2,
+
+  /**
+   * ACTION_PHASE_CANCELLED ends a press before the player let go, as a stock
+   * overlay took the player's input or the screen lost the HUD. The release
+   * that follows sends nothing.
+   */
+  CANCELLED = 3,
+}
+
+export const ActionPhase_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.ActionPhase',
+  [
+    [0, 'ACTION_PHASE_UNKNOWN'],
+    [1, 'ACTION_PHASE_PRESSED'],
+    [2, 'ACTION_PHASE_RELEASED'],
+    [3, 'ACTION_PHASE_CANCELLED'],
+  ],
+)
+
+/**
  * HudPart is a part of the game's own HUD a mod may hide from a player.
  *
  * @generated from enum modlock.wasm.ui.HudPart
@@ -1059,6 +1123,15 @@ export interface Node {
    */
   documentText?: string
   /**
+   * GameActions asks to follow the game's own bound actions: each press,
+   * release and cancellation of one reaches the mod as a UiActionEvent, on
+   * whichever key the player bound it to. The game keeps doing what the
+   * action does. The renderer reports an action only while the screen may
+   * hold the player's HUD and no stock overlay, such as chat, the shop or the
+   * escape menu, has the player's input. Only the root's list counts.
+   */
+  gameActions?: GameAction[]
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -1123,6 +1196,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [42, 'menu', 11, 0, Menu.codec],
     [43, 'document_input', 11, 0, DocumentInput.codec],
     [44, 'document_text', 9],
+    [45, 'game_actions', 14, 3, GameAction_Enum],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1304,6 +1378,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 44:
             m.documentText = r.string()
+            break
+          case 45:
+            for (const e = r.run(t), a = (m.gameActions ??= []); r.pos < e;)
+              a.push(r.int32())
             break
           default:
             r.skip(t)
@@ -1501,6 +1579,14 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.documentText
         if (v) w.uint32(354).string(v)
+      }
+      {
+        const a = m.gameActions
+        if (a != null && a.length > 0) {
+          const s = w.uint32(362).fork()
+          for (const e of a) w.int32(e)
+          w.join(s)
+        }
       }
     },
   },
@@ -4460,6 +4546,78 @@ export const DocumentFailed: MessageType<DocumentFailed> =
         {
           const v = m.reason
           if (v) w.uint32(8).int32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * UiActionEvent reports one phase of a game action the mod's root follows.
+ * Each press reaches the mod once as pressed, then once as released or
+ * cancelled.
+ *
+ * @generated from message modlock.wasm.ui.UiActionEvent
+ */
+export interface UiActionEvent {
+  /**
+   * Player is the player who pressed.
+   */
+  player?: number
+  /**
+   * Action is the game action.
+   */
+  action?: GameAction
+  /**
+   * Phase is where the press stands.
+   */
+  phase?: ActionPhase
+}
+
+export const UiActionEvent: MessageType<UiActionEvent> =
+  /* @__PURE__ */ createMessageType<UiActionEvent>(
+    'modlock.wasm.ui.UiActionEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'action', 14, 0, GameAction_Enum],
+      [3, 'phase', 14, 0, ActionPhase_Enum],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: UiActionEvent,
+      ): UiActionEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.action = r.int32()
+              break
+            case 3:
+              m.phase = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: UiActionEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.action
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.phase
+          if (v) w.uint32(24).int32(v)
         }
       },
     },

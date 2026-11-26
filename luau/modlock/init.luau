@@ -512,6 +512,24 @@ local CameraParam: { [any]: any } = {
 	horizontalOffset = 4,
 }
 
+-- GameAction is one of the game's own bound actions a mod may follow.
+export type GameAction = "scoreboard"
+local GameAction: { [any]: any } = {
+	[1] = "scoreboard",
+	scoreboard = 1,
+}
+
+-- ActionPhase is where a press of a game action stands.
+export type ActionPhase = "pressed" | "released" | "cancelled"
+local ActionPhase: { [any]: any } = {
+	[1] = "pressed",
+	pressed = 1,
+	[2] = "released",
+	released = 2,
+	[3] = "cancelled",
+	cancelled = 3,
+}
+
 -- DocumentFailure says why a document input's submission did not arrive.
 export type DocumentFailure = "tooLarge" | "expired" | "cancelled" | "malformed"
 local DocumentFailure: { [any]: any } = {
@@ -1849,6 +1867,18 @@ export type DocumentDelivered = {
 export type DocumentFailed = {
 	-- reason says why it ended.
 	reason: DocumentFailure?,
+}
+
+-- UiActionEvent reports one phase of a game action the mod's root follows.
+-- Each press reaches the mod once as pressed, then once as released or
+-- cancelled.
+export type UiActionEvent = {
+	-- player is the player who pressed.
+	player: Player,
+	-- action is the game action.
+	action: GameAction?,
+	-- phase is where the press stands.
+	phase: ActionPhase?,
 }
 
 -- StartEvent describes the server the mod starts in.
@@ -4249,6 +4279,7 @@ schema.Node = {
 	{ number = 42, name = "menu", kind = "message", message = "Menu" },
 	{ number = 43, name = "documentInput", kind = "message", message = "DocumentInput" },
 	{ number = 44, name = "documentText", kind = "string" },
+	{ number = 45, name = "gameActions", kind = "enum", repeated = true, enum = GameAction },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4463,6 +4494,11 @@ schema.DocumentDelivered = {
 }
 schema.DocumentFailed = {
 	{ number = 1, name = "reason", kind = "enum", enum = DocumentFailure },
+}
+schema.UiActionEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "action", kind = "enum", enum = GameAction },
+	{ number = 3, name = "phase", kind = "enum", enum = ActionPhase },
 }
 schema.UiRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -5276,6 +5312,9 @@ export type ModHandlers = {
 	-- uiDocument reports the end of a submission from a player's document
 	-- input, with its whole text or why it failed.
 	uiDocument: (event: UiDocumentEvent) -> (),
+	-- uiAction reports a phase of a game action the root of a player's
+	-- interface follows.
+	uiAction: (event: UiActionEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
@@ -5368,6 +5407,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
 	UiDocument = { request = "UiDocumentEvent", response = "Empty", handler = "uiDocument" },
+	UiAction = { request = "UiActionEvent", response = "Empty", handler = "uiAction" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
@@ -5805,6 +5845,8 @@ export type Interface = {
 	press: (player: Player, node: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	-- act takes a phase of a game action the player's root follows.
+	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -6922,6 +6964,15 @@ local handlers: ModHandlers = {
 	end,
 	-- This library draws no document input, so no submission can end here.
 	uiDocument = function() end,
+	uiAction = function(event)
+		local served = interface
+		local action, phase = event.action, event.phase
+		if served and action and phase then
+			modlock.after(0, function()
+				served.act(event.player, action, phase)
+			end)
+		end
+	end,
 
 	serve = function(event)
 		local handler = services[event.service]

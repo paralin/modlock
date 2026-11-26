@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"maps"
 	"slices"
 	"strconv"
 
@@ -26,6 +27,8 @@ type view struct {
 	cues []*uipb.Cue
 	// bar takes clicks on the game's ability bar, while the mod asks for them.
 	bar func(p mod.Player, slot int)
+	// actions takes each phase of the game actions the mod follows.
+	actions map[mod.GameAction]func(p mod.Player, phase mod.ActionPhase)
 	// display is the abilities shown on Tab's rows and the ability bar.
 	display []AbilityRow
 	// notices are the toasts showing, oldest first.
@@ -192,6 +195,7 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 		Sheets:            slices.Clone(lib.sheets),
 		Cues:              slices.Clone(v.cues),
 		AbilityBarPresses: v.bar != nil,
+		GameActions:       slices.Sorted(maps.Keys(v.actions)),
 		AbilityDisplay:    display,
 	})
 
@@ -378,6 +382,16 @@ func press(p mod.Player, node string) {
 	if s := lib.screens[p.Slot()]; s != nil {
 		if h := s.handlers[node].press; h != nil {
 			h(p)
+		}
+	}
+}
+
+// act runs the handler of the game action the player pressed.
+func act(event *mod.UiActionEvent) {
+	p := mod.PlayerOf(event.GetPlayer())
+	if v := lib.views[p.Slot()]; v != nil {
+		if h := v.actions[event.GetAction()]; h != nil {
+			h(p, event.GetPhase())
 		}
 	}
 }

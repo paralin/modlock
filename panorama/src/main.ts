@@ -5,6 +5,8 @@
 // screen is live, freeing the cursor while one asks. A press runs the console
 // command that sends it to the server.
 
+import { GameAction } from '../../src/wasm/ui/ui.pb.js'
+import { gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
 import {
   AddonLayouts,
@@ -21,8 +23,10 @@ import {
   Cursor,
   cursorAsks,
   cursorFreed,
+  gameActionMods,
   hiddenParts,
 } from './hud.js'
+import type { MenuHost } from './menu.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -44,6 +48,49 @@ const layouts = new AddonLayouts()
 const cursor = new Cursor((event, ...values) => {
   $.DispatchEvent(event, ...values)
 }, game)
+// menuHost tells the menus and the game actions when a stock overlay has the
+// player's input.
+const menuHost: MenuHost = {
+  allowed: () => stock.allowed(),
+  stock: () => {
+    // Chat, the shop and stock popups keep their input when already open.
+    const chat = game.FindChildTraverse('Chat')
+    if (
+      chat?.BHasClass(CHAT_OPEN) ||
+      chat?.FindChildTraverse('ChatInput')?.BHasKeyFocus?.() ||
+      game.FindChildTraverse('CitadelHudHeroShop')?.BHasClass('gShopOpen') ||
+      game.BHasClass('gEditingBuilds') ||
+      game.BHasClass('gItemDraftOpen')
+    )
+      return 'other'
+    const manager = game.FindChild('PopupManager')
+    if (manager) {
+      for (let i = 0; i < manager.GetChildCount(); i++) {
+        const panel = manager.GetChild(i)
+        if (panel?.BHasClass('PopupPanel') && !panel.BHasClass('Hidden'))
+          return 'other'
+      }
+    }
+    if (
+      game.BHasClass('ShowEscapeMenu') ||
+      game.FindChild('EscapeMenu')?.BHasClass('ShowEscapeMenu')
+    )
+      return 'escape'
+    return null
+  },
+  capture: (open) => cursor.menuCapture(open),
+  resume: () => {
+    $.DispatchEvent('CitadelResumePlaying', game)
+  },
+}
+const actions = new GameActions(
+  (mod, action, phase) =>
+    $.DispatchEvent('CitadelConCommand', gameActionCommand(mod, action, phase)),
+  menuHost,
+  (seconds, callback) => {
+    $.Schedule(seconds, callback)
+  },
+)
 const drawing = new Drawing(
   {
     CreatePanel: (...args: Parameters<typeof $.CreatePanel>) =>
@@ -68,39 +115,7 @@ const drawing = new Drawing(
   layouts,
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
-  {
-    allowed: () => stock.allowed(),
-    stock: () => {
-      // Chat, the shop and stock popups keep their input when already open.
-      const chat = game.FindChildTraverse('Chat')
-      if (
-        chat?.BHasClass(CHAT_OPEN) ||
-        chat?.FindChildTraverse('ChatInput')?.BHasKeyFocus?.() ||
-        game.FindChildTraverse('CitadelHudHeroShop')?.BHasClass('gShopOpen') ||
-        game.BHasClass('gEditingBuilds') ||
-        game.BHasClass('gItemDraftOpen')
-      )
-        return 'other'
-      const manager = game.FindChild('PopupManager')
-      if (manager) {
-        for (let i = 0; i < manager.GetChildCount(); i++) {
-          const panel = manager.GetChild(i)
-          if (panel?.BHasClass('PopupPanel') && !panel.BHasClass('Hidden'))
-            return 'other'
-        }
-      }
-      if (
-        game.BHasClass('ShowEscapeMenu') ||
-        game.FindChild('EscapeMenu')?.BHasClass('ShowEscapeMenu')
-      )
-        return 'escape'
-      return null
-    },
-    capture: (open) => cursor.menuCapture(open),
-    resume: () => {
-      $.DispatchEvent('CitadelResumePlaying', game)
-    },
-  },
+  menuHost,
 )
 const stock = new StockGuard(
   game,
@@ -132,7 +147,9 @@ const stock = new StockGuard(
 // tooltips and windows the mods' panels opened and the sounds they started.
 for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
   $.RegisterForUnhandledEvent(event, () => {
+    // End every press and give back what the screen held.
     stock.leave()
+    actions.cancel()
     drawing.release()
     cursor.set(false, 0)
     return false
@@ -140,6 +157,7 @@ for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
 }
 $.RegisterForUnhandledEvent('CitadelScoreboardToggle', (pressed: boolean) => {
   drawing.scoreboard(pressed)
+  actions.change(GameAction.SCOREBOARD, pressed)
   return false
 })
 new Bridge(
@@ -147,7 +165,9 @@ new Bridge(
   // The session's boot script names the page for its relay and port.
   context.GetAttributeString('modlock_bridge', defaultBridge),
   (screen) => {
+    // Each part of the renderer follows what the new screen asks of it.
     layouts.follow(screen)
+    actions.follow(gameActionMods(screen))
     stock.screen(
       screen ? hiddenParts(screen) : null,
       abilityBarMods(screen),

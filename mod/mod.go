@@ -78,6 +78,7 @@ type handlers struct {
 	presses       []func(p Player, node string)
 	changes       []func(*UiInputEvent)
 	documents     []func(*UiDocumentEvent)
+	actions       []func(*UiActionEvent)
 	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
@@ -346,6 +347,13 @@ func OnUiDocument(handler func(event *UiDocumentEvent)) {
 	registered.documents = append(registered.documents, handler)
 }
 
+// OnUiAction calls handler with each phase of a game action the root of a
+// player's interface follows, with the next server frame. Package ui
+// registers it to run the followers' handlers.
+func OnUiAction(handler func(event *UiActionEvent)) {
+	registered.actions = append(registered.actions, handler)
+}
+
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
@@ -460,6 +468,16 @@ func (h *handlers) UiInput(event *UiInputEvent) error {
 func (h *handlers) UiDocument(event *UiDocumentEvent) error {
 	After(0, func() {
 		for _, handler := range h.documents {
+			handler(event)
+		}
+	})
+	return nil
+}
+
+// UiAction runs the game action handlers with the next frame, as a press does.
+func (h *handlers) UiAction(event *UiActionEvent) error {
+	After(0, func() {
+		for _, handler := range h.actions {
 			handler(event)
 		}
 	})

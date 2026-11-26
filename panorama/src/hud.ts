@@ -4,6 +4,7 @@
 
 import {
   type AbilityRow,
+  type GameAction,
   type HudPart,
   type Screen,
 } from '../../src/wasm/ui/ui.pb.js'
@@ -98,6 +99,21 @@ export function cursorAsks(screen: Screen | null): number {
       (tree.nodes?.find((node) => (node.id ?? '') === '')?.freeCursorAsks ?? 0),
     0,
   )
+}
+
+/** gameActionMods lists, by action, the mods whose roots in screen follow it. */
+export function gameActionMods(
+  screen: Screen | null,
+): Map<GameAction, Set<string>> {
+  const following = new Map<GameAction, Set<string>>()
+  for (const tree of screen?.trees ?? []) {
+    const root = tree.nodes?.find((node) => (node.id ?? '') === '')
+    for (const action of root?.gameActions ?? []) {
+      if (!following.has(action)) following.set(action, new Set())
+      following.get(action)!.add(tree.mod ?? '')
+    }
+  }
+  return following
 }
 
 /** abilityBarMods lists the mods whose roots in screen ask for clicks on the ability bar. */

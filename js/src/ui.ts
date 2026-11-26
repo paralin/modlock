@@ -91,6 +91,7 @@ import {
   Easing,
   Face,
   Flow,
+  GameAction as WireGameAction,
   GradientShape,
   HeroLook,
   HudPart as WireHudPart,
@@ -114,11 +115,14 @@ import { chatLines, expireChat, forgetChat, hearChat } from './chat.js'
 import { forgetSpeakers, speakers, speakersChanged } from './speakers.js'
 import { heroes } from './heroes.js'
 import {
+  type ActionPhase,
   type ChatEvent,
+  type GameAction,
   type Player,
   readField,
   type DocumentFailure,
   type UiDocumentEvent,
+  type UiActionEvent,
   type Wheel,
 } from './host.gen.js'
 import { call } from './host.js'
@@ -834,6 +838,45 @@ export function abilityBarPresses(
   return draw(player, [])
 }
 
+/** ActionHandler takes one phase of a game action player used. */
+export type ActionHandler = (player: Player, phase: ActionPhase) => void
+
+/**
+ * followAction calls onPhase with each phase of action, a game action such as
+ * 'scoreboard', each time player uses it, on whichever key they bound it to:
+ * 'pressed' once, then 'released' or 'cancelled' once. The game still does
+ * what the action does. A press made while a stock overlay, such as chat, the
+ * shop or the escape menu, has the player's input reports nothing, and one
+ * held as such an overlay opens is cancelled. Without onPhase the mod stops
+ * following. Actions reach the mod only while its screen holds the player's
+ * HUD.
+ */
+export function followAction(
+  player: Player,
+  action: GameAction,
+  onPhase?: ActionHandler,
+): boolean {
+  // Replace the view, so a draw sees the new list of followed actions.
+  const current = view(player)
+  const actions = new Map(current.actions)
+  if (onPhase) {
+    actions.set(action, { handler: onPhase })
+  } else {
+    actions.delete(action)
+  }
+  views.set(player.slot, { ...current, actions })
+  return draw(player, [])
+}
+
+/** acted runs the handler of the game action a player used. */
+export function acted(event: UiActionEvent): void {
+  const { player, action, phase } = event
+  if (action === undefined || phase === undefined) {
+    return
+  }
+  views.get(player.slot)?.actions.get(action)?.handler(player, phase)
+}
+
 /** ShownAbility is the ability abilityDisplay shows in one slot. */
 export interface ShownAbility {
   /** name is the ability's class name, whose window the game shows over it. */
@@ -1185,6 +1228,8 @@ interface View {
   readonly cues: readonly Cue[]
   /** bar takes clicks on the game's ability bar, while the mod asks for them. */
   readonly bar: { readonly handler: AbilityBarHandler } | undefined
+  /** actions takes each phase of the game actions the mod follows. */
+  readonly actions: ReadonlyMap<GameAction, { readonly handler: ActionHandler }>
   /** display is the abilities shown on Tab's rows and the ability bar. */
   readonly display: readonly AbilityRow[]
   notices: readonly Notice[]
@@ -1240,6 +1285,7 @@ function view(player: Player): View {
       routes: new Map(),
       cues: [],
       bar: undefined,
+      actions: new Map(),
       display: [],
       notices: [],
     }
@@ -1341,6 +1387,9 @@ function compose(
     sheets: [...sheets],
     cues: [...current.cues],
     abilityBarPresses: current.bar !== undefined,
+    gameActions: [...current.actions.keys()].map(
+      (action) => gameActions[action],
+    ),
     abilityDisplay: displayRows(player, current.display),
   }
 
@@ -2019,6 +2068,11 @@ const aligns = {
 /** align encodes an alignment. */
 function align(value: keyof typeof aligns | undefined): Align | undefined {
   return value === undefined ? undefined : aligns[value]
+}
+
+/** gameActions maps each game action to its wire value. */
+const gameActions: Record<GameAction, WireGameAction> = {
+  scoreboard: WireGameAction.SCOREBOARD,
 }
 
 /** hudParts maps each part of the game's HUD to its wire value. */

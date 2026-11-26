@@ -678,6 +678,40 @@ bool UiTrees::IsButton(int32_t slot, std::string_view node) const {
   return found != tree->second.end() && found->second.kind == ui::KIND_BUTTON;
 }
 
+std::expected<ui::UiActionEvent, std::string> UiTrees::GameAction(int32_t slot,
+                                                                 std::string_view line) const {
+  // Read the action and the phase, each a small decimal number.
+  const auto space = line.find(' ');
+  if (space == std::string_view::npos) {
+    return std::unexpected("sent a game action without a phase");
+  }
+  int action = 0;
+  int phase = 0;
+  const auto read = [](std::string_view text, int& value) {
+    const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+    return error == std::errc() && end == text.data() + text.size();
+  };
+  if (!read(line.substr(0, space), action) || !read(line.substr(space + 1), phase) ||
+      !ui::ActionPhase_IsValid(phase) || phase == ui::ACTION_PHASE_UNKNOWN) {
+    return std::unexpected("sent a game action it cannot read");
+  }
+
+  // Refuse an action the player's root does not follow.
+  const auto tree = trees_.find(slot);
+  if (tree != trees_.end()) {
+    const auto root = tree->second.find("");
+    if (root != tree->second.end() &&
+        std::ranges::find(root->second.game_actions, action) != root->second.game_actions.end()) {
+      ui::UiActionEvent event;
+      event.set_player(slot);
+      event.set_action(static_cast<ui::GameAction>(action));
+      event.set_phase(static_cast<ui::ActionPhase>(phase));
+      return event;
+    }
+  }
+  return std::unexpected("follows no game action " + std::to_string(action));
+}
+
 UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   // Keep the kind, and an input's control and state.
   Shown shown;
@@ -687,6 +721,11 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
                                                                       node.children().end());
   }
   shown.ability_bar = node.id().empty() && node.ability_bar_presses();
+  if (node.id().empty()) {
+    for (const auto action : node.game_actions()) {
+      shown.game_actions.push_back(static_cast<ui::GameAction>(action));
+    }
+  }
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
   }

@@ -1,7 +1,13 @@
 import type { JsonObject } from '@aptre/protobuf-es-lite'
 import { beforeEach, expect, setSystemTime, test } from 'bun:test'
 
-import { HudPart, Screen } from '../../src/wasm/ui/ui.pb.js'
+import {
+  ActionPhase,
+  GameAction,
+  HudPart,
+  Screen,
+} from '../../src/wasm/ui/ui.pb.js'
+import { gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
 import {
   actionCommand,
@@ -35,6 +41,7 @@ import {
   Cursor,
   cursorAsks,
   cursorFreed,
+  gameActionMods,
   hiddenParts,
 } from './hud.js'
 import { decodeUtf8 } from './packed.js'
@@ -2748,6 +2755,64 @@ function menuScreen(mode: string, openRequest = 0, control = '41'): Screen {
     },
   )
 }
+
+test('game actions report each press once, as released or cancelled', () => {
+  // Only the root's list counts, and the command names the enum numbers.
+  const following = gameActionMods(
+    Screen.fromJson({
+      trees: [
+        {
+          mod: 'arena',
+          nodes: [{ id: '', gameActions: ['GAME_ACTION_SCOREBOARD'] }],
+        },
+        {
+          mod: 'brawl',
+          nodes: [{ id: 'x', gameActions: ['GAME_ACTION_SCOREBOARD'] }],
+        },
+      ],
+    }),
+  )
+  expect([...(following.get(GameAction.SCOREBOARD) ?? [])]).toEqual(['arena'])
+  expect(
+    gameActionCommand('arena', GameAction.SCOREBOARD, ActionPhase.CANCELLED),
+  ).toBe('modlockgame arena 1 3')
+
+  // A press reports pressed once and released once, ignoring repeats.
+  const sent: string[] = []
+  let stock: 'escape' | 'other' | null = null
+  const actions = new GameActions(
+    (mod, _, phase) => sent.push(`${mod}:${ActionPhase[phase]}`),
+    { allowed: () => true, stock: () => stock },
+    (_, callback) => scheduled.set(scheduled.size + 1000, callback),
+  )
+  actions.follow(following)
+  actions.change(GameAction.SCOREBOARD, true)
+  actions.change(GameAction.SCOREBOARD, true)
+  actions.change(GameAction.SCOREBOARD, false)
+  expect(sent).toEqual(['arena:PRESSED', 'arena:RELEASED'])
+
+  // A stock overlay cancels a held press, and its release reports nothing.
+  sent.length = 0
+  actions.change(GameAction.SCOREBOARD, true)
+  stock = 'other'
+  runScheduled()
+  actions.change(GameAction.SCOREBOARD, false)
+  expect(sent).toEqual(['arena:PRESSED', 'arena:CANCELLED'])
+
+  // A press made while the overlay holds input reports nothing at all, even
+  // after the overlay closes before the release.
+  sent.length = 0
+  actions.change(GameAction.SCOREBOARD, true)
+  stock = null
+  actions.change(GameAction.SCOREBOARD, false)
+  expect(sent).toEqual([])
+
+  // A mod that stops following mid-press hears nothing more of it.
+  actions.change(GameAction.SCOREBOARD, true)
+  actions.follow(new Map())
+  actions.change(GameAction.SCOREBOARD, false)
+  expect(sent).toEqual(['arena:PRESSED'])
+})
 
 test('local menus close and return focus without replaying a press or open request', () => {
   // Use the actual drawing and its local state, under a controlled stock HUD.

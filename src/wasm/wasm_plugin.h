@@ -245,6 +245,11 @@ class WasmPlugin final : public Plugin {
   // reads them.
   std::expected<void, std::string> Action(int32_t slot, std::string_view line);
 
+  // GameAction delivers a phase of a game action the mod's root follows for
+  // the player in slot: line is the action and the phase as
+  // UiTrees::GameAction reads them.
+  std::expected<void, std::string> GameAction(int32_t slot, std::string_view line);
+
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 

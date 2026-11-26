@@ -19,6 +19,8 @@ local modlock = require("@modlock")
 
 -- Player and Wheel are the library's types the interface takes.
 type Player = modlock.Player
+type GameAction = modlock.GameAction
+type ActionPhase = modlock.ActionPhase
 type Wheel = modlock.Wheel
 
 local ui = {}
@@ -558,6 +560,9 @@ export type AbilityRow = {
 -- AbilityBarHandler takes a click on the ability in slot, 0 to 3.
 export type AbilityBarHandler = (player: Player, slot: number) -> ()
 
+-- ActionHandler takes one phase of a game action player used.
+export type ActionHandler = (player: Player, phase: ActionPhase) -> ()
+
 -- Node is one node of the interface tree as the wire carries it.
 type Node = { [string]: any }
 
@@ -607,6 +612,8 @@ type View = {
 	cues: { Cue },
 	-- bar takes clicks on the game's ability bar, while the mod asks for them.
 	bar: AbilityBarHandler?,
+	-- actions takes each phase of the game actions the mod follows.
+	actions: { [GameAction]: ActionHandler },
 	-- display is the abilities shown on Tab's rows and the ability bar.
 	display: { AbilityRow },
 	-- notices are the toasts showing, oldest first.
@@ -1360,6 +1367,17 @@ local function notices(stack: { Notice }): Element
 	}
 end
 
+-- followed lists the game actions in actions, sorted so a screen encodes the
+-- same each time.
+local function followed(actions: { [GameAction]: ActionHandler }): { GameAction }
+	local list = {}
+	for action in actions do
+		table.insert(list, action)
+	end
+	table.sort(list)
+	return list
+end
+
 -- render lays the view out as nodes, keeping the ids of elements that stayed
 -- in place since previous, beside a node for each route.
 local function render(previous: Screen?, current: View, display: { Node }): Screen
@@ -1391,6 +1409,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 		sheets = table.clone(sheets),
 		cues = table.clone(current.cues),
 		abilityBarPresses = current.bar ~= nil,
+		gameActions = followed(current.actions),
 		abilityDisplay = display,
 	})
 
@@ -1437,6 +1456,7 @@ local function view(player: Player): View
 		asks = 0,
 		routes = {},
 		cues = {},
+		actions = {},
 		display = {},
 		notices = {},
 	}
@@ -1511,6 +1531,19 @@ end
 -- player who left, or whose session ended, sends none.
 function ui.abilityBarPresses(player: Player, onPress: AbilityBarHandler?): boolean
 	view(player).bar = onPress
+	return draw(player)
+end
+
+-- followAction calls onPhase with each phase of action, a game action such
+-- as "scoreboard", each time player uses it, on whichever key they bound it
+-- to: "pressed" once, then "released" or "cancelled" once. The game still
+-- does what the action does. A press made while a stock overlay, such as
+-- chat, the shop or the escape menu, has the player's input reports nothing,
+-- and one held as such an overlay opens is cancelled. Without onPhase the mod
+-- stops following. Actions reach the mod only while its screen holds the
+-- player's HUD.
+function ui.followAction(player: Player, action: GameAction, onPhase: ActionHandler?): boolean
+	view(player).actions[action] = onPhase
 	return draw(player)
 end
 
@@ -1651,6 +1684,15 @@ function ui.uiSound(player: Player, sound: string, options: { seconds: number? }
 	return draw(player)
 end
 
+-- act runs the handler of the game action the player used.
+local function act(player: Player, action: GameAction, phase: ActionPhase)
+	local current = views[player.slot]
+	local handler = if current then current.actions[action] else nil
+	if handler then
+		handler(player, phase)
+	end
+end
+
 -- press runs the handler of the button the player pressed.
 local function press(player: Player, node: string)
 	-- A click on the game's ability bar names its slot, which no button's id
@@ -1727,6 +1769,6 @@ end
 
 -- Take the interface's events from the library, which loads without this
 -- module.
-wireCodec = modlock.serveInterface({ press = press, change = change, tick = tick, players = forget })
+wireCodec = modlock.serveInterface({ press = press, change = change, act = act, tick = tick, players = forget })
 
 return ui

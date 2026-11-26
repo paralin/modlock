@@ -873,6 +873,10 @@ service Mod {
   // input, with its whole text or why it failed.
   rpc UiDocument(modlock.wasm.ui.UiDocumentEvent) returns (Empty);
 
+  // UiAction reports a phase of a game action the root of a player's
+  // interface follows.
+  rpc UiAction(modlock.wasm.ui.UiActionEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

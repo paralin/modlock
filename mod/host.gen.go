@@ -379,6 +379,30 @@ const (
 	CameraParamHorizontalOffset = playerspb.CameraParam_CAMERA_PARAM_HORIZONTAL_OFFSET
 )
 
+// GameAction is one of the game's own bound actions a mod may follow.
+type GameAction = uipb.GameAction
+
+// The values of GameAction.
+const (
+	// GameActionScoreboard holds the game's Tab screen while it is held.
+	GameActionScoreboard = uipb.GameAction_GAME_ACTION_SCOREBOARD
+)
+
+// ActionPhase is where a press of a game action stands.
+type ActionPhase = uipb.ActionPhase
+
+// The values of ActionPhase.
+const (
+	// ActionPhasePressed starts a press.
+	ActionPhasePressed = uipb.ActionPhase_ACTION_PHASE_PRESSED
+	// ActionPhaseReleased ends a press as the player let go.
+	ActionPhaseReleased = uipb.ActionPhase_ACTION_PHASE_RELEASED
+	// ActionPhaseCancelled ends a press before the player let go, as a stock
+	// overlay took the player's input or the screen lost the HUD. The release
+	// that follows sends nothing.
+	ActionPhaseCancelled = uipb.ActionPhase_ACTION_PHASE_CANCELLED
+)
+
 // DocumentFailure says why a document input's submission did not arrive.
 type DocumentFailure = uipb.DocumentFailure
 
@@ -726,6 +750,11 @@ type DocumentDelivered = uipb.DocumentDelivered
 
 // DocumentFailed is a submission that ended without its document.
 type DocumentFailed = uipb.DocumentFailed
+
+// UiActionEvent reports one phase of a game action the mod's root follows.
+// Each press reaches the mod once as pressed, then once as released or
+// cancelled.
+type UiActionEvent = uipb.UiActionEvent
 
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
@@ -2129,6 +2158,9 @@ type modHandlers interface {
 	// UiDocument reports the end of a submission from a player's document
 	// input, with its whole text or why it failed.
 	UiDocument(event *UiDocumentEvent) error
+	// UiAction reports a phase of a game action the root of a player's
+	// interface follows.
+	UiAction(event *UiActionEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
@@ -2267,6 +2299,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiDocument(event))
+	case "UiAction":
+		event := &UiActionEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiAction(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

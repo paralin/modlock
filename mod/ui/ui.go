@@ -55,6 +55,7 @@ func init() {
 	mod.OnFrame(func(f *mod.FrameEvent) { tick(f.GetTimeSeconds()) })
 	mod.OnUiPress(press)
 	mod.OnUiInput(change)
+	mod.OnUiAction(act)
 	mod.OnPlayers(forget)
 	mod.OnPlayerReturn(returned)
 }
