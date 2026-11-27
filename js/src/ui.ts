@@ -512,7 +512,9 @@ export interface Props {
   readonly step?: number
   readonly on?: boolean
   readonly options?: readonly string[]
-  readonly selected?: number
+  readonly selected?: number | string
+  readonly focusStyle?: Style
+  readonly selectedStyle?: Style
   readonly handles?: readonly RangeHandle[]
   readonly rowHeight?: number
   readonly row?: Child
@@ -702,11 +704,22 @@ export interface ListRow {
  * template each row is drawn from: a panel, label or image holding at most
  * fifteen more, with no buttons or inputs. The host takes at most 20,000 rows,
  * and 2 MiB of rows across a player's interface.
+ *
+ * The player focuses a row with the arrow keys or the controller, and chooses
+ * it with Enter, the controller's confirm or a click, which calls onChange
+ * with the row's key. The focus stays on its row as rows come and go. The
+ * mod keeps the chosen row and draws it back as selected, which shows until
+ * its row leaves the list. focusStyle and selectedStyle paint the focused and
+ * the selected row over the row's own style.
  */
 export interface ListProps extends ElementProps {
   rowHeight: number
   row: Child
   rows: readonly ListRow[]
+  selected?: string
+  focusStyle?: Style
+  selectedStyle?: Style
+  onChange?: (player: Player, key: string) => void
 }
 
 /** ToggleProps make a box the player checks, labeled by its text children. */
@@ -2017,8 +2030,18 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
       break
     case 'list':
       node.kind = Kind.LIST
-      node.list = { rowHeight: props.rowHeight, row: template(props.row) }
+      node.list = {
+        rowHeight: props.rowHeight,
+        row: template(props.row),
+        focusStyle: wireStyle(props.focusStyle),
+        selectedStyle: wireStyle(props.selectedStyle),
+        selected:
+          typeof props.selected === 'string' ? props.selected : undefined,
+      }
       layout.part.rows.set(node.id!, listRows(props.rows ?? []))
+      if (props.onChange) {
+        layout.part.changes.set(node.id!, { handler: props.onChange })
+      }
       break
     case 'image':
       node.kind = Kind.IMAGE
@@ -2240,7 +2263,8 @@ function input(
         case: 'dropdown',
         value: {
           options: [...(props.options ?? [])],
-          selected: props.selected,
+          selected:
+            typeof props.selected === 'number' ? props.selected : undefined,
         },
       }
       break

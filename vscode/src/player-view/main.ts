@@ -55,9 +55,9 @@ const drawing = new Drawing(
     }
   },
   undefined,
-  (mod, node, first, count) => {
+  (mod, node, first, count, focus) => {
     if (shown?.sandbox) {
-      vscode.postMessage({ type: 'window', mod, node, first, count })
+      vscode.postMessage({ type: 'window', mod, node, first, count, focus })
     }
   },
 )

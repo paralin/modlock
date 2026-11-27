@@ -765,6 +765,9 @@ type UiInputEventWheel = uipb.UiInputEvent_Wheel
 // UiInputEventRange sets UiInputEvent.Value to Range.
 type UiInputEventRange = uipb.UiInputEvent_Range
 
+// UiInputEventRow sets UiInputEvent.Value to Row.
+type UiInputEventRow = uipb.UiInputEvent_Row
+
 // UiDocumentEvent ends one submission from a player's document input: the
 // whole document, or why it did not arrive.
 type UiDocumentEvent = uipb.UiDocumentEvent

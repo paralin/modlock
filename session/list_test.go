@@ -162,3 +162,51 @@ func TestScreensSnapshotCarriesRowsAndWindows(t *testing.T) {
 		t.Fatalf("a reset lost the window: %d", list.GetFirst())
 	}
 }
+
+// TestScreensEchoTheFocusAndDropALostSelection focuses a row, moves rows
+// around it and removes it, and checks that the screen echoes the focus with
+// the row's place while the list holds it, and a selection only while its row
+// stays.
+func TestScreensEchoTheFocusAndDropALostSelection(t *testing.T) {
+	// Focus row3 and select it.
+	screens := NewScreens(1)
+	screens.Handle(joined(0, 1))
+	shown := listShown(0, "arena", true, 0, 5)
+	shown.GetUi().GetChange().GetSet()[0].List.Selected = "row3"
+	screens.Handle(shown)
+	focused := listWindow(0, "arena", 0, 50)
+	focused.GetUiWindow().Window.Focus = "row3"
+	screens.Handle(focused)
+	screen, _ := screens.Screen()
+	if list := shownList(t, screen); list.GetFocus() != "row3" || list.FocusAt == nil || *list.FocusAt != 3 || list.GetSelected() != "row3" {
+		t.Fatalf("the focus was %q at %v, selected %q", list.GetFocus(), list.FocusAt, list.GetSelected())
+	}
+
+	// A row ranked above the focus moves its place down by one.
+	above := listShown(0, "arena", false, 0, 0)
+	above.GetUi().GetChange().GetSet()[0].List.Selected = "row3"
+	above.GetUi().GetChange().GetLists()[0].Set = []*ui.Row{{Key: "top", Rank: -1}}
+	screens.Handle(above)
+	screen, _ = screens.Screen()
+	if list := shownList(t, screen); list.FocusAt == nil || *list.FocusAt != 4 {
+		t.Fatalf("after a row arrived above, the focus was at %v", list.FocusAt)
+	}
+
+	// Once the row leaves, the focus echoes with no place and the selection
+	// clears; the snapshot carries the focus.
+	gone := listShown(0, "arena", false, 0, 0)
+	gone.GetUi().GetChange().GetSet()[0].List.Selected = "row3"
+	gone.GetUi().GetChange().GetLists()[0].Removed = []string{"row3"}
+	screens.Handle(gone)
+	screen, _ = screens.Screen()
+	if list := shownList(t, screen); list.GetFocus() != "row3" || list.FocusAt != nil || list.GetSelected() != "" {
+		t.Fatalf("after the row left, the focus was %q at %v, selected %q", list.GetFocus(), list.FocusAt, list.GetSelected())
+	}
+	copied := NewScreens(1)
+	for _, event := range screens.Snapshot() {
+		copied.Handle(event)
+	}
+	if got, _ := copied.Screen(); !got.EqualVT(screen) {
+		t.Fatalf("the snapshot lost the focus: %v", shownList(t, got))
+	}
+}

@@ -5147,6 +5147,11 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "first", "uint32"),
             wire.Field(4, "total", "uint32"),
             wire.Field(5, "rows", "message", repeated=True, message="Row"),
+            wire.Field(6, "focus_style", "message", message="Style"),
+            wire.Field(7, "selected_style", "message", message="Style"),
+            wire.Field(8, "selected", "string"),
+            wire.Field(9, "focus", "string"),
+            wire.Field(10, "focus_at", "uint32", optional=True),
         ],
     ),
     "Row": (
@@ -5487,6 +5492,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(6, "choice", "uint32", oneof="value"),
             wire.Field(7, "wheel", "message", oneof="value", message="Wheel"),
             wire.Field(8, "range", "message", oneof="value", message="RangeEvent"),
+            wire.Field(9, "row", "string", oneof="value"),
         ],
     ),
     "UiDocumentEvent": (

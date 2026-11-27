@@ -5,6 +5,14 @@
 // panels drawn from the list's row template. Scrolling moves the content
 // panel and refills the pool, so the panels drawn stay bounded by the
 // viewport, whatever the list's length.
+//
+// The list panel holds the keyboard focus as one panel, and the renderer
+// keeps which row it focuses by the row's key, so the focus stays on that row
+// as rows arrive and leave around it. Each window request names the focused
+// key, and the host echoes it with the row's place, which keeps the focus on
+// a row scrolled past the window and tells the renderer when the row has
+// left. The row then chosen is the one at the same place. Choosing a row
+// tells the mod, which owns the selection and draws it back.
 
 import {
   Kind,
@@ -27,14 +35,26 @@ const FALLBACK_ROWS = 10
 
 /**
  * Window asks the host for the run of a list's rows starting at first,
- * count long.
+ * count long, and tells it the key of the focused row, or "" for none.
  */
 export type Window = (
   mod: string,
   node: string,
   first: number,
   count: number,
+  focus: string,
 ) => void
+
+/**
+ * Focus is the row a player focuses in one list: none, a place whose row the
+ * renderer does not hold yet, or a held row's key and place.
+ */
+export interface Focus {
+  /** key is the focused row's key, or "" while no held row is focused. */
+  key: string
+  /** at is the focused row's place, or -1 for none. */
+  at: number
+}
 
 /** Scroll is where one list is scrolled to and how much of it shows. */
 export interface Scroll {
@@ -53,6 +73,12 @@ export interface Scroll {
   waited: boolean
   /** node is the list node last drawn, which the wheel scrolls. */
   node: Node
+  /** focus is the row the player focuses. */
+  focus: Focus
+  /** sent is the focused key the host was last told. */
+  sent: string
+  /** slots maps each drawn row panel's id to the key of the row it shows. */
+  slots: Map<string, string>
 }
 
 /** pixels returns a length of n pixels. */
@@ -75,6 +101,12 @@ function viewportOf(node: Node, scroll: Scroll, height: number): number {
   const own = node.style?.height?.value
   if (own?.case === 'pixels' && own.value > 0) return own.value
   return FALLBACK_ROWS * height
+}
+
+/** heldKey returns the key of the row at place at, or "" if not held. */
+function heldKey(list: List, at: number): string {
+  const first = list.first ?? 0
+  return list.rows?.[at - first]?.key ?? ''
 }
 
 /** fill replaces each "{field}" in text with the row's field, or nothing. */
@@ -167,6 +199,9 @@ export class Lists {
         panel: null,
         waited: false,
         node: { id },
+        focus: { key: '', at: -1 },
+        sent: '',
+        slots: new Map(),
       }
       lists.set(id, scroll)
     }
@@ -223,6 +258,73 @@ export class Lists {
     return true
   }
 
+  /**
+   * move steps a list's focus by delta rows, kept within the list, and
+   * scrolls it into view; with no row focused, it focuses the first row
+   * shown. It reports whether the focus moved.
+   */
+  move(mod: string, id: string, delta: number): boolean {
+    // Find the place to focus.
+    const scroll = this.scroll(mod, id)
+    const list = scroll.node.list ?? {}
+    const total = list.total ?? 0
+    const height = rowHeight(list)
+    if (total === 0) return false
+    const at =
+      scroll.focus.at < 0
+        ? Math.min(total - 1, Math.floor(scroll.offset / height))
+        : Math.min(total - 1, Math.max(0, scroll.focus.at + delta))
+    if (at === scroll.focus.at) return false
+
+    // Focus it, and scroll by as little as shows it whole.
+    scroll.focus = { key: heldKey(list, at), at }
+    const viewport = viewportOf(scroll.node, scroll, height)
+    scroll.offset = Math.min(
+      at * height,
+      Math.max(scroll.offset, (at + 1) * height - viewport),
+    )
+    return true
+  }
+
+  /**
+   * focusSlot focuses the row a list's row panel shows, and returns its key,
+   * or "" when the panel shows none.
+   */
+  focusSlot(mod: string, id: string, slot: string): string {
+    // Find the row the slot shows among the window's rows, and focus it.
+    const scroll = this.scroll(mod, id)
+    const key = scroll.slots.get(slot) ?? ''
+    const list = scroll.node.list ?? {}
+    const at = (list.rows ?? []).findIndex((row) => row.key === key)
+    if (key === '' || at < 0) return ''
+    scroll.focus = { key, at: (list.first ?? 0) + at }
+    return key
+  }
+
+  /**
+   * follow keeps a list's focus on its row as the host's rows change: at the
+   * row's place while the rows held or the host's echo place it, and, once
+   * the echo says the row has left, on the row that took its place. An echo
+   * of an earlier focus says nothing about this one.
+   */
+  private follow(scroll: Scroll, list: List): void {
+    // Find the focused row among the rows held, else in the echo.
+    const focus = scroll.focus
+    const first = list.first ?? 0
+    const held = (list.rows ?? []).findIndex((row) => row.key === focus.key)
+    if (focus.key !== '' && held >= 0) {
+      focus.at = first + held
+    } else if (focus.key !== '' && list.focus === focus.key) {
+      if (list.focusAt === undefined) focus.key = ''
+      else focus.at = list.focusAt
+    }
+
+    // Keep the place within the list, and take the key of the row there.
+    const total = list.total ?? 0
+    focus.at = Math.min(focus.at, total - 1)
+    if (focus.key === '' && focus.at >= 0) focus.key = heldKey(list, focus.at)
+  }
+
   /** expandOne replaces one list node with its content and row panels. */
   private expandOne(mod: string, node: Node, nodes: Map<string, Node>): void {
     // Keep the scroll inside the list's rows, as rows come and go.
@@ -237,6 +339,9 @@ export class Lists {
       scroll.offset,
       Math.max(0, total * height - viewport),
     )
+
+    // Keep the focus on its row.
+    this.follow(scroll, list)
 
     // The pool holds a panel for every row the viewport can show at once,
     // each reused for every pool-th row.
@@ -278,25 +383,37 @@ export class Lists {
     const template = new Map(
       (list.row ?? []).map((part) => [part.id ?? '', part]),
     )
+    scroll.slots.clear()
     for (let at = shown.first; at < shown.end; at++) {
       const row = at >= held.first && at < held.end ? rows[at - first] : null
       if (!row) continue
       const slot = `${id}~${at % pool}`
       slots.push(slot)
-      this.drawRow(slot, at * height, height, row, template, nodes)
+      scroll.slots.set(slot, row.key ?? '')
+      const look: Style = {
+        ...(row.key === scroll.focus.key ? list.focusStyle : undefined),
+        ...(row.key === list.selected ? list.selectedStyle : undefined),
+      }
+      this.drawRow(slot, at * height, height, row, template, look, nodes)
     }
 
-    // Ask for the rows the screen needs next, once per window.
+    // Ask for the rows the screen needs next, once per window, and tell the
+    // host each new focus.
     if (!this.window) return
     const ask = wanted(total, held, scroll.asked, shown)
-    if (!ask) return
-    scroll.asked = ask
-    this.window(mod, id, ask.first, ask.end - ask.first)
+    if (ask) scroll.asked = ask
+    if (!ask && scroll.focus.key === scroll.sent) return
+    const span =
+      scroll.asked.end > scroll.asked.first
+        ? scroll.asked
+        : { first, end: first + Math.max(1, rows.length) }
+    scroll.sent = scroll.focus.key
+    this.window(mod, id, span.first, span.end - span.first, scroll.sent)
   }
 
   /**
    * drawRow adds the nodes of one row drawn from the template, its root at
-   * slot, placed at top and height tall.
+   * slot, placed at top and height tall, with look over the root's style.
    */
   private drawRow(
     slot: string,
@@ -304,6 +421,7 @@ export class Lists {
     height: number,
     row: Row,
     template: Map<string, Node>,
+    look: Style,
     nodes: Map<string, Node>,
   ): void {
     const name = (part: string) => (part === '' ? slot : `${slot}~${part}`)
@@ -330,6 +448,7 @@ export class Lists {
         filled.style = {
           width: { value: { case: 'percent', value: 100 } },
           ...each.style,
+          ...look,
           y: pixels(top),
           height: pixels(height),
         }

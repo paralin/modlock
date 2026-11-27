@@ -374,6 +374,31 @@ sixteen fields. The host takes at most 20,000 rows in a list, and 2 MiB of rows
 across a player's interface. In Python the element is `list_`, and in Go
 `ui.List`.
 
+The player focuses a row with the arrow keys or the controller, and chooses
+it with Enter, the controller's confirm button or a click. A choice runs
+`onChange` with the row's key, and the mod draws that key back as `selected`,
+the same way an input draws back its value:
+
+```tsx
+<list
+  rowHeight={32}
+  row={<label>{'{name}'}</label>}
+  rows={rows}
+  selected={chosen}
+  focusStyle={{ background: '#ffffff22' }}
+  selectedStyle={{ color: '#ffd24a' }}
+  onChange={(player, key) => {
+    chosen = key
+  }}
+/>
+```
+
+`focusStyle` is drawn over a row's style while the player focuses it, and
+`selectedStyle` while it is selected. The focus belongs to the player's game,
+which keeps it on its row as rows are added, removed or reordered above it.
+When the focused row leaves the list, the focus moves to the row that took its
+place. A selected key that the list no longer holds shows nothing selected.
+
 ## Local menus and portable text
 
 Use a TypeScript `<menu>` when settings or a result should give the player a

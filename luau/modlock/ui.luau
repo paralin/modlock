@@ -583,6 +583,13 @@ export type ListRow = {
 -- rows, and 2 MiB of rows across a player's interface. Each draw compares
 -- every row with those the player holds and sends only the rows added,
 -- changed and removed.
+--
+-- The player focuses a row with the arrow keys or the controller, and
+-- chooses it with Enter, the controller's confirm or a click, which calls
+-- onChange with the row's key. The focus stays on its row as rows come and
+-- go. The mod keeps the chosen row and draws it back as selected, which shows
+-- until its row leaves the list. focusStyle and selectedStyle paint the
+-- focused and the selected row over the row's own style.
 export type ListProps = {
 	key: (string | number)?,
 	class: string?,
@@ -599,6 +606,10 @@ export type ListProps = {
 	rowHeight: number,
 	row: Child,
 	rows: { ListRow },
+	selected: string?,
+	focusStyle: Style?,
+	selectedStyle: Style?,
+	onChange: ((player: Player, key: string) -> ())?,
 	-- A key of another name is a mistake, which the indexer makes the checker
 	-- report.
 	[number]: never,
@@ -1574,7 +1585,16 @@ function place(layout: Layout, child: any, at: string, out: { string })
 		node.children = {}
 		placeChildren(layout, props, `{at}/`, node.children)
 	elseif kind == "list" then
-		node.list = { rowHeight = props.rowHeight, row = template(props.row) }
+		node.list = {
+			rowHeight = props.rowHeight,
+			row = template(props.row),
+			selected = props.selected,
+			focusStyle = wireStyle(props.focusStyle),
+			selectedStyle = wireStyle(props.selectedStyle),
+		}
+		if props.onChange then
+			layout.screen.changes[node.id] = props.onChange
+		end
 		table.insert(layout.screen.lists, node.id)
 		layout.screen.rows[node.id] = rowSet(props.rows or {})
 	elseif kind == "layout" then

@@ -116,10 +116,10 @@ const drawing = new Drawing(
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
   menuHost,
-  (mod, node, first, count) =>
+  (mod, node, first, count, focus) =>
     $.DispatchEvent(
       'CitadelConCommand',
-      windowCommand(mod, node, first, count),
+      windowCommand(mod, node, first, count, focus),
     ),
 )
 // placing tells each mod whose root follows placement where the screen put

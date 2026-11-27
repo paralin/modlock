@@ -3,6 +3,7 @@ package ui
 import (
 	"maps"
 
+	"github.com/paralin/modlock/mod"
 	uipb "github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -17,6 +18,12 @@ import (
 // Each draw compares every row with the rows the player holds and sends only
 // the rows added, changed and removed, so a draw costs time in proportion to
 // the list's rows, and the player's screen only what changed.
+//
+// The player focuses a row with the arrow keys or the controller, and chooses
+// it with Enter, the controller's confirm or a click, which runs OnChange
+// with the row's key. The focus stays on its row as rows come and go. The mod
+// keeps the chosen row and draws it back as Selected, which shows until its
+// row leaves the list.
 type List struct {
 	// Key keeps the list's node in a list of elements while that list changes.
 	Key string
@@ -35,6 +42,14 @@ type List struct {
 	// host takes at most 20,000 rows, and 2 MiB of rows across a player's
 	// interface.
 	Rows []Row
+	// Selected is the key of the row the mod draws as chosen, or "" for none.
+	Selected string
+	// FocusStyle is drawn over a row's style while the player focuses it.
+	FocusStyle *Style
+	// SelectedStyle is drawn over a row's style while it is Selected.
+	SelectedStyle *Style
+	// OnChange runs with the key of the row the player chose.
+	OnChange func(p mod.Player, key string)
 }
 
 // Row is one row of a List.
@@ -67,7 +82,16 @@ func (e List) draw(l *layout, n *uipb.Node, _ string) {
 	s := shared{class: e.Class, style: &e.Style, measure: e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_LIST
-	n.List = &uipb.List{RowHeight: e.RowHeight, Row: template(e.Row)}
+	n.List = &uipb.List{
+		RowHeight:     e.RowHeight,
+		Row:           template(e.Row),
+		Selected:      e.Selected,
+		FocusStyle:    wireStyle(e.FocusStyle),
+		SelectedStyle: wireStyle(e.SelectedStyle),
+	}
+	if e.OnChange != nil {
+		l.screen.handlers[n.Id] = handlers{row: e.OnChange}
+	}
 
 	// Keep the rows by key; of two rows with one key, the last counts.
 	rows := &rowSet{keys: make(map[string]*uipb.Row, len(e.Rows))}

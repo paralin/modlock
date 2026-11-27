@@ -1836,6 +1836,14 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
  * carries only the rows near the visible box and the renderer builds a panel
  * only for those. The list scrolls with the mouse wheel over it.
  *
+ * The list takes the keyboard and controller as one panel and holds which
+ * row has the focus by key, so the focus stays on its row as rows arrive,
+ * leave or move, and passes to the next row, or the one before the last,
+ * when its own row leaves. The player chooses the focused row with Enter or
+ * the controller's confirm, or any row by clicking it, and the mod hears its
+ * key as the list's input. The mod's selected names the row it draws as
+ * chosen.
+ *
  * @generated from message modlock.wasm.ui.List
  */
 export interface List {
@@ -1863,6 +1871,24 @@ export interface List {
    * host sets them; a mod's are ignored.
    */
   rows?: Row[]
+  /**
+   * FocusStyle is laid over the focused row's own style, and SelectedStyle
+   * over the selected row's.
+   */
+  focusStyle?: Style
+  selectedStyle?: Style
+  /**
+   * Selected is the key of the row the mod draws as chosen, or empty. The
+   * host clears a key the list no longer holds.
+   */
+  selected?: string
+  /**
+   * Focus is the key the renderer last said has the focus, and FocusAt its
+   * place in the whole list, unset when the list holds no such row. The host
+   * sets them; a mod's are refused.
+   */
+  focus?: string
+  focusAt?: number
 }
 
 export const List: MessageType<List> = /* @__PURE__ */ createMessageType<List>(
@@ -1873,6 +1899,11 @@ export const List: MessageType<List> = /* @__PURE__ */ createMessageType<List>(
     [3, 'first', 13],
     [4, 'total', 13],
     [5, 'rows', 11, 1, Row.codec],
+    [6, 'focus_style', 11, 0, Style.codec],
+    [7, 'selected_style', 11, 0, Style.codec],
+    [8, 'selected', 9],
+    [9, 'focus', 9],
+    [10, 'focus_at', 13, 4],
   ],
   {
     decode: (r: BinaryReader, end: number, m: List): List => {
@@ -1894,6 +1925,25 @@ export const List: MessageType<List> = /* @__PURE__ */ createMessageType<List>(
             break
           case 5:
             ;(m.rows ??= []).push(Row.decode(r, r.delimited(), {}))
+            break
+          case 6:
+            m.focusStyle = Style.decode(r, r.delimited(), m.focusStyle ?? {})
+            break
+          case 7:
+            m.selectedStyle = Style.decode(
+              r,
+              r.delimited(),
+              m.selectedStyle ?? {},
+            )
+            break
+          case 8:
+            m.selected = r.string()
+            break
+          case 9:
+            m.focus = r.string()
+            break
+          case 10:
+            m.focusAt = r.uint32()
             break
           default:
             r.skip(t)
@@ -1921,6 +1971,26 @@ export const List: MessageType<List> = /* @__PURE__ */ createMessageType<List>(
       {
         const a = m.rows
         if (a != null) for (const e of a) Row.writeField(w, 5, e)
+      }
+      {
+        const v = m.focusStyle
+        if (v != null) Style.writeField(w, 6, v)
+      }
+      {
+        const v = m.selectedStyle
+        if (v != null) Style.writeField(w, 7, v)
+      }
+      {
+        const v = m.selected
+        if (v) w.uint32(66).string(v)
+      }
+      {
+        const v = m.focus
+        if (v) w.uint32(74).string(v)
+      }
+      {
+        const v = m.focusAt
+        if (v != null) w.uint32(80).uint32(v)
       }
     },
   },
@@ -2032,6 +2102,10 @@ export interface ListWindow {
    */
   first?: number
   count?: number
+  /**
+   * Focus is the key of the row that has the focus, or empty for none.
+   */
+  focus?: string
 }
 
 export const ListWindow: MessageType<ListWindow> =
@@ -2041,6 +2115,7 @@ export const ListWindow: MessageType<ListWindow> =
       [1, 'node', 9],
       [2, 'first', 13],
       [3, 'count', 13],
+      [4, 'focus', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: ListWindow): ListWindow => {
@@ -2056,6 +2131,9 @@ export const ListWindow: MessageType<ListWindow> =
               break
             case 3:
               m.count = r.uint32()
+              break
+            case 4:
+              m.focus = r.string()
               break
             default:
               r.skip(t)
@@ -2075,6 +2153,10 @@ export const ListWindow: MessageType<ListWindow> =
         {
           const v = m.count
           if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.focus
+          if (v) w.uint32(34).string(v)
         }
       },
     },
@@ -5170,6 +5252,7 @@ export interface UiInputEvent {
     | { value: number; case: 'choice' }
     | { value: Wheel; case: 'wheel' }
     | { value: RangeEvent; case: 'range' }
+    | { value: string; case: 'row' }
 }
 
 export const UiInputEvent: MessageType<UiInputEvent> =
@@ -5184,6 +5267,7 @@ export const UiInputEvent: MessageType<UiInputEvent> =
       [6, 'choice', 13, 0, 0, 'value'],
       [7, 'wheel', 11, 0, Wheel.codec, 'value'],
       [8, 'range', 11, 0, RangeEvent.codec, 'value'],
+      [9, 'row', 9, 0, 0, 'value'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: UiInputEvent): UiInputEvent => {
@@ -5229,6 +5313,9 @@ export const UiInputEvent: MessageType<UiInputEvent> =
                 ),
               }
               break
+            case 9:
+              m.value = { case: 'row', value: r.string() }
+              break
             default:
               r.skip(t)
           }
@@ -5272,6 +5359,10 @@ export const UiInputEvent: MessageType<UiInputEvent> =
           const o = m.value
           if (o?.case === 'range' && o.value != null)
             RangeEvent.writeField(w, 8, o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'row' && o.value != null) w.uint32(74).string(o.value)
         }
       },
     },

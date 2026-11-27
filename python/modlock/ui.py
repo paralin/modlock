@@ -424,11 +424,22 @@ class ListProps(ElementProps, total=False):
     most fifteen more, with no buttons or inputs. The host takes at most
     20,000 rows, and 2 MiB of rows across a player's interface. Each draw
     compares every row with those the player holds and sends only the rows
-    added, changed and removed."""
+    added, changed and removed.
+
+    The player focuses a row with the arrow keys or the controller, and
+    chooses it with Enter, the controller's confirm or a click, which calls
+    on_change with the row's key. The focus stays on its row as rows come and
+    go. The mod keeps the chosen row and draws it back as selected, which
+    shows until its row leaves the list. focus_style and selected_style paint
+    the focused and the selected row over the row's own style."""
 
     row_height: Required[float]
     row: Required["Child"]
     rows: Required[Sequence[ListRow]]
+    selected: str
+    focus_style: Style
+    selected_style: Style
+    on_change: Callable[[Player, str], object] | None
 
 
 class ToggleProps(InputProps, total=False):
@@ -1322,7 +1333,16 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             node["children"] = _place(layout, children, f"{at}/")
         case "list":
             node["kind"] = "list"
-            node["list"] = {"row_height": props.get("row_height"), "row": _template(props.get("row"))}
+            node["list"] = {
+                "row_height": props.get("row_height"),
+                "row": _template(props.get("row")),
+                "selected": props.get("selected") or None,
+                "focus_style": _style(props.get("focus_style")),
+                "selected_style": _style(props.get("selected_style")),
+            }
+            on_change = props.get("on_change")
+            if on_change is not None:
+                layout.screen.changes[node["id"]] = on_change
             layout.screen.rows[node["id"]] = _rows(props.get("rows", ()))
         case "layout":
             node["kind"] = "layout"

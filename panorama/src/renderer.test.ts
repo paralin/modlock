@@ -3552,12 +3552,21 @@ test('a form focuses its marked control on open and Enter presses its submit but
   ])
 })
 
-/** listScreen draws a list of total rows, holding the rows from first. */
-function listScreen(total: number, first: number, count: number): Screen {
+/**
+ * listScreen draws a list of total rows, holding the rows from first, keyed
+ * by keys or else by place, with extra list fields.
+ */
+function listScreen(
+  total: number,
+  first: number,
+  count: number,
+  extra: JsonObject = {},
+  keys?: string[],
+): Screen {
   const rows = Array.from(
     { length: Math.min(count, total - first) },
     (_, i) => ({
-      key: `k${first + i}`,
+      key: keys?.[i] ?? `k${first + i}`,
       rank: first + i,
       fields: {
         name: `row ${first + i}`,
@@ -3581,6 +3590,7 @@ function listScreen(total: number, first: number, count: number): Screen {
           { id: 'name', kind: 'KIND_LABEL', text: '{name}!' },
           { id: 'icon', kind: 'KIND_IMAGE', image: '{icon}' },
         ],
+        ...extra,
       },
     },
   )
@@ -3647,4 +3657,85 @@ test('draws only the rows a list shows, however long the list', () => {
     Array.from({ length: 10 }, (_, i) => `row ${45 + i}!`).sort(),
   )
   expect(small.after).toBe(small.panels)
+})
+
+test("keeps a list's focus on its row as rows come and go", () => {
+  // Draw a list of 100 rows that paints its focused and selected rows.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const windows: string[] = []
+  const chosen: string[] = []
+  const drawing = new Drawing(
+    $,
+    root,
+    () => {},
+    undefined,
+    (_mod, _node, value) => {
+      if (value.case === 'row') chosen.push(value.value)
+    },
+    undefined,
+    (_mod, _node, first, count, focus) =>
+      windows.push(`${first} ${count} ${focus}`),
+  )
+  const looks = {
+    focusStyle: { color: 0xff0000ff },
+    selectedStyle: { bold: true },
+  }
+  const keys = (...each: string[]) => [
+    ...each,
+    ...Array.from({ length: 50 }, (_, i) => `k${i}`),
+  ]
+  drawing.draw(listScreen(100, 0, 50, looks))
+  const list = root.children[0]!.children[0]!
+  const slot = (place: number) =>
+    descendants(list).find(
+      (each) => each.paneltype === 'Label' && each.text === `row ${place}!`,
+    )?.parent
+  const sent = () => windows[windows.length - 1]!.split(' ')[2]
+
+  // The first step focuses the first row shown, and each step after moves
+  // it; the host hears each new focus with the window it holds.
+  list.events.get('onmovedown')!()
+  list.events.get('onmovedown')!()
+  list.events.get('onmovedown')!()
+  expect(windows[windows.length - 1]).toBe('0 50 k2')
+  expect(slot(2)!.style.color).toBeTruthy()
+  expect(slot(1)!.style.color).toBeFalsy()
+
+  // A row ranked above the focus keeps the focus on its row, one place down,
+  // so the next step focuses the row after it.
+  drawing.draw(
+    listScreen(101, 0, 50, { ...looks, focus: 'k2', focusAt: 3 }, keys('new')),
+  )
+  list.events.get('onmovedown')!()
+  expect(sent()).toBe('k3')
+
+  // When the focused row leaves, the focus takes the row now at its place;
+  // an echo of an earlier focus moves nothing.
+  const gone = keys('new').filter((key) => key !== 'k3')
+  drawing.draw(listScreen(100, 0, 50, { ...looks, focus: 'k3' }, gone))
+  expect(sent()).toBe('k4')
+  drawing.draw(listScreen(100, 0, 50, { ...looks, focus: 'k3' }, gone))
+  expect(sent()).toBe('k4')
+
+  // Enter chooses the focused row, and a press chooses the pressed row and
+  // focuses it; the mod draws the chosen row back as selected.
+  list.events.get('onactivate')!()
+  slot(0)!.events.get('onactivate')!()
+  expect(chosen).toEqual(['k4', 'new'])
+  expect(sent()).toBe('new')
+  drawing.draw(
+    listScreen(
+      100,
+      0,
+      50,
+      { ...looks, selected: 'new', focus: 'new', focusAt: 0 },
+      gone,
+    ),
+  )
+  expect(slot(0)!.style.fontWeight).toBeTruthy()
+  expect(slot(1)!.style.fontWeight).toBeFalsy()
+
+  // A list emptied clears the focus.
+  drawing.draw(listScreen(0, 0, 0, { ...looks, focus: 'new' }))
+  expect(windows[windows.length - 1]).toBe('0 1 ')
 })

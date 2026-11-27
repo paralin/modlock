@@ -107,6 +107,8 @@ type handlers struct {
 	wheel func(p mod.Player, wheel *mod.Wheel)
 	// hold runs as the player grabs, lets go of or loses a range's handle.
 	hold func(p mod.Player, event *mod.RangeEvent)
+	// row runs when the player chooses a list's row, with its key.
+	row func(p mod.Player, key string)
 	// bound runs a layout's bound panel's press, by the panel's id.
 	bound map[string]func(p mod.Player)
 }
@@ -503,6 +505,10 @@ func change(event *mod.UiInputEvent) {
 	case *mod.UiInputEventRange:
 		if h.hold != nil {
 			h.hold(p, value.Range)
+		}
+	case *mod.UiInputEventRow:
+		if h.row != nil {
+			h.row(p, value.Row)
 		}
 	}
 }

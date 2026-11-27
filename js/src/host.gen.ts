@@ -3089,7 +3089,7 @@ export interface UiInputEvent {
   /** node is the id of the input. */
   readonly node: string
   /** value is the input's new value, in the kind its control holds. */
-  readonly value?: string | number | boolean | number | Wheel | RangeEvent
+  readonly value?: string | number | boolean | number | Wheel | RangeEvent | string
 }
 
 /** fromUiInputEvent decodes an UiInputEvent. */
