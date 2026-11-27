@@ -12,27 +12,32 @@ import (
 // Show replaces the interface the mod shows player with root. A player who
 // left and a mod that restarted show nothing until the next call.
 func Show(p mod.Player, root Node) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.root = root
-	return draw(v)
+	return lib.draw(v)
 }
 
 // Hide removes the interface, the routes and the notices the mod shows player.
 func Hide(p mod.Player) bool {
-	delete(lib.views, p.Slot())
-	delete(lib.screens, p.Slot())
+	return lib.hide(p)
+}
+
+// hide applies the request to this library instance.
+func (l *library) hide(p mod.Player) bool {
+	delete(l.views, p.Slot())
+	l.retained.invalidate(p.Slot())
 	return send(p, &uipb.Change{Reset_: true})
 }
 
 // HideHud hides parts of the game's own HUD from player until the next call;
 // no parts shows them all again.
 func HideHud(p mod.Player, parts ...HudPart) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.hud = v.hud[:0]
 	for _, part := range parts {
 		v.hud = append(v.hud, hudPart(part))
 	}
-	return draw(v)
+	return lib.draw(v)
 }
 
 // FreeCursor shows player's mouse cursor while free is true, so they can click
@@ -48,12 +53,12 @@ func HideHud(p mod.Player, parts ...HudPart) bool {
 // stays away when the mod draws a new screen, until the next call with true
 // shows it again.
 func FreeCursor(p mod.Player, free bool) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.cursor = free
 	if free {
 		v.asks++
 	}
-	return draw(v)
+	return lib.draw(v)
 }
 
 // CursorFree reports whether player's mouse cursor is up now, whether the mod
@@ -79,9 +84,9 @@ func CursorFree(p mod.Player) (free, ok bool) {
 // replaces abilities answers here. Clicks reach the mod only while its screen
 // holds the player's HUD.
 func AbilityBarPresses(p mod.Player, onPress func(p mod.Player, slot int)) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.bar = onPress
-	return draw(v)
+	return lib.draw(v)
 }
 
 // FollowAction calls onPhase with each phase of action, a game action such
@@ -93,7 +98,7 @@ func AbilityBarPresses(p mod.Player, onPress func(p mod.Player, slot int)) bool 
 // stops following. Actions reach the mod only while its screen holds the
 // player's HUD.
 func FollowAction(p mod.Player, action mod.GameAction, onPhase func(p mod.Player, phase mod.ActionPhase)) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	if onPhase == nil {
 		delete(v.actions, action)
 	} else {
@@ -102,7 +107,7 @@ func FollowAction(p mod.Player, action mod.GameAction, onPhase func(p mod.Player
 		}
 		v.actions[action] = onPhase
 	}
-	return draw(v)
+	return lib.draw(v)
 }
 
 // FollowOverlay calls onChange with the stock overlay, such as
@@ -112,9 +117,9 @@ func FollowAction(p mod.Player, action mod.GameAction, onPhase func(p mod.Player
 // open it names the first of chat, the shop, the build editor, the item
 // draft, a popup and the escape menu. A nil onChange stops following.
 func FollowOverlay(p mod.Player, onChange func(p mod.Player, overlay mod.Overlay)) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.overlay = onChange
-	return draw(v)
+	return lib.draw(v)
 }
 
 // Placement is where a player's screen places the interface, in layout
@@ -136,9 +141,9 @@ type Placement struct {
 // settles. Elements that share a Measure report one box. A nil onPlace stops
 // following.
 func FollowPlacement(p mod.Player, onPlace func(p mod.Player, placement Placement)) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.placement = onPlace
-	return draw(v)
+	return lib.draw(v)
 }
 
 // InHudFrame draws player's interface inside the HUD's frame instead of the
@@ -146,9 +151,9 @@ func FollowPlacement(p mod.Player, onPlace func(p mod.Player, placement Placemen
 // than 16:9 where the player keeps the HUD in its middle 16:9, so an
 // interface aligned to the frame's edges lines up with the game's HUD.
 func InHudFrame(p mod.Player, on bool) bool {
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	v.hudFrame = on
-	return draw(v)
+	return lib.draw(v)
 }
 
 // AbilityDisplay shows viewer each row's abilities in place of the ones the
@@ -159,9 +164,9 @@ func InHudFrame(p mod.Player, on bool) bool {
 // ends. Rows match the Tab screen's by the player's name and else by the
 // hero's, so each row's player should have a hero.
 func AbilityDisplay(viewer mod.Player, rows ...AbilityRow) bool {
-	v := viewOf(viewer)
+	v := lib.viewOf(viewer)
 	v.display = slices.Clone(rows[:min(len(rows), maxDisplay)])
-	return draw(v)
+	return lib.draw(v)
 }
 
 // Sheet adds the style sheet at path in the mod's content styles directory,
@@ -170,6 +175,11 @@ func AbilityDisplay(viewer mod.Player, rows ...AbilityRow) bool {
 // '_', '-' and '.' in segments separated by '/', ending in ".css"; another
 // adds nothing and returns false.
 func Sheet(path string) bool {
+	return lib.sheet(path)
+}
+
+// sheet applies the request to this library instance.
+func (l *library) sheet(path string) bool {
 	// Refuse a path the renderer cannot load, and keep a sheet added before.
 	if !strings.HasSuffix(path, ".css") {
 		return false
@@ -179,14 +189,14 @@ func Sheet(path string) bool {
 			return false
 		}
 	}
-	if slices.Contains(lib.sheets, path) {
+	if slices.Contains(l.sheets, path) {
 		return true
 	}
 
 	// Redraw every interface with the new sheet.
-	lib.sheets = append(lib.sheets, path)
-	for _, v := range lib.views {
-		draw(v)
+	l.sheets = append(l.sheets, path)
+	for _, v := range l.views {
+		l.draw(v)
 	}
 	return true
 }
@@ -202,7 +212,7 @@ func Route(p mod.Player, name, value string) bool {
 	}
 
 	// Store the value in the route's place, or forget the route, and redraw.
-	v := viewOf(p)
+	v := lib.viewOf(p)
 	at := slices.IndexFunc(v.routes, func(r route) bool { return r.name == name })
 	switch {
 	case value == "" && at >= 0:
@@ -213,7 +223,7 @@ func Route(p mod.Player, name, value string) bool {
 	default:
 		v.routes = append(v.routes, route{name: name, data: value})
 	}
-	return draw(v)
+	return lib.draw(v)
 }
 
 // plainName reports whether name is letters, digits, '_', '-' and '.' alone.
@@ -238,14 +248,19 @@ func Toast(p mod.Player, text string) bool {
 
 // ToastFor shows player text in a notice for seconds, as Toast does.
 func ToastFor(p mod.Player, text string, seconds float64) bool {
+	return lib.toastFor(p, text, seconds)
+}
+
+// toastFor applies the request to this library instance.
+func (l *library) toastFor(p mod.Player, text string, seconds float64) bool {
 	// Add the notice, keeping only the newest few.
-	v := viewOf(p)
-	v.notices = append(v.notices, notice{id: lib.nextNotice, text: text, until: lib.now + seconds})
-	lib.nextNotice++
+	v := l.viewOf(p)
+	v.notices = append(v.notices, notice{id: l.nextNotice, text: text, until: l.now + seconds})
+	l.nextNotice++
 	if len(v.notices) > maxNotices {
 		v.notices = slices.Delete(v.notices, 0, len(v.notices)-maxNotices)
 	}
-	return draw(v)
+	return l.draw(v)
 }
 
 // Sound plays the game's sound event sound, such as "UI.ItemDraft.Start", in
@@ -254,37 +269,19 @@ func ToastFor(p mod.Player, text string, seconds float64) bool {
 // all if the player reads it only after the mod's next few sounds.
 // PlayTimeline times a run of sounds, such as a wheel's ticks.
 func Sound(p mod.Player, sound string, seconds float32) bool {
+	return lib.sound(p, sound, seconds)
+}
+
+// sound applies the request to this library instance.
+func (l *library) sound(p mod.Player, sound string, seconds float32) bool {
 	// Add the sound, keeping only the newest few.
-	v := viewOf(p)
-	v.cues = append(v.cues, &uipb.Cue{Number: lib.nextCue, Sound: sound, Seconds: seconds})
-	lib.nextCue++
+	v := l.viewOf(p)
+	v.cues = append(v.cues, &uipb.Cue{Number: l.nextCue, Sound: sound, Seconds: seconds})
+	l.nextCue++
 	if len(v.cues) > maxCues {
 		v.cues = slices.Delete(v.cues, 0, len(v.cues)-maxCues)
 	}
-	return draw(v)
-}
-
-// TimelineStep is one moment of a timeline, At seconds from its start, 0 to
-// 60. From then on the elements whose Measure the step names take its look:
-// Class adds classes from the mod's sheets, separated by spaces, and Style is
-// laid over each element's own, setting, as a hover does, only what the
-// element's style sets or what has a resting value. A step's look replaces
-// the look an earlier step gave the same measure. Sound plays the game's
-// sound event, cut after Seconds unless Seconds is zero.
-type TimelineStep struct {
-	At      float32
-	Measure string
-	Class   string
-	Style   *Style
-	Sound   string
-	Seconds float32
-}
-
-// Timeline is a timed presentation. Its steps run on the player's own time,
-// or, with Game set, hold while the game is paused.
-type Timeline struct {
-	Game  bool
-	Steps []TimelineStep
+	return l.draw(v)
 }
 
 // PlayTimeline starts timeline id in player's interface, or starts it again
@@ -293,9 +290,14 @@ type Timeline struct {
 // renderer that reloads mid-run shows the run's last looks and plays none of
 // its sounds.
 func PlayTimeline(p mod.Player, id string, t Timeline) bool {
+	return lib.playTimeline(p, id, t)
+}
+
+// playTimeline applies the request to this library instance.
+func (l *library) playTimeline(p mod.Player, id string, t Timeline) bool {
 	// Encode the run, numbered after every earlier one.
-	wire := &uipb.Timeline{Id: id, Run: lib.nextRun}
-	lib.nextRun++
+	wire := &uipb.Timeline{Id: id, Run: l.nextRun}
+	l.nextRun++
 	if t.Game {
 		wire.Clock = uipb.TimelineClock_TIMELINE_CLOCK_GAME
 	}
@@ -311,24 +313,27 @@ func PlayTimeline(p mod.Player, id string, t Timeline) bool {
 	}
 
 	// Replace the timeline of that id, or add it.
-	v := viewOf(p)
+	v := l.viewOf(p)
 	at := slices.IndexFunc(v.timelines, func(each *uipb.Timeline) bool { return each.Id == id })
 	if at < 0 {
 		v.timelines = append(v.timelines, wire)
 	} else {
 		v.timelines[at] = wire
 	}
-	return draw(v)
+	return l.draw(v)
 }
 
 // CancelTimeline stops timeline id in player's interface, taking back its
 // looks and playing none of its sounds still to come.
 func CancelTimeline(p mod.Player, id string) bool {
-	v := viewOf(p)
+	// Find the presentation currently kept for this player.
+	v := lib.viewOf(p)
 	at := slices.IndexFunc(v.timelines, func(each *uipb.Timeline) bool { return each.Id == id })
 	if at < 0 {
 		return true
 	}
+
+	// Remove the presentation and redraw the retained view.
 	v.timelines = slices.Delete(v.timelines, at, at+1)
-	return draw(v)
+	return lib.draw(v)
 }

@@ -67,7 +67,7 @@ func (e Slider) draw(l *layout, n *uipb.Node, _ string) {
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled
 	if !e.Disabled && (e.OnChange != nil || e.OnWheel != nil) {
-		l.screen.handlers[n.Id] = handlers{number: e.OnChange, wheel: e.OnWheel}
+		l.record(n.Id, handlers{number: e.OnChange, wheel: e.OnWheel})
 	}
 	n.Input = &uipb.Node_Slider{Slider: &uipb.Slider{
 		Value: e.Value,

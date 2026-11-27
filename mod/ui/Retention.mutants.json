@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Retain a refused reset",
+    "replace": [
+      [
+        "retained' = 0 /\\ callbacks' = 0 /\\ tenure' = 0\n               /\\ UNCHANGED",
+        "retained' = candidate /\\ callbacks' = candidate /\\ tenure' = generation\n               /\\ UNCHANGED"
+      ]
+    ],
+    "expect": "AcceptedOnly"
+  },
+  {
+    "name": "Keep callbacks from the earlier identical encoding",
+    "replace": [["callbacks' = candidate", "callbacks' = callbacks"]],
+    "expect": "LatestCallbacks"
+  },
+  {
+    "name": "Keep a screen when the slot gets a new connection",
+    "replace": [
+      [
+        "/\\ generation = 1 /\\ generation' = 2\n           /\\ retained' = 0 /\\ callbacks' = 0 /\\ tenure' = 0",
+        "/\\ generation = 1 /\\ generation' = 2\n           /\\ retained' = retained /\\ callbacks' = callbacks /\\ tenure' = tenure"
+      ]
+    ],
+    "expect": "CurrentConnection"
+  }
+]

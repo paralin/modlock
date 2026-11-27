@@ -57,15 +57,6 @@ type Range struct {
 	OnHold func(p mod.Player, handle string, phase mod.ActionPhase)
 }
 
-// RangeHandle is one handle of a range: its name, 1 to 64 letters, digits,
-// '_', '-' or '.', distinct within the range, and its value.
-type RangeHandle struct {
-	// Name names the handle in the range's reports.
-	Name string
-	// Value is where the handle sits on the track.
-	Value float32
-}
-
 // Render returns the range itself.
 func (e Range) Render() Node {
 	return e
@@ -84,7 +75,7 @@ func (e Range) draw(l *layout, n *uipb.Node, _ string) {
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled
 	if !e.Disabled && (e.OnChange != nil || e.OnHold != nil) {
-		l.screen.handlers[n.Id] = handlers{hold: e.hold}
+		l.record(n.Id, handlers{hold: e.hold})
 	}
 	handles := make([]*uipb.RangeHandle, len(e.Handles))
 	for i, h := range e.Handles {

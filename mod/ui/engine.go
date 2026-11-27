@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"maps"
 	"slices"
 	"strconv"
 
@@ -66,32 +65,6 @@ type notice struct {
 	until float64
 }
 
-// screen is what one player's interface holds, as the host last accepted it.
-type screen struct {
-	// nodes maps each node's id to its encoding, to find what changed.
-	nodes map[string]*uipb.Node
-	// order lists the nodes in the order laid out, children before parents.
-	order []*uipb.Node
-	// ids maps each element's place in the tree to its node's id. A place is
-	// its parent's place, then "/" for the children, ",index" or ",=key" in a
-	// list, and ">" for what a component rendered.
-	ids map[string]string
-	// handlers maps each button's and input's id to its handlers.
-	handlers map[string]handlers
-	// next numbers the next new node, so an id is never reused.
-	next int
-}
-
-// newScreen returns an empty screen that numbers its new nodes from next.
-func newScreen(next int) *screen {
-	return &screen{
-		nodes:    map[string]*uipb.Node{},
-		ids:      map[string]string{},
-		handlers: map[string]handlers{},
-		next:     next,
-	}
-}
-
 // handlers are the handlers of one button or input; each is nil when unset.
 type handlers struct {
 	// press runs when the player presses a button.
@@ -114,23 +87,13 @@ type handlers struct {
 	bound map[string]func(p mod.Player)
 }
 
-// layout holds one screen while place lays it out.
-type layout struct {
-	// previous is the screen the player holds, whose ids the layout keeps.
-	previous *screen
-	// screen is the screen being laid out.
-	screen *screen
-	// windows holds the player's windows of each list, by node id.
-	windows map[string]listWindow
-}
-
 // library holds the interface library's state: what the mod shows each
 // player, the screens they hold, and the clock and counters they share.
 type library struct {
 	// views holds what the mod shows each player, by slot.
 	views map[int32]*view
-	// screens holds each player's interface by slot.
-	screens map[int32]*screen
+	// retained keeps the screens accepted by the host.
+	retained retained
 	// generations holds each slot's connection generation from the last
 	// player list, to drop a view when another player takes the slot.
 	generations map[int32]uint32
@@ -149,7 +112,7 @@ type library struct {
 // lib is the library's state for the mod.
 var lib = &library{
 	views:       map[int32]*view{},
-	screens:     map[int32]*screen{},
+	retained:    retained{screens: map[int32]*screen{}},
 	generations: map[int32]uint32{},
 	nextCue:     1,
 	nextRun:     1,
@@ -166,155 +129,18 @@ const (
 )
 
 // viewOf returns what the mod shows player, made empty on first use.
-func viewOf(p mod.Player) *view {
-	v := lib.views[p.Slot()]
+func (l *library) viewOf(p mod.Player) *view {
+	v := l.views[p.Slot()]
 	if v == nil {
 		v = &view{player: p}
-		lib.views[p.Slot()] = v
+		l.views[p.Slot()] = v
 	}
 	return v
 }
 
-// draw sends what changed in the player's interface and notices.
-func draw(v *view) bool {
-	// Render the player's view and any notices against the last screen sent.
-	root := Nodes{v.root, nil}
-	if len(v.notices) != 0 {
-		root[1] = notices(v.notices)
-	}
-	slot := v.player.Slot()
-	previous := lib.screens[slot]
-	display := displayRows(v.player, v.display)
-	next := render(previous, v, root, display)
-	change := diff(previous, next)
-
-	// Send the change; a failed send means the player may have left, so send
-	// the screen whole.
-	if change != nil && !send(v.player, change) {
-		whole := render(nil, v, root, display)
-		if !send(v.player, diff(nil, whole)) {
-			delete(lib.screens, slot)
-			return false
-		}
-		lib.screens[slot] = whole
-		forgetWindows(v, whole)
-		return true
-	}
-
-	// Keep the screen the player now holds.
-	lib.screens[slot] = next
-	forgetWindows(v, next)
-	return true
-}
-
-// render lays root out as nodes, keeping the ids of elements that stayed in
-// place, beside a node for each route.
-func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *screen {
-	// The root is the full-screen panel the elements hang from, and it lists
-	// the parts of the game's HUD to hide, whether the cursor is free, the
-	// mod's sheets and its last sounds.
-	next := 0
-	if previous != nil {
-		next = previous.next
-	}
-	l := &layout{previous: previous, screen: newScreen(next), windows: v.windows}
-	l.add(&uipb.Node{
-		Id:                "",
-		Kind:              uipb.Kind_KIND_PANEL,
-		Children:          l.place(root, "/", nil),
-		HideHud:           slices.Clone(v.hud),
-		FreeCursor:        v.cursor,
-		FreeCursorAsks:    v.asks,
-		Sheets:            slices.Clone(lib.sheets),
-		Cues:              slices.Clone(v.cues),
-		Timelines:         slices.Clone(v.timelines),
-		AbilityBarPresses: v.bar != nil,
-		GameActions:       slices.Sorted(maps.Keys(v.actions)),
-		FollowsOverlay:    v.overlay != nil,
-		FollowsPlacement:  v.placement != nil,
-		Frame:             frame(v.hudFrame),
-		AbilityDisplay:    display,
-	})
-
-	// A route's id holds a colon, which no element's id does.
-	for _, r := range v.routes {
-		l.add(&uipb.Node{Id: "route:" + r.name, Kind: uipb.Kind_KIND_ROUTE, Route: r.name, Data: r.data})
-	}
-	return l.screen
-}
-
-// add records a node.
-func (l *layout) add(n *uipb.Node) {
-	l.screen.nodes[n.Id] = n
-	l.screen.order = append(l.screen.order, n)
-}
-
-// id returns the node id for the element at place.
-func (l *layout) id(place string) string {
-	// Keep the id the place had on the screen the player holds.
-	found, ok := "", false
-	if l.previous != nil {
-		found, ok = l.previous.ids[place]
-	}
-	if !ok {
-		found = strconv.FormatInt(int64(l.screen.next), 36)
-		l.screen.next++
-	}
-	l.screen.ids[place] = found
-	return found
-}
-
-// place lays out child at place at and appends its nodes' ids to ids.
-func (l *layout) place(child Node, at string, ids []string) []string {
-	switch c := child.(type) {
-	case nil:
-		return ids
-	case Nodes:
-		// A keyed child keeps its place by key, the rest by index.
-		for i, item := range c {
-			where := at + "," + strconv.Itoa(i)
-			if k, ok := item.(keyed); ok && k.key() != "" {
-				where = at + ",=" + k.key()
-			}
-			ids = l.place(item, where, ids)
-		}
-		return ids
-	case Text:
-		n := &uipb.Node{Id: l.id(at), Kind: uipb.Kind_KIND_LABEL, Text: string(c)}
-		l.add(n)
-		return append(ids, n.Id)
-	case element:
-		n := &uipb.Node{Id: l.id(at)}
-		c.draw(l, n, at)
-		l.add(n)
-		return append(ids, n.Id)
-	}
-
-	// A component's nodes hang under its place.
-	return l.place(child.Render(), at+">", ids)
-}
-
-// diff returns the change from previous to next, or nil when nothing changed.
-func diff(previous *screen, next *screen) *uipb.Change {
-	// Send each node whose encoding changed, and remove each node gone.
-	var set []*uipb.Node
-	for _, n := range next.order {
-		if previous == nil || !previous.nodes[n.Id].EqualVT(n) {
-			set = append(set, n)
-		}
-	}
-	var removed []string
-	if previous != nil {
-		for _, n := range previous.order {
-			if _, ok := next.nodes[n.Id]; !ok {
-				removed = append(removed, n.Id)
-			}
-		}
-	}
-	if previous != nil && len(set) == 0 && len(removed) == 0 {
-		return nil
-	}
-	return &uipb.Change{Reset_: previous == nil, Set: set, Removed: removed}
+// draw sends a view through the default retained-screen component.
+func (l *library) draw(v *view) bool {
+	return l.retained.draw(v)
 }
 
 // send asks the host to apply change to the player.
@@ -407,24 +233,22 @@ func displayRows(viewer mod.Player, rows []AbilityRow) []*uipb.AbilityRow {
 }
 
 // press runs the handler of the button or bound panel the player pressed.
-func press(event *mod.UiPressEvent) {
+func (l *library) press(event *mod.UiPressEvent) {
 	// A click on the game's ability bar names its slot, which no button's id
 	// does.
 	p, node := mod.PlayerOf(event.GetPlayer()), event.GetNode()
 	if slot, ok := abilitySlot(node); ok {
-		if v := lib.views[p.Slot()]; v != nil && v.bar != nil {
+		if v := l.views[p.Slot()]; v != nil && v.bar != nil {
 			v.bar(p, slot)
 		}
 		return
 	}
+
 	// A layout's press names its bound panel; a button's names none.
-	s := lib.screens[p.Slot()]
-	if s == nil {
-		return
-	}
-	h := s.handlers[node].press
+	callbacks := l.retained.lookup(p.Slot(), node)
+	h := callbacks.press
 	if action := event.GetAction(); action != "" {
-		h = s.handlers[node].bound[action]
+		h = callbacks.bound[action]
 	}
 	if h != nil {
 		h(p)
@@ -432,9 +256,9 @@ func press(event *mod.UiPressEvent) {
 }
 
 // act runs the handler of the game action the player pressed.
-func act(event *mod.UiActionEvent) {
+func (l *library) act(event *mod.UiActionEvent) {
 	p := mod.PlayerOf(event.GetPlayer())
-	if v := lib.views[p.Slot()]; v != nil {
+	if v := l.views[p.Slot()]; v != nil {
 		if h := v.actions[event.GetAction()]; h != nil {
 			h(p, event.GetPhase())
 		}
@@ -442,17 +266,17 @@ func act(event *mod.UiActionEvent) {
 }
 
 // overlaid runs the handler of the mod that follows the player's overlays.
-func overlaid(event *mod.UiOverlayEvent) {
+func (l *library) overlaid(event *mod.UiOverlayEvent) {
 	p := mod.PlayerOf(event.GetPlayer())
-	if v := lib.views[p.Slot()]; v != nil && v.overlay != nil {
+	if v := l.views[p.Slot()]; v != nil && v.overlay != nil {
 		v.overlay(p, event.GetOverlay())
 	}
 }
 
 // placed runs the handler of the mod that follows the player's placement.
-func placed(event *mod.UiPlacementEvent) {
+func (l *library) placed(event *mod.UiPlacementEvent) {
 	p := mod.PlayerOf(event.GetPlayer())
-	if v := lib.views[p.Slot()]; v != nil && v.placement != nil {
+	if v := l.views[p.Slot()]; v != nil && v.placement != nil {
 		measured := make(map[string]*mod.Bounds, len(event.GetMeasured()))
 		for _, each := range event.GetMeasured() {
 			measured[each.GetName()] = each.GetBounds()
@@ -479,14 +303,10 @@ func abilitySlot(node string) (int, bool) {
 
 // change runs the handler of the input the player changed, with its value as
 // the host checked it.
-func change(event *mod.UiInputEvent) {
+func (l *library) change(event *mod.UiInputEvent) {
 	// Find the input's handlers on the screen the player holds.
 	p := mod.PlayerOf(event.GetPlayer())
-	s := lib.screens[p.Slot()]
-	if s == nil {
-		return
-	}
-	h := s.handlers[event.GetNode()]
+	h := l.retained.lookup(p.Slot(), event.GetNode())
 
 	// Each value goes to the handler of its type.
 	switch value := event.GetValue().(type) {
@@ -522,45 +342,45 @@ func change(event *mod.UiInputEvent) {
 }
 
 // tick advances the clock to the frame at seconds and fades expiring notices.
-func tick(seconds float64) {
-	lib.now = seconds
-	for _, v := range lib.views {
+func (l *library) tick(seconds float64) {
+	l.now = seconds
+	for _, v := range l.views {
 		// Redraw only a view that lost a notice.
 		before := len(v.notices)
 		if before == 0 {
 			continue
 		}
-		v.notices = slices.DeleteFunc(v.notices, func(n notice) bool { return n.until <= lib.now })
+		v.notices = slices.DeleteFunc(v.notices, func(n notice) bool { return n.until <= l.now })
 		if len(v.notices) != before {
-			draw(v)
+			l.draw(v)
 		}
 	}
 }
 
 // returned sends a returning player their whole interface, which their client
 // lost while they were away.
-func returned(event *mod.PlayerReturnedEvent) {
+func (l *library) returned(event *mod.PlayerReturnedEvent) {
 	slot := event.GetConnection().GetPlayer()
-	if v := lib.views[slot]; v != nil {
-		delete(lib.screens, slot)
+	if v := l.views[slot]; v != nil {
+		l.retained.invalidate(slot)
 		v.windows = nil
-		draw(v)
+		l.draw(v)
 	}
 }
 
 // forget drops the view and screen of each slot whose player left or was
 // replaced, so a new player in the slot starts with nothing shown.
-func forget(players []*mod.Connection) {
+func (l *library) forget(players []*mod.Connection) {
 	// Find each slot whose connection is gone or new.
 	current := make(map[int32]uint32, len(players))
 	for _, c := range players {
 		current[c.GetPlayer()] = c.GetGeneration()
 	}
-	for slot, generation := range lib.generations {
+	for slot, generation := range l.generations {
 		if seen, ok := current[slot]; !ok || seen != generation {
-			delete(lib.views, slot)
-			delete(lib.screens, slot)
+			delete(l.views, slot)
+			l.retained.invalidate(slot)
 		}
 	}
-	lib.generations = current
+	l.generations = current
 }

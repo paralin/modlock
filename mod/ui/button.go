@@ -65,7 +65,7 @@ func (e Button) draw(l *layout, n *uipb.Node, at string) {
 
 	// A disabled button's press runs nothing, whoever sends it.
 	if e.OnPress != nil && !e.Disabled {
-		l.screen.handlers[n.Id] = handlers{press: e.OnPress}
+		l.record(n.Id, handlers{press: e.OnPress})
 	}
 	n.Children = l.place(e.Children, at+"/", nil)
 }

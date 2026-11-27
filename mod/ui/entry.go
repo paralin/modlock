@@ -64,7 +64,7 @@ func (e Entry) draw(l *layout, n *uipb.Node, _ string) {
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled
 	if e.OnChange != nil && !e.Disabled {
-		l.screen.handlers[n.Id] = handlers{text: e.OnChange}
+		l.record(n.Id, handlers{text: e.OnChange})
 	}
 	n.Input = &uipb.Node_TextEntry{TextEntry: &uipb.TextEntry{Text: e.Value, Placeholder: e.Placeholder, MaxLength: e.MaxLength}}
 }
