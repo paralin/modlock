@@ -64,7 +64,8 @@
 /* Without a flow direction, children overlap at their alignment. */
 .flow-none {
   display: grid;
-  grid-template: 1fr / 1fr;
+  /* minmax keeps an overflowing child from growing the screen. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
 }
 .flow-none > .p {
   grid-area: 1 / 1;
