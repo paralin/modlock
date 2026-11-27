@@ -14,7 +14,7 @@ and the sampled stacks in `modlock play` show which code makes it.
 
 When a mod gives a modifier again on every frame to keep it on, it pays for one
 call per player per frame. Hold the modifier instead. `holdModifier` keeps the
-modifier on the hero with no expiry, and gives it back when the game removes it
+modifier on the hero without an expiry, and gives it back when the game removes it
 or the hero returns. Keep a record of what you last asked for, and call the
 game only when that changes:
 
@@ -215,19 +215,19 @@ end)
 
 A loop that cannot be a task, such as a frame handler's own slice of work, can
 ask `late()` after each unit of work and stop when it returns true. The host
-gives each mod its share of the frame only when `MODLOCK_FRAME_BUDGET` names
-the mod, or is `all`. With no budget, `pace` never waits and `late()` is always
+gives each mod its share of the frame only when `MODLOCK_FRAME_BUDGET` holds
+the mod's name, or `all`. Without a budget, `pace` never waits and `late()` is always
 false. Then the task runs to its end in the frame it starts, as a plain loop
 would.
 
-A task is async, and scriptc compiles no async code. So a TypeScript mod that
+A task is async, and scriptc cannot compile async code. So a TypeScript mod that
 starts a task or calls a worker builds for QuickJS, even when it asks for
 [WebAssembly](/languages/typescript#two-runtimes). `late()` is not async and
 works in both builds.
 
 ## Move computation to a worker
 
-Work that reads no game state, such as decoding a large table or searching it,
+Work that does not read game state, such as decoding a large table or searching it,
 can leave the server's tick altogether. A worker is a script of the mod's own,
 named `*.worker.ts`, in the project's root or in `src/`. The build bundles it
 into the mod's `data/` directory, and the host runs it in a second interpreter
@@ -265,7 +265,7 @@ const spot = await table.call(question)
 
 The host copies the answer into the mod on the tick, at about 2 ms a megabyte.
 So keep large state in the worker, and answer with only what the mod needs now.
-A host runs workers only for the mods that `MODLOCK_WORKERS` names, or for all
+A host runs workers only for the mods whose names `MODLOCK_WORKERS` holds, or for all
 of them when it is `all`. For any other mod, `call` runs the function in the mod
 itself as a task. The mod behaves the same, but the tick pays for the work.
 

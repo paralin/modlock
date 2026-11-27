@@ -1205,8 +1205,8 @@ const abilityBarNode = /^ability:([0-3])$/
 /**
  * cursorFree reports whether player's mouse cursor is up now, whether the mod
  * freed it with freeCursor or the player freed it with the game's own keys. It
- * is undefined while the player has no hero, because the game keeps the
- * cursor's state on the hero.
+ * is undefined while the player does not have a hero, because the game keeps
+ * the cursor's state on the hero.
  */
 export function cursorFree(player: Player): boolean | undefined {
   const pawn = player.pawn()

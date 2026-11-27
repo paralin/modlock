@@ -57,7 +57,7 @@ mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
 
 ## Block a hit
 
-When your `onDamage` handler returns `block`, the hit deals no damage. Modes
+When your `onDamage` handler returns `block`, the hit does not deal damage. Modes
 block hits for reasons such as these:
 
 - Protect a hero that just spawned.
@@ -161,7 +161,7 @@ mod.OnKill(func(kill *mod.KillEvent) {
 </Samples>
 
 The sample logs only kills between two players' heroes, because a slot of -1
-means no player's hero is on that side. The kill comes from a hit that
+means that side is not a player's hero. The kill comes from a hit that
 `onDamaged` also reports, one that took all the health the victim had left.
 Python spells the fields in `snake_case`, and Go reads each player as a slot,
 such as `kill.GetVictimPlayer()`.

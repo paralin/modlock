@@ -7,7 +7,7 @@ description: Try a mod in seconds without the game, and test a whole round in it
 
 On macOS, or on any computer without Deadlock, `modlock dev` runs your mod in
 the sandbox. The sandbox has the same runtime and event limits as a server, and
-one stand-in player with no hero. It does not hold back a slow frame the way a
+one stand-in player without a hero. It does not hold back a slow frame the way a
 server does, so [measure speed](/performance/measure) in the game.
 
 When you type `/hello` in the terminal and press Enter, the sandbox sends it as
@@ -30,7 +30,7 @@ as Python inside the running mod, as
 [Python](/languages/python#run-a-line-in-the-running-mod) explains.
 
 <Only lang="go">
-  You can test game rules that make no calls into the game with plain `go test`,
+  You can test game rules that do not call into the game with plain `go test`,
   as the [`race`](https://github.com/paralin/modlock/tree/master/examples/race)
   example does.
 </Only>

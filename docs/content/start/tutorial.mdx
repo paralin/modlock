@@ -224,13 +224,13 @@ func init() {
 
 </Samples>
 
-Type `/start`. Your hero is held for five seconds and takes no input. Then it is released, and the game shows an announcement titled "Fight!" that says "The round is live."
+Type `/start`. Your hero is held for five seconds and ignores input. Then it is released, and the game shows an announcement titled "Fight!" that says "The round is live."
 
 `players()` lists everyone connected, bots included, and `freeze` holds each one's hero. `after` calls its function once, five seconds of game time later. The game clock stops while the game is paused, so a paused round also holds its timers. When the timer fires, the sample releases every hero, announces the round and sets `live`, which the next step reads. [Timers](/guides/timers) explains repeating timers and sequences.
 
 ## 4. Decide the fights
 
-The round has a start now, and `live` says whether it has begun. Use `live` to block every hit before `/start`, and to count each defeat after it.
+The round has a start now, and `live` is true once it has begun. Use `live` to block every hit before `/start`, and to count each defeat after it.
 
 <Samples>
 
@@ -319,7 +319,7 @@ func init() {
 
 </Samples>
 
-To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do no damage. Once the announcement shows, they land, and each hero you defeat adds one to your count in `defeats`. Nothing shows that count yet. The next step draws it.
+To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do not deal damage. Once the announcement shows, they land, and each hero you defeat adds one to your count in `defeats`. Nothing shows that count yet. The next step draws it.
 
 The damage event comes before the game applies each hit, so the sample can block the hit while `live` is false. The kill event comes after each hit that kills a hero or a unit, before the next frame. It names the player whose hero died and the player whose hero landed the hit. A slot of -1 means a unit, or a hazard for the attacker. A hero that killed itself is its own attacker. The sample scores a kill only when both are players and the attacker is someone else.
 

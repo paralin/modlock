@@ -5,7 +5,7 @@ description: Pull back, aim and shake the camera, and play curves on it.
 
 `playCamera` moves a player's camera along a curve for each camera param, all
 on one timeline. The host sends each curve to the game as the game's own lerps,
-and the game plays them smoothly, so your mod needs no timers. Camera curves
+and the game plays them smoothly, so your mod does not need timers. Camera curves
 exist only in TypeScript, so this page's samples are in TypeScript only. The
 calls the curves build on, `moveCamera` and `clearCamera`, are in every
 language.
@@ -47,7 +47,7 @@ after(30, () => tour?.cancel())
 | context, priority | A move takes a context of its own unless you pass one. When moves in two contexts overlap, the one with the higher `priority` plays, and the camera returns to the other when it ends. |
 
 `playCamera` returns a move with `duration` and `cancel()`. It returns nothing
-when the player has no hero. Each param snaps back to its usual value when its
+when the player does not have a hero. Each param snaps back to its usual value when its
 curve ends, so end each curve at rest.
 
 ## Curves

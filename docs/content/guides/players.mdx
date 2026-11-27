@@ -108,7 +108,7 @@ You can also find a connection from a Steam ID, and make a Player from a slot:
 | Go         | `mod.ConnectionOfSteamID(steamID)`                   | `mod.PlayerOf(slot)`       |
 
 Each of these gives the player who holds the slot now. In Go, the zero
-`mod.Player` stands for no player. The same `connection` call also takes a
+`mod.Player` does not stand for any player. The same `connection` call also takes a
 player or a slot.
 
 ### Roles
@@ -452,7 +452,7 @@ mod.Command("hero", func(p mod.Player, args string) {
 | Call                      | Returns                                                                                                                                                                     | Languages  |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `heroes`                  | The released heroes by title, each with its game name, title and fixed id. Python spells it `HEROES`.                                                                       | All        |
-| `heroNamed(name)`         | The hero whose name matches exactly, as the calls above read names, or nothing. A misspelled name finds no hero rather than another one.                                    | All        |
+| `heroNamed(name)`         | The hero whose name matches exactly, as the calls above read names, or nothing. A misspelled name finds nothing, not a different hero.                                         | All        |
 | `findHero(typed)`         | The hero a player typed: an exact name or title first, then the first title that starts with or contains it, such as `geist`.                                               | All        |
 | `findTitled(list, typed)` | The same match over your own list of entries with `name` and `title`.                                                                                                       | TypeScript |
 | `Hook`                    | Watches one Bebop's hook. `update(player, now)` each frame reports the hero it holds and each new throw, keeps it fully upgraded and sets its cooldown. From `modlock/kit`. | TypeScript |

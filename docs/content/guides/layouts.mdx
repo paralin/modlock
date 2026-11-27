@@ -11,7 +11,7 @@ and when the player presses one, the press comes back to the element's
 `onPress`. The host clears an interface when the player leaves or the mod
 stops.
 
-- A layout with no content to load draws an empty panel and logs one line in
+- A layout without content to load draws an empty panel and logs one line in
   the game's console.
 - The `modlock dev` preview page draws the layout from the mod's latest build,
   with its panels, inline styles and style sheets, but runs none of its
@@ -61,13 +61,13 @@ Modlock.route('scores', (scores) => drawScores(scores))
 ```
 
 Each handler runs at once with the current value, and again after each change.
-While the mod sends no value, the handler gets `undefined`.
+Until the mod sends a value, the handler gets `undefined`.
 
 When your mod sends a new value, the renderer writes it to an attribute of the
 layout's panel the next time it draws the screen. The attribute is
 `modlock_data` for the element's `data`, or `modlock_route_<name>` for a route.
 After a draw that changed any of these, the renderer plays the sound event
-`modlock_data_changed`. It uses a sound because the game delivers no custom
+`modlock_data_changed`. It uses a sound because the game does not deliver a custom
 event to a script, but it delivers `PlaySoundEffect` to every script. No sound
 has that name, so nothing plays. The library hears the event, rereads each
 attribute, and calls the handler of each value that changed.
@@ -112,9 +112,9 @@ none of its scripts, so a press happens only in the game.
 ## Bind named panels
 
 A layout can keep its fonts, art and localized text from its file while the
-mod sets a few of its panels. `bindings` names panels of the layout by their
-`id`. For each panel, it sets some of the panel's parts, or takes the panel's
-presses with `onPress`, and no script is needed. Each part means what it means
+mod sets a few of its panels. `bindings` lists panels of the layout by their
+`id`. For each panel, the renderer sets some of the panel's parts, or takes the panel's
+presses with `onPress`, so the layout does not need a script. Each part means what it means
 on an element:
 
 - `text` replaces a label's words, and `token` with `variables` replaces them
@@ -153,11 +153,11 @@ panel and applies every binding. Then it applies each change as the mod draws
 it. After each draw, once the layout's script has read the draw's data, the
 renderer looks up any panel it has not found yet. When the script has built
 its panels anew, the renderer finds them all again and applies every binding.
-A name that matches no panel in the layout logs one line in the game's console,
+A name that does not match a panel in the layout logs one line in the game's console,
 and the other bindings still apply.
 
 A press on a bound panel reaches the mod as a press of the layout, with the
-panel's `id` as the action and no payload. A layout with any binding takes
+panel's `id` as the action and without a payload. A layout with any binding takes
 presses only from its bindings that have `onPress`. So the server refuses a
 press that the layout's script sends with `Modlock.press`, and a press from a
 panel the mod stopped binding. A layout holds at most 64 bindings. Each one
@@ -185,7 +185,7 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
   `/app/relay/bridge.html?port=<port>`, and the page reads the screen from that
   loopback port.
 - Both commands also install the renderer in the game for the session, so the
-  interfaces show with no setup. They write `game/citadel/modlock_dev`, a
+  interfaces show without any setup. They write `game/citadel/modlock_dev`, a
   package that adds the renderer to the stock news layout. They mount the
   package between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other
   mounted content, and remove it when the session ends. The game reads the

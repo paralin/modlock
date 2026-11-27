@@ -55,8 +55,8 @@ func FreeCursor(p mod.Player, free bool) bool {
 
 // CursorFree reports whether player's mouse cursor is up now, whether the mod
 // freed it with FreeCursor or the player freed it with the game's own keys. ok
-// is false while the player has no hero, because the game keeps the cursor's
-// state on the hero.
+// is false while the player does not have a hero, because the game keeps the
+// cursor's state on the hero.
 func CursorFree(p mod.Player) (free, ok bool) {
 	// Read the flag from the player's hero.
 	pawn, err := p.Pawn()

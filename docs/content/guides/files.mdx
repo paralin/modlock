@@ -142,7 +142,7 @@ command('savearea', (player) => {
 
 ## Binary files
 
-`readFileBytes` returns a file as a `Uint8Array`, with no text decoding. So a
+`readFileBytes` returns a file as a `Uint8Array`, without decoding it as text. So a
 mod can include a table it built offline and view it in place with typed
 arrays, instead of parsing text when it loads. The host reads the whole file
 during the call, so the frame that makes the call waits for the read.

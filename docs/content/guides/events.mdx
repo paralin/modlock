@@ -134,7 +134,7 @@ the hero.
 | Stage      | What is true                                                                                           | How the mod sees it                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | Connecting | The player holds a slot and is still loading the map. Nothing sent to them shows yet.                  | In the [player list](/guides/players#list-the-players) with `ready` false. |
-| Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may have no hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
+| Joined     | The player finished loading. Chat, announcements and interfaces reach them. They may not have a hero yet. | `onPlayerJoin`, once. `ready` is true from then on.                        |
 | In play    | The player's hero is alive in the world, so the mod can move it, equip it and read it.                 | `onSpawn`, again on each respawn.                                          |
 | Away       | The connection dropped, and the game holds the seat, hero and team for the player's return.            | `onPlayerAway`, then `onPlayerReturn` if they come back. `away` is true.   |
 | Left       | The seat ended, and the mod no longer serves the player.                                               | `onPlayerLeave`, once for each join.                                       |
@@ -241,7 +241,7 @@ mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
 The library hears a spawn from the game's `PLAYER_RESPAWNED` modifier event,
 once for a player's first hero and once for each respawn. It runs your handler
 before that frame's frame handlers. A team change is not a spawn. A server that
-cannot watch modifier events hears no spawns.
+cannot watch modifier events does not report spawns.
 
 ## Casts and modifier events
 
@@ -410,7 +410,7 @@ Life restores as regeneration. The mod's own heal reports nothing either, and
 neither does a heal that finds the target at full health. To hear
 regeneration, listen for the `PRE_UNIT_HEALED`
 [modifier event](#casts-and-modifier-events). The game fires it before every
-heal and every tick of regeneration, with no amount. Each of the four events
+heal and every tick of regeneration, without an amount. Each of the four events
 arrives before the next frame.
 Python spells the fields in `snake_case`, and Go reads each player as a slot,
 such as `heal.GetTargetPlayer()`.

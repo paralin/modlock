@@ -108,7 +108,7 @@ writes them in `snake_case`, and Go capitalizes them. Two Go names differ: a
 | `show(player, element)`, `hide(player)`       | Show a player an interface written in JSX, or remove it.                                                                                                                                                                             |
 | `toast(player, text, seconds?)`               | Show a player a short notice that fades away.                                                                                                                                                                                             |
 | `uiSound(player, sound, { seconds? })`        | Play a game sound event once to one player, whether or not they have a hero. `seconds` cuts the sound short. For a run of sounds, such as a wheel's ticks, use a timeline.                                                                                          |
-| `playTimeline(player, id, { clock?, steps })` | Run a timed presentation. Each step starts `at` a number of seconds from the start, gives the elements its `measure` picks a `class` and a `style`, and plays its `sound`. Playing a timeline again starts it over. With `clock: 'game'` it waits while the game is paused. |
+| `playTimeline(player, id, { clock?, steps })` | Run a timed presentation. Each step starts `at` a number of seconds from the start. It gives a `class` and a `style` to the elements listed in its `measure`, and plays its `sound`. Playing a timeline again starts it over. With `clock: 'game'` it waits while the game is paused. |
 | `cancelTimeline(player, id)`                  | Stop a timeline. Its elements lose the looks it gave them, and its sounds still to come do not play.                                                                                                                                                                 |
 | `hideHud(player, parts)`                      | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'`, `'castFailed'`, `'eventIndicators'`, `'statusIndicators'` or `'all'`. Passing `[]` shows them again.                        |
 | `hideHudForAll(parts)`                        | Hide parts of the game's HUD from every player, including players who join later. TypeScript only.                                                                                                                                           |
@@ -120,7 +120,7 @@ writes them in `snake_case`, and Go capitalizes them. Two Go names differ: a
 | `followOverlay(player, onChange?)`            | Hear which of the game's overlays has the player's input, such as `'chat'`, `'shop'` or `'escapeMenu'`, and `'none'` once the game has the input back. See [Follow the stock overlays](#follow-the-stock-overlays).                                |
 | `followPlacement(player, onPlace?)`           | Hear the screen's size, the HUD's frame and the box of each element you named with `measure`. See [Place by the screen](#place-by-the-screen).                                                                                           |
 | `inHudFrame(player, on)`                      | Draw the interface inside the HUD's frame. On a screen wider than 16:9, a player can keep the HUD in the middle 16:9, and the frame is that middle part.                                                                                                                           |
-| `abilityDisplay(viewer, rows?)`               | Show a viewer the abilities you list for each player on the Tab screen and the viewer's ability bar, where the game would show a replaced ability as the one it replaced. Calling it with no rows brings back the game's own.                                                                                                                                     |
+| `abilityDisplay(viewer, rows?)`               | Show a viewer the abilities you list for each player on the Tab screen and the viewer's ability bar, where the game would show a replaced ability as the one it replaced. Calling it without rows brings back the game's own.                                                                                                                                     |
 | `cursorFree(player)`                          | Read whether the player's cursor is up now, whether your mod or the player put it there.                                                                                                                                                                    |
 | `items`, `item(name)`                         | The shop's items, each with its id, slot, tier, active, imbue and icon. TypeScript only.                                                                                                                                                           |
 | `player.screenEffect(effect, timing?)`        | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the player's view.                                                                                                                                               |
@@ -145,8 +145,8 @@ aiming.
 The player can also put the cursor away with the game's own keys. It then stays
 away, even when your mod draws a new screen, until your mod calls
 `freeCursor(player, true)` again. `cursorFree(player)` tells you whether the
-cursor is up now, whether your mod or the player put it there. It returns no
-value while the player has no hero, because the game keeps the cursor's state
+cursor is up now, whether your mod or the player put it there. It does not return a
+value while the player does not have a hero, because the game keeps the cursor's state
 on the hero. To bring the cursor back, check `cursorFree` on a press or a timer,
 and call `freeCursor(player, true)` when it returns false.
 
@@ -272,7 +272,7 @@ and the voice icon. A row stays for a moment after the voice stops, so it does
 not blink off in a pause between words. The rows stay in slot order, so the
 stack does not reorder as people talk over each other. The player's own game
 shows and hides each row from the voice marks on the hidden top bar, so your mod
-does no work when a voice starts or stops. `{ scale }` sizes the rows, and
+does not have to act when a voice starts or stops. `{ scale }` sizes the rows, and
 `{ speaker }` takes the same function as `showChatLines`, so a player looks the
 same in both.
 
@@ -308,10 +308,10 @@ These style properties work on `panel`, `label`, `image`, `hero`, `button` and
 | `cycle`                 | any             | `{ style, seconds, count }`. The element swings between its own style and this one, `count` times there and back, or forever without a `count`.                                                                                                                                |
 | `hideInChat`            | any             | Hides the element while the player has the game's chat box open, because the chat box shows the chat history itself.                                                                                                                                                         |
 | `speaking`              | any             | A player. The element shows only while the viewer hears that player on voice chat, and for a moment after. The viewer's game shows and hides it, so the mod does not redraw.                                                                                                  |
-| `sound`, `disabled`     | `button`        | `sound` plays on each press, and `disabled` stops presses.                                                                                                                                                                                                                    |
+| `sound`, `disabled`     | `button`        | The game plays `sound` on each press, and drops presses while `disabled` is set.                                                                                                                                                                                                                    |
 | `scaling`               | `image`         | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                                                                                                                                                                       |
 | `src`                   | `image`         | A game picture, or one of the mod's own pictures with `{addon}` in place of its addon, such as `'file://{images}/{addon}/mark.png'`.                                                                                                                                          |
-| `<hero hero={15} look>` |                 | The game's picture of a hero, in the `look` `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                                                                                                                                       |
+| `<hero hero={15} look>` |                 | The game's picture of a hero, in the `look` you pick: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                                                                                                                                       |
 | `token`, `variables`    | `label`         | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                                                                                                                                                              |
 | `clock`                 | `label`, `Text` | `{ seconds, up?, paused?, format?, run? }`. The player's game counts the time down to zero, or up, and shows it as `'minutes'`, `'seconds'` or `'tenths'`. The mod draws the clock once. A change to it, such as a new `run`, starts it again from `seconds`. With a `token`, the clock fills `{s:clock}`. |
 | `<avatar steamId>`      |                 | A player's Steam picture, for an entry of `players()`.                                                                                                                                                                                                                        |
@@ -404,12 +404,12 @@ row's fields as `{field}`:
 ```
 
 The list sorts its rows by `rank`, then by `sort`, then by `key`, and the `key`
-tells the list which row is which as the rows change. When two rows have the
-same key, the last one counts. The library in your mod holds every row. The
-list's node carries only the window of rows near the part of the list that
-shows, and as the player scrolls with the mouse wheel, their game asks your mod
-for a new window. So a list of ten thousand rows costs your mod's draw and the
-player's game what a list of a hundred rows does.
+is each row's identity, so the list can tell the rows apart as they change. When
+two rows have the same key, the last one counts. The library in your mod holds
+every row. The list's node carries only the window of rows near the part of the
+list that shows, and as the player scrolls with the mouse wheel, their game asks
+your mod for a new window. So a list of ten thousand rows costs your mod's draw
+and the player's game what a list of a hundred rows does.
 
 The library sorts an array of rows once, and when the rows are already in order,
 the sort takes one pass over them. A draw that passes the same `rows` array
@@ -456,7 +456,7 @@ selected.
 
 A TypeScript `<menu>` gives the player a cursor to change settings or read a
 result, and gives the mouse back when they are done, without a round trip to
-the server. Its `mode` decides how it opens:
+the server. How it opens depends on its `mode`:
 
 - `mode="toggle"` opens the menu on one press of the game's scoreboard binding
   (Tab by default) and closes it on the next.

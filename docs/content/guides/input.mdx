@@ -62,7 +62,7 @@ mod.OnInput(func(p mod.Player, pressed, released uint64) {
 
 A button is held from its press until its release.
 
-A spectating player has no hero of their own in play, so they press spectator
+A spectating player does not have a hero of their own in play, so they press spectator
 buttons in place of the others: `specNext` and `specPrev` for the next and
 previous player, `specMode` for the camera mode and `specToggleTeam` for the
 jump key. Block them to replace the game's spectator controls with your own.
@@ -111,5 +111,5 @@ mod.After(5*time.Second, func() { _ = mod.BlockInput(0) })
 </Samples>
 
 Each blocking call replaces the whole set of blocked buttons, so pass every
-button you still want blocked. A call with no buttons releases every blocked
+button you still want blocked. A call without buttons releases every blocked
 button.

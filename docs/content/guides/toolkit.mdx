@@ -10,7 +10,7 @@ imports the rest from `modlock`:
 
 | Helper                                | Does                                                                                | Languages  |
 | ------------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
-| [`seat`](#seat-the-players)           | Gives a player a hero on a team, with no team or hero screen.                       | All        |
+| [`seat`](#seat-the-players)           | Gives a player a hero on a team, without a team or hero screen.                    | All        |
 | [`setFreeForAll`](#play-free-for-all) | Makes every hero an enemy of every other.                                           | All        |
 | [`Cast`](#keep-the-players-with-cast) | Keeps one member per human, with the hero each wants.                               | All        |
 | [`Stragglers`](#clear-stragglers)     | Kicks players stuck joining and kills heroes a player left behind.                  | TypeScript |
@@ -98,8 +98,8 @@ mod.SetRespawnDelay(3 * time.Second)
 
 ## Play free-for-all
 
-`setFreeForAll(true)` makes every hero an enemy of every other. New players get
-no hero picker, so seat them from the join handler:
+`setFreeForAll(true)` makes every hero an enemy of every other. New players do not
+get a hero picker, so seat them from the join handler:
 
 <Samples>
 
@@ -146,12 +146,12 @@ mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 | Friendly fire            | Is on for every hero.                                                                                        |
 | Abilities, projectiles   | Treat teammates as enemies.                                                                                  |
 | Teams                    | Players still sit on 2 and 3, and their games draw teammates as allies. Requests to change team are ignored. |
-| New players              | Join the smaller team, with no team screen and no hero picker.                                               |
+| New players              | Join the smaller team, without a team screen or a hero picker.                                                |
 | `setFreeForAll(false)`   | Restores the stock teams; players keep the team they are on.                                                 |
 
 `"freeForAll": true` in [`mod.json`](/reference/manifest) starts the mod in
 free-for-all. `setTeamSeating(true)` also seats new players on the smaller team,
-with no team screen or hero picker. But it leaves friendly fire and team
+without a team screen or hero picker. But it leaves friendly fire and team
 changes as the game has them.
 
 ## Keep the players with Cast
@@ -272,7 +272,7 @@ sweepStragglers()
 | Option           | Default | Does                                                                                            |
 | ---------------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `connectSeconds` | 120     | Kicks a human still joining this long after the sweep first saw them. Zero or less never kicks. |
-| `heroes`         | `true`  | Kills each hero that has had no player for `strayGraceSeconds` and holds off its respawn.       |
+| `heroes`         | `true`  | Kills each hero that has been without a player for `strayGraceSeconds` and holds off its respawn.       |
 
 The sweep checks once a second and kicks each connection once, by name, with
 `kick "name"`. When a name is empty or holds a quote, the sweep logs it instead.
@@ -282,7 +282,7 @@ A disconnect already fires [`onPlayerLeave`](/guides/events#joins-and-leaves)
 with `disconnected` true, and drops the player from the player list. So remove
 the player from your own teams and rounds in that handler. The sweep sees only
 slots that the server put a player in. A connection attempt that never got that
-far, which `status` shows with id 65535, has no slot a mod can kick.
+far, which `status` shows with id 65535, does not have a slot a mod can kick.
 
 ## Vectors and HUD text
 
@@ -295,7 +295,7 @@ positive pitch looking down.
 | `yawToward`, `level`, `aimAt`, `forward`                        | Turn a hero to face a point, or read where it looks. |
 
 `format` writes numbers the way players read them, because the game's scripts
-have no locale data:
+do not have locale data:
 
 | Call                          | Result    |
 | ----------------------------- | --------- |
@@ -311,8 +311,8 @@ have no locale data:
 
 `ground(point)` returns the floor under a point. It returns nothing when no
 floor is in reach, when the point is inside a wall, or when the world's
-collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when there
-is no floor. `ground` traces straight down through solid and player clip, from
+collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when `ground`
+finds nothing below it. `ground` traces straight down through solid and player clip, from
 64 units above the point to 1024 below. The `above`, `below` and `layers`
 options change the reach.
 

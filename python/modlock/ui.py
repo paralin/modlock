@@ -965,8 +965,8 @@ _ABILITY_BAR_NODE = re.compile(r"ability:([0-3])")
 def cursor_free(player: Player) -> bool | None:
     """cursor_free reports whether player's mouse cursor is up now, whether the
     mod freed it with free_cursor or the player freed it with the game's own
-    keys. It is None while the player has no hero, because the game keeps the
-    cursor's state on the hero."""
+    keys. It is None while the player does not have a hero, because the game
+    keeps the cursor's state on the hero."""
     pawn = player.pawn()
     if pawn is None:
         return None

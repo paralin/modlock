@@ -88,7 +88,7 @@ mod.OnFrame(func(frame *mod.FrameEvent) {
 The client opens the devices only while the mod watches them. It closes them
 when the mod calls `watchControllers(false)` or the player leaves. When a
 watched player's client streams nothing, the player stays in the list, with
-stream `none` and no devices.
+stream `none` and an empty device list.
 
 ## Devices
 
@@ -99,7 +99,7 @@ device is attached, and its `state` changes each frame.
 | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `info.id`                   | The device's id while it stays attached; plugged in again, it gets a new one.                              |
 | `info.name`, `info.guid`    | The device's name, such as "Xbox Series X Controller", and SDL's GUID for its model.                       |
-| `info.gamepad`              | Whether SDL knows its gamepad layout, so `state.gamepad` names its sticks and buttons.                     |
+| `info.gamepad`              | Whether SDL knows its gamepad layout, so that `state.gamepad` holds its sticks and buttons by name.                     |
 | `state.axes`                | Each raw axis from -1 to 1, in the device's order. A radio's channels are its axes.                        |
 | `state.buttons`, `hats`     | Whether each raw button is held, and each hat as a mask: 1 up, 2 right, 4 down, 8 left.                    |
 | `state.pressed`, `released` | The raw buttons pressed and released since the last frame, so a tap shorter than a frame still shows.      |
@@ -111,7 +111,7 @@ one device, such as the first gamepad, as the examples do.
 
 ## Stream
 
-`stream` says whether the values are current. With it, a mod can choose what
+`stream` is the state of the values, current or not. With it, a mod can choose what
 to do in each state, instead of acting on old input.
 
 | Stream      | Means                                                                                           |

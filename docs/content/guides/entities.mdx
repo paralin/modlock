@@ -90,7 +90,7 @@ The sequence `hand_pose_aligned` and the cycle `1 / 6` suit the sample's model.
 For your own prop, choose a sequence and cycle from its model.
 
 Writing `m_flSeqFixedCycle` changes the pose and leaves the model where it
-stands. The host refuses the field on an entity that has no animation
+stands. The host refuses the field on an entity that does not have an animation
 controller.
 
 A write changes the field on the server and sends the new value to the players.
@@ -291,8 +291,8 @@ if err == nil {
 </Samples>
 
 The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
-while it spawns, and `subclass` names that entry. Without a subclass, the host
-looks for an entry named after the class. The game has no entry named
+while it spawns, and `subclass` is that entry's name. Without a subclass, the host
+looks for an entry named after the class. The game does not have an entry named
 `npc_trooper_boss`, and the class crashes the server without an entry. So the
 host refuses the call, and its message gives an entry you can pass.
 
@@ -303,7 +303,7 @@ input takes. In Go, the host sends an `int32` as an integer, a `float32` as a
 number and a `uint32` as a color.
 
 The Luau, Python and Go samples check the created entity before they send
-inputs. `createEntity` returns no entity for a designer name the server does not
+inputs. `createEntity` returns nothing for a designer name the server does not
 know, and `fireInput` returns false for an input the entity does not have. The
 host logs why, and in Go both calls return an error. Only that call fails, and
 the rest of your mod keeps running.

@@ -2006,8 +2006,8 @@ end
 
 -- cursorFree reports whether player's mouse cursor is up now, whether the mod
 -- freed it with freeCursor or the player freed it with the game's own keys. It
--- is nil while the player has no hero, because the game keeps the cursor's
--- state on the hero.
+-- is nil while the player does not have a hero, because the game keeps the
+-- cursor's state on the hero.
 function ui.cursorFree(player: Player): boolean?
 	local pawn = player:pawn()
 	if pawn == nil then
