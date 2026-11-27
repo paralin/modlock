@@ -23,7 +23,7 @@ var callPersist = CallServiceLater
 // checks it again, so a call started just before the player left still
 // cannot reach the next player in the slot.
 func (p Player) generation() (uint32, error) {
-	if p.tenure == 0 || p.tenure != registered.tenures[p.slot]+1 {
+	if !connections.holds(p) {
 		return 0, ErrPlayerLeft
 	}
 	connection := p.Connection()

@@ -14,9 +14,9 @@ import (
 // check it too.
 func TestPersistRefusesLeftPlayer(t *testing.T) {
 	// Keep the calls the persist service would start, and restore the roster.
-	held := *registered
-	registered.tenures, registered.generations = map[int32]uint32{}, map[int32]uint32{}
-	t.Cleanup(func() { *registered = held; callPersist = CallServiceLater })
+	held := connections
+	connections = connectionSet{tenures: map[int32]uint32{}}
+	t.Cleanup(func() { connections = held; callPersist = CallServiceLater })
 	var sent []*persistpb.UpdateRequest
 	var gets []*persistpb.GetRequest
 	callPersist = func(service, method string, payload []byte, _ time.Duration, _ func([]byte, error)) {
