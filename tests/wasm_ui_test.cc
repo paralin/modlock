@@ -900,22 +900,27 @@ TEST(UiTrees, RefusesARowChangePastTheLimitsAndKeepsTheList) {
   auto renamed = ShowList();
   renamed.set_reset(false);
   ASSERT_TRUE(trees.Apply(3, renamed));
-  EXPECT_FALSE(trees.Apply(3, more));
+  auto again = Change();
+  AddRows(again, 0, 1);
+  EXPECT_FALSE(trees.Apply(3, again));
 
   // A reset drops the rows.
   ASSERT_TRUE(trees.Apply(3, ShowList()));
   ASSERT_TRUE(trees.Apply(3, more));
 
   // The lists' bytes are bounded together, and a refused change leaves the
-  // bytes as they were, so a row of the same size still fits.
+  // bytes as they were, so a row of the same size still fits. A row encodes
+  // to more than its field's bytes and less than 64 more, so fits rows fit
+  // and more than kMaxListBytes / row rows do not.
   UiTrees sized;
   const size_t row = 1000;
   const int fits = static_cast<int>(UiTrees::kMaxListBytes / (row + 64));
+  const int over = static_cast<int>(UiTrees::kMaxListBytes / row) + 1;
   auto big = ShowList();
   AddRows(big, 0, fits, row);
   ASSERT_TRUE(sized.Apply(3, big));
   auto past = Change();
-  AddRows(past, fits, 64, row);
+  AddRows(past, fits, over - fits, row);
   EXPECT_FALSE(sized.Apply(3, past));
   auto replaced = Change();
   AddRows(replaced, 0, 1, row);
