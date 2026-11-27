@@ -5,6 +5,7 @@
 #include <google/protobuf/unknown_field_set.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <span>
 #include <vector>
 
@@ -113,6 +114,81 @@ TEST(NativePingFilter, RefusesToRewriteWhatItCannotRead) {
   EXPECT_FALSE(NativePingFilter::WithoutVoice(118, bytes));
   EXPECT_FALSE(
       NativePingFilter::WithoutVoice(kMapPingMessageId, std::span(bytes.data(), bytes.size() - 1)));
+}
+
+// FakePost records what a filter forwards of one post.
+class FakePost final : public NativePostFilter::Post {
+ public:
+  explicit FakePost(std::vector<uint8_t> wire) : wire_(std::move(wire)) { all_[0] = 0b111; }
+
+  const NativePostFilter::Recipients& recipients() const override { return all_; }
+
+  std::optional<std::span<const uint8_t>> Serialize(std::span<uint8_t> bytes) const override {
+    std::copy(wire_.begin(), wire_.end(), bytes.begin());
+    return std::span<const uint8_t>(bytes.data(), wire_.size());
+  }
+
+  void Forward(const NativePostFilter::Recipients& to) const override { forwards.push_back(to); }
+
+  bool ForwardCopy(const NativePostFilter::Recipients& to,
+                   std::span<const uint8_t>) const override {
+    copies.push_back(to);
+    return true;
+  }
+
+  mutable std::vector<NativePostFilter::Recipients> forwards;
+  mutable std::vector<NativePostFilter::Recipients> copies;
+
+ private:
+  std::vector<uint8_t> wire_;
+  NativePostFilter::Recipients all_{};
+};
+
+TEST(NativePostFilter, RoutesOnlyTheIdsItsFiltersWant) {
+  // A post no filter wants goes to every recipient after one lookup.
+  auto posts = NativePostFilter::Create();
+  const FakePost chat({});
+  EXPECT_FALSE(posts.Routes(kPlayerChatMessageId));
+  posts.Dispatch(kPlayerChatMessageId, chat);
+  ASSERT_EQ(chat.forwards.size(), 1U);
+  EXPECT_EQ(chat.forwards[0], chat.recipients());
+
+  // A registered id reaches its filter, which decides who gets the post;
+  // one id holds one filter.
+  int seen = 0;
+  ASSERT_TRUE(posts.Register(kSoundStartMessageId,
+                             [&](int32_t, const NativePostFilter::Post&) { seen++; }));
+  EXPECT_FALSE(posts.Register(kSoundStartMessageId, [](int32_t, const NativePostFilter::Post&) {}));
+  const FakePost sound({});
+  posts.Dispatch(kSoundStartMessageId, sound);
+  EXPECT_EQ(seen, 1);
+  EXPECT_TRUE(sound.forwards.empty());
+  posts.Unregister(kSoundStartMessageId);
+  EXPECT_FALSE(posts.Routes(kSoundStartMessageId));
+
+  // The ping filter holds its four ids while it lives. A ping from a slot
+  // that is no connected human reaches everyone whole, without the handler.
+  bool asked = false;
+  {
+    auto pings = NativePingFilter::Install(posts, [&](const NativePingFilter::Ping&, uint64_t&) {
+      asked = true;
+      return true;
+    });
+    ASSERT_TRUE(pings) << pings.error();
+    for (const auto id :
+         {kMapPingMessageId, kPingWheelMessageId, kQuickResponseMessageId, kAbilityPingMessageId}) {
+      EXPECT_TRUE(posts.Routes(id));
+    }
+    EXPECT_FALSE(NativePingFilter::Install(
+        posts, [](const NativePingFilter::Ping&, uint64_t&) { return false; }));
+    const FakePost ping(EncodePing(WheelPing(3, 12)));
+    posts.Dispatch(kPingWheelMessageId, ping);
+    EXPECT_FALSE(asked);
+    ASSERT_EQ(ping.forwards.size(), 1U);
+    EXPECT_EQ(ping.forwards[0], ping.recipients());
+    EXPECT_TRUE(ping.copies.empty());
+  }
+  EXPECT_FALSE(posts.Routes(kPingWheelMessageId));
 }
 
 }  // namespace

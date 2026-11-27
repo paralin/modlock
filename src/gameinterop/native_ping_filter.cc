@@ -8,17 +8,11 @@
 #include <cstdio>
 #include <optional>
 #include <utility>
+#include <vector>
 
 #include "modlock/gameinterop/connection_tracker.h"
-#include "modlock/gameinterop/mapped_module_image.h"
-#include "modlock/gameinterop/thunk_owner.h"
-#include "modlock/gameinterop/virtual_slots.h"
 #include "native_network_messages.h"
 #include "src/gameinterop/engine/ping.pb.h"
-
-#if defined(_WIN32)
-#include <windows.h>
-#endif
 
 namespace modlock::gameinterop {
 namespace {
@@ -39,73 +33,28 @@ std::optional<NativePingFilter::Kind> KindOf(int32_t id) {
   }
 }
 
-#if defined(_WIN32)
-using Post = void (*)(void*, int32_t, bool, int32_t, const uint64_t*, void*, const void*,
-                      unsigned long, int32_t);
-Post g_original = nullptr;
-void* g_messages = nullptr;
-// g_serialize_slot and g_unserialize_slot are INetworkMessages'
-// SerializeAbstract and UnserializeAbstract resolved indexes.
-size_t g_serialize_slot = 0;
-size_t g_unserialize_slot = 0;
-NativePingFilter::Handler* g_handler = nullptr;
-DWORD g_thread = 0;
-
-// Preserve call-through for a dispatch already entering the old thunk.
-void ClearThunkState() {
-  g_handler = nullptr;
-  g_messages = nullptr;
-  g_thread = 0;
-}
-
-// kMaxRecipientWords bounds the recipient mask a post may carry, one bit a
-// client slot.
-constexpr int32_t kMaxRecipientWords = 4;
-
-// PingPost is one ping post the filter forwards, with the recipients' mask copied
-// so the filter can split it.
-struct PingPost {
-  void* self;
-  int32_t split_screen;
-  bool local_only;
-  int32_t clients;
-  std::array<uint64_t, kMaxRecipientWords> recipients{};
-  void* serializer;
-  const void* message;
-  unsigned long size;
-  int32_t buffer;
-
-  void Forward(const void* native_message) const {
-    g_original(self, split_screen, local_only, clients, recipients.data(), serializer,
-               native_message, size, buffer);
-  }
-};
+// kPingIds are the messages the filter registers for.
+constexpr std::array<int32_t, 4> kPingIds = {kMapPingMessageId, kPingWheelMessageId,
+                                             kQuickResponseMessageId, kAbilityPingMessageId};
 
 // Filter reads a posted ping, asks the handler what to do with it and posts
 // what the handler leaves: nothing for a dropped ping, the original to the
 // recipients who hear it and a copy without the voice line to those muted.
-// Any other message, a ping it cannot read, or one from a player who is not a
-// connected human goes through unchanged, as does every recipient when the
-// voiceless copy cannot be made, since a voice line is better than no ping.
-void Filter(PingPost post) {
+// A ping it cannot read, or one from a player who is not a connected human,
+// goes through unchanged, as does every recipient when the voiceless copy
+// cannot be made, since a voice line is better than no ping.
+void Filter(const NativePingFilter::Handler& handler, int32_t id,
+            const NativePostFilter::Post& post) {
   const auto forward = [&] {
-    post.Forward(post.message);
+    post.Forward(post.recipients());
   };
-  if (!g_handler || GetCurrentThreadId() != g_thread || !post.serializer || !post.message) {
-    return forward();
-  }
-  const auto id = NetworkMessageIdOf(post.serializer);
-  if (!KindOf(id)) {
-    return forward();
-  }
   std::array<uint8_t, kMaxUserMessageSize> bytes{};
-  const auto size = SerializeNetworkMessage(g_messages, g_serialize_slot, post.message, bytes);
-  if (!size) {
+  const auto wire = post.Serialize(bytes);
+  if (!wire) {
     std::fprintf(stderr, "[modlock] native ping serialization failed\n");
     return forward();
   }
-  const auto wire = std::span(bytes.data(), *size);
-  const auto ping = NativePingFilter::Decode(id, wire);
+  const auto ping = NativePingFilter::Decode(id, *wire);
   if (!ping) {
     return forward();
   }
@@ -114,50 +63,29 @@ void Filter(PingPost post) {
     return forward();
   }
   uint64_t voice_muted = 0;
-  if ((*g_handler)(*ping, voice_muted)) {
+  if (handler(*ping, voice_muted)) {
     return;
   }
-  const uint64_t muted = post.recipients[0] & voice_muted;
+  const uint64_t muted = post.recipients()[0] & voice_muted;
   if (!muted) {
     return forward();
   }
 
-  // Build the voiceless copy before splitting, so a failure leaves the ping
+  // Post the voiceless copy before the rest, so a failure leaves the ping
   // whole for everyone.
-  const auto voiceless = NativePingFilter::WithoutVoice(id, wire);
-  const auto copy =
-      voiceless ? ParseNetworkMessage(g_messages, g_unserialize_slot, post.serializer, *voiceless)
-                : nullptr;
-  if (!copy) {
+  const auto voiceless = NativePingFilter::WithoutVoice(id, *wire);
+  NativePostFilter::Recipients quiet{};
+  quiet[0] = muted;
+  if (!voiceless || !post.ForwardCopy(quiet, *voiceless)) {
     std::fprintf(stderr, "[modlock] native ping voice removal failed\n");
     return forward();
   }
-  auto quiet = post;
-  quiet.recipients = {};
-  quiet.recipients[0] = muted;
-  quiet.Forward(copy.get());
-  post.recipients[0] &= ~muted;
-  if (std::ranges::any_of(post.recipients, [](uint64_t word) { return word != 0; })) {
-    forward();
+  auto rest = post.recipients();
+  rest[0] &= ~muted;
+  if (std::ranges::any_of(rest, [](uint64_t word) { return word != 0; })) {
+    post.Forward(rest);
   }
 }
-
-void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t clients,
-               const uint64_t* recipients, void* serializer, const void* message,
-               unsigned long size, int32_t buffer) {
-  // Decide while the native message remains borrowed. A post whose mask this
-  // filter cannot copy goes through untouched.
-  const int32_t words = clients > 0 ? (clients + 63) / 64 : 0;
-  if (!recipients || words == 0 || words > kMaxRecipientWords) {
-    g_original(self, split_screen, local_only, clients, recipients, serializer, message, size,
-               buffer);
-    return;
-  }
-  PingPost post{self, split_screen, local_only, clients, {}, serializer, message, size, buffer};
-  std::copy_n(recipients, words, post.recipients.begin());
-  Filter(post);
-}
-#endif
 
 }  // namespace
 
@@ -227,8 +155,15 @@ std::optional<std::vector<uint8_t>> NativePingFilter::WithoutVoice(
 
 struct NativePingFilter::Impl {
   Handler handler;
-  // Restore dispatch and release the borrowed handler before destroying it.
-  std::optional<ThunkOwner> owner;
+  NativePostFilter* posts = nullptr;
+  std::vector<int32_t> ids;
+
+  // Unregister before the handler the filters borrow is destroyed.
+  ~Impl() {
+    for (const auto id : ids) {
+      posts->Unregister(id);
+    }
+  }
 };
 
 NativePingFilter::NativePingFilter(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
@@ -237,54 +172,25 @@ NativePingFilter::NativePingFilter(NativePingFilter&&) noexcept = default;
 NativePingFilter& NativePingFilter::operator=(NativePingFilter&&) noexcept = default;
 NativePingFilter::~NativePingFilter() = default;
 
-std::expected<NativePingFilter, std::string> NativePingFilter::Install(Handler handler) {
-#if defined(_WIN32)
-  // Install once, resolving the event system and the message serializer.
-  if (g_handler || !handler) {
-    return std::unexpected("native ping filter already installed or empty");
+std::expected<NativePingFilter, std::string> NativePingFilter::Install(NativePostFilter& posts,
+                                                                       Handler handler) {
+  if (!handler) {
+    return std::unexpected("native ping filter handler is empty");
   }
-  const auto events = ResolveEngineInterface(L"engine2.dll", "GameEventSystemServerV001");
-  if (!events) {
-    return std::unexpected(events.error());
-  }
-  const auto messages = ResolveEngineInterface(L"networksystem.dll", "NetworkMessagesVersion001");
-  if (!messages) {
-    return std::unexpected(messages.error());
-  }
-  const auto post_slot = ResolveVirtualSlot("game-event-system.post-event");
-  if (!post_slot) {
-    return std::unexpected(post_slot.error());
-  }
-  const auto serialize_slot = ResolveVirtualSlot("network-messages.serialize");
-  if (!serialize_slot) {
-    return std::unexpected(serialize_slot.error());
-  }
-  const auto unserialize_slot = ResolveVirtualSlot("network-messages.unserialize");
-  if (!unserialize_slot) {
-    return std::unexpected(unserialize_slot.error());
-  }
-
-  // Hook the post slot and keep what the thunk needs.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
-  auto hook = VtableSlotHook::Install(*events, *post_slot, reinterpret_cast<void*>(&PostThunk));
-  if (!hook) {
-    return std::unexpected(hook.error());
+  impl->posts = &posts;
+  for (const auto id : kPingIds) {
+    auto registered = posts.Register(
+        id, [handler = &impl->handler](int32_t id, const NativePostFilter::Post& post) {
+          Filter(*handler, id, post);
+        });
+    if (!registered) {
+      return std::unexpected(registered.error());
+    }
+    impl->ids.push_back(id);
   }
-  g_original = reinterpret_cast<Post>(hook->Original());
-  g_messages = *messages;
-  g_serialize_slot = *serialize_slot;
-  g_unserialize_slot = *unserialize_slot;
-  impl->owner.emplace(std::move(*hook), &ClearThunkState);
-
-  // Route pings on this thread to the handler.
-  g_thread = GetCurrentThreadId();
-  g_handler = &impl->handler;
   return NativePingFilter(std::move(impl));
-#else
-  (void)handler;
-  return std::unexpected("the native ping filter requires the Windows host");
-#endif
 }
 
 }  // namespace modlock::gameinterop

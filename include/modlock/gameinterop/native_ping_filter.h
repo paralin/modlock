@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "modlock/export.h"
+#include "modlock/gameinterop/native_post_filter.h"
 
 namespace modlock::gameinterop {
 
@@ -21,7 +22,7 @@ namespace modlock::gameinterop {
 // line. Otherwise it may set the bits of player slots in voice_muted: those
 // recipients get the ping without its voice line, since the server names the
 // line in the ping and each client speaks it, and the rest get it unchanged.
-// Destruction restores dispatch after the engine thread has quiesced.
+// The filter is a NativePostFilter route, so it runs where that filter does.
 class MODLOCK_API NativePingFilter {
  public:
   // Kind is the ping's user message.
@@ -51,8 +52,10 @@ class MODLOCK_API NativePingFilter {
   static std::optional<std::vector<uint8_t>> WithoutVoice(int32_t message_id,
                                                           std::span<const uint8_t> serialized);
 
-  // Install borrows GameEventSystemServerV001 after world initialization.
-  static std::expected<NativePingFilter, std::string> Install(Handler handler);
+  // Install registers handler with posts for the four ping messages until
+  // destruction. posts must outlive the filter.
+  static std::expected<NativePingFilter, std::string> Install(NativePostFilter& posts,
+                                                              Handler handler);
   NativePingFilter(NativePingFilter&&) noexcept;
   NativePingFilter& operator=(NativePingFilter&&) noexcept;
   ~NativePingFilter();
