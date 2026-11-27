@@ -20,7 +20,6 @@ func loginCommand(out *printer) *cli.Command {
 		},
 		Action: func(c *cli.Context) error {
 			// Sign in and save the session.
-			out.brief = true
 			service, err := hyperlineService(c.String("origin"))
 			if err != nil {
 				return err
@@ -44,7 +43,6 @@ func logoutCommand(out *printer) *cli.Command {
 		Usage: "remove the saved hyperline.gg sign-in; host and join then link peers directly",
 		Action: func(c *cli.Context) error {
 			// Remove the session.
-			out.brief = true
 			service, err := hyperlineService(modpublish.DefaultOrigin)
 			if err != nil {
 				return err

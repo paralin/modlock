@@ -51,6 +51,13 @@ type printer struct {
 	names map[int32]string
 }
 
+// configure selects the command's output policy before reports can start.
+func (p *printer) configure(json bool, command string) {
+	p.json = json
+	p.color, p.errColor = !json && colorful(os.Stdout), colorful(os.Stderr)
+	p.brief = command == "join" || command == "login" || command == "logout"
+}
+
 // header opens a session's output with the command line's release, the
 // command and what it runs, and the update notice once one is known.
 func (p *printer) header(command, name string) {
@@ -310,6 +317,7 @@ func (p *printer) called(result *control.ModCallResult) {
 // below it the call stacks most samples found, innermost call first. A frame
 // that ended before the first sample has no stacks.
 func (p *printer) slowFrame(slow *control.ModSlowFrame) {
+	// Describe the frame and its share of host work.
 	report := slow.GetReport()
 	text := fmt.Sprintf("%s: a frame took %d ms", slow.GetMod(), (report.GetTookMicros()+500)/1000)
 	if host := report.GetHostMicros(); host >= 1000 {
@@ -359,6 +367,7 @@ func describeFrames(frames []*profile.StackFrame, limit int) string {
 // refused prints the calls the host refused in one report of a mod's calls,
 // which a program can still read in full from the event stream.
 func (p *printer) refused(calls *control.ModCalls) {
+	// Gather the refused calls and the methods they belong to.
 	var refused []string
 	keyed := make(map[string]bool)
 	for _, key := range calls.GetProfile().GetKeys() {

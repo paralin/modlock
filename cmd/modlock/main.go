@@ -38,8 +38,7 @@ func main() {
 		},
 		Before: func(c *cli.Context) error {
 			// Choose the output, and look for a newer release meanwhile.
-			out.json = c.Bool("json")
-			out.color, out.errColor = !out.json && colorful(os.Stdout), colorful(os.Stderr)
+			out.configure(c.Bool("json"), c.Args().First())
 			checkForUpdate(c.Context, out, c.Args().First())
 			return nil
 		},
