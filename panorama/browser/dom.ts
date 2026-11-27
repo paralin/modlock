@@ -1164,6 +1164,126 @@ function panelOf(element: Element | null | undefined): DomPanel | null {
   return (element as (Element & { panel?: DomPanel }) | null)?.panel ?? null
 }
 
+// Panorama resolves a percentage in margin-top or margin-bottom against the
+// parent's height, where CSS resolves every percentage margin against the
+// parent's width. Horizontal margins already agree. So the stand-in keeps
+// each panel's authored vertical percentages and writes them as pixels of
+// the parent's content height, again whenever the parent resizes.
+
+/** VerticalMargins holds a panel's authored vertical percentage margins. */
+type VerticalMargins = Partial<Record<'top' | 'bottom', string>>
+
+const verticalMargins = new WeakMap<HTMLElement, VerticalMargins>()
+
+/** marginScratch expands a margin declaration with the browser's own parser. */
+const marginScratch = document.createElement('div').style
+
+// marginBasis watches each panel with vertical percentage margins, to see
+// it laid out under a parent, and that parent, to see the basis change.
+const marginBasis = new ResizeObserver((entries) => {
+  for (const { target } of entries) {
+    const element = target as HTMLElement
+    if (verticalMargins.has(element)) {
+      if (element.parentElement) marginBasis.observe(element.parentElement)
+      writeVerticalMargins(element)
+    }
+    for (const child of element.children) {
+      if (verticalMargins.has(child as HTMLElement)) {
+        writeVerticalMargins(child as HTMLElement)
+      }
+    }
+  }
+})
+
+// applyMargin writes margin or one of its sides, named in camel case, and
+// keeps its vertical percentages to resolve against the parent's height.
+function applyMargin(element: HTMLElement, name: string, value: string): void {
+  // Expand the value into the sides it sets.
+  const kebab = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+  marginScratch.cssText = ''
+  marginScratch.setProperty(kebab, value)
+  const sides = (['top', 'right', 'bottom', 'left'] as const).filter(
+    (side) => name === 'margin' || kebab === `margin-${side}`,
+  )
+  const values = sides.map((side) =>
+    marginScratch.getPropertyValue(`margin-${side}`),
+  )
+
+  // Write each side as authored. Hand a value the parser cannot split, or
+  // rejects, to the browser whole.
+  const split = !value || values.some((side) => side)
+  if (split) {
+    sides.forEach((side, i) =>
+      element.style.setProperty(`margin-${side}`, values[i] ?? ''),
+    )
+  } else {
+    element.style.setProperty(kebab, value)
+  }
+
+  // Keep the vertical percentages the value set.
+  const vertical: VerticalMargins = { ...verticalMargins.get(element) }
+  sides.forEach((side, i) => {
+    if (side !== 'top' && side !== 'bottom') return
+    const authored = split ? (values[i] ?? '') : ''
+    if (authored.includes('%')) vertical[side] = authored
+    else delete vertical[side]
+  })
+  if (!vertical.top && !vertical.bottom) {
+    verticalMargins.delete(element)
+    marginBasis.unobserve(element)
+    return
+  }
+  verticalMargins.set(element, vertical)
+  marginBasis.observe(element)
+  writeVerticalMargins(element)
+}
+
+// writeVerticalMargins writes a panel's vertical percentage margins as
+// pixels of its parent's content height. Under a parent whose height
+// follows its children, a margin of the parent's height would change that
+// height and resize it again without end, so the browser's resolution
+// stays there.
+function writeVerticalMargins(element: HTMLElement): void {
+  const vertical = verticalMargins.get(element)
+  if (!vertical) return
+  const basis = verticalMarginBasis(element)
+  for (const side of ['top', 'bottom'] as const) {
+    const authored = vertical[side]
+    if (!authored) continue
+    element.style.setProperty(
+      `margin-${side}`,
+      basis === null
+        ? authored
+        : authored.replace(
+            /(-?[\d.]+)%/g,
+            (_, percent: string) => `${(Number(percent) / 100) * basis}px`,
+          ),
+    )
+  }
+}
+
+// verticalMarginBasis returns the content height of a panel's parent, or
+// null when the panel has no parent or the parent's height is not definite:
+// neither the stage nor set by a height or fill-parent-flow.
+function verticalMarginBasis(element: HTMLElement): number | null {
+  // Find the parent, and whether its height is definite.
+  const parent = element.parentElement
+  if (!parent) return null
+  const definite =
+    parent.id === 'stage' ||
+    parent.style.height !== '' ||
+    parent.classList.contains('grow-height')
+  if (!definite) return null
+
+  // Measure the height inside its padding, where its children lay out.
+  const padding = getComputedStyle(parent)
+  return (
+    parent.clientHeight -
+    parseFloat(padding.paddingTop) -
+    parseFloat(padding.paddingBottom)
+  )
+}
+
 // applyStyle translates one Panorama style property, named in either case
 // the engine accepts, into CSS.
 function applyStyle(element: HTMLElement, kebab: string, value: string): void {
@@ -1306,6 +1426,14 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
     case 'washColor':
     case 'soundOut':
       return
+    case 'margin':
+    case 'marginTop':
+    case 'marginRight':
+    case 'marginBottom':
+    case 'marginLeft': {
+      applyMargin(element, name, value)
+      return
+    }
     default:
       css.setProperty(
         name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`),
