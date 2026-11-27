@@ -160,9 +160,9 @@ panel's `id` as the action and without a payload. A layout with any binding
 takes presses only from its bindings that have `onPress`. So the server refuses
 a press that the layout's script sends with `Modlock.press`, and a press from a
 panel the mod stopped binding. A layout holds at most 64 bindings. Each one
-names a different panel, by an `id` of up to 64 letters, digits, `_`, `-` and
-`.`. A binding's text, token, classes and image are held to the same limits as
-an element's.
+binds a different panel, chosen by an `id` of up to 64 letters, digits, `_`, `-`
+and `.`. A binding's text, token, classes and image are held to the same limits
+as an element's.
 
 ## The renderer
 

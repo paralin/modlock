@@ -305,7 +305,7 @@ number and a `uint32` as a color.
 
 The Luau, Python and Go samples check the created entity before they send
 inputs. `createEntity` returns nothing for a designer name the server does not
-know, and `fireInput` returns false for an input the entity does not have. The
+have, and `fireInput` returns false for an input the entity does not have. The
 host logs why, and in Go both calls return an error. Only that call fails, and
 the rest of your mod keeps running.
 

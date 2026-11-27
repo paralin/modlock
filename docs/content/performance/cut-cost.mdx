@@ -7,7 +7,7 @@ A common cause of slow frames is work that the mod repeats on every frame for
 every player. A game call costs more than plain code, because the mod encodes
 the request, the game does the work, and the mod decodes the reply. Some calls,
 such as `giveModifier`, also look up game data each time. The skipped-frames
-line names the
+line gives the
 [slowest call](/performance/frame-budget#frames-over-the-allowance), and the
 sampled stacks in `modlock play` show which code makes it.
 

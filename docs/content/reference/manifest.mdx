@@ -138,7 +138,8 @@ When you give a single value for a level float or a script value, it fills every
 level, and for a range it fills both bounds. The server writes the changes when
 it loads the definitions, and again on each new map.
 
-A bot difficulty entry names an `ECitadelBotDifficulty` value. Every bot of that
+Each bot difficulty entry holds the settings for one `ECitadelBotDifficulty`
+value. Every bot of that
 difficulty reads the changed record, including bots already playing. A bot whose
 difficulty does not have a record in the file uses the easy one. A bot retreats
 to its base when its health falls below `low_health` percent, or below
@@ -252,16 +253,16 @@ logs them instead. Bots never get totals.
 | `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
 
 When a board has a `teamSize`, it ranks teams in place of single players, such
-as the pairs that finish a run together. Each report names the scoring player
-and their teammates, so it lists one teammate fewer than the team size. Enroll
-each teammate with `bindScorePlayer`, as you do the scoring player.
+as the pairs that finish a run together. Each report gives the scoring player
+and a list of their teammates, so the list holds one player fewer than the team
+size. Enroll each teammate with `bindScorePlayer`, as you do the scoring player.
 
 The same players, in any order, make one team. So a pair keeps one standing,
 whichever of them reported, and a player belongs to as many teams as they play
 in. Each row of the board lists its team's members. To read a team's own row,
 pass the player and their teammates, each still in the game. Under
 `modlock dev`, the host refuses a team score that does not name its teammates,
-and a single player's score that names any.
+and a single player's score that lists any.
 
 ```ts
 reportScore(enrolled, 'duo.waves', wavesCleared, done, { teammates: [partner] })
@@ -379,7 +380,7 @@ it without one.
 When the host answers that an update took too long, the host may still have kept
 it. Send it again with the same key, and do not act as if nothing was written.
 The host refuses the whole update, and leaves the record unchanged, when a
-change breaks its kind's rules, names a field the type does not declare, or
+change breaks its kind's rules, uses a field the type does not declare, or
 writes a field whose stored value is of another kind than `mod.json` now
 declares, or when the record would grow past its bound.
 
@@ -428,7 +429,7 @@ Each entry is a game that players start from hyperline.gg. A mod that leaves
 `games` out has one game, `mod-<slug>`, named after the mod. When you add
 `games` later, keep that ID, so that the game keeps its status and its players'
 results. A release with a `games` list retires every game of the mod that the
-list no longer names. A release without a `games` list keeps them all.
+list no longer holds. A release without a `games` list keeps them all.
 
 | Field          | Value                                                                                                       |
 | -------------- | ----------------------------------------------------------------------------------------------------------- |

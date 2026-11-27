@@ -117,12 +117,12 @@ and place them again.
 ## Hide a cue from chosen players
 
 `hideCues(rules)` keeps a particle or sound that the server starts from the
-players you name. The event that started the cue still resolves as usual. A
-rule names one sound by its event name, or one particle by the 64-bit name the
-game sends when it creates the particle. A rule may also name the entity the
-cue plays on, and the player slots that do not get the cue. Leave the viewers
-out to hide the cue from everyone. Each call replaces all of the mod's rules,
-and an empty call shows every cue again.
+players you name. The event that started the cue still resolves as usual. A rule
+picks out one sound by its event name, or one particle by the 64-bit name the
+game sends when it creates the particle. A rule may also give the entity the cue
+plays on, and the player slots that do not get the cue. Leave the viewers out to
+hide the cue from everyone. Each call replaces all of the mod's rules, and an
+empty call shows every cue again.
 
 ```ts
 import { hideCues } from 'modlock'

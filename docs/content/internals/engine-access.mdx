@@ -66,7 +66,7 @@ a pattern for the function's entry bytes. `ResolveVirtualSlot(id)`
 RTTI, and returns the index of the one function that matches the pattern. So
 when a game update inserts a virtual function ahead of the slot, the index
 moves, the caller still works, and the host logs the move once. When the pattern
-matches zero functions or several, the call fails with an error that names the
+matches zero functions or several, the call fails with an error that gives the
 slot, and the feature that needs the slot stays off.
 
 `modlock-sigcheck` checks every slot the same way. A moved slot passes, and
