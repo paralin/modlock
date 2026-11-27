@@ -230,7 +230,8 @@ func newHostFeed() *hostFeed {
 func (f *hostFeed) observe(event *modcli.Event) {
 	// Take only the events that change what a guest sees.
 	host := event.GetHost()
-	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil && host.GetPaused() == nil {
+	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil &&
+		host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil && host.GetPaused() == nil {
 		return
 	}
 
@@ -310,7 +311,6 @@ func joinCommand(out *printer) *cli.Command {
 			if arg == "" {
 				return errors.New("pass the join code or lobby link modlock play printed")
 			}
-			out.brief = true
 			out.header("join", arg)
 			code, err := joinCode(c.Context, arg, c.String("origin"))
 			if err != nil {
