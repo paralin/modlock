@@ -49,6 +49,7 @@ import {
   press,
   tick,
   windowed,
+  type ListRow,
 } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
@@ -890,11 +891,13 @@ test('a list sends the window of its rows in its node', () => {
 test('showing a list costs its window, however many rows it holds', () => {
   // A list of 1,000 rows and one of 10,000 send the same window, and showing
   // either again after a draw without it reads none of its rows: the last
-  // row counts each read of its key, which any walk of the rows makes.
+  // row counts each read of its key, which any walk of the rows makes. The
+  // rows are ListRow[], since scriptc copies an array of rows of another
+  // shape each time it is passed as rows, and the copy is a new array.
   for (const length of [1000, 10000]) {
     const player = new Player(9)
     let walked = 0
-    const held = Array.from({ length }, (_, i) => ({
+    const held: ListRow[] = Array.from({ length }, (_, i) => ({
       key: `r${String(i).padStart(5, '0')}`,
       fields: { name: `Row ${i}` },
     }))

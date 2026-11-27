@@ -712,7 +712,10 @@ export interface ListRow {
  * screen shows, at most 256, and 2 MiB of windows across a player's
  * interface, so showing or scrolling a list costs its window, not its rows.
  * The mod orders a rows array once and draws it again from that order, even
- * after a draw without it, so pass a new array to change rows.
+ * after a draw without it, so pass a new array to change rows. A WebAssembly
+ * build copies an array whose rows have other properties than ListRow each
+ * time the array is passed here, and orders each copy again, so give a rows
+ * array the type ListRow[].
  *
  * The player focuses a row with the arrow keys or the controller, and chooses
  * it with Enter, the controller's confirm or a click, which calls onChange
