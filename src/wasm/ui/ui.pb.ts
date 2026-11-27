@@ -202,7 +202,8 @@ export const GameAction_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
- * ActionPhase is where a press of a game action stands.
+ * ActionPhase is where a press stands: of a game action, or of a range's
+ * handle.
  *
  * @generated from enum modlock.wasm.ui.ActionPhase
  */
@@ -1259,10 +1260,11 @@ export interface Node {
   /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
-   * checks against the control: a slider's range and step, a dropdown's
-   * options, an entry's length. The renderer keeps the player's own edit
-   * until a draw changes the value the node holds, so the mod's value is the
-   * truth and a redraw for another reason does not undo a change in flight.
+   * checks against the control: a slider's or a range's bounds and step, a
+   * dropdown's options, an entry's length. The renderer keeps the player's
+   * own edit until a draw changes the value the node holds, so the mod's
+   * value is the truth and a redraw for another reason does not undo a
+   * change in flight.
    *
    * @generated from oneof modlock.wasm.ui.Node.input
    */
@@ -1272,6 +1274,7 @@ export interface Node {
     | { value: Slider; case: 'slider' }
     | { value: Toggle; case: 'toggle' }
     | { value: Dropdown; case: 'dropdown' }
+    | { value: Range; case: 'range' }
 }
 
 export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
@@ -1329,6 +1332,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [50, 'measure', 9],
     [51, 'frame', 14, 0, Frame_Enum],
     [52, 'follows_placement', 8],
+    [53, 'range', 11, 0, Range.codec, 'input'],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1535,6 +1539,16 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 52:
             m.followsPlacement = r.bool()
+            break
+          case 53:
+            m.input = {
+              case: 'range',
+              value: Range.decode(
+                r,
+                r.delimited(),
+                m.input?.case === 'range' ? m.input.value : {},
+              ),
+            }
             break
           default:
             r.skip(t)
@@ -1768,6 +1782,11 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.followsPlacement
         if (v) w.uint32(416).bool(v)
+      }
+      {
+        const o = m.input
+        if (o?.case === 'range' && o.value != null)
+          Range.writeField(w, 53, o.value)
       }
     },
   },
@@ -2567,6 +2586,217 @@ export const Dropdown: MessageType<Dropdown> =
         {
           const v = m.selected
           if (v) w.uint32(16).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Range is a track with several handles the player drags along it, such as
+ * a minimum, a favored value and a maximum. The handles share the track's
+ * bounds and step and keep their order: a handle stops at its neighbors.
+ * While the player holds a handle the renderer moves it, and a redraw leaves
+ * it alone; the mod hears where every handle ended up when the player lets
+ * go, and a cancelled hold puts the handles back.
+ *
+ * @generated from message modlock.wasm.ui.Range
+ */
+export interface Range {
+  /**
+   * Handles are the track's handles in order along it, one to eight, each
+   * at least the one before.
+   */
+  handles?: RangeHandle[]
+  /**
+   * Min and Max bound every handle; a max no greater than min means 0 to 1.
+   */
+  min?: number
+  max?: number
+  /**
+   * Step is the distance between the values a handle stops at; zero lets it
+   * stop anywhere.
+   */
+  step?: number
+}
+
+export const Range: MessageType<Range> =
+  /* @__PURE__ */ createMessageType<Range>(
+    'modlock.wasm.ui.Range',
+    () => [
+      [1, 'handles', 11, 1, RangeHandle.codec],
+      [2, 'min', 2],
+      [3, 'max', 2],
+      [4, 'step', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Range): Range => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.handles ??= []).push(RangeHandle.decode(r, r.delimited(), {}))
+              break
+            case 2:
+              m.min = r.float()
+              break
+            case 3:
+              m.max = r.float()
+              break
+            case 4:
+              m.step = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Range, w: Writer): void => {
+        {
+          const a = m.handles
+          if (a != null) for (const e of a) RangeHandle.writeField(w, 1, e)
+        }
+        {
+          const v = m.min
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.max
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.step
+          if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * RangeHandle is one handle of a range.
+ *
+ * @generated from message modlock.wasm.ui.RangeHandle
+ */
+export interface RangeHandle {
+  /**
+   * Name names the handle in the events the mod hears: one to 64 letters,
+   * digits, '_', '-' and '.', unique within the range.
+   */
+  name?: string
+  /**
+   * Value is the number the handle holds.
+   */
+  value?: number
+}
+
+export const RangeHandle: MessageType<RangeHandle> =
+  /* @__PURE__ */ createMessageType<RangeHandle>(
+    'modlock.wasm.ui.RangeHandle',
+    () => [
+      [1, 'name', 9],
+      [2, 'value', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: RangeHandle): RangeHandle => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.value = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: RangeHandle, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.value
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * RangeEvent reports the player's hold on one handle of a range.
+ *
+ * @generated from message modlock.wasm.ui.RangeEvent
+ */
+export interface RangeEvent {
+  /**
+   * Phase is PRESSED as the player takes the handle, RELEASED as they let
+   * go, and CANCELLED when a stock overlay or the menu's closing ended the
+   * hold, which puts the handles back where they were.
+   */
+  phase?: ActionPhase
+  /**
+   * Handle is the name of the handle the player holds.
+   */
+  handle?: string
+  /**
+   * Values are every handle's value in order, on a release: the host clamps
+   * each to the range and its step, and refuses values out of order.
+   */
+  values?: number[]
+}
+
+export const RangeEvent: MessageType<RangeEvent> =
+  /* @__PURE__ */ createMessageType<RangeEvent>(
+    'modlock.wasm.ui.RangeEvent',
+    () => [
+      [1, 'phase', 14, 0, ActionPhase_Enum],
+      [2, 'handle', 9],
+      [3, 'values', 2, 3],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: RangeEvent): RangeEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.phase = r.int32()
+              break
+            case 2:
+              m.handle = r.string()
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.values ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: RangeEvent, w: Writer): void => {
+        {
+          const v = m.phase
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.handle
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const a = m.values
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
         }
       },
     },
@@ -4472,6 +4702,7 @@ export interface UiInputEvent {
     | { value: boolean; case: 'on' }
     | { value: number; case: 'choice' }
     | { value: Wheel; case: 'wheel' }
+    | { value: RangeEvent; case: 'range' }
 }
 
 export const UiInputEvent: MessageType<UiInputEvent> =
@@ -4485,6 +4716,7 @@ export const UiInputEvent: MessageType<UiInputEvent> =
       [5, 'on', 8, 0, 0, 'value'],
       [6, 'choice', 13, 0, 0, 'value'],
       [7, 'wheel', 11, 0, Wheel.codec, 'value'],
+      [8, 'range', 11, 0, RangeEvent.codec, 'value'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: UiInputEvent): UiInputEvent => {
@@ -4517,6 +4749,16 @@ export const UiInputEvent: MessageType<UiInputEvent> =
                   r,
                   r.delimited(),
                   m.value?.case === 'wheel' ? m.value.value : {},
+                ),
+              }
+              break
+            case 8:
+              m.value = {
+                case: 'range',
+                value: RangeEvent.decode(
+                  r,
+                  r.delimited(),
+                  m.value?.case === 'range' ? m.value.value : {},
                 ),
               }
               break
@@ -4558,6 +4800,11 @@ export const UiInputEvent: MessageType<UiInputEvent> =
           const o = m.value
           if (o?.case === 'wheel' && o.value != null)
             Wheel.writeField(w, 7, o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'range' && o.value != null)
+            RangeEvent.writeField(w, 8, o.value)
         }
       },
     },

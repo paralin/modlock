@@ -91,6 +91,8 @@ type handlers struct {
 	choice func(p mod.Player, index int)
 	// wheel runs when the player turns the wheel over a slider.
 	wheel func(p mod.Player, wheel *mod.Wheel)
+	// hold runs as the player grabs, lets go of or loses a range's handle.
+	hold func(p mod.Player, event *mod.RangeEvent)
 }
 
 // layout holds one screen while place lays it out.
@@ -475,6 +477,10 @@ func change(event *mod.UiInputEvent) {
 	case *mod.UiInputEventWheel:
 		if h.wheel != nil {
 			h.wheel(p, value.Wheel)
+		}
+	case *mod.UiInputEventRange:
+		if h.hold != nil {
+			h.hold(p, value.Range)
 		}
 	}
 }

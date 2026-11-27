@@ -388,7 +388,7 @@ export type Interface = {
 	-- press takes a press on the button with id node, or on the ability bar.
 	press: (player: Player, node: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
-	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	change: (player: Player, node: string, value: (string | number | boolean | Wheel | RangeEvent)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- overlay takes the stock overlay that now holds the player's input.

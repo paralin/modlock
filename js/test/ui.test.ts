@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import {
+  ActionPhase,
   Easing,
   Face,
   Flow,
@@ -602,6 +603,60 @@ test('inputs carry their values and hand changes to the mod', () => {
     .change!.set!.find((node) => node.kind === Kind.INPUT)!
   change(player, disabled.id!, { delta: 1, fraction: 0.5 })
   expect(wheels).toEqual([-0.25, 0])
+
+  // A range carries its named handles, and a hold reaches the mod by name,
+  // with every value on the release.
+  const holds: string[] = []
+  const ranges: number[][] = []
+  show(
+    player,
+    jsx('range', {
+      handles: [
+        { name: 'min', value: 0.1 },
+        { name: 'max', value: 0.9 },
+      ],
+      step: 0.1,
+      onHold: (_: unknown, handle: string, phase: string) =>
+        holds.push(`${handle}:${phase}`),
+      onChange: (_: unknown, values: number[]) => ranges.push(values),
+    }),
+  )
+  const range = sent
+    .at(-1)!
+    .change!.set!.find((node) => node.kind === Kind.INPUT)!
+  expect(range.input).toMatchObject({
+    case: 'range',
+    value: {
+      handles: [
+        { name: 'min', value: Math.fround(0.1) },
+        { name: 'max', value: Math.fround(0.9) },
+      ],
+      step: Math.fround(0.1),
+    },
+  })
+  for (const value of [
+    { phase: ActionPhase.PRESSED, handle: 'max', values: [] },
+    { phase: ActionPhase.RELEASED, handle: 'max', values: [0.1, 0.5] },
+  ]) {
+    deliver(
+      Call.toBinary({
+        method: 'UiInput',
+        request: UiInputEvent.toBinary({
+          player: player.slot,
+          node: range.id!,
+          value: { case: 'range', value },
+        }),
+      }),
+    )
+  }
+  deliver(
+    Call.toBinary({
+      method: 'Frame',
+      request: FrameEvent.toBinary({ timeSeconds: 2 }),
+    }),
+  )
+  expect(holds).toEqual(['max:pressed', 'max:released'])
+  expect(ranges).toEqual([[Math.fround(0.1), 0.5]])
 })
 
 test('chat lines and the parts hidden for all reach each player, and a leave clears its slot', () => {

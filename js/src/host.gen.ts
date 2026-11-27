@@ -586,7 +586,10 @@ const gameActionNames: Partial<Record<number, GameAction>> = {
   1: 'scoreboard',
 }
 
-/** ActionPhase is where a press of a game action stands. */
+/**
+ * ActionPhase is where a press stands: of a game action, or of a range's
+ * handle.
+ */
 export type ActionPhase =
   | 'pressed'
   | 'released'
@@ -3016,6 +3019,32 @@ function fromWheel(message: uiPb.Wheel): Wheel {
   }
 }
 
+/** RangeEvent reports the player's hold on one handle of a range. */
+export interface RangeEvent {
+  /**
+   * phase is PRESSED as the player takes the handle, RELEASED as they let
+   * go, and CANCELLED when a stock overlay or the menu's closing ended the
+   * hold, which puts the handles back where they were.
+   */
+  readonly phase?: ActionPhase
+  /** handle is the name of the handle the player holds. */
+  readonly handle: string
+  /**
+   * values are every handle's value in order, on a release: the host clamps
+   * each to the range and its step, and refuses values out of order.
+   */
+  readonly values: number[]
+}
+
+/** fromRangeEvent decodes a RangeEvent. */
+function fromRangeEvent(message: uiPb.RangeEvent): RangeEvent {
+  return {
+    phase: actionPhaseNames[message.phase ?? 0],
+    handle: message.handle ?? '',
+    values: message.values ?? [],
+  }
+}
+
 /**
  * UiPressEvent reports a press on a button in a player's interface, or a
  * press a layout's script sent with an action and a payload.
@@ -3060,7 +3089,7 @@ export interface UiInputEvent {
   /** node is the id of the input. */
   readonly node: string
   /** value is the input's new value, in the kind its control holds. */
-  readonly value?: string | number | boolean | number | Wheel
+  readonly value?: string | number | boolean | number | Wheel | RangeEvent
 }
 
 /** fromUiInputEvent decodes an UiInputEvent. */
@@ -3068,7 +3097,7 @@ function fromUiInputEvent(message: uiPb.UiInputEvent): UiInputEvent {
   return {
     player: Player.of(message.player ?? 0),
     node: message.node ?? '',
-    value: message.value?.case === "wheel" ? fromWheel(message.value.value) : (message.value?.value),
+    value: message.value?.case === "range" ? fromRangeEvent(message.value.value) : (message.value?.case === "wheel" ? fromWheel(message.value.value) : (message.value?.value)),
   }
 }
 

@@ -294,6 +294,7 @@ Each input hands each change to `onChange(player, value)`:
 | ------------ | ----------------------------------- | ---------------------------------------- |
 | `<entry>`    | `value`, `placeholder`, `maxLength` | Text, cut to `maxLength` characters.     |
 | `<slider>`   | `value`, `min`, `max`, `step`       | A number, clamped to the range and step. |
+| `<range>`    | `handles`, `min`, `max`, `step`     | Every handle's number, in order.         |
 | `<toggle>`   | `on`, label as children             | On or off.                               |
 | `<dropdown>` | `options`, `selected`               | The chosen option's index.               |
 
@@ -305,6 +306,32 @@ An entry or slider sends a run of edits once, a tenth of a second after the
 last. It sends at once when it loses the keyboard or when the player presses a
 button in the same interface, so a Save or Apply button's `onPress` runs after
 every `onChange` for the values the player sees.
+
+A range is a track with one to eight named handles, such as a minimum, a
+favored value and a maximum:
+
+```tsx
+<range
+  handles={[
+    { name: 'min', value: 0.2 },
+    { name: 'favored', value: 0.5 },
+    { name: 'max', value: 0.8 },
+  ]}
+  step={0.05}
+  onChange={(player, [min, favored, max]) => save(player, min, favored, max)}
+  onHold={(player, handle, phase) => preview(player, handle, phase)}
+/>
+```
+
+The player drags one handle at a time, and it stops at its neighbors. It
+follows the pointer past the track's ends, so the player can push it to the
+end without aiming. `onChange` runs once, with every value, when the player
+lets go. `onHold` hears each grab, release and cancellation by the handle's
+name. A stock overlay, the menu's closing or disabling the range cancels the
+drag and puts the handles where your mod last drew them. While the player holds
+a handle, a redraw leaves the handles where the player has them. Changing the
+handles' names draws a new range. In Python the element is `range_`, and in Go
+`ui.Range`.
 
 In TypeScript, a form can direct the keyboard. `focusOrder` on a button or
 input sets its place in the game's keyboard and controller navigation, lowest

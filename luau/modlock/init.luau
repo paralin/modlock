@@ -519,7 +519,8 @@ local GameAction: { [any]: any } = {
 	scoreboard = 1,
 }
 
--- ActionPhase is where a press of a game action stands.
+-- ActionPhase is where a press stands: of a game action, or of a range's
+-- handle.
 export type ActionPhase = "pressed" | "released" | "cancelled"
 local ActionPhase: { [any]: any } = {
 	[1] = "pressed",
@@ -1840,6 +1841,19 @@ export type Wheel = {
 	fraction: number,
 }
 
+-- RangeEvent reports the player's hold on one handle of a range.
+export type RangeEvent = {
+	-- phase is PRESSED as the player takes the handle, RELEASED as they let
+	-- go, and CANCELLED when a stock overlay or the menu's closing ended the
+	-- hold, which puts the handles back where they were.
+	phase: ActionPhase?,
+	-- handle is the name of the handle the player holds.
+	handle: string,
+	-- values are every handle's value in order, on a release: the host clamps
+	-- each to the range and its step, and refuses values out of order.
+	values: { number },
+}
+
 -- UiPressEvent reports a press on a button in a player's interface, or a
 -- press a layout's script sent with an action and a payload.
 export type UiPressEvent = {
@@ -1864,7 +1878,7 @@ export type UiInputEvent = {
 	-- node is the id of the input.
 	node: string,
 	-- value is the input's new value, in the kind its control holds.
-	value: (string | number | boolean | Wheel)?,
+	value: (string | number | boolean | Wheel | RangeEvent)?,
 }
 
 -- UiDocumentEvent ends one submission from a player's document input: the
@@ -4340,6 +4354,7 @@ schema.Node = {
 	{ number = 20, name = "slider", kind = "message", oneof = "input", message = "Slider" },
 	{ number = 21, name = "toggle", kind = "message", oneof = "input", message = "Toggle" },
 	{ number = 22, name = "dropdown", kind = "message", oneof = "input", message = "Dropdown" },
+	{ number = 53, name = "range", kind = "message", oneof = "input", message = "Range" },
 	{ number = 23, name = "token", kind = "string" },
 	{ number = 24, name = "variables", kind = "message", repeated = true, message = "Node_VariablesEntry" },
 	{ number = 25, name = "steamId", kind = "fixed64", id = true },
@@ -4430,6 +4445,21 @@ schema.Toggle = {
 schema.Dropdown = {
 	{ number = 1, name = "options", kind = "string", repeated = true },
 	{ number = 2, name = "selected", kind = "uint32" },
+}
+schema.Range = {
+	{ number = 1, name = "handles", kind = "message", repeated = true, message = "RangeHandle" },
+	{ number = 2, name = "min", kind = "float" },
+	{ number = 3, name = "max", kind = "float" },
+	{ number = 4, name = "step", kind = "float" },
+}
+schema.RangeHandle = {
+	{ number = 1, name = "name", kind = "string" },
+	{ number = 2, name = "value", kind = "float" },
+}
+schema.RangeEvent = {
+	{ number = 1, name = "phase", kind = "enum", enum = ActionPhase },
+	{ number = 2, name = "handle", kind = "string" },
+	{ number = 3, name = "values", kind = "float", repeated = true },
 }
 schema.Cycle = {
 	{ number = 1, name = "style", kind = "message", message = "Style" },
@@ -4570,6 +4600,7 @@ schema.UiInputEvent = {
 	{ number = 5, name = "on", kind = "bool", oneof = "value" },
 	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
 	{ number = 7, name = "wheel", kind = "message", oneof = "value", message = "Wheel" },
+	{ number = 8, name = "range", kind = "message", oneof = "value", message = "RangeEvent" },
 }
 schema.UiDocumentEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -5961,7 +5992,7 @@ export type Interface = {
 	-- press takes a press on the button with id node, or on the ability bar.
 	press: (player: Player, node: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
-	change: (player: Player, node: string, value: (string | number | boolean | Wheel)?) -> (),
+	change: (player: Player, node: string, value: (string | number | boolean | Wheel | RangeEvent)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
 	act: (player: Player, action: GameAction, phase: ActionPhase) -> (),
 	-- overlay takes the stock overlay that now holds the player's input.

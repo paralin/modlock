@@ -759,7 +759,8 @@ _GameAction: dict[Any, Any] = {
 }
 
 
-# ActionPhase is where a press of a game action stands.
+# ActionPhase is where a press stands: of a game action, or of a range's
+# handle.
 type ActionPhase = Literal["pressed", "released", "cancelled"]
 _ActionPhase: dict[Any, Any] = {
     1: "pressed",
@@ -2501,6 +2502,21 @@ class Wheel:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class RangeEvent:
+    """RangeEvent reports the player's hold on one handle of a range."""
+
+    # phase is PRESSED as the player takes the handle, RELEASED as they let
+    # go, and CANCELLED when a stock overlay or the menu's closing ended the
+    # hold, which puts the handles back where they were.
+    phase: ActionPhase | None = None
+    # handle is the name of the handle the player holds.
+    handle: str = ""
+    # values are every handle's value in order, on a release: the host clamps
+    # each to the range and its step, and refuses values out of order.
+    values: list[float] = dataclasses.field(default_factory=lambda: list[float]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class UiPressEvent:
     """UiPressEvent reports a press on a button in a player's interface, or a
     press a layout's script sent with an action and a payload.
@@ -2530,7 +2546,7 @@ class UiInputEvent:
     # node is the id of the input.
     node: str = ""
     # value is the input's new value, in the kind its control holds.
-    value: str | float | bool | int | Wheel | None = None
+    value: str | float | bool | int | Wheel | RangeEvent | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -5082,6 +5098,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(20, "slider", "message", oneof="input", message="Slider"),
             wire.Field(21, "toggle", "message", oneof="input", message="Toggle"),
             wire.Field(22, "dropdown", "message", oneof="input", message="Dropdown"),
+            wire.Field(53, "range", "message", oneof="input", message="Range"),
             wire.Field(23, "token", "string"),
             wire.Field(24, "variables", "message", repeated=True, message="Node_VariablesEntry"),
             wire.Field(25, "steam_id", "fixed64"),
@@ -5208,6 +5225,30 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "options", "string", repeated=True),
             wire.Field(2, "selected", "uint32"),
+        ],
+    ),
+    "Range": (
+        None,
+        [
+            wire.Field(1, "handles", "message", repeated=True, message="RangeHandle"),
+            wire.Field(2, "min", "float"),
+            wire.Field(3, "max", "float"),
+            wire.Field(4, "step", "float"),
+        ],
+    ),
+    "RangeHandle": (
+        None,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "value", "float"),
+        ],
+    ),
+    "RangeEvent": (
+        RangeEvent,
+        [
+            wire.Field(1, "phase", "enum", enum=_ActionPhase),
+            wire.Field(2, "handle", "string"),
+            wire.Field(3, "values", "float", repeated=True),
         ],
     ),
     "Cycle": (
@@ -5396,6 +5437,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "on", "bool", oneof="value"),
             wire.Field(6, "choice", "uint32", oneof="value"),
             wire.Field(7, "wheel", "message", oneof="value", message="Wheel"),
+            wire.Field(8, "range", "message", oneof="value", message="RangeEvent"),
         ],
     ),
     "UiDocumentEvent": (
@@ -7759,7 +7801,7 @@ def _start(event: StartEvent) -> StartResult:
 
 
 # UiValue is an input's new value as the host checked it.
-type UiValue = str | float | bool | int | Wheel | None
+type UiValue = str | float | bool | int | Wheel | RangeEvent | None
 
 
 @dataclasses.dataclass(frozen=True, slots=True)

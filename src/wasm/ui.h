@@ -128,7 +128,11 @@ class UiTrees {
   // loses control characters and what passes the entry's length, and a
   // slider's number is clamped to its range and snapped to its step.
   // A slider that opted in to wheel input accepts "wheel:direction:fraction",
-  // with direction 1 or -1 and a finite fraction clamped from 0 to 1.
+  // with direction 1 or -1 and a finite fraction clamped from 0 to 1. A
+  // range's value is "range:<phase>:<handle>", with phase 1 for a press, 2
+  // for a release and 3 for a cancel; a release adds ":" and every handle's
+  // value, comma-separated, each clamped and snapped as a slider's, and is
+  // refused when they fall out of order.
   [[nodiscard]] std::expected<ui::UiInputEvent, std::string> Input(int32_t slot,
                                                                    std::string_view node,
                                                                    std::string_view value) const;
@@ -162,7 +166,8 @@ class UiTrees {
   // Shown is what the host keeps of one node: its kind, and for an input
   // whether it is disabled and the bounds of the value it holds. length is a
   // text entry's limit in characters, min, max and step a slider's range,
-  // options a dropdown's count, and wheel a slider's wheel opt-in.
+  // options a dropdown's count, wheel a slider's wheel opt-in, and handles a
+  // range's handles' names in order.
   struct Shown {
     ui::Kind kind = ui::KIND_PANEL;
     ui::Node::InputCase input = ui::Node::INPUT_NOT_SET;
@@ -176,6 +181,7 @@ class UiTrees {
     float max = 1;
     float step = 0;
     uint32_t options = 0;
+    std::vector<std::string> handles;
     // ability_bar is the root's ask for presses on the game's ability bar.
     bool ability_bar = false;
     // game_actions is the root's list of game actions it follows.
@@ -190,6 +196,11 @@ class UiTrees {
 
   // Keep returns what the host keeps of node.
   static Shown Keep(const ui::Node& node);
+
+  // ReadRange reads a range's value, as Input describes, against what the
+  // host keeps of the range.
+  static std::expected<ui::RangeEvent, std::string> ReadRange(const Shown& shown,
+                                                              std::string_view value);
 
   // trees_ maps each slot to what it keeps of its nodes by id.
   std::map<int32_t, std::map<std::string, Shown, std::less<>>> trees_;
