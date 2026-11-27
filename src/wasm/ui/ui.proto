@@ -112,15 +112,17 @@ message Node {
 
   // Input is the control an input node draws and the value it holds. Each
   // change the player makes reaches the mod as a UiInputEvent, which the host
-  // checks against the control: a slider's range and step, a dropdown's
-  // options, an entry's length. The renderer keeps the player's own edit
-  // until a draw changes the value the node holds, so the mod's value is the
-  // truth and a redraw for another reason does not undo a change in flight.
+  // checks against the control: a slider's or a range's bounds and step, a
+  // dropdown's options, an entry's length. The renderer keeps the player's
+  // own edit until a draw changes the value the node holds, so the mod's
+  // value is the truth and a redraw for another reason does not undo a
+  // change in flight.
   oneof input {
     TextEntry text_entry = 19;
     Slider slider = 20;
     Toggle toggle = 21;
     Dropdown dropdown = 22;
+    Range range = 53;
   }
 
   // Token draws a label in the player's language: a token of the game's
@@ -433,7 +435,8 @@ enum GameAction {
   GAME_ACTION_SCOREBOARD = 1;
 }
 
-// ActionPhase is where a press of a game action stands.
+// ActionPhase is where a press stands: of a game action, or of a range's
+// handle.
 enum ActionPhase {
   // ACTION_PHASE_UNKNOWN names no phase.
   ACTION_PHASE_UNKNOWN = 0;
@@ -708,6 +711,51 @@ message Dropdown {
 
   // Selected is the index of the chosen option.
   uint32 selected = 2;
+}
+
+// Range is a track with several handles the player drags along it, such as
+// a minimum, a favored value and a maximum. The handles share the track's
+// bounds and step and keep their order: a handle stops at its neighbors.
+// While the player holds a handle the renderer moves it, and a redraw leaves
+// it alone; the mod hears where every handle ended up when the player lets
+// go, and a cancelled hold puts the handles back.
+message Range {
+  // Handles are the track's handles in order along it, one to eight, each
+  // at least the one before.
+  repeated RangeHandle handles = 1;
+
+  // Min and Max bound every handle; a max no greater than min means 0 to 1.
+  float min = 2;
+  float max = 3;
+
+  // Step is the distance between the values a handle stops at; zero lets it
+  // stop anywhere.
+  float step = 4;
+}
+
+// RangeHandle is one handle of a range.
+message RangeHandle {
+  // Name names the handle in the events the mod hears: one to 64 letters,
+  // digits, '_', '-' and '.', unique within the range.
+  string name = 1;
+
+  // Value is the number the handle holds.
+  float value = 2;
+}
+
+// RangeEvent reports the player's hold on one handle of a range.
+message RangeEvent {
+  // Phase is PRESSED as the player takes the handle, RELEASED as they let
+  // go, and CANCELLED when a stock overlay or the menu's closing ended the
+  // hold, which puts the handles back where they were.
+  ActionPhase phase = 1;
+
+  // Handle is the name of the handle the player holds.
+  string handle = 2;
+
+  // Values are every handle's value in order, on a release: the host clamps
+  // each to the range and its step, and refuses values out of order.
+  repeated float values = 3;
 }
 
 // Cycle alternates a node between its style and another, easing each way.
@@ -1271,6 +1319,9 @@ message UiInputEvent {
 
     // Wheel is a wheel step over a slider that opted in to wheel events.
     Wheel wheel = 7;
+
+    // Range is the player's hold on a handle of a range.
+    RangeEvent range = 8;
   }
 }
 

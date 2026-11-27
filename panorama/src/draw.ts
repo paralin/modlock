@@ -31,6 +31,7 @@
 // another way.
 
 import {
+  ActionPhase,
   Align,
   type Clip,
   type Clock,
@@ -50,6 +51,7 @@ import {
   type Length,
   type Node,
   Overflow,
+  type Range,
   type Region,
   Scaling,
   type Screen,
@@ -77,6 +79,14 @@ import {
 import { Voices } from './voice.js'
 import { type MenuHost, Menus, type Surface } from './menu.js'
 import { Documents, type Form } from './document.js'
+import {
+  clamp,
+  finite,
+  trackFraction,
+  trackRange,
+  trackValue,
+} from './number.js'
+import { RangeControl, rangeHandles, rangeLook } from './range.js'
 
 export {
   actionCommand,
@@ -330,8 +340,9 @@ export function pressCommand(mod: string, node: string): string {
  * inputCommand is the console command that sends value to the input node in
  * mod's interface, as pressCommand sends a press: text as unpadded base64url
  * of its UTF-8, cut to the 240 bytes the host takes, a number in decimal, a
- * toggle's state as 1 or 0, a choice as its index and a wheel step as
- * wheel:direction:fraction.
+ * toggle's state as 1 or 0, a choice as its index, a wheel step as
+ * wheel:direction:fraction and a hold on a range's handle as
+ * range:phase:handle, which a release follows with every handle's value.
  */
 export function inputCommand(
   mod: string,
@@ -357,6 +368,13 @@ function encodeInput(value: InputValue): string {
       return String(Math.trunc(finite(value.value)))
     case 'wheel':
       return `wheel:${finite(value.value.delta)}:${clamp(finite(value.value.fraction), 0, 1)}`
+    case 'range': {
+      const { phase, handle, values } = value.value
+      const held = `range:${phase ?? 0}:${handle ?? ''}`
+      return phase === ActionPhase.RELEASED
+        ? `${held}:${(values ?? []).map(finite).join(',')}`
+        : held
+    }
   }
 }
 
@@ -395,6 +413,7 @@ const controlTypes: Record<Control, string> = {
   slider: 'Slider',
   toggle: 'ToggleButton',
   dropdown: 'DropDown',
+  range: 'Panel',
 }
 
 /**
@@ -583,6 +602,8 @@ interface Drawn {
   written: Record<string, string>
   control: Control | null
   slider: Slider | undefined
+  /** range draws a range input and drives the player's hold on it. */
+  range: RangeControl | null
   value: string
   /**
    * pending is a gathered edit not yet sent, with the epoch of the menu it was
@@ -734,7 +755,7 @@ export class Drawing {
     private readonly press: Press,
     private readonly layouts?: Layouts,
     private readonly change?: Change,
-    menuHost?: MenuHost,
+    private readonly menuHost?: MenuHost,
   ) {
     this.menus = new Menus(panorama, menuHost)
     this.documents = new Documents(panorama, menuHost)
@@ -1442,7 +1463,10 @@ export class Drawing {
           showPlaceholder(panel)
           break
         case 'slider':
-          panel.value = sliderFraction(node.input.value)
+          panel.value = trackFraction(
+            node.input.value,
+            node.input.value.value ?? 0,
+          )
           break
         case 'toggle':
           panel.checked = !!node.input.value.on
@@ -1496,6 +1520,36 @@ export class Drawing {
         }
         panel.SetPanelEvent('oninputsubmit', edited)
     }
+  }
+
+  /**
+   * rangeControl builds a range input's control on its new panel. It reports
+   * each hold while the drawing still shows the control on that panel, and
+   * the player's input is its while no stock overlay holds it and its menu,
+   * if any, is open.
+   */
+  private rangeControl(
+    mod: string,
+    id: string,
+    panel: Panel,
+    range: Range,
+    disabled: boolean,
+    surface: Surface | undefined,
+  ): RangeControl {
+    const control: RangeControl = new RangeControl(
+      this.panorama,
+      panel,
+      range,
+      disabled,
+      {
+        send: (event) =>
+          this.change?.(mod, id, { case: 'range', value: event }),
+        live: () => this.current(mod, id, panel)?.range === control,
+        open: () =>
+          !this.menuHost?.stock() && (!surface || this.menus.accepts(surface)),
+      },
+    )
+    return control
   }
 
   /** wheel sends a scoped step with the pointer anchor, without seeking. */
@@ -1680,12 +1734,14 @@ export class Drawing {
       properties,
       node.documentInput?.placeholder,
       node.input?.case === 'dropdown' ? node.input.value.options : null,
+      node.input?.case === 'range' ? rangeHandles(node.input.value) : null,
     ])
 
     // Resolve its style and the styles laid over it, with the transition
     // that eases between them.
     const style: Record<string, string> = {
       ...(control === 'textEntry' ? entryLook : {}),
+      ...(control === 'range' ? rangeLook : {}),
       ...(kind === Kind.DOCUMENT_INPUT
         ? { width: '360px', height: 'fit-children', flowChildren: 'down' }
         : {}),
@@ -1837,6 +1893,7 @@ export class Drawing {
       control,
       slider:
         node.input?.case === 'slider' ? { ...node.input.value } : undefined,
+      range: null,
       value,
       pending: fresh ? null : old.pending,
       unanswered: fresh ? [] : old.unanswered,
@@ -1915,6 +1972,18 @@ export class Drawing {
         panel.text = node.documentText ?? ''
     } else if (kind === Kind.IMAGE) {
       panel.SetImage(this.imagePath(mod, node.image ?? ''))
+    } else if (node.input?.case === 'range') {
+      each.range = fresh || !old.range ? null : old.range
+      if (each.range) each.range.draw(node.input.value, each.disabled)
+      else
+        each.range = this.rangeControl(
+          mod,
+          id,
+          panel,
+          node.input.value,
+          each.disabled,
+          surface,
+        )
     } else if (control && (fresh || old.value !== value)) {
       this.answer(each, node, old)
     }
@@ -2519,7 +2588,7 @@ function controlMadeWith(node: Node): Record<string, string> | undefined {
       // Native sliders keep a normalized value. Convert both directions at
       // the renderer boundary rather than relying on creation attributes.
       const slider = node.input.value
-      const [min, max] = sliderRange(slider)
+      const [min, max] = trackRange(slider)
       return {
         class: 'HorizontalSlider',
         direction: 'horizontal',
@@ -2571,7 +2640,7 @@ function readInput(
     case 'slider':
       return {
         case: 'number',
-        value: Math.fround(sliderValue(panel.value, slider ?? {})),
+        value: Math.fround(trackValue(slider ?? {}, panel.value)),
       }
     case 'toggle':
       return { case: 'on', value: panel.checked }
@@ -2585,29 +2654,6 @@ function readInput(
     default:
       return undefined
   }
-}
-
-/** sliderRange returns the mod's finite range, or the default 0 to 1. */
-function sliderRange(slider: Slider): [number, number] {
-  const min = finite(slider.min)
-  const max = finite(slider.max)
-  return max > min ? [min, max] : [0, 1]
-}
-
-/** sliderFraction maps the mod's value to the native slider's 0 to 1 range. */
-function sliderFraction(slider: Slider): number {
-  const [min, max] = sliderRange(slider)
-  return clamp((finite(slider.value) - min) / (max - min), 0, 1)
-}
-
-/** sliderValue maps native position to the mod's range and step. */
-function sliderValue(fraction: number, slider: Slider): number {
-  const [min, max] = sliderRange(slider)
-  const value = min + clamp(finite(fraction), 0, 1) * (max - min)
-  const step = finite(slider.step)
-  return step > 0
-    ? clamp(min + Math.round((value - min) / step) * step, min, max)
-    : value
 }
 
 /** soundOf returns a sound event's name, or nothing for a name the game cannot hold. */
@@ -2734,14 +2780,4 @@ function edges(value: Edges | undefined): string | null {
 /** color writes 0xRRGGBBAA as rgba(). */
 function color(value: number): string {
   return `rgba(${(value >>> 24) & 255}, ${(value >>> 16) & 255}, ${(value >>> 8) & 255}, ${((value & 255) / 255).toFixed(3)})`
-}
-
-/** clamp keeps value within [low, high]. */
-function clamp(value: number, low: number, high: number): number {
-  return Math.min(high, Math.max(low, finite(value)))
-}
-
-/** finite returns value, or zero when it is unset or not a finite number. */
-function finite(value: number | undefined): number {
-  return value !== undefined && Number.isFinite(value) ? value : 0
 }

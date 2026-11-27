@@ -28,9 +28,10 @@
 //
 // Inputs take a value from the player and call onChange with the player and
 // the value the host checked: <entry> a line of text, <slider> a number in its
-// range, <toggle> on or off, and <dropdown> the index of an option. The value
-// the mod draws is the truth; the player's edit shows until the mod's next
-// value for that input differs from its last.
+// range, <toggle> on or off, <dropdown> the index of an option, and <range>
+// every handle's value once the player lets one go. The value the mod draws
+// is the truth; the player's edit shows until the mod's next value for that
+// input differs from its last.
 //
 // A label with a token shows the game's own text in the player's language,
 // such as <label token="#Citadel_HeroName_Haze" />, and an avatar shows a
@@ -129,6 +130,7 @@ import {
   type UiPlacementEvent,
   type Bounds,
   type Wheel,
+  type RangeEvent,
 } from './host.gen.js'
 import { call } from './host.js'
 import { connection, players } from './players.js'
@@ -493,7 +495,9 @@ export interface Props {
   readonly on?: boolean
   readonly options?: readonly string[]
   readonly selected?: number
+  readonly handles?: readonly RangeHandle[]
   readonly onChange?: ChangeHandler
+  readonly onHold?: (player: Player, handle: string, phase: ActionPhase) => void
   readonly onWheel?: (player: Player, wheel: Wheel) => void
   readonly mode?: 'manual' | 'hold' | 'toggle'
   readonly openLabel?: string
@@ -633,6 +637,31 @@ export interface SliderProps extends InputProps {
   onWheel?: (player: Player, wheel: Wheel) => void
 }
 
+/** RangeHandle is one handle of a range: its name and the value it holds. */
+export interface RangeHandle {
+  readonly name: string
+  readonly value: number
+}
+
+/**
+ * RangeProps make a track with several handles the player drags, such as a
+ * minimum, a favored value and a maximum, from min to max, 0 to 1 unless set,
+ * stopping at each step when step is set. The handles keep their order: one
+ * stops at its neighbors. While the player holds a handle the game moves it,
+ * and onChange receives every handle's value, in order, when they let go.
+ * onHold hears each hold: 'pressed' as the player takes a handle, then
+ * 'released', or 'cancelled' when a stock overlay or the menu's closing ended
+ * it and put the handles back.
+ */
+export interface RangeProps extends InputProps {
+  handles: readonly RangeHandle[]
+  min?: number
+  max?: number
+  step?: number
+  onChange?: (player: Player, values: number[]) => void
+  onHold?: (player: Player, handle: string, phase: ActionPhase) => void
+}
+
 /** ToggleProps make a box the player checks, labeled by its text children. */
 export interface ToggleProps extends InputProps {
   children?: Child
@@ -753,6 +782,7 @@ export declare namespace JSX {
     slider: SliderProps & IntrinsicAttributes
     toggle: ToggleProps & IntrinsicAttributes
     dropdown: DropdownProps & IntrinsicAttributes
+    range: RangeProps & IntrinsicAttributes
   }
   interface IntrinsicAttributes {
     key?: string | number
@@ -1276,9 +1306,9 @@ export function press(
 export function change(
   player: Player,
   node: string,
-  value: string | number | boolean | Wheel | undefined,
+  value: string | number | boolean | Wheel | RangeEvent | undefined,
 ): void {
-  if (typeof value === 'object' && value !== null) {
+  if (typeof value === 'object' && value !== null && 'delta' in value) {
     partOf(player.slot, node)?.wheels.get(node)?.handler(player, value)
     return
   }
@@ -1901,6 +1931,7 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
     case 'slider':
     case 'toggle':
     case 'dropdown':
+    case 'range':
       input(layout, node, child.type, props)
       break
     case 'image':
@@ -2015,14 +2046,18 @@ function focus(node: Node, props: Props): void {
 function input(
   layout: Layout,
   node: Node,
-  kind: 'entry' | 'slider' | 'toggle' | 'dropdown',
+  kind: 'entry' | 'slider' | 'toggle' | 'dropdown' | 'range',
   props: Props,
 ): void {
   // A disabled input's change runs nothing, whoever sends it.
   node.kind = Kind.INPUT
   node.disabled = props.disabled
   focus(node, props)
-  if (props.onChange && !props.disabled) {
+  if (kind === 'range' && !props.disabled) {
+    if (props.onChange || props.onHold) {
+      layout.part.changes.set(node.id!, { handler: held(props) })
+    }
+  } else if (props.onChange && !props.disabled) {
     layout.part.changes.set(node.id!, { handler: props.onChange })
   }
 
@@ -2065,6 +2100,31 @@ function input(
           selected: props.selected,
         },
       }
+      break
+    case 'range':
+      node.input = {
+        case: 'range',
+        value: {
+          handles: (props.handles ?? []).map((handle) => ({
+            name: handle.name,
+            value: Number(handle.value),
+          })),
+          min: props.min,
+          max: props.max,
+          step: props.step,
+        },
+      }
+  }
+}
+
+/**
+ * held returns a range's change handler: each hold reaches onHold, and a
+ * release also reaches onChange with every handle's value.
+ */
+function held(props: Props): ChangeHandler {
+  return (player: Player, event: RangeEvent) => {
+    if (event.phase) props.onHold?.(player, event.handle, event.phase)
+    if (event.phase === 'released') props.onChange?.(player, event.values)
   }
 }
 

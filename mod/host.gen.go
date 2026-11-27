@@ -388,7 +388,8 @@ const (
 	GameActionScoreboard = uipb.GameAction_GAME_ACTION_SCOREBOARD
 )
 
-// ActionPhase is where a press of a game action stands.
+// ActionPhase is where a press stands: of a game action, or of a range's
+// handle.
 type ActionPhase = uipb.ActionPhase
 
 // The values of ActionPhase.
@@ -735,6 +736,9 @@ type SettingChangedEvent = settingspb.SettingChangedEvent
 // Wheel reports one wheel step over a slider, anchored to its pointer position.
 type Wheel = uipb.Wheel
 
+// RangeEvent reports the player's hold on one handle of a range.
+type RangeEvent = uipb.RangeEvent
+
 // UiPressEvent reports a press on a button in a player's interface, or a
 // press a layout's script sent with an action and a payload.
 type UiPressEvent = uipb.UiPressEvent
@@ -757,6 +761,9 @@ type UiInputEventChoice = uipb.UiInputEvent_Choice
 
 // UiInputEventWheel sets UiInputEvent.Value to Wheel.
 type UiInputEventWheel = uipb.UiInputEvent_Wheel
+
+// UiInputEventRange sets UiInputEvent.Value to Range.
+type UiInputEventRange = uipb.UiInputEvent_Range
 
 // UiDocumentEvent ends one submission from a player's document input: the
 // whole document, or why it did not arrive.

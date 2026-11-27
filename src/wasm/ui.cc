@@ -37,6 +37,10 @@ constexpr size_t kMaxName = 128;
 constexpr int kMaxVariables = 16;
 constexpr int kMaxOptions = 64;
 
+// kMaxHandles bounds a range's handles, so a release's values fit a console
+// line.
+constexpr int kMaxHandles = 8;
+
 // kMaxInput bounds the text a player sends an entry, in bytes, so its console
 // line stays short of the engine's limit; kEntryLength is an entry's limit
 // in characters when the mod sets none.
@@ -111,8 +115,9 @@ std::expected<void, std::string> CheckLabel(const ui::Node& node) {
   return {};
 }
 
-// CheckInput returns why an input cannot be drawn: it needs a control, and
-// an entry's placeholder and a dropdown's options are bounded.
+// CheckInput returns why an input cannot be drawn: it needs a control, an
+// entry's placeholder and a dropdown's options are bounded, and a range holds
+// one to kMaxHandles handles with distinct names.
 std::expected<void, std::string> CheckInput(const ui::Node& node) {
   // An input names its control.
   if (node.kind() != ui::KIND_INPUT) {
@@ -132,6 +137,23 @@ std::expected<void, std::string> CheckInput(const ui::Node& node) {
   for (const auto& option : node.dropdown().options()) {
     if (option.size() > kMaxName) {
       return std::unexpected("node " + node.id() + ": an option is too long");
+    }
+  }
+
+  // A range's events name its handles, so each name is a distinct word.
+  if (!node.has_range()) {
+    return {};
+  }
+  const auto& handles = node.range().handles();
+  if (handles.empty() || handles.size() > kMaxHandles) {
+    return std::unexpected("node " + node.id() + ": a range holds one to eight handles");
+  }
+  for (int i = 0; i < handles.size(); ++i) {
+    const auto& name = handles[i].name();
+    const auto same = [&](const ui::RangeHandle& other) { return other.name() == name; };
+    if (name.size() > kMaxId || !IsWord(name, "-.") ||
+        std::any_of(handles.begin(), handles.begin() + i, same)) {
+      return std::unexpected("node " + node.id() + ": a range's handles have distinct names");
     }
   }
   return {};
@@ -839,14 +861,22 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   shown.input = node.input_case();
   shown.disabled = node.disabled();
 
-  // Keep the bounds of its value; a slider without a range takes 0 to 1.
+  // Keep the bounds of its value; a slider or a range without them takes 0
+  // to 1. A range also keeps its handles' names.
   const auto& slider = node.slider();
   shown.wheel = node.has_slider() && slider.wheel();
-  if (std::isfinite(slider.min()) && std::isfinite(slider.max()) && slider.max() > slider.min()) {
-    shown.min = slider.min();
-    shown.max = slider.max();
+  const auto& range = node.range();
+  const auto min = node.has_range() ? range.min() : slider.min();
+  const auto max = node.has_range() ? range.max() : slider.max();
+  const auto step = node.has_range() ? range.step() : slider.step();
+  if (std::isfinite(min) && std::isfinite(max) && max > min) {
+    shown.min = min;
+    shown.max = max;
   }
-  shown.step = std::isfinite(slider.step()) && slider.step() > 0 ? slider.step() : 0;
+  shown.step = std::isfinite(step) && step > 0 ? step : 0;
+  for (const auto& handle : range.handles()) {
+    shown.handles.push_back(handle.name());
+  }
   shown.length = node.text_entry().max_length() ? node.text_entry().max_length() : kEntryLength;
   shown.options = static_cast<uint32_t>(node.dropdown().options_size());
   return shown;
@@ -899,6 +929,14 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
     event.mutable_wheel()->set_fraction(std::clamp(fraction, 0.0F, 1.0F));
     return event;
   }
+  if (shown.input == ui::Node::kRange) {
+    auto range = ReadRange(shown, value);
+    if (!range) {
+      return std::unexpected("input " + name + " " + range.error());
+    }
+    *event.mutable_range() = std::move(*range);
+    return event;
+  }
   switch (shown.input) {
     case ui::Node::kTextEntry: {
       const auto decoded = DecodeBase64Url(value);
@@ -936,8 +974,66 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
       event.set_choice(choice);
       break;
     }
+    case ui::Node::kRange:
     case ui::Node::INPUT_NOT_SET:
       break;
+  }
+  return event;
+}
+
+std::expected<ui::RangeEvent, std::string> UiTrees::ReadRange(const Shown& shown,
+                                                              std::string_view value) {
+  // Split "range:<phase>:<handle>" and a release's ":<values>".
+  constexpr std::string_view kTakes = "takes a phase, a handle and a release's values";
+  if (!value.starts_with("range:")) {
+    return std::unexpected(std::string(kTakes));
+  }
+  value.remove_prefix(6);
+  const auto first = value.find(':');
+  const auto phase = value.substr(0, first);
+  const auto rest = first == std::string_view::npos ? std::string_view() : value.substr(first + 1);
+  const auto second = rest.find(':');
+  const auto handle = rest.substr(0, second);
+  const auto values = second == std::string_view::npos ? std::string_view() : rest.substr(second + 1);
+  const auto released = phase == "2";
+  if (first == std::string_view::npos || (phase != "1" && !released && phase != "3") ||
+      released != (second != std::string_view::npos)) {
+    return std::unexpected(std::string(kTakes));
+  }
+
+  // Refuse a handle the range does not show.
+  if (std::ranges::find(shown.handles, handle) == shown.handles.end()) {
+    return std::unexpected("has no handle " + std::string(handle));
+  }
+  ui::RangeEvent event;
+  event.set_phase(static_cast<ui::ActionPhase>(phase[0] - '0'));
+  event.set_handle(std::string(handle));
+  if (!released) {
+    return event;
+  }
+
+  // A release holds one finite value for each handle, in order once fit to
+  // the range and its step.
+  auto rest_values = values;
+  for (size_t i = 0; i < shown.handles.size(); ++i) {
+    const auto comma = rest_values.find(',');
+    const auto last = i + 1 == shown.handles.size();
+    if (last != (comma == std::string_view::npos)) {
+      return std::unexpected("takes one value for each handle");
+    }
+    const auto text = rest_values.substr(0, comma);
+    float number = 0;
+    const auto parsed = std::from_chars(text.data(), text.data() + text.size(), number);
+    if (parsed.ec != std::errc() || parsed.ptr != text.data() + text.size() ||
+        !std::isfinite(number)) {
+      return std::unexpected("takes one value for each handle");
+    }
+    const auto fit = Fit(number, shown.min, shown.max, shown.step);
+    if (i > 0 && fit < event.values(static_cast<int>(i) - 1)) {
+      return std::unexpected("takes its handles' values in order");
+    }
+    event.add_values(fit);
+    rest_values = last ? std::string_view() : rest_values.substr(comma + 1);
   }
   return event;
 }

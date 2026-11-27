@@ -364,6 +364,54 @@ TEST(UiTrees, ChecksInputs) {
   ASSERT_TRUE(trees.Apply(0, opted_out));
   EXPECT_FALSE(trees.Input(0, "volume", "wheel:1:0.5"));
 
+  // A range names the handle each hold takes, and a release carries every
+  // handle's value, clamped and snapped, in order.
+  auto delay = Set("delay", modlock::wasm::ui::KIND_INPUT);
+  auto* range = delay.mutable_set(0)->mutable_range();
+  range->set_max(1);
+  range->set_step(0.25F);
+  for (const auto* name : {"min", "favored", "max"}) {
+    range->add_handles()->set_name(name);
+  }
+  ASSERT_TRUE(trees.Apply(0, delay));
+  const auto grabbed = trees.Input(0, "delay", "range:1:favored");
+  ASSERT_TRUE(grabbed);
+  EXPECT_EQ(grabbed->range().phase(), modlock::wasm::ui::ACTION_PHASE_PRESSED);
+  EXPECT_EQ(grabbed->range().handle(), "favored");
+  EXPECT_TRUE(grabbed->range().values().empty());
+  const auto released = trees.Input(0, "delay", "range:2:favored:-1,0.3,9");
+  ASSERT_TRUE(released);
+  EXPECT_EQ(released->range().phase(), modlock::wasm::ui::ACTION_PHASE_RELEASED);
+  ASSERT_EQ(released->range().values_size(), 3);
+  EXPECT_FLOAT_EQ(released->range().values(0), 0);
+  EXPECT_FLOAT_EQ(released->range().values(1), 0.25F);
+  EXPECT_FLOAT_EQ(released->range().values(2), 1);
+  EXPECT_EQ(trees.Input(0, "delay", "range:3:max")->range().phase(),
+            modlock::wasm::ui::ACTION_PHASE_CANCELLED);
+
+  // A release out of order, short of a value, past the handles or with a
+  // number that is not finite is refused, as are a stale handle, a press
+  // with values and a slider's or a wheel's value.
+  EXPECT_FALSE(trees.Input(0, "delay", "range:2:min:0.5,0.25,1"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:2:min:0,0.5"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:2:min:0,0.5,1,1"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:2:min:0,nan,1"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:2:min"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:1:mid"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:1:min:0,0.5,1"));
+  EXPECT_FALSE(trees.Input(0, "delay", "range:4:min"));
+  EXPECT_FALSE(trees.Input(0, "delay", "0.5"));
+  EXPECT_FALSE(trees.Input(0, "delay", "wheel:1:0.5"));
+  EXPECT_FALSE(trees.Input(0, "volume", "range:1:min"));
+
+  // A range draws one to eight handles with distinct names.
+  range->add_handles()->set_name("max");
+  EXPECT_FALSE(trees.Apply(0, delay));
+  range->mutable_handles(3)->set_name("a b");
+  EXPECT_FALSE(trees.Apply(0, delay));
+  range->clear_handles();
+  EXPECT_FALSE(trees.Apply(0, delay));
+
   // Another slot, a node that is no input and a disabled input take nothing.
   EXPECT_FALSE(trees.Input(1, "ready", "1"));
   ASSERT_TRUE(trees.Apply(0, Set("ready", modlock::wasm::ui::KIND_BUTTON)));

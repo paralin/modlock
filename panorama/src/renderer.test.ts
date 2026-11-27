@@ -227,12 +227,16 @@ const dispatched: string[][] = []
 /** messages holds each line $.Msg logged. */
 const messages: string[] = []
 
+/** mouseX is where $.MousePosition puts the pointer across the window. */
+let mouseX = 200
+
 beforeEach(() => {
   // Forget the last test's calls and install a fake $.
   handlers.clear()
   scheduled.clear()
   dispatched.length = 0
   messages.length = 0
+  mouseX = 200
   let handles = 0
   Object.assign(globalThis, {
     $: {
@@ -240,7 +244,7 @@ beforeEach(() => {
         messages.push(values.join(' '))
       },
       MousePosition() {
-        return { x: 200, y: 0 }
+        return { x: mouseX, y: 0 }
       },
       CreatePanel(
         ...args: [string, FakePanel, string, Record<string, string>?]
@@ -1065,6 +1069,154 @@ test("a layout's press names its mod, node and action and carries a short payloa
   }
   expect(actionCommand('Arena', 'card', 'vote', '')).toBe('')
   expect(actionCommand('arena', 'a;quit', 'vote', '')).toBe('')
+})
+
+test('ranges follow a dragged handle and report it by name', () => {
+  // Set up a renderer that reports the values it sends, under a stock
+  // overlay the test opens.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const changes: InputValue[] = []
+  let stock: 'escape' | 'other' | null = null
+  const drawing = new Drawing(
+    $,
+    root,
+    () => {},
+    undefined,
+    (_mod, _node, value) => changes.push(value),
+    {
+      allowed: () => true,
+      stock: () => stock,
+      capture: () => {},
+      resume: () => {},
+    },
+  )
+  const delay = (values: number[], disabled = false) =>
+    screen(
+      { id: '', children: ['delay'] },
+      {
+        id: 'delay',
+        kind: 'KIND_INPUT',
+        disabled,
+        range: {
+          handles: ['min', 'favored', 'max'].map((name, index) => ({
+            name,
+            value: values[index]!,
+          })),
+          max: 1,
+          step: 0.25,
+        },
+      },
+    )
+  // The track starts at x 100 and spans 400 window pixels.
+  const point = (fraction: number) => {
+    mouseX = 100 + fraction * 400
+  }
+  // Raising a knob reorders the panel's children, so read the knobs in
+  // handle order as the control built them.
+  let built: FakePanel[] = []
+  const knobs = (panel: FakePanel) => {
+    built = panel.children.filter((child) => child.id === 'RangeKnob')
+    return built
+  }
+  const shown = () => built.map((knob) => knob.style.x)
+  const grab = (knob: FakePanel) =>
+    handlers.get(knob)!.get('DragStart')!('knob', {
+      displayPanel: null,
+      offsetX: 0,
+      offsetY: 0,
+    })
+  const drop = (knob: FakePanel) => handlers.get(knob)!.get('DragEnd')!()
+
+  // Each knob sits at its value's share of the track.
+  drawing.draw(delay([0, 0.5, 1]))
+  let panel = root.children[0]!.children[0]!
+  const [low, favored, high] = knobs(panel)
+  expect(shown()).toEqual(['0.000%', '50.000%', '100.000%'])
+  expect(favored!.properties).toEqual({ draggable: 'true' })
+
+  // A grab reports the handle and moves it to the pointer at once, snapped.
+  point(0.3)
+  expect(grab(favored!)).toBe(true)
+  expect(changes).toEqual([
+    {
+      case: 'range',
+      value: { phase: ActionPhase.PRESSED, handle: 'favored', values: [] },
+    },
+  ])
+  expect(shown()[1]).toBe('25.000%')
+
+  // Past the track's end, the handle stops at its neighbor, and a redraw
+  // leaves the held handle where the player has it.
+  point(1.4)
+  runScheduled()
+  expect(shown()[1]).toBe('100.000%')
+  drawing.draw(delay([0, 0.75, 1]))
+  expect(root.children[0]!.children[0]).toBe(panel)
+  runScheduled()
+  expect(shown()[1]).toBe('100.000%')
+
+  // Letting go reports every value, and ends the drag's panel.
+  expect(drop(favored!)).toBe(true)
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: {
+      phase: ActionPhase.RELEASED,
+      handle: 'favored',
+      values: [0, 1, 1],
+    },
+  })
+  expect(inputCommand('arena', 'delay', changes[changes.length - 1]!)).toBe(
+    'modlockinput arena delay range:2:favored:0,1,1',
+  )
+  expect(panel.children.some((child) => child.id === 'RangeGhost')).toBe(false)
+  expect(drop(favored!)).toBe(false)
+
+  // A stack of knobs gives up the one that can move the way the pointer went.
+  drawing.draw(delay([0, 0, 1]))
+  expect(shown()).toEqual(['0.000%', '0.000%', '100.000%'])
+  point(0.5)
+  expect(grab(low!)).toBe(true)
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: { phase: ActionPhase.PRESSED, handle: 'favored', values: [] },
+  })
+  expect(shown()).toEqual(['0.000%', '50.000%', '100.000%'])
+
+  // A stock overlay cancels the hold and puts the mod's values back.
+  stock = 'other'
+  runScheduled()
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: { phase: ActionPhase.CANCELLED, handle: 'favored', values: [] },
+  })
+  expect(shown()).toEqual(['0.000%', '0.000%', '100.000%'])
+  const sent = changes.length
+  expect(drop(low!)).toBe(false)
+
+  // Under the overlay a knob cannot be grabbed.
+  expect(grab(high!)).toBe(false)
+  stock = null
+
+  // A control that goes mid-drag reports nothing, and drawn again shows the
+  // mod's values on a new panel.
+  expect(grab(high!)).toBe(true)
+  drawing.draw(screen({ id: '' }))
+  runScheduled()
+  expect(drop(high!)).toBe(false)
+  expect(changes.length).toBe(sent + 1)
+  drawing.draw(delay([0.25, 0.5, 0.75]))
+  panel = root.children[0]!.children[0]!
+  expect(knobs(panel)[2]).not.toBe(high)
+  expect(shown()).toEqual(['25.000%', '50.000%', '75.000%'])
+
+  // Disabling the control cancels a hold, and a disabled knob holds still.
+  expect(grab(knobs(panel)[0]!)).toBe(true)
+  drawing.draw(delay([0.25, 0.5, 0.75], true))
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: { phase: ActionPhase.CANCELLED, handle: 'min', values: [] },
+  })
+  expect(grab(knobs(panel)[0]!)).toBe(false)
 })
 
 test('sliders map native fractions to ranges and send scoped wheel anchors', () => {

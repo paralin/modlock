@@ -25,6 +25,7 @@ type Overlay = modlock.Overlay
 type Bounds = modlock.Bounds
 type UiPlacementEvent = modlock.UiPlacementEvent
 type Wheel = modlock.Wheel
+type RangeEvent = modlock.RangeEvent
 
 local ui = {}
 
@@ -455,6 +456,43 @@ export type EntryProps = {
 	[number]: never,
 }
 
+-- RangeHandle is one handle of a range: its name, 1 to 64 letters, digits,
+-- '_', '-' or '.', distinct within the range, and its value.
+export type RangeHandle = {
+	name: string,
+	value: number,
+}
+
+-- RangeProps make a track with one to eight handles the player drags, in
+-- order, each a number from min to max, 0 to 1 unless set, stopping at each
+-- step when step is set. A handle stops at its neighbors. While the player
+-- holds a handle a redraw leaves the handles where the player has them.
+-- onChange runs with every value as the player lets go of a handle, and
+-- onHold with each grab, release and cancellation by the handle's name.
+-- Changing the handles' names draws a new range.
+export type RangeProps = {
+	key: (string | number)?,
+	class: string?,
+	style: Style?,
+	hover: Style?,
+	tooltip: string?,
+	item: string?,
+	ability: AbilityTip?,
+	hoverSound: string?,
+	measure: string?,
+	enter: Style?,
+	exit: Style?,
+	cycle: Cycle?,
+	disabled: boolean?,
+	handles: { RangeHandle },
+	min: number?,
+	max: number?,
+	step: number?,
+	onChange: ((player: Player, values: { number }) -> ())?,
+	onHold: ((player: Player, handle: string, phase: ActionPhase) -> ())?,
+	[number]: never,
+}
+
 -- SliderProps make a bar the player drags to a number from min to max, 0 to
 -- 1 unless set, stopping at each step when step is set. onWheel receives one
 -- wheel step and its pointer anchor while enabled.
@@ -675,6 +713,8 @@ type Screen = {
 	changes: { [string]: (player: Player, value: any) -> () },
 	-- wheels holds only the enabled sliders that opted in to wheel events.
 	wheels: { [string]: (player: Player, wheel: Wheel) -> () },
+	-- holds maps each enabled range's id to its handler of a hold.
+	holds: { [string]: (player: Player, event: RangeEvent) -> () },
 	-- next numbers the next new node, so an id is never reused.
 	next: number,
 }
@@ -753,6 +793,7 @@ local kinds: { [string]: string } = {
 	avatar = "avatar",
 	entry = "input",
 	slider = "input",
+	range = "input",
 	toggle = "input",
 	dropdown = "input",
 }
@@ -806,6 +847,11 @@ end
 -- slider is a bar the player drags to a number.
 function ui.slider(props: SliderProps): Element
 	return element("slider", props)
+end
+
+-- range is a track with several handles the player drags.
+function ui.range(props: RangeProps): Element
+	return element("range", props)
 end
 
 -- toggle is a box the player checks.
@@ -1234,6 +1280,28 @@ local function input(layout: Layout, node: Node, kind: string, props: { [any]: a
 			step = props.step,
 			wheel = wheel,
 		}
+	elseif kind == "range" then
+		local range = props :: RangeProps
+		local onChange, onHold = range.onChange, range.onHold
+		if (onChange or onHold) and not range.disabled then
+			layout.screen.holds[node.id] = function(player: Player, event: RangeEvent)
+				local phase = event.phase
+				if phase == nil then
+					return
+				end
+				if onHold then
+					onHold(player, event.handle, phase)
+				end
+				if onChange and phase == "released" then
+					onChange(player, table.clone(event.values))
+				end
+			end
+		end
+		local handles = {}
+		for _, handle in range.handles or {} do
+			table.insert(handles, { name = handle.name, value = tonumber(handle.value) or 0 })
+		end
+		node.range = { handles = handles, min = range.min, max = range.max, step = range.step }
 	elseif kind == "toggle" then
 		node.text = text(ui.children(props))
 		node.toggle = { on = props.on }
@@ -1290,7 +1358,7 @@ function place(layout: Layout, child: any, at: string, out: { string })
 		node.variables = variables(props.variables)
 	elseif kind == "avatar" then
 		node.steamId = props.steamId
-	elseif kind == "entry" or kind == "slider" or kind == "toggle" or kind == "dropdown" then
+	elseif kind == "entry" or kind == "slider" or kind == "range" or kind == "toggle" or kind == "dropdown" then
 		input(layout, node, kind, props)
 	elseif kind == "image" then
 		node.image = props.src or ""
@@ -1433,6 +1501,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 			presses = {},
 			changes = {},
 			wheels = {},
+			holds = {},
 			next = if previous then previous.next else 0,
 		},
 	}
@@ -1809,16 +1878,24 @@ local function press(player: Player, node: string)
 end
 
 -- change runs the handler of the input the player changed, with its value as
--- the host checked it; a wheel step goes to the slider's onWheel.
-local function change(player: Player, node: string, value: (string | number | boolean | Wheel)?)
+-- the host checked it; a wheel step goes to the slider's onWheel, and a
+-- range's hold, the one table with a phase, to its handler.
+local function change(player: Player, node: string, value: (string | number | boolean | Wheel | RangeEvent)?)
 	local screen = screens[player.slot]
 	if screen == nil then
 		return
 	end
 	if type(value) == "table" then
+		if (value :: any).phase ~= nil then
+			local handler = screen.holds[node]
+			if handler then
+				handler(player, value :: RangeEvent)
+			end
+			return
+		end
 		local handler = screen.wheels[node]
 		if handler then
-			handler(player, value)
+			handler(player, value :: Wheel)
 		end
 		return
 	end

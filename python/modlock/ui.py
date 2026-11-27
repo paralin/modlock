@@ -27,7 +27,10 @@ pulse or a blink.
 
 Inputs take a value from the player and call on_change with the player and the
 value the host checked: entry a line of text, slider a number in its range,
-toggle on or off, and dropdown the index of an option. The value the mod draws
+toggle on or off, and dropdown the index of an option. A range is a track with
+several named handles, such as a minimum, a favored value and a maximum; its
+on_change runs with every value as the player lets go of a handle, and its
+on_hold with each grab, release and cancellation by the handle's name. The value the mod draws
 is the truth; the player's edit shows until the mod's next value for that
 input differs from its last.
 
@@ -77,6 +80,7 @@ from . import (
     Overlay,
     Player,
     PlayerReturnedEvent,
+    RangeEvent,
     UiPlacementEvent,
     Wheel,
     _call,  # pyright: ignore[reportPrivateUsage]
@@ -378,6 +382,29 @@ class SliderProps(InputProps, total=False):
     on_wheel: Callable[[Player, Wheel], object] | None
 
 
+class RangeHandle(TypedDict):
+    """RangeHandle is one handle of a range: its name, 1 to 64 letters,
+    digits, '_', '-' or '.', distinct within the range, and its value."""
+
+    name: str
+    value: float
+
+
+class RangeProps(InputProps, total=False):
+    """RangeProps make a track with one to eight handles the player drags,
+    in order, each a number from min to max, 0 to 1 unless set, stopping at
+    each step when step is set. A handle stops at its neighbors. While the
+    player holds a handle a redraw leaves the handles where the player has
+    them. Changing the handles' names draws a new range."""
+
+    handles: Required[Sequence[RangeHandle]]
+    min: float
+    max: float
+    step: float
+    on_change: Callable[[Player, list[float]], object] | None
+    on_hold: Callable[[Player, str, ActionPhase], object] | None
+
+
 class ToggleProps(InputProps, total=False):
     """ToggleProps make a box the player checks, labeled by its text
     children."""
@@ -522,6 +549,11 @@ def entry(**props: Unpack[EntryProps]) -> Element:
 def slider(**props: Unpack[SliderProps]) -> Element:
     """slider is a bar the player drags to a number."""
     return Element("slider", props)
+
+
+def range_(**props: Unpack[RangeProps]) -> Element:
+    """range_ is a track with several handles the player drags."""
+    return Element("range", props)
 
 
 def toggle(**props: Unpack[ToggleProps]) -> Parent:
@@ -890,11 +922,16 @@ def _press(player: Player, node: str) -> None:
         pressed(player)
 
 
-def _change(player: Player, node: str, value: str | float | bool | int | Wheel | None) -> None:
+def _change(player: Player, node: str, value: str | float | bool | int | Wheel | RangeEvent | None) -> None:
     """_change runs the handler of the input the player changed, with its
     value as the host checked it."""
     screen = _screens.get(player.slot)
     if screen is None:
+        return
+    if isinstance(value, RangeEvent):
+        held = screen.holds.get(node)
+        if held is not None:
+            held(player, value)
         return
     if isinstance(value, Wheel):
         wheeled = screen.wheels.get(node)
@@ -1083,6 +1120,10 @@ class _Screen:
     changes: dict[str, Callable[[Player, Any], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player, Any], object]]()
     )
+    # holds maps each enabled range's id to its handler of a hold.
+    holds: dict[str, Callable[[Player, RangeEvent], object]] = field(
+        default_factory=lambda: dict[str, Callable[[Player, RangeEvent], object]]()
+    )
     # wheels holds only the enabled sliders that opted in to wheel events.
     wheels: dict[str, Callable[[Player, Wheel], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player, Wheel], object]]()
@@ -1201,7 +1242,7 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
         case "avatar":
             node["kind"] = "avatar"
             node["steam_id"] = props.get("steam_id")
-        case "entry" | "slider" | "toggle" | "dropdown":
+        case "entry" | "slider" | "range" | "toggle" | "dropdown":
             _input(layout, node, kind, props, children)
         case "image":
             node["kind"] = "image"
@@ -1249,7 +1290,7 @@ def _input(layout: _Layout, node: dict[str, Any], kind: str, props: Mapping[str,
     disabled = props.get("disabled")
     node["disabled"] = disabled
     on_change = props.get("on_change")
-    if on_change is not None and not disabled:
+    if on_change is not None and not disabled and kind != "range":
         layout.screen.changes[node["id"]] = on_change
 
     # Each control carries its value and its bounds.
@@ -1271,11 +1312,42 @@ def _input(layout: _Layout, node: dict[str, Any], kind: str, props: Mapping[str,
                 "step": props.get("step"),
                 "wheel": on_wheel is not None and not disabled,
             }
+        case "range":
+            on_hold = props.get("on_hold")
+            if (on_change is not None or on_hold is not None) and not disabled:
+                layout.screen.holds[node["id"]] = _hold(on_change, on_hold)
+            node["range"] = {
+                "handles": [
+                    {"name": handle["name"], "value": float(handle.get("value") or 0)}
+                    for handle in props.get("handles", ())
+                ],
+                "min": props.get("min"),
+                "max": props.get("max"),
+                "step": props.get("step"),
+            }
         case "toggle":
             node["text"] = _text(children)
             node["toggle"] = {"on": props.get("on")}
         case _:
             node["dropdown"] = {"options": list(props.get("options", ())), "selected": props.get("selected")}
+
+
+def _hold(
+    on_change: Callable[[Player, list[float]], object] | None,
+    on_hold: Callable[[Player, str, ActionPhase], object] | None,
+) -> Callable[[Player, RangeEvent], object]:
+    """_hold passes each phase of a range's hold to on_hold, and a release's
+    values to on_change."""
+
+    def held(player: Player, event: RangeEvent) -> None:
+        if event.phase is None:
+            return
+        if on_hold is not None:
+            on_hold(player, event.handle, event.phase)
+        if on_change is not None and event.phase == "released":
+            on_change(player, list(event.values))
+
+    return held
 
 
 def _variables(value: Mapping[str, str | float] | None) -> list[dict[str, str]] | None:

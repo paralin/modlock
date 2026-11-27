@@ -1366,7 +1366,7 @@ def _start(event: StartEvent) -> StartResult:
 
 
 # UiValue is an input's new value as the host checked it.
-type UiValue = str | float | bool | int | Wheel | None
+type UiValue = str | float | bool | int | Wheel | RangeEvent | None
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
