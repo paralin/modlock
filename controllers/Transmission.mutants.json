@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Cancel makes the slot idle before completion",
+    "replace": [["run' = \"stopping\"", "run' = \"idle\""]],
+    "expect": "OneRun"
+  },
+  {
+    "name": "Delivered edges remain queued",
+    "replace": [
+      [
+        "delivered' = delivered + edges /\\ edges' = 0",
+        "delivered' = delivered + edges /\\ edges' = edges"
+      ]
+    ],
+    "expect": "EdgesOnce"
+  },
+  {
+    "name": "A full frame omits its initial state",
+    "replace": [
+      [
+        "announced' = TRUE /\\ sent' = TRUE /\\ edges' = 0",
+        "announced' = TRUE /\\ sent' = FALSE /\\ edges' = 0"
+      ]
+    ],
+    "expect": "FullBaseline"
+  },
+  {
+    "name": "A new epoch replays queued old edges",
+    "replace": [
+      [
+        "frameEdges' = 0 /\\ fullFrame' = TRUE",
+        "frameEdges' = edges /\\ fullFrame' = TRUE"
+      ]
+    ],
+    "expect": "EpochReset"
+  },
+  {
+    "name": "A later epoch omits its full state snapshot",
+    "replace": [
+      [
+        "stateEpoch' = epoch",
+        "stateEpoch' = IF epoch = 1 THEN epoch ELSE stateEpoch"
+      ]
+    ],
+    "expect": "FullBaseline"
+  }
+]

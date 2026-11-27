@@ -154,15 +154,23 @@ func TestStreamSendsFullThenChanges(t *testing.T) {
 		t.Fatalf("heartbeat: %v", beat)
 	}
 
-	// A new epoch lists everything again, with the radio's moved channel.
+	// A new epoch lists everything again and drops edges from the old epoch.
+	s.devices[padID].edge(0, true, false)
 	again := s.frame(2, t0.Add(time.Second))
-	if !again.GetFull() || len(again.GetAdded()) != 2 || changed(again, radioID).GetAxes()[7] < 0.49 {
+	if !again.GetFull() || len(again.GetAdded()) != 2 || len(again.GetChanged()) != 2 || changed(again, radioID).GetAxes()[7] < 0.49 {
 		t.Fatalf("new epoch: %v", again)
+	}
+
+	if len(changed(again, padID).GetPressed()) != 0 {
+		t.Fatal("a full epoch replayed an old edge")
+	}
+	if repeat := s.frame(2, t0.Add(time.Second+Heartbeat)); repeat != nil && len(repeat.GetChanged()) != 0 {
+		t.Fatal("a later frame replayed state or edges")
 	}
 
 	// A detached device is removed in the next frame.
 	s.detach(radioID)
-	gone := s.frame(2, t0.Add(time.Second+MinInterval))
+	gone := s.frame(2, t0.Add(time.Second+Heartbeat+MinInterval))
 	if !slices.Equal(gone.GetRemoved(), []uint32{radioID}) || len(gone.GetAdded()) != 0 {
 		t.Fatalf("detached: %v", gone)
 	}
@@ -283,5 +291,39 @@ func TestMissingSDLSymbol(t *testing.T) {
 				t.Fatalf("register = %v; want missing %s", err, missing)
 			}
 		})
+	}
+}
+
+// TestServerStopWaitsForCompletion checks cancellation and drain ordering.
+// The buffered channel supplies a reader completion without loading SDL.
+func TestServerStopWaitsForCompletion(t *testing.T) {
+	// A stopped reader must retain its slot until its completion is drained.
+	cancelled := make(chan struct{})
+	s := &server{log: slog.Default(), done: make(chan error, 1), cancel: func() { close(cancelled) }}
+	stopped := make(chan error, 1)
+	go func() { stopped <- s.stop() }()
+	<-cancelled
+	select {
+	case <-stopped:
+		t.Fatal("stop returned before reader completion")
+	default:
+	}
+
+	// Completion releases the slot and preserves the reader's error once.
+	failure := errors.New("send failed")
+	s.done <- failure
+	select {
+	case err := <-stopped:
+		if !errors.Is(err, failure) {
+			t.Fatalf("stop = %v, want %v", err, failure)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("stop did not consume reader completion")
+	}
+	if s.cancel != nil {
+		t.Fatal("stop kept cancellation ownership")
+	}
+	if err := s.stop(); err != nil {
+		t.Fatalf("second stop = %v", err)
 	}
 }
