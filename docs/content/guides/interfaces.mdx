@@ -135,10 +135,16 @@ mod's panels goes to that panel, and the hero does not shoot. A click anywhere
 else on the screen fires the weapon as usual. Moving the mouse still turns the
 camera, and the movement keys still move the hero.
 
-So when a screen must never fire the weapon, block the fire buttons with
-`player.blockInput` as you show it, as `openPicks` does above. Then release them
-in the same function that hides the screen, as `closePicks` does, so the player
-can shoot again as soon as the screen is gone. `hide(player)` and
+If the player should not shoot while your screen is open, block the fire buttons
+with `player.blockInput` when you show it, as `openPicks` does above. Then
+release them in the same function that hides the screen, as `closePicks` does,
+so the player can shoot again as soon as the screen is gone. `blockInput` takes
+any of the game's buttons, so the same call can also stop jumping, crouching,
+dashing, abilities and items. It cannot stop the player from turning the camera
+or walking, because the game reads those from the mouse and movement axes, not
+from the buttons. To hold the hero in place while the screen is open, call
+`player.freeze(true)`, which also keeps the hero from taking damage, and
+`player.freeze(false)` when the screen closes. `hide(player)` and
 `freeCursor(player, false)` both put the cursor away and give the mouse back to
 aiming.
 

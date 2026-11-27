@@ -784,11 +784,13 @@ def free_cursor(player: Player, free: bool) -> bool:
     False puts the cursor away and gives the mouse back to aiming. While the
     cursor is up, a click on one of the mod's panels goes to that panel, and the
     hero does not shoot. A click anywhere else fires the weapon, and the camera
-    and movement keep working. So a screen that must never fire calls
-    block_input for the fire buttons, and releases them when it hides. The
-    player can also put the cursor away with the game's own keys. It then stays
-    away when the mod draws a new screen, until the next call with True shows it
-    again."""
+    and movement keep working. If the player should not shoot while the screen
+    is up, block the fire buttons with player.block_input, and release them when
+    the screen hides. Blocking cannot stop the camera turning or the hero
+    walking, because the game reads those from the mouse and movement axes, not
+    from the buttons. The player can also put the cursor away with the game's
+    own keys. It then stays away when the mod draws a new screen, until the next
+    call with True shows it again."""
     view = _view(player)
     view.cursor = free
     if free:

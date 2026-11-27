@@ -40,10 +40,13 @@ func HideHud(p mod.Player, parts ...HudPart) bool {
 // puts the cursor away and gives the mouse back to aiming. While the cursor is
 // up, a click on one of the mod's panels goes to that panel, and the hero does
 // not shoot. A click anywhere else fires the weapon, and the camera and
-// movement keep working. So a screen that must never fire calls p.BlockInput
-// for the fire buttons, and releases them when it hides. The player can also
-// put the cursor away with the game's own keys. It then stays away when the mod
-// draws a new screen, until the next call with true shows it again.
+// movement keep working. If the player should not shoot while the screen is up,
+// block the fire buttons with p.BlockInput, and release them when the screen
+// hides. Blocking cannot stop the camera turning or the hero walking, because
+// the game reads those from the mouse and movement axes, not from the buttons.
+// The player can also put the cursor away with the game's own keys. It then
+// stays away when the mod draws a new screen, until the next call with true
+// shows it again.
 func FreeCursor(p mod.Player, free bool) bool {
 	v := viewOf(p)
 	v.cursor = free
