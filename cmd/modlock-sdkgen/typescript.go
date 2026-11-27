@@ -82,7 +82,7 @@ function reply(response?: Uint8Array): Uint8Array {
 // tsWriter writes the TypeScript library's generated module.
 type tsWriter struct {
 	*directions
-	s     *schema
+	s     *bindings
 	out   bytes.Buffer
 	calls []*call
 	// imports maps the alias of each generated module the file names to its
@@ -103,15 +103,12 @@ func (w *tsWriter) pb(file *protoFile, name string) string {
 }
 
 // writeTypeScript returns js/src/host.gen.ts.
-func writeTypeScript(s *schema) ([]byte, error) {
+func writeTypeScript(s *bindings) ([]byte, error) {
 	// Resolve the schema's callable surface before writing its module.
-	calls, err := s.calls()
-	if err != nil {
-		return nil, err
-	}
+	calls := s.calls
 
 	// Declare the types the generated classes and methods use.
-	w := &tsWriter{directions: s.directions(calls), s: s, calls: calls, imports: map[string]string{}}
+	w := &tsWriter{directions: s.directions, s: s, calls: calls, imports: map[string]string{}}
 	w.pb(s.file, "Reply")
 	w.out.WriteString(typeScriptPreamble)
 	if err := w.writeTypes(); err != nil {
@@ -149,13 +146,11 @@ func writeTypeScript(s *schema) ([]byte, error) {
 // writeTypes writes the enums and message types in schema order, each with
 // the conversions its directions need.
 func (w *tsWriter) writeTypes() error {
-	for _, e := range w.s.enumOrder {
-		if w.enumsIn[e] || w.enumsOut[e] {
-			w.writeEnum(e)
-		}
+	for e := range w.s.enums {
+		w.writeEnum(e)
 	}
-	for _, m := range w.s.messageOrder {
-		if mapped(m) != "" || (!w.inputs[m] && !w.outputs[m]) {
+	for m := range w.s.messages {
+		if mapped(m) != "" {
 			continue
 		}
 		if m.isUnion() {
@@ -408,9 +403,13 @@ func (w *tsWriter) writeClass(c *class) error {
 	writeDoc(&w.out, "  ", c.keyDoc)
 	fmt.Fprintf(&w.out, "  readonly %s: number\n\n", c.key)
 	fmt.Fprintf(&w.out, "  constructor(%s: number) {\n    this.%s = %s\n  }\n", c.key, c.key, c.key)
+
+	// Provide canonical objects for classes interned by connection.
 	if c.interned {
 		w.out.WriteString("\n")
-		writeDoc(&w.out, "  ", fmt.Sprintf("of returns the %s for %s, the same object each time until release\nforgets it, so === tells whether two values are the same %s.", c.name, c.key, lowerCamel(c.noun)))
+		writeDoc(&w.out, "  ",
+			fmt.Sprintf("of returns the %s for %s, the same object each time until release\nforgets it, so === tells whether two values are the same %s.",
+				c.name, c.key, lowerCamel(c.noun)))
 		fmt.Fprintf(&w.out, "  static of(%s: number): %s {\n", c.key, c.name)
 		fmt.Fprintf(&w.out, "    let object = %s.get(%s)\n", table, c.key)
 		fmt.Fprintf(&w.out, "    if (object === undefined) {\n      object = new %s(%s)\n      %s.set(%s, object)\n    }\n", c.name, c.key, table, c.key)
@@ -760,7 +759,7 @@ func (w *tsWriter) writeMod() error {
 	// Declare the events the mod handles and their public parameter types.
 	writeDoc(&w.out, "", "ModHandlers handles the events the game delivers to the mod.")
 	w.out.WriteString("export interface ModHandlers {\n")
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		writeDoc(&w.out, "  ", rename(m.doc, m.name, lowerCamel(m.name)))
 		param := ""
 		if !m.request.isEmpty() {
@@ -782,7 +781,7 @@ func (w *tsWriter) writeMod() error {
 	w.out.WriteString("  try {\n    switch (request.method) {\n")
 
 	// Convert each event's payload and encode its handler's reply.
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		event := ""
 		if !m.request.isEmpty() {
 			event = fmt.Sprintf("from%s(%s.fromBinary(input))", m.request.name, w.pb(m.request.file, m.request.name))

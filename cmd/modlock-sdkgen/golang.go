@@ -18,7 +18,7 @@ var goNames = map[string]string{"Log": "logLine"}
 
 // goWriter writes the Go library's generated file.
 type goWriter struct {
-	s     *schema
+	s     *bindings
 	out   bytes.Buffer
 	calls []*call
 	// unions are the union messages a mod writes and reads.
@@ -38,47 +38,25 @@ func (w *goWriter) pb(file *protoFile, name string) string {
 }
 
 // writeGo returns mod/host.gen.go.
-func writeGo(s *schema) ([]byte, error) {
-	calls, err := s.calls()
-	if err != nil {
-		return nil, err
-	}
+func writeGo(s *bindings) ([]byte, error) {
+	// Create a writer for the compiled callable surface.
+	calls := s.calls
 	w := &goWriter{s: s, calls: calls, imports: map[string]string{}}
-	var in, out reach
-	for _, c := range calls {
-		if c.options {
-			in.add(c.method.request)
-		}
-		for _, p := range c.params {
-			for _, f := range p.fields() {
-				in.addField(f)
-			}
-		}
-		if c.result != nil {
-			out.addField(c.result)
-		}
-	}
-	for _, m := range s.mod.methods {
-		in.add(m.response)
-		out.add(m.request)
-	}
 
 	// Alias the vector types, then the enums and messages a mod uses.
 	geometry := &protoFile{goPath: modulePath + "/src/geometry", goName: "geometry"}
 	fmt.Fprintf(&w.out, "// Vector is a position or direction in the world, in game units.\ntype Vector = %s\n\n", w.pb(geometry, "Vec3"))
 	fmt.Fprintf(&w.out, "// Angles is a rotation in degrees.\ntype Angles = %s\n\n", w.pb(geometry, "EulerAngles"))
-	enums, messages := set(append(in.enums, out.enums...)), set(append(in.messages, out.messages...))
-	for _, e := range s.enumOrder {
-		if enums[e] {
-			w.writeEnum(e)
-		}
+	for e := range s.goEnums {
+		w.writeEnum(e)
 	}
 	w.unionsIn, w.unionsOut = map[*message]bool{}, map[*message]bool{}
-	for _, m := range s.messageOrder {
+	for m := range s.goMessages {
 		switch {
-		case !messages[m] || m.isEmpty() || mapped(m) != "":
+		case m.isEmpty() || mapped(m) != "":
 		case m.isUnion():
-			w.unionsIn[m], w.unionsOut[m] = set(in.messages)[m], set(out.messages)[m]
+			use := s.goUnions[m]
+			w.unionsIn[m], w.unionsOut[m] = use.encode, use.decode
 		default:
 			writeComment(&w.out, "", "//", m.doc)
 			fmt.Fprintf(&w.out, "type %s = %s\n\n", m.name, w.pb(m.file, m.name))
@@ -90,7 +68,7 @@ func writeGo(s *schema) ([]byte, error) {
 			}
 		}
 	}
-	for _, m := range s.messageOrder {
+	for m := range s.goMessages {
 		if w.unionsIn[m] || w.unionsOut[m] {
 			w.writeUnion(m)
 		}
@@ -125,6 +103,7 @@ func writeGo(s *schema) ([]byte, error) {
 	file.WriteString(")\n\n")
 	file.Write(w.out.Bytes())
 
+	// Format the complete generated Go file.
 	formatted, err := format.Source(file.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("format: %w\n%s", err, file.Bytes())
@@ -134,6 +113,7 @@ func writeGo(s *schema) ([]byte, error) {
 
 // writeEnum aliases an enum and names its values.
 func (w *goWriter) writeEnum(e *enum) {
+	// Declare the alias and its named values.
 	writeComment(&w.out, "", "//", e.doc)
 	fmt.Fprintf(&w.out, "type %s = %s\n\n", e.name, w.pb(e.file, e.name))
 	fmt.Fprintf(&w.out, "// The values of %s.\nconst (\n", e.name)
@@ -180,6 +160,7 @@ func orList(items []string) string {
 
 // writeCall writes one call as a method of its class or a function.
 func (w *goWriter) writeCall(c *call) error {
+	// Choose the public Go spelling of the call.
 	name := camel(c.name)
 	if renamed, ok := goNames[c.method.name]; ok {
 		name = renamed
@@ -200,10 +181,12 @@ func (w *goWriter) writeCall(c *call) error {
 			params = append(params, strings.TrimSpace(goParam(p.name)+" "+typ))
 		}
 	}
+
+	// Attach the receiver and declare the result contract.
 	result, failure := w.resultType(c)
 	receiver := ""
 	if c.class != nil {
-		receiver = fmt.Sprintf("(%s %s) ", receiverName(c.class), c.class.name)
+		receiver = fmt.Sprintf("(%s %s) ", c.class.receiverName(), c.class.name)
 	}
 	writeComment(&w.out, "", "//", rename(c.method.doc, c.method.name, name))
 	fmt.Fprintf(&w.out, "func %s%s(%s) %s {\n", receiver, name, strings.Join(params, ", "), result)
@@ -232,13 +215,13 @@ func (w *goWriter) writeCall(c *call) error {
 	case c.options:
 		fmt.Fprintf(&w.out, "\trequest := options.CloneVT()\n\tif request == nil {\n\t\trequest = &%s{}\n\t}\n", m.name)
 		if c.receiver != nil {
-			fmt.Fprintf(&w.out, "\trequest.%s = %s\n", camel(c.receiver.name), c.class.goRead(receiverName(c.class)))
+			fmt.Fprintf(&w.out, "\trequest.%s = %s\n", camel(c.receiver.name), c.class.goRead(c.class.receiverName()))
 		}
 		w.out.WriteString(heroes)
 	default:
 		var members []string
 		if c.receiver != nil {
-			members = append(members, fmt.Sprintf("%s: %s", camel(c.receiver.name), c.class.goRead(receiverName(c.class))))
+			members = append(members, fmt.Sprintf("%s: %s", camel(c.receiver.name), c.class.goRead(c.class.receiverName())))
 		}
 		var later []string
 		for _, p := range c.params {
@@ -297,6 +280,7 @@ func (w *goWriter) writeCall(c *call) error {
 // oneofCases returns statements that set the oneof o of request from arg,
 // a value of one of its cases' types.
 func (w *goWriter) oneofCases(m *message, o *oneof, arg, fail string) string {
+	// Encode each accepted public case into its protobuf oneof.
 	var b strings.Builder
 	var types []string
 	fmt.Fprintf(&b, "\tswitch %s := %s.(type) {\n", arg, arg)
@@ -339,6 +323,7 @@ func (w *goWriter) resolveHeroes(m *message) (string, error) {
 // resultType returns a call's result list and the zero value it returns
 // with an error, or empty when it returns only an error.
 func (w *goWriter) resultType(c *call) (string, string) {
+	// Select the public result list and its failure value.
 	f := c.result
 	if f == nil {
 		return "error", ""
@@ -444,15 +429,16 @@ func goParam(name string) string {
 }
 
 // receiverName returns the receiver variable of a class's methods.
-func receiverName(c *class) string {
+func (c *class) receiverName() string {
 	return strings.ToLower(c.name[:1])
 }
 
 // writeMod writes the interface the mod's handlers implement and the
 // dispatch that runs them.
 func (w *goWriter) writeMod() {
+	// Declare each event handler with its request and response types.
 	w.out.WriteString("// modHandlers handles the events the game delivers to the mod.\ntype modHandlers interface {\n")
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		writeComment(&w.out, "\t", "//", m.doc)
 		param := ""
 		if !m.request.isEmpty() {
@@ -466,13 +452,15 @@ func (w *goWriter) writeMod() {
 	}
 	w.out.WriteString("}\n\n")
 
+	// Dispatch decoded events through the declared handler contract.
 	w.out.WriteString("// serveMod runs call on handlers and returns its reply.\n")
 	fmt.Fprintf(&w.out, "func serveMod(handlers modHandlers, call *%s) *%s {\n\tswitch call.GetMethod() {\n", w.pb(w.s.file, "Call"), w.pb(w.s.file, "Reply"))
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		fmt.Fprintf(&w.out, "\tcase %q:\n", m.name)
 		event := ""
 		if !m.request.isEmpty() {
-			fmt.Fprintf(&w.out, "\t\tevent := &%s{}\n\t\tif err := event.UnmarshalVT(call.GetRequest()); err != nil {\n\t\t\treturn &%s{Error: err.Error()}\n\t\t}\n", m.request.name, w.pb(w.s.file, "Reply"))
+			fmt.Fprintf(&w.out, "\t\tevent := &%s{}\n\t\tif err := event.UnmarshalVT(call.GetRequest()); err != nil {\n\t\t\treturn &%s{Error: err.Error()}\n\t\t}\n",
+				m.request.name, w.pb(w.s.file, "Reply"))
 			event = "event"
 		}
 		if m.response.isEmpty() {

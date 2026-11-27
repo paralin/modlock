@@ -77,7 +77,7 @@ end
 // luauWriter writes the Luau library's module.
 type luauWriter struct {
 	*directions
-	s     *schema
+	s     *bindings
 	out   bytes.Buffer
 	calls []*call
 	// absent holds the result field of each call that answers nil when the
@@ -113,22 +113,16 @@ func (w *luauWriter) writeMethods(c *class) {
 
 // writeLuau returns luau/modlock/init.luau, which ends with the handwritten
 // luau/library.luau.
-func writeLuau(s *schema) ([]byte, error) {
-	calls, err := s.calls()
-	if err != nil {
-		return nil, err
-	}
+func writeLuau(s *bindings) ([]byte, error) {
+	// Read the handwritten library and attach its class methods.
+	calls := s.calls
 	library, err := os.ReadFile(luauLibrary)
 	if err != nil {
 		return nil, err
 	}
-	w := &luauWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}, library: library}
-	for _, c := range calls {
-		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
-			w.absent[f] = true
-		}
-	}
-	s.serviceAbsent(w.absent)
+	w := &luauWriter{directions: s.directions, s: s, calls: calls, absent: s.absent, library: library}
+
+	// Render public declarations and codec tables before appending the library.
 	w.out.WriteString(luauPreamble)
 	if err := w.writeTypes(); err != nil {
 		return nil, err
@@ -152,10 +146,7 @@ func writeLuau(s *schema) ([]byte, error) {
 // writeTypes writes the enums, with their tables, and the message types in
 // schema order.
 func (w *luauWriter) writeTypes() error {
-	for _, e := range w.s.enumOrder {
-		if !w.enumsIn[e] && !w.enumsOut[e] {
-			continue
-		}
+	for e := range w.s.enums {
 		writeComment(&w.out, "", "--", e.doc)
 		var names, entries []string
 		for _, v := range e.named() {
@@ -165,8 +156,8 @@ func (w *luauWriter) writeTypes() error {
 		fmt.Fprintf(&w.out, "export type %s = %s\n", e.name, strings.Join(names, " | "))
 		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
 	}
-	for _, m := range w.s.messageOrder {
-		if mapped(m) != "" || (!w.inputs[m] && !w.outputs[m]) {
+	for m := range w.s.messages {
+		if mapped(m) != "" {
 			continue
 		}
 		writeComment(&w.out, "", "--", m.doc)
@@ -227,15 +218,20 @@ func (w *luauWriter) oneofType(o *oneof) string {
 // object for each number, so == tells whether two values are the same thing
 // and an object works as a table key.
 func (w *luauWriter) writeNew(c *class) {
+	// Use a plain value constructor for classes without connection interning.
 	if !c.interned {
 		fmt.Fprintf(&w.out, "-- new returns the %s with %s.\n", c.name, c.key)
 		fmt.Fprintf(&w.out, "function %s.new(%s: number): %s\n", c.name, c.key, c.name)
 		fmt.Fprintf(&w.out, "\treturn setmetatable({ %s = %s }, %s) :: any\nend\n\n", c.key, c.key, c.name)
 		return
 	}
+
+	// Retain one frozen object per connection identity.
 	table := lowerCamel(c.name) + "Objects"
 	fmt.Fprintf(&w.out, "-- %s holds the %s of each %s that %s.new made.\n", table, c.name, c.key, c.name)
 	fmt.Fprintf(&w.out, "local %s: { [number]: %s } = {}\n\n", table, c.name)
+
+	// Look up the canonical object before creating a new holder.
 	fmt.Fprintf(&w.out, "-- new returns the %s with %s, the same object each time until release\n", c.name, c.key)
 	fmt.Fprintf(&w.out, "-- forgets it, so == tells whether two values are the same %s and a\n", lowerCamel(c.noun))
 	fmt.Fprintf(&w.out, "-- %s works as a table key.\n", c.name)
@@ -243,6 +239,8 @@ func (w *luauWriter) writeNew(c *class) {
 	fmt.Fprintf(&w.out, "\tlocal object = %s[%s]\n\tif object == nil then\n", table, c.key)
 	fmt.Fprintf(&w.out, "\t\tobject = table.freeze(setmetatable({ %s = %s }, %s)) :: any\n", c.key, c.key, c.name)
 	fmt.Fprintf(&w.out, "\t\t%s[%s] = object\n\tend\n\treturn object\nend\n\n", table, c.key)
+
+	// Release a departed holder before its number is reused.
 	fmt.Fprintf(&w.out, "-- release forgets the %s for %s, so the next %s.new makes a new one.\n", c.name, c.key, c.name)
 	fmt.Fprintf(&w.out, "function %s.release(%s: number)\n\t%s[%s] = nil\nend\n\n", c.name, c.key, table, c.key)
 }
@@ -250,6 +248,7 @@ func (w *luauWriter) writeNew(c *class) {
 // writeClass writes one class: its type, which lists its methods, its
 // constructor and its calls as methods.
 func (w *luauWriter) writeClass(c *class) {
+	// Declare the class identity and its callable methods.
 	writeComment(&w.out, "", "--", c.doc)
 	fmt.Fprintf(&w.out, "export type %s = {\n", c.name)
 	writeComment(&w.out, "\t", "--", c.keyDoc)
@@ -262,9 +261,13 @@ func (w *luauWriter) writeClass(c *class) {
 			fmt.Fprintf(&w.out, "\t%s: (%s) -> %s,\n", call.name, strings.Join(params, ", "), result)
 		}
 	}
+
+	// Attach handwritten methods before constructing the class table.
 	w.writeMethods(c)
 	w.out.WriteString("}\n")
 	fmt.Fprintf(&w.out, "local %s = {}\n%s.__index = %s\n\n", c.name, c.name, c.name)
+
+	// Add the constructor and generated methods before exporting the class.
 	w.writeNew(c)
 	for _, call := range w.calls {
 		if call.class == c {
@@ -314,6 +317,7 @@ func (w *luauWriter) resultType(c *call) (string, string) {
 // writeCall writes one call as a method of its class, or else as a function
 // of the module.
 func (w *luauWriter) writeCall(c *call) {
+	// Render the public call declaration and result handling.
 	params := w.params(c)
 	owner := "modlock"
 	if c.class != nil {
@@ -359,30 +363,7 @@ func (w *luauWriter) writeCall(c *call) {
 // messages of the services outside Modlock, and the wire names of the enums
 // only those reach.
 func (w *luauWriter) writeSchema() error {
-	var r reach
-	for _, m := range w.s.messageOrder {
-		if m.name == "Call" || m.name == "Reply" || m.name == "Empty" {
-			r.add(m)
-		}
-	}
-	for _, c := range w.calls {
-		r.add(c.method.request)
-		r.add(c.method.response)
-	}
-	for _, m := range w.s.host.methods {
-		if m.name == "Ui" {
-			r.add(m.request)
-			r.add(m.response)
-		}
-	}
-	for _, m := range w.s.mod.methods {
-		r.add(m.request)
-		r.add(m.response)
-	}
-	for _, m := range w.s.services {
-		r.add(m)
-	}
-	for _, e := range r.enums {
+	for _, e := range w.s.luauEnums {
 		if w.enumsIn[e] || w.enumsOut[e] {
 			continue
 		}
@@ -397,10 +378,7 @@ func (w *luauWriter) writeSchema() error {
 		fmt.Fprintf(&w.out, "-- %s holds the wire names of the %s %s.\n", e.name, what, e.name)
 		fmt.Fprintf(&w.out, "local %s: { [any]: any } = {\n%s}\n\n", e.name, strings.Join(entries, ""))
 	}
-	for _, m := range w.s.messageOrder {
-		if !r.seen[m] {
-			continue
-		}
+	for m := range w.s.luauMessages {
 		if len(m.fields) == 0 {
 			fmt.Fprintf(&w.out, "schema.%s = {}\n", m.name)
 			continue
@@ -438,10 +416,13 @@ var luauKinds = map[descriptorpb.FieldDescriptorProto_Type]string{
 
 // descriptor returns the members of f's descriptor.
 func (w *luauWriter) descriptor(f *field) (string, error) {
+	// Resolve the wire scalar kind before describing field modifiers.
 	kind, ok := luauKinds[f.kind]
 	if !ok {
 		return "", fmt.Errorf("the Luau codec has no %s for %s", f.kind, f.name)
 	}
+
+	// Describe the wire field and its presence modifiers.
 	members := []string{
 		fmt.Sprintf("number = %d", f.number),
 		fmt.Sprintf("name = %q", lowerCamel(f.name)),
@@ -458,6 +439,8 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 	if f.oneof != nil && !f.oneof.keyed {
 		members = append(members, fmt.Sprintf("oneof = %q", lowerCamel(f.oneof.name)))
 	}
+
+	// Attach referenced message, enum and class metadata.
 	if f.message != nil {
 		members = append(members, fmt.Sprintf("message = %q", f.message.name))
 		if f.message.isBareUnion() {
@@ -482,9 +465,10 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 // writeMod writes the type of the mod's event handlers and the dispatch that
 // runs them.
 func (w *luauWriter) writeMod() {
+	// Declare the public event handler record.
 	writeComment(&w.out, "", "--", "ModHandlers handles the events the game delivers to the mod.")
 	w.out.WriteString("export type ModHandlers = {\n")
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		writeComment(&w.out, "\t", "--", rename(m.doc, m.name, lowerCamel(m.name)))
 		param := ""
 		if !m.request.isEmpty() {
@@ -498,9 +482,10 @@ func (w *luauWriter) writeMod() {
 	}
 	w.out.WriteString("}\n\n")
 
+	// Record event payload types and callback spellings for dispatch.
 	w.out.WriteString("-- events holds each Mod method's request, response and handler.\n")
 	w.out.WriteString("local events: { [string]: { request: string, response: string, handler: string } } = {\n")
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		fmt.Fprintf(&w.out, "\t%s = { request = %q, response = %q, handler = %q },\n",
 			m.name, m.request.name, m.response.name, lowerCamel(m.name))
 	}

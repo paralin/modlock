@@ -48,7 +48,7 @@ var serviceFiles = []string{modulePath + "/src/wasm/scores/scores.proto"}
 // repository root.
 var outputs = []struct {
 	path  string
-	write func(*schema) ([]byte, error)
+	write func(*bindings) ([]byte, error)
 }{
 	{"js/src/host.gen.ts", writeTypeScript},
 	{"mod/host.gen.go", writeGo},
@@ -66,6 +66,7 @@ func main() {
 
 // run compiles the schema and writes every output.
 func run(ctx context.Context) error {
+	// Compile descriptor declarations with their source comments.
 	set, err := compile(ctx, ".")
 	if err != nil {
 		return err
@@ -74,11 +75,19 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if s.parts, err = readParts(partsFile, s.host); err != nil {
+
+	// Validate complete Host coverage and compile the rendering projections.
+	if err := s.loadParts(partsFile); err != nil {
 		return err
 	}
+	b, err := s.bind()
+	if err != nil {
+		return fmt.Errorf("%s: %w", outputs[0].path, err)
+	}
+
+	// Render and write each established output in target order.
 	for _, output := range outputs {
-		data, err := output.write(s)
+		data, err := output.write(b)
 		if err != nil {
 			return fmt.Errorf("%s: %w", output.path, err)
 		}
@@ -92,12 +101,14 @@ func run(ctx context.Context) error {
 // compile compiles the schema under root into a descriptor set holding its
 // imports and comments.
 func compile(ctx context.Context, root string) (*descriptorpb.FileDescriptorSet, error) {
+	// Allocate the descriptor compiler output directory.
 	out, err := os.MkdirTemp("", "modlock-sdkgen-")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(out)
 
+	// Instantiate the in-process protobuf compiler and mount its inputs.
 	runtime := wazero.NewRuntime(ctx)
 	defer runtime.Close(ctx)
 	fsConfig := wazero.NewFSConfig().WithDirMount(out, "/").WithDirMount(root, "/"+modulePath)
@@ -109,6 +120,8 @@ func compile(ctx context.Context, root string) (*descriptorpb.FileDescriptorSet,
 	if err := compiler.Init(ctx); err != nil {
 		return nil, err
 	}
+
+	// Compile the boundary and its service-message dependencies together.
 	args := []string{
 		"protoc", "-I/", "--include_imports", "--include_source_info",
 		"--descriptor_set_out=/set.pb", "/" + schemaFile,
@@ -124,6 +137,7 @@ func compile(ctx context.Context, root string) (*descriptorpb.FileDescriptorSet,
 		return nil, fmt.Errorf("protoc exited with %d", code)
 	}
 
+	// Decode the compiler output into a descriptor set.
 	data, err := os.ReadFile(filepath.Join(out, "set.pb"))
 	if err != nil {
 		return nil, err
