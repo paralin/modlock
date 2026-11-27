@@ -353,8 +353,7 @@ export class RangeControl {
     // Read the pointer and the track's box in window pixels.
     const mouse = this.panorama.MousePosition?.()
     const origin = this.panel.GetPositionWithinWindow?.()
-    const width =
-      (this.panel.actuallayoutwidth ?? 0) * (this.panel.actualuiscale_x ?? 1)
+    const width = this.panel.actuallayoutwidth ?? 0
     if (!mouse || !origin || !(width > 0) || !Number.isFinite(mouse.x)) {
       return null
     }

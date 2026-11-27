@@ -1287,8 +1287,9 @@ test('ranges follow a dragged handle and report it by name', () => {
       },
     )
   // The track starts at x 100 and spans 400 window pixels.
+  // The track starts at window pixel 100 and is 200 window pixels wide.
   const point = (fraction: number) => {
-    mouseX = 100 + fraction * 400
+    mouseX = 100 + fraction * 200
   }
   // Raising a knob reorders the panel's children, so read the knobs in
   // handle order as the control built them.
@@ -1489,16 +1490,18 @@ test('sliders map native fractions to ranges and send scoped wheel anchors', () 
     value: Math.fround(161.65),
   })
 
-  // A wheel event carries the scaled pointer position, without a seek.
+  // A wheel event carries the pointer's share of the slider, without a seek:
+  // the pointer at window pixel 200 is halfway along a slider 200 pixels wide
+  // from pixel 100.
   const before = panel.value
   expect(handlers.get(panel)!.get('ScrollUp')!()).toBe(true)
   expect(changes[changes.length - 1]).toEqual({
     case: 'wheel',
-    value: { delta: 1, fraction: 0.25 },
+    value: { delta: 1, fraction: 0.5 },
   })
   expect(panel.value).toBe(before)
   expect(inputCommand('arena', 'time', changes[changes.length - 1]!)).toBe(
-    'modlockinput arena time wheel:1:0.25',
+    'modlockinput arena time wheel:1:0.5',
   )
 
   // Leave a seek awaiting the mod's echo.
@@ -3696,16 +3699,16 @@ test('draws a root in the HUD frame and reads where each measured node sits', ()
   expect(hud.hittest).toBe(false)
   expect(hud.children).toHaveLength(1)
 
-  // Boxes are in layout units from the screen's top left: window pixels
-  // less the screen's origin, over its scale.
+  // Boxes are in layout units from the screen's top left: each position and
+  // size is window pixels, less the screen's origin, over the UI scale of 2.
   hud.actuallayoutheight = 1080
   const node = hud.children[0]!.children[0]!
   node.actuallayoutheight = 50
   node.GetPositionWithinWindow = () => ({ x: 140, y: 20 })
   const measured = drawing.placement().get('arena')!
-  expect(measured.screen).toEqual([200, 1080])
-  expect(measured.hud).toEqual([0, 0, 200, 1080])
-  expect([...measured.boxes]).toEqual([['preview', [20, 20, 200, 50]]])
+  expect(measured.screen).toEqual([100, 1080])
+  expect(measured.hud).toEqual([0, 0, 100, 1080])
+  expect([...measured.boxes]).toEqual([['preview', [20, 20, 100, 50]]])
 
   // Moving the root back to the screen draws it anew under the screen.
   drawing.draw(screen({ id: '', children: [] }))
@@ -3945,6 +3948,22 @@ test('draws only the rows a list shows, however long the list', () => {
     Array.from({ length: 10 }, (_, i) => `row ${45 + i}!`).sort(),
   )
   expect(small.after).toBe(small.panels)
+})
+
+test('measures a list in layout units at any UI scale', () => {
+  // At 1024x768 the UI scale is 0.711, so a list 200 units tall lays out 142
+  // window pixels tall and still shows all ten of its rows of 20.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  drawing.draw(listScreen(100, 0, 50))
+  const list = root.children[0]!.children[0]!
+  Object.assign(list, { actuallayoutheight: 142.2, actualuiscale_y: 0.711 })
+  drawing.draw(listScreen(100, 0, 50))
+  runScheduled()
+  const texts = descendants(list)
+    .filter((each) => each.paneltype === 'Label')
+    .map((each) => each.text)
+  expect(texts).toEqual(Array.from({ length: 10 }, (_, i) => `row ${i}!`))
 })
 
 test("keeps a list's focus on its row as rows come and go", () => {

@@ -113,13 +113,16 @@ export interface Panel {
   text: string
   /** value is a native slider's position from 0 to 1. */
   value: number
-  /** actuallayoutwidth is the panel's width in layout units. */
+  /**
+   * actuallayoutwidth is the panel's laid-out width in window pixels, which
+   * equals layout units only where the UI scale is 1, as at 1080 lines.
+   */
   readonly actuallayoutwidth?: number
-  /** actualuiscale_x converts horizontal layout units to window pixels. */
+  /** actualuiscale_x is window pixels per horizontal layout unit. */
   readonly actualuiscale_x?: number
-  /** actuallayoutheight is the panel's height in layout units. */
+  /** actuallayoutheight is the panel's laid-out height in window pixels. */
   readonly actuallayoutheight?: number
-  /** actualuiscale_y converts vertical layout units to window pixels. */
+  /** actualuiscale_y is window pixels per vertical layout unit. */
   readonly actualuiscale_y?: number
   /** GetPositionWithinWindow returns the panel's origin in window pixels. */
   GetPositionWithinWindow?(): { x: number; y: number }
@@ -761,6 +764,17 @@ function subtree(previous: ReadonlyMap<string, Drawn>, root: Drawn): Drawn[] {
   })
 }
 
+/**
+ * layoutSize returns panel's laid-out width and height in layout units, the
+ * units a mod's styles use: window pixels over the panel's UI scale.
+ */
+function layoutSize(panel: Panel): [number, number] {
+  return [
+    (panel.actuallayoutwidth ?? 0) / (panel.actualuiscale_x || 1),
+    (panel.actuallayoutheight ?? 0) / (panel.actualuiscale_y || 1),
+  ]
+}
+
 /** Drawing keeps the panels of every mod's tree under one parent. */
 export class Drawing {
   /** mods holds each mod's lifetime and drawn nodes; the root's id is empty. */
@@ -1030,8 +1044,7 @@ export class Drawing {
     // Nothing to read before the game sized the screen.
     const measured = new Map<string, Measured>()
     const screen = this.parent
-    const width = screen.actuallayoutwidth ?? 0
-    const height = screen.actuallayoutheight ?? 0
+    const [width, height] = layoutSize(screen)
     const origin = screen.GetPositionWithinWindow?.()
     if (!(width > 0 && height > 0) || !origin) return measured
 
@@ -1041,11 +1054,12 @@ export class Drawing {
     const box = (panel: Panel): Box | null => {
       const at = panel.IsValid() ? panel.GetPositionWithinWindow?.() : null
       if (!at) return null
+      const [w, h] = layoutSize(panel)
       return [
         Math.round((at.x - origin.x) / scaleX),
         Math.round((at.y - origin.y) / scaleY),
-        Math.round(panel.actuallayoutwidth ?? 0),
-        Math.round(panel.actuallayoutheight ?? 0),
+        Math.round(w),
+        Math.round(h),
       ]
     }
 
@@ -1102,7 +1116,7 @@ export class Drawing {
       }
       panel.hittest = true
       this.pressRows(mod, id, scroll.slots, drawn)
-      const height = panel.actuallayoutheight ?? 0
+      const [, height] = layoutSize(panel)
       if (height > 0 && height !== scroll.viewport) {
         scroll.viewport = height
         again = true
@@ -1821,10 +1835,10 @@ export class Drawing {
       return false
     }
 
-    // Both positions are window pixels; the width includes the UI scale.
+    // The pointer, the origin and the width are all window pixels.
     const mouse = this.panorama.MousePosition?.()
     const origin = panel.GetPositionWithinWindow?.()
-    const width = (panel.actuallayoutwidth ?? 0) * (panel.actualuiscale_x ?? 1)
+    const width = panel.actuallayoutwidth ?? 0
     if (!mouse || !origin || !(width > 0) || !Number.isFinite(mouse.x)) {
       return false
     }
