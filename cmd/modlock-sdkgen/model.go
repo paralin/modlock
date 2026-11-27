@@ -151,6 +151,7 @@ type method struct {
 // readSchema builds the schema from a compiled descriptor set that includes
 // source info, taking the services from the file named file.
 func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, error) {
+	// Index declarations and defer field references until every file is read.
 	s := &schema{messages: map[string]*message{}, enums: map[string]*enum{}}
 	type pending struct {
 		field    *field
@@ -181,6 +182,7 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 		}
 		var addMessage func(m *descriptorpb.DescriptorProto, name, full, path string)
 		addMessage = func(m *descriptorpb.DescriptorProto, name, full, path string) {
+			// Decode one message and its declared oneofs and fields.
 			msg := &message{name: name, full: full, file: pf, doc: docs[path], mapEntry: m.GetOptions().GetMapEntry()}
 			for j, o := range m.GetOneofDecl() {
 				msg.oneofs = append(msg.oneofs, &oneof{name: o.GetName(), doc: docs[fmt.Sprint(path, ".8.", j)]})
@@ -203,6 +205,8 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 				}
 				msg.fields = append(msg.fields, fl)
 			}
+
+			// Classify real unions before indexing nested declarations.
 			msg.oneofs = realOneofs(msg.oneofs)
 			if msg.isUnion() {
 				msg.oneofs[0].keyed = msg.oneofs[0].sharesTypeOf()
@@ -349,23 +353,6 @@ func comments(f *descriptorpb.FileDescriptorProto) map[string]string {
 // interface modules build.
 func (f *field) isMap() bool {
 	return f.repeated && f.message != nil && f.message.mapEntry && f.message.file.isService()
-}
-
-// serviceAbsent adds to absent each singular message field the messages of
-// the services outside Modlock reach, so one a reply leaves out decodes as
-// nil, as protobuf's presence has it, rather than as an empty message.
-func (s *schema) serviceAbsent(absent map[*field]bool) {
-	var r reach
-	for _, m := range s.services {
-		r.add(m)
-	}
-	for _, m := range r.messages {
-		for _, f := range m.fields {
-			if f.message != nil && !f.repeated {
-				absent[f] = true
-			}
-		}
-	}
 }
 
 // isService reports whether p declares the messages of a service outside
@@ -650,6 +637,7 @@ type reach struct {
 
 // add adds m and everything it reaches.
 func (r *reach) add(m *message) {
+	// Track the first encounter before descending into message fields.
 	if r.seen == nil {
 		r.seen = map[any]bool{}
 	}
@@ -674,6 +662,24 @@ func (r *reach) addField(f *field) {
 	}
 }
 
+// include merges a reached graph while retaining the first encounter of each type.
+func (r *reach) include(other *reach) {
+	for _, m := range other.messages {
+		r.add(m)
+	}
+}
+
+// markAbsent preserves protobuf presence for singular service-message fields.
+func (r *reach) markAbsent(absent map[*field]bool) {
+	for _, m := range r.messages {
+		for _, f := range m.fields {
+			if f.message != nil && !f.repeated {
+				absent[f] = true
+			}
+		}
+	}
+}
+
 // directions holds the messages and enums a mod writes and reads, which the
 // libraries write types for.
 type directions struct {
@@ -688,6 +694,7 @@ type directions struct {
 // directions finds the messages and enums each direction of calls and the
 // Mod service carries.
 func (s *schema) directions(calls []*call) *directions {
+	// Resolve public call arguments and results before processing Mod events.
 	d := &directions{omitted: map[*message]*field{}}
 	var in, out reach
 	for _, c := range calls {

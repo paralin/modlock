@@ -19,20 +19,26 @@ type part struct {
 	methods []*method
 }
 
-// readParts reads the parts of host from the file at path. Every call of
-// host appears in exactly one part, and every name in the file is a call.
-func readParts(path string, host *service) ([]*part, error) {
+// loadParts validates the Host partition before retaining it for rendering.
+func (s *schema) loadParts(path string) error {
+	// Read and validate a complete partition before replacing the current one.
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return parseParts(data, host)
+	parts, err := parseParts(data, s.host)
+	if err != nil {
+		return err
+	}
+	s.parts = parts
+	return nil
 }
 
 // parseParts parses a parts file: lines of a part name, a colon and its
 // calls, where an indented line continues the part above it and a line that
 // starts with # is a comment.
 func parseParts(data []byte, host *service) ([]*part, error) {
+	// Index the Host methods before assigning each one to a part.
 	methods := map[string]*method{}
 	for _, m := range host.methods {
 		methods[m.name] = m
@@ -64,7 +70,7 @@ func parseParts(data []byte, host *service) ([]*part, error) {
 		} else if current == nil {
 			return nil, fmt.Errorf("%s:%d: a continuation line needs a part above it", partsFile, n)
 		}
-		for _, name := range strings.Fields(names) {
+		for name := range strings.FieldsSeq(names) {
 			m := methods[name]
 			if m == nil {
 				return nil, fmt.Errorf("%s:%d: Host has no call %s", partsFile, n, name)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"iter"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -108,6 +109,7 @@ const componentRoot = "CEntityComponent"
 // declares, held inline or by pointer, such as the body component of
 // CBaseEntity, whose scene node takes an entity's origin and scale.
 func (s *schema) components(name string) []string {
+	// Resolve the class before selecting inline and pointed-to components.
 	c, ok := s.classes[name]
 	if !ok {
 		return nil
@@ -219,4 +221,19 @@ func (s *schema) kindOf(typ string) (kind, bool) {
 		return s.kindOf(c.fields[0].typ)
 	}
 	return kind{}, false
+}
+
+// goDesigners streams Go designer declarations whose names are outside the class namespace.
+func (s *schema) goDesigners(designers []designer) iter.Seq2[string, designer] {
+	return func(yield func(string, designer) bool) {
+		for _, d := range designers {
+			name := camel(d.name)
+			if s.classes[name] != nil {
+				continue
+			}
+			if !yield(name, d) {
+				return
+			}
+		}
+	}
 }

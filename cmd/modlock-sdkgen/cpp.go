@@ -65,7 +65,8 @@ inline Reply Absent(std::string_view absent, std::string_view method) {
 const cppColumns = 100
 
 // writeCpp returns src/wasm/host_service.gen.h.
-func writeCpp(s *schema) ([]byte, error) {
+func writeCpp(s *bindings) ([]byte, error) {
+	// Open the generated C++ boundary header.
 	var out bytes.Buffer
 	out.WriteString(cppPreamble)
 
@@ -86,7 +87,7 @@ func writeCpp(s *schema) ([]byte, error) {
 	}
 
 	// Declare the table of parts and the dispatch over it.
-	writeComment(&out, "", "//", s.host.doc)
+	writeComment(&out, "", "//", s.hostDoc)
 	out.WriteString(`//
 // HostCalls names the object that answers each part of Host. A call whose
 // part is null fails with absent, or, when absent is empty, with that this
@@ -97,6 +98,8 @@ struct HostCalls {
 		fmt.Fprintf(&out, "  %s* %s = nullptr;\n", partInterface(p), p.name)
 	}
 	out.WriteString("  std::string_view absent;\n};\n\n")
+
+	// Emit dispatch entries in the validated Host-part order.
 	out.WriteString("// Dispatch runs call on the part that answers the method it names and\n")
 	out.WriteString("// returns the reply: one lookup by name and one virtual call.\n")
 	out.WriteString("inline Reply Dispatch(const HostCalls& calls, const Call& call) {\n")
@@ -116,6 +119,8 @@ struct HostCalls {
 			fmt.Fprintf(&out, "         return detail::Answer(calls.%s->%s(request));\n       }},\n", p.name, m.name)
 		}
 	}
+
+	// Finish dispatch with lookup and unsupported-method handling.
 	out.WriteString("  };\n")
 	out.WriteString("  const auto handler = handlers.find(call.method());\n")
 	out.WriteString("  if (handler == handlers.end()) {\n")
@@ -123,12 +128,12 @@ struct HostCalls {
 	out.WriteString("  return handler->second(calls, call.request());\n}\n\n")
 
 	// Declare the client that delivers events to a mod.
-	writeComment(&out, "", "//", s.mod.doc)
+	writeComment(&out, "", "//", s.modDoc)
 	out.WriteString("//\n// ModClient sends each event to the mod through a transport that delivers\n")
 	out.WriteString("// one call and returns the mod's reply.\nclass ModClient {\n public:\n")
 	out.WriteString("  using Transport = std::function<std::expected<Reply, std::string>(const Call&)>;\n\n")
 	out.WriteString("  explicit ModClient(Transport transport) : transport_(std::move(transport)) {}\n\n")
-	for _, m := range s.mod.methods {
+	for _, m := range s.events {
 		writeComment(&out, "  ", "//", m.doc)
 		response, request := "void", "Empty{}"
 		if !m.response.isEmpty() {

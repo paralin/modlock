@@ -81,16 +81,12 @@ def _hero_name(name: str) -> str:
 // pythonWriter writes the Python library's module.
 type pythonWriter struct {
 	*directions
-	s     *schema
+	s     *bindings
 	out   bytes.Buffer
 	calls []*call
 	// absent holds the result field of each call that answers None when the
 	// host leaves it out.
 	absent map[*field]bool
-	// library reaches the messages and enums of the Host methods the
-	// handwritten library calls itself, such as Ui, and of the services
-	// outside Modlock, which it encodes as dicts.
-	library reach
 	// methods holds the handwritten methods of each class by its name, as the
 	// lines of the class body.
 	methods map[string]string
@@ -122,32 +118,17 @@ func pythonMethods(library []byte) ([]byte, map[string]string) {
 
 // writePython returns python/modlock/__init__.py, which ends with the
 // handwritten python/library.py.
-func writePython(s *schema) ([]byte, error) {
-	calls, err := s.calls()
-	if err != nil {
-		return nil, err
-	}
+func writePython(s *bindings) ([]byte, error) {
+	// Read the handwritten library and separate class method bodies.
+	calls := s.calls
 	library, err := os.ReadFile(pythonLibrary)
 	if err != nil {
 		return nil, err
 	}
 	library, methods := pythonMethods(library)
-	w := &pythonWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}, methods: methods}
-	for _, c := range calls {
-		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
-			w.absent[f] = true
-		}
-	}
-	for _, m := range s.host.methods {
-		if skipped[m.name] {
-			w.library.add(m.request)
-			w.library.add(m.response)
-		}
-	}
-	for _, m := range s.services {
-		w.library.add(m)
-	}
-	s.serviceAbsent(w.absent)
+	w := &pythonWriter{directions: s.directions, s: s, calls: calls, absent: s.absent, methods: methods}
+
+	// Render public declarations and codec tables before appending the library.
 	w.out.WriteString(pythonPreamble)
 	w.writeTypes()
 	for _, c := range classes {
@@ -177,11 +158,9 @@ func (w *pythonWriter) hasClass(m *message) bool {
 // schema order. An enum only the handwritten library encodes gets its table
 // alone, since a mod never names its values.
 func (w *pythonWriter) writeTypes() {
-	for _, e := range w.s.enumOrder {
-		if !w.enumsIn[e] && !w.enumsOut[e] {
-			if w.library.seen[e] {
-				w.writeEnumTable(e)
-			}
+	for e, public := range w.s.pythonEnums {
+		if !public {
+			w.writeEnumTable(e)
 			continue
 		}
 		writeComment(&w.out, "", "#", e.doc)
@@ -198,8 +177,8 @@ func (w *pythonWriter) writeTypes() {
 		w.out.WriteString(line)
 		fmt.Fprintf(&w.out, "_%s: dict[Any, Any] = {\n%s}\n\n\n", e.name, strings.Join(entries, ""))
 	}
-	for _, m := range w.s.messageOrder {
-		if mapped(m) != "" || (!w.inputs[m] && !w.outputs[m]) {
+	for m := range w.s.messages {
+		if mapped(m) != "" {
 			continue
 		}
 		if m.isBareUnion() {
@@ -299,7 +278,10 @@ func (w *pythonWriter) writeClass(c *class) {
 	// Intern the objects of an interned class.
 	if c.interned {
 		fmt.Fprintf(&w.out, "\n    def __new__(cls, %s: int) -> %q:\n", c.key, c.name)
-		writePythonDocstring(&w.out, "        ", fmt.Sprintf("__new__ returns the %s for %s, the same object each time until\nrelease forgets it, so == and dictionary keys tell whether two values\nare the same %s.", c.name, c.key, lowerCamel(c.noun)))
+		writePythonDocstring(&w.out, "        ",
+			fmt.Sprintf("__new__ returns the %s for %s, the same object each time until\n"+
+				"release forgets it, so == and dictionary keys tell whether two values\nare the same %s.",
+				c.name, c.key, lowerCamel(c.noun)))
 		fmt.Fprintf(&w.out, "        held = %s.get(%s)\n        if held is None:\n", table, c.key)
 		fmt.Fprintf(&w.out, "            held = object.__new__(cls)\n            %s[%s] = held\n        return held\n", table, c.key)
 		fmt.Fprintf(&w.out, "\n    def __reduce__(self) -> tuple[type[%q], tuple[int]]:\n", c.name)
@@ -360,6 +342,7 @@ func (w *pythonWriter) resultType(c *call) (string, string) {
 // writeCall writes one call as a method of its class at indent, or else as a
 // function of the module.
 func (w *pythonWriter) writeCall(c *call, indent string) {
+	// Declare the Python call and its positional arguments.
 	params := w.params(c)
 	if c.class != nil {
 		params = append([]string{"self"}, params...)
@@ -407,29 +390,10 @@ func (w *pythonWriter) writeCall(c *call, indent string) {
 // writeSchema writes the descriptor of every message the library encodes or
 // decodes.
 func (w *pythonWriter) writeSchema() error {
-	var r reach
-	for _, m := range w.s.messageOrder {
-		if m.name == "Call" || m.name == "Reply" || m.name == "Empty" {
-			r.add(m)
-		}
-	}
-	for _, c := range w.calls {
-		r.add(c.method.request)
-		r.add(c.method.response)
-	}
-	for _, m := range w.s.mod.methods {
-		r.add(m.request)
-		r.add(m.response)
-	}
-	for _, m := range w.library.messages {
-		r.add(m)
-	}
+	// Emit the ordered wire descriptor table.
 	w.out.WriteString("# _SCHEMA describes every message the library encodes or decodes.\n")
 	w.out.WriteString("_SCHEMA: wire.Schema = {\n")
-	for _, m := range w.s.messageOrder {
-		if !r.seen[m] {
-			continue
-		}
+	for m := range w.s.pythonMessages {
 		cls := "None"
 		switch {
 		case mapped(m) != "":
@@ -457,6 +421,7 @@ func (w *pythonWriter) writeSchema() error {
 
 // descriptor returns the arguments of f's descriptor.
 func (w *pythonWriter) descriptor(f *field) (string, error) {
+	// Resolve scalar encoding before adding field modifiers.
 	kind, ok := luauKinds[f.kind]
 	if f.kind == descriptorpb.FieldDescriptorProto_TYPE_FIXED64 {
 		kind, ok = "fixed64", true
@@ -464,6 +429,8 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("the Python codec has no %s for %s", f.kind, f.name)
 	}
+
+	// Describe presence, repetition and referenced message types.
 	args := []string{fmt.Sprintf("%d", f.number), fmt.Sprintf("%q", pythonName(f.name)), fmt.Sprintf("%q", kind)}
 	switch {
 	case f.isMap():
@@ -497,9 +464,10 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 // writeMod writes the table of the mod's events and the dispatch that runs
 // their handlers.
 func (w *pythonWriter) writeMod() {
+	// Record each event payload type and Python handler spelling.
 	w.out.WriteString("# _EVENTS holds each Mod method's request, response and handler.\n")
 	w.out.WriteString("_EVENTS: dict[str, tuple[str, str, str]] = {\n")
-	for _, m := range w.s.mod.methods {
+	for _, m := range w.s.events {
 		fmt.Fprintf(&w.out, "    %q: (%q, %q, %q),\n", m.name, m.request.name, m.response.name, snake(m.name))
 	}
 	w.out.WriteString("}\n\n\n")
@@ -616,6 +584,7 @@ func pythonFieldDoc(m *message, doc string) string {
 
 // writePythonDocstring writes text as a docstring at indent.
 func writePythonDocstring(out *bytes.Buffer, indent, text string) {
+	// Format a multiline Python docstring without losing blank lines.
 	if text == "" {
 		return
 	}
