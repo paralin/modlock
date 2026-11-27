@@ -249,12 +249,7 @@ std::expected<Subscription, std::string> EngineHost::OnChat(
   return impl_->chats.Add(std::move(callback));
 }
 
-std::expected<Subscription, std::string> EngineHost::OnPing(
-    gameinterop::NativePingFilter::Handler callback) {
-  // The filter reads each sender's connection from the tracker.
-  if (auto tracked = EnsureConnectionHook(); !tracked) {
-    return std::unexpected(tracked.error());
-  }
+std::expected<gameinterop::NativePostFilter*, std::string> EngineHost::Posts() {
   if (!impl_->post_filter) {
     auto posts = gameinterop::NativePostFilter::Install();
     if (!posts) {
@@ -262,10 +257,22 @@ std::expected<Subscription, std::string> EngineHost::OnPing(
     }
     impl_->post_filter.emplace(std::move(*posts));
   }
+  return &*impl_->post_filter;
+}
+
+std::expected<Subscription, std::string> EngineHost::OnPing(
+    gameinterop::NativePingFilter::Handler callback) {
+  // The filter reads each sender's connection from the tracker.
+  if (auto tracked = EnsureConnectionHook(); !tracked) {
+    return std::unexpected(tracked.error());
+  }
+  auto posts = Posts();
+  if (!posts) {
+    return std::unexpected(posts.error());
+  }
   if (!impl_->ping_filter) {
     auto filter = gameinterop::NativePingFilter::Install(
-        *impl_->post_filter,
-        [this](const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted) {
+        **posts, [this](const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted) {
           return impl_->pings.Dispatch(ping, voice_muted);
         });
     if (!filter) {

@@ -1523,6 +1523,27 @@ class ScreenTiming:
     fade_out: float | None = None
 
 
+@dataclasses.dataclass(slots=True, kw_only=True)
+class CueRule:
+    """CueRule keeps one particle or sound the server starts from chosen players.
+    The event that caused the cue still resolves; only who sees or hears it
+    changes. A cue a player's own client predicts, such as their own parry,
+    never comes from the server, so no rule reaches it.
+    """
+
+    # sound is a game sound event's name, such as player.melee.parry.shared.
+    # A rule names a sound or a particle, never both.
+    sound: str | None = None
+    # particle_id is a particle system's 64-bit resource name, as the game sends
+    # it in a particle create.
+    particle_id: int | None = None
+    # source is the handle of the entity the cue plays on; unset matches any.
+    source: int | None = None
+    # viewers are the player slots that do not get the cue; empty means every
+    # player.
+    viewers: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+
+
 # FieldValue is one field's value. The host accepts any numeric case for a
 # numeric type and answers with the case its type reads as: a boolean, a
 # number for a type of 32 bits or less and a handle, an integer for a 64-bit
@@ -3932,6 +3953,21 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "concepts", "string", repeated=True),
         ],
     ),
+    "CueRule": (
+        CueRule,
+        [
+            wire.Field(1, "sound", "string", optional=True),
+            wire.Field(2, "particle_id", "fixed64", optional=True),
+            wire.Field(3, "source", "uint32", optional=True),
+            wire.Field(4, "viewers", "int32", repeated=True),
+        ],
+    ),
+    "HideCuesRequest": (
+        None,
+        [
+            wire.Field(1, "rules", "message", repeated=True, message="CueRule"),
+        ],
+    ),
     "SilencePlayerVoiceRequest": (
         None,
         [
@@ -5990,6 +6026,14 @@ def silence_voice(concepts: list[str] | None = None) -> bool:
     and the known ones still apply.
     """
     return _call("SilenceVoice", "SilenceVoiceRequest", {"concepts": concepts}) is not None
+
+
+def hide_cues(rules: list[CueRule] | None = None) -> bool:
+    """hide_cues replaces the mod's cue rules: each keeps the particle or sound
+    it names from its viewers until called again, while the event that
+    caused the cue still resolves. Stopping the mod shows every cue again.
+    """
+    return _call("HideCues", "HideCuesRequest", {"rules": rules}) is not None
 
 
 def read_field(entity: int, class_name: str, field: str, type: FieldType) -> FieldValue | None:

@@ -51,6 +51,10 @@ class MODLOCK_API EngineHost {
   std::expected<Subscription, std::string> OnFrame(std::function<void()> callback);
   std::expected<Subscription, std::string> OnChat(gameinterop::NativeChatHook::Handler callback);
   std::expected<Subscription, std::string> OnPing(gameinterop::NativePingFilter::Handler callback);
+  // Posts returns the server's user message filter, installing it on first
+  // use, for a route such as an effect filter to register with. The filter
+  // lives as long as the host.
+  std::expected<gameinterop::NativePostFilter*, std::string> Posts();
   std::expected<Subscription, std::string> OnCommand(
       std::function<bool(int32_t, std::string_view)> callback);
   std::expected<Subscription, std::string> OnCombat(

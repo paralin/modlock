@@ -869,6 +869,18 @@ class VoiceCalls {
   ~VoiceCalls() = default;
 };
 
+// CuesCalls are the Host calls the cues part of the host answers.
+class CuesCalls {
+ public:
+  // HideCues replaces the mod's cue rules: each keeps the particle or sound
+  // it names from its viewers until called again, while the event that
+  // caused the cue still resolves. Stopping the mod shows every cue again.
+  virtual std::expected<void, std::string> HideCues(const effects::HideCuesRequest& request) = 0;
+
+ protected:
+  ~CuesCalls() = default;
+};
+
 // EffectsCalls are the Host calls the effects part of the host answers.
 class EffectsCalls {
  public:
@@ -963,6 +975,7 @@ struct HostCalls {
   RestoresCalls* restores = nullptr;
   SeatingCalls* seating = nullptr;
   VoiceCalls* voice = nullptr;
+  CuesCalls* cues = nullptr;
   EffectsCalls* effects = nullptr;
   std::string_view absent;
 };
@@ -2251,6 +2264,17 @@ inline Reply Dispatch(const HostCalls& calls, const Call& call) {
            return detail::Fail("the SilencePlayerVoice request is malformed");
          }
          return detail::Answer(calls.voice->SilencePlayerVoice(request));
+       }},
+      {"HideCues",
+       [](const HostCalls& calls, const std::string& bytes) {
+         if (calls.cues == nullptr) {
+           return detail::Absent(calls.absent, "HideCues");
+         }
+         effects::HideCuesRequest request;
+         if (!request.ParseFromString(bytes)) {
+           return detail::Fail("the HideCues request is malformed");
+         }
+         return detail::Answer(calls.cues->HideCues(request));
        }},
       {"ServerCommand",
        [](const HostCalls& calls, const std::string& bytes) {

@@ -1,0 +1,33 @@
+syntax = "proto2";
+
+// These messages copy the game's own, with its field numbers, from GameTracking:
+// https://github.com/SteamTracking/GameTracking-Deadlock/blob/master/Protobufs/usermessages.proto
+
+package modlock.gameinterop.engine;
+
+option go_package = "github.com/paralin/modlock/src/gameinterop/engine;engine";
+
+// ParticleManager matches native CUserMsg_ParticleManager, user message 145,
+// with only the fields that name a particle and what it plays on. Each message
+// acts on the particle at one index: a create makes it, and later messages
+// update, destroy or release it.
+message ParticleManager {
+  // Type is the native PARTICLE_MESSAGE: 0 creates the particle at index, 9
+  // releases the index, and the rest change the particle there.
+  optional int32 type = 1;
+
+  // Index names the particle to every later message about it.
+  optional uint32 index = 2;
+
+  // CreateParticle is the body of a create.
+  message CreateParticle {
+    // ParticleNameIndex is the particle system resource's 64-bit name.
+    optional fixed64 particle_name_index = 1;
+
+    // EntityHandle is the entity the particle plays on, as a networked handle:
+    // the entity index in the low 14 bits.
+    optional uint32 entity_handle = 3 [default = 16777215];
+  }
+
+  optional CreateParticle create_particle = 4;
+}

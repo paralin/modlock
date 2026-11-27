@@ -839,6 +839,136 @@ export const SilenceVoiceRequest: MessageType<SilenceVoiceRequest> =
   )
 
 /**
+ * CueRule keeps one particle or sound the server starts from chosen players.
+ * The event that caused the cue still resolves; only who sees or hears it
+ * changes. A cue a player's own client predicts, such as their own parry,
+ * never comes from the server, so no rule reaches it.
+ *
+ * @generated from message modlock.wasm.effects.CueRule
+ */
+export interface CueRule {
+  /**
+   * Sound is a game sound event's name, such as player.melee.parry.shared.
+   * A rule names a sound or a particle, never both.
+   */
+  sound?: string
+  /**
+   * ParticleId is a particle system's 64-bit resource name, as the game sends
+   * it in a particle create.
+   */
+  particleId?: bigint
+  /**
+   * Source is the handle of the entity the cue plays on; unset matches any.
+   */
+  source?: number
+  /**
+   * Viewers are the player slots that do not get the cue; empty means every
+   * player.
+   */
+  viewers?: number[]
+}
+
+export const CueRule: MessageType<CueRule> =
+  /* @__PURE__ */ createMessageType<CueRule>(
+    'modlock.wasm.effects.CueRule',
+    () => [
+      [1, 'sound', 9, 4],
+      [2, 'particle_id', 6, 4],
+      [3, 'source', 13, 4],
+      [4, 'viewers', 5, 3],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: CueRule): CueRule => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.sound = r.string()
+              break
+            case 2:
+              m.particleId = r.fixed64()
+              break
+            case 3:
+              m.source = r.uint32()
+              break
+            case 4:
+              for (const e = r.run(t), a = (m.viewers ??= []); r.pos < e;)
+                a.push(r.int32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: CueRule, w: Writer): void => {
+        {
+          const v = m.sound
+          if (v != null) w.uint32(10).string(v)
+        }
+        {
+          const v = m.particleId
+          if (v != null) w.uint32(17).fixed64(v)
+        }
+        {
+          const v = m.source
+          if (v != null) w.uint32(24).uint32(v)
+        }
+        {
+          const a = m.viewers
+          if (a != null && a.length > 0) {
+            const s = w.uint32(34).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
+ * HideCuesRequest is a mod's whole set of cue rules.
+ *
+ * @generated from message modlock.wasm.effects.HideCuesRequest
+ */
+export interface HideCuesRequest {
+  rules?: CueRule[]
+}
+
+export const HideCuesRequest: MessageType<HideCuesRequest> =
+  /* @__PURE__ */ createMessageType<HideCuesRequest>(
+    'modlock.wasm.effects.HideCuesRequest',
+    () => [[1, 'rules', 11, 1, CueRule.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: HideCuesRequest,
+      ): HideCuesRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.rules ??= []).push(CueRule.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HideCuesRequest, w: Writer): void => {
+        {
+          const a = m.rules
+          if (a != null) for (const e of a) CueRule.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
  * SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
  * silent.
  *

@@ -160,6 +160,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/keyvalues.cc
   src/gameinterop/match_clock.cc
   src/gameinterop/native_chat_hook.cc
+  src/gameinterop/native_effect_filter.cc
   src/gameinterop/native_ping_filter.cc
   src/gameinterop/native_post_filter.cc
   src/gameinterop/native_damage.cc
@@ -221,6 +222,7 @@ add_library(modlock_sdk SHARED
   src/wasm/restores.cc
   src/wasm/seating.cc
   src/wasm/voice.cc
+  src/wasm/cues.cc
   src/wasm/effects.cc
   src/wasm/effects_combat.cc
   src/wasm/call_profile.cc
@@ -592,6 +594,7 @@ if(BUILD_TESTING)
     tests/mapped_module_image_test.cc
     tests/modifier_states_test.cc
     tests/native_chat_hook_test.cc
+    tests/native_effect_filter_test.cc
     tests/native_ping_filter_test.cc
     tests/net_listen_boot_test.cc
     tests/pawn_observer_ability_test.cc

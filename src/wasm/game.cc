@@ -25,6 +25,7 @@ HostCalls Game::Calls() {
       .restores = &restores_,
       .seating = &seating_,
       .voice = &voice_,
+      .cues = &cues_,
       .effects = &effects_,
   };
 }

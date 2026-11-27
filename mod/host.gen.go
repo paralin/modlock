@@ -558,6 +558,12 @@ type SoundOptions = effectspb.SoundOptions
 // ScreenTiming is a screen effect's timing in seconds.
 type ScreenTiming = effectspb.ScreenTiming
 
+// CueRule keeps one particle or sound the server starts from chosen players.
+// The event that caused the cue still resolves; only who sees or hears it
+// changes. A cue a player's own client predicts, such as their own parry,
+// never comes from the server, so no rule reaches it.
+type CueRule = effectspb.CueRule
+
 // FieldWrite writes one schema field of an entity the host creates.
 type FieldWrite = fieldspb.FieldWrite
 
@@ -1463,6 +1469,13 @@ func SilenceVoice(concepts []string) error {
 // concepts until called again, on top of those silenced for everyone.
 func (p Player) SilenceVoice(concepts []string) error {
 	return invoke("SilencePlayerVoice", &effectspb.SilencePlayerVoiceRequest{Player: p.Slot(), Concepts: concepts}, nil)
+}
+
+// HideCues replaces the mod's cue rules: each keeps the particle or sound
+// it names from its viewers until called again, while the event that
+// caused the cue still resolves. Stopping the mod shows every cue again.
+func HideCues(rules []*CueRule) error {
+	return invoke("HideCues", &effectspb.HideCuesRequest{Rules: rules}, nil)
 }
 
 // ReadField reads one schema field of a live entity, such as the int32

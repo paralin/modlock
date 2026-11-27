@@ -485,6 +485,78 @@ func (x *SilenceVoiceRequest) GetConcepts() []string {
 	return nil
 }
 
+// CueRule keeps one particle or sound the server starts from chosen players.
+// The event that caused the cue still resolves; only who sees or hears it
+// changes. A cue a player's own client predicts, such as their own parry,
+// never comes from the server, so no rule reaches it.
+type CueRule struct {
+	unknownFields []byte
+	// Sound is a game sound event's name, such as player.melee.parry.shared.
+	// A rule names a sound or a particle, never both.
+	Sound *string `protobuf:"bytes,1,opt,name=sound,proto3,oneof" json:"sound,omitempty"`
+	// ParticleId is a particle system's 64-bit resource name, as the game sends
+	// it in a particle create.
+	ParticleId *uint64 `protobuf:"fixed64,2,opt,name=particle_id,json=particleId,proto3,oneof" json:"particleId,omitempty"`
+	// Source is the handle of the entity the cue plays on; unset matches any.
+	Source *uint32 `protobuf:"varint,3,opt,name=source,proto3,oneof" json:"source,omitempty"`
+	// Viewers are the player slots that do not get the cue; empty means every
+	// player.
+	Viewers []int32 `protobuf:"varint,4,rep,packed,name=viewers,proto3" json:"viewers,omitempty"`
+}
+
+func (x *CueRule) Reset() {
+	*x = CueRule{}
+}
+
+func (*CueRule) ProtoMessage() {}
+
+func (x *CueRule) GetSound() string {
+	if x != nil && x.Sound != nil {
+		return *x.Sound
+	}
+	return ""
+}
+
+func (x *CueRule) GetParticleId() uint64 {
+	if x != nil && x.ParticleId != nil {
+		return *x.ParticleId
+	}
+	return 0
+}
+
+func (x *CueRule) GetSource() uint32 {
+	if x != nil && x.Source != nil {
+		return *x.Source
+	}
+	return 0
+}
+
+func (x *CueRule) GetViewers() []int32 {
+	if x != nil {
+		return x.Viewers
+	}
+	return nil
+}
+
+// HideCuesRequest is a mod's whole set of cue rules.
+type HideCuesRequest struct {
+	unknownFields []byte
+	Rules         []*CueRule `protobuf:"bytes,1,rep,name=rules,proto3" json:"rules,omitempty"`
+}
+
+func (x *HideCuesRequest) Reset() {
+	*x = HideCuesRequest{}
+}
+
+func (*HideCuesRequest) ProtoMessage() {}
+
+func (x *HideCuesRequest) GetRules() []*CueRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
 // SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
 // silent.
 type SilencePlayerVoiceRequest struct {
@@ -737,6 +809,41 @@ func (m *SilenceVoiceRequest) CloneVT() *SilenceVoiceRequest {
 }
 
 func (m *SilenceVoiceRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *CueRule) CloneVT() *CueRule {
+	if m == nil {
+		return (*CueRule)(nil)
+	}
+	r := new(CueRule)
+	r.Sound = protobuf_go_lite.ClonePtr(m.Sound)
+	r.ParticleId = protobuf_go_lite.ClonePtr(m.ParticleId)
+	r.Source = protobuf_go_lite.ClonePtr(m.Source)
+	r.Viewers = protobuf_go_lite.CloneSlice(m.Viewers)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *CueRule) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HideCuesRequest) CloneVT() *HideCuesRequest {
+	if m == nil {
+		return (*HideCuesRequest)(nil)
+	}
+	r := new(HideCuesRequest)
+	r.Rules = protobuf_go_lite.CloneVTSlice(m.Rules)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HideCuesRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1065,6 +1172,55 @@ func (this *SilenceVoiceRequest) EqualVT(that *SilenceVoiceRequest) bool {
 
 func (this *SilenceVoiceRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*SilenceVoiceRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *CueRule) EqualVT(that *CueRule) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Sound, that.Sound) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.ParticleId, that.ParticleId) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Source, that.Source) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Viewers, that.Viewers) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CueRule) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*CueRule)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HideCuesRequest) EqualVT(that *HideCuesRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Rules, that.Rules, func() *CueRule { return &CueRule{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HideCuesRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HideCuesRequest)
 	if !ok {
 		return false
 	}
@@ -1884,6 +2040,154 @@ func (x *SilenceVoiceRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the CueRule message to JSON.
+func (x *CueRule) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Sound != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sound")
+		s.WriteString(*x.Sound)
+	}
+	if x.ParticleId != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("particleId")
+		s.WriteUint64(*x.ParticleId)
+	}
+	if x.Source != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("source")
+		s.WriteUint32(*x.Source)
+	}
+	if len(x.Viewers) > 0 || s.HasField("viewers") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("viewers")
+		s.WriteInt32Array(x.Viewers)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the CueRule to JSON.
+func (x *CueRule) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the CueRule message from JSON.
+func (x *CueRule) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "sound":
+			s.AddField("sound")
+			if s.ReadNil() {
+				x.Sound = nil
+				return
+			}
+			t := s.ReadString()
+			x.Sound = &t
+		case "particle_id", "particleId":
+			s.AddField("particle_id")
+			if s.ReadNil() {
+				x.ParticleId = nil
+				return
+			}
+			t := s.ReadUint64()
+			x.ParticleId = &t
+		case "source":
+			s.AddField("source")
+			if s.ReadNil() {
+				x.Source = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Source = &t
+		case "viewers":
+			s.AddField("viewers")
+			if s.ReadNil() {
+				x.Viewers = nil
+				return
+			}
+			x.Viewers = s.ReadInt32Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the CueRule from JSON.
+func (x *CueRule) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HideCuesRequest message to JSON.
+func (x *HideCuesRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Rules) > 0 || s.HasField("rules") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("rules")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Rules {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("rules"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HideCuesRequest to JSON.
+func (x *HideCuesRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HideCuesRequest message from JSON.
+func (x *HideCuesRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "rules":
+			s.AddField("rules")
+			if s.ReadNil() {
+				x.Rules = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Rules = append(x.Rules, nil)
+					return
+				}
+				v := &CueRule{}
+				v.UnmarshalProtoJSON(s.WithField("rules", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Rules = append(x.Rules, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HideCuesRequest from JSON.
+func (x *HideCuesRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the SilencePlayerVoiceRequest message to JSON.
 func (x *SilencePlayerVoiceRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2526,6 +2830,102 @@ func (m *SilenceVoiceRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *CueRule) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CueRule) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *CueRule) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Viewers) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Viewers)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Source != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Source))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.ParticleId != nil {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(*m.ParticleId))
+		i--
+		dAtA[i] = 0x11
+	}
+	if m.Sound != nil {
+		i = protobuf_go_lite.EncodeString(dAtA, i, *m.Sound)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HideCuesRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HideCuesRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HideCuesRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Rules) > 0 {
+		for iNdEx := len(m.Rules) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Rules[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *SilencePlayerVoiceRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2736,6 +3136,34 @@ func (m *SilenceVoiceRequest) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeStringSlice(1, m.Concepts)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *CueRule) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringPtr(1, m.Sound)
+	n += protobuf_go_lite.SizeFixed64Ptr(1, m.ParticleId)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Source)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Viewers)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HideCuesRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Rules {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3015,6 +3443,58 @@ func (x *SilenceVoiceRequest) MarshalProtoText() string {
 }
 
 func (x *SilenceVoiceRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *CueRule) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "CueRule")
+	if x.Sound != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
+		protobuf_go_lite.TextWriteString(&sb, *x.Sound)
+	}
+	if x.ParticleId != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "particle_id")
+		protobuf_go_lite.TextWriteUint(&sb, *x.ParticleId)
+	}
+	if x.Source != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "source")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Source)
+	}
+	if len(x.Viewers) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "viewers")
+		for i, v := range x.Viewers {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *CueRule) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HideCuesRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HideCuesRequest")
+	if len(x.Rules) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "rules")
+		for i, v := range x.Rules {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &CueRule{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HideCuesRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3937,6 +4417,167 @@ func (m *SilenceVoiceRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Concepts = append(m.Concepts, v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *CueRule) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CueRule: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CueRule: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sound", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sound = &v
+		case 2:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ParticleId", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.ParticleId = &v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Source", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Source = &v
+		case 4:
+			if wireType == 0 {
+				var v int32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Viewers = append(m.Viewers, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Viewers) == 0 {
+					m.Viewers = make([]int32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v int32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Viewers = append(m.Viewers, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Viewers", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HideCuesRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HideCuesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HideCuesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rules", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Rules = append(m.Rules, &CueRule{})
+			if err := m.Rules[len(m.Rules)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

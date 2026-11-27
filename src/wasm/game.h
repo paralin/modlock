@@ -46,6 +46,7 @@
 #include "wasm/apart_players.h"
 #include "wasm/camera.h"
 #include "wasm/controller_table.h"
+#include "wasm/cues.h"
 #include "wasm/effects.h"
 #include "wasm/fields.h"
 #include "wasm/hero_movement.h"
@@ -130,6 +131,8 @@ class GameServices {
 
   Sources<VoiceSource>& VoiceSources() { return voices_; }
 
+  Sources<CueSource>& CueSources() { return cue_sources_; }
+
   // The services below resolve on first use, as the class comment describes;
   // each module asks for the ones its calls need.
 
@@ -210,6 +213,10 @@ class GameServices {
 
   // Voice installs the shared voice hook on first use.
   std::expected<void, std::string> Voice();
+
+  // Cues installs the shared effect filter on engine's user message filter
+  // on first use.
+  std::expected<void, std::string> Cues(EngineHost* engine);
 
   // Projectiles installs the shared projectile impact hook once a world has
   // loaded, or marks it wanted until then.
@@ -338,6 +345,7 @@ class GameServices {
   Sources<TransmitSource> transmitters_;
   Sources<ProjectileSource> projectile_sources_;
   Sources<VoiceSource> voices_;
+  Sources<CueSource> cue_sources_;
   std::optional<gameinterop::AbilityInputHook> input_;
   bool input_wanted_ = false;
   // held_ is each player's held buttons before blocking, for blocked edges.
@@ -357,6 +365,10 @@ class GameServices {
   // does; voice_concepts_ caches each concept name's value.
   std::optional<gameinterop::VoiceHook> voice_;
   std::map<std::string, int32_t, std::less<>> voice_concepts_;
+  // cues_ keeps the particles and sounds mods name from players, installed
+  // the first time a mod names one. It reads cue_sources_, declared before
+  // it so the filter goes first.
+  std::optional<gameinterop::NativeEffectFilter> cues_;
   bool impacts_wanted_ = false;
   // transmit_ filters what each player's client receives once a mod hides
   // an object from someone.
@@ -551,11 +563,12 @@ class Game {
   Restores restores_{services_, players_, world_, modifiers_, heroes_};
   Seating seating_{services_, players_, modifiers_, [this](int32_t slot) { return Serves(slot); }};
   wasm::Voice voice_{services_, players_};
+  wasm::Cues cues_{services_, engine_};
   // effects_ keeps no state, so it is not one of the modules.
   Effects effects_{services_, engine_, players_};
-  std::array<Module*, 14> modules_{&players_,     &world_,    &match_,   &apart_,    &fields_,
+  std::array<Module*, 15> modules_{&players_,     &world_,    &match_,   &apart_,    &fields_,
                                    &modifiers_,   &heroes_,   &camera_,  &movement_, &input_,
-                                   &projectiles_, &restores_, &seating_, &voice_};
+                                   &projectiles_, &restores_, &seating_, &voice_,    &cues_};
 };
 
 }  // namespace modlock::wasm

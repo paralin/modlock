@@ -8,6 +8,7 @@
 
 #include "modlock/gameinterop/command_hook.h"
 #include "modlock/gameinterop/connection_tracker.h"
+#include "modlock/gameinterop/native_effect_filter.h"
 #include "modlock/gameinterop/native_trace.h"
 #include "modlock/gameinterop/transmit_hook.h"
 #include "src/wasm/combat/combat.pb.h"
@@ -143,6 +144,20 @@ class VoiceSource {
 
  protected:
   ~VoiceSource() = default;
+};
+
+// CueSource answers the effect filter: the particles and sounds a mod keeps
+// from players.
+class CueSource {
+ public:
+  // Names reports whether any of the mod's rules names a cue of kind.
+  virtual bool Names(gameinterop::NativeEffectFilter::Kind kind) const = 0;
+
+  // Skipped returns the slots, one bit each, the mod keeps cue from.
+  virtual uint64_t Skipped(const gameinterop::NativeEffectFilter::Cue& cue) const = 0;
+
+ protected:
+  ~CueSource() = default;
 };
 
 }  // namespace modlock::wasm
