@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Premature completion leaves the pending call visible during its callback",
+    "replace": [
+      [
+        "/\\ pending' = FALSE\n              /\\ completions'",
+        "/\\ pending' = pending\n              /\\ completions'"
+      ]
+    ],
+    "expect": "AtMostOnce"
+  },
+  {
+    "name": "Slot-only identity lets a kept Player address the replacement connection",
+    "replace": [["/\\ tenure' = tenure + 1", "/\\ tenure' = tenure"]],
+    "expect": "SavedConnection"
+  },
+  {
+    "name": "Command lookup is delayed until the frame",
+    "replace": [
+      ["/\\ delivered' = <<captured>>", "/\\ delivered' = <<command>>"]
+    ],
+    "expect": "CallbackOrder"
+  },
+  {
+    "name": "Deferred lists are captured at enqueue",
+    "replace": [
+      [
+        "/\\ delivered' = <<captured>> \\o handlers \\o handlers",
+        "/\\ delivered' = <<captured>> \\o <<1, 2>> \\o <<1, 2>>"
+      ]
+    ],
+    "expect": "CallbackOrder"
+  },
+  {
+    "name": "Subscriptions are computed before the Start callbacks",
+    "replace": [
+      [
+        "/\\ handlers' = Append(handlers, 2) /\\ subscription' = TRUE",
+        "/\\ handlers' = Append(handlers, 2) /\\ subscription' = FALSE"
+      ]
+    ],
+    "expect": "SubscriptionsAfterStart"
+  }
+]
