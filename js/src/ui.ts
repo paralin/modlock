@@ -708,7 +708,8 @@ export interface ListRow {
  * rowHeight is each row's height in pixels, from 1 to 1000, and row the
  * template each row is drawn from: a panel, label or image holding at most
  * fifteen more, with no buttons or inputs. The host takes at most 20,000 rows,
- * and 2 MiB of rows across a player's interface.
+ * and 2 MiB of rows across a player's interface. A draw that passes the same
+ * rows array as the last one sends nothing; pass a new array to change rows.
  *
  * The player focuses a row with the arrow keys or the controller, and chooses
  * it with Enter, the controller's confirm or a click, which calls onChange
@@ -1848,12 +1849,22 @@ interface Part {
    */
   readonly placed: Map<string, Placed>
   /**
-   * rows maps each list's id to its rows by key, which the screen sends apart
-   * from its nodes, each with its encoding to find what changed.
+   * rows maps each list's id to its rows, which the screen sends apart from
+   * its nodes.
    */
-  readonly rows: Map<string, Map<string, { row: Row; encoded: string }>>
+  readonly rows: Map<string, Rows>
   /** top lists the ids of the layer's outermost nodes, the root's children. */
   top: string[]
+}
+
+/**
+ * Rows is one list's rows by key, with the array the mod drew them from. A
+ * row the mod left unchanged since the last draw keeps the object that draw
+ * held, so comparing rows by identity finds what changed.
+ */
+interface Rows {
+  readonly source: readonly ListRow[]
+  readonly byKey: Map<string, Row>
 }
 
 /** Placed is what one element laid out in a part. */
@@ -1987,6 +1998,11 @@ class Layout {
       this.elementsLog.push(at)
     }
     return placed.top
+  }
+
+  /** heldRows returns the rows the previous draw held for the list id. */
+  heldRows(id: string): Rows | undefined {
+    return this.previous?.rows.get(id)
   }
 
   /** mark notes where the logs end, before placing an element. */
@@ -2140,7 +2156,10 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
         selected:
           typeof props.selected === 'string' ? props.selected : undefined,
       }
-      layout.part.rows.set(node.id!, listRows(props.rows ?? []))
+      layout.part.rows.set(
+        node.id!,
+        listRows(props.rows ?? [], layout.heldRows(node.id!)),
+      )
       if (props.onChange) {
         layout.part.changes.set(node.id!, { handler: props.onChange })
       }
@@ -2206,16 +2225,52 @@ function template(row: Child): Node[] {
   return nodes
 }
 
-/** listRows keeps a list's rows by key; of two with one key, the last counts. */
-function listRows(
-  rows: readonly ListRow[],
-): Map<string, { row: Row; encoded: string }> {
-  const kept = new Map<string, { row: Row; encoded: string }>()
-  for (const { key, rank, sort, fields } of rows) {
-    const row: Row = { key, rank, sort, fields: fields && { ...fields } }
-    kept.set(key, { row, encoded: JSON.stringify(row) })
+/**
+ * listRows keeps a list's rows by key; of two with one key, the last counts.
+ * The same array as the held rows' returns them, so a draw that leaves the
+ * list alone costs nothing however long it is; a mod changes rows by passing
+ * a new array. A new array is compared row by row with the held rows: a row
+ * equal to its held one keeps that object, and when every row does, the held
+ * rows return. A changed row is copied, so the mod may reuse its objects.
+ */
+function listRows(source: readonly ListRow[], held: Rows | undefined): Rows {
+  // The same array holds the same rows.
+  if (held?.source === source) return held
+
+  // Keep each row equal to its held one, and copy the rest.
+  const byKey = new Map<string, Row>()
+  let same = held !== undefined
+  for (const { key, rank, sort, fields } of source) {
+    const was = held?.byKey.get(key)
+    if (was && sameRow(was, rank, sort, fields)) {
+      byKey.set(key, was)
+    } else {
+      byKey.set(key, { key, rank, sort, fields: fields && { ...fields } })
+      same = false
+    }
   }
-  return kept
+  if (same && byKey.size === held!.byKey.size)
+    return { source, byKey: held!.byKey }
+  return { source, byKey }
+}
+
+/** sameRow reports whether row holds rank, sort and fields. */
+function sameRow(
+  row: Row,
+  rank: number | undefined,
+  sort: string | undefined,
+  fields: Readonly<Record<string, string>> | undefined,
+): boolean {
+  // Compare the scalars, then each field both ways by count.
+  if (row.rank !== rank || row.sort !== sort) return false
+  const had = row.fields
+  if (!had || !fields) return !had === !fields
+  let count = 0
+  for (const name in fields) {
+    if (had[name] !== fields[name]) return false
+    count++
+  }
+  return count === Object.keys(had).length
 }
 
 /**
@@ -2228,12 +2283,12 @@ function listChanges(
   after: Part | undefined,
 ): ListChange[] {
   const changes: ListChange[] = []
-  for (const [node, rows] of after?.rows ?? []) {
-    const held = before?.rows.get(node)
+  for (const [node, { byKey: rows }] of after?.rows ?? []) {
+    const held = before?.rows.get(node)?.byKey
     if (held === rows) continue
     const set: Row[] = []
-    for (const [key, { row, encoded }] of rows) {
-      if (held?.get(key)?.encoded !== encoded) set.push(row)
+    for (const [key, row] of rows) {
+      if (held?.get(key) !== row) set.push(row)
     }
     const removed = [...(held?.keys() ?? [])].filter((key) => !rows.has(key))
     if (held && set.length === 0 && removed.length === 0) continue
