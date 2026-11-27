@@ -754,10 +754,7 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
     new FakePanel('Panel', 'ModlockUi'),
     () => {},
   )
-  const cues = (
-    generation: number,
-    ...list: [number, string, number?, number?][]
-  ) =>
+  const cues = (generation: number, ...list: [number, string, number?][]) =>
     Screen.fromJson({
       trees: [
         {
@@ -766,11 +763,10 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
           nodes: [
             {
               id: '',
-              cues: list.map(([number, sound, seconds, delay]) => ({
+              cues: list.map(([number, sound, seconds]) => ({
                 number,
                 sound,
                 seconds: seconds ?? 0,
-                delay: delay ?? 0,
               })),
             },
           ],
@@ -817,18 +813,6 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
   drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed']))
   drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed'], [4, 'Last']))
   expect(sounds).toEqual(['play Next 6', 'stop 6', 'play Last 7'])
-
-  // A delayed cue plays once its time comes; one whose mod leaves first
-  // never plays.
-  sounds.length = 0
-  drawing.draw(cues(2, [4, 'Last'], [5, 'Tick', 0, 0.2]))
-  expect(sounds).toEqual([])
-  runScheduled()
-  expect(sounds).toEqual(['play Tick 8'])
-  drawing.draw(cues(2, [5, 'Tick', 0, 0.2], [6, 'Late', 0, 0.2]))
-  drawing.draw(null)
-  runScheduled()
-  expect(sounds).toEqual(['play Tick 8', 'stop 7', 'stop 8'])
 })
 
 test('runs a timeline: restarts it, cancels it and joins it on reload', () => {

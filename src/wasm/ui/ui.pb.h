@@ -6547,7 +6547,6 @@ class MODLOCK_API Cue final : public ::google::protobuf::Message
     kSoundFieldNumber = 2,
     kNumberFieldNumber = 1,
     kSecondsFieldNumber = 3,
-    kDelayFieldNumber = 4,
   };
   // string sound = 2;
   void clear_sound() ;
@@ -6584,21 +6583,11 @@ class MODLOCK_API Cue final : public ::google::protobuf::Message
   void _internal_set_seconds(float value);
 
   public:
-  // float delay = 4;
-  void clear_delay() ;
-  float delay() const;
-  void set_delay(float value);
-
-  private:
-  float _internal_delay() const;
-  void _internal_set_delay(float value);
-
-  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Cue)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 33,
                                    2>
       _table_;
@@ -6623,7 +6612,6 @@ class MODLOCK_API Cue final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr sound_;
     ::uint32_t number_;
     float seconds_;
-    float delay_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -20098,31 +20086,6 @@ inline float Cue::_internal_seconds() const {
 inline void Cue::_internal_set_seconds(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.seconds_ = value;
-}
-
-// float delay = 4;
-inline void Cue::clear_delay() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.delay_ = 0;
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
-}
-inline float Cue::delay() const {
-  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Cue.delay)
-  return _internal_delay();
-}
-inline void Cue::set_delay(float value) {
-  _internal_set_delay(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Cue.delay)
-}
-inline float Cue::_internal_delay() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.delay_;
-}
-inline void Cue::_internal_set_delay(float value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.delay_ = value;
 }
 
 // -------------------------------------------------------------------

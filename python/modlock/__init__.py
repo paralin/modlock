@@ -5244,7 +5244,6 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "number", "uint32"),
             wire.Field(2, "sound", "string"),
             wire.Field(3, "seconds", "float"),
-            wire.Field(4, "delay", "float"),
         ],
     ),
     "Timeline": (

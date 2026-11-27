@@ -2315,11 +2315,6 @@ type Cue struct {
 	// Seconds cuts the sound after that long, keeping only its start; zero
 	// plays it out.
 	Seconds float32 `protobuf:"fixed32,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
-	// Delay is how long the renderer waits before it plays the sound, in
-	// seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
-	// draw. A cue whose mod leaves or clears its interface before then does
-	// not play.
-	Delay float32 `protobuf:"fixed32,4,opt,name=delay,proto3" json:"delay,omitempty"`
 }
 
 func (x *Cue) Reset() {
@@ -2345,13 +2340,6 @@ func (x *Cue) GetSound() string {
 func (x *Cue) GetSeconds() float32 {
 	if x != nil {
 		return x.Seconds
-	}
-	return 0
-}
-
-func (x *Cue) GetDelay() float32 {
-	if x != nil {
-		return x.Delay
 	}
 	return 0
 }
@@ -5042,7 +5030,6 @@ func (m *Cue) CloneVT() *Cue {
 	r.Number = m.Number
 	r.Sound = m.Sound
 	r.Seconds = m.Seconds
-	r.Delay = m.Delay
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -6576,9 +6563,6 @@ func (this *Cue) EqualVT(that *Cue) bool {
 		return false
 	}
 	if this.Seconds != that.Seconds {
-		return false
-	}
-	if this.Delay != that.Delay {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -10558,11 +10542,6 @@ func (x *Cue) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("seconds")
 		s.WriteFloat32(x.Seconds)
 	}
-	if x.Delay != 0 || s.HasField("delay") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("delay")
-		s.WriteFloat32(x.Delay)
-	}
 	s.WriteObjectEnd()
 }
 
@@ -10589,9 +10568,6 @@ func (x *Cue) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "seconds":
 			s.AddField("seconds")
 			x.Seconds = s.ReadFloat32()
-		case "delay":
-			s.AddField("delay")
-			x.Delay = s.ReadFloat32()
 		}
 	})
 }
@@ -14979,11 +14955,6 @@ func (m *Cue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if m.Delay != 0 {
-		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Delay))))
-		i--
-		dAtA[i] = 0x25
-	}
 	if m.Seconds != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
 		i--
@@ -18016,7 +17987,6 @@ func (m *Cue) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Number)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
-	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
 	n += len(m.unknownFields)
 	return n
 }
@@ -19649,10 +19619,6 @@ func (x *Cue) MarshalProtoText() string {
 	if x.Seconds != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
-	}
-	if x.Delay != 0 {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "delay")
-		protobuf_go_lite.TextWriteFloat32(&sb, x.Delay)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -22605,18 +22571,6 @@ func (m *Cue) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Seconds = float32(math.Float32frombits(v))
-		case 4:
-			if wireType != 5 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Delay", wireType)
-			}
-			var v uint32
-			var _v32 uint32
-			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			v = uint32(_v32)
-			m.Delay = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

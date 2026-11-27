@@ -2722,13 +2722,6 @@ export interface Cue {
    * plays it out.
    */
   seconds?: number
-  /**
-   * Delay is how long the renderer waits before it plays the sound, in
-   * seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
-   * draw. A cue whose mod leaves or clears its interface before then does
-   * not play.
-   */
-  delay?: number
 }
 
 export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
@@ -2737,7 +2730,6 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
     [1, 'number', 13],
     [2, 'sound', 9],
     [3, 'seconds', 2],
-    [4, 'delay', 2],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Cue): Cue => {
@@ -2753,9 +2745,6 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
             break
           case 3:
             m.seconds = r.float()
-            break
-          case 4:
-            m.delay = r.float()
             break
           default:
             r.skip(t)
@@ -2775,10 +2764,6 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
       {
         const v = m.seconds
         if (v != null && v !== 0) w.uint32(29).float(v)
-      }
-      {
-        const v = m.delay
-        if (v != null && v !== 0) w.uint32(37).float(v)
       }
     },
   },

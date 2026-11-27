@@ -246,8 +246,16 @@ func ToastFor(p mod.Player, text string, seconds float64) bool {
 // player's game alone, once; seconds above 0 cuts it after that long, keeping
 // only its start. It plays with the next screen the player reads, and not at
 // all if the player reads it only after the mod's next few sounds.
+// PlayTimeline times a run of sounds, such as a wheel's ticks.
 func Sound(p mod.Player, sound string, seconds float32) bool {
-	return SoundAfter(p, sound, 0, seconds)
+	// Add the sound, keeping only the newest few.
+	v := viewOf(p)
+	v.cues = append(v.cues, &uipb.Cue{Number: lib.nextCue, Sound: sound, Seconds: seconds})
+	lib.nextCue++
+	if len(v.cues) > maxCues {
+		v.cues = slices.Delete(v.cues, 0, len(v.cues)-maxCues)
+	}
+	return draw(v)
 }
 
 // TimelineStep is one moment of a timeline, At seconds from its start, 0 to
@@ -316,19 +324,5 @@ func CancelTimeline(p mod.Player, id string) bool {
 		return true
 	}
 	v.timelines = slices.Delete(v.timelines, at, at+1)
-	return draw(v)
-}
-
-// SoundAfter plays sound as Sound does, delay seconds after the player's game
-// reads it, so one draw can time a run of sounds, such as a wheel's ticks. It
-// does not play if the mod clears its interface first.
-func SoundAfter(p mod.Player, sound string, delay, seconds float32) bool {
-	// Add the sound, keeping only the newest few.
-	v := viewOf(p)
-	v.cues = append(v.cues, &uipb.Cue{Number: lib.nextCue, Sound: sound, Seconds: seconds, Delay: delay})
-	lib.nextCue++
-	if len(v.cues) > maxCues {
-		v.cues = slices.Delete(v.cues, 0, len(v.cues)-maxCues)
-	}
 	return draw(v)
 }
