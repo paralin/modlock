@@ -907,7 +907,7 @@ def hide(player: Player) -> bool:
     player."""
     _views.pop(player.slot, None)
     _screens.pop(player.slot, None)
-    return _send(player.slot, {"reset": True})
+    return _send(player, {"reset": True})
 
 
 def toast(player: Player, text: str, seconds: float = 4) -> bool:
@@ -1099,9 +1099,9 @@ def _draw(player: Player) -> bool:
 
     # Send the change; a failed send means the player may have left, so send
     # the screen whole.
-    if change is not None and not _send(player.slot, change):
+    if change is not None and not _send(player, change):
         whole = render(None)
-        if not _send(player.slot, _diff(None, whole) or {}):
+        if not _send(player, _diff(None, whole) or {}):
             _screens.pop(player.slot, None)
             return False
         _screens[player.slot] = whole
@@ -1502,9 +1502,9 @@ def _diff(previous: _Screen | None, following: _Screen) -> dict[str, Any] | None
     return {"reset": previous is None, "set": changed, "removed": removed, "lists": lists}
 
 
-def _send(slot: int, change: dict[str, Any]) -> bool:
-    """_send asks the host to apply change to the player in slot."""
-    return _call("Ui", "UiRequest", {"player": slot, "change": change}) is not None
+def _send(player: Player, change: dict[str, Any]) -> bool:
+    """_send asks the host to apply change to player's interface."""
+    return _call("Ui", "UiRequest", {"player": player, "change": change}) is not None
 
 
 def _text(children: Child) -> str:
