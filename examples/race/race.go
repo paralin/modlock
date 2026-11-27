@@ -1,6 +1,7 @@
 package main
 
 import (
+	"iter"
 	"slices"
 
 	"github.com/paralin/modlock/mod"
@@ -76,9 +77,15 @@ func (r *Race) Drop(racer *Racer) {
 	}
 }
 
-// Racers returns the race's racers in join order.
-func (r *Race) Racers() []*Racer {
-	return r.racers
+// Racers visits the race's racers in join order. The roster must not change
+// during traversal; Drop can be called after traversal finishes.
+func (r *Race) Racers() iter.Seq[*Racer] {
+	return slices.Values(r.racers)
+}
+
+// Entrants returns how many racers remain in the race, including finishers.
+func (r *Race) Entrants() int {
+	return len(r.racers)
 }
 
 // Find returns the player's racer, or nil when they are not racing.
