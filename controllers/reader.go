@@ -30,25 +30,12 @@ const Heartbeat = 50 * time.Millisecond
 // 64 Hz server tick. Presses and releases in between wait for the next one.
 const MinInterval = time.Second / 128
 
-// loaded holds SDL3 once a load succeeds. A failed load, such as a download
-// on a PC that is offline, is tried again by the next Open.
-var loaded struct {
-	sync.Mutex
-	lib *sdlLib
-}
+// loaded caches SDL3 after the first successful load.
+var loaded sdlCache
 
-// load returns SDL3, loading it if no earlier load succeeded.
+// load returns SDL3, retrying a previous failed load.
 func load() (*sdlLib, error) {
-	loaded.Lock()
-	defer loaded.Unlock()
-	if loaded.lib == nil {
-		lib, err := loadSDL()
-		if err != nil {
-			return nil, err
-		}
-		loaded.lib = lib
-	}
-	return loaded.lib, nil
+	return loaded.load()
 }
 
 // Reader streams the controllers attached to this PC. SDL's state is
@@ -69,16 +56,7 @@ type Reader struct {
 // such as a directory it unpacks into. It does nothing once a load has
 // succeeded.
 func LoadSDL(path string) error {
-	loaded.Lock()
-	defer loaded.Unlock()
-	if loaded.lib == nil {
-		lib, err := openSDL(path)
-		if err != nil {
-			return err
-		}
-		loaded.lib = lib
-	}
-	return nil
+	return loaded.loadPath(path)
 }
 
 // Open loads SDL3, or returns ErrUnavailable when it cannot be loaded; a
@@ -221,9 +199,9 @@ func (s *stream) detach(id uint32) {
 	}
 
 	// Close it, and list it as removed if a frame announced it.
-	d.close(s.lib)
+	announced := d.close(s.lib)
 	delete(s.devices, id)
-	if d.announced {
+	if announced {
 		s.removed = append(s.removed, id)
 	}
 	s.dirty = true
@@ -299,25 +277,7 @@ func (s *stream) frame(epoch uint32, now time.Time) *pb.ControllerFrame {
 
 	// List each new device, and each state that changed or has edges.
 	for _, id := range slices.Sorted(maps.Keys(s.devices)) {
-		d := s.devices[id]
-		if full {
-			d.announced, d.sent = false, nil
-			d.clearEdges()
-		}
-		if !d.announced {
-			frame.Added = append(frame.Added, d.info)
-			d.announced = true
-		}
-		st := d.read(s.lib, focused)
-		if d.sent != nil && !d.hasEdges() && st.EqualVT(d.sent) {
-			continue
-		}
-		d.sent = st
-		if focused && d.hasEdges() {
-			st = d.withEdges(st)
-		}
-		d.clearEdges()
-		frame.Changed = append(frame.Changed, st)
+		s.devices[id].appendFrame(s.lib, frame)
 	}
 	s.epoch, s.focused, s.last, s.dirty = epoch, focused, now, false
 	return frame

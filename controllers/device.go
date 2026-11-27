@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	"fmt"
-
 	pb "github.com/paralin/modlock/src/wasm/controllers"
+	"github.com/pkg/errors"
 )
 
 // device is one open SDL device: its joystick, its gamepad when SDL knows the
@@ -38,7 +37,7 @@ func openDevice(lib *sdlLib, id uint32) (*device, error) {
 		d.js = lib.OpenJoystick(id)
 	}
 	if d.js == 0 {
-		return nil, fmt.Errorf("open controller %d: %s", id, lib.GetError())
+		return nil, errors.Errorf("open controller %d: %s", id, lib.GetError())
 	}
 
 	// Describe it as the host will list it.
@@ -56,8 +55,8 @@ func openDevice(lib *sdlLib, id uint32) (*device, error) {
 	return d, nil
 }
 
-// close closes the device's handles.
-func (d *device) close(lib *sdlLib) {
+// close closes the device's handles and reports whether it was announced.
+func (d *device) close(lib *sdlLib) bool {
 	switch {
 	case d.pad != 0:
 		lib.CloseGamepad(d.pad)
@@ -65,6 +64,7 @@ func (d *device) close(lib *sdlLib) {
 		lib.CloseJoystick(d.js)
 	}
 	d.pad, d.js = 0, 0
+	return d.announced
 }
 
 // edge records a button event: raw when pad is false, otherwise a gamepad
@@ -82,9 +82,9 @@ func (d *device) edge(button uint8, down, pad bool) {
 		}
 		if down {
 			d.padPressed = append(d.padPressed, named)
-		} else {
-			d.padReleased = append(d.padReleased, named)
+			return
 		}
+		d.padReleased = append(d.padReleased, named)
 	}
 }
 
@@ -172,4 +172,34 @@ func gamepadButton(b int32) (pb.GamepadButton, bool) {
 		return pb.GamepadButton_GAMEPAD_BUTTON_TOUCHPAD, true
 	}
 	return pb.GamepadButton_GAMEPAD_BUTTON_UNKNOWN, false
+}
+
+// appendFrame adds this device's announcement and changed state to frame.
+// sent remains edge-free so a later frame cannot replay a delivered edge.
+func (d *device) appendFrame(lib *sdlLib, frame *pb.ControllerFrame) {
+	// A new epoch starts with current state instead of old queued edges.
+	if frame.GetFull() {
+		d.announced, d.sent = false, nil
+		d.clearEdges()
+	}
+
+	// Announce the device before its first state.
+	if !d.announced {
+		frame.Added = append(frame.Added, d.info)
+		d.announced = true
+	}
+
+	// Read the current inputs and skip an unchanged state without edges.
+	st := d.read(lib, frame.GetFocused())
+	if d.sent != nil && !d.hasEdges() && st.EqualVT(d.sent) {
+		return
+	}
+
+	// Keep an edge-free baseline and consume queued edges exactly once.
+	d.sent = st
+	if frame.GetFocused() && d.hasEdges() {
+		st = d.withEdges(st)
+	}
+	d.clearEdges()
+	frame.Changed = append(frame.Changed, st)
 }
