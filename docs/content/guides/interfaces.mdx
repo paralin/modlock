@@ -420,10 +420,13 @@ and the player's game what a list of a hundred rows does.
 The library sorts an array of rows once, and when the rows are already in order,
 the sort takes one pass over them. A draw that passes the same `rows` array
 again costs only its window, even after draws without the list. So keep the
-array while its rows stay the same, and pass a new array to change them. Go and Python cannot tell that a draw passes the same array, so in those
-languages you make the rows once as a value, with `ui.NewRows` in Go or
-`ui.Rows` in Python. A draw that passes the same value again also costs only its
-window.
+array while its rows stay the same, and pass a new array to change them. Give
+the array the type `ListRow[]`: a WebAssembly build copies an array whose rows
+have other properties than `ListRow` each time it is passed, and the library
+then sorts each copy again. Go and Python cannot tell that a draw passes the
+same array, so in those languages you make the rows once as a value, with
+`ui.NewRows` in Go or `ui.Rows` in Python. A draw that passes the same value
+again also costs only its window.
 
 `rowHeight` sets every row's height, from 1 to 1000 pixels, and the list's own
 `height` sets how much of the list shows. The template is a panel, label or
