@@ -3858,7 +3858,6 @@ function listScreen(
     { length: Math.min(count, total - first) },
     (_, i) => ({
       key: keys?.[i] ?? `k${first + i}`,
-      rank: first + i,
       fields: {
         name: `row ${first + i}`,
         icon: `file://{images}/i${first + i}.png`,

@@ -103,7 +103,7 @@ const drawing = new Drawing(
     send({
       body: {
         case: 'window',
-        value: { mod, slot: 0, window: { node, first, count } },
+        value: { mod, event: { player: 0, node, first, count } },
       },
     })
   },

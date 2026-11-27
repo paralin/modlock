@@ -81,6 +81,7 @@ type handlers struct {
 	actions       []func(*UiActionEvent)
 	overlays      []func(*UiOverlayEvent)
 	placements    []func(*UiPlacementEvent)
+	windows       []func(*UiWindowEvent)
 	rosterWatches []func(players []*Connection)
 
 	// roster is the player list the host last reported, or nil before one.
@@ -371,6 +372,13 @@ func OnUiPlacement(handler func(event *UiPlacementEvent)) {
 	registered.placements = append(registered.placements, handler)
 }
 
+// OnUiWindow calls handler with each run of a list's rows a player's screen
+// asks the mod to show, with the next server frame. Package ui registers it
+// to draw the window it asks for.
+func OnUiWindow(handler func(event *UiWindowEvent)) {
+	registered.windows = append(registered.windows, handler)
+}
+
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
@@ -515,6 +523,16 @@ func (h *handlers) UiOverlay(event *UiOverlayEvent) error {
 func (h *handlers) UiPlacement(event *UiPlacementEvent) error {
 	After(0, func() {
 		for _, handler := range h.placements {
+			handler(event)
+		}
+	})
+	return nil
+}
+
+// UiWindow runs the window handlers with the next frame, as a press does.
+func (h *handlers) UiWindow(event *UiWindowEvent) error {
+	After(0, func() {
+		for _, handler := range h.windows {
 			handler(event)
 		}
 	})

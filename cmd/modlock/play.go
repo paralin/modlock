@@ -564,8 +564,9 @@ func deliver(ctx context.Context, box *sandbox.Sandbox, in *modcli.Input) string
 
 	// Pass on the rows a list's renderer asks for.
 	if window := in.GetWindow(); window != nil {
-		if err := box.Window(ctx, window); err != nil && ctx.Err() == nil {
-			return window.GetMod() + ": " + err.Error()
+		asked, err := box.Window(ctx, window.GetMod(), window.GetEvent())
+		if err == nil && !asked {
+			return window.GetMod() + " is not running to receive the window"
 		}
 		return ""
 	}

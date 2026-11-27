@@ -890,6 +890,10 @@ service Mod {
   // to a mod whose root follows placement.
   rpc UiPlacement(modlock.wasm.ui.UiPlacementEvent) returns (Empty);
 
+  // UiWindow reports the run of a list's rows a player's renderer asks for,
+  // which the mod answers by drawing that list's window.
+  rpc UiWindow(modlock.wasm.ui.UiWindowEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

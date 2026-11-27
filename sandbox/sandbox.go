@@ -212,12 +212,20 @@ func (s *Sandbox) Input(ctx context.Context, mod string, event *ui.UiInputEvent)
 	return changed, err
 }
 
-// Window reports the run of a list's rows the preview's renderer asks for,
-// as the game's host does, to the screen owner that keeps the rows.
-func (s *Sandbox) Window(ctx context.Context, window *control.UiWindow) error {
-	return s.do(ctx, func(context.Context) {
-		s.event(&control.HostEvent{Body: &control.HostEvent_UiWindow{UiWindow: window}})
+// Window delivers the run of a list's rows the preview's renderer asks mod
+// to show the event's player, as the game's host does, and reports whether
+// the mod is running to receive it. The mod keeps the rows and answers by
+// drawing the window.
+func (s *Sandbox) Window(ctx context.Context, mod string, event *ui.UiWindowEvent) (bool, error) {
+	var asked bool
+	err := s.do(ctx, func(ctx context.Context) {
+		for _, running := range s.mods {
+			if running.name == mod {
+				asked = s.deliver(ctx, running, "UiWindow", event, nil)
+			}
+		}
 	})
+	return asked, err
 }
 
 // Call calls one method of a service a running mod serves and reports the

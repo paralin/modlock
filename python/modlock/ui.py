@@ -82,6 +82,7 @@ from . import (
     PlayerReturnedEvent,
     RangeEvent,
     UiPlacementEvent,
+    UiWindowEvent,
     Wheel,
     _call,  # pyright: ignore[reportPrivateUsage]
     _serve_ui,  # pyright: ignore[reportPrivateUsage]
@@ -426,9 +427,9 @@ class RangeProps(InputProps, total=False):
 
 
 class ListRow(TypedDict):
-    """ListRow is one row of a list: its key, 1 to 64 bytes and distinct
-    within the list, the rank and sort text that order the rows, least rank
-    first, and the fields its template's "{field}" names show, at most
+    """ListRow is one row of a list: its key, 1 to 64 bytes, the rank and
+    sort text that order the rows, least rank first, then by key, and the
+    fields its template's "{field}" names show, at most
     sixteen, each named by letters, digits and '_'."""
 
     key: str
@@ -437,25 +438,100 @@ class ListRow(TypedDict):
     fields: NotRequired[Mapping[str, str]]
 
 
+class Rows:
+    """Rows are a list's rows in order, by rank, then sort, then key, keeping
+    the last row of each key. Rows already in that order with no key twice
+    are kept as they are, so ordering them costs one pass. A Rows does not
+    change: drawing the same Rows again costs the list's window, and a mod
+    changes a list's rows by drawing it with new Rows. The host takes at most
+    20,000 rows in a list."""
+
+    __slots__ = ("_at", "_order")
+
+    def __init__(self, rows: Iterable[ListRow] = ()) -> None:
+        """Rows orders rows."""
+        # Index the keys, noting whether the rows are in order with no key
+        # twice.
+        source = list(rows)
+        at: dict[str, int] = {}
+        ordered = True
+        for i, row in enumerate(source):
+            if row["key"] in at or (i > 0 and _row_order(source[i - 1]) > _row_order(row)):
+                ordered = False
+            at[row["key"]] = i
+
+        # Otherwise keep each key's last row, in order.
+        if not ordered:
+            source = sorted((source[i] for i in at.values()), key=_row_order)
+            at = {row["key"]: i for i, row in enumerate(source)}
+        self._order = source
+        self._at = at
+
+    def __len__(self) -> int:
+        """len returns how many rows there are."""
+        return len(self._order)
+
+
+def _row_order(row: ListRow) -> tuple[float, str, str]:
+    """_row_order is what orders a row: its rank, then sort, then key."""
+    return (row.get("rank", 0), row.get("sort", ""), row["key"])
+
+
+# _DEFAULT_WINDOW is what a list shows before the screen asks for a window:
+# the place of the first row, how many, and the key of the row with the
+# focus.
+_DEFAULT_WINDOW = (0, 50, "")
+
+# _MAX_WINDOW is the most rows a window holds.
+_MAX_WINDOW = 256
+
+
+def _fill_list(rows: Rows, window: tuple[int, int, str], selected: str | None) -> dict[str, Any]:
+    """_fill_list returns the window of a list's rows as the list node's
+    fields: the window moved back to end at the last row, the list's total,
+    the focused key with its place while the list holds it, and the selected
+    key only while the list holds it."""
+    first, count, focus = window
+    order, at = rows._order, rows._at  # pyright: ignore[reportPrivateUsage]
+    total = len(order)
+    count = min(count, _MAX_WINDOW, total)
+    first = min(first, total - count)
+    wire_rows: list[dict[str, Any]] = []
+    for row in order[first : first + count]:
+        fields = row.get("fields")
+        wire_rows.append(
+            {"key": row["key"], "fields": None if not fields else [{"key": k, "value": v} for k, v in fields.items()]}
+        )
+    return {
+        "first": first,
+        "total": total,
+        "rows": wire_rows,
+        "focus": focus or None,
+        "focus_at": at.get(focus) if focus else None,
+        "selected": selected if selected and selected in at else None,
+    }
+
+
 class ListProps(ElementProps, total=False):
     """ListProps make a list that scrolls its rows, drawing only those in
     view. row_height is each row's height in pixels, from 1 to 1000, and row
     the template each row is drawn from: a panel, label or image holding at
-    most fifteen more, with no buttons or inputs. The host takes at most
-    20,000 rows, and 2 MiB of rows across a player's interface. Each draw
-    compares every row with those the player holds and sends only the rows
-    added, changed and removed.
+    most fifteen more, with no buttons or inputs. rows are the list's Rows.
+    The mod holds the rows, and the list's node carries only the window of
+    them the player's screen shows, which the screen asks for as the player
+    scrolls, so a list of ten thousand rows costs a draw what a list of a
+    hundred does.
 
     The player focuses a row with the arrow keys or the controller, and
     chooses it with Enter, the controller's confirm or a click, which calls
     on_change with the row's key. The focus stays on its row as rows come and
     go. The mod keeps the chosen row and draws it back as selected, which
-    shows until its row leaves the list. focus_style and selected_style paint
+    shows while its row is in the list. focus_style and selected_style paint
     the focused and the selected row over the row's own style."""
 
     row_height: Required[float]
     row: Required["Child"]
-    rows: Required[Sequence[ListRow]]
+    rows: Required[Rows]
     selected: str
     focus_style: Style
     selected_style: Style
@@ -1135,6 +1211,10 @@ class _View:
     # display is the abilities shown on Tab's rows and the ability bar.
     display: list[AbilityRow] = field(default_factory=lambda: list[AbilityRow]())
     notices: list[_Notice] = field(default_factory=lambda: list[_Notice]())
+    # windows holds the window the player's screen shows of each list, by
+    # the list's node id: the place of the first row, how many, and the key
+    # of the row with the focus.
+    windows: dict[str, tuple[int, int, str]] = field(default_factory=lambda: dict[str, tuple[int, int, str]]())
 
 
 # _views holds what the mod shows each player, by slot.
@@ -1196,11 +1276,29 @@ def _draw(player: Player) -> bool:
             _screens.pop(player.slot, None)
             return False
         _screens[player.slot] = whole
+        _forget_windows(view, whole)
         return True
 
     # Keep the screen the player now holds.
     _screens[player.slot] = following
+    _forget_windows(view, following)
     return True
+
+
+def _forget_windows(view: _View, screen: _Screen) -> None:
+    """_forget_windows drops view's windows of lists screen does not hold."""
+    for id in [id for id in view.windows if id not in screen.lists]:
+        del view.windows[id]
+
+
+def _windowed(event: UiWindowEvent) -> None:
+    """_windowed draws the window of a list a player's screen asks for."""
+    slot = event.player.slot
+    view, screen = _views.get(slot), _screens.get(slot)
+    if view is None or screen is None or event.node not in screen.lists:
+        return
+    view.windows[event.node] = (event.first, min(event.count, _MAX_WINDOW), event.focus)
+    _draw(view.player)
 
 
 def _notices(stack: list[_Notice]) -> Element:
@@ -1242,16 +1340,6 @@ def _notices(stack: list[_Notice]) -> Element:
 
 
 @dataclass(slots=True)
-class _Rows:
-    """_Rows is one list's rows by key, with the sequence the mod drew them
-    from. A row the mod left unchanged since the last draw keeps the dict that
-    draw held, so comparing rows by identity finds what changed."""
-
-    source: object
-    by_key: dict[str, dict[str, Any]]
-
-
-@dataclass(slots=True)
 class _Screen:
     """_Screen is what one player's interface holds, as the host last
     accepted it."""
@@ -1282,9 +1370,8 @@ class _Screen:
     wheels: dict[str, Callable[[Player, Wheel], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player, Wheel], object]]()
     )
-    # rows maps each list's id to its rows, which the screen sends apart
-    # from its nodes.
-    rows: dict[str, _Rows] = field(default_factory=lambda: dict[str, _Rows]())
+    # lists holds the id of each list the screen holds.
+    lists: set[str] = field(default_factory=lambda: set[str]())
     # next numbers the next new node, so an id is never reused.
     next: int = 0
 
@@ -1299,7 +1386,7 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
     # The root is the full-screen panel the elements hang from, and it lists
     # the parts of the game's HUD to hide, whether the cursor is free, the
     # mod's sheets and its last sounds.
-    layout = _Layout(previous)
+    layout = _Layout(previous, view.windows)
     layout.add(
         {
             "id": "",
@@ -1329,17 +1416,14 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
 class _Layout:
     """_Layout holds one screen while _place lays it out."""
 
-    __slots__ = ("screen", "_previous")
+    __slots__ = ("screen", "windows", "_previous")
 
-    def __init__(self, previous: _Screen | None) -> None:
-        """The layout continues previous's id counter and keeps its ids."""
+    def __init__(self, previous: _Screen | None, windows: Mapping[str, tuple[int, int, str]] | None = None) -> None:
+        """The layout continues previous's id counter and keeps its ids, and
+        fills each list with the player's window of it in windows."""
         self._previous = previous
         self.screen = _Screen(next=0 if previous is None else previous.next)
-
-    def held_rows(self, node: str) -> _Rows | None:
-        """held_rows returns the rows the previous draw held for the list
-        node."""
-        return None if self._previous is None else self._previous.rows.get(node)
+        self.windows = windows or {}
 
     def add(self, node: dict[str, Any]) -> None:
         """add records a node with its encoding."""
@@ -1430,14 +1514,18 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             node["list"] = {
                 "row_height": props.get("row_height"),
                 "row": _template(props.get("row")),
-                "selected": props.get("selected") or None,
                 "focus_style": _style(props.get("focus_style")),
                 "selected_style": _style(props.get("selected_style")),
+                **_fill_list(
+                    props.get("rows") or Rows(),
+                    layout.windows.get(node["id"], _DEFAULT_WINDOW),
+                    props.get("selected"),
+                ),
             }
             on_change = props.get("on_change")
             if on_change is not None:
                 layout.screen.changes[node["id"]] = on_change
-            layout.screen.rows[node["id"]] = _rows(props.get("rows", ()), layout.held_rows(node["id"]))
+            layout.screen.lists.add(node["id"])
         case "layout":
             node["kind"] = "layout"
             node["layout"] = props.get("src", "")
@@ -1463,58 +1551,6 @@ def _template(row: Child) -> list[dict[str, Any]]:
         if node["id"] == top[0]:
             node["id"] = ""
     return nodes
-
-
-def _rows(source: Iterable[ListRow], held: _Rows | None) -> _Rows:
-    """_rows keeps a list's rows by key; of two rows with one key, the last
-    counts. The same sequence as the held rows' returns them, so a draw that
-    leaves the list alone costs nothing however long it is; a mod changes rows
-    by passing a new sequence. A new one is compared row by row with the held
-    rows: a row equal to its held one keeps that dict, and when every row
-    does, the held rows return."""
-    if held is not None and held.source is source:
-        return held
-    before = {} if held is None else held.by_key
-    kept: dict[str, dict[str, Any]] = {}
-    same = held is not None
-    for row in source:
-        fields = row.get("fields")
-        encoded: dict[str, Any] = {
-            "key": row["key"],
-            "rank": row.get("rank"),
-            "sort": row.get("sort"),
-            "fields": None if not fields else [{"key": k, "value": v} for k, v in fields.items()],
-        }
-        was = before.get(row["key"])
-        if was is not None and was == encoded:
-            encoded = was
-        else:
-            same = False
-        kept.pop(row["key"], None)
-        kept[row["key"]] = encoded
-    if same and len(kept) == len(before):
-        return _Rows(source, before)
-    return _Rows(source, kept)
-
-
-def _list_changes(previous: _Screen | None, following: _Screen) -> list[dict[str, Any]]:
-    """_list_changes returns the changes that bring each list previous holds
-    to its rows in following: every row of a list new to the screen, and the
-    rows added, changed and removed of one it holds."""
-    changes: list[dict[str, Any]] = []
-    for node, list_rows in following.rows.items():
-        rows = list_rows.by_key
-        held_rows = None if previous is None else previous.rows.get(node)
-        held = None if held_rows is None else held_rows.by_key
-        if held is rows:
-            continue
-        before = held or {}
-        changed = [row for key, row in rows.items() if before.get(key) is not row]
-        removed = [key for key in before if key not in rows]
-        if held is not None and not changed and not removed:
-            continue
-        changes.append({"node": node, "reset": held is None, "set": changed, "removed": removed})
-    return changes
 
 
 def _classes(names: str | None) -> list[str] | None:
@@ -1641,10 +1677,9 @@ def _diff(previous: _Screen | None, following: _Screen) -> dict[str, Any] | None
     before = {} if previous is None else previous.nodes
     changed = [node for id, (node, encoded) in following.nodes.items() if id not in before or before[id][1] != encoded]
     removed = [id for id in before if id not in following.nodes]
-    lists = _list_changes(previous, following)
-    if previous is not None and not changed and not removed and not lists:
+    if previous is not None and not changed and not removed:
         return None
-    return {"reset": previous is None, "set": changed, "removed": removed, "lists": lists}
+    return {"reset": previous is None, "set": changed, "removed": removed}
 
 
 def _send(player: Player, change: dict[str, Any]) -> bool:
@@ -1889,7 +1924,7 @@ def _color(value: str | None) -> int | None:
     return int(digits + "ff" if len(digits) == 6 else digits, 16)
 
 
-_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, overlay=_overlaid, placement=_placed, tick=_tick))
+_serve_ui(_UiHandlers(press=_press, change=_change, act=_act, overlay=_overlaid, placement=_placed, window=_windowed, tick=_tick))
 
 
 @on_player_return
@@ -1899,5 +1934,6 @@ def _returned(returned: PlayerReturnedEvent) -> None:
     slot = returned.connection.player.slot
     if slot in _views:
         _screens.pop(slot, None)
+        _views[slot].windows.clear()
         _draw(_views[slot].player)
 

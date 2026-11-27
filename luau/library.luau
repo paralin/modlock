@@ -396,6 +396,8 @@ export type Interface = {
 	overlay: (player: Player, overlay: Overlay) -> (),
 	-- placement takes where the player's screen places the interface.
 	placement: (event: UiPlacementEvent) -> (),
+	-- window takes the window of a list a player's screen asks for.
+	window: (event: UiWindowEvent) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -1642,6 +1644,14 @@ local handlers: ModHandlers = {
 		if served then
 			modlock.after(0, function()
 				served.placement(event)
+			end)
+		end
+	end,
+	uiWindow = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.window(event)
 			end)
 		end
 	end,

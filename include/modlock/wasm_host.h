@@ -63,11 +63,6 @@ class MODLOCK_API WasmHostObserver {
   // that stops, and a player who leaves, end with a reset change.
   virtual void Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) = 0;
 
-  // UiWindow carries the run of a list's rows the renderer of the player in
-  // slot asks mod's interface to show, for the program that keeps the rows.
-  virtual void UiWindow(std::string_view /*mod*/, int32_t /*slot*/,
-                        const wasm::ui::ListWindow& /*window*/) {}
-
   // Halted reports that mod's running build stopped: for a reload, a
   // restart, a failure or the mod's end. Its started service calls are
   // dropped before its next build starts, so a host forgets what it keeps

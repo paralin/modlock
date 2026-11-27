@@ -43,6 +43,9 @@ type view struct {
 	display []AbilityRow
 	// notices are the toasts showing, oldest first.
 	notices []notice
+	// windows holds the window the player's screen shows of each list, by
+	// the list's node id.
+	windows map[string]listWindow
 }
 
 // route is one value a view sends its layouts under a name.
@@ -77,9 +80,6 @@ type screen struct {
 	handlers map[string]handlers
 	// next numbers the next new node, so an id is never reused.
 	next int
-	// rows holds the rows of each list node, by the node's id, which the
-	// screen sends apart from its nodes.
-	rows map[string]*rowSet
 }
 
 // newScreen returns an empty screen that numbers its new nodes from next.
@@ -88,7 +88,6 @@ func newScreen(next int) *screen {
 		nodes:    map[string]*uipb.Node{},
 		ids:      map[string]string{},
 		handlers: map[string]handlers{},
-		rows:     map[string]*rowSet{},
 		next:     next,
 	}
 }
@@ -121,6 +120,8 @@ type layout struct {
 	previous *screen
 	// screen is the screen being laid out.
 	screen *screen
+	// windows holds the player's windows of each list, by node id.
+	windows map[string]listWindow
 }
 
 // library holds the interface library's state: what the mod shows each
@@ -196,11 +197,13 @@ func draw(v *view) bool {
 			return false
 		}
 		lib.screens[slot] = whole
+		forgetWindows(v, whole)
 		return true
 	}
 
 	// Keep the screen the player now holds.
 	lib.screens[slot] = next
+	forgetWindows(v, next)
 	return true
 }
 
@@ -214,7 +217,7 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 	if previous != nil {
 		next = previous.next
 	}
-	l := &layout{previous: previous, screen: newScreen(next)}
+	l := &layout{previous: previous, screen: newScreen(next), windows: v.windows}
 	l.add(&uipb.Node{
 		Id:                "",
 		Kind:              uipb.Kind_KIND_PANEL,
@@ -308,11 +311,10 @@ func diff(previous *screen, next *screen) *uipb.Change {
 			}
 		}
 	}
-	lists := listChanges(previous, next)
-	if previous != nil && len(set) == 0 && len(removed) == 0 && len(lists) == 0 {
+	if previous != nil && len(set) == 0 && len(removed) == 0 {
 		return nil
 	}
-	return &uipb.Change{Reset_: previous == nil, Set: set, Removed: removed, Lists: lists}
+	return &uipb.Change{Reset_: previous == nil, Set: set, Removed: removed}
 }
 
 // send asks the host to apply change to the player.
@@ -541,6 +543,7 @@ func returned(event *mod.PlayerReturnedEvent) {
 	slot := event.GetConnection().GetPlayer()
 	if v := lib.views[slot]; v != nil {
 		delete(lib.screens, slot)
+		v.windows = nil
 		draw(v)
 	}
 }

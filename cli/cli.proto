@@ -166,7 +166,7 @@ message Input {
     ConsoleLine console = 4;
 
     // Window asks for the rows near a list's visible box.
-    modlock.host_app.control.UiWindow window = 5;
+    Window window = 5;
   }
 }
 
@@ -191,6 +191,15 @@ message Change {
 
   // Event names the player, the input and its new value.
   modlock.wasm.ui.UiInputEvent event = 2;
+}
+
+// Window is the run of a list's rows a player's renderer asks a mod for.
+message Window {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Event names the player, the list and its rows.
+  modlock.wasm.ui.UiWindowEvent event = 2;
 }
 
 // Press identifies a button in the interface a mod shows a player, or a

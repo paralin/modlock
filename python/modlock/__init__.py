@@ -2524,6 +2524,26 @@ class SettingChangedEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class UiWindowEvent:
+    """UiWindowEvent is the run of a list's rows a player's renderer asks for:
+    those near the list's visible box, which it draws as the player scrolls.
+    The mod answers by drawing the list with that window's rows. A list the
+    renderer has not asked about yet shows its first 50 rows.
+    """
+
+    # player is the player whose screen this is.
+    player: Player
+    # node is the list node's id.
+    node: str = ""
+    # first is the place of the first row, and count the number of rows, at
+    # most 256.
+    first: int = 0
+    count: int = 0
+    # focus is the key of the row that has the focus, or empty for none.
+    focus: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class Wheel:
     """Wheel reports one wheel step over a slider, anchored to its pointer position."""
 
@@ -5204,8 +5224,6 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "key", "string"),
-            wire.Field(2, "rank", "double"),
-            wire.Field(3, "sort", "string"),
             wire.Field(4, "fields", "message", repeated=True, message="Row_FieldsEntry"),
         ],
     ),
@@ -5216,13 +5234,14 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "value", "string"),
         ],
     ),
-    "ListChange": (
-        None,
+    "UiWindowEvent": (
+        UiWindowEvent,
         [
-            wire.Field(1, "node", "string"),
-            wire.Field(2, "reset", "bool"),
-            wire.Field(3, "set", "message", repeated=True, message="Row"),
-            wire.Field(4, "removed", "string", repeated=True),
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "node", "string"),
+            wire.Field(3, "first", "uint32"),
+            wire.Field(4, "count", "uint32"),
+            wire.Field(5, "focus", "string"),
         ],
     ),
     "Binding": (
@@ -5546,7 +5565,6 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "set", "message", repeated=True, message="Node"),
             wire.Field(3, "removed", "string", repeated=True),
             wire.Field(4, "generation", "uint64"),
-            wire.Field(5, "lists", "message", repeated=True, message="ListChange"),
         ],
     ),
     "UiPressEvent": (
@@ -6566,6 +6584,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "UiAction": ("UiActionEvent", "Empty", "ui_action"),
     "UiOverlay": ("UiOverlayEvent", "Empty", "ui_overlay"),
     "UiPlacement": ("UiPlacementEvent", "Empty", "ui_placement"),
+    "UiWindow": ("UiWindowEvent", "Empty", "ui_window"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "ServiceReplied": ("ServiceRepliedEvent", "Empty", "service_replied"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
@@ -7960,6 +7979,8 @@ class _UiHandlers:
     overlay: Callable[[Player, Overlay], object]
     # placement runs the handler of a mod that follows a player's placement.
     placement: Callable[[UiPlacementEvent], object]
+    # window draws the window of a list a player's screen asks for.
+    window: Callable[[UiWindowEvent], object]
     # tick advances the interface clock to each frame.
     tick: Callable[[float], object]
 
@@ -8073,6 +8094,13 @@ def _ui_placement(event: UiPlacementEvent) -> None:
     ui = _ui
     if ui is not None:
         after(0, lambda: ui.placement(event))
+
+
+def _ui_window(event: UiWindowEvent) -> None:
+    # A window runs with the next frame, as a press does.
+    ui = _ui
+    if ui is not None:
+        after(0, lambda: ui.window(event))
 
 
 def _console(method: str, payload: bytes) -> bytes:
@@ -8284,6 +8312,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "ui_action": _ui_action,
     "ui_overlay": _ui_overlay,
     "ui_placement": _ui_placement,
+    "ui_window": _ui_window,
     "serve": _serve,
     "service_replied": _service_replied,
     "damage": _damage,

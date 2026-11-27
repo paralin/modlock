@@ -45,7 +45,7 @@ func (m *Mirror) Apply(changes map[string]*ui.Change, reset, paused bool) {
 func (m *Mirror) Screen() (*ui.Screen, <-chan struct{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	screen := m.trees.screen(false)
+	screen := m.trees.screen()
 	screen.Paused = m.paused
 	return screen, m.changed
 }

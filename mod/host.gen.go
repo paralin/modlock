@@ -739,6 +739,12 @@ type BotOptionsHeroId = playerspb.BotOptions_HeroId
 // SettingChangedEvent is one player's new value of one setting.
 type SettingChangedEvent = settingspb.SettingChangedEvent
 
+// UiWindowEvent is the run of a list's rows a player's renderer asks for:
+// those near the list's visible box, which it draws as the player scrolls.
+// The mod answers by drawing the list with that window's rows. A list the
+// renderer has not asked about yet shows its first 50 rows.
+type UiWindowEvent = uipb.UiWindowEvent
+
 // Wheel reports one wheel step over a slider, anchored to its pointer position.
 type Wheel = uipb.Wheel
 
@@ -2230,6 +2236,9 @@ type modHandlers interface {
 	// UiPlacement reports where a player's screen places the mod's interface,
 	// to a mod whose root follows placement.
 	UiPlacement(event *UiPlacementEvent) error
+	// UiWindow reports the run of a list's rows a player's renderer asks for,
+	// which the mod answers by drawing that list's window.
+	UiWindow(event *UiWindowEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// ServiceReplied ends one StartServiceCall, in a frame after the call.
@@ -2386,6 +2395,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiPlacement(event))
+	case "UiWindow":
+		event := &UiWindowEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiWindow(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

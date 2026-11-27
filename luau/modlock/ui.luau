@@ -567,8 +567,8 @@ export type DropdownProps = {
 	[number]: never,
 }
 
--- ListRow is one row of a list: its key, 1 to 64 bytes and distinct within
--- the list, the rank and sort text that order the rows, least rank first, and
+-- ListRow is one row of a list: its key, 1 to 64 bytes, the rank and sort
+-- text that order the rows, least rank first, then by key, and
 -- the fields its template's "{field}" names show, at most sixteen, each named
 -- by letters, digits and '_'.
 export type ListRow = {
@@ -581,16 +581,19 @@ export type ListRow = {
 -- ListProps make a list that scrolls its rows, drawing only those in view.
 -- rowHeight is each row's height in pixels, from 1 to 1000, and row the
 -- template each row is drawn from: a panel, label or image holding at most
--- fifteen more, with no buttons or inputs. The host takes at most 20,000
--- rows, and 2 MiB of rows across a player's interface. Each draw compares
--- every row with those the player holds and sends only the rows added,
--- changed and removed.
+-- fifteen more, with no buttons or inputs. The mod holds the rows, and the
+-- list's node carries only the window of them the player's screen shows,
+-- which the screen asks for as the player scrolls, so a list of ten thousand
+-- rows costs a draw what a list of a hundred does. Of two rows with one key,
+-- the last counts. The rows table is ordered once, so drawing the same table
+-- again costs its window; a mod changes the rows by passing a new table. The
+-- host takes at most 20,000 rows in a list.
 --
 -- The player focuses a row with the arrow keys or the controller, and
 -- chooses it with Enter, the controller's confirm or a click, which calls
 -- onChange with the row's key. The focus stays on its row as rows come and
 -- go. The mod keeps the chosen row and draws it back as selected, which shows
--- until its row leaves the list. focusStyle and selectedStyle paint the
+-- while its row is in the list. focusStyle and selectedStyle paint the
 -- focused and the selected row over the row's own style.
 export type ListProps = {
 	key: (string | number)?,
@@ -774,6 +777,9 @@ type View = {
 	display: { AbilityRow },
 	-- notices are the toasts showing, oldest first.
 	notices: { Notice },
+	-- windows holds the window the player's screen shows of each list, by
+	-- the list's node id.
+	windows: { [string]: ListWindow },
 }
 
 -- Screen is what one player's interface holds, as the host last accepted it.
@@ -795,23 +801,29 @@ type Screen = {
 	wheels: { [string]: (player: Player, wheel: Wheel) -> () },
 	-- holds maps each enabled range's id to its handler of a hold.
 	holds: { [string]: (player: Player, event: RangeEvent) -> () },
-	-- lists names the screen's lists in layout order, and rows holds each
-	-- one's rows, which the screen sends apart from its nodes.
-	lists: { string },
-	rows: { [string]: RowSet },
+	-- lists holds the id of each list the screen holds.
+	lists: { [string]: true },
 	-- next numbers the next new node, so an id is never reused.
 	next: number,
 }
 
--- RowSet is the rows of one list a screen holds.
-type RowSet = {
-	-- source is the table the mod drew the rows from.
-	source: { ListRow },
-	-- order lists the keys in the order the mod gave the rows.
-	order: { string },
-	-- keys holds each row by key, as the wire takes it.
-	keys: { [string]: Node },
+-- Rows is a list's rows in order, with each key's place in that order.
+type Rows = {
+	-- order lists the rows by rank, then sort, then key.
+	order: { ListRow },
+	-- at maps each key to its row's place in order, from 1.
+	at: { [string]: number },
 }
+
+-- ListWindow is the rows of a list one player's screen shows: the place of
+-- the first, from 0, how many, and the key of the row with the focus.
+type ListWindow = { first: number, count: number, focus: string }
+
+-- defaultWindow is what a list shows before the screen asks for a window.
+local defaultWindow: ListWindow = { first = 0, count = 50, focus = "" }
+
+-- maxWindow is the most rows a window holds.
+local maxWindow = 256
 
 -- Layout holds one screen while place lays it out, with the screen before
 -- it whose ids it keeps.
@@ -820,6 +832,8 @@ type Layout = {
 	screen: Screen,
 	-- previous is the screen the player holds, or nil for a whole screen.
 	previous: Screen?,
+	-- windows holds the player's window of each list, by node id.
+	windows: { [string]: ListWindow },
 }
 
 -- elementMeta marks the tables the element functions build, which tells an
@@ -1326,7 +1340,6 @@ local function newScreen(next: number): Screen
 		wheels = {},
 		holds = {},
 		lists = {},
-		rows = {},
 		next = next,
 	}
 end
@@ -1377,7 +1390,7 @@ end
 -- template lays row out as a list's row template: its own nodes, the root
 -- named "".
 local function template(row: Child): { Node }
-	local own: Layout = { screen = newScreen(0) }
+	local own: Layout = { screen = newScreen(0), windows = {} }
 	local top = {}
 	place(own, row, "", top)
 	if #top ~= 1 then
@@ -1391,19 +1404,76 @@ local function template(row: Child): { Node }
 	return own.screen.nodes
 end
 
--- rowSet keeps a list's rows by key; of two rows with one key, the last
--- counts. The same table as the held rows' returns them, so a draw that
--- leaves the list alone costs nothing however long it is; a mod changes rows
--- by passing a new table.
-local function rowSet(rows: { ListRow }, held: RowSet?): RowSet
-	if held and held.source == rows then
+-- ordered holds the Rows of each rows table a mod drew, so drawing that
+-- table again, even after a draw without it, costs nothing however long it
+-- is.
+local ordered: { [{ ListRow }]: Rows } = setmetatable({}, { __mode = "k" }) :: any
+
+-- before reports whether row a orders before row b: by rank, then sort, then
+-- key.
+local function before(a: ListRow, b: ListRow): boolean
+	local rank, other = a.rank or 0, b.rank or 0
+	if rank ~= other then
+		return rank < other
+	end
+	local sort, otherSort = a.sort or "", b.sort or ""
+	if sort ~= otherSort then
+		return sort < otherSort
+	end
+	return a.key < b.key
+end
+
+-- listRows orders a list's rows by rank, then sort, then key, keeping the
+-- last row of each key, and indexes each key's place. Rows already in order
+-- with no key twice are kept as they are, so ordering them costs one pass.
+local function listRows(source: { ListRow }): Rows
+	-- Reuse the order of a table drawn before.
+	local held = ordered[source]
+	if held then
 		return held
 	end
-	local set: RowSet = { source = rows, order = {}, keys = {} }
-	for _, row in rows do
-		if set.keys[row.key] == nil then
-			table.insert(set.order, row.key)
+
+	-- Index the keys, noting whether the rows are in order with no key twice.
+	local at: { [string]: number } = {}
+	local sorted = true
+	for i, row in source do
+		if at[row.key] ~= nil or (i > 1 and before(row, source[i - 1])) then
+			sorted = false
 		end
+		at[row.key] = i
+	end
+
+	-- Otherwise keep each key's last row, in order.
+	local order = source
+	if not sorted then
+		order = {}
+		for i, row in source do
+			if at[row.key] == i then
+				table.insert(order, row)
+			end
+		end
+		table.sort(order, before)
+		table.clear(at)
+		for i, row in order do
+			at[row.key] = i
+		end
+	end
+	local rows: Rows = { order = order, at = at }
+	ordered[source] = rows
+	return rows
+end
+
+-- fillList fills a list's node with the window of its rows: the window moved
+-- back to end at the last row, the list's total, the focused key with its
+-- place while the list holds it, and the selected key only while the list
+-- holds it.
+local function fillList(list: Node, rows: Rows, window: ListWindow)
+	local total = #rows.order
+	local count = math.min(window.count, maxWindow, total)
+	local first = math.min(window.first, total - count)
+	local wire: { Node } = table.create(count) :: { Node }
+	for i = first + 1, first + count do
+		local row = rows.order[i]
 		local fields: { Node } = {}
 		for name, value in row.fields or {} do
 			table.insert(fields, { key = name, value = value } :: Node)
@@ -1411,59 +1481,17 @@ local function rowSet(rows: { ListRow }, held: RowSet?): RowSet
 		table.sort(fields, function(x: Node, y: Node): boolean
 			return x.key < y.key
 		end)
-		set.keys[row.key] = { key = row.key, rank = row.rank, sort = row.sort, fields = fields }
+		table.insert(wire, { key = row.key, fields = fields } :: Node)
 	end
-	return set
-end
-
--- sameRow reports whether two wire rows are equal.
-local function sameRow(a: Node, b: Node): boolean
-	if a.key ~= b.key or (a.rank or 0) ~= (b.rank or 0) or (a.sort or "") ~= (b.sort or "") then
-		return false
+	list.first, list.total, list.rows = first, total, wire
+	if window.focus ~= "" then
+		list.focus = window.focus
+		local place = rows.at[window.focus]
+		list.focusAt = if place then place - 1 else nil
 	end
-	local left: { Node }, right: { Node } = a.fields or {}, b.fields or {}
-	if #left ~= #right then
-		return false
+	if list.selected ~= nil and rows.at[list.selected] == nil then
+		list.selected = nil
 	end
-	for i, entry in left do
-		if entry.key ~= right[i].key or entry.value ~= right[i].value then
-			return false
-		end
-	end
-	return true
-end
-
--- listChanges returns the changes that bring each list previous holds to its
--- rows in next: every row of a list new to the screen, and the rows added,
--- changed and removed of one it holds.
-local function listChanges(previous: Screen?, next: Screen): { Node }
-	local changes: { Node } = {}
-	for _, node in next.lists do
-		local rows = next.rows[node]
-		local held = if previous then previous.rows[node] else nil
-		if held == rows then
-			continue
-		end
-		local set, removed = {}, {}
-		for _, key in rows.order do
-			local row = rows.keys[key]
-			local before = if held then held.keys[key] else nil
-			if before == nil or not sameRow(before, row) then
-				table.insert(set, row)
-			end
-		end
-		if held then
-			for _, key in held.order do
-				if rows.keys[key] == nil then
-					table.insert(removed, key)
-				end
-			end
-		end
-		if held == nil or #set ~= 0 or #removed ~= 0 then
-			table.insert(changes, { node = node, reset = held == nil, set = set, removed = removed } :: Node)
-		end
-	end
-	return changes
 end
 
 -- input lays out an input of kind from props in node.
@@ -1633,9 +1661,8 @@ function place(layout: Layout, child: any, at: string, out: { string })
 		if props.onChange then
 			layout.screen.changes[node.id] = props.onChange
 		end
-		table.insert(layout.screen.lists, node.id)
-		local held = if layout.previous then layout.previous.rows[node.id] else nil
-		layout.screen.rows[node.id] = rowSet(props.rows or {}, held)
+		layout.screen.lists[node.id] = true
+		fillList(node.list, listRows(props.rows or {}), layout.windows[node.id] or defaultWindow)
 	elseif kind == "layout" then
 		node.layout = props.src or ""
 		node.data = if props.data == nil then "" else json(props.data) or ""
@@ -1753,7 +1780,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 	-- The root is the full-screen panel the elements hang from, and it lists
 	-- the parts of the game's HUD to hide, whether the cursor is free, the
 	-- mod's sheets and its last sounds.
-	local layout: Layout = { previous = previous, screen = newScreen(if previous then previous.next else 0) }
+	local layout: Layout = { previous = previous, screen = newScreen(if previous then previous.next else 0), windows = current.windows }
 	local children = {}
 	local root = { current.root or false, #current.notices ~= 0 and notices(current.notices) }
 	placeList(layout, root, 2, "/", children)
@@ -1799,11 +1826,10 @@ local function diff(previous: Screen?, next: Screen): Node?
 			end
 		end
 	end
-	local lists = listChanges(previous, next)
-	if previous and #set == 0 and #removed == 0 and #lists == 0 then
+	if previous and #set == 0 and #removed == 0 then
 		return nil
 	end
-	return { reset = previous == nil, set = set, removed = removed, lists = lists }
+	return { reset = previous == nil, set = set, removed = removed }
 end
 
 -- view returns what the mod shows player, made empty the first time.
@@ -1824,9 +1850,19 @@ local function view(player: Player): View
 		hudFrame = false,
 		display = {},
 		notices = {},
+		windows = {},
 	}
 	views[player.slot] = made
 	return made
+end
+
+-- forgetWindows drops current's windows of lists screen does not hold.
+local function forgetWindows(current: View, screen: Screen)
+	for id in current.windows do
+		if not screen.lists[id] then
+			current.windows[id] = nil
+		end
+	end
 end
 
 -- draw sends what changed in player's interface and notices.
@@ -1847,11 +1883,13 @@ local function draw(player: Player): boolean
 			return false
 		end
 		screens[player.slot] = whole
+		forgetWindows(current, whole)
 		return true
 	end
 
 	-- Keep the screen the player now holds.
 	screens[player.slot] = next
+	forgetWindows(current, next)
 	return true
 end
 
@@ -2043,6 +2081,7 @@ modlock.onPlayerReturn(function(returned)
 	local player = returned.connection.player
 	if views[player.slot] then
 		screens[player.slot] = nil
+		table.clear(views[player.slot].windows)
 		draw(player)
 	end
 end)
@@ -2238,6 +2277,20 @@ local function change(player: Player, node: string, value: (string | number | bo
 	end
 end
 
+-- windowed draws the window of a list a player's screen asks for.
+local function windowed(event: modlock.UiWindowEvent)
+	local current, screen = views[event.player.slot], screens[event.player.slot]
+	if current == nil or screen == nil or not screen.lists[event.node] then
+		return
+	end
+	current.windows[event.node] = {
+		first = event.first or 0,
+		count = math.min(event.count or 0, maxWindow),
+		focus = event.focus or "",
+	}
+	draw(event.player)
+end
+
 -- tick advances the clock to the frame at seconds and fades expiring
 -- notices.
 local function tick(seconds: number)
@@ -2275,6 +2328,6 @@ end
 
 -- Take the interface's events from the library, which loads without this
 -- module.
-wireCodec = modlock.serveInterface({ press = press, change = change, act = act, overlay = overlaid, placement = placed, tick = tick, players = forget })
+wireCodec = modlock.serveInterface({ press = press, change = change, act = act, overlay = overlaid, placement = placed, window = windowed, tick = tick, players = forget })
 
 return ui

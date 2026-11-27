@@ -1774,11 +1774,12 @@ func (*Node_Dropdown) isNode_Input() {}
 func (*Node_Range) isNode_Input() {}
 
 // List is a scrolling list of keyed rows, which may hold far more rows than a
-// tree holds nodes. The mod sends the template here and the rows in
-// Change.lists. The host keeps every row in order and fills first, total and
-// rows with the window of rows the player's renderer asks for, so the screen
-// carries only the rows near the visible box and the renderer builds a panel
-// only for those. The list scrolls with the mouse wheel over it.
+// tree holds nodes. The mod keeps every row in order and sends here only the
+// window of rows the player's renderer asked for with a UiWindowEvent, with
+// the list's total, so the screen carries only the rows near the visible box
+// and the renderer builds a panel only for those. Showing a list, or scrolling
+// it, costs the window and not the list. The list scrolls with the mouse wheel
+// over it.
 //
 // The list takes the keyboard and controller as one panel and holds which
 // row has the focus by key, so the focus stays on its row as rows arrive,
@@ -1799,22 +1800,22 @@ type List struct {
 	// RowHeight is each row's height in layout pixels, 1 to 1000.
 	RowHeight float32 `protobuf:"fixed32,2,opt,name=row_height,json=rowHeight,proto3" json:"rowHeight,omitempty"`
 	// First is the place of rows[0] in the whole list, and Total the number of
-	// rows the list holds. The host sets them; a mod's are ignored.
+	// rows the list holds, at most 20,000.
 	First uint32 `protobuf:"varint,3,opt,name=first,proto3" json:"first,omitempty"`
 	Total uint32 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
-	// Rows holds the rows in the window the renderer asked for, in order. The
-	// host sets them; a mod's are ignored.
+	// Rows holds the rows in the window the renderer asked for, in order: at
+	// most 256, each key distinct.
 	Rows []*Row `protobuf:"bytes,5,rep,name=rows,proto3" json:"rows,omitempty"`
 	// FocusStyle is laid over the focused row's own style, and SelectedStyle
 	// over the selected row's.
 	FocusStyle    *Style `protobuf:"bytes,6,opt,name=focus_style,json=focusStyle,proto3" json:"focusStyle,omitempty"`
 	SelectedStyle *Style `protobuf:"bytes,7,opt,name=selected_style,json=selectedStyle,proto3" json:"selectedStyle,omitempty"`
-	// Selected is the key of the row the mod draws as chosen, or empty. The
-	// host clears a key the list no longer holds.
+	// Selected is the key of the row the mod draws as chosen, or empty when
+	// the list holds no such row.
 	Selected string `protobuf:"bytes,8,opt,name=selected,proto3" json:"selected,omitempty"`
 	// Focus is the key the renderer last said has the focus, and FocusAt its
-	// place in the whole list, unset when the list holds no such row. The host
-	// sets them; a mod's are refused.
+	// place in the whole list, unset when the list holds no such row. The
+	// renderer reads them to keep the focus on its row as rows come and go.
 	Focus   string  `protobuf:"bytes,9,opt,name=focus,proto3" json:"focus,omitempty"`
 	FocusAt *uint32 `protobuf:"varint,10,opt,name=focus_at,json=focusAt,proto3,oneof" json:"focusAt,omitempty"`
 }
@@ -1895,15 +1896,12 @@ func (x *List) GetFocusAt() uint32 {
 	return 0
 }
 
-// Row is one row of a list, known by its key. Rows sort by rank, then by
-// sort, then by key, each in increasing order.
+// Row is one row of a list's window, known by its key. The mod orders the
+// rows; the renderer draws them in the order they come.
 type Row struct {
 	unknownFields []byte
 	// Key names the row within its list: one to 64 bytes.
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Rank and sort order the row; sort compares bytewise.
-	Rank float64 `protobuf:"fixed64,2,opt,name=rank,proto3" json:"rank,omitempty"`
-	Sort string  `protobuf:"bytes,3,opt,name=sort,proto3" json:"sort,omitempty"`
 	// Fields hold the values the row's template shows, at most 16, by name.
 	Fields map[string]string `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
@@ -1921,20 +1919,6 @@ func (x *Row) GetKey() string {
 	return ""
 }
 
-func (x *Row) GetRank() float64 {
-	if x != nil {
-		return x.Rank
-	}
-	return 0
-}
-
-func (x *Row) GetSort() string {
-	if x != nil {
-		return x.Sort
-	}
-	return ""
-}
-
 func (x *Row) GetFields() map[string]string {
 	if x != nil {
 		return x.Fields
@@ -1942,98 +1926,63 @@ func (x *Row) GetFields() map[string]string {
 	return nil
 }
 
-// ListWindow is the run of a list's rows a player's renderer asks for: those
-// near the list's visible box, which it draws as the player scrolls.
-type ListWindow struct {
+// UiWindowEvent is the run of a list's rows a player's renderer asks for:
+// those near the list's visible box, which it draws as the player scrolls.
+// The mod answers by drawing the list with that window's rows. A list the
+// renderer has not asked about yet shows its first 50 rows.
+type UiWindowEvent struct {
 	unknownFields []byte
+	// Player is the player whose screen this is.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
 	// Node is the list node's id.
-	Node string `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	Node string `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
 	// First is the place of the first row, and count the number of rows, at
 	// most 256.
-	First uint32 `protobuf:"varint,2,opt,name=first,proto3" json:"first,omitempty"`
-	Count uint32 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+	First uint32 `protobuf:"varint,3,opt,name=first,proto3" json:"first,omitempty"`
+	Count uint32 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
 	// Focus is the key of the row that has the focus, or empty for none.
-	Focus string `protobuf:"bytes,4,opt,name=focus,proto3" json:"focus,omitempty"`
+	Focus string `protobuf:"bytes,5,opt,name=focus,proto3" json:"focus,omitempty"`
 }
 
-func (x *ListWindow) Reset() {
-	*x = ListWindow{}
+func (x *UiWindowEvent) Reset() {
+	*x = UiWindowEvent{}
 }
 
-func (*ListWindow) ProtoMessage() {}
+func (*UiWindowEvent) ProtoMessage() {}
 
-func (x *ListWindow) GetNode() string {
+func (x *UiWindowEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiWindowEvent) GetNode() string {
 	if x != nil {
 		return x.Node
 	}
 	return ""
 }
 
-func (x *ListWindow) GetFirst() uint32 {
+func (x *UiWindowEvent) GetFirst() uint32 {
 	if x != nil {
 		return x.First
 	}
 	return 0
 }
 
-func (x *ListWindow) GetCount() uint32 {
+func (x *UiWindowEvent) GetCount() uint32 {
 	if x != nil {
 		return x.Count
 	}
 	return 0
 }
 
-func (x *ListWindow) GetFocus() string {
+func (x *UiWindowEvent) GetFocus() string {
 	if x != nil {
 		return x.Focus
 	}
 	return ""
-}
-
-// ListChange changes the rows of one list node.
-type ListChange struct {
-	unknownFields []byte
-	// Node is the list node's id.
-	Node string `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
-	// Reset drops every row before the rest of the change applies.
-	Reset_ bool `protobuf:"varint,2,opt,name=reset,proto3" json:"reset,omitempty"`
-	// Set holds the new or changed rows, and removed the keys of rows to drop.
-	Set     []*Row   `protobuf:"bytes,3,rep,name=set,proto3" json:"set,omitempty"`
-	Removed []string `protobuf:"bytes,4,rep,name=removed,proto3" json:"removed,omitempty"`
-}
-
-func (x *ListChange) Reset() {
-	*x = ListChange{}
-}
-
-func (*ListChange) ProtoMessage() {}
-
-func (x *ListChange) GetNode() string {
-	if x != nil {
-		return x.Node
-	}
-	return ""
-}
-
-func (x *ListChange) GetReset_() bool {
-	if x != nil {
-		return x.Reset_
-	}
-	return false
-}
-
-func (x *ListChange) GetSet() []*Row {
-	if x != nil {
-		return x.Set
-	}
-	return nil
-}
-
-func (x *ListChange) GetRemoved() []string {
-	if x != nil {
-		return x.Removed
-	}
-	return nil
 }
 
 // Binding sets parts of one panel of a layout. A property the binding leaves
@@ -3926,11 +3875,6 @@ type Change struct {
 	// handles them; a mod cannot select its lifetime. Peer snapshots and
 	// deltas carry the screen owner's nonzero generation unchanged.
 	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
-	// Lists changes the rows of list nodes, after set and removed apply. A
-	// list node's rows go with the node. The host keeps the rows and shows the
-	// renderer a change without lists, setting instead each list node whose
-	// window of rows changed.
-	Lists []*ListChange `protobuf:"bytes,5,rep,name=lists,proto3" json:"lists,omitempty"`
 }
 
 func (x *Change) Reset() {
@@ -3965,13 +3909,6 @@ func (x *Change) GetGeneration() uint64 {
 		return x.Generation
 	}
 	return 0
-}
-
-func (x *Change) GetLists() []*ListChange {
-	if x != nil {
-		return x.Lists
-	}
-	return nil
 }
 
 // Tree is one mod's whole tree for one player.
@@ -4899,8 +4836,6 @@ func (m *Row) CloneVT() *Row {
 	}
 	r := new(Row)
 	r.Key = m.Key
-	r.Rank = m.Rank
-	r.Sort = m.Sort
 	r.Fields = protobuf_go_lite.CloneMap(m.Fields)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -4912,11 +4847,12 @@ func (m *Row) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
-func (m *ListWindow) CloneVT() *ListWindow {
+func (m *UiWindowEvent) CloneVT() *UiWindowEvent {
 	if m == nil {
-		return (*ListWindow)(nil)
+		return (*UiWindowEvent)(nil)
 	}
-	r := new(ListWindow)
+	r := new(UiWindowEvent)
+	r.Player = m.Player
 	r.Node = m.Node
 	r.First = m.First
 	r.Count = m.Count
@@ -4927,26 +4863,7 @@ func (m *ListWindow) CloneVT() *ListWindow {
 	return r
 }
 
-func (m *ListWindow) CloneMessageVT() protobuf_go_lite.CloneMessage {
-	return m.CloneVT()
-}
-
-func (m *ListChange) CloneVT() *ListChange {
-	if m == nil {
-		return (*ListChange)(nil)
-	}
-	r := new(ListChange)
-	r.Node = m.Node
-	r.Reset_ = m.Reset_
-	r.Set = protobuf_go_lite.CloneVTSlice(m.Set)
-	r.Removed = protobuf_go_lite.CloneSlice(m.Removed)
-	if len(m.unknownFields) > 0 {
-		r.unknownFields = slices.Clone(m.unknownFields)
-	}
-	return r
-}
-
-func (m *ListChange) CloneMessageVT() protobuf_go_lite.CloneMessage {
+func (m *UiWindowEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -5644,7 +5561,6 @@ func (m *Change) CloneVT() *Change {
 	r.Generation = m.Generation
 	r.Set = protobuf_go_lite.CloneVTSlice(m.Set)
 	r.Removed = protobuf_go_lite.CloneSlice(m.Removed)
-	r.Lists = protobuf_go_lite.CloneVTSlice(m.Lists)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -6349,12 +6265,6 @@ func (this *Row) EqualVT(that *Row) bool {
 	if this.Key != that.Key {
 		return false
 	}
-	if this.Rank != that.Rank {
-		return false
-	}
-	if this.Sort != that.Sort {
-		return false
-	}
 	if !protobuf_go_lite.EqualMap(this.Fields, that.Fields) {
 		return false
 	}
@@ -6369,10 +6279,13 @@ func (this *Row) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
-func (this *ListWindow) EqualVT(that *ListWindow) bool {
+func (this *UiWindowEvent) EqualVT(that *UiWindowEvent) bool {
 	if this == that {
 		return true
 	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
 		return false
 	}
 	if this.Node != that.Node {
@@ -6390,37 +6303,8 @@ func (this *ListWindow) EqualVT(that *ListWindow) bool {
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
-func (this *ListWindow) EqualMessageVT(thatMsg any) bool {
-	that, ok := thatMsg.(*ListWindow)
-	if !ok {
-		return false
-	}
-	return this.EqualVT(that)
-}
-
-func (this *ListChange) EqualVT(that *ListChange) bool {
-	if this == that {
-		return true
-	} else if this == nil || that == nil {
-		return false
-	}
-	if this.Node != that.Node {
-		return false
-	}
-	if this.Reset_ != that.Reset_ {
-		return false
-	}
-	if !protobuf_go_lite.EqualVTSliceImplicit(this.Set, that.Set, func() *Row { return &Row{} }) {
-		return false
-	}
-	if !protobuf_go_lite.EqualSlice(this.Removed, that.Removed) {
-		return false
-	}
-	return string(this.unknownFields) == string(that.unknownFields)
-}
-
-func (this *ListChange) EqualMessageVT(thatMsg any) bool {
-	that, ok := thatMsg.(*ListChange)
+func (this *UiWindowEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiWindowEvent)
 	if !ok {
 		return false
 	}
@@ -7528,9 +7412,6 @@ func (this *Change) EqualVT(that *Change) bool {
 		return false
 	}
 	if this.Generation != that.Generation {
-		return false
-	}
-	if !protobuf_go_lite.EqualVTSliceImplicit(this.Lists, that.Lists, func() *ListChange { return &ListChange{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -9882,16 +9763,6 @@ func (x *Row) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("key")
 		s.WriteString(x.Key)
 	}
-	if x.Rank != 0 || s.HasField("rank") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("rank")
-		s.WriteFloat64(x.Rank)
-	}
-	if x.Sort != "" || s.HasField("sort") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("sort")
-		s.WriteString(x.Sort)
-	}
 	if x.Fields != nil || s.HasField("fields") {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("fields")
@@ -9925,12 +9796,6 @@ func (x *Row) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "key":
 			s.AddField("key")
 			x.Key = s.ReadString()
-		case "rank":
-			s.AddField("rank")
-			x.Rank = s.ReadFloat64()
-		case "sort":
-			s.AddField("sort")
-			x.Sort = s.ReadString()
 		case "fields":
 			s.AddField("fields")
 			if s.ReadNil() {
@@ -9950,14 +9815,19 @@ func (x *Row) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the ListWindow message to JSON.
-func (x *ListWindow) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the UiWindowEvent message to JSON.
+func (x *UiWindowEvent) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
 	}
 	s.WriteObjectStart()
 	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
 	if x.Node != "" || s.HasField("node") {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("node")
@@ -9981,13 +9851,13 @@ func (x *ListWindow) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the ListWindow to JSON.
-func (x *ListWindow) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the UiWindowEvent to JSON.
+func (x *UiWindowEvent) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the ListWindow message from JSON.
-func (x *ListWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the UiWindowEvent message from JSON.
+func (x *UiWindowEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -9995,6 +9865,9 @@ func (x *ListWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		switch key {
 		default:
 			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
 		case "node":
 			s.AddField("node")
 			x.Node = s.ReadString()
@@ -10011,99 +9884,8 @@ func (x *ListWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	})
 }
 
-// UnmarshalJSON unmarshals the ListWindow from JSON.
-func (x *ListWindow) UnmarshalJSON(b []byte) error {
-	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
-}
-
-// MarshalProtoJSON marshals the ListChange message to JSON.
-func (x *ListChange) MarshalProtoJSON(s *json.MarshalState) {
-	if x == nil {
-		s.WriteNil()
-		return
-	}
-	s.WriteObjectStart()
-	var wroteField bool
-	if x.Node != "" || s.HasField("node") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("node")
-		s.WriteString(x.Node)
-	}
-	if x.Reset_ || s.HasField("reset") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("reset")
-		s.WriteBool(x.Reset_)
-	}
-	if len(x.Set) > 0 || s.HasField("set") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("set")
-		s.WriteArrayStart()
-		var wroteElement bool
-		for _, element := range x.Set {
-			s.WriteMoreIf(&wroteElement)
-			element.MarshalProtoJSON(s.WithField("set"))
-		}
-		s.WriteArrayEnd()
-	}
-	if len(x.Removed) > 0 || s.HasField("removed") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("removed")
-		s.WriteStringArray(x.Removed)
-	}
-	s.WriteObjectEnd()
-}
-
-// MarshalJSON marshals the ListChange to JSON.
-func (x *ListChange) MarshalJSON() ([]byte, error) {
-	return json.DefaultMarshalerConfig.Marshal(x)
-}
-
-// UnmarshalProtoJSON unmarshals the ListChange message from JSON.
-func (x *ListChange) UnmarshalProtoJSON(s *json.UnmarshalState) {
-	if s.ReadNil() {
-		return
-	}
-	s.ReadObject(func(key string) {
-		switch key {
-		default:
-			s.Skip() // ignore unknown field
-		case "node":
-			s.AddField("node")
-			x.Node = s.ReadString()
-		case "reset":
-			s.AddField("reset")
-			x.Reset_ = s.ReadBool()
-		case "set":
-			s.AddField("set")
-			if s.ReadNil() {
-				x.Set = nil
-				return
-			}
-			s.ReadArray(func() {
-				if s.ReadNil() {
-					x.Set = append(x.Set, nil)
-					return
-				}
-				v := &Row{}
-				v.UnmarshalProtoJSON(s.WithField("set", false))
-				if s.Err() != nil {
-					return
-				}
-				x.Set = append(x.Set, v)
-			})
-		case "removed":
-			s.AddField("removed")
-			if s.ReadNil() {
-				x.Removed = nil
-				return
-			}
-			x.Removed = s.ReadStringArray()
-		}
-	})
-}
-
-// UnmarshalJSON unmarshals the ListChange from JSON.
-func (x *ListChange) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the UiWindowEvent from JSON.
+func (x *UiWindowEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -12754,17 +12536,6 @@ func (x *Change) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("generation")
 		s.WriteUint64(x.Generation)
 	}
-	if len(x.Lists) > 0 || s.HasField("lists") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("lists")
-		s.WriteArrayStart()
-		var wroteElement bool
-		for _, element := range x.Lists {
-			s.WriteMoreIf(&wroteElement)
-			element.MarshalProtoJSON(s.WithField("lists"))
-		}
-		s.WriteArrayEnd()
-	}
 	s.WriteObjectEnd()
 }
 
@@ -12813,24 +12584,6 @@ func (x *Change) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "generation":
 			s.AddField("generation")
 			x.Generation = s.ReadUint64()
-		case "lists":
-			s.AddField("lists")
-			if s.ReadNil() {
-				x.Lists = nil
-				return
-			}
-			s.ReadArray(func() {
-				if s.ReadNil() {
-					x.Lists = append(x.Lists, nil)
-					return
-				}
-				v := &ListChange{}
-				v.UnmarshalProtoJSON(s.WithField("lists", false))
-				if s.Err() != nil {
-					return
-				}
-				x.Lists = append(x.Lists, v)
-			})
 		}
 	})
 }
@@ -14555,16 +14308,6 @@ func (m *Row) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0x22
 		}
 	}
-	if len(m.Sort) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sort)
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Rank != 0 {
-		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Rank))))
-		i--
-		dAtA[i] = 0x11
-	}
 	if len(m.Key) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
 		i--
@@ -14573,7 +14316,7 @@ func (m *Row) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ListWindow) MarshalVT() (dAtA []byte, err error) {
+func (m *UiWindowEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -14586,12 +14329,12 @@ func (m *ListWindow) MarshalVT() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ListWindow) MarshalToVT(dAtA []byte) (int, error) {
+func (m *UiWindowEvent) MarshalToVT(dAtA []byte) (int, error) {
 	size := m.SizeVT()
 	return m.MarshalToSizedBufferVT(dAtA[:size])
 }
 
-func (m *ListWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+func (m *UiWindowEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -14605,83 +14348,27 @@ func (m *ListWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if len(m.Focus) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Focus)
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if m.Count != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Count))
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x20
 	}
 	if m.First != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.First))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
 	}
 	if len(m.Node) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ListChange) MarshalVT() (dAtA []byte, err error) {
-	if m == nil {
-		return nil, nil
-	}
-	size := m.SizeVT()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ListChange) MarshalToVT(dAtA []byte) (int, error) {
-	size := m.SizeVT()
-	return m.MarshalToSizedBufferVT(dAtA[:size])
-}
-
-func (m *ListChange) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
-	if m == nil {
-		return 0, nil
-	}
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.unknownFields != nil {
-		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
-	}
-	if len(m.Removed) > 0 {
-		for iNdEx := len(m.Removed) - 1; iNdEx >= 0; iNdEx-- {
-			i = protobuf_go_lite.EncodeString(dAtA, i, m.Removed[iNdEx])
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.Set) > 0 {
-		for iNdEx := len(m.Set) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Set[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if m.Reset_ {
-		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Reset_)
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
 		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Node) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
-		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -16760,18 +16447,6 @@ func (m *Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if len(m.Lists) > 0 {
-		for iNdEx := len(m.Lists) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Lists[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x2a
-		}
-	}
 	if m.Generation != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
 		i--
@@ -17889,8 +17564,6 @@ func (m *Row) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
-	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Rank)
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sort)
 	for k, v := range m.Fields {
 		_ = k
 		_ = v
@@ -17901,33 +17574,17 @@ func (m *Row) SizeVT() (n int) {
 	return n
 }
 
-func (m *ListWindow) SizeVT() (n int) {
+func (m *UiWindowEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.First)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Count)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Focus)
-	n += len(m.unknownFields)
-	return n
-}
-
-func (m *ListChange) SizeVT() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
-	n += protobuf_go_lite.SizeBoolNonZero(1, m.Reset_)
-	for _, e := range m.Set {
-		l = e.SizeVT()
-		n += protobuf_go_lite.SizeMessage(1, l)
-	}
-	n += protobuf_go_lite.SizeStringSlice(1, m.Removed)
 	n += len(m.unknownFields)
 	return n
 }
@@ -18549,10 +18206,6 @@ func (m *Change) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringSlice(1, m.Removed)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
-	for _, e := range m.Lists {
-		l = e.SizeVT()
-		n += protobuf_go_lite.SizeMessage(1, l)
-	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -19378,14 +19031,6 @@ func (x *Row) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
 		protobuf_go_lite.TextWriteString(&sb, x.Key)
 	}
-	if x.Rank != 0 {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "rank")
-		protobuf_go_lite.TextWriteFloat64(&sb, x.Rank)
-	}
-	if x.Sort != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sort")
-		protobuf_go_lite.TextWriteString(&sb, x.Sort)
-	}
 	if len(x.Fields) > 0 {
 		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "fields")
 		for _, k := range slices.Sorted(maps.Keys(x.Fields)) {
@@ -19404,9 +19049,13 @@ func (x *Row) String() string {
 	return x.MarshalProtoText()
 }
 
-func (x *ListWindow) MarshalProtoText() string {
+func (x *UiWindowEvent) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
-	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ListWindow")
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiWindowEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
 	if x.Node != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
 		protobuf_go_lite.TextWriteString(&sb, x.Node)
@@ -19426,45 +19075,7 @@ func (x *ListWindow) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *ListWindow) String() string {
-	return x.MarshalProtoText()
-}
-
-func (x *ListChange) MarshalProtoText() string {
-	var sb protobuf_go_lite.TextBuilder
-	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ListChange")
-	if x.Node != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
-		protobuf_go_lite.TextWriteString(&sb, x.Node)
-	}
-	if x.Reset_ != false {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reset")
-		protobuf_go_lite.TextWriteBool(&sb, x.Reset_)
-	}
-	if len(x.Set) > 0 {
-		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "set")
-		for i, v := range x.Set {
-			protobuf_go_lite.TextWriteListSeparator(&sb, i)
-			if v == nil {
-				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Row{})
-			} else {
-				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
-			}
-		}
-		protobuf_go_lite.TextWriteListEnd(&sb)
-	}
-	if len(x.Removed) > 0 {
-		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "removed")
-		for i, v := range x.Removed {
-			protobuf_go_lite.TextWriteListSeparator(&sb, i)
-			protobuf_go_lite.TextWriteString(&sb, v)
-		}
-		protobuf_go_lite.TextWriteListEnd(&sb)
-	}
-	return protobuf_go_lite.TextFinishMessage(&sb)
-}
-
-func (x *ListChange) String() string {
+func (x *UiWindowEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -20505,18 +20116,6 @@ func (x *Change) MarshalProtoText() string {
 	if x.Generation != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
 		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
-	}
-	if len(x.Lists) > 0 {
-		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "lists")
-		for i, v := range x.Lists {
-			protobuf_go_lite.TextWriteListSeparator(&sb, i)
-			if v == nil {
-				protobuf_go_lite.TextWriteTextMarshaler(&sb, &ListChange{})
-			} else {
-				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
-			}
-		}
-		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -21866,28 +21465,6 @@ func (m *Row) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Key = v
-		case 2:
-			if wireType != 1 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rank", wireType)
-			}
-			var v uint64
-			var _v64 uint64
-			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			v = uint64(_v64)
-			m.Rank = float64(math.Float64frombits(v))
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sort", wireType)
-			}
-			var v string
-			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Sort = v
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Fields", wireType)
@@ -21953,7 +21530,7 @@ func (m *Row) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
-func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
+func (m *UiWindowEvent) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	var err error
@@ -21967,13 +21544,22 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ListWindow: wiretype end group for non-group")
+			return fmt.Errorf("proto: UiWindowEvent: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ListWindow: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: UiWindowEvent: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
 			}
@@ -21983,7 +21569,7 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Node = v
-		case 2:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field First", wireType)
 			}
@@ -21992,7 +21578,7 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-		case 3:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
 			}
@@ -22001,7 +21587,7 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Focus", wireType)
 			}
@@ -22011,92 +21597,6 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Focus = v
-		default:
-			iNdEx = preIndex
-			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return protobuf_go_lite.ErrInvalidLength
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-
-func (m *ListChange) UnmarshalVT(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	var err error
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
-		if err != nil {
-			return err
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ListChange: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ListChange: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
-			}
-			var v string
-			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Node = v
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Reset_", wireType)
-			}
-			var v bool
-			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Reset_ = bool(v)
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Set", wireType)
-			}
-			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Set = append(m.Set, &Row{})
-			if err := m.Set[len(m.Set)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Removed", wireType)
-			}
-			var v string
-			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Removed = append(m.Removed, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -25371,19 +24871,6 @@ func (m *Change) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Lists", wireType)
-			}
-			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Lists = append(m.Lists, &ListChange{})
-			if err := m.Lists[len(m.Lists)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

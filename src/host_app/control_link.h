@@ -59,7 +59,6 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   void Logged(std::string_view mod, std::string_view text) override;
   void Failed(std::string_view mod, std::string_view error) override;
   void Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) override;
-  void UiWindow(std::string_view mod, int32_t slot, const wasm::ui::ListWindow& window) override;
   void Called(std::string_view mod, const wasm::profile::CallProfile& calls) override;
   void SlowFrame(std::string_view mod, const wasm::profile::SlowFrame& report) override;
   void ControllersWanted(const wasm::controllers::ControllerWants& wants) override;
