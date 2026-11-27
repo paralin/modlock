@@ -3,9 +3,9 @@ title: Files
 description: Keep text files on the host, with defaults included in the mod.
 ---
 
-Your mod reads and writes text files on the host, such as its configuration or the
-areas a player drew in the game. Put each file's default in your project's
-`data/` directory. `modlock build` copies that directory into the build, and
+Your mod can read and write text files on the host, such as its configuration
+or the areas a player drew in the game. Put each file's default in your
+project's `data/` directory. `modlock build` copies that directory into the build, and
 `modlock publish` uploads it with the rest of the build.
 
 <Samples>
@@ -102,7 +102,7 @@ segment, and a name with a control character. It also refuses `\` and `:`,
 because Windows reads them as separators.
 
 The host keeps the files your mod writes in a directory named after the mod's
-slug. They stay there when the server restarts or you publish an update.
+slug. The files stay there when the server restarts or you publish an update.
 `modlock dev` and `modlock play` keep that directory under Modlock's
 configuration directory:
 
@@ -112,17 +112,17 @@ configuration directory:
 | macOS   | `~/Library/Application Support/modlock/files/<slug>/` |
 | Windows | `%AppData%\modlock\files\<slug>\`                     |
 
-To replace a file your mod includes, a server operator puts a file of the same
-name in that directory.
+A server operator can replace a file that your mod includes by putting a file
+of the same name in that directory.
 
 The files your mod writes can take up to 4 MiB together, and the host refuses a
-write that would pass that. Each host keeps its own files, so your mod should
-treat a missing file as a reason to use its default rather than as an error.
+write that would go past that. Each host keeps its own files, so your mod
+should treat a missing file as a reason to use its default, not as an error.
 
 ## Structured files
 
 The host hands your mod each file's contents as a string and never parses
-them, so you choose the format and bundle a parser for it. This TypeScript mod
+them. So you choose the format, and you bundle a parser for it. This TypeScript mod
 keeps its areas in YAML and imports the `yaml` package to read them:
 
 ```ts
@@ -142,13 +142,14 @@ command('savearea', (player) => {
 
 ## Binary files
 
-`readFileBytes` returns a file as a `Uint8Array` with no text decoding, so a
-mod can include a table it built offline and view it in place with typed arrays,
-instead of parsing text at load. The host reads the whole file during the call,
-so the frame that makes it waits for the read. A view such as a
-`Float64Array` needs its offset to be a multiple of its element size, and the
-array `readFileBytes` returns may start at any offset, so copy it with
-`slice()` before making views that need alignment.
+`readFileBytes` returns a file as a `Uint8Array`, with no text decoding. So a
+mod can include a table it built offline and view it in place with typed
+arrays, instead of parsing text when it loads. The host reads the whole file
+during the call, so the frame that makes the call waits for the read.
+
+A view such as a `Float64Array` needs its offset to be a multiple of its
+element size. The array that `readFileBytes` returns may start at any offset,
+so copy it with `slice()` before you make views that need alignment.
 
 ```ts
 import { readFileBytes } from 'modlock'

@@ -5,9 +5,9 @@ description: Change or block a hit before it lands, and react to it after.
 
 Your mod can handle two events for each hit. `onDamage` fires before the game
 applies the damage, and your handler can change the amount or block the hit.
-`onDamaged` fires after, and tells your handler the health the victim had and
-the health the hit took. Both events give the attacker and the victim as
-entity numbers, the same number that is in a pawn's `entity` field.
+`onDamaged` fires after the hit lands, and tells your handler the health the
+victim had and the health the hit took. Both events give the attacker and the
+victim as entity numbers, the same number that a pawn's `entity` field holds.
 
 ## Change a hit
 
@@ -58,7 +58,7 @@ mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
 ## Block a hit
 
 When your `onDamage` handler returns `block`, the hit deals no damage. Modes
-block hits to:
+block hits for reasons such as these:
 
 - Protect a hero that just spawned.
 - Hold fire before a round starts.
@@ -160,11 +160,11 @@ mod.OnKill(func(kill *mod.KillEvent) {
 
 </Samples>
 
-The sample logs only kills between two players' heroes, since a slot of -1
-means no player's hero is on that side. The kill comes from the same hit
-`onDamaged` reports, one that took all the health the victim had left. Python
-spells the fields in `snake_case`, and Go reads each player as a slot, such as
-`kill.GetVictimPlayer()`.
+The sample logs only kills between two players' heroes, because a slot of -1
+means no player's hero is on that side. The kill comes from a hit that
+`onDamaged` also reports, one that took all the health the victim had left.
+Python spells the fields in `snake_case`, and Go reads each player as a slot,
+such as `kill.GetVictimPlayer()`.
 
 | Field            | Holds                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------- |
@@ -179,7 +179,7 @@ To turn a kill into a score, use [Kill scoring](/mechanics/kill-scoring).
 ## Melee, parries and heals
 
 `onMelee` reports each melee swing, with whether it was heavy and the entities
-it struck, and `onParry` reports each parry that catches one. `onHeal` reports
-health a hero or unit regains at once.
+it struck. `onParry` reports each parry that catches a swing. `onHeal` reports
+health that a hero or unit regains all at once.
 [Events](/guides/events#heals-levels-and-melee) lists their fields and what a
 heal leaves out.

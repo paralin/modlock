@@ -43,17 +43,18 @@ _ = console.Changelevel.Run("street_test")
 
 </Samples>
 
-Every call runs one console line through `serverCommand`, which can also set a
-development-only or cheat-protected variable. A variable whose value is a vector
-or a color has no typed setter, so set it with `serverCommand` yourself.
+Every call runs one console line through `serverCommand`, and `serverCommand`
+can also set a development-only or cheat-protected variable. A variable whose
+value is a vector or a color has no typed setter, so set it with
+`serverCommand` yourself.
 
 ## Set up a mode
 
-`apply(settings)` sets several variables in order and returns the names the
-server refused. For a custom mode, start from `arena`, which empties the map.
-The server keeps running with no one connected, and no troopers, neutrals,
-practice bots or zipline starts appear. Spread it and add your mode's own
-settings:
+`apply(settings)` sets several variables in order and returns the names of the
+ones the server refused. For a custom mode, start from `arena`, which empties
+the map. With `arena`, the server keeps running when no one is connected, and no
+troopers, neutrals, practice bots or zipline starts appear. Spread `arena` into
+your settings and add your mode's own:
 
 <Samples>
 
@@ -88,9 +89,9 @@ console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(tru
 ## Record a replay
 
 Hyperline does not record the games it hosts, so a mod that wants a replay
-records one itself. Turn on SourceTV, then start the recording under a name of
-letters, digits, `-` and `_`. Give each recording its own name, such as the
-mod's slug and a round number, so one never overwrites another:
+records one itself. Turn on SourceTV, then start the recording under a name
+made of letters, digits, `-` and `_`. Give each recording its own name, such as
+the mod's slug and a round number, so one recording never overwrites another:
 
 <Samples>
 
@@ -153,24 +154,24 @@ record("my-mod-round-1")
 
 </Samples>
 
-`tv_enable_dynamic` starts SourceTV without a map change, `tv_delay 0` records
-as play happens, and `tv_transmitall` keeps the whole map in the recording
-rather than one team's view. `tv_stoprecord` ends the recording; otherwise it
-ends with the map or the server. Start it from a setting players choose, so a
-lobby records only when its leader asks.
+`tv_enable_dynamic` starts SourceTV without a map change. `tv_delay 0` records
+play as it happens. `tv_transmitall` keeps the whole map in the recording,
+rather than one team's view. `tv_stoprecord` ends the recording. Without it, the
+recording ends when the map or the server does. Start the recording from a
+setting players choose, so a lobby records only when its leader asks.
 
-The recording is `citadel/<name>.dem` on the PC or server that runs the game.
-When a lobby plays on its leader's PC, the leader has the file. A game on one
-of Hyperline's game servers, as every game of a `dedicatedOnly`
-[placement](/reference/manifest#placement) is, keeps the file where players
-cannot reach it, so ask for it in the
+The recording is saved as `citadel/<name>.dem` on the PC or server that runs
+the game. When a lobby plays on its leader's PC, the leader has the file. When
+the game runs on one of Hyperline's game servers, as every game of a
+`dedicatedOnly` [placement](/reference/manifest#placement) does, the file stays
+where players cannot reach it. Ask for it in the
 [Hyperline Discord](https://discord.gg/DCErWrCFvh) after the session.
 
 ## Limits
 
 Your mod's console lines can change the game, but nothing outside it. They may
-set the game's rules and bots, change or reload the map, kick a player, quit and
-set the time scale. They may also start the game's own recording with
+set the game's rules and bots, change or reload the map, kick a player, quit the
+game and set the time scale. They may also start the game's own recording with
 `tv_enable` and `tv_record <name>`, where the name contains only letters,
 digits, `-` and `_`. They may not reach:
 
@@ -186,5 +187,5 @@ digits, `-` and `_`. They may not reach:
 
 `toggle`, `incrementvar` and `multvar` set the variable they take, so the server
 refuses each of them for a variable your mod may not set directly. The server
-checks every command in a line, after each `;` or newline. When it refuses one,
-the error gives the first command it refused.
+checks every command in a line, after each `;` or newline. When it refuses a
+line, the error names the first command it refused.

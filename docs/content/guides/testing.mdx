@@ -6,16 +6,18 @@ description: Try a mod in seconds without the game, and test a whole round in it
 ## In the sandbox
 
 On macOS, or on any computer without Deadlock, `modlock dev` runs your mod in
-the sandbox. The sandbox has the same runtime and event limits as a server,
-and one stand-in player with no hero. It does not hold back a slow frame as a
-server does, so [measure speed](/performance/measure) in the game. When you type `/hello` and press Enter, the
-sandbox sends it as that player's chat. The terminal shows your mod's log
-and everything it sends to players. Calls that need the game, such as
-reading a hero's position, return nothing.
+the sandbox. The sandbox has the same runtime and event limits as a server, and
+one stand-in player with no hero. It does not hold back a slow frame the way a
+server does, so [measure speed](/performance/measure) in the game.
+
+When you type `/hello` in the terminal and press Enter, the sandbox sends it as
+that player's chat. The terminal shows your mod's log and everything the mod
+sends to players. Calls that need the game, such as reading a hero's position,
+return nothing.
 
 The preview page at `http://127.0.0.1:4322/` draws the screens your mod shows
-that player, as the game would. On the page you can press their buttons, send
-chat commands and pick a screenshot of the game as the backdrop. The page also
+that player, the way the game would. On the page you can press the player's
+buttons, send chat commands and pick a screenshot of the game as the backdrop. The page also
 shows a build in progress, a failed build's errors, and why a mod stopped.
 
 | Flag             | Does                                                                                                                                                         |
@@ -23,8 +25,9 @@ shows a build in progress, a failed build's errors, and why a mod stopped.
 | `--sandbox`      | Uses the sandbox even where the game is installed.                                                                                                           |
 | `--preview-port` | Serves the page on another port, or turns it off with 0. When another program holds the port, the page takes a free one and the terminal prints its address. |
 
-In a Python mod, the sandbox also runs a terminal line that starts with `>` as
-Python inside the running mod. See [Python](/languages/python#run-a-line-in-the-running-mod).
+In a Python mod, the sandbox also runs each terminal line that starts with `>`
+as Python inside the running mod, as
+[Python](/languages/python#run-a-line-in-the-running-mod) explains.
 
 <Only lang="go">
   You can test game rules that make no calls into the game with plain `go test`,
@@ -34,17 +37,18 @@ Python inside the running mod. See [Python](/languages/python#run-a-line-in-the-
 
 ## In the game
 
-To test a whole round in the game, build the test into the mod. Started with
-`modlock play -- probe`, the mod seats bots with `addBot` and plays the
-round. The mod then checks the outcome, logs PASS or FAIL and quits with
+To test a whole round in the game, build the test into the mod. When you start
+it with `modlock play -- probe`, the mod seats bots with `addBot` and plays the
+round. Then it checks the outcome, logs PASS or FAIL and quits with
 `serverCommand('quit')`, as
 [`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts)
 does.
 
 In TypeScript, `ProbeRun` keeps track of the probe's steps. Call `tick` on each
 frame with the step the probe waits on and a check. The check returns `true` to
-pass, a message to fail, or `false` to keep waiting. `ProbeRun` logs each new step
-once and fails the run when its timeout passes. Then it logs `<name> probe PASS` or `FAIL` and quits:
+pass, a message to fail, or `false` to keep waiting. `ProbeRun` logs each new
+step once, and it fails the run when its timeout passes. At the end it logs
+`<name> probe PASS` or `FAIL` and quits:
 
 ```ts
 const run = new ProbeRun('Duel', 120)

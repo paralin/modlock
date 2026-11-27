@@ -3,14 +3,14 @@ title: Settings, metrics and boards
 description: Let players choose, count what they do and rank them.
 ---
 
-A setting is a value a player chooses, a metric is a count of what players do,
-and a board is a ranking of players. You declare each in the manifest and the
+A setting is a value a player chooses. A metric is a count of what players do.
+A board is a ranking of players. You declare each one in the manifest, and the
 host stores them, so your mod needs no database of its own.
 
 ## Settings
 
 Declare a setting in [`mod.json`](/reference/manifest#settings), then read it.
-Every value is text, and a bot reads each setting's default.
+Every value is text. A bot always reads each setting's default.
 
 <Samples>
 
@@ -47,7 +47,7 @@ _ = p.SetSetting("layout", "full")
 </Samples>
 
 A player may change a setting outside the mod, such as on a profile page. The
-`setting-changed` event reports the change:
+`setting-changed` event tells your mod about the change:
 
 <Samples>
 
@@ -88,9 +88,9 @@ mod.OnSettingChanged(func(p mod.Player, key, value string) {
 
 ## Metrics
 
-A metric is a running total for each player: a count, a sum or a maximum.
-Declare it in [`mod.json`](/reference/manifest#metrics), then add to it. The
-optional label splits one metric into several totals.
+A metric is a running total for each player. It is a count, a sum or a
+maximum. Declare it in [`mod.json`](/reference/manifest#metrics), then add to
+it. The optional label splits one metric into several totals.
 
 <Samples>
 
@@ -117,8 +117,8 @@ _ = p.AddMetric("hud.opened", 1, &label)
 
 </Samples>
 
-When no host stores metrics, `modlock dev` logs each session's totals when the
-session ends.
+When no host stores the metrics, `modlock dev` logs each session's totals as
+the session ends.
 
 ## Boards
 
@@ -226,11 +226,11 @@ mod.Command("top", func(p mod.Player, args string) {
 | `reportMatch(board, places, done, options?)`          | Reports the enrolled players' places together. Ties share a place.      |
 | `readBoard(board, read, done)`                        | Delivers a page of standings on a later frame. The default is all time. |
 
-Use a stable key for each round or run if the game reports multiple results
-for the same player and board. Reuse that key and the same result if a reply
-is lost or the mod reloads. Leaving out the key identifies a single result
-for that player and board in the game.
+When the game reports more than one result for the same player and board, give
+each round or run a stable key. If a reply is lost or the mod reloads, report
+the same result again with the same key. When you leave out the key, the report
+stands for the one result that player has on that board in this game.
 
-Python spells them in `snake_case` with keyword options. Go spells them
+Python spells these calls in `snake_case`, with keyword options. Go spells them
 `Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's
-error where the others return false.
+error where the other languages return false.

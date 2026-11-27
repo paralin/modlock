@@ -5,9 +5,10 @@ description: Pull back, aim and shake the camera, and play curves on it.
 
 `playCamera` moves a player's camera along a curve for each camera param, all
 on one timeline. The host sends each curve to the game as the game's own lerps,
-and the game plays them smoothly with no timers in your mod. Camera
-curves exist only in TypeScript, so this page's samples are TypeScript only. The
-calls they build on, `moveCamera` and `clearCamera`, are in every language.
+and the game plays them smoothly, so your mod needs no timers. Camera curves
+exist only in TypeScript, so this page's samples are in TypeScript only. The
+calls the curves build on, `moveCamera` and `clearCamera`, are in every
+language.
 
 ```ts
 // Pull back while the view widens, ease back in after two seconds.
@@ -45,9 +46,9 @@ after(30, () => tour?.cancel())
 | `rate`            | How many lerps a second the host sends for a sampled span. 30 by default.                                                                                                              |
 | context, priority | A move takes a context of its own unless you pass one. When moves in two contexts overlap, the one with the higher `priority` plays, and the camera returns to the other when it ends. |
 
-`playCamera` returns a move with `duration` and `cancel()`, or nothing when the
-player has no hero. Each param snaps back to its usual value when its curve
-ends, so end a curve at rest.
+`playCamera` returns a move with `duration` and `cancel()`. It returns nothing
+when the player has no hero. Each param snaps back to its usual value when its
+curve ends, so end each curve at rest.
 
 ## Curves
 
@@ -75,10 +76,10 @@ builder returns a curve, so you can pass one builder's result to another:
 
 ## The view follows the aim
 
-The view always looks along the player's own aim, which keeps
+The view always looks along the player's own aim. That keeps
 `Pawn.cameraPosition` and `cameraAngles` accurate for finding what the player
 aims at. The game's camera operations (`CCitadelUserMsg_CameraController`) move
-only the five params above. Frame a higher
-view by raising `verticalOffset` and pulling `distance` back, and shift it with
-`horizontalOffset`. The player tilts it with the mouse. Turning the view itself
-means setting the player's view angles, which takes over their look.
+only the five params above. To frame a higher view, raise `verticalOffset` and
+pull `distance` back. To shift the view sideways, use `horizontalOffset`. The
+player tilts the view with the mouse. To turn the view itself, you must set the
+player's view angles, and that takes over their look.

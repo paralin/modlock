@@ -3,12 +3,12 @@ title: Controllers
 description: Read a player's gamepads, joysticks and radio transmitters.
 ---
 
-A mod can read the game controllers on a player's own PC: gamepads, flight
-sticks, and radio transmitters in USB joystick mode. The player's Modlock
-client opens the devices and streams their state to the server, so the mod
-sees every axis, button and hat, including the right stick and channels the
-game itself never sends. Watch a player's controllers to start the stream,
-and each frame then lists them.
+A mod can read the game controllers on a player's own PC. These include
+gamepads, flight sticks, and radio transmitters in USB joystick mode. The
+player's Modlock client opens the devices and streams their state to the
+server. So the mod sees every axis, button and hat, including the right stick
+and radio channels that the game itself never sends. Watch a player's
+controllers to start the stream, and from then on each frame lists them.
 
 <Samples>
 
@@ -85,15 +85,15 @@ mod.OnFrame(func(frame *mod.FrameEvent) {
 
 </Samples>
 
-The client opens the devices only while a watch holds, and closes them when
-the mod calls `watchControllers(false)` or the player leaves. A watched player
-whose client streams nothing stays in the list, with stream `none` and no
-devices.
+The client opens the devices only while the mod watches them. It closes them
+when the mod calls `watchControllers(false)` or the player leaves. When a
+watched player's client streams nothing, the player stays in the list, with
+stream `none` and no devices.
 
 ## Devices
 
-Each entry in `controllers` is one device, with `info` that stays fixed while
-it is attached and `state` that changes each frame.
+Each entry in `controllers` is one device. Its `info` stays fixed while the
+device is attached, and its `state` changes each frame.
 
 | Field                       | Holds                                                                                                      |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -105,14 +105,14 @@ it is attached and `state` that changes each frame.
 | `state.pressed`, `released` | The raw buttons pressed and released since the last frame, so a tap shorter than a frame still shows.      |
 | `state.gamepad`             | The sticks (`leftX`, `leftY`, `rightX`, `rightY`, y positive down), the triggers from 0 to 1, and buttons. |
 
-With Steam Input on, a pad can be listed twice: the physical pad and the
-virtual copy Steam presents for it. Take one device, such as the first
-gamepad, as the examples do.
+With Steam Input on, one pad can appear twice in the list, once as the
+physical pad and once as the virtual copy that Steam presents for it. So take
+one device, such as the first gamepad, as the examples do.
 
 ## Stream
 
-`stream` says whether the values are current, so a mod can choose what to do
-in each state instead of acting on old input.
+`stream` says whether the values are current. With it, a mod can choose what
+to do in each state, instead of acting on old input.
 
 | Stream      | Means                                                                                           |
 | ----------- | ----------------------------------------------------------------------------------------------- |
@@ -121,13 +121,14 @@ in each state instead of acting on old input.
 | `stale`     | No update arrived within the deadline; the devices keep their last state.                       |
 | `none`      | No client streams them yet: none is linked, the link dropped, or the client has not answered.   |
 
-A flight or driving mod treats anything other than `live` as the pilot letting
-go: it holds its attitude and cuts the throttle, as Modlock's `fpv-drone`
-example does.
+A flight or driving mod treats any stream other than `live` as the pilot
+letting go. It holds its attitude and cuts the throttle, as Modlock's
+`fpv-drone` example does.
 
 ## Trying it without a device
 
 Start the client with `MODLOCK_VIRTUAL_CONTROLLERS=1`, and it adds two virtual
-devices: a gamepad whose sticks circle and whose triggers ramp, and an
-eight-channel radio whose channels wave. The `controllers` example lists them,
+devices. One is a gamepad whose sticks move in circles and whose triggers ramp
+up. The other is an eight-channel radio whose channels move back and forth in
+waves. The `controllers` example lists them,
 and `fpv-drone` flies on the radio.

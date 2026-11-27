@@ -3,8 +3,8 @@ title: Timers
 description: Run code later, on a beat or as a sequence of steps.
 ---
 
-A timer calls your function at a time on the game's clock, so you never count
-frames yourself.
+A timer calls your function at a set time on the game's clock, so you never
+count frames yourself.
 
 | Call                 | Runs the callback                                                                                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -74,10 +74,10 @@ mod.Sequence(func(run int) (time.Duration, bool) {
 Each call returns a timer with `finished` and `cancel()`.
 
 - Timers count the game's clock, so pausing the game pauses them. They keep running across a map change.
-- The frame rate sets a timer's precision: it runs on the first frame at or after its time, and at most once per frame. A repeating timer that falls behind skips the runs it missed.
+- The frame rate sets a timer's precision. A timer runs on the first frame at or after its time, and at most once per frame. When a repeating timer falls behind, it skips the runs it missed.
 - Timers due on one frame run in the order they came due.
 - A timer made inside a callback first runs on the next frame.
-- A callback that throws ends only its own timer and logs `timer failed`.
+- When a callback throws, only its own timer ends, and the mod logs `timer failed`.
 
 <Only lang="go">
   In Go, the timers take a `time.Duration`, and a sequence callback returns the
