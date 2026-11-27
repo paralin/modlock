@@ -628,8 +628,8 @@ export type LayoutProps = {
 	data: any,
 	-- measure names the layout in the placement reports of followPlacement.
 	measure: string?,
-	-- bindings name panels of the layout by id and set each one's text or
-	-- visibility, or take its presses, while the layout keeps its own fonts,
+	-- bindings name panels of the layout by id and set each one's text,
+	-- visibility, classes, style or image, or take its presses, while the layout keeps its own fonts,
 	-- art and localization. A property a binding leaves unset keeps the
 	-- layout's own value. A layout with bindings takes presses only from its
 	-- bindings that have onPress.
@@ -678,11 +678,22 @@ export type ActionHandler = (player: Player, phase: ActionPhase) -> ()
 -- OverlayHandler takes the stock overlay that now holds player's input.
 export type OverlayHandler = (player: Player, overlay: Overlay) -> ()
 
--- Binding sets one named panel of a layout: text replaces its text, visible
--- shows or hides it, and onPress runs with the player who pressed it.
+-- Binding sets one named panel of a layout: text replaces its text, or token
+-- with the game's text for it in the player's language, each {s:name} place
+-- filled from variables. visible shows or hides it, class adds classes from
+-- the layout's sheets, and style sets its inline style. A property the
+-- binding drops returns to the author's value, except src, which sets an
+-- image's picture from the game's content and stays until the layout loads
+-- again, since the game cannot read a picture back. onPress runs with the
+-- player who pressed it.
 export type Binding = {
 	text: string?,
+	token: string?,
+	variables: { [string]: string | number }?,
 	visible: boolean?,
+	class: string?,
+	style: Style?,
+	src: string?,
 	onPress: ((player: Player) -> ())?,
 }
 
@@ -1514,7 +1525,17 @@ local function bindings(layout: Layout, node: string, bound: { [string]: Binding
 		if binding.onPress then
 			layout.screen.presses[`{node} {panel}`] = binding.onPress
 		end
-		local entry: Node = { panel = panel, text = binding.text, visible = binding.visible, press = binding.onPress ~= nil }
+		local entry: Node = {
+			panel = panel,
+			text = binding.text,
+			token = binding.token,
+			variables = variables(binding.variables),
+			visible = binding.visible,
+			classes = classes(binding.class),
+			style = wireStyle(binding.style),
+			image = binding.src,
+			press = binding.onPress ~= nil,
+		}
 		table.insert(out, entry)
 	end
 	return out

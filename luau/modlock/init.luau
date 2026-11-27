@@ -4424,6 +4424,15 @@ schema.Binding = {
 	{ number = 2, name = "text", kind = "string", optional = true },
 	{ number = 3, name = "visible", kind = "bool", optional = true },
 	{ number = 4, name = "press", kind = "bool" },
+	{ number = 5, name = "token", kind = "string", optional = true },
+	{ number = 6, name = "variables", kind = "message", repeated = true, message = "Binding_VariablesEntry" },
+	{ number = 7, name = "classes", kind = "string", repeated = true },
+	{ number = 8, name = "style", kind = "message", message = "Style" },
+	{ number = 9, name = "image", kind = "string", optional = true },
+}
+schema.Binding_VariablesEntry = {
+	{ number = 1, name = "key", kind = "string" },
+	{ number = 2, name = "value", kind = "string" },
 }
 schema.Clock = {
 	{ number = 1, name = "seconds", kind = "double" },

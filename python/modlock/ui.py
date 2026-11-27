@@ -495,8 +495,8 @@ class LayoutProps(TypedDict, total=False):
     with Modlock.data. measure names the layout in the placement reports of
     follow_placement.
 
-    bindings name panels of the layout by id and set each one's text or
-    visibility, or take its presses, while the layout keeps its own fonts,
+    bindings name panels of the layout by id and set each one's text,
+    visibility, classes, style or image, or take its presses, while the layout keeps its own fonts,
     art and localization. A property a binding leaves unset keeps the
     layout's own value. A layout with bindings takes presses only from its
     bindings that have on_press."""
@@ -511,12 +511,22 @@ class LayoutProps(TypedDict, total=False):
 
 
 class Binding(TypedDict, total=False):
-    """Binding sets one named panel of a layout: text replaces its text,
-    visible shows or hides it, and on_press runs with the player who
-    pressed it."""
+    """Binding sets one named panel of a layout: text replaces its text, or
+    token with the game's text for it in the player's language, each {s:name}
+    place filled from variables. visible shows or hides it, class_ adds
+    classes from the layout's sheets, and style sets its inline style. A
+    property the binding drops returns to the author's value, except src,
+    which sets an image's picture from the game's content and stays until the
+    layout loads again, since the game cannot read a picture back. on_press
+    runs with the player who pressed it."""
 
     text: str
+    token: str
+    variables: Mapping[str, str | float]
     visible: bool
+    class_: str
+    style: Style
+    src: str
     on_press: Callable[[Player], object] | None
 
 
@@ -1425,7 +1435,19 @@ def _bindings(layout: _Layout, node: str, bindings: Mapping[str, Binding] | None
         on_press = binding.get("on_press")
         if on_press is not None:
             layout.screen.presses[f"{node} {panel}"] = on_press
-        out.append({"panel": panel, "text": binding.get("text"), "visible": binding.get("visible"), "press": on_press is not None})
+        out.append(
+            {
+                "panel": panel,
+                "text": binding.get("text"),
+                "token": binding.get("token"),
+                "variables": _variables(binding.get("variables")),
+                "visible": binding.get("visible"),
+                "classes": _classes(binding.get("class_")),
+                "style": _style(binding.get("style")),
+                "image": binding.get("src"),
+                "press": on_press is not None,
+            }
+        )
     return out
 
 

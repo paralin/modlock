@@ -106,37 +106,51 @@ scripts, so a press happens only in the game.
 
 A layout can keep its fonts, art and localized text from its file while the
 mod sets a few of its panels. `bindings` names panels of the layout by their
-`id` and sets each one's `text` or `visible`, or takes its presses with
-`onPress`, and no script is needed:
+`id` and sets parts of each panel, or takes its presses with `onPress`, and
+no script is needed. Each part means what it means on an element:
+
+- `text` replaces a label's words, and `token` with `variables` replaces them
+  with the game's text in the player's language, as a `<label>`'s do.
+- `visible` shows or hides the panel.
+- `class` adds classes from the layout's sheets, separated by spaces.
+- `style` sets the panel's inline style.
+- `src` sets an image's picture from the game's content, as an `<image>`'s
+  does.
 
 ```tsx
 <layout
   src="shop.xml"
   bindings={{
-    price: { text: `${cost}` },
+    price: { token: '#shop_price', variables: { gold: cost } },
     sold_out: { visible: stock === 0 },
+    icon: { src: 'file://{images}/hud/gold.png', class: 'glow' },
     buy: { onPress: (player) => buy(player) },
   }}
 />
 ```
 
-Python's `layout(bindings={"buy": {"on_press": buy}})`, Luau's
-`bindings = { buy = { onPress = buy } }` and Go's `Layout.Bindings` take the
-same map. A property a binding leaves unset keeps the layout's own value, and
-one the mod stops setting goes back to the value the layout had. The renderer
-looks each panel up inside the layout's panel once the layout loads, applies
-every binding, and then applies each change as the mod draws it. After each
-draw, once the layout's script has read the draw's data, the renderer looks
-up any panel it has not found, and when the script has built its panels anew
-it finds them all again and applies every binding. A name the layout has no panel for logs
-one line in the game's console, and the other bindings still apply.
+Python's `layout(bindings={"buy": {"on_press": buy}})`, Luau's `bindings = {
+buy = { onPress = buy } }` and Go's `Layout.Bindings` take the same map. A
+property a binding leaves unset keeps the layout's own value, and one the mod
+stops setting goes back to the value the layout had: its text, its visibility,
+its inline style, and its lack of each class the binding added. A class the
+layout's author gave the panel stays when the binding drops it. `src` is the
+exception: the game cannot read an image's picture back, so the last one a
+binding set stays until the layout loads again. The renderer looks each panel
+up inside the layout's panel once the layout loads, applies every binding, and
+then applies each change as the mod draws it. After each draw, once the
+layout's script has read the draw's data, the renderer looks up any panel it
+has not found, and when the script has built its panels anew it finds them all
+again and applies every binding. A name the layout has no panel for logs one
+line in the game's console, and the other bindings still apply.
 
 A press on a bound panel reaches the mod as a press of the layout whose
 action is the panel's `id`, with no payload. A layout with any binding takes
 presses only from its bindings that have `onPress`, so the server refuses a
 press its script sends with `Modlock.press`, and a press from a panel the mod
 stopped binding. A layout holds at most 64 bindings, each naming a different
-panel by an `id` of up to 64 letters, digits, `_`, `-` and `.`.
+panel by an `id` of up to 64 letters, digits, `_`, `-` and `.`. A binding's
+text, token, classes and image are held to an element's limits.
 
 ## The renderer
 

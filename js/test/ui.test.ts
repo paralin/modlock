@@ -248,6 +248,12 @@ test("a layout's bindings go out by panel and a bound press runs its own handler
       bindings: {
         price: { text: '300' },
         buy: { visible: true, onPress: () => heard.push('buy') },
+        title: {
+          token: '#shop.title',
+          variables: { gold: 3 },
+          class: 'big gold',
+          src: 'file://{images}/hud/gold.png',
+        },
       },
       onAction: (_: unknown, action: string) => heard.push(`script ${action}`),
     }),
@@ -256,6 +262,13 @@ test("a layout's bindings go out by panel and a bound press runs its own handler
   expect(node.bindings).toEqual([
     { panel: 'buy', visible: true, press: true },
     { panel: 'price', text: '300' },
+    {
+      panel: 'title',
+      token: '#shop.title',
+      variables: { gold: '3' },
+      classes: ['big', 'gold'],
+      image: 'file://{images}/hud/gold.png',
+    },
   ])
 
   // A bound panel's press runs its handler. The host refuses any other action

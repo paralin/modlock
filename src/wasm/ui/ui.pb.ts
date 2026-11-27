@@ -2270,6 +2270,30 @@ export interface Binding {
    * refused, and so is one its script sends.
    */
   press?: boolean
+  /**
+   * Token is localized text, as a label's token is: '#' then letters, digits,
+   * '_', '-' and '.', shown in the player's language in place of text.
+   */
+  token?: string
+  /**
+   * Variables fill the token's {s:name} places, as a label's do.
+   */
+  variables?: { [key: string]: string }
+  /**
+   * Classes are added to the panel's own, for the layout's sheets to style.
+   */
+  classes?: string[]
+  /**
+   * Style is written over the panel's inline style, property by property, as
+   * a node's style is; a property it stops setting goes back to the author's.
+   */
+  style?: Style
+  /**
+   * Image is a path in the game's content the panel shows, as an image
+   * node's is. The game cannot read a panel's image back, so the last image a
+   * binding set stays until the layout loads again.
+   */
+  image?: string
 }
 
 export const Binding: MessageType<Binding> =
@@ -2280,6 +2304,11 @@ export const Binding: MessageType<Binding> =
       [2, 'text', 9, 4],
       [3, 'visible', 8, 4],
       [4, 'press', 8],
+      [5, 'token', 9, 4],
+      [6, 'variables', 9, 584],
+      [7, 'classes', 9, 1],
+      [8, 'style', 11, 0, Style.codec],
+      [9, 'image', 9, 4],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Binding): Binding => {
@@ -2298,6 +2327,29 @@ export const Binding: MessageType<Binding> =
               break
             case 4:
               m.press = r.bool()
+              break
+            case 5:
+              m.token = r.string()
+              break
+            case 6: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.string(),
+                '',
+                '',
+              )
+              m.variables ??= newMap()
+              m.variables[k] = v
+              break
+            }
+            case 7:
+              ;(m.classes ??= []).push(r.string())
+              break
+            case 8:
+              m.style = Style.decode(r, r.delimited(), m.style ?? {})
+              break
+            case 9:
+              m.image = r.string()
               break
             default:
               r.skip(t)
@@ -2321,6 +2373,32 @@ export const Binding: MessageType<Binding> =
         {
           const v = m.press
           if (v) w.uint32(32).bool(v)
+        }
+        {
+          const v = m.token
+          if (v != null) w.uint32(42).string(v)
+        }
+        {
+          const o = m.variables
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(50).fork()
+              w.uint32(10).string(k)
+              w.uint32(18).string(v)
+              w.join(s)
+            }
+        }
+        {
+          const a = m.classes
+          if (a != null) for (const e of a) w.uint32(58).string(e)
+        }
+        {
+          const v = m.style
+          if (v != null) Style.writeField(w, 8, v)
+        }
+        {
+          const v = m.image
+          if (v != null) w.uint32(74).string(v)
         }
       },
     },

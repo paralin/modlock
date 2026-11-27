@@ -837,8 +837,24 @@ export interface LayoutProps {
 export interface Binding {
   /** text replaces a label's words. */
   text?: string
+  /**
+   * token replaces a label's words with the game's text for it in the
+   * player's language, each {s:name} place filled from variables.
+   */
+  token?: string
+  variables?: Readonly<Record<string, string | number>>
   /** visible shows or hides the panel. */
   visible?: boolean
+  /** class adds classes from the layout's sheets, separated by spaces. */
+  class?: string
+  /** style sets inline style; a property it drops returns to the author's. */
+  style?: Style
+  /**
+   * src sets an image's picture from the game's content. The game cannot
+   * read a picture back, so the last one set stays until the layout loads
+   * again.
+   */
+  src?: string
   /** onPress runs when the player presses the panel. */
   onPress?: (player: Player) => void
 }
@@ -2359,7 +2375,12 @@ function bindings(
     encoded.push({
       panel,
       text: binding.text,
+      token: binding.token,
+      variables: variables(binding.variables),
       visible: binding.visible,
+      classes: classes(binding.class),
+      style: wireStyle(binding.style),
+      image: binding.src,
       press: binding.onPress !== undefined,
     })
 

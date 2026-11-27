@@ -106,20 +106,41 @@ bool IsWord(std::string_view text, std::string_view extra) {
   });
 }
 
-// CheckLabel returns why a node's localized text cannot be drawn: a token is
-// '#' then a word that may hold '-' and '.', and its variables are named by
-// words and bounded.
-std::expected<void, std::string> CheckLabel(const ui::Node& node) {
-  if (!node.token().empty() &&
-      !(node.token().starts_with('#') && IsWord(node.token().substr(1), "-."))) {
-    return std::unexpected("node " + node.id() + ": a token is '#' then letters and digits");
+// IsContentImage reports whether path is an image in the game's content.
+bool IsContentImage(std::string_view path) {
+  return std::ranges::any_of(kImageRoots, [&](auto root) { return path.starts_with(root); });
+}
+
+// CheckText returns why localized text cannot be drawn by what names it: a
+// token is '#' then a word that may hold '-' and '.', and its variables are
+// named by words and bounded.
+std::expected<void, std::string> CheckText(
+    std::string_view what, std::string_view token,
+    const google::protobuf::Map<std::string, std::string>& variables) {
+  if (!token.empty() && !(token.starts_with('#') && IsWord(token.substr(1), "-."))) {
+    return std::unexpected(std::string(what) + ": a token is '#' then letters and digits");
   }
-  if (node.variables_size() > kMaxVariables) {
-    return std::unexpected("node " + node.id() + ": too many variables");
+  if (variables.size() > kMaxVariables) {
+    return std::unexpected(std::string(what) + ": too many variables");
   }
-  for (const auto& [name, value] : node.variables()) {
+  for (const auto& [name, value] : variables) {
     if (!IsWord(name, "") || value.size() > kMaxText) {
-      return std::unexpected("node " + node.id() + ": a variable is a word and short text");
+      return std::unexpected(std::string(what) + ": a variable is a word and short text");
+    }
+  }
+  return {};
+}
+
+// CheckClasses returns why classes cannot be drawn by what names them: each
+// is a word that may hold '-', and there are a bounded number.
+std::expected<void, std::string> CheckClasses(
+    std::string_view what, const google::protobuf::RepeatedPtrField<std::string>& classes) {
+  if (classes.size() > kMaxClasses) {
+    return std::unexpected(std::string(what) + ": too many classes");
+  }
+  for (const auto& name : classes) {
+    if (!IsWord(name, "-")) {
+      return std::unexpected(std::string(what) + ": a class is letters, digits, '_' and '-'");
     }
   }
   return {};
@@ -127,7 +148,8 @@ std::expected<void, std::string> CheckLabel(const ui::Node& node) {
 
 // CheckBindings returns why a node's bindings cannot be drawn: only a layout
 // holds them, a bounded number, each naming a different panel by a word that
-// may hold '-' and '.', with bounded text.
+// may hold '-' and '.', with text, a token, classes and an image held to a
+// node's limits.
 std::expected<void, std::string> CheckBindings(const ui::Node& node) {
   // Only a layout holds bindings, and a bounded number of them.
   if (node.bindings_size() == 0) {
@@ -150,9 +172,22 @@ std::expected<void, std::string> CheckBindings(const ui::Node& node) {
     if (!panels.insert(binding.panel()).second) {
       return std::unexpected("node " + node.id() + ": two bindings name panel " + binding.panel());
     }
+  }
+
+  // Each holds what a node may.
+  for (const auto& binding : node.bindings()) {
+    const auto what = "node " + node.id() + ": binding " + binding.panel();
     if (binding.text().size() > kMaxText) {
-      return std::unexpected("node " + node.id() + ": binding " + binding.panel() +
-                             ": text is too long");
+      return std::unexpected(what + ": text is too long");
+    }
+    if (binding.has_image() && !IsContentImage(binding.image())) {
+      return std::unexpected(what + ": images come from the game's content");
+    }
+    if (auto checked = CheckText(what, binding.token(), binding.variables()); !checked) {
+      return checked;
+    }
+    if (auto checked = CheckClasses(what, binding.classes()); !checked) {
+      return checked;
     }
   }
   return {};
@@ -202,11 +237,6 @@ std::expected<void, std::string> CheckInput(const ui::Node& node) {
     }
   }
   return {};
-}
-
-// IsContentImage reports whether path is an image in the game's content.
-bool IsContentImage(std::string_view path) {
-  return std::ranges::any_of(kImageRoots, [&](auto root) { return path.starts_with(root); });
 }
 
 // CheckAbilityDisplay returns why a node's ability display cannot be drawn:
@@ -338,13 +368,8 @@ std::expected<void, std::string> Check(const ui::Node& node) {
   }
 
   // A class is a word that may hold '-', and a sheet a path in the addon.
-  if (node.classes_size() > kMaxClasses) {
-    return std::unexpected("node " + node.id() + ": too many classes");
-  }
-  for (const auto& name : node.classes()) {
-    if (!IsWord(name, "-")) {
-      return std::unexpected("node " + node.id() + ": a class is letters, digits, '_' and '-'");
-    }
+  if (auto checked = CheckClasses("node " + node.id(), node.classes()); !checked) {
+    return checked;
   }
   if (node.sheets_size() > kMaxSheets) {
     return std::unexpected("node " + node.id() + ": too many style sheets");
@@ -380,7 +405,7 @@ std::expected<void, std::string> Check(const ui::Node& node) {
   }
 
   // Localized text, inputs and the ability display have their own limits.
-  if (auto checked = CheckLabel(node); !checked) {
+  if (auto checked = CheckText("node " + node.id(), node.token(), node.variables()); !checked) {
     return checked;
   }
   if (auto checked = CheckAbilityDisplay(node); !checked) {

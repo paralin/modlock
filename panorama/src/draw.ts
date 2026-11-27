@@ -1734,19 +1734,30 @@ export class Drawing {
    */
   private labelText(panel: Panel, node: Node, clock: Ticking | null): string {
     // A label without a token, or a host without the game's text, shows the
-    // label's own text.
+    // label's own text; a clock fills the token's place or stands in for it.
     const time = clock ? clockText(clock.clock, clockTime(clock, now())) : null
     const token = node.token ?? ''
-    if (!/^#[\w.-]{1,127}$/.test(token) || !this.panorama.Localize) {
-      return time ?? (node.text || token)
-    }
+    const variables =
+      time === null ? { ...node.variables } : { ...node.variables, clock: time }
+    return (
+      this.localize(panel, token, variables) ?? time ?? (node.text || token)
+    )
+  }
 
+  /**
+   * localize returns token in the player's language with its places filled
+   * from variables, or null when token is not one or the host has no text.
+   */
+  private localize(
+    panel: Panel,
+    token: string,
+    variables: Record<string, string>,
+  ): string | null {
     // Fill the token's places, then look it up.
-    const variables = Object.entries(node.variables ?? {})
-    if (time !== null) {
-      variables.push(['clock', time])
+    if (!/^#[\w.-]{1,127}$/.test(token) || !this.panorama.Localize) {
+      return null
     }
-    for (const [name, value] of variables) {
+    for (const [name, value] of Object.entries(variables)) {
       this.attempt('fill a token', () => panel.SetDialogVariable(name, value))
     }
     return this.panorama.Localize(token, panel)
@@ -1798,7 +1809,6 @@ export class Drawing {
     return addon && isAddonName(addon) ? path.split(addonPlace).join(addon) : ''
   }
 
-  /** activate presses a button that is not disabled, playing its sound. */
   /** submit presses the button marked to submit when Enter ends an entry. */
   private submit(mod: string, id: string, panel: Panel): void {
     // Only a button that shares the entry's menu can take its Enter.
@@ -1812,6 +1822,7 @@ export class Drawing {
     }
   }
 
+  /** activate presses a button that is not disabled, playing its sound. */
   private activate(mod: string, id: string, panel: Panel): void {
     // A press counts only on a live, enabled button in an open menu.
     const drawn = this.current(mod, id, panel)
@@ -1846,6 +1857,13 @@ export class Drawing {
       this.panorama,
       panel,
       `${mod} ${path}`,
+      {
+        text: (bound, token, variables) =>
+          this.localize(bound, token, variables),
+        style: (style) => styleOf(style, false, undefined),
+        image: (image) => this.imagePath(mod, image),
+        attempt: (what, fn) => this.attempt(what, fn),
+      },
       (name) => {
         const drawn = this.current(mod, id, panel)
         if (!drawn || (drawn.menu && !this.menus.accepts(drawn.menu))) return

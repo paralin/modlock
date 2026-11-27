@@ -1,6 +1,6 @@
-// A layout's bindings set the text and visibility of panels the layout's
-// author named, and take their presses, while the layout keeps its own
-// fonts, art and localization. The mod names each panel by id; the drawing
+// A layout's bindings set the text, visibility, classes, style and image of
+// panels the layout's author named, and take their presses, while the layout
+// keeps its own fonts, art and localization. The mod names each panel by id; the drawing
 // looks it up only inside the layout's panel.
 //
 // LayoutBinding.tla gives the states. Once the layout loads, every binding
@@ -9,11 +9,32 @@
 // read a draw's data, a deleted bound panel makes the drawing look up every
 // panel again and apply every binding. A binding writes a property
 // only while it sets one, keeping the author's value to put back when the
-// mod stops setting it. A press reaches the mod only from a panel the
-// current draw binds to press.
+// mod stops setting it: the panel's text, visibility and inline style, and
+// its lack of each class the binding added. An image cannot be read back, so
+// it stays until the layout loads again. A press reaches the mod only from a
+// panel the current draw binds to press.
 
-import type { Binding } from '../../src/wasm/ui/ui.pb.js'
+import type { Binding, Style } from '../../src/wasm/ui/ui.pb.js'
 import type { Panel, Panorama } from './draw.js'
+
+/**
+ * Looks turns what a binding sets into what a panel takes, as the drawing
+ * turns a typed node's, so a property means the same in either.
+ */
+export interface Looks {
+  /** text returns token localized for panel with variables filled, or null. */
+  text(
+    panel: Panel,
+    token: string,
+    variables: Record<string, string>,
+  ): string | null
+  /** style returns the style properties to write for style. */
+  style(style: Style): Record<string, string>
+  /** image returns path as the panel loads it, or '' for none. */
+  image(path: string): string
+  /** attempt runs fn, logging once and going on when the game refuses it. */
+  attempt(what: string, fn: () => void): void
+}
 
 /** Bound is one named panel of a layout as the drawing last bound it. */
 interface Bound {
@@ -24,6 +45,12 @@ interface Bound {
   /** text and visible keep the author's values while a binding sets them. */
   text: string | null
   visible: boolean | null
+  /** style keeps the author's inline value of each property a binding sets. */
+  style: Record<string, string | null>
+  /** classes holds each class a binding added that the panel lacked. */
+  classes: Set<string>
+  /** image is the path a binding last set, which stays when it stops. */
+  image: string | null
 }
 
 /** LayoutBindings binds the named panels of one loaded layout. */
@@ -39,6 +66,7 @@ export class LayoutBindings {
     private readonly layout: Panel,
     /** label names the layout in a log line, such as "arena shop.xml". */
     private readonly label: string,
+    private readonly looks: Looks,
     /** press sends the press of the bound panel named panel. */
     private readonly press: (panel: string) => void,
   ) {}
@@ -65,6 +93,9 @@ export class LayoutBindings {
         binding: {},
         text: null,
         visible: null,
+        style: {},
+        classes: new Set<string>(),
+        image: null,
       }
       each.binding = binding
       this.bound.set(name, each)
@@ -99,6 +130,9 @@ export class LayoutBindings {
     each.panel = this.layout.FindChildTraverse(name)
     each.text = null
     each.visible = null
+    each.style = {}
+    each.classes = new Set()
+    each.image = null
     if (each.panel === null && !this.missing.has(name)) {
       this.missing.add(name)
       this.panorama.Msg(`[Modlock] ${this.label} has no panel ${name}`)
@@ -114,9 +148,10 @@ export class LayoutBindings {
     // the last.
     const panel = each.panel
     if (panel === null || !panel.IsValid()) return
-    if (binding.text !== undefined) {
+    const text = this.text(panel, binding)
+    if (text !== undefined) {
       each.text ??= panel.text
-      if (panel.text !== binding.text) panel.text = binding.text
+      if (panel.text !== text) panel.text = text
     } else if (each.text !== null) {
       panel.text = each.text
       each.text = null
@@ -130,6 +165,82 @@ export class LayoutBindings {
       panel.visible = each.visible
       each.visible = null
     }
+    this.applyClasses(panel, each, binding.classes ?? [])
+    this.applyStyle(panel, each, binding.style)
+
+    // Load the image when its path changes.
+    const image =
+      binding.image === undefined ? '' : this.looks.image(binding.image)
+    if (image && image !== each.image) {
+      each.image = image
+      this.looks.attempt('set an image', () => panel.SetImage(image))
+    }
+  }
+
+  /**
+   * text returns the text binding sets: its token's in the player's language,
+   * or its own when the game cannot look the token up. It is undefined when
+   * the binding sets neither.
+   */
+  private text(panel: Panel, binding: Binding): string | undefined {
+    const token = binding.token ?? ''
+    if (!token) return binding.text
+    const localized = this.looks.text(panel, token, binding.variables ?? {})
+    return localized ?? (binding.text || token)
+  }
+
+  /** applyClasses adds the classes wanted and takes off those dropped. */
+  private applyClasses(
+    panel: Panel,
+    each: Bound,
+    wanted: readonly string[],
+  ): void {
+    // Take off only what a binding added, so the author's own class stays.
+    const names = new Set(wanted)
+    for (const name of each.classes) {
+      if (names.has(name)) continue
+      each.classes.delete(name)
+      this.looks.attempt('remove a class', () => panel.RemoveClass(name))
+    }
+
+    // Add each the panel lacks, noting it as the binding's own.
+    for (const name of names) {
+      if (each.classes.has(name) || panel.BHasClass?.(name)) continue
+      each.classes.add(name)
+      this.looks.attempt('add a class', () => panel.AddClass(name))
+    }
+  }
+
+  /**
+   * applyStyle writes each property style sets, keeping the author's inline
+   * value first, and puts that value back for each property it dropped; a
+   * null value clears the inline style, so the layout's own sheet applies.
+   */
+  private applyStyle(
+    panel: Panel,
+    each: Bound,
+    style: Style | undefined,
+  ): void {
+    // Put back the author's value of each dropped property.
+    const wanted = style ? this.looks.style(style) : {}
+    for (const [name, value] of Object.entries(each.style)) {
+      if (name in wanted) continue
+      delete each.style[name]
+      this.write(panel, name, value)
+    }
+
+    // Keep and write each property set.
+    for (const [name, value] of Object.entries(wanted)) {
+      if (!(name in each.style)) each.style[name] = panel.style[name] ?? null
+      if (panel.style[name] !== value) this.write(panel, name, value)
+    }
+  }
+
+  /** write sets one style property, or clears it with null. */
+  private write(panel: Panel, name: string, value: string | null): void {
+    this.looks.attempt(`set the style ${name}`, () => {
+      panel.style[name] = value
+    })
   }
 
   /**

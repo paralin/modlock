@@ -2011,6 +2011,20 @@ type Binding struct {
 	// the bindings that press, so a press of a panel the mod no longer binds is
 	// refused, and so is one its script sends.
 	Press bool `protobuf:"varint,4,opt,name=press,proto3" json:"press,omitempty"`
+	// Token is localized text, as a label's token is: '#' then letters, digits,
+	// '_', '-' and '.', shown in the player's language in place of text.
+	Token *string `protobuf:"bytes,5,opt,name=token,proto3,oneof" json:"token,omitempty"`
+	// Variables fill the token's {s:name} places, as a label's do.
+	Variables map[string]string `protobuf:"bytes,6,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Classes are added to the panel's own, for the layout's sheets to style.
+	Classes []string `protobuf:"bytes,7,rep,name=classes,proto3" json:"classes,omitempty"`
+	// Style is written over the panel's inline style, property by property, as
+	// a node's style is; a property it stops setting goes back to the author's.
+	Style *Style `protobuf:"bytes,8,opt,name=style,proto3" json:"style,omitempty"`
+	// Image is a path in the game's content the panel shows, as an image
+	// node's is. The game cannot read a panel's image back, so the last image a
+	// binding set stays until the layout loads again.
+	Image *string `protobuf:"bytes,9,opt,name=image,proto3,oneof" json:"image,omitempty"`
 }
 
 func (x *Binding) Reset() {
@@ -2045,6 +2059,41 @@ func (x *Binding) GetPress() bool {
 		return x.Press
 	}
 	return false
+}
+
+func (x *Binding) GetToken() string {
+	if x != nil && x.Token != nil {
+		return *x.Token
+	}
+	return ""
+}
+
+func (x *Binding) GetVariables() map[string]string {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *Binding) GetClasses() []string {
+	if x != nil {
+		return x.Classes
+	}
+	return nil
+}
+
+func (x *Binding) GetStyle() *Style {
+	if x != nil {
+		return x.Style
+	}
+	return nil
+}
+
+func (x *Binding) GetImage() string {
+	if x != nil && x.Image != nil {
+		return *x.Image
+	}
+	return ""
 }
 
 // Clock is a time a label counts in the player's game.
@@ -4491,6 +4540,32 @@ func (x *Row_FieldsEntry) GetValue() string {
 	return ""
 }
 
+type Binding_VariablesEntry struct {
+	unknownFields []byte
+	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Binding_VariablesEntry) Reset() {
+	*x = Binding_VariablesEntry{}
+}
+
+func (*Binding_VariablesEntry) ProtoMessage() {}
+
+func (x *Binding_VariablesEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Binding_VariablesEntry) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 func (m *Node) CloneVT() *Node {
 	if m == nil {
 		return (*Node)(nil)
@@ -4715,6 +4790,11 @@ func (m *Binding) CloneVT() *Binding {
 	r.Press = m.Press
 	r.Text = protobuf_go_lite.ClonePtr(m.Text)
 	r.Visible = protobuf_go_lite.ClonePtr(m.Visible)
+	r.Token = protobuf_go_lite.ClonePtr(m.Token)
+	r.Variables = protobuf_go_lite.CloneMap(m.Variables)
+	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
+	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
+	r.Image = protobuf_go_lite.ClonePtr(m.Image)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -6151,6 +6231,21 @@ func (this *Binding) EqualVT(that *Binding) bool {
 		return false
 	}
 	if this.Press != that.Press {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Token, that.Token) {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Variables, that.Variables) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Classes, that.Classes) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Style, that.Style) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Image, that.Image) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -9667,6 +9762,56 @@ func (x *ListChange) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Binding_VariablesEntry message to JSON.
+func (x *Binding_VariablesEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Binding_VariablesEntry to JSON.
+func (x *Binding_VariablesEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Binding_VariablesEntry message from JSON.
+func (x *Binding_VariablesEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Binding_VariablesEntry from JSON.
+func (x *Binding_VariablesEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Binding message to JSON.
 func (x *Binding) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -9694,6 +9839,39 @@ func (x *Binding) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("press")
 		s.WriteBool(x.Press)
+	}
+	if x.Token != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("token")
+		s.WriteString(*x.Token)
+	}
+	if x.Variables != nil || s.HasField("variables") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("variables")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Variables)) {
+			v := x.Variables[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if len(x.Classes) > 0 || s.HasField("classes") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("classes")
+		s.WriteStringArray(x.Classes)
+	}
+	if x.Style != nil || s.HasField("style") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("style")
+		x.Style.MarshalProtoJSON(s.WithField("style"))
+	}
+	if x.Image != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("image")
+		s.WriteString(*x.Image)
 	}
 	s.WriteObjectEnd()
 }
@@ -9734,6 +9912,46 @@ func (x *Binding) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "press":
 			s.AddField("press")
 			x.Press = s.ReadBool()
+		case "token":
+			s.AddField("token")
+			if s.ReadNil() {
+				x.Token = nil
+				return
+			}
+			t := s.ReadString()
+			x.Token = &t
+		case "variables":
+			s.AddField("variables")
+			if s.ReadNil() {
+				x.Variables = nil
+				return
+			}
+			x.Variables = make(map[string]string)
+			s.ReadStringMap(func(key string) {
+				x.Variables[key] = s.ReadString()
+			})
+		case "classes":
+			s.AddField("classes")
+			if s.ReadNil() {
+				x.Classes = nil
+				return
+			}
+			x.Classes = s.ReadStringArray()
+		case "style":
+			if s.ReadNil() {
+				x.Style = nil
+				return
+			}
+			x.Style = &Style{}
+			x.Style.UnmarshalProtoJSON(s.WithField("style", true))
+		case "image":
+			s.AddField("image")
+			if s.ReadNil() {
+				x.Image = nil
+				return
+			}
+			t := s.ReadString()
+			x.Image = &t
 		}
 	})
 }
@@ -13961,6 +14179,48 @@ func (m *Binding) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Image != nil {
+		i = protobuf_go_lite.EncodeString(dAtA, i, *m.Image)
+		i--
+		dAtA[i] = 0x4a
+	}
+	if m.Style != nil {
+		size, err := m.Style.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.Classes) > 0 {
+		for iNdEx := len(m.Classes) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Classes[iNdEx])
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if len(m.Variables) > 0 {
+		for k := range m.Variables {
+			v := m.Variables[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeString(dAtA, i, v)
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	if m.Token != nil {
+		i = protobuf_go_lite.EncodeString(dAtA, i, *m.Token)
+		i--
+		dAtA[i] = 0x2a
+	}
 	if m.Press {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Press)
 		i--
@@ -17014,6 +17274,19 @@ func (m *Binding) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringPtr(1, m.Text)
 	n += protobuf_go_lite.SizeBoolPtr(1, m.Visible)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Press)
+	n += protobuf_go_lite.SizeStringPtr(1, m.Token)
+	for k, v := range m.Variables {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += protobuf_go_lite.SizeStringSlice(1, m.Classes)
+	if m.Style != nil {
+		l = m.Style.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeStringPtr(1, m.Image)
 	n += len(m.unknownFields)
 	return n
 }
@@ -18475,6 +18748,24 @@ func (x *ListChange) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *Binding_VariablesEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "VariablesEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Binding_VariablesEntry) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *Binding) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Binding")
@@ -18493,6 +18784,37 @@ func (x *Binding) MarshalProtoText() string {
 	if x.Press != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "press")
 		protobuf_go_lite.TextWriteBool(&sb, x.Press)
+	}
+	if x.Token != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "token")
+		protobuf_go_lite.TextWriteString(&sb, *x.Token)
+	}
+	if len(x.Variables) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "variables")
+		for _, k := range slices.Sorted(maps.Keys(x.Variables)) {
+			v := x.Variables[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	if len(x.Classes) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "classes")
+		for i, v := range x.Classes {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Style != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "style")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Style)
+	}
+	if x.Image != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "image")
+		protobuf_go_lite.TextWriteString(&sb, *x.Image)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -21054,6 +21376,93 @@ func (m *Binding) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Press = bool(v)
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Token = &v
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Variables", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Variables == nil {
+				m.Variables = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Variables[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Classes", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Classes = append(m.Classes, v)
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Style", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Style == nil {
+				m.Style = &Style{}
+			}
+			if err := m.Style.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Image = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

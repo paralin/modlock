@@ -403,6 +403,25 @@ message Binding {
   // the bindings that press, so a press of a panel the mod no longer binds is
   // refused, and so is one its script sends.
   bool press = 4;
+
+  // Token is localized text, as a label's token is: '#' then letters, digits,
+  // '_', '-' and '.', shown in the player's language in place of text.
+  optional string token = 5;
+
+  // Variables fill the token's {s:name} places, as a label's do.
+  map<string, string> variables = 6;
+
+  // Classes are added to the panel's own, for the layout's sheets to style.
+  repeated string classes = 7;
+
+  // Style is written over the panel's inline style, property by property, as
+  // a node's style is; a property it stops setting goes back to the author's.
+  Style style = 8;
+
+  // Image is a path in the game's content the panel shows, as an image
+  // node's is. The game cannot read a panel's image back, so the last image a
+  // binding set stays until the layout loads again.
+  optional string image = 9;
 }
 
 // Frame is the box a mod's root fills.
