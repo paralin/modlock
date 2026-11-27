@@ -38,11 +38,12 @@ var player = &players.Connection{
 	Roles:      []players.ModRole{players.ModRole_MOD_ROLE_DEVELOPER, players.ModRole_MOD_ROLE_TESTER},
 }
 
-// Sandbox runs mods without a game, as a server would with one player who
-// never has a hero: it starts each mod, gives it the world and the frame
-// clock, passes the player's commands and button presses to it, and reports
-// its logs, the messages it shows the player and its interface as host
-// events. Host calls that need the game answer empty.
+// Sandbox runs mods without a game, as a server would with a stand-in
+// player and the bots a mod adds: it starts each mod, gives it the world
+// and the frame clock, passes the player's commands and button presses to
+// it, and reports its logs, the messages it shows the player and its
+// interface as host events. Host calls that need the game answer empty,
+// except the roster and stand-in pawn calls a bot session uses.
 type Sandbox struct {
 	// config describes the session.
 	config Config
@@ -69,6 +70,27 @@ type Sandbox struct {
 	// handoff holds the handoff state of each mod for the game and for the
 	// stand-in player, which the next build reads back after a reload.
 	handoff map[handoffKey]string
+	// seats is the session roster: the stand-in human and every bot a mod
+	// has added.
+	seats map[int32]*seat
+	// lastGen is the last generation handed out per slot, so a reused slot
+	// gets a new one.
+	lastGen map[int32]uint32
+	// nextEntity is the next stand-in pawn handle to assign.
+	nextEntity uint32
+	// rosterDirty is set when AddBot or RemoveBot changes the roster, so
+	// the next finished event can report PlayersChanged.
+	rosterDirty bool
+	// joined records, per mod, the generation last announced in PlayerJoined.
+	joined map[string]map[int32]uint32
+	// pendingLeft holds PlayerLeft events not yet delivered, per mod.
+	pendingLeft map[string][]*players.Connection
+	// watched is the set of slots WatchMovement has turned on, whose stand-in
+	// pawns a Frame lists in Movement.
+	watched map[int32]bool
+	// entities are the session map's entities, loaded from maps/<map>.vpk or
+	// data/sandbox-entities.json.
+	entities *entityIndex
 }
 
 // handoffLimit is the most handoff state a mod sets in one call, as a server
@@ -255,7 +277,9 @@ func (s *Sandbox) run(ctx context.Context) {
 		s.log("", "settings: "+err.Error()+"; starting without them")
 	}
 
-	// Start the world and its mods, then the player joins.
+	// Load the map's entities before the mods start, then start the world
+	// and its mods, then the player joins.
+	s.loadMapEntities()
 	s.event(&control.HostEvent{Body: &control.HostEvent_Ready{Ready: &control.ServerReady{Map: s.config.Map}}})
 	for _, path := range s.config.Mods {
 		s.load(ctx, path)
@@ -312,13 +336,20 @@ func (s *Sandbox) load(ctx context.Context, path string) {
 		return
 	}
 
+	// Drop this mod's earlier bots before the new instance starts, so it
+	// can take the same slots. Restore them if the new build fails, and
+	// keep the running instance as it is.
+	snapshot := s.takeModBots(name)
+
 	// Load its module and start it in the world.
 	calls := &serviceCalls{}
 	mod, wants, err := s.start(ctx, name, build, calls)
 	if err != nil {
+		s.restoreBots(snapshot)
 		fail(err)
 		return
 	}
+	s.announceOthers(ctx, name)
 
 	// Replace the running mod of the same name, or add it; the calls the
 	// old instance started end with it.
@@ -354,21 +385,26 @@ func (s *Sandbox) start(ctx context.Context, name string, build *Build, calls *s
 		return nil, nil, err
 	}
 
-	// Start it, report its one player as a game server does before the next
-	// event, then give it the world. A build from before the report answers
-	// that it has no such method and keeps asking for its players.
+	// Start it, report the full roster as a game server does before the next
+	// event, then give it the world. Bots added during Start are included
+	// once Start returns, so join events are not nested in a host call. A
+	// build from before the report answers that it has no such method and
+	// keeps asking for its players.
 	wants := &wasm.StartResult{}
 	err = mod.Deliver(ctx, "Start", &wasm.StartEvent{Args: s.config.Args, Source: source}, wants)
 	if err == nil {
-		_ = mod.Deliver(ctx, "PlayersChanged", &players.PlayersChangedEvent{Players: []*players.Connection{player}}, nil)
-		if wants.GetJoins() {
-			_ = mod.Deliver(ctx, "PlayerJoined", &players.PlayerJoinedEvent{Connection: player}, nil)
-		}
+		s.announceTo(ctx, &running{name: name, mod: mod, wants: wants})
 	}
 	if err == nil && s.config.Map != "" {
 		err = mod.Deliver(ctx, "World", &wasm.WorldEvent{Map: s.config.Map}, nil)
 	}
+	if err == nil {
+		// Announce again after World, so bots added in onWorld are in
+		// the roster before the first frame or command.
+		s.announceTo(ctx, &running{name: name, mod: mod, wants: wants})
+	}
 	if err != nil {
+		s.dropModBots(name)
 		_ = mod.Close(ctx)
 		return nil, nil, err
 	}
@@ -427,7 +463,7 @@ func (s *Sandbox) frame(ctx context.Context, elapsed time.Duration) {
 	for _, mod := range s.mods {
 		s.endCalls(ctx, mod)
 		if mod.wants.GetFrames() {
-			s.deliver(ctx, mod, "Frame", &wasm.FrameEvent{Tick: s.tick, TimeSeconds: elapsed.Seconds()}, nil)
+			s.deliver(ctx, mod, "Frame", s.frameEvent(elapsed.Seconds()), nil)
 		}
 	}
 }
@@ -443,10 +479,15 @@ func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, requ
 	// Deliver the event; a session that is ending reports nothing.
 	err := s.attempt(ctx, mod, method, request, response)
 	if err == nil {
+		s.announceAll(ctx)
 		return true
 	}
 	if ctx.Err() == nil {
+		if mod.mod == nil {
+			s.dropModBots(mod.name)
+		}
 		s.failed(mod.name, err)
+		s.announceAll(ctx)
 	}
 	return false
 }
@@ -521,8 +562,14 @@ func (s *Sandbox) answer(build *Build, calls *serviceCalls, call *wasm.Call) *wa
 			}}})
 		}
 	case "Players":
-		response, _ := (&players.PlayersResponse{Players: []*players.Connection{player}}).MarshalVT()
+		response, _ := (&players.PlayersResponse{Players: s.connections()}).MarshalVT()
 		return &wasm.Reply{Response: response}
+	case "AddBot", "RemoveBot", "Pawn", "Pawns", "SelectHero", "ChangeTeam", "Spectate", "Kill", "Respawn":
+		return s.answerPlayerCall(mod, call)
+	case "Teleport", "MovePlayer", "WatchMovement":
+		return s.answerWorldCall(call)
+	case "FindEntities", "FindEntitiesByName", "EntityPosition", "EntityName", "EntityClass", "ReadField":
+		return s.answerEntityCall(call)
 	case "PlayerSetting":
 		request := &settingspb.PlayerSettingRequest{}
 		if request.UnmarshalVT(call.GetRequest()) == nil {

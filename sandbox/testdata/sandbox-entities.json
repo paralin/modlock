@@ -1,0 +1,31 @@
+{
+  "entities": [
+    {
+      "targetname": "[PR#]go",
+      "classname": "point_clientui_world_panel",
+      "origin": [625, -700, 0.1],
+      "angles": [0, 0, 0],
+      "keyvalues": {
+        "width": 200,
+        "height": 200,
+        "panel_dpi": 2.5,
+        "ignore_input": false
+      }
+    },
+    {
+      "targetname": "brown1",
+      "classname": "point_clientui_world_panel",
+      "origin": "500.000000 -700.000000 0.100000",
+      "angles": "0.000000 0.000000 0.000000",
+      "keyvalues": {
+        "width": 125,
+        "height": 200
+      }
+    },
+    {
+      "classname": "light_environment",
+      "origin": [0, 0, 256],
+      "angles": [0, 90, 0]
+    }
+  ]
+}
