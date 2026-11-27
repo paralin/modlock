@@ -1374,8 +1374,9 @@ class _UiHandlers:
     """_UiHandlers are modlock.ui's handlers of the events its interfaces
     raise, which it registers when a mod imports it."""
 
-    # press runs the handler of the button a player pressed.
-    press: Callable[[Player, str], object]
+    # press runs the handler of the button a player pressed, or of the layout
+    # binding the press's action names.
+    press: Callable[[Player, str, str], object]
     # change runs the handler of the input a player changed.
     change: Callable[[Player, str, UiValue], object]
     # act runs the handler of a game action a player used.
@@ -1458,8 +1459,8 @@ def _ui_press(event: UiPressEvent) -> None:
     # also runs with the next frame.
     ui = _ui
     if ui is not None:
-        player, node = event.player, event.node
-        after(0, lambda: ui.press(player, node))
+        player, node, action = event.player, event.node, event.action
+        after(0, lambda: ui.press(player, node, action))
 
 
 def _ui_input(event: UiInputEvent) -> None:

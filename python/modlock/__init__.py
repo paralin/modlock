@@ -5126,6 +5126,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(50, "measure", "string"),
             wire.Field(51, "frame", "enum", enum=_Frame),
             wire.Field(52, "follows_placement", "bool"),
+            wire.Field(54, "bindings", "message", repeated=True, message="Binding"),
         ],
     ),
     "Node_VariablesEntry": (
@@ -5133,6 +5134,15 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "key", "string"),
             wire.Field(2, "value", "string"),
+        ],
+    ),
+    "Binding": (
+        None,
+        [
+            wire.Field(1, "panel", "string"),
+            wire.Field(2, "text", "string", optional=True),
+            wire.Field(3, "visible", "bool", optional=True),
+            wire.Field(4, "press", "bool"),
         ],
     ),
     "Clock": (
@@ -7809,8 +7819,9 @@ class _UiHandlers:
     """_UiHandlers are modlock.ui's handlers of the events its interfaces
     raise, which it registers when a mod imports it."""
 
-    # press runs the handler of the button a player pressed.
-    press: Callable[[Player, str], object]
+    # press runs the handler of the button a player pressed, or of the layout
+    # binding the press's action names.
+    press: Callable[[Player, str, str], object]
     # change runs the handler of the input a player changed.
     change: Callable[[Player, str, UiValue], object]
     # act runs the handler of a game action a player used.
@@ -7893,8 +7904,8 @@ def _ui_press(event: UiPressEvent) -> None:
     # also runs with the next frame.
     ui = _ui
     if ui is not None:
-        player, node = event.player, event.node
-        after(0, lambda: ui.press(player, node))
+        player, node, action = event.player, event.node, event.action
+        after(0, lambda: ui.press(player, node, action))
 
 
 def _ui_input(event: UiInputEvent) -> None:

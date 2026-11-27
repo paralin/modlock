@@ -6,6 +6,7 @@
 // command that sends it to the server.
 
 import { GameAction } from '../../src/wasm/ui/ui.pb.js'
+import { actionCommand } from './data.js'
 import { gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
 import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
@@ -98,7 +99,13 @@ const drawing = new Drawing(
     Localize: (token: string, panel: object) => $.Localize(token, panel),
   },
   root,
-  (mod, node) => $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
+  (mod, node, action) =>
+    $.DispatchEvent(
+      'CitadelConCommand',
+      action === undefined
+        ? pressCommand(mod, node)
+        : actionCommand(mod, node, action, ''),
+    ),
   layouts,
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),

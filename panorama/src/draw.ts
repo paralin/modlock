@@ -76,6 +76,7 @@ import {
   routeAttribute,
   utf8,
 } from './data.js'
+import { LayoutBindings } from './binding.js'
 import { Voices } from './voice.js'
 import { type MenuHost, Menus, type Surface } from './menu.js'
 import { Documents, type Form } from './document.js'
@@ -192,8 +193,11 @@ export interface Panorama {
   Localize?(token: string, panel: Panel): string
 }
 
-/** Press reports a press on a mod's button. */
-export type Press = (mod: string, node: string) => void
+/**
+ * Press reports a press on a mod's button, or, with action, on the panel of
+ * the layout node that a binding names action.
+ */
+export type Press = (mod: string, node: string, action?: string) => void
 
 /** InputValue is the value a player gives one of a mod's inputs. */
 export type InputValue = Exclude<
@@ -623,6 +627,8 @@ interface Drawn {
   disabled: boolean
   layout: string | null
   loaded: boolean
+  /** bindings binds the named panels of a loaded layout, else null. */
+  bindings: LayoutBindings | null
   unloading: boolean
   data: string
   sheets: string
@@ -852,11 +858,13 @@ export class Drawing {
       this.layouts?.unloaded()
     }
 
-    // Show the nodes that follow the chat box or a voice by what the game
-    // shows now.
+    // Bind each layout's panels now that its script has read the new data,
+    // and show the nodes that follow the chat box or a voice by what the
+    // game shows now.
     this.gated = []
     for (const { nodes } of this.mods.values()) {
       for (const each of nodes.values()) {
+        each.bindings?.settle()
         if (each.hideInChat || each.speaking) this.gated.push(each)
       }
     }
@@ -1686,6 +1694,30 @@ export class Drawing {
   }
 
   /**
+   * bindLayout binds the named panels of the layout loaded in panel. A bound
+   * press counts only while the drawing shows that panel in an open menu,
+   * after the edits the player made before it.
+   */
+  private bindLayout(
+    mod: string,
+    id: string,
+    panel: Panel,
+    path: string,
+  ): LayoutBindings {
+    return new LayoutBindings(
+      this.panorama,
+      panel,
+      `${mod} ${path}`,
+      (name) => {
+        const drawn = this.current(mod, id, panel)
+        if (!drawn || (drawn.menu && !this.menus.accepts(drawn.menu))) return
+        this.flush(mod)
+        this.press(mod, id, name)
+      },
+    )
+  }
+
+  /**
    * drawNode draws node under parent, then its children in order. A root
    * drawn in a region fills that box instead of the screen.
    */
@@ -1843,6 +1875,16 @@ export class Drawing {
       this.changed = true
     }
 
+    // A loaded layout binds its named panels, finding them again in a new
+    // panel.
+    const bindings =
+      !layout || !loaded
+        ? null
+        : old?.panel === panel && old.bindings
+          ? old.bindings
+          : this.bindLayout(mod, id, panel, path)
+    bindings?.draw(node.bindings ?? [])
+
     // A new root loads its sheets; the panels nested for later sheets pass
     // the pointer through and lay the root's children out as the root does.
     const fresh = old?.panel !== panel
@@ -1911,6 +1953,7 @@ export class Drawing {
       submits: kind === Kind.BUTTON && !!node.submits,
       layout,
       loaded,
+      bindings,
       unloading: false,
       data,
       sheets: sheeted,

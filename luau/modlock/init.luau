@@ -4382,10 +4382,17 @@ schema.Node = {
 	{ number = 50, name = "measure", kind = "string" },
 	{ number = 51, name = "frame", kind = "enum", enum = Frame },
 	{ number = 52, name = "followsPlacement", kind = "bool" },
+	{ number = 54, name = "bindings", kind = "message", repeated = true, message = "Binding" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
 	{ number = 2, name = "value", kind = "string" },
+}
+schema.Binding = {
+	{ number = 1, name = "panel", kind = "string" },
+	{ number = 2, name = "text", kind = "string", optional = true },
+	{ number = 3, name = "visible", kind = "bool", optional = true },
+	{ number = 4, name = "press", kind = "bool" },
 }
 schema.Clock = {
 	{ number = 1, name = "seconds", kind = "double" },
@@ -5989,8 +5996,9 @@ end
 -- draws them, @modlock/ui, serves them with serveInterface, so the library
 -- loads without it.
 export type Interface = {
-	-- press takes a press on the button with id node, or on the ability bar.
-	press: (player: Player, node: string) -> (),
+	-- press takes a press on the button with id node, on the ability bar, or
+	-- on the panel a layout's binding names as action.
+	press: (player: Player, node: string, action: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel | RangeEvent)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
@@ -7217,7 +7225,7 @@ local handlers: ModHandlers = {
 		local served = interface
 		if served then
 			modlock.after(0, function()
-				served.press(event.player, event.node)
+				served.press(event.player, event.node, event.action)
 			end)
 		end
 	end,

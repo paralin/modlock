@@ -163,7 +163,10 @@ class FakePanel {
   GetAttributeString(name: string, fallback: string) {
     return this.attributes.get(name) ?? fallback
   }
+  /** built builds the panels a loaded layout's file holds, if a test sets it. */
+  static built: ((panel: FakePanel) => void) | null = null
   BLoadLayout(path: string) {
+    FakePanel.built?.(this)
     this.layout = path
     return !path.includes('missing')
   }
@@ -2207,6 +2210,96 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   const bareRoot = new FakePanel('Panel', 'ModlockUi')
   new Drawing($, bareRoot, () => {}).draw(sheets(['hud.css'], []))
   expect(bareRoot.children[0]!.layout).toBe('')
+})
+
+test("binds a layout's named panels and hears only their current presses", () => {
+  // The layout's file builds a button and a label with the author's text.
+  const author = (panel: FakePanel) => {
+    for (const [type, id] of [
+      ['Button', 'buy'],
+      ['Label', 'price'],
+    ]) {
+      const child = new FakePanel(type!, id!)
+      child.text = `author ${id}`
+      child.parent = panel
+      panel.children.push(child)
+    }
+  }
+  FakePanel.built = author
+  try {
+    // Draw the layout with three bindings, one naming no panel.
+    const root = new FakePanel('Panel', 'ModlockUi')
+    const presses: string[] = []
+    const drawing = new Drawing(
+      $,
+      root,
+      (mod, node, action) => presses.push(`${mod}:${node}:${action}`),
+      {
+        url: (_, path) => `file://arena/${path}`,
+        addon: () => 'arena',
+        unloaded: () => {},
+      },
+    )
+    let data = ''
+    const draw = (...bindings: JsonObject[]) =>
+      drawing.draw(
+        screen(
+          { id: '', children: ['a'] },
+          { id: 'a', kind: 'KIND_LAYOUT', layout: 'shop.xml', data, bindings },
+        ),
+      )
+    draw(
+      { panel: 'buy', visible: false, press: true },
+      { panel: 'price', text: '300' },
+      { panel: 'ghost', text: 'gone' },
+    )
+    const layout = root.children[0]!.children[0]!
+    let [buy, price] = layout.children
+    expect(buy!.visible).toBe(false)
+    expect(price!.text).toBe('300')
+    expect(buy!.text).toBe('author buy')
+    expect(messages).toEqual(['[Modlock] arena shop.xml has no panel ghost'])
+
+    // A press on the bound button reaches the mod by the panel's name.
+    handlers.get(buy!)!.get('Activated')!()
+    expect(presses).toEqual(['arena:a:buy'])
+
+    // A change applies; a press the draw no longer binds stays here, and a
+    // missing panel logs only once.
+    draw(
+      { panel: 'buy', visible: true },
+      { panel: 'price', text: '400' },
+      { panel: 'ghost', text: 'gone' },
+    )
+    expect(buy!.visible).toBe(true)
+    expect(price!.text).toBe('400')
+    handlers.get(buy!)!.get('Activated')!()
+    expect(presses).toEqual(['arena:a:buy'])
+    expect(messages).toHaveLength(1)
+
+    // A binding the mod drops gives the panel back the author's text.
+    draw({ panel: 'buy', press: true })
+    expect(price!.text).toBe('author price')
+    expect(buy!.style.visibility).toBe('visible')
+
+    // When the script builds its panels anew as it reads new data, every
+    // binding applies again in the same draw.
+    const dispatch = $.DispatchEvent.bind($)
+    $.DispatchEvent = (...args: Parameters<typeof dispatch>) => {
+      while (layout.children.length > 0) layout.children[0]!.DeleteAsync(0)
+      author(layout)
+      dispatch(...args)
+    }
+    data = '{"gold":1}'
+    draw({ panel: 'buy', press: true }, { panel: 'price', text: '500' })
+    $.DispatchEvent = dispatch
+    ;[buy, price] = layout.children
+    expect(price!.text).toBe('500')
+    handlers.get(buy!)!.get('Activated')!()
+    expect(presses).toEqual(['arena:a:buy', 'arena:a:buy'])
+  } finally {
+    FakePanel.built = null
+  }
 })
 
 test("hands a mod's routes to each of its layouts", () => {

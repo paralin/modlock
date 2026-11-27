@@ -143,7 +143,8 @@ class UiTrees {
   // mod hears from slot, the player the engine names, while slot's tree shows
   // the layout node and the player keeps under kActionsPerSecond presses a
   // second after a burst of kActionBurst. A name, a payload or a pace past
-  // those is refused, and so is every press once the tree is gone.
+  // those is refused, and so is every press once the tree is gone. A layout
+  // that holds bindings takes only the presses its bindings let through.
   [[nodiscard]] std::expected<ui::UiPressEvent, std::string> Action(
       int32_t slot, std::string_view line, std::chrono::steady_clock::time_point now);
 
@@ -192,6 +193,10 @@ class UiTrees {
     bool follows_placement = false;
     // measure is the name the node's bounds are reported by, or empty.
     std::string measure;
+    // bound marks a layout that holds bindings, which takes presses only
+    // from presses, the panels its bindings let press.
+    bool bound = false;
+    std::vector<std::string> presses;
   };
 
   // Keep returns what the host keeps of node.

@@ -453,7 +453,13 @@ class LayoutProps(TypedDict, total=False):
     """LayoutProps load a layout from the mod's content addon: src is its path
     there, such as "shop.xml", and data is the JSON value its script reads
     with Modlock.data. measure names the layout in the placement reports of
-    follow_placement."""
+    follow_placement.
+
+    bindings name panels of the layout by id and set each one's text or
+    visibility, or take its presses, while the layout keeps its own fonts,
+    art and localization. A property a binding leaves unset keeps the
+    layout's own value. A layout with bindings takes presses only from its
+    bindings that have on_press."""
 
     key: str | int
     class_: str
@@ -461,6 +467,17 @@ class LayoutProps(TypedDict, total=False):
     src: Required[str]
     data: object
     measure: str
+    bindings: Mapping[str, "Binding"]
+
+
+class Binding(TypedDict, total=False):
+    """Binding sets one named panel of a layout: text replaces its text,
+    visible shows or hides it, and on_press runs with the player who
+    pressed it."""
+
+    text: str
+    visible: bool
+    on_press: Callable[[Player], object] | None
 
 
 class Element:
@@ -906,8 +923,9 @@ def _overlaid(player: Player, overlay: Overlay) -> None:
         view.overlay(player, overlay)
 
 
-def _press(player: Player, node: str) -> None:
-    """_press runs the handler of the button the player pressed."""
+def _press(player: Player, node: str, action: str = "") -> None:
+    """_press runs the handler of the button the player pressed, or of the
+    layout binding whose panel the action names."""
     # A click on the game's ability bar names its slot, which no button's id
     # does.
     bar = _ABILITY_BAR_NODE.fullmatch(node)
@@ -917,7 +935,8 @@ def _press(player: Player, node: str) -> None:
             view.bar(player, int(bar[1]))
         return
     screen = _screens.get(player.slot)
-    pressed = None if screen is None else screen.presses.get(node)
+    key = f"{node} {action}" if action else node
+    pressed = None if screen is None else screen.presses.get(key)
     if pressed is not None:
         pressed(player)
 
@@ -1112,7 +1131,8 @@ class _Screen:
     # its parent's place, then "/" for the children, ",index" or ",=key" in a
     # list, and ">" for what a component returned.
     ids: dict[str, str] = field(default_factory=lambda: dict[str, str]())
-    # presses maps each button's id to its handler.
+    # presses maps each button's id, and each layout binding's layout id and
+    # panel, to its handler.
     presses: dict[str, Callable[[Player], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player], object]]()
     )
@@ -1267,6 +1287,7 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             node["layout"] = props.get("src", "")
             data = props.get("data")
             node["data"] = "" if data is None else (_json(data) or "")
+            node["bindings"] = _bindings(layout, node["id"], props.get("bindings"))
         case _:
             node["kind"] = "panel"
             node["children"] = _place(layout, children, f"{at}/")
@@ -1279,6 +1300,21 @@ def _classes(names: str | None) -> list[str] | None:
     none."""
     found = [name for name in (names or "").split(" ") if name != ""]
     return found or None
+
+
+def _bindings(layout: _Layout, node: str, bindings: Mapping[str, Binding] | None) -> list[dict[str, Any]] | None:
+    """_bindings encodes a layout's bindings in panel order, and keeps each
+    binding's press handler under the layout's id and its panel."""
+    if not bindings:
+        return None
+    out: list[dict[str, Any]] = []
+    for panel in sorted(bindings):
+        binding = bindings[panel]
+        on_press = binding.get("on_press")
+        if on_press is not None:
+            layout.screen.presses[f"{node} {panel}"] = on_press
+        out.append({"panel": panel, "text": binding.get("text"), "visible": binding.get("visible"), "press": on_press is not None})
+    return out
 
 
 def _input(layout: _Layout, node: dict[str, Any], kind: str, props: Mapping[str, Any], children: Child) -> None:

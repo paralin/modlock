@@ -237,6 +237,35 @@ test("a layout's press reaches its onAction with the player and payload", () => 
   expect(heard.length).toBe(3)
 })
 
+test("a layout's bindings go out by panel and a bound press runs its own handler", () => {
+  // The bindings go out in their panels' order, each press as a flag.
+  const player = new Player(5)
+  const heard: string[] = []
+  show(
+    player,
+    jsx('layout', {
+      src: 'shop.xml',
+      bindings: {
+        price: { text: '300' },
+        buy: { visible: true, onPress: () => heard.push('buy') },
+      },
+      onAction: (_: unknown, action: string) => heard.push(`script ${action}`),
+    }),
+  )
+  const node = sent.at(-1)!.change!.set!.find((each) => each.layout)!
+  expect(node.bindings).toEqual([
+    { panel: 'buy', visible: true, press: true },
+    { panel: 'price', text: '300' },
+  ])
+
+  // A bound panel's press runs its handler. The host refuses any other action
+  // from a layout with bindings, and one that reached the mod would go to
+  // onAction.
+  press(player, node.id!, 'buy', '')
+  press(player, node.id!, 'price', '')
+  expect(heard).toEqual(['buy', 'script price'])
+})
+
 test("the ability display names each row's player as Tab shows them", () => {
   // Each row carries its player's slot, name and hero, with its abilities'
   // ids, pictures and upgrades; the viewer's row is its own.

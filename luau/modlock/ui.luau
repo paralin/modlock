@@ -576,6 +576,12 @@ export type LayoutProps = {
 	data: any,
 	-- measure names the layout in the placement reports of followPlacement.
 	measure: string?,
+	-- bindings name panels of the layout by id and set each one's text or
+	-- visibility, or take its presses, while the layout keeps its own fonts,
+	-- art and localization. A property a binding leaves unset keeps the
+	-- layout's own value. A layout with bindings takes presses only from its
+	-- bindings that have onPress.
+	bindings: { [string]: Binding }?,
 	-- A key of another name is a mistake, which the indexer makes the checker
 	-- report.
 	[number]: never,
@@ -619,6 +625,14 @@ export type ActionHandler = (player: Player, phase: ActionPhase) -> ()
 
 -- OverlayHandler takes the stock overlay that now holds player's input.
 export type OverlayHandler = (player: Player, overlay: Overlay) -> ()
+
+-- Binding sets one named panel of a layout: text replaces its text, visible
+-- shows or hides it, and onPress runs with the player who pressed it.
+export type Binding = {
+	text: string?,
+	visible: boolean?,
+	onPress: ((player: Player) -> ())?,
+}
 
 -- Placement is where a player's screen places the interface, in layout units
 -- from the screen's top left, where the screen is 1080 units tall: the
@@ -707,7 +721,8 @@ type Screen = {
 	-- its parent's place, then "/" for the children, ",index" or ",=key" in a
 	-- list, and ">" for what a fragment holds.
 	ids: { [string]: string },
-	-- presses maps each button's id to its handler.
+	-- presses maps each button's id, and each layout binding's layout id and
+	-- panel, to its handler.
 	presses: { [string]: (player: Player) -> () },
 	-- changes maps each input's id to its handler.
 	changes: { [string]: (player: Player, value: any) -> () },
@@ -1310,6 +1325,29 @@ local function input(layout: Layout, node: Node, kind: string, props: { [any]: a
 	end
 end
 
+-- bindings encodes a layout's bindings in panel order, and keeps each
+-- binding's press handler under the layout's id and its panel.
+local function bindings(layout: Layout, node: string, bound: { [string]: Binding }?): { Node }?
+	if bound == nil or next(bound) == nil then
+		return nil
+	end
+	local panels: { string } = {}
+	for panel in bound do
+		table.insert(panels, panel)
+	end
+	table.sort(panels)
+	local out: { Node } = {}
+	for _, panel in panels do
+		local binding = bound[panel]
+		if binding.onPress then
+			layout.screen.presses[`{node} {panel}`] = binding.onPress
+		end
+		local entry: Node = { panel = panel, text = binding.text, visible = binding.visible, press = binding.onPress ~= nil }
+		table.insert(out, entry)
+	end
+	return out
+end
+
 -- place lays out child at place at in layout and appends its nodes' ids to
 -- out.
 function place(layout: Layout, child: any, at: string, out: { string })
@@ -1379,6 +1417,7 @@ function place(layout: Layout, child: any, at: string, out: { string })
 	elseif kind == "layout" then
 		node.layout = props.src or ""
 		node.data = if props.data == nil then "" else json(props.data) or ""
+		node.bindings = bindings(layout, node.id, props.bindings)
 	else
 		node.kind = "panel"
 		node.children = {}
@@ -1858,8 +1897,9 @@ local function placed(event: UiPlacementEvent)
 	end
 end
 
--- press runs the handler of the button the player pressed.
-local function press(player: Player, node: string)
+-- press runs the handler of the button the player pressed, or of the layout
+-- binding whose panel action names.
+local function press(player: Player, node: string, action: string)
 	-- A click on the game's ability bar names its slot, which no button's id
 	-- does.
 	local slot = string.match(node, "^ability:([0-3])$")
@@ -1871,7 +1911,8 @@ local function press(player: Player, node: string)
 		return
 	end
 	local screen = screens[player.slot]
-	local handler = if screen then screen.presses[node] else nil
+	local key = if action ~= "" then `{node} {action}` else node
+	local handler = if screen then screen.presses[key] else nil
 	if handler then
 		handler(player)
 	end
