@@ -5,7 +5,8 @@ description: Every field of mod.json.
 
 The manifest is the `mod.json` file at a project's root. It has the mod's
 slug, name, version and language, and may add its map, movement, definition
-changes, settings, metrics and boards. The smallest manifest has the four
+changes, settings, metrics, boards, and where and how its games play on
+hyperline.gg. The smallest manifest has the four
 required fields:
 
 ```json
@@ -33,6 +34,8 @@ required fields:
 | `persist`     |          | [Records](/reference/manifest#persist) the mod keeps for each player across sessions.                                 |
 | `services`    |          | [Services](/reference/manifest#services) the mod calls, each needed or optional.                                      |
 | `freeForAll`  |          | `true` starts the mod in [free-for-all](/guides/toolkit#play-free-for-all).                                           |
+| `placement`   |          | [Where](/reference/manifest#placement) the mod's games run on hyperline.gg.                                           |
+| `games`       |          | The [games](/reference/manifest#games) players start from hyperline.gg, and how each seats its players.               |
 
 ## Map
 
@@ -370,6 +373,102 @@ as they join, and refuses a bot's record. A game host too old to name the
 connection has every persist call refused, rather than answered for whoever
 holds the slot. It answers persist itself even with
 `--forward-services`.
+
+## Placement
+
+```json
+"placement": "dedicatedOnly"
+```
+
+`placement` says where the mod's games run on hyperline.gg:
+
+| Value              | Effect                                                                                                                                                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dedicatedAllowed` | The default. A lobby plays on its leader's PC, and the leader of a lobby of two or more may move it to one of Hyperline's game servers. A Draft game always plays on the leader's PC.                                 |
+| `dedicatedOnly`    | Every lobby, Draft ones too, plays on Hyperline's game servers, and the mod's code never goes to players' PCs. Choose it when the mod keeps something from players, or needs the server to itself, such as to record. |
+
+Hyperline's administrators can still move one game's lobbies, or one player's,
+without a release.
+
+## Games
+
+```json
+"games": [
+  {
+    "gameId": "mod-prop-hunt",
+    "name": "Prop Hunt",
+    "seating": "GAME_SEATING_ROTATION"
+  }
+]
+```
+
+Each entry is a game players start from hyperline.gg. A mod that leaves `games`
+out has one game, `mod-<slug>`, named after the mod. When you add `games` later,
+keep that ID to keep the game, its status and its players' results: a release
+with a `games` list retires every game of the mod it no longer names. A release
+without one keeps them.
+
+| Field          | Value                                                                                                       |
+| -------------- | ----------------------------------------------------------------------------------------------------------- |
+| `gameId`       | The game's stable ID, unique on hyperline.gg. Write `mod-<slug>` for the mod's first game.                  |
+| `name`         | The name players see.                                                                                       |
+| `description`  | How the game plays, in a few sentences.                                                                     |
+| `summary`      | The one line on the game's card.                                                                            |
+| `players`      | Who the game is for, such as `"2 or 4"`. Players read it; it limits nothing. `seating` sets the limit.      |
+| `length`       | How long a match runs, such as `"10 to 15 minutes"`.                                                        |
+| `highlights`   | Up to 6 short lines on what makes the game worth playing.                                                   |
+| `rules`        | Up to 8 lines on how the game plays, each under 200 characters.                                             |
+| `screenshots`  | Up to 8 images for the game's page; see [Page images](#page-images).                                        |
+| `match`        | The sides of a team game, such as `{ "amberSize": 3, "sapphireSize": 3 }`. The lobby seats players on them. |
+| `seating`      | [Who seats the players](#seating): `GAME_SEATING_LOBBY`, the default, or `GAME_SEATING_ROTATION`.           |
+| `experimental` | `true` badges the game as still in progress.                                                                |
+| `unlisted`     | `true` keeps the game out of the mod browser, for a game another page starts.                               |
+
+A game's status (Draft, Live, Paused or Retired), its place on the Play page and
+who it credits belong to hyperline.gg, and `publish` refuses a `games` entry
+that sets them. The mod's developers change the status on the mod's page.
+
+### Page images
+
+A game's page on hyperline.gg shows the images in `screenshots`, in order:
+
+| Image     | Where it shows                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| The first | The cover: the backdrop behind the game's name, summary and Play button at the top of its page. |
+| The rest  | The gallery under the page's facts, each with its caption.                                      |
+
+```json
+"screenshots": [
+  { "url": "media/cover.webp", "caption": "Two fighters on the rim of the pit." },
+  { "url": "media/stands.webp", "caption": "The crowd throws from the stands." }
+]
+```
+
+Each entry has a `url` and a `caption` under 200 characters. The `url` is an
+`https` address, a path on hyperline.gg, or a file in the mod's build, which
+`modlock publish` uploads to the site's CDN. A page holds up to 8 images.
+
+Take each image from the game itself, in 16:9 at 1920 by 1080, as WebP, PNG or
+JPEG. Keep each under 1 MB, the limit for an image uploaded on the mod's page;
+WebP fits a full screenshot well under it. The cover is cropped to fill the
+page's width and drawn darker behind the text, so keep its subject near the
+middle. The game's card on
+the Play page draws its own artwork and shows none of these images.
+
+The mod's developers can also replace the images on the mod's page without a
+release: they upload them there or paste an `https` address.
+
+### Seating
+
+| `seating`               | Players in a lobby | Who picks teams                                                                       |
+| ----------------------- | ------------------ | ------------------------------------------------------------------------------------- |
+| `GAME_SEATING_LOBBY`    | Up to 14           | The lobby, on the team seats of `match`. Without a `match`, the players are one list. |
+| `GAME_SEATING_ROTATION` | Up to 64           | The mod. The lobby has no team seats, and the game declares no `match`.               |
+
+A game whose mod moves players between teams itself, such as hide and seek or
+a [rotation mode](/mechanics/rotation), wants `GAME_SEATING_ROTATION`: the lobby
+puts nobody on a team, so the mod's own team changes stand. A lobby keeps the
+limit it opened with, so after publishing a new seating, open a new lobby.
 
 ## The built manifest
 

@@ -85,6 +85,87 @@ console.Apply(append(console.Arena(), console.CitadelAllowDuplicateHeroes.To(tru
 
 </Samples>
 
+## Record a replay
+
+Hyperline does not record the games it hosts, so a mod that wants a replay
+records one itself. Turn on SourceTV, then start the recording under a name of
+letters, digits, `-` and `_`. Give each recording its own name, such as the
+mod's slug and a round number, so one never overwrites another:
+
+<Samples>
+
+```ts
+import { run, set } from 'modlock/console'
+
+function record(name: string): void {
+  set('tv_enable_dynamic', true)
+  set('tv_delay', 0)
+  set('tv_transmitall', true)
+  set('tv_enable', true)
+  run('tv_record', name)
+}
+
+record('my-mod-round-1')
+```
+
+```luau
+local console = require("@modlock/console")
+
+local function record(name: string)
+	console.setBoolean("tv_enable_dynamic", true)
+	console.setNumber("tv_delay", 0)
+	console.setBoolean("tv_transmitall", true)
+	console.setBoolean("tv_enable", true)
+	console.run("tv_record", name)
+end
+
+record("my-mod-round-1")
+```
+
+```python
+from modlock import console
+
+
+def record(name: str) -> None:
+    console.set_boolean("tv_enable_dynamic", True)
+    console.set_number("tv_delay", 0)
+    console.set_boolean("tv_transmitall", True)
+    console.set_boolean("tv_enable", True)
+    console.run("tv_record", name)
+
+
+record("my-mod-round-1")
+```
+
+```go
+import "github.com/paralin/modlock/mod/console"
+
+func record(name string) {
+	_ = console.TvEnableDynamic.Set(true)
+	_ = console.TvDelay.Set(0)
+	_ = console.TvTransmitall.Set(true)
+	_ = console.TvEnable.Set(true)
+	_ = console.TvRecord.Run(name)
+}
+
+record("my-mod-round-1")
+```
+
+</Samples>
+
+`tv_enable_dynamic` starts SourceTV without a map change, `tv_delay 0` records
+as play happens, and `tv_transmitall` keeps the whole map in the recording
+rather than one team's view. `tv_stoprecord` ends the recording; otherwise it
+ends with the map or the server. Start it from a setting players choose, so a
+lobby records only when its leader asks.
+
+The recording is `citadel/<name>.dem` on the PC or server that runs the game.
+When a lobby plays on its leader's PC, the leader has the file. A game on one
+of Hyperline's game servers, as every game of a `dedicatedOnly`
+[placement](/reference/manifest#placement) is, keeps the file where players
+cannot reach it, so ask for it in the
+[Hyperline Discord](https://discord.gg/DCErWrCFvh) after the session.
+
 ## Limits
 
 Your mod's console lines can change the game, but nothing outside it. They may
