@@ -26,6 +26,10 @@ export class DomPanel implements Panel {
     (...args: unknown[]) => boolean | void
   >()
   private readonly attributes = new Map<string, string>()
+  /** slots holds the class SwitchClass last set in each named slot. */
+  private readonly slots = new Map<string, string>()
+  /** layoutfile is the layout this panel last loaded, as Panorama reports it. */
+  layoutfile = ''
   /** inline holds the styles code and the layout set, by camel-case name. */
   private readonly inline: Record<string, string>
   private valid = true
@@ -33,8 +37,24 @@ export class DomPanel implements Panel {
   /** options holds a dropdown's option panels by id. */
   private readonly options = new Map<string, DomPanel>()
   private dialog: Record<string, string> = {}
+  /** panelData is the object Data returns, kept for the panel's lifetime. */
+  private readonly panelData: Record<string, unknown> = {}
+  /** sourceText is the text last assigned, before dialog variables fill it, or null when none has been. */
+  private sourceText: string | null = null
+  /** markup is whether the text is HTML, as a label's html attribute. */
+  private markup = false
+  private steam = ''
+  private heroIdValue = 0
+  private heroNameValue = ''
+  private heroIdSet = false
   /** caption is a text button's inner label, which holds its text. */
   private readonly caption?: DomPanel
+  /** snippets holds this layout's named snippet roots, when this panel loaded a layout. */
+  private snippets?: Map<string, Element>
+  /** xmlEvents are onactivate (and other on*) handlers from the layout, bound once scripts run. */
+  private xmlEvents: { event: string; code: string }[] = []
+  /** compileEvent evaluates a layout event string in this layout's script scope. */
+  private compileEvent?: (code: string) => () => void
 
   constructor(
     readonly paneltype: string,
@@ -76,9 +96,15 @@ export class DomPanel implements Panel {
     // Native activation, hover and focus events map to their DOM equivalents.
     this.element.addEventListener('click', (event) => {
       if (!this.enabled) return
-      event.stopPropagation()
-      if (paneltype === 'ToggleButton') this.checked = !this.checked
-      this.handlers.get('onactivate')?.()
+      if (paneltype === 'ToggleButton') {
+        this.checked = !this.checked
+        event.stopPropagation()
+      }
+      const activate = this.handlers.get('onactivate')
+      if (activate) {
+        event.stopPropagation()
+        activate()
+      }
     })
 
     // A form element's edits arrive as the event its panel type raises.
@@ -162,7 +188,7 @@ export class DomPanel implements Panel {
     if (this.caption) return this.caption.text
     return this.element instanceof HTMLInputElement
       ? this.element.value
-      : (this.element.textContent ?? '')
+      : (this.sourceText ?? '')
   }
   set text(value: string) {
     if (this.caption) {
@@ -173,8 +199,66 @@ export class DomPanel implements Panel {
       this.element.value = value
       return
     }
-    this.element.textContent = value
-    shrink(this.element)
+    this.sourceText = value
+    this.applyText()
+  }
+
+  get html(): boolean {
+    return this.markup
+  }
+  set html(value: boolean) {
+    this.markup = value
+    this.applyText()
+  }
+
+  get steamid(): string {
+    return this.steam
+  }
+  set steamid(value: string) {
+    // The preview has no Steam pictures or names, so the account id stands
+    // in on avatar and user-name panels, as a hero id does on a hero image.
+    this.steam = String(value)
+    this.element.dataset.account = this.steam
+  }
+
+  /**
+   * SetHeroID stores the hero id and shows a text stand-in, since the
+   * preview has no hero portraits.
+   */
+  SetHeroID(id: number) {
+    this.heroIdValue = Math.trunc(Number(id) || 0)
+    this.heroIdSet = true
+    this.showHero()
+  }
+
+  /** SetHeroName stores the hero's name and prefers it on the stand-in. */
+  SetHeroName(name: string) {
+    this.heroNameValue = String(name ?? '')
+    this.showHero()
+  }
+
+  get heroid(): number {
+    return this.heroIdValue
+  }
+  set heroid(value: number) {
+    this.SetHeroID(value)
+  }
+
+  get heroname(): string {
+    return this.heroNameValue
+  }
+  set heroname(value: string) {
+    this.SetHeroName(value)
+  }
+
+  private showHero() {
+    const label = this.heroNameValue
+      ? this.heroNameValue
+      : this.heroIdSet
+        ? `hero ${this.heroIdValue}`
+        : ''
+    if (label) this.element.dataset.hero = label
+    else delete this.element.dataset.hero
   }
 
   get value(): number {
@@ -195,14 +279,57 @@ export class DomPanel implements Panel {
     this.element.setAttribute('aria-pressed', String(value))
   }
 
-  /** SetDialogVariable keeps a value for Localize to fill a token with. */
+  /** SetDialogVariable keeps a string for Localize and {s:name} places. */
   SetDialogVariable(name: string, value: string) {
     this.dialog[name] = value
+    this.refreshDialog()
+  }
+
+  /** SetDialogVariableInt keeps an integer for {d:name} places. */
+  SetDialogVariableInt(name: string, value: number) {
+    this.dialog[name] = String(Math.trunc(value))
+    this.refreshDialog()
+  }
+
+  /** SetDialogVariableFloat keeps a number for {f:name} places. */
+  SetDialogVariableFloat(name: string, value: number) {
+    this.dialog[name] = String(value)
+    this.refreshDialog()
   }
 
   /** dialogVariables returns the values SetDialogVariable kept. */
   dialogVariables(): Readonly<Record<string, string>> {
     return this.dialog
+  }
+
+  /**
+   * Data returns a persistent object for this panel, as Panorama's Data
+   * does: the same object each call, so a script can hang its own fields
+   * on it.
+   */
+  Data(): Record<string, unknown> {
+    return this.panelData
+  }
+
+  // applyText writes sourceText with dialog variables filled, as HTML when
+  // the label asked for it. A panel that never received text is left alone,
+  // so filling a parent's variables cannot drop its children.
+  private applyText() {
+    if (this.caption || this.element instanceof HTMLInputElement) return
+    if (this.sourceText === null) return
+    const filled = fillDialog(this, this.sourceText)
+    if (this.markup) this.element.innerHTML = filled
+    else this.element.textContent = filled
+    shrink(this.element)
+  }
+
+  // refreshDialog fills this panel's text and that of its descendants,
+  // since a parent can hold variables a child label uses.
+  private refreshDialog() {
+    this.applyText()
+    for (let i = 0; i < this.GetChildCount(); i++) {
+      this.GetChild(i)?.refreshDialog()
+    }
   }
 
   /** AddOption makes a label panel one of a dropdown's options. */
@@ -255,9 +382,13 @@ export class DomPanel implements Panel {
     return this.valid
   }
 
-  DeleteAsync() {
-    this.valid = false
-    this.element.remove()
+  DeleteAsync(seconds = 0) {
+    const remove = () => {
+      this.valid = false
+      this.element.remove()
+    }
+    if (seconds <= 0) remove()
+    else setTimeout(remove, seconds * 1000)
   }
 
   SetAcceptsFocus(accepts: boolean) {
@@ -288,8 +419,33 @@ export class DomPanel implements Panel {
     return panelOf(this.element.children[index])
   }
 
+  Children(): DomPanel[] {
+    const children: DomPanel[] = []
+    for (let i = 0; i < this.GetChildCount(); i++) {
+      const child = this.GetChild(i)
+      if (child) children.push(child)
+    }
+    return children
+  }
+
+  RemoveAndDeleteChildren() {
+    for (const child of [...this.Children()]) child.DeleteAsync(0)
+  }
+
+  FindChild(id: string): DomPanel | null {
+    for (let i = 0; i < this.GetChildCount(); i++) {
+      const child = this.GetChild(i)
+      if (child?.id === id) return child
+    }
+    return null
+  }
+
   FindChildTraverse(id: string): DomPanel | null {
     return panelOf(this.element.querySelector(`[data-id="${CSS.escape(id)}"]`))
+  }
+
+  ClearPanelEvent(event: string) {
+    this.handlers.delete(event)
   }
 
   ScrollToBottom() {
@@ -316,6 +472,38 @@ export class DomPanel implements Panel {
     this.element.classList.remove(name)
   }
 
+  BHasClass(name: string) {
+    return this.element.classList.contains(name)
+  }
+
+  SetHasClass(name: string, on: boolean) {
+    this.element.classList.toggle(name, on)
+  }
+
+  ToggleClass(name: string) {
+    this.element.classList.toggle(name)
+  }
+
+  /**
+   * SwitchClass puts name in a named slot, removing the class that slot
+   * previously held, as Panorama does for turn-type and hero classes.
+   */
+  SwitchClass(slot: string, name: string) {
+    const previous = this.slots.get(slot)
+    if (previous === name) return
+    if (previous) this.RemoveClass(previous)
+    if (name) this.AddClass(name)
+    this.slots.set(slot, name)
+  }
+
+  SetDraggable(on: boolean) {
+    this.element.draggable = on
+  }
+
+  IsDraggable() {
+    return this.element.draggable
+  }
+
   SetPanelEvent(
     event: string,
     handler: (...args: unknown[]) => boolean | void,
@@ -335,6 +523,17 @@ export class DomPanel implements Panel {
     return this.attributes.get(name) ?? fallback
   }
 
+  SetAttributeInt(name: string, value: number) {
+    this.attributes.set(name, String(Math.trunc(value)))
+  }
+
+  GetAttributeInt(name: string, fallback: number) {
+    const stored = this.attributes.get(name)
+    if (stored === undefined || stored === '') return fallback
+    const value = Number(stored)
+    return Number.isFinite(value) ? Math.trunc(value) : fallback
+  }
+
   // The page shows no web page in a panel, so an HTML panel stays empty.
   SetURL(_url: string) {}
 
@@ -352,18 +551,21 @@ export class DomPanel implements Panel {
    * panels are built. It loads in the background, and refuses a game path,
    * which a browser cannot read.
    */
-  BLoadLayout(url: string) {
-    if (!url.startsWith('/')) return false
-    void fetchOnce(url, (text) =>
+  BLoadLayout(url: string, _overrideExisting?: boolean, _partial?: boolean) {
+    const path = layoutPath(url)
+    if (!path) return false
+    this.layoutfile = layoutFile(url)
+    void fetchOnce(path, (text) =>
       new DOMParser().parseFromString(text, 'text/xml'),
     )
       .then((layout) => {
         // Style the panel, then build its panels, then run its scripts
-        // over them.
+        // over them. Keep the layout's snippets for BLoadLayoutSnippet.
         const top = [...layout.documentElement.children].find(
           (child) => !nonPanels.has(child.tagName.toLowerCase()),
         )
         if (!this.valid) return
+        this.snippets = readSnippets(layout.documentElement)
         for (const child of layout.documentElement.children)
           if (child.tagName.toLowerCase() === 'styles')
             this.loadSheets(child, url)
@@ -374,6 +576,33 @@ export class DomPanel implements Panel {
       })
       .catch((error: unknown) => console.debug(`layout ${url}:`, error))
     return true
+  }
+
+  /**
+   * BLoadLayoutSnippet loads the named snippet from this panel's owning
+   * layout into this panel, as Panorama does: the snippet's top panel
+   * describes this one and its children become this panel's. It returns
+   * whether the snippet was found. BLoadSnippet is the same call.
+   */
+  BLoadLayoutSnippet(name: string): boolean {
+    const source = this.layoutSnippet(name)
+    if (!source) return false
+    this.loadElement(source)
+    return true
+  }
+
+  BLoadSnippet(name: string): boolean {
+    return this.BLoadLayoutSnippet(name)
+  }
+
+  // layoutSnippet returns the named snippet root from this panel or the
+  // nearest ancestor that loaded a layout.
+  private layoutSnippet(name: string): Element | undefined {
+    for (let panel: DomPanel | null = this; panel; panel = panel.GetParent()) {
+      const source = panel.snippets?.get(name)
+      if (source) return source
+    }
+    return undefined
   }
 
   // loadElement gives this panel a layout element's attributes, except the
@@ -395,13 +624,33 @@ export class DomPanel implements Panel {
         case 'text':
           this.text = value
           break
+        case 'html':
+          this.html = value !== 'false'
+          break
         case 'src':
           this.SetImage(value)
+          break
+        case 'heroid':
+          this.SetHeroID(Number(value))
+          break
+        case 'heroname':
+          this.SetHeroName(value)
+          break
+        case 'steamid':
+          this.steamid = value
           break
         case 'hittest':
         case 'visible':
         case 'enabled':
           this[name] = value !== 'false'
+          break
+        case 'draggable':
+          this.SetDraggable(value !== 'false')
+          break
+        default:
+          if (/^on[a-z]+$/i.test(name)) {
+            this.xmlEvents.push({ event: name.toLowerCase(), code: value })
+          }
           break
       }
     }
@@ -411,6 +660,34 @@ export class DomPanel implements Panel {
       panel.SetParent(this)
       panel.loadElement(child)
     }
+    this.bindXmlEvents()
+  }
+
+  // bindXmlEvents attaches this panel's layout on* attributes to handlers
+  // compiled in the owning layout's script scope, so onactivate="RollDice()"
+  // can call that layout's RollDice. Before scripts run, the events stay
+  // queued for bindTreeEvents.
+  private bindXmlEvents() {
+    const compile = this.layoutCompileEvent()
+    if (!compile || this.xmlEvents.length === 0) return
+    for (const { event, code } of this.xmlEvents) {
+      this.SetPanelEvent(event, compile(code))
+    }
+    this.xmlEvents = []
+  }
+
+  private bindTreeEvents() {
+    this.bindXmlEvents()
+    for (let i = 0; i < this.GetChildCount(); i++) {
+      this.GetChild(i)?.bindTreeEvents()
+    }
+  }
+
+  private layoutCompileEvent(): ((code: string) => () => void) | undefined {
+    for (let panel: DomPanel | null = this; panel; panel = panel.GetParent()) {
+      if (panel.compileEvent) return panel.compileEvent
+    }
+    return undefined
   }
 
   // loadSheets styles this panel's subtree with each sheet a layout's styles
@@ -450,10 +727,18 @@ export class DomPanel implements Panel {
         // A mod's layout script is code by design; the page runs what the
         // game would.
         // oxlint-disable-next-line typescript/no-implied-eval
-        const run = new Function('$', sources.join('\n;\n')) as (
+        const run = new Function(
+          '$',
+          '__bind__',
+          `${sources.join('\n;\n')}\n;\n__bind__((code) => () => eval(code))`,
+        ) as (
           panorama: unknown,
+          bind: (compile: (code: string) => () => void) => void,
         ) => void
-        run(layoutPanorama(this))
+        run(layoutPanorama(this), (compile) => {
+          this.compileEvent = compile
+          this.bindTreeEvents()
+        })
       })
       .catch((error: unknown) => console.debug(`layout ${url}:`, error))
   }
@@ -471,6 +756,24 @@ export class DomPanel implements Panel {
       if (!(camel(name) in this.inline)) applyStyle(this.element, name, '')
     }
   }
+}
+
+// layoutPath returns the page path of a layout, from a page path or a game
+// path such as file://{resources}/layout/mod/board.xml, or '' if the page
+// does not serve it.
+function layoutPath(url: string): string {
+  if (url.startsWith('/')) return url
+  const match =
+    /^(?:s2r:\/\/panorama|file:\/\/\{resources\})\/layout\/(.+\.xml)(\?.*)?$/.exec(
+      url,
+    )
+  return match ? `/layout/${match[1]}${match[2] ?? ''}` : ''
+}
+
+// layoutFile is the path Panorama's layoutfile reports for a loaded layout.
+function layoutFile(url: string): string {
+  const path = (url.startsWith('/') ? `{resources}${url}` : url).split('?')[0]
+  return path ?? ''
 }
 
 // sheetPath returns the page path, <addon>/<path>.css, of a sheet a layout
@@ -571,6 +874,24 @@ if (typeof document !== 'undefined') {
 // than panels.
 const nonPanels = new Set(['styles', 'scripts', 'snippets'])
 
+// readSnippets returns the named snippet roots under a layout's snippets
+// elements. A snippet's first panel describes the panel that loads it.
+function readSnippets(root: Element): Map<string, Element> {
+  const snippets = new Map<string, Element>()
+  for (const child of root.children) {
+    if (child.tagName.toLowerCase() !== 'snippets') continue
+    for (const snippet of child.children) {
+      if (snippet.tagName.toLowerCase() !== 'snippet') continue
+      const name = snippet.getAttribute('name')
+      const top = [...snippet.children].find(
+        (el) => !nonPanels.has(el.tagName.toLowerCase()),
+      )
+      if (name && top) snippets.set(name, top)
+    }
+  }
+  return snippets
+}
+
 /** Listener is a layout script's handler for an event nothing handled. */
 interface Listener {
   readonly event: string
@@ -624,17 +945,20 @@ export const domPanorama = {
       panel.element.style.backgroundSize = backgroundSize(properties.scaling)
     }
     if (properties?.heroid) {
-      panel.element.dataset.hero = `hero ${properties.heroid}`
+      panel.SetHeroID(Number(properties.heroid))
+    }
+    if (properties?.heroname) {
+      panel.SetHeroName(properties.heroname)
     }
     if (properties?.accountid) {
       panel.element.dataset.account = properties.accountid
     }
     return panel
   },
-  // The page has no game text, so a token shows itself and its values.
+  // The page has no game text, so a token shows itself with its {s:}, {d:}
+  // and {f:} places filled from the panel.
   Localize(token: string, panel: DomPanel) {
-    const values = Object.values(panel.dialogVariables())
-    return values.length ? `${token} ${values.join(' ')}` : token
+    return fillDialog(panel, token)
   },
   // A console command goes to the page, a text tooltip shows as the element's
   // title, and other events reach the layout scripts listening for them.
@@ -672,6 +996,34 @@ export const domPanorama = {
     setTimeout(callback, seconds * 1000)
   },
 } satisfies Panorama
+
+// fillDialog replaces {s:name}, {d:name} and {f:name} places in source with
+// the values the panel or an ancestor holds, and {g:kind:name} with a
+// stand-in, since the preview has no game localization.
+function fillDialog(panel: DomPanel, source: string): string {
+  return source.replace(
+    /\{([sdf]|g:[^:}]+):([^}]+)\}/g,
+    (match, kind: string, name: string) => {
+      const value = dialogValue(panel, name)
+      if (value === undefined) return match
+      if (kind === 'g:citadel_hero_name') return `hero ${value}`
+      if (kind.startsWith('g:')) return `${kind.slice(2)} ${value}`
+      return value
+    },
+  )
+}
+
+function dialogValue(panel: DomPanel, name: string): string | undefined {
+  for (
+    let current: DomPanel | null = panel;
+    current;
+    current = current.GetParent()
+  ) {
+    const value = current.dialogVariables()[name]
+    if (value !== undefined) return value
+  }
+  return undefined
+}
 
 /**
  * layoutPanorama is the $ a layout's scripts see: domPanorama with context as
@@ -808,9 +1160,13 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
       element.classList.remove(
         'flow-none',
         'flow-down',
+        'flow-up',
         'flow-right',
+        'flow-left',
         'flow-right-wrap',
         'flow-down-wrap',
+        'flow-up-wrap',
+        'flow-left-wrap',
       )
       element.classList.add(`flow-${value || 'none'}`)
       return
@@ -845,8 +1201,20 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
     case 'x':
     case 'y': {
       // A panel outside its parent's flow sits at its offset.
-      css.position = value ? 'absolute' : ''
-      css[name === 'x' ? 'left' : 'top'] = value
+      const side = name === 'x' ? 'left' : 'top'
+      if (value) {
+        css.position = 'absolute'
+        css[side] = value
+      } else {
+        css.removeProperty(side)
+        if (
+          !element.classList.contains('ignore-parent-flow') &&
+          !css.left &&
+          !css.top
+        ) {
+          css.removeProperty('position')
+        }
+      }
       return
     }
     case 'textShadow': {
@@ -904,6 +1272,21 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
     }
     case 'clip': {
       clip(element, value)
+      return
+    }
+    case 'visibility': {
+      // Panorama's collapse hides the panel and every descendant, and
+      // removes it from flow. CSS visibility is inherited and a child may
+      // override it with visible, so the stand-in uses display:none.
+      if (value === 'collapse') css.display = 'none'
+      else css.removeProperty('display')
+      css.removeProperty('visibility')
+      return
+    }
+    case 'ignoreParentFlow': {
+      // A panel that ignores its parent's flow is taken out of
+      // flow-children and sits at its x/y offsets and margins.
+      element.classList.toggle('ignore-parent-flow', value === 'true')
       return
     }
     case 'washColor':

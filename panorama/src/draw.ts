@@ -152,6 +152,8 @@ export interface Panel {
     overrideExisting: boolean,
     partial: boolean,
   ): boolean
+  /** BLoadLayoutSnippet loads a named snippet from the panel's layout. */
+  BLoadLayoutSnippet?(snippetName: string): boolean
   DeleteAsync(seconds: number): void
   SetDialogVariable(name: string, value: string): void
   /** AddOption, SetSelected and GetSelected hold a dropdown's options. */

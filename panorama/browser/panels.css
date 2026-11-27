@@ -29,6 +29,14 @@
   display: none !important;
 }
 
+/* A panel that ignores its parent's flow sits on top of it, at its x/y
+   offsets and margins, and does not take a slot in flow-children. */
+.ignore-parent-flow {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 .no-hit,
 .no-hit-children * {
   pointer-events: none;
@@ -112,21 +120,71 @@
   align-self: flex-end;
 }
 
+/* flow-children: up stacks the first child at the bottom, later ones above. */
+.flow-up,
+.flow-up-wrap {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.flow-up-wrap {
+  flex-wrap: wrap;
+}
+.flow-up > .p,
+.flow-up-wrap > .p {
+  align-self: flex-start;
+}
+.flow-up > [data-ha='center'],
+.flow-up-wrap > [data-ha='center'] {
+  align-self: center;
+}
+.flow-up > [data-ha='right'],
+.flow-up-wrap > [data-ha='right'] {
+  align-self: flex-end;
+}
+
+/* flow-children: left stacks the first child at the right, later ones to the left. */
+.flow-left,
+.flow-left-wrap {
+  display: flex;
+  flex-direction: row-reverse;
+}
+.flow-left-wrap {
+  flex-wrap: wrap;
+}
+.flow-left > .p,
+.flow-left-wrap > .p {
+  align-self: flex-start;
+}
+.flow-left > [data-va='center'],
+.flow-left-wrap > [data-va='center'] {
+  align-self: center;
+}
+.flow-left > [data-va='bottom'],
+.flow-left-wrap > [data-va='bottom'] {
+  align-self: flex-end;
+}
+
 .flow-right > .grow-width,
-.flow-down > .grow-height {
+.flow-left > .grow-width,
+.flow-down > .grow-height,
+.flow-up > .grow-height {
   flex: var(--grow) 1 0;
 }
 .flow-right > .grow-height,
+.flow-left > .grow-height,
 .flow-down > .grow-width,
+.flow-up > .grow-width,
 .flow-none > .grow-width,
 .flow-none > .grow-height {
   flex: none;
 }
 .flow-down > .grow-width,
+.flow-up > .grow-width,
 .flow-none > .grow-width {
   width: 100%;
 }
 .flow-right > .grow-height,
+.flow-left > .grow-height,
 .flow-none > .grow-height {
   height: 100%;
 }
@@ -151,16 +209,18 @@
   content: attr(data-hero);
 }
 
-/* An avatar stands in as a box with the account's id, since the preview has
-   no Steam pictures. */
-.p-CitadelAvatarImage {
+/* An avatar or user name stands in as a box with the account's id, since
+   the preview has no Steam pictures or names. */
+.p-CitadelAvatarImage,
+.p-CitadelUserName {
   display: grid;
   place-items: center;
   background: #2a2f36;
   color: #9aa3ad;
   font-size: 11px;
 }
-.p-CitadelAvatarImage::after {
+.p-CitadelAvatarImage::after,
+.p-CitadelUserName::after {
   content: attr(data-account);
 }
 

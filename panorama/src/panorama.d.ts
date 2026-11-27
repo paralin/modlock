@@ -18,6 +18,8 @@ interface Panel {
   GetParent(): Panel | null
   GetChildCount(): number
   GetChild(index: number): Panel | null
+  Children(): Panel[]
+  RemoveAndDeleteChildren(): void
   MoveChildBefore(child: Panel, before: Panel): void
   MoveChildAfter(child: Panel, after: Panel): void
   SetImage(path: string): void
@@ -26,15 +28,25 @@ interface Panel {
   ClearPanelEvent(event: string): void
   SetAttributeString(name: string, value: string): void
   GetAttributeString(name: string, fallback: string): string
+  SetAttributeInt(name: string, value: number): void
+  GetAttributeInt(name: string, fallback: number): number
+  layoutfile: string
   BLoadLayout(
     path: string,
     overrideExisting: boolean,
     partial: boolean,
   ): boolean
+  BLoadLayoutSnippet(snippetName: string): boolean
+  BLoadSnippet(snippetName: string): boolean
   FindChild(id: string): Panel | null
   FindChildTraverse(id: string): Panel | null
   FindChildrenWithClassTraverse(name: string): Panel[]
   BHasClass(name: string): boolean
+  SetHasClass(name: string, on: boolean): void
+  ToggleClass(name: string): void
+  SwitchClass(slot: string, name: string): void
+  SetDraggable(on: boolean): void
+  IsDraggable(): boolean
   BHasKeyFocus?(): boolean
   BHasDescendantKeyFocus?(): boolean
   SetFocus?(): void
@@ -42,6 +54,15 @@ interface Panel {
   RemoveClass(name: string): void
   DeleteAsync(seconds: number): void
   SetDialogVariable(name: string, value: string): void
+  SetDialogVariableInt(name: string, value: number): void
+  SetDialogVariableFloat(name: string, value: number): void
+  Data(): Record<string, unknown>
+  html: boolean
+  steamid: string
+  SetHeroID(id: number): void
+  SetHeroName(name: string): void
+  heroid: number
+  heroname: string
   AddOption(option: Panel): void
   SetSelected(id: string): void
   GetSelected(): Panel | null
