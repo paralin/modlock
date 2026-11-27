@@ -10,6 +10,7 @@ import {
   HudPart,
   Kind,
   Scaling,
+  TimelineClock,
   UiInputEvent,
   UiRequest,
   Weight,
@@ -33,6 +34,8 @@ import {
   show,
   showChatLines,
   uiSound,
+  playTimeline,
+  cancelTimeline,
   useDenseUiRecords,
   type Style,
 } from '../src/index.js'
@@ -394,6 +397,34 @@ test('a sound rides the root as a numbered cue, the last few kept', () => {
   )
   show(new Player(11), jsx('panel', {}))
   expect(root().cues ?? []).toEqual([])
+})
+
+test('a timeline rides the root, a new run each play, and leaves on cancel', () => {
+  // A play sends the timeline's steps with its clock and a run number.
+  const player = new Player(12)
+  show(player, jsx('label', { text: 'Fight', measure: 'banner' }))
+  const intro = {
+    clock: 'game',
+    steps: [
+      { at: 0, measure: 'banner', class: 'Shown Big', style: { opacity: 0.5 } },
+      { at: 1.5, sound: 'UI.ItemDraft.Start', seconds: 0.5 },
+    ],
+  } as const
+  playTimeline(player, 'intro', intro)
+  const root = () =>
+    sent.at(-1)!.change!.set!.find((node) => (node.id ?? '') === '')!
+  const [first] = root().timelines!
+  expect(first!.id).toBe('intro')
+  expect(first!.clock).toBe(TimelineClock.GAME)
+  expect(first!.steps![0]!.classes).toEqual(['Shown', 'Big'])
+  expect(first!.steps![0]!.style!.opacity).toBe(0.5)
+  expect(first!.steps![1]!.sound).toBe('UI.ItemDraft.Start')
+
+  // Playing it again is a new run; cancelling it drops it from the root.
+  playTimeline(player, 'intro', intro)
+  expect(root().timelines![0]!.run).toBeGreaterThan(first!.run!)
+  cancelTimeline(player, 'intro')
+  expect(root().timelines ?? []).toEqual([])
 })
 
 test("a style names the game's faces, edges, paint and motion on the wire", () => {

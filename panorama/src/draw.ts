@@ -37,6 +37,7 @@ import {
   type Clock,
   ClockFormat,
   type Cue,
+  type Timeline,
   type Curve,
   Decoration,
   Easing,
@@ -89,6 +90,7 @@ import {
 } from './number.js'
 import { RangeControl, rangeHandles, rangeLook } from './range.js'
 import { Lists, type Window } from './list.js'
+import { Timelines } from './timeline.js'
 
 export {
   actionCommand,
@@ -534,6 +536,27 @@ function findChatBox(panel: Panel): Panel | null {
   return box?.paneltype === 'CitadelChat' ? box : null
 }
 
+/**
+ * reclass moves panel from the classes had to those in want, one by one so a
+ * sheet's transitions run.
+ */
+function reclass(
+  panel: Panel,
+  had: readonly string[],
+  want: readonly string[],
+): void {
+  for (const name of new Set(had)) {
+    if (!want.includes(name)) {
+      panel.RemoveClass(name)
+    }
+  }
+  for (const name of new Set(want)) {
+    if (!had.includes(name)) {
+      panel.AddClass(name)
+    }
+  }
+}
+
 /** now returns the wall time in seconds. */
 function now(): number {
   return Date.now() / 1000
@@ -661,6 +684,11 @@ interface Drawn {
   sheets: string
   nested: Panel[]
   classes: string[]
+  /** parentFlow is how the node's parent lays it out. */
+  parentFlow: Flow | undefined
+  /** timed and timedClasses are the look the mod's timelines give the node. */
+  timed: Record<string, string>
+  timedClasses: string[]
   clock: Ticking | null
   hideInChat: boolean
   /** speaking is the player name whose voice shows the node, or ''. */
@@ -759,6 +787,12 @@ export class Drawing {
   private readonly cues = new Map<
     string,
     { generation: bigint; heard: number; playing: number[]; silenced: number }
+  >()
+
+  /** timelines holds each mod's timelines and the lifetime they belong to. */
+  private readonly timelines = new Map<
+    string,
+    { generation: bigint; timelines: Timelines }
   >()
 
   /** addons holds the content addon each mod's tree names, by mod. */
@@ -881,6 +915,12 @@ export class Drawing {
       if (!trees.has(mod)) {
         this.silence(mod)
         this.cues.delete(mod)
+      }
+    }
+    for (const [mod, kept] of this.timelines) {
+      if (!trees.has(mod)) {
+        kept.timelines.release()
+        this.timelines.delete(mod)
       }
     }
 
@@ -1210,6 +1250,82 @@ export class Drawing {
       nodes: drawn,
     })
     this.cue(mod, generation, root.cues ?? [])
+    this.time(mod, generation, root.timelines ?? [])
+  }
+
+  /**
+   * time runs a mod's timelines. The first screen joins each run at its end,
+   * and a new lifetime clears the old one's looks and plays its own runs.
+   */
+  private time(
+    mod: string,
+    generation: bigint,
+    timelines: readonly Timeline[],
+  ): void {
+    let kept = this.timelines.get(mod)
+    if (kept?.generation !== generation) {
+      kept?.timelines.release()
+      kept = {
+        generation,
+        timelines: new Timelines(
+          {
+            schedule: (seconds, callback) =>
+              this.panorama.Schedule?.(seconds, callback),
+            now,
+            look: (measure) => this.retime(mod, measure),
+            play: (sound, seconds) => {
+              const memory = this.cues.get(mod)
+              if (memory) {
+                this.play(memory, { number: 0, sound, seconds, delay: 0 })
+              }
+            },
+          },
+          kept === undefined,
+        ),
+      }
+      this.timelines.set(mod, kept)
+    }
+    kept.timelines.draw(timelines)
+  }
+
+  /**
+   * timedOf returns the look the mod's timelines give the nodes of measure
+   * over a node's style, keeping, as a hover does, only the properties the
+   * panel can lift again.
+   */
+  private timedOf(
+    mod: string,
+    measure: string,
+    style: Record<string, string>,
+    parentFlow: Flow | undefined,
+  ): { style: Record<string, string>; classes: string[] } {
+    const look =
+      measure === '' ? null : this.timelines.get(mod)?.timelines.look(measure)
+    return {
+      style: layerOf(look?.style, style, parentFlow),
+      classes: (look?.classes ?? []).filter(isClassName),
+    }
+  }
+
+  /**
+   * retime paints the look the mod's timelines now give the nodes of
+   * measure, a scan of at most a tree's nodes for each step that changes one.
+   */
+  private retime(mod: string, measure: string): void {
+    for (const drawn of this.mods.get(mod)?.nodes.values() ?? []) {
+      if (drawn.measure !== measure || !drawn.panel.IsValid()) {
+        continue
+      }
+      const timed = this.timedOf(mod, measure, drawn.style, drawn.parentFlow)
+      reclass(
+        drawn.panel,
+        [...drawn.classes, ...drawn.timedClasses],
+        [...drawn.classes, ...timed.classes],
+      )
+      drawn.timed = timed.style
+      drawn.timedClasses = timed.classes
+      this.paint(drawn)
+    }
   }
 
   /**
@@ -1365,6 +1481,7 @@ export class Drawing {
       ...drawn.style,
       ...(drawn.over ? drawn.hover : {}),
       ...(drawn.focused ? entryFocused : {}),
+      ...drawn.timed,
       ...drawn.phase,
     }
     for (const name of Object.keys(drawn.written)) {
@@ -1964,7 +2081,13 @@ export class Drawing {
     // style over it while the pointer stays on it.
     const old = previous.get(id)
     const over = old?.over ?? false
-    const target = { ...style, ...(over ? hover : {}), ...old?.phase }
+    const timed = this.timedOf(mod, node.measure ?? '', style, parentFlow)
+    const target = {
+      ...style,
+      ...(over ? hover : {}),
+      ...timed.style,
+      ...old?.phase,
+    }
 
     // Reuse the panel when its type, parent, properties and layout stay and
     // each property it holds that the new style drops has a resting value to
@@ -2051,19 +2174,13 @@ export class Drawing {
       }
     }
 
-    // Add the node's new classes and remove the ones it dropped.
+    // Add the node's new classes and its timelines', and remove the ones
+    // both dropped.
     const classes = [...new Set(node.classes ?? [])].filter(isClassName)
-    const had = fresh ? [] : old.classes
-    for (const name of had) {
-      if (!classes.includes(name)) {
-        panel.RemoveClass(name)
-      }
-    }
-    for (const name of classes) {
-      if (!had.includes(name)) {
-        panel.AddClass(name)
-      }
-    }
+    reclass(panel, fresh ? [] : [...old.classes, ...old.timedClasses], [
+      ...classes,
+      ...timed.classes,
+    ])
 
     // A kept panel keeps its phase while its cycle stays, and its pending
     // edit; a new one starts from its enter style.
@@ -2115,6 +2232,9 @@ export class Drawing {
       sheets: sheeted,
       nested,
       classes,
+      timed: timed.style,
+      timedClasses: timed.classes,
+      parentFlow,
       clock:
         kind === Kind.LABEL && node.clock
           ? windClock(node, fresh ? null : old.clock)

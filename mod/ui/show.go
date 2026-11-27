@@ -250,6 +250,75 @@ func Sound(p mod.Player, sound string, seconds float32) bool {
 	return SoundAfter(p, sound, 0, seconds)
 }
 
+// TimelineStep is one moment of a timeline, At seconds from its start, 0 to
+// 60. From then on the elements whose Measure the step names take its look:
+// Class adds classes from the mod's sheets, separated by spaces, and Style is
+// laid over each element's own, setting, as a hover does, only what the
+// element's style sets or what has a resting value. A step's look replaces
+// the look an earlier step gave the same measure. Sound plays the game's
+// sound event, cut after Seconds unless Seconds is zero.
+type TimelineStep struct {
+	At      float32
+	Measure string
+	Class   string
+	Style   *Style
+	Sound   string
+	Seconds float32
+}
+
+// Timeline is a timed presentation. Its steps run on the player's own time,
+// or, with Game set, hold while the game is paused.
+type Timeline struct {
+	Game  bool
+	Steps []TimelineStep
+}
+
+// PlayTimeline starts timeline id in player's interface, or starts it again
+// from its start, taking back the looks its last run gave. A finished
+// timeline keeps its last looks until it is played again or cancelled. A
+// renderer that reloads mid-run shows the run's last looks and plays none of
+// its sounds.
+func PlayTimeline(p mod.Player, id string, t Timeline) bool {
+	// Encode the run, numbered after every earlier one.
+	wire := &uipb.Timeline{Id: id, Run: lib.nextRun}
+	lib.nextRun++
+	if t.Game {
+		wire.Clock = uipb.TimelineClock_TIMELINE_CLOCK_GAME
+	}
+	for _, step := range t.Steps {
+		wire.Steps = append(wire.Steps, &uipb.TimelineStep{
+			At:      step.At,
+			Measure: step.Measure,
+			Classes: classes(step.Class),
+			Style:   wireStyle(step.Style),
+			Sound:   step.Sound,
+			Seconds: step.Seconds,
+		})
+	}
+
+	// Replace the timeline of that id, or add it.
+	v := viewOf(p)
+	at := slices.IndexFunc(v.timelines, func(each *uipb.Timeline) bool { return each.Id == id })
+	if at < 0 {
+		v.timelines = append(v.timelines, wire)
+	} else {
+		v.timelines[at] = wire
+	}
+	return draw(v)
+}
+
+// CancelTimeline stops timeline id in player's interface, taking back its
+// looks and playing none of its sounds still to come.
+func CancelTimeline(p mod.Player, id string) bool {
+	v := viewOf(p)
+	at := slices.IndexFunc(v.timelines, func(each *uipb.Timeline) bool { return each.Id == id })
+	if at < 0 {
+		return true
+	}
+	v.timelines = slices.Delete(v.timelines, at, at+1)
+	return draw(v)
+}
+
 // SoundAfter plays sound as Sound does, delay seconds after the player's game
 // reads it, so one draw can time a run of sounds, such as a wheel's ticks. It
 // does not play if the mod clears its interface first.

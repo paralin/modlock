@@ -58,6 +58,7 @@ import {
   placementCommands,
 } from './placement.js'
 import { decodeUtf8 } from './packed.js'
+import { Timelines } from './timeline.js'
 
 /** FakePanel records what the renderer does to one panel. */
 class FakePanel {
@@ -828,6 +829,150 @@ test('plays each cue once, cuts it on time and stops it as the player leaves', (
   drawing.draw(null)
   runScheduled()
   expect(sounds).toEqual(['play Tick 8', 'stop 7', 'stop 8'])
+})
+
+test('runs a timeline: restarts it, cancels it and joins it on reload', () => {
+  // Draw a banner a timeline shows at once, dims at 1s and sounds at 2s;
+  // each step's look replaces the last one's for its node.
+  setSystemTime(new Date(1_000_000))
+  const sounds: string[] = []
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const game = {
+    ...$,
+    PlaySound(sound: string) {
+      sounds.push(sound)
+      return sounds.length
+    },
+    StopSound() {},
+  }
+  const drawing = new Drawing(game, root, () => {})
+  const timed = (run: number | null, generation = 1) =>
+    Screen.fromJson({
+      trees: [
+        {
+          mod: 'arena',
+          generation: String(generation),
+          nodes: [
+            {
+              id: '',
+              children: ['banner'],
+              timelines:
+                run === null
+                  ? []
+                  : [
+                      {
+                        id: 'intro',
+                        run,
+                        steps: [
+                          { at: 0, measure: 'banner', classes: ['Shown'] },
+                          {
+                            at: 1,
+                            measure: 'banner',
+                            classes: ['Shown'],
+                            style: { opacity: 0.5 },
+                          },
+                          { at: 2, sound: 'Gong' },
+                        ],
+                      },
+                    ],
+            },
+            {
+              id: 'banner',
+              kind: 'KIND_LABEL',
+              text: 'Fight',
+              measure: 'banner',
+            },
+          ],
+        },
+      ],
+    })
+  const banner = () => root.children[0]!.children[0]!
+
+  // The first screen joins the run at its end: its looks, and no sound.
+  drawing.draw(timed(1))
+  expect(banner().classes).toContain('Shown')
+  expect(banner().style.opacity).toBe('0.5')
+  expect(sounds).toEqual([])
+
+  // A rise in run clears the last looks and plays the steps on time.
+  drawing.draw(timed(2))
+  expect(banner().classes).toContain('Shown')
+  expect(banner().style.opacity).toBe('1')
+  setSystemTime(new Date(1_001_000))
+  runScheduled()
+  expect(banner().style.opacity).toBe('0.5')
+  expect(sounds).toEqual([])
+
+  // A restart mid-run starts over, and a cancel, which drops the timeline, before the sound takes back
+  // every look and plays nothing.
+  drawing.draw(timed(3))
+  expect(banner().style.opacity).toBe('1')
+  drawing.draw(timed(null))
+  setSystemTime(new Date(1_005_000))
+  runScheduled()
+  expect(banner().classes).not.toContain('Shown')
+  expect(sounds).toEqual([])
+
+  // A run that finishes plays its sound once and keeps its last looks.
+  drawing.draw(timed(4))
+  setSystemTime(new Date(1_008_000))
+  runScheduled()
+  runScheduled()
+  expect(sounds).toEqual(['Gong'])
+  expect(banner().classes).toContain('Shown')
+
+  // A new lifetime plays its runs from the start.
+  drawing.draw(timed(1, 2))
+  expect(banner().style.opacity).toBe('1')
+  setSystemTime(new Date(1_011_000))
+  runScheduled()
+  runScheduled()
+  expect(sounds).toEqual(['Gong', 'Gong'])
+
+  // A mod gone from the screen takes its looks with it.
+  drawing.draw(null)
+  drawing.draw(timed(1, 2))
+  expect(sounds).toEqual(['Gong', 'Gong'])
+})
+
+test('holds a game-clock timeline through a pause and not a wall-clock one', () => {
+  // Run two timelines with one step at 2s on a clock the test moves.
+  let time = 0
+  const waits: (() => void)[] = []
+  const looked: string[] = []
+  const timelines = new Timelines(
+    {
+      schedule: (_, callback) => waits.push(callback),
+      now: () => time,
+      look: (node) => looked.push(node),
+      play: () => {},
+    },
+    false,
+  )
+  const step = (measure: string) => [{ at: 2, measure, classes: ['On'] }]
+  timelines.draw([
+    { id: 'game', run: 1, clock: 1, steps: step('a') },
+    { id: 'wall', run: 1, clock: 0, steps: step('b') },
+  ] as never)
+  const wake = () => waits.splice(0).forEach((callback) => callback())
+
+  // A second in, the game pauses for five; only the wall clock moves on.
+  time = 1
+  timelines.pause(true)
+  expect(timelines.state('game')).toBe('held')
+  time = 6
+  wake()
+  expect(looked).toEqual(['b'])
+  expect(timelines.state('wall')).toBe('done')
+
+  // Unpaused, the game clock needs its last second.
+  timelines.pause(false)
+  wake()
+  expect(timelines.state('game')).toBe('running')
+  time = 7
+  wake()
+  expect(looked).toEqual(['b', 'a'])
+  expect(timelines.state('game')).toBe('done')
 })
 
 test("runs a label's clock in the game and restarts it when the mod changes it", () => {

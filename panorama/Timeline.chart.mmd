@@ -1,0 +1,19 @@
+---
+title: "Timed presentation"
+---
+stateDiagram-v2
+  s0: Nothing plays
+  s1: The presentation plays
+  s2: Held while the game pauses
+  s3: The presentation finished
+  [*] --> s0
+  s0 --> s1: the mod starts it
+  s1 --> s0: the mod cancels it
+  s1 --> s2: the game pauses
+  s0 --> s2: the mod starts it
+  s2 --> s1: the game resumes
+  s2 --> s0: the mod cancels it
+  s1 --> s3: its last step plays
+  s3 --> s0: the mod cancels it
+  s3 --> s1: the mod starts it
+  s3 --> s2: the mod starts it

@@ -758,6 +758,8 @@ type View = {
 	routes: { Route },
 	-- cues are the last sounds played, which the renderer plays once each.
 	cues: { Cue },
+	-- timelines are the timelines the mod plays, in the order first played.
+	timelines: { Node },
 	-- bar takes clicks on the game's ability bar, while the mod asks for them.
 	bar: AbilityBarHandler?,
 	-- actions takes each phase of the game actions the mod follows.
@@ -843,6 +845,9 @@ local nextNotice = 0
 
 -- nextCue numbers the next sound, so the renderer plays each once.
 local nextCue = 1
+
+-- nextRun numbers the next timeline run, so each play is a new run.
+local nextRun = 1
 
 -- maxCues is how many sounds the root keeps, so a player whose screens come
 -- slower than the mod plays sounds misses none of the last few.
@@ -1750,6 +1755,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 		freeCursorAsks = current.asks,
 		sheets = table.clone(sheets),
 		cues = table.clone(current.cues),
+		timelines = table.clone(current.timelines),
 		abilityBarPresses = current.bar ~= nil,
 		gameActions = followed(current.actions),
 		followsOverlay = current.overlay ~= nil,
@@ -1802,6 +1808,7 @@ local function view(player: Player): View
 		asks = 0,
 		routes = {},
 		cues = {},
+		timelines = {},
 		actions = {},
 		hudFrame = false,
 		display = {},
@@ -2058,6 +2065,83 @@ function ui.uiSound(player: Player, sound: string, options: { seconds: number? }
 	if #current.cues > maxCues then
 		table.remove(current.cues, 1)
 	end
+	return draw(player)
+end
+
+-- TimelineStep is one moment of a timeline, at seconds from its start, 0 to
+-- 60. From then on the elements whose measure the step names take its look:
+-- class adds classes from the mod's sheets, separated by spaces, and style is
+-- laid over each element's own, setting, as a hover does, only what the
+-- element's style sets or what has a resting value. A step's look replaces
+-- the look an earlier step gave the same measure. sound plays the game's
+-- sound event, cut after seconds unless seconds is zero.
+export type TimelineStep = {
+	at: number,
+	measure: string?,
+	class: string?,
+	style: Style?,
+	sound: string?,
+	seconds: number?,
+}
+
+-- Timeline is a timed presentation: its steps run on the player's own time,
+-- or, with clock "game", hold while the game is paused.
+export type Timeline = {
+	clock: ("wall" | "game")?,
+	steps: { TimelineStep },
+}
+
+-- indexOfTimeline returns where timeline id is in timelines, or nil.
+local function indexOfTimeline(timelines: { Node }, id: string): number?
+	for i, each in timelines do
+		if each.id == id then
+			return i
+		end
+	end
+	return nil
+end
+
+-- playTimeline starts timeline id in player's interface, or starts it again
+-- from its start, taking back the looks its last run gave. A finished
+-- timeline keeps its last looks until it is played again or cancelled. A
+-- renderer that reloads mid-run shows the run's last looks and plays none of
+-- its sounds.
+function ui.playTimeline(player: Player, id: string, timeline: Timeline): boolean
+	-- Encode the run, numbered after every earlier one.
+	local steps = {}
+	for _, step in timeline.steps do
+		table.insert(steps, {
+			at = step.at,
+			measure = step.measure or "",
+			classes = classes(step.class),
+			style = wireStyle(step.style),
+			sound = step.sound or "",
+			seconds = step.seconds or 0,
+		})
+	end
+	local wire = { id = id, run = nextRun, clock = timeline.clock or "wall", steps = steps }
+	nextRun += 1
+
+	-- Replace the timeline of that id, or add it.
+	local current = view(player)
+	local at = indexOfTimeline(current.timelines, id)
+	if at then
+		current.timelines[at] = wire
+	else
+		table.insert(current.timelines, wire)
+	end
+	return draw(player)
+end
+
+-- cancelTimeline stops timeline id in player's interface, taking back its
+-- looks and playing none of its sounds still to come.
+function ui.cancelTimeline(player: Player, id: string): boolean
+	local current = view(player)
+	local at = indexOfTimeline(current.timelines, id)
+	if not at then
+		return true
+	end
+	table.remove(current.timelines, at)
 	return draw(player)
 end
 

@@ -305,6 +305,47 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   EXPECT_TRUE(trees.IsButton(0, "ready"));
 }
 
+TEST(UiTrees, ChecksTimelines) {
+  // A timeline whose steps name a measure, classes and a sound runs.
+  UiTrees trees;
+  auto timed = Set("", modlock::wasm::ui::KIND_PANEL, true);
+  auto* timeline = timed.mutable_set(0)->add_timelines();
+  timeline->set_id("intro.v2");
+  timeline->set_run(1);
+  timeline->set_clock(modlock::wasm::ui::TIMELINE_CLOCK_GAME);
+  auto* step = timeline->add_steps();
+  step->set_at(1.5);
+  step->set_measure("banner");
+  step->add_classes("Shown");
+  step->set_sound("UI.Gong");
+  ASSERT_TRUE(trees.Apply(0, timed));
+
+  // A step past 60 seconds, a negative length, a measure that is no word, an
+  // unknown clock, a shared id and too many steps are refused.
+  const auto refused = [&](auto&& edit) {
+    auto change = timed;
+    edit(*change.mutable_set(0)->mutable_timelines(0));
+    return !trees.Apply(0, change);
+  };
+  using modlock::wasm::ui::Timeline;
+  EXPECT_TRUE(refused([](Timeline& t) { t.mutable_steps(0)->set_at(61); }));
+  EXPECT_TRUE(refused([](Timeline& t) { t.mutable_steps(0)->set_at(-1); }));
+  EXPECT_TRUE(refused([](Timeline& t) { t.mutable_steps(0)->set_seconds(-1); }));
+  EXPECT_TRUE(refused([](Timeline& t) { t.mutable_steps(0)->set_measure("a b"); }));
+  EXPECT_TRUE(refused([](Timeline& t) { t.mutable_steps(0)->add_classes("a;b"); }));
+  EXPECT_TRUE(
+      refused([](Timeline& t) { t.set_clock(static_cast<modlock::wasm::ui::TimelineClock>(7)); }));
+  EXPECT_TRUE(refused([](Timeline& t) { t.set_id("a;quit"); }));
+  EXPECT_TRUE(refused([](Timeline& t) {
+    for (int i = 0; i < 64; ++i) {
+      t.add_steps();
+    }
+  }));
+  auto twice = timed;
+  *twice.mutable_set(0)->add_timelines() = timed.set(0).timelines(0);
+  EXPECT_FALSE(trees.Apply(0, twice));
+}
+
 TEST(UiTrees, ChecksInputs) {
   // Show an entry, a slider, a toggle and a dropdown.
   UiTrees trees;

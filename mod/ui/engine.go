@@ -25,6 +25,8 @@ type view struct {
 	routes []route
 	// cues are the last sounds played, which the renderer plays once each.
 	cues []*uipb.Cue
+	// timelines are the timelines the mod plays, in the order first played.
+	timelines []*uipb.Timeline
 	// bar takes clicks on the game's ability bar, while the mod asks for them.
 	bar func(p mod.Player, slot int)
 	// actions takes each phase of the game actions the mod follows.
@@ -137,6 +139,8 @@ type library struct {
 	nextNotice int
 	// nextCue numbers the next sound, so the renderer plays each once.
 	nextCue uint32
+	// nextRun numbers the next timeline run, so each play is a new run.
+	nextRun uint32
 	// sheets lists the mod's style sheets, in the order the mod added them.
 	sheets []string
 }
@@ -147,6 +151,7 @@ var lib = &library{
 	screens:     map[int32]*screen{},
 	generations: map[int32]uint32{},
 	nextCue:     1,
+	nextRun:     1,
 }
 
 const (
@@ -219,6 +224,7 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 		FreeCursorAsks:    v.asks,
 		Sheets:            slices.Clone(lib.sheets),
 		Cues:              slices.Clone(v.cues),
+		Timelines:         slices.Clone(v.timelines),
 		AbilityBarPresses: v.bar != nil,
 		GameActions:       slices.Sorted(maps.Keys(v.actions)),
 		FollowsOverlay:    v.overlay != nil,

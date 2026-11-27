@@ -287,6 +287,23 @@ type Scaling = Literal["fit", "cover", "stretch", "fit_width", "fit_height", "no
 type HeroLook = Literal["small", "card", "icon", "vertical", "top_bar", "minimap"]
 
 
+class TimelineStep(TypedDict, total=False):
+    """TimelineStep is one moment of a timeline, at seconds from its start, 0
+    to 60. From then on the elements whose measure the step names take its
+    look: class_ adds classes from the mod's sheets, separated by spaces, and
+    style is laid over each element's own, setting, as a hover does, only
+    what the element's style sets or what has a resting value. A step's look
+    replaces the look an earlier step gave the same measure. sound plays the
+    game's sound event, cut after seconds unless seconds is zero."""
+
+    at: Required[float]
+    measure: str
+    class_: str
+    style: Style
+    sound: str
+    seconds: float
+
+
 class AbilityTip(TypedDict):
     """AbilityTip is the game's own window for an ability, in the player's
     language: name is the ability's class name, such as "ability_bebop_hook",
@@ -957,6 +974,50 @@ def ui_sound(player: Player, sound: str, seconds: float = 0) -> bool:
     return _draw(player)
 
 
+def play_timeline(
+    player: Player, id: str, steps: Sequence[TimelineStep], game_clock: bool = False
+) -> bool:
+    """play_timeline starts timeline id in player's interface, or starts it
+    again from its start, taking back the looks its last run gave. Its steps
+    run on the player's own time, or, with game_clock, hold while the game is
+    paused. A finished timeline keeps its last looks until it is played again
+    or cancelled. A renderer that reloads mid-run shows the run's last looks
+    and plays none of its sounds."""
+    global _next_run
+    view = _view(player)
+    view.timelines = {
+        **view.timelines,
+        id: {
+            "id": id,
+            "run": _next_run,
+            "clock": "game" if game_clock else "wall",
+            "steps": [
+                {
+                    "at": step["at"],
+                    "measure": step.get("measure", ""),
+                    "classes": _classes(step.get("class_")),
+                    "style": _style(step.get("style")),
+                    "sound": step.get("sound", ""),
+                    "seconds": step.get("seconds", 0),
+                }
+                for step in steps
+            ],
+        },
+    }
+    _next_run += 1
+    return _draw(player)
+
+
+def cancel_timeline(player: Player, id: str) -> bool:
+    """cancel_timeline stops timeline id in player's interface, taking back
+    its looks and playing none of its sounds still to come."""
+    view = _view(player)
+    if id not in view.timelines:
+        return True
+    view.timelines = {key: value for key, value in view.timelines.items() if key != id}
+    return _draw(player)
+
+
 def _act(player: Player, action: GameAction, phase: ActionPhase) -> None:
     """_act runs the handler of the game action the player used."""
     view = _views.get(player.slot)
@@ -1056,6 +1117,8 @@ class _View:
     routes: dict[str, str] = field(default_factory=lambda: dict[str, str]())
     # cues are the last sounds played, which the renderer plays once each.
     cues: list[dict[str, Any]] = field(default_factory=lambda: list[dict[str, Any]]())
+    # timelines are the timelines the mod plays, by id.
+    timelines: dict[str, dict[str, Any]] = field(default_factory=lambda: dict[str, dict[str, Any]]())
     # bar takes clicks on the game's ability bar, while the mod asks for them.
     bar: AbilityBarHandler | None = None
     # actions takes each phase of the game actions the mod follows.
@@ -1084,6 +1147,9 @@ _next_notice = 0
 
 # _next_cue numbers the next sound, so the renderer plays each once.
 _next_cue = 1
+
+# _next_run numbers the next timeline run, so each play is a new run.
+_next_run = 1
 
 # _MAX_CUES is how many sounds the root keeps, so a player whose screens come
 # slower than the mod plays sounds misses none of the last few.
@@ -1235,6 +1301,7 @@ def _render(previous: _Screen | None, root: Child, view: _View, display: list[di
             "free_cursor_asks": view.asks,
             "sheets": list(_sheets),
             "cues": list(view.cues),
+            "timelines": list(view.timelines.values()),
             "ability_bar_presses": view.bar is not None,
             "game_actions": sorted(view.actions),
             "follows_overlay": view.overlay is not None,

@@ -95,6 +95,43 @@ func (x ClockFormat) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// TimelineClock is the clock a timeline runs on.
+type TimelineClock int32
+
+const (
+	// TIMELINE_CLOCK_WALL runs on the player's own time, through the game's
+	// pauses.
+	TimelineClock_TIMELINE_CLOCK_WALL TimelineClock = 0
+	// TIMELINE_CLOCK_GAME holds while the game is paused, and runs on after.
+	TimelineClock_TIMELINE_CLOCK_GAME TimelineClock = 1
+)
+
+// Enum value maps for TimelineClock.
+var (
+	TimelineClock_name = map[int32]string{
+		0: "TIMELINE_CLOCK_WALL",
+		1: "TIMELINE_CLOCK_GAME",
+	}
+	TimelineClock_value = map[string]int32{
+		"TIMELINE_CLOCK_WALL": 0,
+		"TIMELINE_CLOCK_GAME": 1,
+	}
+)
+
+func (x TimelineClock) Enum() *TimelineClock {
+	p := new(TimelineClock)
+	*p = x
+	return p
+}
+
+func (x TimelineClock) String() string {
+	name, valid := TimelineClock_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Scaling fits a picture into its node's box.
 type Scaling int32
 
@@ -1208,6 +1245,9 @@ type Node struct {
 	// playing it, so a reloaded renderer plays nothing old, and plays a new UI
 	// lifetime's list from its start. The list keeps only the last few cues.
 	Cues []*Cue `protobuf:"bytes,36,rep,name=cues,proto3" json:"cues,omitempty"`
+	// Timelines are the root's timed presentations, by id; only the root's
+	// list counts.
+	Timelines []*Timeline `protobuf:"bytes,56,rep,name=timelines,proto3" json:"timelines,omitempty"`
 	// AbilityBarPresses asks for clicks on the game's own ability bar: a click
 	// on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
 	// the mod as a press of the node "ability:N", which no element's id can be.
@@ -1562,6 +1602,13 @@ func (x *Node) GetFreeCursorAsks() uint32 {
 func (x *Node) GetCues() []*Cue {
 	if x != nil {
 		return x.Cues
+	}
+	return nil
+}
+
+func (x *Node) GetTimelines() []*Timeline {
+	if x != nil {
+		return x.Timelines
 	}
 	return nil
 }
@@ -2305,6 +2352,129 @@ func (x *Cue) GetSeconds() float32 {
 func (x *Cue) GetDelay() float32 {
 	if x != nil {
 		return x.Delay
+	}
+	return 0
+}
+
+// Timeline is a timed presentation: steps at times from its start that
+// change named nodes' looks and play sounds, on one clock. A finished
+// timeline keeps its last looks until the mod starts it again or cancels it
+// by dropping it, which clears its looks and plays nothing more. A
+// renderer that first sees a run already under way, such as one that
+// reloads, joins it at its end: it shows the last looks and plays no sound.
+type Timeline struct {
+	unknownFields []byte
+	// Id names the timeline among the root's.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Run counts the mod's starts of the timeline: a rise starts it again from
+	// its start, clearing the looks the last run gave.
+	Run uint32 `protobuf:"varint,2,opt,name=run,proto3" json:"run,omitempty"`
+	// Clock is the clock the steps' times run on.
+	Clock TimelineClock `protobuf:"varint,4,opt,name=clock,proto3" json:"clock,omitempty"`
+	// Steps are the timeline's steps, in any order.
+	Steps []*TimelineStep `protobuf:"bytes,5,rep,name=steps,proto3" json:"steps,omitempty"`
+}
+
+func (x *Timeline) Reset() {
+	*x = Timeline{}
+}
+
+func (*Timeline) ProtoMessage() {}
+
+func (x *Timeline) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Timeline) GetRun() uint32 {
+	if x != nil {
+		return x.Run
+	}
+	return 0
+}
+
+func (x *Timeline) GetClock() TimelineClock {
+	if x != nil {
+		return x.Clock
+	}
+	return TimelineClock_TIMELINE_CLOCK_WALL
+}
+
+func (x *Timeline) GetSteps() []*TimelineStep {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+// TimelineStep is one moment of a timeline.
+type TimelineStep struct {
+	unknownFields []byte
+	// At is the step's time from the timeline's start, in seconds, 0 to 60.
+	At float32 `protobuf:"fixed32,1,opt,name=at,proto3" json:"at,omitempty"`
+	// Measure names the nodes whose look the step sets by their measure, each
+	// node of that name taking it, or nothing for a step that only plays a
+	// sound.
+	Measure string `protobuf:"bytes,2,opt,name=measure,proto3" json:"measure,omitempty"`
+	// Classes and Style are the nodes' look from this step on: classes added
+	// to their own and a style laid over their own, replacing the look an
+	// earlier step gave them. A style change eases by the node's transition. As with
+	// hover, the style sets only the properties that a node's own style sets
+	// or that have a resting value to return to when the look ends.
+	Classes []string `protobuf:"bytes,3,rep,name=classes,proto3" json:"classes,omitempty"`
+	Style   *Style   `protobuf:"bytes,4,opt,name=style,proto3" json:"style,omitempty"`
+	// Sound is a game sound event to play at the step, named as Node's sound
+	// is, cut after seconds unless seconds is zero.
+	Sound   string  `protobuf:"bytes,5,opt,name=sound,proto3" json:"sound,omitempty"`
+	Seconds float32 `protobuf:"fixed32,6,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *TimelineStep) Reset() {
+	*x = TimelineStep{}
+}
+
+func (*TimelineStep) ProtoMessage() {}
+
+func (x *TimelineStep) GetAt() float32 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+func (x *TimelineStep) GetMeasure() string {
+	if x != nil {
+		return x.Measure
+	}
+	return ""
+}
+
+func (x *TimelineStep) GetClasses() []string {
+	if x != nil {
+		return x.Classes
+	}
+	return nil
+}
+
+func (x *TimelineStep) GetStyle() *Style {
+	if x != nil {
+		return x.Style
+	}
+	return nil
+}
+
+func (x *TimelineStep) GetSound() string {
+	if x != nil {
+		return x.Sound
+	}
+	return ""
+}
+
+func (x *TimelineStep) GetSeconds() float32 {
+	if x != nil {
+		return x.Seconds
 	}
 	return 0
 }
@@ -4617,6 +4787,7 @@ func (m *Node) CloneVT() *Node {
 	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
 	r.Sheets = protobuf_go_lite.CloneSlice(m.Sheets)
 	r.Cues = protobuf_go_lite.CloneVTSlice(m.Cues)
+	r.Timelines = protobuf_go_lite.CloneVTSlice(m.Timelines)
 	r.AbilityDisplay = protobuf_go_lite.CloneVTSlice(m.AbilityDisplay)
 	r.Clock = protobuf_go_lite.CloneVTValue(m.Clock)
 	r.Menu = protobuf_go_lite.CloneVTValue(m.Menu)
@@ -4879,6 +5050,46 @@ func (m *Cue) CloneVT() *Cue {
 }
 
 func (m *Cue) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Timeline) CloneVT() *Timeline {
+	if m == nil {
+		return (*Timeline)(nil)
+	}
+	r := new(Timeline)
+	r.Id = m.Id
+	r.Run = m.Run
+	r.Clock = m.Clock
+	r.Steps = protobuf_go_lite.CloneVTSlice(m.Steps)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Timeline) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *TimelineStep) CloneVT() *TimelineStep {
+	if m == nil {
+		return (*TimelineStep)(nil)
+	}
+	r := new(TimelineStep)
+	r.At = m.At
+	r.Measure = m.Measure
+	r.Sound = m.Sound
+	r.Seconds = m.Seconds
+	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
+	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *TimelineStep) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -5985,6 +6196,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if !protobuf_go_lite.IsEqualVT(this.List, that.List) {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Timelines, that.Timelines, func() *Timeline { return &Timeline{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -6372,6 +6586,70 @@ func (this *Cue) EqualVT(that *Cue) bool {
 
 func (this *Cue) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Cue)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Timeline) EqualVT(that *Timeline) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if this.Run != that.Run {
+		return false
+	}
+	if this.Clock != that.Clock {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Steps, that.Steps, func() *TimelineStep { return &TimelineStep{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Timeline) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Timeline)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *TimelineStep) EqualVT(that *TimelineStep) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.At != that.At {
+		return false
+	}
+	if this.Measure != that.Measure {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Classes, that.Classes) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Style, that.Style) {
+		return false
+	}
+	if this.Sound != that.Sound {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *TimelineStep) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*TimelineStep)
 	if !ok {
 		return false
 	}
@@ -7877,6 +8155,46 @@ func (x *ClockFormat) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the TimelineClock to JSON.
+func (x TimelineClock) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), TimelineClock_name)
+}
+
+// MarshalText marshals the TimelineClock to text.
+func (x TimelineClock) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), TimelineClock_name)), nil
+}
+
+// MarshalJSON marshals the TimelineClock to JSON.
+func (x TimelineClock) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TimelineClock from JSON.
+func (x *TimelineClock) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(TimelineClock_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read TimelineClock enum: %v", err)
+		return
+	}
+	*x = TimelineClock(v)
+}
+
+// UnmarshalText unmarshals the TimelineClock from text.
+func (x *TimelineClock) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), TimelineClock_value)
+	if err != nil {
+		return err
+	}
+	*x = TimelineClock(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the TimelineClock from JSON.
+func (x *TimelineClock) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Scaling to JSON.
 func (x Scaling) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), Scaling_name)
@@ -8968,6 +9286,17 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("list")
 		x.List.MarshalProtoJSON(s.WithField("list"))
 	}
+	if len(x.Timelines) > 0 || s.HasField("timelines") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("timelines")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Timelines {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("timelines"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -9296,6 +9625,24 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.List = &List{}
 			x.List.UnmarshalProtoJSON(s.WithField("list", true))
+		case "timelines":
+			s.AddField("timelines")
+			if s.ReadNil() {
+				x.Timelines = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Timelines = append(x.Timelines, nil)
+					return
+				}
+				v := &Timeline{}
+				v.UnmarshalProtoJSON(s.WithField("timelines", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Timelines = append(x.Timelines, v)
+			})
 		}
 	})
 }
@@ -10251,6 +10598,183 @@ func (x *Cue) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the Cue from JSON.
 func (x *Cue) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Timeline message to JSON.
+func (x *Timeline) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Id != "" || s.HasField("id") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("id")
+		s.WriteString(x.Id)
+	}
+	if x.Run != 0 || s.HasField("run") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("run")
+		s.WriteUint32(x.Run)
+	}
+	if x.Clock != 0 || s.HasField("clock") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("clock")
+		x.Clock.MarshalProtoJSON(s)
+	}
+	if len(x.Steps) > 0 || s.HasField("steps") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steps")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Steps {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("steps"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Timeline to JSON.
+func (x *Timeline) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Timeline message from JSON.
+func (x *Timeline) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "id":
+			s.AddField("id")
+			x.Id = s.ReadString()
+		case "run":
+			s.AddField("run")
+			x.Run = s.ReadUint32()
+		case "clock":
+			s.AddField("clock")
+			x.Clock.UnmarshalProtoJSON(s)
+		case "steps":
+			s.AddField("steps")
+			if s.ReadNil() {
+				x.Steps = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Steps = append(x.Steps, nil)
+					return
+				}
+				v := &TimelineStep{}
+				v.UnmarshalProtoJSON(s.WithField("steps", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Steps = append(x.Steps, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Timeline from JSON.
+func (x *Timeline) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TimelineStep message to JSON.
+func (x *TimelineStep) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.At != 0 || s.HasField("at") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("at")
+		s.WriteFloat32(x.At)
+	}
+	if x.Measure != "" || s.HasField("measure") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("measure")
+		s.WriteString(x.Measure)
+	}
+	if len(x.Classes) > 0 || s.HasField("classes") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("classes")
+		s.WriteStringArray(x.Classes)
+	}
+	if x.Style != nil || s.HasField("style") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("style")
+		x.Style.MarshalProtoJSON(s.WithField("style"))
+	}
+	if x.Sound != "" || s.HasField("sound") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sound")
+		s.WriteString(x.Sound)
+	}
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat32(x.Seconds)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the TimelineStep to JSON.
+func (x *TimelineStep) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TimelineStep message from JSON.
+func (x *TimelineStep) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "at":
+			s.AddField("at")
+			x.At = s.ReadFloat32()
+		case "measure":
+			s.AddField("measure")
+			x.Measure = s.ReadString()
+		case "classes":
+			s.AddField("classes")
+			if s.ReadNil() {
+				x.Classes = nil
+				return
+			}
+			x.Classes = s.ReadStringArray()
+		case "style":
+			if s.ReadNil() {
+				x.Style = nil
+				return
+			}
+			x.Style = &Style{}
+			x.Style.UnmarshalProtoJSON(s.WithField("style", true))
+		case "sound":
+			s.AddField("sound")
+			x.Sound = s.ReadString()
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the TimelineStep from JSON.
+func (x *TimelineStep) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -13324,6 +13848,20 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.Timelines) > 0 {
+		for iNdEx := len(m.Timelines) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Timelines[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x3
+			i--
+			dAtA[i] = 0xc2
+		}
+	}
 	if m.List != nil {
 		size, err := m.List.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -14460,6 +14998,134 @@ func (m *Cue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Number))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Timeline) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Timeline) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Timeline) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Steps) > 0 {
+		for iNdEx := len(m.Steps) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Steps[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if m.Clock != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Clock))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Run != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Run))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Id) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Id)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TimelineStep) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TimelineStep) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *TimelineStep) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if len(m.Sound) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sound)
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.Style != nil {
+		size, err := m.Style.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Classes) > 0 {
+		for iNdEx := len(m.Classes) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Classes[iNdEx])
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Measure) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Measure)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.At != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.At))))
+		i--
+		dAtA[i] = 0xd
 	}
 	return len(dAtA) - i, nil
 }
@@ -17103,6 +17769,10 @@ func (m *Node) SizeVT() (n int) {
 		l = m.List.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	for _, e := range m.Timelines {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -17347,6 +18017,42 @@ func (m *Cue) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Timeline) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Id)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Run)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Clock)
+	for _, e := range m.Steps {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *TimelineStep) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.At)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Measure)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Classes)
+	if m.Style != nil {
+		l = m.Style.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
 	n += len(m.unknownFields)
 	return n
 }
@@ -18179,6 +18885,10 @@ func (x ClockFormat) MarshalProtoText() string {
 	return x.String()
 }
 
+func (x TimelineClock) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x Scaling) MarshalProtoText() string {
 	return x.String()
 }
@@ -18560,6 +19270,18 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "list")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.List)
 	}
+	if len(x.Timelines) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "timelines")
+		for i, v := range x.Timelines {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Timeline{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -18936,6 +19658,78 @@ func (x *Cue) MarshalProtoText() string {
 }
 
 func (x *Cue) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Timeline) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Timeline")
+	if x.Id != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "id")
+		protobuf_go_lite.TextWriteString(&sb, x.Id)
+	}
+	if x.Run != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "run")
+		protobuf_go_lite.TextWriteUint(&sb, x.Run)
+	}
+	if x.Clock != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "clock")
+		protobuf_go_lite.TextWriteStringer(&sb, TimelineClock(x.Clock))
+	}
+	if len(x.Steps) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "steps")
+		for i, v := range x.Steps {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &TimelineStep{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Timeline) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *TimelineStep) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "TimelineStep")
+	if x.At != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "at")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.At)
+	}
+	if x.Measure != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "measure")
+		protobuf_go_lite.TextWriteString(&sb, x.Measure)
+	}
+	if len(x.Classes) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "classes")
+		for i, v := range x.Classes {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Style != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "style")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Style)
+	}
+	if x.Sound != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
+		protobuf_go_lite.TextWriteString(&sb, x.Sound)
+	}
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *TimelineStep) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -20849,6 +21643,19 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 56:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Timelines", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Timelines = append(m.Timelines, &Timeline{})
+			if err := m.Timelines[len(m.Timelines)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -21810,6 +22617,204 @@ func (m *Cue) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Delay = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Timeline) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Timeline: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Timeline: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Id = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Run", wireType)
+			}
+			m.Run = 0
+			m.Run, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Clock", wireType)
+			}
+			m.Clock = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Clock = TimelineClock(_v)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Steps", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Steps = append(m.Steps, &TimelineStep{})
+			if err := m.Steps[len(m.Steps)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *TimelineStep) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TimelineStep: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TimelineStep: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field At", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.At = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Measure", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Measure = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Classes", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Classes = append(m.Classes, v)
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Style", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Style == nil {
+				m.Style = &Style{}
+			}
+			if err := m.Style.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sound", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sound = v
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Seconds = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

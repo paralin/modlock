@@ -222,6 +222,10 @@ export {
   type UiElement,
   uiSound,
   useDenseUiRecords,
+  playTimeline,
+  cancelTimeline,
+  type Timeline,
+  type TimelineStep,
 } from './ui.js'
 
 /** LogPart is a value log writes as text. */
