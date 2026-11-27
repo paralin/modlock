@@ -46,6 +46,11 @@ constexpr std::string_view kOverlayCommand = "modlockoverlay ";
 // UiTrees::Placement reads the report.
 constexpr std::string_view kPlacementCommand = "modlockplacement ";
 
+// kWindowCommand starts the console command a player's game sends when the
+// run of a list's rows near its visible box changes: "modlockwindow <mod>
+// <node> <first> <count>", as UiTrees::Window reads the rest.
+constexpr std::string_view kWindowCommand = "modlockwindow ";
+
 // kHandoffLimit is the most bytes of handoff state a mod holds for the game
 // or for one player.
 constexpr size_t kHandoffLimit = 64 * 1024;
@@ -235,6 +240,19 @@ bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
       return false;
     }
     if (auto refused = Placement(slot, sent.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+
+  if (line.starts_with(kWindowCommand)) {
+    // A window names this mod, then the list and its rows.
+    const auto sent = line.substr(kWindowCommand.size());
+    const auto space = sent.find(' ');
+    if (space == std::string_view::npos || sent.substr(0, space) != slug_) {
+      return false;
+    }
+    if (auto refused = Window(slot, sent.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

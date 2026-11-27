@@ -88,6 +88,7 @@ import {
   trackValue,
 } from './number.js'
 import { RangeControl, rangeHandles, rangeLook } from './range.js'
+import { Lists, type Window } from './list.js'
 
 export {
   actionCommand,
@@ -359,6 +360,22 @@ export function inputCommand(
   return ''
 }
 
+/**
+ * windowCommand is the console command that asks for the run of rows of the
+ * list node in mod's interface that starts at first and is count long.
+ */
+export function windowCommand(
+  mod: string,
+  node: string,
+  first: number,
+  count: number,
+): string {
+  if (isSlug(mod) && isNodeId(node)) {
+    return `modlockwindow ${mod} ${node} ${first} ${count}`
+  }
+  return ''
+}
+
 /** encodeInput writes an input's value as inputCommand sends it. */
 function encodeInput(value: InputValue): string {
   switch (value.case) {
@@ -406,6 +423,7 @@ const panelTypes: Record<Kind, string> = {
   [Kind.MENU_CLOSE]: 'Button',
   [Kind.DOCUMENT_INPUT]: 'Panel',
   [Kind.DOCUMENT_OUTPUT]: 'Label',
+  [Kind.LIST]: 'Panel',
 }
 
 /** Control is the control an input draws, as its node names it. */
@@ -762,13 +780,21 @@ export class Drawing {
     private readonly layouts?: Layouts,
     private readonly change?: Change,
     private readonly menuHost?: MenuHost,
+    window?: Window,
   ) {
     this.menus = new Menus(panorama, menuHost)
     this.documents = new Documents(panorama, menuHost)
+    this.lists = new Lists(window)
   }
 
   private readonly menus: Menus
   private readonly documents: Documents
+
+  /** lists keeps where each list is scrolled to. */
+  private readonly lists: Lists
+
+  /** last is the screen last drawn, which a scrolled list draws again. */
+  private last: Screen | null = null
 
   /** scoreboard takes the game's scoreboard action, including key-up. */
   scoreboard(pressed: boolean): void {
@@ -812,6 +838,9 @@ export class Drawing {
 
   /** draw makes the panels match screen, keeping each panel whose node stays. */
   draw(screen: Screen | null): void {
+    // Keep the screen, which a scroll draws again.
+    this.last = screen
+
     // Delete the trees of mods the screen no longer holds.
     const trees = new Map(
       (screen?.trees ?? []).map((tree) => [tree.mod ?? '', tree]),
@@ -831,6 +860,7 @@ export class Drawing {
       this.mods.delete(mod)
       this.routes.delete(mod)
       this.addons.delete(mod)
+      this.lists.drop(mod)
     }
 
     // A mod gone from the screen stops its sounds and, back, plays only the
@@ -984,12 +1014,57 @@ export class Drawing {
     return measured
   }
 
+  /**
+   * scrollLists binds the wheel to each list's panel, once per panel, and
+   * reads the height each list shows. A list whose height changed, or that
+   * is not laid out yet, is drawn again shortly; one never laid out is
+   * waited on once.
+   */
+  private scrollLists(
+    mod: string,
+    lists: string[],
+    drawn: Map<string, Drawn>,
+  ): void {
+    let again = false
+    for (const id of lists) {
+      const panel = drawn.get(id)?.panel
+      if (!panel) continue
+      const scroll = this.lists.scroll(mod, id)
+      if (scroll.panel !== panel) {
+        scroll.panel = panel
+        const wheel = (steps: number) => {
+          const moved = this.lists.step(mod, id, steps)
+          if (moved) this.draw(this.last)
+          return moved
+        }
+        this.panorama.RegisterEventHandler?.('ScrollUp', panel, () => wheel(-1))
+        this.panorama.RegisterEventHandler?.('ScrollDown', panel, () =>
+          wheel(1),
+        )
+      }
+      const height = panel.actuallayoutheight ?? 0
+      if (height > 0 && height !== scroll.viewport) {
+        scroll.viewport = height
+        again = true
+      } else if (height <= 0 && !scroll.waited) {
+        scroll.waited = true
+        again = true
+      }
+    }
+    if (again && this.panorama.Schedule) {
+      this.panorama.Schedule(0, () => this.draw(this.last))
+    }
+  }
+
   /** drawTree draws one mod's nodes from its root down, in its region. */
   private drawTree(mod: string, tree: Tree): void {
     // Index the mod's nodes by id.
     const nodes = new Map(
       (tree.nodes ?? []).map((node) => [node.id ?? '', node]),
     )
+
+    // Draw each list as the panels of the rows it shows.
+    const lists = this.lists.expand(mod, nodes)
 
     // Read the mod's routes; a layout that loads now starts with them all.
     const routes = new Map<string, string>()
@@ -1027,6 +1102,7 @@ export class Drawing {
     const drawn = new Map<string, Drawn>()
     const parent = frame === Frame.HUD ? this.hudFrame() : this.parent
     this.drawNode(mod, root, parent, previous, drawn, nodes, tree.region)
+    this.scrollLists(mod, lists, drawn)
 
     // Hand each layout loaded before this draw the routes that changed, an
     // empty value for one the mod no longer sends.

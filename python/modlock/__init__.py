@@ -863,6 +863,8 @@ _Kind: dict[Any, Any] = {
     "document_input": 11,
     12: "document_output",
     "document_output": 12,
+    13: "list",
+    "list": 13,
 }
 
 
@@ -5127,6 +5129,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(51, "frame", "enum", enum=_Frame),
             wire.Field(52, "follows_placement", "bool"),
             wire.Field(54, "bindings", "message", repeated=True, message="Binding"),
+            wire.Field(55, "list", "message", message="List"),
         ],
     ),
     "Node_VariablesEntry": (
@@ -5134,6 +5137,41 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "key", "string"),
             wire.Field(2, "value", "string"),
+        ],
+    ),
+    "List": (
+        None,
+        [
+            wire.Field(1, "row", "message", repeated=True, message="Node"),
+            wire.Field(2, "row_height", "float"),
+            wire.Field(3, "first", "uint32"),
+            wire.Field(4, "total", "uint32"),
+            wire.Field(5, "rows", "message", repeated=True, message="Row"),
+        ],
+    ),
+    "Row": (
+        None,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "rank", "double"),
+            wire.Field(3, "sort", "string"),
+            wire.Field(4, "fields", "message", repeated=True, message="Row_FieldsEntry"),
+        ],
+    ),
+    "Row_FieldsEntry": (
+        None,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "value", "string"),
+        ],
+    ),
+    "ListChange": (
+        None,
+        [
+            wire.Field(1, "node", "string"),
+            wire.Field(2, "reset", "bool"),
+            wire.Field(3, "set", "message", repeated=True, message="Row"),
+            wire.Field(4, "removed", "string", repeated=True),
         ],
     ),
     "Binding": (
@@ -5426,6 +5464,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "set", "message", repeated=True, message="Node"),
             wire.Field(3, "removed", "string", repeated=True),
             wire.Field(4, "generation", "uint64"),
+            wire.Field(5, "lists", "message", repeated=True, message="ListChange"),
         ],
     ),
     "UiPressEvent": (

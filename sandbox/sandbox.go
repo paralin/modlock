@@ -191,6 +191,14 @@ func (s *Sandbox) Input(ctx context.Context, mod string, event *ui.UiInputEvent)
 	return changed, err
 }
 
+// Window reports the run of a list's rows the preview's renderer asks for,
+// as the game's host does, to the screen owner that keeps the rows.
+func (s *Sandbox) Window(ctx context.Context, window *control.UiWindow) error {
+	return s.do(ctx, func(context.Context) {
+		s.event(&control.HostEvent{Body: &control.HostEvent_UiWindow{UiWindow: window}})
+	})
+}
+
 // Call calls one method of a service a running mod serves and reports the
 // answer as a called event, as the host does.
 func (s *Sandbox) Call(ctx context.Context, call *control.ModCall) error {

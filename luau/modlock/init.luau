@@ -3063,6 +3063,8 @@ local Kind: { [any]: any } = {
 	documentInput = 11,
 	[12] = "documentOutput",
 	documentOutput = 12,
+	[13] = "list",
+	list = 13,
 }
 
 -- Flow holds the wire names of the interface enum Flow.
@@ -4383,10 +4385,34 @@ schema.Node = {
 	{ number = 51, name = "frame", kind = "enum", enum = Frame },
 	{ number = 52, name = "followsPlacement", kind = "bool" },
 	{ number = 54, name = "bindings", kind = "message", repeated = true, message = "Binding" },
+	{ number = 55, name = "list", kind = "message", message = "List" },
 }
 schema.Node_VariablesEntry = {
 	{ number = 1, name = "key", kind = "string" },
 	{ number = 2, name = "value", kind = "string" },
+}
+schema.List = {
+	{ number = 1, name = "row", kind = "message", repeated = true, message = "Node" },
+	{ number = 2, name = "rowHeight", kind = "float" },
+	{ number = 3, name = "first", kind = "uint32" },
+	{ number = 4, name = "total", kind = "uint32" },
+	{ number = 5, name = "rows", kind = "message", repeated = true, message = "Row" },
+}
+schema.Row = {
+	{ number = 1, name = "key", kind = "string" },
+	{ number = 2, name = "rank", kind = "double" },
+	{ number = 3, name = "sort", kind = "string" },
+	{ number = 4, name = "fields", kind = "message", repeated = true, message = "Row_FieldsEntry" },
+}
+schema.Row_FieldsEntry = {
+	{ number = 1, name = "key", kind = "string" },
+	{ number = 2, name = "value", kind = "string" },
+}
+schema.ListChange = {
+	{ number = 1, name = "node", kind = "string" },
+	{ number = 2, name = "reset", kind = "bool" },
+	{ number = 3, name = "set", kind = "message", repeated = true, message = "Row" },
+	{ number = 4, name = "removed", kind = "string", repeated = true },
 }
 schema.Binding = {
 	{ number = 1, name = "panel", kind = "string" },
@@ -4592,6 +4618,7 @@ schema.Change = {
 	{ number = 2, name = "set", kind = "message", repeated = true, message = "Node" },
 	{ number = 3, name = "removed", kind = "string", repeated = true },
 	{ number = 4, name = "generation", kind = "uint64" },
+	{ number = 5, name = "lists", kind = "message", repeated = true, message = "ListChange" },
 }
 schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

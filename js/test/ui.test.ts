@@ -769,3 +769,61 @@ test('chat lines and the parts hidden for all reach each player, and a leave cle
   expect(latest(2).removed!.length).toBeGreaterThan(0)
   hideHudForAll([])
 })
+
+test('a list sends its rows apart from its node, only those that changed', () => {
+  // The first draw sends the template and every row.
+  const player = new Player(9)
+  const board = (rows: { key: string; name: string }[]) =>
+    jsx('list', {
+      style: { height: 200 },
+      rowHeight: 20,
+      row: jsx('panel', {
+        children: [
+          jsx('label', { children: '{name}' }),
+          jsx('image', { src: '{icon}' }),
+        ],
+      }),
+      rows: rows.map(({ key, name }) => ({ key, fields: { name } })),
+    })
+  show(
+    player,
+    board([
+      { key: 'a', name: 'Ann' },
+      { key: 'b', name: 'Bo' },
+    ]),
+  )
+  const first = sent.at(-1)!.change!
+  const node = first.set!.find((each) => each.kind === Kind.LIST)!
+  expect(node.list!.rowHeight).toBe(20)
+  expect(node.list!.row!.map((part) => part.id ?? '')).toEqual(['1', '2', ''])
+  expect(node.list!.rows ?? []).toEqual([])
+  expect(
+    first.lists!.map((each) => [each.node, each.reset, each.set!.length]),
+  ).toEqual([[node.id, true, 2]])
+
+  // A changed row, a new one and a gone one send those alone.
+  show(
+    player,
+    board([
+      { key: 'b', name: 'Bob' },
+      { key: 'c', name: 'Cy' },
+    ]),
+  )
+  const next = sent.at(-1)!.change!
+  expect(next.set ?? []).toEqual([])
+  const rows = next.lists![0]!
+  expect(rows.reset ?? false).toBe(false)
+  expect(rows.set!.map((row) => row.key)).toEqual(['b', 'c'])
+  expect(rows.removed).toEqual(['a'])
+
+  // The same rows send nothing.
+  const count = sent.length
+  show(
+    player,
+    board([
+      { key: 'b', name: 'Bob' },
+      { key: 'c', name: 'Cy' },
+    ]),
+  )
+  expect(sent.length).toBe(count)
+})

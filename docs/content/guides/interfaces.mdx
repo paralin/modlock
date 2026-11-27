@@ -340,6 +340,40 @@ button with `submits` is pressed when the player presses Enter in an entry of
 the same menu, after the entry's edit, so the player can type a name and press
 Enter to save. Escape still closes the menu without calling the mod.
 
+## Long lists
+
+A list scrolls more rows than an interface may hold as nodes, such as a
+leaderboard of every player. Each row is drawn from one template, whose text,
+images and variables name the row's fields as `{field}`:
+
+```tsx
+<list
+  style={{ height: 400 }}
+  rowHeight={32}
+  row={<label>{'{name}: {score}'}</label>}
+  rows={players.map((p) => ({
+    key: p.id,
+    rank: -p.score,
+    fields: { name: p.name, score: String(p.score) },
+  }))}
+/>
+```
+
+The rows show in order of `rank`, then `sort`, then `key`, and each row's key
+names it while the rows change. The host holds every row and sends the
+player's game only the rows near what the list shows, and the game builds
+panels only for the rows in view, so a list of ten thousand rows costs the
+player what a list of a hundred does. The player scrolls with the wheel. Each
+draw compares every row with the rows the player holds and sends only the rows
+added, changed and removed.
+
+A row's height is fixed by `rowHeight`, from 1 to 1000 pixels, and the list's
+own `height` is how much of it shows. The template is a panel, label or image
+holding at most fifteen more, with no buttons or inputs. A row has at most
+sixteen fields. The host takes at most 20,000 rows in a list, and 2 MiB of rows
+across a player's interface. In Python the element is `list_`, and in Go
+`ui.List`.
+
 ## Local menus and portable text
 
 Use a TypeScript `<menu>` when settings or a result should give the player a

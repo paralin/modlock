@@ -288,6 +288,11 @@ class WasmPlugin final : public Plugin {
   // report as UiTrees::Placement reads it.
   std::expected<void, std::string> Placement(int32_t slot, std::string_view line);
 
+  // Window passes on the run of a list's rows the renderer of the player in
+  // slot asks for, to the program that keeps the rows: line is the request
+  // as UiTrees::Window reads it.
+  std::expected<void, std::string> Window(int32_t slot, std::string_view line);
+
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 

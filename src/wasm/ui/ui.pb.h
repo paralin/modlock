@@ -178,6 +178,18 @@ class Length;
 struct LengthDefaultTypeInternal;
 MODLOCK_API extern LengthDefaultTypeInternal _Length_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Length_class_data_;
+class List;
+struct ListDefaultTypeInternal;
+MODLOCK_API extern ListDefaultTypeInternal _List_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull List_class_data_;
+class ListChange;
+struct ListChangeDefaultTypeInternal;
+MODLOCK_API extern ListChangeDefaultTypeInternal _ListChange_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ListChange_class_data_;
+class ListWindow;
+struct ListWindowDefaultTypeInternal;
+MODLOCK_API extern ListWindowDefaultTypeInternal _ListWindow_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ListWindow_class_data_;
 class Measured;
 struct MeasuredDefaultTypeInternal;
 MODLOCK_API extern MeasuredDefaultTypeInternal _Measured_default_instance_;
@@ -210,6 +222,14 @@ class Region;
 struct RegionDefaultTypeInternal;
 MODLOCK_API extern RegionDefaultTypeInternal _Region_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Region_class_data_;
+class Row;
+struct RowDefaultTypeInternal;
+MODLOCK_API extern RowDefaultTypeInternal _Row_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Row_class_data_;
+class Row_FieldsEntry_DoNotUse;
+struct Row_FieldsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern Row_FieldsEntry_DoNotUseDefaultTypeInternal _Row_FieldsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Row_FieldsEntry_DoNotUse_class_data_;
 class Screen;
 struct ScreenDefaultTypeInternal;
 MODLOCK_API extern ScreenDefaultTypeInternal _Screen_default_instance_;
@@ -689,6 +709,7 @@ enum Kind : int {
   KIND_MENU_CLOSE = 10,
   KIND_DOCUMENT_INPUT = 11,
   KIND_DOCUMENT_OUTPUT = 12,
+  KIND_LIST = 13,
   Kind_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   Kind_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -699,11 +720,11 @@ extern const uint32_t Kind_internal_data_[];
 inline constexpr Kind Kind_MIN =
     static_cast<Kind>(0);
 inline constexpr Kind Kind_MAX =
-    static_cast<Kind>(12);
+    static_cast<Kind>(13);
 inline bool Kind_IsValid(int value) {
-  return 0 <= value && value <= 12;
+  return 0 <= value && value <= 13;
 }
-inline constexpr int Kind_ARRAYSIZE = 12 + 1;
+inline constexpr int Kind_ARRAYSIZE = 13 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Kind_descriptor();
 template <typename T>
 const ::std::string& Kind_Name(T value) {
@@ -714,7 +735,7 @@ const ::std::string& Kind_Name(T value) {
 }
 template <>
 inline const ::std::string& Kind_Name(Kind value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<Kind_descriptor, 0, 12>(
+  return ::google::protobuf::internal::NameOfDenseEnum<Kind_descriptor, 0, 13>(
       static_cast<int>(value));
 }
 inline bool Kind_Parse(
@@ -1206,7 +1227,7 @@ class MODLOCK_API Wheel final : public ::google::protobuf::Message
     return *reinterpret_cast<const Wheel*>(
         &_Wheel_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(Wheel& a, Wheel& b) { a.Swap(&b); }
   inline void Swap(Wheel* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1408,7 +1429,7 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiPressEvent*>(
         &_UiPressEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 39;
   friend void swap(UiPressEvent& a, UiPressEvent& b) { a.Swap(&b); }
   inline void Swap(UiPressEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1649,7 +1670,7 @@ class MODLOCK_API UiOverlayEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiOverlayEvent*>(
         &_UiOverlayEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 40;
+  static constexpr int kIndexInFileMessages = 45;
   friend void swap(UiOverlayEvent& a, UiOverlayEvent& b) { a.Swap(&b); }
   inline void Swap(UiOverlayEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1851,7 +1872,7 @@ class MODLOCK_API UiActionEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiActionEvent*>(
         &_UiActionEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 39;
+  static constexpr int kIndexInFileMessages = 44;
   friend void swap(UiActionEvent& a, UiActionEvent& b) { a.Swap(&b); }
   inline void Swap(UiActionEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2065,7 +2086,7 @@ class MODLOCK_API Transform final : public ::google::protobuf::Message
     return *reinterpret_cast<const Transform*>(
         &_Transform_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 25;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(Transform& a, Transform& b) { a.Swap(&b); }
   inline void Swap(Transform* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2331,7 +2352,7 @@ class MODLOCK_API Toggle final : public ::google::protobuf::Message
     return *reinterpret_cast<const Toggle*>(
         &_Toggle_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(Toggle& a, Toggle& b) { a.Swap(&b); }
   inline void Swap(Toggle* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2521,7 +2542,7 @@ class MODLOCK_API TextEntry final : public ::google::protobuf::Message
     return *reinterpret_cast<const TextEntry*>(
         &_TextEntry_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(TextEntry& a, TextEntry& b) { a.Swap(&b); }
   inline void Swap(TextEntry* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2745,7 +2766,7 @@ class MODLOCK_API Slider final : public ::google::protobuf::Message
     return *reinterpret_cast<const Slider*>(
         &_Slider_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(Slider& a, Slider& b) { a.Swap(&b); }
   inline void Swap(Slider* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2983,7 +3004,7 @@ class MODLOCK_API ShownAbility final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShownAbility*>(
         &_ShownAbility_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ShownAbility& a, ShownAbility& b) { a.Swap(&b); }
   inline void Swap(ShownAbility* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3202,7 +3223,7 @@ class MODLOCK_API Shadow final : public ::google::protobuf::Message
     return *reinterpret_cast<const Shadow*>(
         &_Shadow_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(Shadow& a, Shadow& b) { a.Swap(&b); }
   inline void Swap(Shadow* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3397,6 +3418,45 @@ class MODLOCK_API Shadow final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Shadow_class_data_;
 // -------------------------------------------------------------------
 
+class Row_FieldsEntry_DoNotUse final
+    : public ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_STRING> {
+ public:
+  using SuperType =
+      ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING>;
+  Row_FieldsEntry_DoNotUse();
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Row_FieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit Row_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
+    return &_Row_FieldsEntry_DoNotUse_default_instance_;
+  }
+
+
+  static constexpr auto InternalGenerateClassData_();
+
+ private:
+  friend class ::google::protobuf::MessageLite;
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 48,
+                                   2>
+      _table_;
+
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+};
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Row_FieldsEntry_DoNotUse_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Region final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Region) */ {
  public:
@@ -3452,7 +3512,7 @@ class MODLOCK_API Region final : public ::google::protobuf::Message
     return *reinterpret_cast<const Region*>(
         &_Region_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 37;
   friend void swap(Region& a, Region& b) { a.Swap(&b); }
   inline void Swap(Region* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3678,7 +3738,7 @@ class MODLOCK_API RangeHandle final : public ::google::protobuf::Message
     return *reinterpret_cast<const RangeHandle*>(
         &_RangeHandle_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(RangeHandle& a, RangeHandle& b) { a.Swap(&b); }
   inline void Swap(RangeHandle* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3885,7 +3945,7 @@ class MODLOCK_API RangeEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const RangeEvent*>(
         &_RangeEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(RangeEvent& a, RangeEvent& b) { a.Swap(&b); }
   inline void Swap(RangeEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4151,7 +4211,7 @@ class MODLOCK_API Menu final : public ::google::protobuf::Message
     return *reinterpret_cast<const Menu*>(
         &_Menu_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(Menu& a, Menu& b) { a.Swap(&b); }
   inline void Swap(Menu* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4327,6 +4387,225 @@ class MODLOCK_API Menu final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Menu_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ListWindow final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.ListWindow) */ {
+ public:
+  inline ListWindow() : ListWindow(nullptr) {}
+  ~ListWindow() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ListWindow* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ListWindow));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ListWindow(::google::protobuf::internal::ConstantInitialized);
+
+  inline ListWindow(const ListWindow& from) : ListWindow(nullptr, from) {}
+  inline ListWindow(ListWindow&& from) noexcept
+      : ListWindow(nullptr, ::std::move(from)) {}
+  inline ListWindow& operator=(const ListWindow& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ListWindow& operator=(ListWindow&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ListWindow& default_instance() {
+    return *reinterpret_cast<const ListWindow*>(
+        &_ListWindow_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 5;
+  friend void swap(ListWindow& a, ListWindow& b) { a.Swap(&b); }
+  inline void Swap(ListWindow* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ListWindow* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ListWindow* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ListWindow>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ListWindow& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ListWindow& from) { ListWindow::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ListWindow* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.ListWindow"; }
+
+  explicit ListWindow(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ListWindow(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ListWindow& from);
+  ListWindow(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ListWindow&& from) noexcept
+      : ListWindow(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNodeFieldNumber = 1,
+    kFirstFieldNumber = 2,
+    kCountFieldNumber = 3,
+  };
+  // string node = 1;
+  void clear_node() ;
+  const ::std::string& node() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_node(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_node();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_node();
+  void set_allocated_node(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_node() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
+
+  public:
+  // uint32 first = 2;
+  void clear_first() ;
+  ::uint32_t first() const;
+  void set_first(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_first() const;
+  void _internal_set_first(::uint32_t value);
+
+  public:
+  // uint32 count = 3;
+  void clear_count() ;
+  ::uint32_t count() const;
+  void set_count(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_count() const;
+  void _internal_set_count(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.ListWindow)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 39,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ListWindow& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr node_;
+    ::uint32_t first_;
+    ::uint32_t count_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ListWindow_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Length final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Length) */ {
  public:
@@ -4389,7 +4668,7 @@ class MODLOCK_API Length final : public ::google::protobuf::Message
     kFill = 4,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(Length& a, Length& b) { a.Swap(&b); }
   inline void Swap(Length* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4631,7 +4910,7 @@ class MODLOCK_API GradientStop final : public ::google::protobuf::Message
     return *reinterpret_cast<const GradientStop*>(
         &_GradientStop_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 28;
   friend void swap(GradientStop& a, GradientStop& b) { a.Swap(&b); }
   inline void Swap(GradientStop* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4833,7 +5112,7 @@ class MODLOCK_API Edges final : public ::google::protobuf::Message
     return *reinterpret_cast<const Edges*>(
         &_Edges_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(Edges& a, Edges& b) { a.Swap(&b); }
   inline void Swap(Edges* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5059,7 +5338,7 @@ class MODLOCK_API Dropdown final : public ::google::protobuf::Message
     return *reinterpret_cast<const Dropdown*>(
         &_Dropdown_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(Dropdown& a, Dropdown& b) { a.Swap(&b); }
   inline void Swap(Dropdown* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5273,7 +5552,7 @@ class MODLOCK_API DocumentInput final : public ::google::protobuf::Message
     return *reinterpret_cast<const DocumentInput*>(
         &_DocumentInput_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(DocumentInput& a, DocumentInput& b) { a.Swap(&b); }
   inline void Swap(DocumentInput* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5497,7 +5776,7 @@ class MODLOCK_API DocumentFailed final : public ::google::protobuf::Message
     return *reinterpret_cast<const DocumentFailed*>(
         &_DocumentFailed_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 38;
+  static constexpr int kIndexInFileMessages = 43;
   friend void swap(DocumentFailed& a, DocumentFailed& b) { a.Swap(&b); }
   inline void Swap(DocumentFailed* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5687,7 +5966,7 @@ class MODLOCK_API DocumentDelivered final : public ::google::protobuf::Message
     return *reinterpret_cast<const DocumentDelivered*>(
         &_DocumentDelivered_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 37;
+  static constexpr int kIndexInFileMessages = 42;
   friend void swap(DocumentDelivered& a, DocumentDelivered& b) { a.Swap(&b); }
   inline void Swap(DocumentDelivered* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5882,7 +6161,7 @@ class MODLOCK_API Curve final : public ::google::protobuf::Message
     return *reinterpret_cast<const Curve*>(
         &_Curve_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 27;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(Curve& a, Curve& b) { a.Swap(&b); }
   inline void Swap(Curve* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6108,7 +6387,7 @@ class MODLOCK_API Cue final : public ::google::protobuf::Message
     return *reinterpret_cast<const Cue*>(
         &_Cue_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(Cue& a, Cue& b) { a.Swap(&b); }
   inline void Swap(Cue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6339,7 +6618,7 @@ class MODLOCK_API Clock final : public ::google::protobuf::Message
     return *reinterpret_cast<const Clock*>(
         &_Clock_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(Clock& a, Clock& b) { a.Swap(&b); }
   inline void Swap(Clock* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6577,7 +6856,7 @@ class MODLOCK_API ClipRect final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClipRect*>(
         &_ClipRect_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(ClipRect& a, ClipRect& b) { a.Swap(&b); }
   inline void Swap(ClipRect* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6803,7 +7082,7 @@ class MODLOCK_API ClipRadial final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClipRadial*>(
         &_ClipRadial_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 26;
   friend void swap(ClipRadial& a, ClipRadial& b) { a.Swap(&b); }
   inline void Swap(ClipRadial* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7031,7 +7310,7 @@ class MODLOCK_API Bounds final : public ::google::protobuf::Message
     return *reinterpret_cast<const Bounds*>(
         &_Bounds_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 41;
+  static constexpr int kIndexInFileMessages = 46;
   friend void swap(Bounds& a, Bounds& b) { a.Swap(&b); }
   inline void Swap(Bounds* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7257,7 +7536,7 @@ class MODLOCK_API Binding final : public ::google::protobuf::Message
     return *reinterpret_cast<const Binding*>(
         &_Binding_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(Binding& a, Binding& b) { a.Swap(&b); }
   inline void Swap(Binding* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7504,7 +7783,7 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
     kRange = 8,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 35;
+  static constexpr int kIndexInFileMessages = 40;
   friend void swap(UiInputEvent& a, UiInputEvent& b) { a.Swap(&b); }
   inline void Swap(UiInputEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7830,7 +8109,7 @@ class MODLOCK_API UiDocumentEvent final : public ::google::protobuf::Message
     kFailed = 4,
     RESULT_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 36;
+  static constexpr int kIndexInFileMessages = 41;
   friend void swap(UiDocumentEvent& a, UiDocumentEvent& b) { a.Swap(&b); }
   inline void Swap(UiDocumentEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8090,7 +8369,7 @@ class MODLOCK_API Transition final : public ::google::protobuf::Message
     return *reinterpret_cast<const Transition*>(
         &_Transition_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 26;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(Transition& a, Transition& b) { a.Swap(&b); }
   inline void Swap(Transition* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8266,6 +8545,250 @@ class MODLOCK_API Transition final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Transition_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API Row final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Row) */ {
+ public:
+  inline Row() : Row(nullptr) {}
+  ~Row() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Row* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Row));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Row(::google::protobuf::internal::ConstantInitialized);
+
+  inline Row(const Row& from) : Row(nullptr, from) {}
+  inline Row(Row&& from) noexcept
+      : Row(nullptr, ::std::move(from)) {}
+  inline Row& operator=(const Row& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Row& operator=(Row&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Row& default_instance() {
+    return *reinterpret_cast<const Row*>(
+        &_Row_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 4;
+  friend void swap(Row& a, Row& b) { a.Swap(&b); }
+  inline void Swap(Row* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Row* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Row* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Row>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Row& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Row& from) { Row::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Row* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.Row"; }
+
+  explicit Row(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Row(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Row& from);
+  Row(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Row&& from) noexcept
+      : Row(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kKeyFieldNumber = 1,
+    kSortFieldNumber = 3,
+    kRankFieldNumber = 2,
+    kFieldsFieldNumber = 4,
+  };
+  // string key = 1;
+  void clear_key() ;
+  const ::std::string& key() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_key(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_key();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_key();
+  void set_allocated_key(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_key() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_key(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_key();
+
+  public:
+  // string sort = 3;
+  void clear_sort() ;
+  const ::std::string& sort() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_sort(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_sort();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sort();
+  void set_allocated_sort(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_sort() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_sort(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_sort();
+
+  public:
+  // double rank = 2;
+  void clear_rank() ;
+  double rank() const;
+  void set_rank(double value);
+
+  private:
+  double _internal_rank() const;
+  void _internal_set_rank(double value);
+
+  public:
+  // map<string, string> fields = 4;
+  int fields_size() const;
+  private:
+  int _internal_fields_size() const;
+
+  public:
+  void clear_fields() ;
+  const ::google::protobuf::Map<::std::string, ::std::string>& fields() const;
+  ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL mutable_fields();
+
+  private:
+  const ::google::protobuf::Map<::std::string, ::std::string>& _internal_fields() const;
+  ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL _internal_mutable_fields();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Row)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   1, 41,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const Row& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr key_;
+    ::google::protobuf::internal::ArenaStringPtr sort_;
+    double rank_;
+    ::google::protobuf::internal::MapField<Row_FieldsEntry_DoNotUse, ::std::string, ::std::string,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_STRING>
+        fields_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Row_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Range final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Range) */ {
  public:
@@ -8321,7 +8844,7 @@ class MODLOCK_API Range final : public ::google::protobuf::Message
     return *reinterpret_cast<const Range*>(
         &_Range_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(Range& a, Range& b) { a.Swap(&b); }
   inline void Swap(Range* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8554,7 +9077,7 @@ class MODLOCK_API Measured final : public ::google::protobuf::Message
     return *reinterpret_cast<const Measured*>(
         &_Measured_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 43;
+  static constexpr int kIndexInFileMessages = 48;
   friend void swap(Measured& a, Measured& b) { a.Swap(&b); }
   inline void Swap(Measured* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8766,7 +9289,7 @@ class MODLOCK_API Gradient final : public ::google::protobuf::Message
     return *reinterpret_cast<const Gradient*>(
         &_Gradient_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 27;
   friend void swap(Gradient& a, Gradient& b) { a.Swap(&b); }
   inline void Swap(Gradient* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8980,7 +9503,7 @@ class MODLOCK_API Clip final : public ::google::protobuf::Message
     kRadial = 2,
     SHAPE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(Clip& a, Clip& b) { a.Swap(&b); }
   inline void Swap(Clip* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9210,7 +9733,7 @@ class MODLOCK_API AbilityRow final : public ::google::protobuf::Message
     return *reinterpret_cast<const AbilityRow*>(
         &_AbilityRow_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(AbilityRow& a, AbilityRow& b) { a.Swap(&b); }
   inline void Swap(AbilityRow* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9465,7 +9988,7 @@ class MODLOCK_API UiPlacementEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiPlacementEvent*>(
         &_UiPlacementEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 42;
+  static constexpr int kIndexInFileMessages = 47;
   friend void swap(UiPlacementEvent& a, UiPlacementEvent& b) { a.Swap(&b); }
   inline void Swap(UiPlacementEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9708,7 +10231,7 @@ class MODLOCK_API Style final : public ::google::protobuf::Message
     return *reinterpret_cast<const Style*>(
         &_Style_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(Style& a, Style& b) { a.Swap(&b); }
   inline void Swap(Style* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10479,6 +11002,256 @@ class MODLOCK_API Style final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Style_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ListChange final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.ListChange) */ {
+ public:
+  inline ListChange() : ListChange(nullptr) {}
+  ~ListChange() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ListChange* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ListChange));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ListChange(::google::protobuf::internal::ConstantInitialized);
+
+  inline ListChange(const ListChange& from) : ListChange(nullptr, from) {}
+  inline ListChange(ListChange&& from) noexcept
+      : ListChange(nullptr, ::std::move(from)) {}
+  inline ListChange& operator=(const ListChange& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ListChange& operator=(ListChange&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ListChange& default_instance() {
+    return *reinterpret_cast<const ListChange*>(
+        &_ListChange_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(ListChange& a, ListChange& b) { a.Swap(&b); }
+  inline void Swap(ListChange* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ListChange* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ListChange* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ListChange>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ListChange& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ListChange& from) { ListChange::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ListChange* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.ListChange"; }
+
+  explicit ListChange(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ListChange(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ListChange& from);
+  ListChange(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ListChange&& from) noexcept
+      : ListChange(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kSetFieldNumber = 3,
+    kRemovedFieldNumber = 4,
+    kNodeFieldNumber = 1,
+    kResetFieldNumber = 2,
+  };
+  // repeated .modlock.wasm.ui.Row set = 3;
+  int set_size() const;
+  private:
+  int _internal_set_size() const;
+
+  public:
+  void clear_set() ;
+  ::modlock::wasm::ui::Row* PROTOBUF_NONNULL mutable_set(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL mutable_set();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& _internal_set() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL _internal_mutable_set();
+  public:
+  const ::modlock::wasm::ui::Row& set(int index) const;
+  ::modlock::wasm::ui::Row* PROTOBUF_NONNULL add_set();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& set() const;
+  // repeated string removed = 4;
+  int removed_size() const;
+  private:
+  int _internal_removed_size() const;
+
+  public:
+  void clear_removed() ;
+  const ::std::string& removed(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_removed(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_removed(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_removed();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_removed(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& removed() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_removed();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_removed() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_removed();
+
+  public:
+  // string node = 1;
+  void clear_node() ;
+  const ::std::string& node() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_node(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_node();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_node();
+  void set_allocated_node(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_node() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
+
+  public:
+  // bool reset = 2;
+  void clear_reset() ;
+  bool reset() const;
+  void set_reset(bool value);
+
+  private:
+  bool _internal_reset() const;
+  void _internal_set_reset(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.ListChange)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   1, 46,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ListChange& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Row > set_;
+    ::google::protobuf::RepeatedPtrField<::std::string> removed_;
+    ::google::protobuf::internal::ArenaStringPtr node_;
+    bool reset_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ListChange_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Cycle final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Cycle) */ {
  public:
@@ -10534,7 +11307,7 @@ class MODLOCK_API Cycle final : public ::google::protobuf::Message
     return *reinterpret_cast<const Cycle*>(
         &_Cycle_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(Cycle& a, Cycle& b) { a.Swap(&b); }
   inline void Swap(Cycle* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10696,6 +11469,258 @@ class MODLOCK_API Cycle final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Cycle_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API List final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.List) */ {
+ public:
+  inline List() : List(nullptr) {}
+  ~List() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(List* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(List));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR List(::google::protobuf::internal::ConstantInitialized);
+
+  inline List(const List& from) : List(nullptr, from) {}
+  inline List(List&& from) noexcept
+      : List(nullptr, ::std::move(from)) {}
+  inline List& operator=(const List& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline List& operator=(List&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const List& default_instance() {
+    return *reinterpret_cast<const List*>(
+        &_List_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 2;
+  friend void swap(List& a, List& b) { a.Swap(&b); }
+  inline void Swap(List* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(List* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  List* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<List>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const List& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const List& from) { List::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(List* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.List"; }
+
+  explicit List(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  List(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const List& from);
+  List(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, List&& from) noexcept
+      : List(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kRowFieldNumber = 1,
+    kRowsFieldNumber = 5,
+    kRowHeightFieldNumber = 2,
+    kFirstFieldNumber = 3,
+    kTotalFieldNumber = 4,
+  };
+  // repeated .modlock.wasm.ui.Node row = 1;
+  int row_size() const;
+  private:
+  int _internal_row_size() const;
+
+  public:
+  void clear_row() ;
+  ::modlock::wasm::ui::Node* PROTOBUF_NONNULL mutable_row(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>* PROTOBUF_NONNULL mutable_row();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>& _internal_row() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>* PROTOBUF_NONNULL _internal_mutable_row();
+  public:
+  const ::modlock::wasm::ui::Node& row(int index) const;
+  ::modlock::wasm::ui::Node* PROTOBUF_NONNULL add_row();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>& row() const;
+  // repeated .modlock.wasm.ui.Row rows = 5;
+  int rows_size() const;
+  private:
+  int _internal_rows_size() const;
+
+  public:
+  void clear_rows() ;
+  ::modlock::wasm::ui::Row* PROTOBUF_NONNULL mutable_rows(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL mutable_rows();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& _internal_rows() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL _internal_mutable_rows();
+  public:
+  const ::modlock::wasm::ui::Row& rows(int index) const;
+  ::modlock::wasm::ui::Row* PROTOBUF_NONNULL add_rows();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& rows() const;
+  // float row_height = 2;
+  void clear_row_height() ;
+  float row_height() const;
+  void set_row_height(float value);
+
+  private:
+  float _internal_row_height() const;
+  void _internal_set_row_height(float value);
+
+  public:
+  // uint32 first = 3;
+  void clear_first() ;
+  ::uint32_t first() const;
+  void set_first(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_first() const;
+  void _internal_set_first(::uint32_t value);
+
+  public:
+  // uint32 total = 4;
+  void clear_total() ;
+  ::uint32_t total() const;
+  void set_total(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_total() const;
+  void _internal_set_total(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.List)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   2, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const List& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Node > row_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Row > rows_;
+    float row_height_;
+    ::uint32_t first_;
+    ::uint32_t total_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull List_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API Node final : public ::google::protobuf::Message
@@ -10888,6 +11913,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     kClockFieldNumber = 39,
     kMenuFieldNumber = 42,
     kDocumentInputFieldNumber = 43,
+    kListFieldNumber = 55,
     kItemFieldNumber = 32,
     kFreeCursorAsksFieldNumber = 33,
     kAbilityFieldNumber = 34,
@@ -11488,6 +12514,21 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   ::modlock::wasm::ui::DocumentInput* PROTOBUF_NONNULL _internal_mutable_document_input();
 
   public:
+  // .modlock.wasm.ui.List list = 55;
+  bool has_list() const;
+  void clear_list() ;
+  const ::modlock::wasm::ui::List& list() const;
+  [[nodiscard]] ::modlock::wasm::ui::List* PROTOBUF_NULLABLE release_list();
+  ::modlock::wasm::ui::List* PROTOBUF_NONNULL mutable_list();
+  void set_allocated_list(::modlock::wasm::ui::List* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_list(::modlock::wasm::ui::List* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::List* PROTOBUF_NULLABLE unsafe_arena_release_list();
+
+  private:
+  const ::modlock::wasm::ui::List& _internal_list() const;
+  ::modlock::wasm::ui::List* PROTOBUF_NONNULL _internal_mutable_list();
+
+  public:
   // uint32 item = 32;
   void clear_item() ;
   ::uint32_t item() const;
@@ -11686,8 +12727,8 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 54,
-                                   17, 189,
+  static const ::google::protobuf::internal::TcParseTable<5, 55,
+                                   18, 189,
                                    9>
       _table_;
 
@@ -11753,6 +12794,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::modlock::wasm::ui::Clock* PROTOBUF_NULLABLE clock_;
     ::modlock::wasm::ui::Menu* PROTOBUF_NULLABLE menu_;
     ::modlock::wasm::ui::DocumentInput* PROTOBUF_NULLABLE document_input_;
+    ::modlock::wasm::ui::List* PROTOBUF_NULLABLE list_;
     ::uint32_t item_;
     ::uint32_t free_cursor_asks_;
     ::uint32_t ability_;
@@ -11836,7 +12878,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
     return *reinterpret_cast<const Tree*>(
         &_Tree_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 36;
   friend void swap(Tree& a, Tree& b) { a.Swap(&b); }
   inline void Swap(Tree* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12096,7 +13138,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
     return *reinterpret_cast<const Change*>(
         &_Change_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(Change& a, Change& b) { a.Swap(&b); }
   inline void Swap(Change* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12185,6 +13227,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
   enum : int {
     kSetFieldNumber = 2,
     kRemovedFieldNumber = 3,
+    kListsFieldNumber = 5,
     kGenerationFieldNumber = 4,
     kResetFieldNumber = 1,
   };
@@ -12227,6 +13270,23 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
   ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_removed();
 
   public:
+  // repeated .modlock.wasm.ui.ListChange lists = 5;
+  int lists_size() const;
+  private:
+  int _internal_lists_size() const;
+
+  public:
+  void clear_lists() ;
+  ::modlock::wasm::ui::ListChange* PROTOBUF_NONNULL mutable_lists(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>* PROTOBUF_NONNULL mutable_lists();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>& _internal_lists() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>* PROTOBUF_NONNULL _internal_mutable_lists();
+  public:
+  const ::modlock::wasm::ui::ListChange& lists(int index) const;
+  ::modlock::wasm::ui::ListChange* PROTOBUF_NONNULL add_lists();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>& lists() const;
   // uint64 generation = 4;
   void clear_generation() ;
   ::uint64_t generation() const;
@@ -12251,8 +13311,8 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                   1, 38,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   2, 38,
                                    2>
       _table_;
 
@@ -12275,6 +13335,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Node > set_;
     ::google::protobuf::RepeatedPtrField<::std::string> removed_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::ListChange > lists_;
     ::uint64_t generation_;
     bool reset_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -12341,7 +13402,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 44;
+  static constexpr int kIndexInFileMessages = 49;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12548,7 +13609,7 @@ class MODLOCK_API Screen final : public ::google::protobuf::Message
     return *reinterpret_cast<const Screen*>(
         &_Screen_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 38;
   friend void swap(Screen& a, Screen& b) { a.Swap(&b); }
   inline void Swap(Screen* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -13512,7 +14573,7 @@ inline void Node::clear_item() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.item_ = 0u;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000100U);
+                  0x00000200U);
 }
 inline ::uint32_t Node::item() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.item)
@@ -13520,7 +14581,7 @@ inline ::uint32_t Node::item() const {
 }
 inline void Node::set_item(::uint32_t value) {
   _internal_set_item(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[1], 0x00000200U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.item)
 }
 inline ::uint32_t Node::_internal_item() const {
@@ -13537,7 +14598,7 @@ inline void Node::clear_ability() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ability_ = 0u;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000400U);
+                  0x00000800U);
 }
 inline ::uint32_t Node::ability() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.ability)
@@ -13545,7 +14606,7 @@ inline ::uint32_t Node::ability() const {
 }
 inline void Node::set_ability(::uint32_t value) {
   _internal_set_ability(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[1], 0x00000800U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.ability)
 }
 inline ::uint32_t Node::_internal_ability() const {
@@ -14815,7 +15876,7 @@ inline void Node::clear_free_cursor_asks() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.free_cursor_asks_ = 0u;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000200U);
+                  0x00000400U);
 }
 inline ::uint32_t Node::free_cursor_asks() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.free_cursor_asks)
@@ -14823,7 +15884,7 @@ inline ::uint32_t Node::free_cursor_asks() const {
 }
 inline void Node::set_free_cursor_asks(::uint32_t value) {
   _internal_set_free_cursor_asks(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[1], 0x00000400U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.free_cursor_asks)
 }
 inline ::uint32_t Node::_internal_free_cursor_asks() const {
@@ -15479,7 +16540,7 @@ inline void Node::clear_follows_overlay() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.follows_overlay_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00004000U);
+                  0x00008000U);
 }
 inline bool Node::follows_overlay() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.follows_overlay)
@@ -15487,7 +16548,7 @@ inline bool Node::follows_overlay() const {
 }
 inline void Node::set_follows_overlay(bool value) {
   _internal_set_follows_overlay(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00008000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.follows_overlay)
 }
 inline bool Node::_internal_follows_overlay() const {
@@ -15504,7 +16565,7 @@ inline void Node::clear_focus_order() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.focus_order_ = 0u;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00000800U);
+                  0x00001000U);
 }
 inline ::uint32_t Node::focus_order() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.focus_order)
@@ -15512,7 +16573,7 @@ inline ::uint32_t Node::focus_order() const {
 }
 inline void Node::set_focus_order(::uint32_t value) {
   _internal_set_focus_order(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[1], 0x00001000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.focus_order)
 }
 inline ::uint32_t Node::_internal_focus_order() const {
@@ -15529,7 +16590,7 @@ inline void Node::clear_initial_focus() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.initial_focus_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00001000U);
+                  0x00002000U);
 }
 inline bool Node::initial_focus() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.initial_focus)
@@ -15537,7 +16598,7 @@ inline bool Node::initial_focus() const {
 }
 inline void Node::set_initial_focus(bool value) {
   _internal_set_initial_focus(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00002000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.initial_focus)
 }
 inline bool Node::_internal_initial_focus() const {
@@ -15554,7 +16615,7 @@ inline void Node::clear_submits() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.submits_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00002000U);
+                  0x00004000U);
 }
 inline bool Node::submits() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.submits)
@@ -15562,7 +16623,7 @@ inline bool Node::submits() const {
 }
 inline void Node::set_submits(bool value) {
   _internal_set_submits(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00002000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00004000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.submits)
 }
 inline bool Node::_internal_submits() const {
@@ -15644,7 +16705,7 @@ inline void Node::clear_frame() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.frame_ = 0;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00010000U);
+                  0x00020000U);
 }
 inline ::modlock::wasm::ui::Frame Node::frame() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.frame)
@@ -15652,7 +16713,7 @@ inline ::modlock::wasm::ui::Frame Node::frame() const {
 }
 inline void Node::set_frame(::modlock::wasm::ui::Frame value) {
   _internal_set_frame(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00020000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.frame)
 }
 inline ::modlock::wasm::ui::Frame Node::_internal_frame() const {
@@ -15669,7 +16730,7 @@ inline void Node::clear_follows_placement() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.follows_placement_ = false;
   ClearHasBit(_impl_._has_bits_[1],
-                  0x00008000U);
+                  0x00010000U);
 }
 inline bool Node::follows_placement() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.follows_placement)
@@ -15677,7 +16738,7 @@ inline bool Node::follows_placement() const {
 }
 inline void Node::set_follows_placement(bool value) {
   _internal_set_follows_placement(value);
-  SetHasBit(_impl_._has_bits_[1], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[1], 0x00010000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.follows_placement)
 }
 inline bool Node::_internal_follows_placement() const {
@@ -15745,6 +16806,105 @@ Node::_internal_mutable_bindings() {
   return &_impl_.bindings_;
 }
 
+// .modlock.wasm.ui.List list = 55;
+inline bool Node::has_list() const {
+  bool value = CheckHasBit(_impl_._has_bits_[1], 0x00000100U);
+  PROTOBUF_ASSUME(!value || _impl_.list_ != nullptr);
+  return value;
+}
+inline void Node::clear_list() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.list_ != nullptr) _impl_.list_->Clear();
+  ClearHasBit(_impl_._has_bits_[1],
+                  0x00000100U);
+}
+inline const ::modlock::wasm::ui::List& Node::_internal_list() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::ui::List* p = _impl_.list_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::ui::List&>(::modlock::wasm::ui::_List_default_instance_);
+}
+inline const ::modlock::wasm::ui::List& Node::list() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.list)
+  return _internal_list();
+}
+inline void Node::unsafe_arena_set_allocated_list(
+    ::modlock::wasm::ui::List* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.list_);
+  }
+  _impl_.list_ = reinterpret_cast<::modlock::wasm::ui::List*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[1], 0x00000100U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[1], 0x00000100U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.list)
+}
+inline ::modlock::wasm::ui::List* PROTOBUF_NULLABLE Node::release_list() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[1], 0x00000100U);
+  ::modlock::wasm::ui::List* released = _impl_.list_;
+  _impl_.list_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::ui::List* PROTOBUF_NULLABLE Node::unsafe_arena_release_list() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.list)
+
+  ClearHasBit(_impl_._has_bits_[1], 0x00000100U);
+  ::modlock::wasm::ui::List* temp = _impl_.list_;
+  _impl_.list_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::ui::List* PROTOBUF_NONNULL Node::_internal_mutable_list() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.list_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::List>(GetArena());
+    _impl_.list_ = reinterpret_cast<::modlock::wasm::ui::List*>(p);
+  }
+  return _impl_.list_;
+}
+inline ::modlock::wasm::ui::List* PROTOBUF_NONNULL Node::mutable_list()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[1], 0x00000100U);
+  ::modlock::wasm::ui::List* _msg = _internal_mutable_list();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.list)
+  return _msg;
+}
+inline void Node::set_allocated_list(::modlock::wasm::ui::List* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.list_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[1], 0x00000100U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[1], 0x00000100U);
+  }
+
+  _impl_.list_ = reinterpret_cast<::modlock::wasm::ui::List*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Node.list)
+}
+
 inline bool Node::has_input() const {
   return input_case() != INPUT_NOT_SET;
 }
@@ -15754,6 +16914,731 @@ inline void Node::clear_has_input() {
 inline Node::InputCase Node::input_case() const {
   return Node::InputCase(_impl_._oneof_case_[0]);
 }
+// -------------------------------------------------------------------
+
+// List
+
+// repeated .modlock.wasm.ui.Node row = 1;
+inline int List::_internal_row_size() const {
+  return _internal_row().size();
+}
+inline int List::row_size() const {
+  return _internal_row_size();
+}
+inline void List::clear_row() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.row_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::ui::Node* PROTOBUF_NONNULL List::mutable_row(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.row)
+  return _internal_mutable_row()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>* PROTOBUF_NONNULL List::mutable_row()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.List.row)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_row();
+}
+inline const ::modlock::wasm::ui::Node& List::row(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.row)
+  return _internal_row().Get(index);
+}
+inline ::modlock::wasm::ui::Node* PROTOBUF_NONNULL List::add_row()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::ui::Node* _add =
+      _internal_mutable_row()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.List.row)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>& List::row() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.List.row)
+  return _internal_row();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>&
+List::_internal_row() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.row_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Node>* PROTOBUF_NONNULL
+List::_internal_mutable_row() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.row_;
+}
+
+// float row_height = 2;
+inline void List::clear_row_height() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.row_height_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline float List::row_height() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.row_height)
+  return _internal_row_height();
+}
+inline void List::set_row_height(float value) {
+  _internal_set_row_height(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.row_height)
+}
+inline float List::_internal_row_height() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.row_height_;
+}
+inline void List::_internal_set_row_height(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.row_height_ = value;
+}
+
+// uint32 first = 3;
+inline void List::clear_first() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t List::first() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.first)
+  return _internal_first();
+}
+inline void List::set_first(::uint32_t value) {
+  _internal_set_first(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.first)
+}
+inline ::uint32_t List::_internal_first() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.first_;
+}
+inline void List::_internal_set_first(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = value;
+}
+
+// uint32 total = 4;
+inline void List::clear_total() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.total_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline ::uint32_t List::total() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.total)
+  return _internal_total();
+}
+inline void List::set_total(::uint32_t value) {
+  _internal_set_total(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.total)
+}
+inline ::uint32_t List::_internal_total() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.total_;
+}
+inline void List::_internal_set_total(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.total_ = value;
+}
+
+// repeated .modlock.wasm.ui.Row rows = 5;
+inline int List::_internal_rows_size() const {
+  return _internal_rows().size();
+}
+inline int List::rows_size() const {
+  return _internal_rows_size();
+}
+inline void List::clear_rows() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.rows_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::ui::Row* PROTOBUF_NONNULL List::mutable_rows(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.rows)
+  return _internal_mutable_rows()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL List::mutable_rows()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.List.rows)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_rows();
+}
+inline const ::modlock::wasm::ui::Row& List::rows(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.rows)
+  return _internal_rows().Get(index);
+}
+inline ::modlock::wasm::ui::Row* PROTOBUF_NONNULL List::add_rows()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::ui::Row* _add =
+      _internal_mutable_rows()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.List.rows)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& List::rows() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.List.rows)
+  return _internal_rows();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>&
+List::_internal_rows() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.rows_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL
+List::_internal_mutable_rows() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.rows_;
+}
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// Row
+
+// string key = 1;
+inline void Row::clear_key() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.key_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& Row::key() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Row.key)
+  return _internal_key();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Row::set_key(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.key_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Row.key)
+}
+inline ::std::string* PROTOBUF_NONNULL Row::mutable_key()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_key();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Row.key)
+  return _s;
+}
+inline const ::std::string& Row::_internal_key() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.key_.Get();
+}
+inline void Row::_internal_set_key(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.key_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Row::_internal_mutable_key() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.key_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Row::release_key() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.Row.key)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.key_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.key_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Row::set_allocated_key(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.key_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.key_.IsDefault()) {
+    _impl_.key_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Row.key)
+}
+
+// double rank = 2;
+inline void Row::clear_rank() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.rank_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline double Row::rank() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Row.rank)
+  return _internal_rank();
+}
+inline void Row::set_rank(double value) {
+  _internal_set_rank(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Row.rank)
+}
+inline double Row::_internal_rank() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.rank_;
+}
+inline void Row::_internal_set_rank(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.rank_ = value;
+}
+
+// string sort = 3;
+inline void Row::clear_sort() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.sort_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& Row::sort() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Row.sort)
+  return _internal_sort();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Row::set_sort(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.sort_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Row.sort)
+}
+inline ::std::string* PROTOBUF_NONNULL Row::mutable_sort()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_sort();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Row.sort)
+  return _s;
+}
+inline const ::std::string& Row::_internal_sort() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.sort_.Get();
+}
+inline void Row::_internal_set_sort(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.sort_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Row::_internal_mutable_sort() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.sort_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Row::release_sort() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.Row.sort)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.sort_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.sort_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Row::set_allocated_sort(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.sort_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.sort_.IsDefault()) {
+    _impl_.sort_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Row.sort)
+}
+
+// map<string, string> fields = 4;
+inline int Row::_internal_fields_size() const {
+  return _internal_fields().size();
+}
+inline int Row::fields_size() const {
+  return _internal_fields_size();
+}
+inline void Row::clear_fields() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.fields_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Row::_internal_fields() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.fields_.GetMap();
+}
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Row::fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.ui.Row.fields)
+  return _internal_fields();
+}
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Row::_internal_mutable_fields() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.fields_.MutableMap();
+}
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Row::mutable_fields()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.ui.Row.fields)
+  return _internal_mutable_fields();
+}
+
+// -------------------------------------------------------------------
+
+// ListWindow
+
+// string node = 1;
+inline void ListWindow::clear_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ListWindow::node() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.node)
+  return _internal_node();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ListWindow::set_node(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.node_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.node)
+}
+inline ::std::string* PROTOBUF_NONNULL ListWindow::mutable_node()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_node();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.ListWindow.node)
+  return _s;
+}
+inline const ::std::string& ListWindow::_internal_node() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.node_.Get();
+}
+inline void ListWindow::_internal_set_node(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ListWindow::_internal_mutable_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.node_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ListWindow::release_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.ListWindow.node)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.node_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ListWindow::set_allocated_node(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.node_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.node_.IsDefault()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.ListWindow.node)
+}
+
+// uint32 first = 2;
+inline void ListWindow::clear_first() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t ListWindow::first() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.first)
+  return _internal_first();
+}
+inline void ListWindow::set_first(::uint32_t value) {
+  _internal_set_first(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.first)
+}
+inline ::uint32_t ListWindow::_internal_first() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.first_;
+}
+inline void ListWindow::_internal_set_first(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = value;
+}
+
+// uint32 count = 3;
+inline void ListWindow::clear_count() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.count_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t ListWindow::count() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.count)
+  return _internal_count();
+}
+inline void ListWindow::set_count(::uint32_t value) {
+  _internal_set_count(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.count)
+}
+inline ::uint32_t ListWindow::_internal_count() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.count_;
+}
+inline void ListWindow::_internal_set_count(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.count_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ListChange
+
+// string node = 1;
+inline void ListChange::clear_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& ListChange::node() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListChange.node)
+  return _internal_node();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ListChange::set_node(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.node_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListChange.node)
+}
+inline ::std::string* PROTOBUF_NONNULL ListChange::mutable_node()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_node();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.ListChange.node)
+  return _s;
+}
+inline const ::std::string& ListChange::_internal_node() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.node_.Get();
+}
+inline void ListChange::_internal_set_node(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.node_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ListChange::_internal_mutable_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.node_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ListChange::release_node() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.ListChange.node)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.node_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ListChange::set_allocated_node(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.node_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.node_.IsDefault()) {
+    _impl_.node_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.ListChange.node)
+}
+
+// bool reset = 2;
+inline void ListChange::clear_reset() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reset_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline bool ListChange::reset() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListChange.reset)
+  return _internal_reset();
+}
+inline void ListChange::set_reset(bool value) {
+  _internal_set_reset(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListChange.reset)
+}
+inline bool ListChange::_internal_reset() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.reset_;
+}
+inline void ListChange::_internal_set_reset(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reset_ = value;
+}
+
+// repeated .modlock.wasm.ui.Row set = 3;
+inline int ListChange::_internal_set_size() const {
+  return _internal_set().size();
+}
+inline int ListChange::set_size() const {
+  return _internal_set_size();
+}
+inline void ListChange::clear_set() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.set_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::ui::Row* PROTOBUF_NONNULL ListChange::mutable_set(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.ListChange.set)
+  return _internal_mutable_set()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL ListChange::mutable_set()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.ListChange.set)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_set();
+}
+inline const ::modlock::wasm::ui::Row& ListChange::set(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListChange.set)
+  return _internal_set().Get(index);
+}
+inline ::modlock::wasm::ui::Row* PROTOBUF_NONNULL ListChange::add_set()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::ui::Row* _add =
+      _internal_mutable_set()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.ListChange.set)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& ListChange::set() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.ListChange.set)
+  return _internal_set();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>&
+ListChange::_internal_set() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.set_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_NONNULL
+ListChange::_internal_mutable_set() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.set_;
+}
+
+// repeated string removed = 4;
+inline int ListChange::_internal_removed_size() const {
+  return _internal_removed().size();
+}
+inline int ListChange::removed_size() const {
+  return _internal_removed_size();
+}
+inline void ListChange::clear_removed() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.removed_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::std::string* PROTOBUF_NONNULL ListChange::add_removed()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_removed()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.ui.ListChange.removed)
+  return _s;
+}
+inline const ::std::string& ListChange::removed(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListChange.removed)
+  return _internal_removed().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL ListChange::mutable_removed(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.ListChange.removed)
+  return _internal_mutable_removed()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void ListChange::set_removed(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_removed()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListChange.removed)
+}
+template <typename Arg_, typename... Args_>
+inline void ListChange::add_removed(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_removed(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.ListChange.removed)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& ListChange::removed()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.ListChange.removed)
+  return _internal_removed();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+ListChange::mutable_removed() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.ListChange.removed)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_removed();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+ListChange::_internal_removed() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.removed_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+ListChange::_internal_mutable_removed() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.removed_;
+}
+
 // -------------------------------------------------------------------
 
 // Binding
@@ -21679,7 +23564,7 @@ inline void Change::clear_reset() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reset_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline bool Change::reset() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Change.reset)
@@ -21687,7 +23572,7 @@ inline bool Change::reset() const {
 }
 inline void Change::set_reset(bool value) {
   _internal_set_reset(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Change.reset)
 }
 inline bool Change::_internal_reset() const {
@@ -21832,7 +23717,7 @@ inline void Change::clear_generation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::uint64_t Change::generation() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Change.generation)
@@ -21840,7 +23725,7 @@ inline ::uint64_t Change::generation() const {
 }
 inline void Change::set_generation(::uint64_t value) {
   _internal_set_generation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Change.generation)
 }
 inline ::uint64_t Change::_internal_generation() const {
@@ -21850,6 +23735,62 @@ inline ::uint64_t Change::_internal_generation() const {
 inline void Change::_internal_set_generation(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = value;
+}
+
+// repeated .modlock.wasm.ui.ListChange lists = 5;
+inline int Change::_internal_lists_size() const {
+  return _internal_lists().size();
+}
+inline int Change::lists_size() const {
+  return _internal_lists_size();
+}
+inline void Change::clear_lists() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lists_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::modlock::wasm::ui::ListChange* PROTOBUF_NONNULL Change::mutable_lists(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Change.lists)
+  return _internal_mutable_lists()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>* PROTOBUF_NONNULL Change::mutable_lists()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.Change.lists)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_lists();
+}
+inline const ::modlock::wasm::ui::ListChange& Change::lists(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Change.lists)
+  return _internal_lists().Get(index);
+}
+inline ::modlock::wasm::ui::ListChange* PROTOBUF_NONNULL Change::add_lists()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::ui::ListChange* _add =
+      _internal_mutable_lists()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.Change.lists)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>& Change::lists() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.Change.lists)
+  return _internal_lists();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>&
+Change::_internal_lists() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.lists_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::ListChange>* PROTOBUF_NONNULL
+Change::_internal_mutable_lists() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.lists_;
 }
 
 // -------------------------------------------------------------------

@@ -42,7 +42,8 @@ func NewScreens(account uint64) *Screens {
 }
 
 // Handle follows one host event: a join that binds a person's slot, a leave
-// that frees it, or a mod's change to a player's interface.
+// that frees it, a mod's change to a player's interface, or the window of a
+// list's rows that player's renderer asks for.
 func (s *Screens) Handle(event *control.HostEvent) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -63,6 +64,11 @@ func (s *Screens) Handle(event *control.HostEvent) {
 			s.trees[update.GetSlot()] = mods
 		}
 		mods.apply(update.GetMod(), update.GetChange())
+	case event.GetUiWindow() != nil:
+		update := event.GetUiWindow()
+		if !s.trees[update.GetSlot()].window(update.GetMod(), update.GetWindow()) {
+			return
+		}
 	default:
 		return
 	}
@@ -100,7 +106,7 @@ func (s *Screens) notify() {
 func (s *Screens) Screen() (*ui.Screen, <-chan struct{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.trees[s.slot].screen(), s.changed
+	return s.trees[s.slot].screen(true), s.changed
 }
 
 // Player returns the screen of the person with the Steam ID account, whether
@@ -111,14 +117,15 @@ func (s *Screens) Player(account uint64) (*ui.Screen, bool, <-chan struct{}) {
 	defer s.mu.Unlock()
 	for slot, joined := range s.players {
 		if joined.GetSteamId() == account {
-			return s.trees[slot].screen(), true, s.changed
+			return s.trees[slot].screen(true), true, s.changed
 		}
 	}
 	return &ui.Screen{}, false, s.changed
 }
 
 // Snapshot returns the events that bring new Screens to this one's state:
-// each person's join, then each tree as a reset change.
+// each person's join, then each tree as a reset change with every list's
+// rows, then each list's window.
 func (s *Screens) Snapshot() []*control.HostEvent {
 	// Join each person, in slot order.
 	s.mu.Lock()
@@ -128,13 +135,24 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 		events = append(events, &control.HostEvent{Body: &control.HostEvent_Joined{Joined: s.players[slot]}})
 	}
 
-	// Send every tree whole.
+	// Send every tree whole, and then the windows its lists show.
 	for _, slot := range slices.Sorted(maps.Keys(s.trees)) {
-		for _, tree := range s.trees[slot].screen().GetTrees() {
+		mods := s.trees[slot]
+		var windows []*control.HostEvent
+		for _, tree := range mods.screen(false).GetTrees() {
+			lists := mods[tree.GetMod()].lists
 			change := &ui.Change{Reset_: true, Set: tree.GetNodes(), Generation: tree.GetGeneration()}
+			for _, node := range slices.Sorted(maps.Keys(lists)) {
+				list := lists[node]
+				change.Lists = append(change.Lists, list.reset(node))
+				window := &ui.ListWindow{Node: node, First: list.first, Count: list.count}
+				update := &control.UiWindow{Mod: tree.GetMod(), Slot: slot, Window: window}
+				windows = append(windows, &control.HostEvent{Body: &control.HostEvent_UiWindow{UiWindow: update}})
+			}
 			update := &control.UiChanged{Mod: tree.GetMod(), Slot: slot, Change: change}
 			events = append(events, &control.HostEvent{Body: &control.HostEvent_Ui{Ui: update}})
 		}
+		events = append(events, windows...)
 	}
 	return events
 }
@@ -147,6 +165,9 @@ type trees map[string]*tree
 type tree struct {
 	// nodes holds the current nodes by id, empty while the mod hides its UI.
 	nodes map[string]*ui.Node
+	// lists holds the rows of each list node, by id. A list node that has
+	// none yet shows no rows.
+	lists map[string]*rowList
 	// generation changes on a clear and travels with subsequent redraws.
 	generation uint64
 }
@@ -175,6 +196,55 @@ func (t trees) apply(mod string, change *ui.Change) {
 	for _, id := range change.GetRemoved() {
 		delete(current.nodes, id)
 	}
+
+	// Change the lists' rows. A reset drops every row but keeps the windows
+	// the renderer asked for, and a list whose node is gone drops its rows.
+	if change.GetReset_() {
+		for _, list := range current.lists {
+			list.clear()
+		}
+	}
+	for _, rows := range change.GetLists() {
+		if list := current.list(rows.GetNode()); list != nil {
+			list.apply(rows)
+		}
+	}
+	for id := range current.lists {
+		if current.nodes[id].GetKind() != ui.Kind_KIND_LIST {
+			delete(current.lists, id)
+		}
+	}
+}
+
+// list returns the rows of the list node id, or nil when id is not a list.
+func (t *tree) list(id string) *rowList {
+	if t.nodes[id].GetKind() != ui.Kind_KIND_LIST {
+		return nil
+	}
+	if t.lists == nil {
+		t.lists = make(map[string]*rowList)
+	}
+	list := t.lists[id]
+	if list == nil {
+		list = newRowList()
+		t.lists[id] = list
+	}
+	return list
+}
+
+// window sets the window of mod's list node, and reports whether mod's tree
+// has that list.
+func (t trees) window(mod string, window *ui.ListWindow) bool {
+	current := t[mod]
+	if current == nil {
+		return false
+	}
+	list := current.list(window.GetNode())
+	if list == nil {
+		return false
+	}
+	list.window(window)
+	return true
 }
 
 // newGeneration gives a new screen owner a nonzero lifetime that does not
@@ -187,9 +257,11 @@ func newGeneration() uint64 {
 	}
 }
 
-// screen returns the trees as a screen, in a stable order. The nodes are
-// shared, so callers do not change them.
-func (t trees) screen() *ui.Screen {
+// screen returns the trees as a screen, in a stable order. With fill, which
+// the owner of the rows sets, each list node carries its window of rows;
+// otherwise the nodes are as they arrived, as a Mirror's carry the rows its
+// owner filled. The nodes are shared, so callers do not change them.
+func (t trees) screen(fill bool) *ui.Screen {
 	screen := &ui.Screen{}
 	for _, mod := range slices.Sorted(maps.Keys(t)) {
 		current := t[mod]
@@ -198,7 +270,15 @@ func (t trees) screen() *ui.Screen {
 		}
 		tree := &ui.Tree{Mod: mod, Generation: current.generation}
 		for _, id := range slices.Sorted(maps.Keys(current.nodes)) {
-			tree.Nodes = append(tree.Nodes, current.nodes[id])
+			node := current.nodes[id]
+			if fill && node.GetKind() == ui.Kind_KIND_LIST {
+				list := current.lists[id]
+				if list == nil {
+					list = newRowList()
+				}
+				node = list.fill(node)
+			}
+			tree.Nodes = append(tree.Nodes, node)
 		}
 		screen.Trees = append(screen.Trees, tree)
 	}

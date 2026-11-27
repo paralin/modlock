@@ -583,6 +583,35 @@ struct FixtureDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FixtureDefaultTypeInternal _Fixture_default_instance_;
 
+inline constexpr UiWindow::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        mod_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        window_{nullptr},
+        slot_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR UiWindow::UiWindow(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(UiWindow_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct UiWindowDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR UiWindowDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~UiWindowDefaultTypeInternal() {}
+  union {
+    UiWindow _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UiWindowDefaultTypeInternal _UiWindow_default_instance_;
+
 inline constexpr Fixtures::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -811,6 +840,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::HostEvent, _impl_.body_),
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::HostEvent, _impl_.body_),
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::HostEvent, _impl_.body_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::HostEvent, _impl_.body_),
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::PlayerChat, _impl_._has_bits_),
         6, // hasbit index offset
@@ -901,6 +931,15 @@ const ::uint32_t
         2,
         1,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::UiWindow, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::UiWindow, _impl_.mod_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::UiWindow, _impl_.slot_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::UiWindow, _impl_.window_),
+        0,
+        2,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ServiceReply, _impl_._has_bits_),
         9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ServiceReply, _impl_.mod_),
@@ -982,24 +1021,25 @@ static const ::_pbi::MigrationSchema
         {22, sizeof(::modlock::host_app::control::ModCallResult)},
         {33, sizeof(::modlock::host_app::control::ReloadRequest)},
         {38, sizeof(::modlock::host_app::control::HostEvent)},
-        {56, sizeof(::modlock::host_app::control::PlayerChat)},
-        {65, sizeof(::modlock::host_app::control::ModStarted)},
-        {72, sizeof(::modlock::host_app::control::ModLog)},
-        {79, sizeof(::modlock::host_app::control::ModFailed)},
-        {86, sizeof(::modlock::host_app::control::ModCalls)},
-        {93, sizeof(::modlock::host_app::control::ModSlowFrame)},
-        {100, sizeof(::modlock::host_app::control::PlayerJoined)},
-        {113, sizeof(::modlock::host_app::control::PlayerLeft)},
-        {118, sizeof(::modlock::host_app::control::PlayerMessage)},
-        {131, sizeof(::modlock::host_app::control::ServerReady)},
-        {136, sizeof(::modlock::host_app::control::UiChanged)},
-        {145, sizeof(::modlock::host_app::control::ServiceReply)},
-        {160, sizeof(::modlock::host_app::control::ServiceResult)},
-        {167, sizeof(::modlock::host_app::control::Fixture)},
-        {180, sizeof(::modlock::host_app::control::Forward)},
-        {189, sizeof(::modlock::host_app::control::Fixtures)},
-        {196, sizeof(::modlock::host_app::control::ServiceCall)},
-        {209, sizeof(::modlock::host_app::control::ServiceAnswer)},
+        {57, sizeof(::modlock::host_app::control::PlayerChat)},
+        {66, sizeof(::modlock::host_app::control::ModStarted)},
+        {73, sizeof(::modlock::host_app::control::ModLog)},
+        {80, sizeof(::modlock::host_app::control::ModFailed)},
+        {87, sizeof(::modlock::host_app::control::ModCalls)},
+        {94, sizeof(::modlock::host_app::control::ModSlowFrame)},
+        {101, sizeof(::modlock::host_app::control::PlayerJoined)},
+        {114, sizeof(::modlock::host_app::control::PlayerLeft)},
+        {119, sizeof(::modlock::host_app::control::PlayerMessage)},
+        {132, sizeof(::modlock::host_app::control::ServerReady)},
+        {137, sizeof(::modlock::host_app::control::UiChanged)},
+        {146, sizeof(::modlock::host_app::control::UiWindow)},
+        {155, sizeof(::modlock::host_app::control::ServiceReply)},
+        {170, sizeof(::modlock::host_app::control::ServiceResult)},
+        {177, sizeof(::modlock::host_app::control::Fixture)},
+        {190, sizeof(::modlock::host_app::control::Forward)},
+        {199, sizeof(::modlock::host_app::control::Fixtures)},
+        {206, sizeof(::modlock::host_app::control::ServiceCall)},
+        {219, sizeof(::modlock::host_app::control::ServiceAnswer)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::host_app::control::_ControlRequest_default_instance_._instance,
@@ -1018,6 +1058,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::host_app::control::_PlayerMessage_default_instance_._instance,
     &::modlock::host_app::control::_ServerReady_default_instance_._instance,
     &::modlock::host_app::control::_UiChanged_default_instance_._instance,
+    &::modlock::host_app::control::_UiWindow_default_instance_._instance,
     &::modlock::host_app::control::_ServiceReply_default_instance_._instance,
     &::modlock::host_app::control::_ServiceResult_default_instance_._instance,
     &::modlock::host_app::control::_Fixture_default_instance_._instance,
@@ -1050,7 +1091,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fho
     "load\030\004 \001(\014\022\n\n\002id\030\005 \001(\t\"H\n\rModCallResult\022"
     "\n\n\002id\030\001 \001(\t\022\013\n\003mod\030\002 \001(\t\022\017\n\007payload\030\003 \001("
     "\014\022\r\n\005error\030\004 \001(\t\"\035\n\rReloadRequest\022\014\n\004pat"
-    "h\030\001 \001(\t\"\373\006\n\tHostEvent\0227\n\007started\030\001 \001(\0132$"
+    "h\030\001 \001(\t\"\264\007\n\tHostEvent\0227\n\007started\030\001 \001(\0132$"
     ".modlock.host_app.control.ModStartedH\000\022/"
     "\n\003log\030\002 \001(\0132 .modlock.host_app.control.M"
     "odLogH\000\0225\n\006failed\030\003 \001(\0132#.modlock.host_a"
@@ -1072,43 +1113,46 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fho
     "\014service_call\030\016 \001(\0132%.modlock.host_app.c"
     "ontrol.ServiceCallH\000\022G\n\022controllers_want"
     "ed\030\017 \001(\0132).modlock.wasm.controllers.Cont"
-    "rollerWantsH\000B\006\n\004body\"6\n\nPlayerChat\022\014\n\004s"
-    "lot\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"+\n"
-    "\nModStarted\022\013\n\003mod\030\001 \001(\t\022\020\n\010reloaded\030\002 \001"
-    "(\010\"#\n\006ModLog\022\013\n\003mod\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\""
-    "\'\n\tModFailed\022\013\n\003mod\030\001 \001(\t\022\r\n\005error\030\002 \001(\t"
-    "\"K\n\010ModCalls\022\013\n\003mod\030\001 \001(\t\0222\n\007profile\030\002 \001"
-    "(\0132!.modlock.wasm.profile.CallProfile\"L\n"
-    "\014ModSlowFrame\022\013\n\003mod\030\001 \001(\t\022/\n\006report\030\002 \001"
-    "(\0132\037.modlock.wasm.profile.SlowFrame\"a\n\014P"
-    "layerJoined\022\014\n\004slot\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022"
-    "\020\n\010steam_id\030\003 \001(\006\022\022\n\ngeneration\030\004 \001(\r\022\017\n"
-    "\007address\030\005 \001(\t\"\032\n\nPlayerLeft\022\014\n\004slot\030\001 \001"
-    "(\005\"|\n\rPlayerMessage\022\013\n\003mod\030\001 \001(\t\022\014\n\004slot"
-    "\030\002 \001(\005\0223\n\004kind\030\003 \001(\0162%.modlock.host_app."
-    "control.MessageKind\022\r\n\005title\030\004 \001(\t\022\014\n\004te"
-    "xt\030\005 \001(\t\"\032\n\013ServerReady\022\013\n\003map\030\001 \001(\t\"O\n\t"
-    "UiChanged\022\013\n\003mod\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\'\n\006"
-    "change\030\003 \001(\0132\027.modlock.wasm.ui.Change\"g\n"
-    "\014ServiceReply\022\013\n\003mod\030\001 \001(\t\022\017\n\007service\030\002 "
-    "\001(\t\022\016\n\006method\030\003 \001(\t\022\017\n\007payload\030\004 \001(\014\022\014\n\004"
-    "path\030\005 \001(\t\022\n\n\002id\030\006 \001(\t\"*\n\rServiceResult\022"
-    "\n\n\002id\030\001 \001(\t\022\r\n\005error\030\002 \001(\t\"X\n\007Fixture\022\013\n"
-    "\003mod\030\001 \001(\t\022\017\n\007service\030\002 \001(\t\022\016\n\006method\030\003 "
-    "\001(\t\022\017\n\007payload\030\004 \001(\014\022\016\n\006source\030\005 \001(\t\"7\n\007"
-    "Forward\022\013\n\003mod\030\001 \001(\t\022\017\n\007service\030\002 \001(\t\022\016\n"
-    "\006target\030\003 \001(\t\"t\n\010Fixtures\0223\n\010fixtures\030\001 "
-    "\003(\0132!.modlock.host_app.control.Fixture\0223"
-    "\n\010forwards\030\002 \003(\0132!.modlock.host_app.cont"
-    "rol.Forward\"X\n\013ServiceCall\022\n\n\002id\030\001 \001(\004\022\013"
-    "\n\003mod\030\002 \001(\t\022\017\n\007service\030\003 \001(\t\022\016\n\006method\030\004"
-    " \001(\t\022\017\n\007payload\030\005 \001(\014\";\n\rServiceAnswer\022\n"
-    "\n\002id\030\001 \001(\004\022\017\n\007payload\030\002 \001(\014\022\r\n\005error\030\003 \001"
-    "(\t*\\\n\013MessageKind\022\025\n\021MESSAGE_KIND_CHAT\020\000"
-    "\022\027\n\023MESSAGE_KIND_CENTER\020\001\022\035\n\031MESSAGE_KIN"
-    "D_ANNOUNCEMENT\020\002B9Z7github.com/paralin/m"
-    "odlock/src/host_app/control;controlb\006pro"
-    "to3"
+    "rollerWantsH\000\0227\n\tui_window\030\020 \001(\0132\".modlo"
+    "ck.host_app.control.UiWindowH\000B\006\n\004body\"6"
+    "\n\nPlayerChat\022\014\n\004slot\030\001 \001(\005\022\014\n\004name\030\002 \001(\t"
+    "\022\014\n\004text\030\003 \001(\t\"+\n\nModStarted\022\013\n\003mod\030\001 \001("
+    "\t\022\020\n\010reloaded\030\002 \001(\010\"#\n\006ModLog\022\013\n\003mod\030\001 \001"
+    "(\t\022\014\n\004text\030\002 \001(\t\"\'\n\tModFailed\022\013\n\003mod\030\001 \001"
+    "(\t\022\r\n\005error\030\002 \001(\t\"K\n\010ModCalls\022\013\n\003mod\030\001 \001"
+    "(\t\0222\n\007profile\030\002 \001(\0132!.modlock.wasm.profi"
+    "le.CallProfile\"L\n\014ModSlowFrame\022\013\n\003mod\030\001 "
+    "\001(\t\022/\n\006report\030\002 \001(\0132\037.modlock.wasm.profi"
+    "le.SlowFrame\"a\n\014PlayerJoined\022\014\n\004slot\030\001 \001"
+    "(\005\022\014\n\004name\030\002 \001(\t\022\020\n\010steam_id\030\003 \001(\006\022\022\n\nge"
+    "neration\030\004 \001(\r\022\017\n\007address\030\005 \001(\t\"\032\n\nPlaye"
+    "rLeft\022\014\n\004slot\030\001 \001(\005\"|\n\rPlayerMessage\022\013\n\003"
+    "mod\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\0223\n\004kind\030\003 \001(\0162%."
+    "modlock.host_app.control.MessageKind\022\r\n\005"
+    "title\030\004 \001(\t\022\014\n\004text\030\005 \001(\t\"\032\n\013ServerReady"
+    "\022\013\n\003map\030\001 \001(\t\"O\n\tUiChanged\022\013\n\003mod\030\001 \001(\t\022"
+    "\014\n\004slot\030\002 \001(\005\022\'\n\006change\030\003 \001(\0132\027.modlock."
+    "wasm.ui.Change\"R\n\010UiWindow\022\013\n\003mod\030\001 \001(\t\022"
+    "\014\n\004slot\030\002 \001(\005\022+\n\006window\030\003 \001(\0132\033.modlock."
+    "wasm.ui.ListWindow\"g\n\014ServiceReply\022\013\n\003mo"
+    "d\030\001 \001(\t\022\017\n\007service\030\002 \001(\t\022\016\n\006method\030\003 \001(\t"
+    "\022\017\n\007payload\030\004 \001(\014\022\014\n\004path\030\005 \001(\t\022\n\n\002id\030\006 "
+    "\001(\t\"*\n\rServiceResult\022\n\n\002id\030\001 \001(\t\022\r\n\005erro"
+    "r\030\002 \001(\t\"X\n\007Fixture\022\013\n\003mod\030\001 \001(\t\022\017\n\007servi"
+    "ce\030\002 \001(\t\022\016\n\006method\030\003 \001(\t\022\017\n\007payload\030\004 \001("
+    "\014\022\016\n\006source\030\005 \001(\t\"7\n\007Forward\022\013\n\003mod\030\001 \001("
+    "\t\022\017\n\007service\030\002 \001(\t\022\016\n\006target\030\003 \001(\t\"t\n\010Fi"
+    "xtures\0223\n\010fixtures\030\001 \003(\0132!.modlock.host_"
+    "app.control.Fixture\0223\n\010forwards\030\002 \003(\0132!."
+    "modlock.host_app.control.Forward\"X\n\013Serv"
+    "iceCall\022\n\n\002id\030\001 \001(\004\022\013\n\003mod\030\002 \001(\t\022\017\n\007serv"
+    "ice\030\003 \001(\t\022\016\n\006method\030\004 \001(\t\022\017\n\007payload\030\005 \001"
+    "(\014\";\n\rServiceAnswer\022\n\n\002id\030\001 \001(\004\022\017\n\007paylo"
+    "ad\030\002 \001(\014\022\r\n\005error\030\003 \001(\t*\\\n\013MessageKind\022\025"
+    "\n\021MESSAGE_KIND_CHAT\020\000\022\027\n\023MESSAGE_KIND_CE"
+    "NTER\020\001\022\035\n\031MESSAGE_KIND_ANNOUNCEMENT\020\002B9Z"
+    "7github.com/paralin/modlock/src/host_app"
+    "/control;controlb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps[4] = {
@@ -1121,13 +1165,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto = {
     false,
     false,
-    3203,
+    3344,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
     "github.com/paralin/modlock/src/host_app/control/control.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps,
     4,
-    23,
+    24,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto::offsets,
@@ -3046,6 +3090,19 @@ void HostEvent::clear_controllers_wanted() {
     clear_has_body();
   }
 }
+void HostEvent::set_allocated_ui_window(::modlock::host_app::control::UiWindow* PROTOBUF_NULLABLE ui_window) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_body();
+  if (ui_window) {
+    ::google::protobuf::Arena* submessage_arena = ui_window->GetArena();
+    if (message_arena != submessage_arena) {
+      ui_window = ::google::protobuf::internal::GetOwnedMessage(message_arena, ui_window, submessage_arena);
+    }
+    set_has_ui_window();
+    _impl_.body_.ui_window_ = ui_window;
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.HostEvent.ui_window)
+}
 HostEvent::HostEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, HostEvent_class_data_.base()) {
@@ -3123,6 +3180,9 @@ HostEvent::HostEvent(
         break;
       case kControllersWanted:
         _impl_.body_.controllers_wanted_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.controllers_wanted_);
+        break;
+      case kUiWindow:
+        _impl_.body_.ui_window_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.ui_window_);
         break;
   }
 
@@ -3279,6 +3339,14 @@ void HostEvent::clear_body() {
       }
       break;
     }
+    case kUiWindow: {
+      if (GetArena() == nullptr) {
+        delete _impl_.body_.ui_window_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.ui_window_);
+      }
+      break;
+    }
     case BODY_NOT_SET: {
       break;
     }
@@ -3330,17 +3398,17 @@ HostEvent::GetClassData() const {
   return HostEvent_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 15, 15, 0, 2>
+const ::_pbi::TcParseTable<0, 16, 16, 0, 2>
 HostEvent::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    15, 0,  // max_field_number, fast_idx_mask
+    16, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294934528,  // skipmap
+    4294901760,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    15,  // num_field_entries
-    15,  // num_aux_entries
+    16,  // num_field_entries
+    16,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     HostEvent_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -3383,6 +3451,8 @@ HostEvent::_table_ = {
     {PROTOBUF_FIELD_OFFSET(HostEvent, _impl_.body_.service_call_), _Internal::kOneofCaseOffset + 0, 13, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.wasm.controllers.ControllerWants controllers_wanted = 15;
     {PROTOBUF_FIELD_OFFSET(HostEvent, _impl_.body_.controllers_wanted_), _Internal::kOneofCaseOffset + 0, 14, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .modlock.host_app.control.UiWindow ui_window = 16;
+    {PROTOBUF_FIELD_OFFSET(HostEvent, _impl_.body_.ui_window_), _Internal::kOneofCaseOffset + 0, 15, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::host_app::control::ModStarted>()},
@@ -3400,6 +3470,7 @@ HostEvent::_table_ = {
       {::_pbi::TcParser::GetTable<::modlock::host_app::control::ModCallResult>()},
       {::_pbi::TcParser::GetTable<::modlock::host_app::control::ServiceCall>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::controllers::ControllerWants>()},
+      {::_pbi::TcParser::GetTable<::modlock::host_app::control::UiWindow>()},
   }},
   {{
   }},
@@ -3524,6 +3595,12 @@ PROTOBUF_NOINLINE void HostEvent::Clear() {
           stream);
       break;
     }
+    case kUiWindow: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          16, *this_._impl_.body_.ui_window_, this_._impl_.body_.ui_window_->GetCachedSize(), target,
+          stream);
+      break;
+    }
     default:
       break;
   }
@@ -3639,6 +3716,12 @@ PROTOBUF_NOINLINE void HostEvent::Clear() {
     case kControllersWanted: {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.body_.controllers_wanted_);
+      break;
+    }
+    // .modlock.host_app.control.UiWindow ui_window = 16;
+    case kUiWindow: {
+      total_size += 2 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.body_.ui_window_);
       break;
     }
     case BODY_NOT_SET: {
@@ -3792,6 +3875,14 @@ void HostEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
           _this->_impl_.body_.controllers_wanted_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.controllers_wanted_);
         } else {
           _this->_impl_.body_.controllers_wanted_->MergeFrom(*from._impl_.body_.controllers_wanted_);
+        }
+        break;
+      }
+      case kUiWindow: {
+        if (oneof_needs_init) {
+          _this->_impl_.body_.ui_window_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.ui_window_);
+        } else {
+          _this->_impl_.body_.ui_window_->MergeFrom(*from._impl_.body_.ui_window_);
         }
         break;
       }
@@ -7528,6 +7619,372 @@ void UiChanged::InternalSwap(UiChanged* PROTOBUF_RESTRICT PROTOBUF_NONNULL other
 }
 
 ::google::protobuf::Metadata UiChanged::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class UiWindow::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<UiWindow>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(UiWindow, _impl_._has_bits_);
+};
+
+void UiWindow::clear_window() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.window_ != nullptr) _impl_.window_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+UiWindow::UiWindow(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, UiWindow_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.host_app.control.UiWindow)
+}
+PROTOBUF_NDEBUG_INLINE UiWindow::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::host_app::control::UiWindow& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        mod_(arena, from.mod_) {}
+
+UiWindow::UiWindow(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const UiWindow& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, UiWindow_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  UiWindow* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.window_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.window_)
+                : nullptr;
+  _impl_.slot_ = from._impl_.slot_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.host_app.control.UiWindow)
+}
+PROTOBUF_NDEBUG_INLINE UiWindow::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        mod_(arena) {}
+
+inline void UiWindow::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, window_),
+           0,
+           offsetof(Impl_, slot_) -
+               offsetof(Impl_, window_) +
+               sizeof(Impl_::slot_));
+}
+UiWindow::~UiWindow() {
+  // @@protoc_insertion_point(destructor:modlock.host_app.control.UiWindow)
+  SharedDtor(*this);
+}
+inline void UiWindow::SharedDtor(MessageLite& self) {
+  UiWindow& this_ = static_cast<UiWindow&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.mod_.Destroy();
+  delete this_._impl_.window_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL UiWindow::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) UiWindow(arena);
+}
+constexpr auto UiWindow::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(UiWindow),
+                                            alignof(UiWindow));
+}
+constexpr auto UiWindow::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_UiWindow_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &UiWindow::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<UiWindow>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &UiWindow::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<UiWindow>(), &UiWindow::ByteSizeLong,
+              &UiWindow::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(UiWindow, _impl_._cached_size_),
+          false,
+      },
+      &UiWindow::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull UiWindow_class_data_ =
+        UiWindow::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+UiWindow::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&UiWindow_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(UiWindow_class_data_.tc_table);
+  return UiWindow_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 1, 45, 2>
+UiWindow::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(UiWindow, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    UiWindow_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::host_app::control::UiWindow>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // string mod = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.mod_)}},
+    // int32 slot = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiWindow, _impl_.slot_), 2>(),
+     {16, 2, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.slot_)}},
+    // .modlock.wasm.ui.ListWindow window = 3;
+    {::_pbi::TcParser::FastMtS1,
+     {26, 1, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.window_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string mod = 1;
+    {PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.mod_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int32 slot = 2;
+    {PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.slot_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // .modlock.wasm.ui.ListWindow window = 3;
+    {PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.window_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::ui::ListWindow>()},
+  }},
+  {{
+    "\41\3\0\0\0\0\0\0"
+    "modlock.host_app.control.UiWindow"
+    "mod"
+  }},
+};
+PROTOBUF_NOINLINE void UiWindow::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.host_app.control.UiWindow)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.mod_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.window_ != nullptr);
+      _impl_.window_->Clear();
+    }
+  }
+  _impl_.slot_ = 0;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL UiWindow::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const UiWindow& this_ = static_cast<const UiWindow&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL UiWindow::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const UiWindow& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.host_app.control.UiWindow)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string mod = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_mod().empty()) {
+      const ::std::string& _s = this_._internal_mod();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.host_app.control.UiWindow.mod");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // int32 slot = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_slot() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_slot(), target);
+    }
+  }
+
+  // .modlock.wasm.ui.ListWindow window = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        3, *this_._impl_.window_, this_._impl_.window_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.host_app.control.UiWindow)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t UiWindow::ByteSizeLong(const MessageLite& base) {
+  const UiWindow& this_ = static_cast<const UiWindow&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t UiWindow::ByteSizeLong() const {
+  const UiWindow& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.host_app.control.UiWindow)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // string mod = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_mod().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_mod());
+      }
+    }
+    // .modlock.wasm.ui.ListWindow window = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.window_);
+    }
+    // int32 slot = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_slot() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_slot());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void UiWindow::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<UiWindow*>(&to_msg);
+  auto& from = static_cast<const UiWindow&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.host_app.control.UiWindow)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_mod().empty()) {
+        _this->_internal_set_mod(from._internal_mod());
+      } else {
+        if (_this->_impl_.mod_.IsDefault()) {
+          _this->_internal_set_mod("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.window_ != nullptr);
+      if (_this->_impl_.window_ == nullptr) {
+        _this->_impl_.window_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.window_);
+      } else {
+        _this->_impl_.window_->MergeFrom(*from._impl_.window_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_slot() != 0) {
+        _this->_impl_.slot_ = from._impl_.slot_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void UiWindow::CopyFrom(const UiWindow& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.host_app.control.UiWindow)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void UiWindow::InternalSwap(UiWindow* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.mod_, &other->_impl_.mod_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.slot_)
+      + sizeof(UiWindow::_impl_.slot_)
+      - PROTOBUF_FIELD_OFFSET(UiWindow, _impl_.window_)>(
+          reinterpret_cast<char*>(&_impl_.window_),
+          reinterpret_cast<char*>(&other->_impl_.window_));
+}
+
+::google::protobuf::Metadata UiWindow::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

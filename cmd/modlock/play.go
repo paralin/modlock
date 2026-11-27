@@ -515,6 +515,14 @@ func deliver(ctx context.Context, box *sandbox.Sandbox, in *modcli.Input) string
 		return ""
 	}
 
+	// Pass on the rows a list's renderer asks for.
+	if window := in.GetWindow(); window != nil {
+		if err := box.Window(ctx, window); err != nil && ctx.Err() == nil {
+			return window.GetMod() + ": " + err.Error()
+		}
+		return ""
+	}
+
 	// Send the command.
 	command := strings.TrimSpace(in.GetCommand())
 	handled, err := box.Command(ctx, command)

@@ -33,6 +33,20 @@
 // is the truth; the player's edit shows until the mod's next value for that
 // input differs from its last.
 //
+// A list scrolls rows far more numerous than an interface's nodes may be,
+// such as a leaderboard of every player. Each row is drawn from the row
+// template, whose text, images and variables name the row's fields as
+// "{field}"; the host holds the rows and the player's game builds panels only
+// for the rows in view:
+//
+//   <list style={{ height: 400 }} rowHeight={32}
+//     row={<label>{'{name}: {score}'}</label>}
+//     rows={players.map((p) => ({ key: p.id, rank: -p.score,
+//       fields: { name: p.name, score: String(p.score) } }))} />
+//
+// Each draw compares every row with those the player holds and sends only the
+// rows added, changed and removed.
+//
 // A label with a token shows the game's own text in the player's language,
 // such as <label token="#Citadel_HeroName_Haze" />, and an avatar shows a
 // player's Steam picture: <avatar steamId={info.steamId} />.
@@ -106,7 +120,9 @@ import {
   type Edges as WireEdges,
   type Gradient as WireGradient,
   type Length as WireLength,
+  type ListChange,
   type Node,
+  type Row,
   type Shadow as WireShadow,
   type Style as WireStyle,
   type Transform as WireTransform,
@@ -498,6 +514,9 @@ export interface Props {
   readonly options?: readonly string[]
   readonly selected?: number
   readonly handles?: readonly RangeHandle[]
+  readonly rowHeight?: number
+  readonly row?: Child
+  readonly rows?: readonly ListRow[]
   readonly onChange?: ChangeHandler
   readonly onHold?: (player: Player, handle: string, phase: ActionPhase) => void
   readonly onWheel?: (player: Player, wheel: Wheel) => void
@@ -664,6 +683,32 @@ export interface RangeProps extends InputProps {
   onHold?: (player: Player, handle: string, phase: ActionPhase) => void
 }
 
+/**
+ * ListRow is one row of a list: its key, 1 to 64 bytes and distinct within
+ * the list, the rank and sort text that order the rows, least rank first, and
+ * the fields its template's "{field}" names show, at most sixteen, each named
+ * by letters, digits and '_'.
+ */
+export interface ListRow {
+  readonly key: string
+  readonly rank?: number
+  readonly sort?: string
+  readonly fields?: Readonly<Record<string, string>>
+}
+
+/**
+ * ListProps make a list that scrolls its rows, drawing only those in view.
+ * rowHeight is each row's height in pixels, from 1 to 1000, and row the
+ * template each row is drawn from: a panel, label or image holding at most
+ * fifteen more, with no buttons or inputs. The host takes at most 20,000 rows,
+ * and 2 MiB of rows across a player's interface.
+ */
+export interface ListProps extends ElementProps {
+  rowHeight: number
+  row: Child
+  rows: readonly ListRow[]
+}
+
 /** ToggleProps make a box the player checks, labeled by its text children. */
 export interface ToggleProps extends InputProps {
   children?: Child
@@ -804,6 +849,7 @@ export declare namespace JSX {
     toggle: ToggleProps & IntrinsicAttributes
     dropdown: DropdownProps & IntrinsicAttributes
     range: RangeProps & IntrinsicAttributes
+    list: ListProps & IntrinsicAttributes
   }
   interface IntrinsicAttributes {
     key?: string | number
@@ -1686,6 +1732,11 @@ interface Part {
    * laid out, so the same element drawn there again reuses it.
    */
   readonly placed: Map<string, Placed>
+  /**
+   * rows maps each list's id to its rows by key, which the screen sends apart
+   * from its nodes, each with its encoding to find what changed.
+   */
+  readonly rows: Map<string, Map<string, { row: Row; encoded: string }>>
   /** top lists the ids of the layer's outermost nodes, the root's children. */
   top: string[]
 }
@@ -1762,6 +1813,7 @@ class Layout {
       documents: new Map(),
       wheels: new Map(),
       placed: new Map(),
+      rows: new Map(),
       top: [],
     }
   }
@@ -1812,6 +1864,8 @@ class Layout {
       if (wheel) part.wheels.set(id, wheel)
       const document = previous.documents.get(id)
       if (document) part.documents.set(id, document)
+      const rows = previous.rows.get(id)
+      if (rows) part.rows.set(id, rows)
     }
     for (const at of placed.elements) {
       part.placed.set(at, previous.placed.get(at)!)
@@ -1961,6 +2015,11 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
     case 'range':
       input(layout, node, child.type, props)
       break
+    case 'list':
+      node.kind = Kind.LIST
+      node.list = { rowHeight: props.rowHeight, row: template(props.row) }
+      layout.part.rows.set(node.id!, listRows(props.rows ?? []))
+      break
     case 'image':
       node.kind = Kind.IMAGE
       node.image = props.src ?? ''
@@ -2000,6 +2059,62 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
   }
   layout.add(node)
   return [node.id!]
+}
+
+/**
+ * template lays row out as a list's row template: its own nodes, the root
+ * named "".
+ */
+function template(row: Child): Node[] {
+  // Lay the row out alone, then rename its root.
+  const own = new Layout(undefined, {
+    parts: new Map(),
+    root: { node: {}, encoded: '' },
+    next: 0,
+  })
+  const top = place(own, row, '')
+  if (top.length !== 1) return []
+  const nodes = [...own.part.nodes.values()].map(({ node }) => node)
+  for (const node of nodes) {
+    if (node.id === top[0]) node.id = ''
+  }
+  return nodes
+}
+
+/** listRows keeps a list's rows by key; of two with one key, the last counts. */
+function listRows(
+  rows: readonly ListRow[],
+): Map<string, { row: Row; encoded: string }> {
+  const kept = new Map<string, { row: Row; encoded: string }>()
+  for (const { key, rank, sort, fields } of rows) {
+    const row: Row = { key, rank, sort, fields: fields && { ...fields } }
+    kept.set(key, { row, encoded: JSON.stringify(row) })
+  }
+  return kept
+}
+
+/**
+ * listChanges returns the changes that bring each list before holds to its
+ * rows in after: every row of a list new to the screen, and the rows added,
+ * changed and removed of one it holds.
+ */
+function listChanges(
+  before: Part | undefined,
+  after: Part | undefined,
+): ListChange[] {
+  const changes: ListChange[] = []
+  for (const [node, rows] of after?.rows ?? []) {
+    const held = before?.rows.get(node)
+    if (held === rows) continue
+    const set: Row[] = []
+    for (const [key, { row, encoded }] of rows) {
+      if (held?.get(key)?.encoded !== encoded) set.push(row)
+    }
+    const removed = [...(held?.keys() ?? [])].filter((key) => !rows.has(key))
+    if (held && set.length === 0 && removed.length === 0) continue
+    changes.push({ node, reset: !held, set, removed })
+  }
+  return changes
 }
 
 /** sparseNode builds a node's common fields, only those props sets. */
@@ -2274,6 +2389,7 @@ function diff(previous: Screen | undefined, next: Screen): Change | undefined {
   // changed nodes and removes the ones it no longer holds.
   const set: Node[] = []
   const removed: string[] = []
+  const lists: ListChange[] = []
   if (previous?.root.encoded !== next.root.encoded) set.push(next.root.node)
   for (const layer of layers) {
     const before = previous?.parts.get(layer)
@@ -2285,11 +2401,17 @@ function diff(previous: Screen | undefined, next: Screen): Change | undefined {
     for (const id of before?.nodes.keys() ?? []) {
       if (!after?.nodes.has(id)) removed.push(id)
     }
+    lists.push(...listChanges(before, after))
   }
-  if (previous && set.length === 0 && removed.length === 0) {
+  if (
+    previous &&
+    set.length === 0 &&
+    removed.length === 0 &&
+    lists.length === 0
+  ) {
     return undefined
   }
-  return { reset: !previous, set, removed }
+  return { reset: !previous, set, removed, lists }
 }
 
 /** send asks the host to apply change to the player in slot. */

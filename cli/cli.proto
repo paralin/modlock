@@ -164,6 +164,9 @@ message Input {
 
     // Console runs a line of code in a mod, at its language's console.
     ConsoleLine console = 4;
+
+    // Window asks for the rows near a list's visible box.
+    modlock.host_app.control.UiWindow window = 5;
   }
 }
 

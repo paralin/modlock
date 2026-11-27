@@ -512,6 +512,9 @@ const (
 	Kind_KIND_DOCUMENT_INPUT Kind = 11
 	// KIND_DOCUMENT_OUTPUT shows selectable, non-editable plain text.
 	Kind_KIND_DOCUMENT_OUTPUT Kind = 12
+	// KIND_LIST scrolls the keyed rows of its list, drawing each from the
+	// list's row template. It lists no children.
+	Kind_KIND_LIST Kind = 13
 )
 
 // Enum value maps for Kind.
@@ -530,6 +533,7 @@ var (
 		10: "KIND_MENU_CLOSE",
 		11: "KIND_DOCUMENT_INPUT",
 		12: "KIND_DOCUMENT_OUTPUT",
+		13: "KIND_LIST",
 	}
 	Kind_value = map[string]int32{
 		"KIND_PANEL":           0,
@@ -545,6 +549,7 @@ var (
 		"KIND_MENU_CLOSE":      10,
 		"KIND_DOCUMENT_INPUT":  11,
 		"KIND_DOCUMENT_OUTPUT": 12,
+		"KIND_LIST":            13,
 	}
 )
 
@@ -1284,6 +1289,9 @@ type Node struct {
 	// Only a layout node holds bindings, at most 64, each naming a different
 	// panel.
 	Bindings []*Binding `protobuf:"bytes,54,rep,name=bindings,proto3" json:"bindings,omitempty"`
+	// List draws a list node's rows from one row template, building only the
+	// rows near the list's visible box. Only a list node holds one.
+	List *List `protobuf:"bytes,55,opt,name=list,proto3" json:"list,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1677,6 +1685,13 @@ func (x *Node) GetBindings() []*Binding {
 	return nil
 }
 
+func (x *Node) GetList() *List {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1710,6 +1725,205 @@ func (*Node_Toggle) isNode_Input() {}
 func (*Node_Dropdown) isNode_Input() {}
 
 func (*Node_Range) isNode_Input() {}
+
+// List is a scrolling list of keyed rows, which may hold far more rows than a
+// tree holds nodes. The mod sends the template here and the rows in
+// Change.lists. The host keeps every row in order and fills first, total and
+// rows with the window of rows the player's renderer asks for, so the screen
+// carries only the rows near the visible box and the renderer builds a panel
+// only for those. The list scrolls with the mouse wheel over it.
+type List struct {
+	unknownFields []byte
+	// Row is the template each row draws: its nodes, at most 16, with the node
+	// whose id is empty as the row's own panel, whose children name the others
+	// by id. A label's text and a node's variables fill each "{field}" from the
+	// row's fields, and an image that is "{field}" shows that field, which must
+	// name an image from the game's content. A template node is a panel, a
+	// label or an image.
+	Row []*Node `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty"`
+	// RowHeight is each row's height in layout pixels, 1 to 1000.
+	RowHeight float32 `protobuf:"fixed32,2,opt,name=row_height,json=rowHeight,proto3" json:"rowHeight,omitempty"`
+	// First is the place of rows[0] in the whole list, and Total the number of
+	// rows the list holds. The host sets them; a mod's are ignored.
+	First uint32 `protobuf:"varint,3,opt,name=first,proto3" json:"first,omitempty"`
+	Total uint32 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
+	// Rows holds the rows in the window the renderer asked for, in order. The
+	// host sets them; a mod's are ignored.
+	Rows []*Row `protobuf:"bytes,5,rep,name=rows,proto3" json:"rows,omitempty"`
+}
+
+func (x *List) Reset() {
+	*x = List{}
+}
+
+func (*List) ProtoMessage() {}
+
+func (x *List) GetRow() []*Node {
+	if x != nil {
+		return x.Row
+	}
+	return nil
+}
+
+func (x *List) GetRowHeight() float32 {
+	if x != nil {
+		return x.RowHeight
+	}
+	return 0
+}
+
+func (x *List) GetFirst() uint32 {
+	if x != nil {
+		return x.First
+	}
+	return 0
+}
+
+func (x *List) GetTotal() uint32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *List) GetRows() []*Row {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+// Row is one row of a list, known by its key. Rows sort by rank, then by
+// sort, then by key, each in increasing order.
+type Row struct {
+	unknownFields []byte
+	// Key names the row within its list: one to 64 bytes.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Rank and sort order the row; sort compares bytewise.
+	Rank float64 `protobuf:"fixed64,2,opt,name=rank,proto3" json:"rank,omitempty"`
+	Sort string  `protobuf:"bytes,3,opt,name=sort,proto3" json:"sort,omitempty"`
+	// Fields hold the values the row's template shows, at most 16, by name.
+	Fields map[string]string `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Row) Reset() {
+	*x = Row{}
+}
+
+func (*Row) ProtoMessage() {}
+
+func (x *Row) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Row) GetRank() float64 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *Row) GetSort() string {
+	if x != nil {
+		return x.Sort
+	}
+	return ""
+}
+
+func (x *Row) GetFields() map[string]string {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+// ListWindow is the run of a list's rows a player's renderer asks for: those
+// near the list's visible box, which it draws as the player scrolls.
+type ListWindow struct {
+	unknownFields []byte
+	// Node is the list node's id.
+	Node string `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	// First is the place of the first row, and count the number of rows, at
+	// most 256.
+	First uint32 `protobuf:"varint,2,opt,name=first,proto3" json:"first,omitempty"`
+	Count uint32 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+}
+
+func (x *ListWindow) Reset() {
+	*x = ListWindow{}
+}
+
+func (*ListWindow) ProtoMessage() {}
+
+func (x *ListWindow) GetNode() string {
+	if x != nil {
+		return x.Node
+	}
+	return ""
+}
+
+func (x *ListWindow) GetFirst() uint32 {
+	if x != nil {
+		return x.First
+	}
+	return 0
+}
+
+func (x *ListWindow) GetCount() uint32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+// ListChange changes the rows of one list node.
+type ListChange struct {
+	unknownFields []byte
+	// Node is the list node's id.
+	Node string `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	// Reset drops every row before the rest of the change applies.
+	Reset_ bool `protobuf:"varint,2,opt,name=reset,proto3" json:"reset,omitempty"`
+	// Set holds the new or changed rows, and removed the keys of rows to drop.
+	Set     []*Row   `protobuf:"bytes,3,rep,name=set,proto3" json:"set,omitempty"`
+	Removed []string `protobuf:"bytes,4,rep,name=removed,proto3" json:"removed,omitempty"`
+}
+
+func (x *ListChange) Reset() {
+	*x = ListChange{}
+}
+
+func (*ListChange) ProtoMessage() {}
+
+func (x *ListChange) GetNode() string {
+	if x != nil {
+		return x.Node
+	}
+	return ""
+}
+
+func (x *ListChange) GetReset_() bool {
+	if x != nil {
+		return x.Reset_
+	}
+	return false
+}
+
+func (x *ListChange) GetSet() []*Row {
+	if x != nil {
+		return x.Set
+	}
+	return nil
+}
+
+func (x *ListChange) GetRemoved() []string {
+	if x != nil {
+		return x.Removed
+	}
+	return nil
+}
 
 // Binding sets parts of one panel of a layout. A property the binding leaves
 // unset keeps the author's value, and one it stops setting returns to it. The
@@ -3441,6 +3655,11 @@ type Change struct {
 	// handles them; a mod cannot select its lifetime. Peer snapshots and
 	// deltas carry the screen owner's nonzero generation unchanged.
 	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Lists changes the rows of list nodes, after set and removed apply. A
+	// list node's rows go with the node. The host keeps the rows and shows the
+	// renderer a change without lists, setting instead each list node whose
+	// window of rows changed.
+	Lists []*ListChange `protobuf:"bytes,5,rep,name=lists,proto3" json:"lists,omitempty"`
 }
 
 func (x *Change) Reset() {
@@ -3475,6 +3694,13 @@ func (x *Change) GetGeneration() uint64 {
 		return x.Generation
 	}
 	return 0
+}
+
+func (x *Change) GetLists() []*ListChange {
+	if x != nil {
+		return x.Lists
+	}
+	return nil
 }
 
 // Tree is one mod's whole tree for one player.
@@ -4160,6 +4386,32 @@ func (x *Node_VariablesEntry) GetValue() string {
 	return ""
 }
 
+type Row_FieldsEntry struct {
+	unknownFields []byte
+	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Row_FieldsEntry) Reset() {
+	*x = Row_FieldsEntry{}
+}
+
+func (*Row_FieldsEntry) ProtoMessage() {}
+
+func (x *Row_FieldsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Row_FieldsEntry) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 func (m *Node) CloneVT() *Node {
 	if m == nil {
 		return (*Node)(nil)
@@ -4217,6 +4469,7 @@ func (m *Node) CloneVT() *Node {
 	r.DocumentInput = protobuf_go_lite.CloneVTValue(m.DocumentInput)
 	r.GameActions = protobuf_go_lite.CloneSlice(m.GameActions)
 	r.Bindings = protobuf_go_lite.CloneVTSlice(m.Bindings)
+	r.List = protobuf_go_lite.CloneVTValue(m.List)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -4289,6 +4542,82 @@ func (m *Node_Range) CloneVT() *Node_Range {
 }
 
 func (m *Node_Range) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *List) CloneVT() *List {
+	if m == nil {
+		return (*List)(nil)
+	}
+	r := new(List)
+	r.RowHeight = m.RowHeight
+	r.First = m.First
+	r.Total = m.Total
+	r.Row = protobuf_go_lite.CloneVTSlice(m.Row)
+	r.Rows = protobuf_go_lite.CloneVTSlice(m.Rows)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *List) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Row) CloneVT() *Row {
+	if m == nil {
+		return (*Row)(nil)
+	}
+	r := new(Row)
+	r.Key = m.Key
+	r.Rank = m.Rank
+	r.Sort = m.Sort
+	r.Fields = protobuf_go_lite.CloneMap(m.Fields)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Row) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ListWindow) CloneVT() *ListWindow {
+	if m == nil {
+		return (*ListWindow)(nil)
+	}
+	r := new(ListWindow)
+	r.Node = m.Node
+	r.First = m.First
+	r.Count = m.Count
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ListWindow) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ListChange) CloneVT() *ListChange {
+	if m == nil {
+		return (*ListChange)(nil)
+	}
+	r := new(ListChange)
+	r.Node = m.Node
+	r.Reset_ = m.Reset_
+	r.Set = protobuf_go_lite.CloneVTSlice(m.Set)
+	r.Removed = protobuf_go_lite.CloneSlice(m.Removed)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ListChange) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -4942,6 +5271,7 @@ func (m *Change) CloneVT() *Change {
 	r.Generation = m.Generation
 	r.Set = protobuf_go_lite.CloneVTSlice(m.Set)
 	r.Removed = protobuf_go_lite.CloneSlice(m.Removed)
+	r.Lists = protobuf_go_lite.CloneVTSlice(m.Lists)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -5474,6 +5804,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Bindings, that.Bindings, func() *Binding { return &Binding{} }) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.List, that.List) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -5568,6 +5901,122 @@ func (this *Node_Range) EqualVT(thatIface isNode_Input) bool {
 		return false
 	}
 	return true
+}
+
+func (this *List) EqualVT(that *List) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Row, that.Row, func() *Node { return &Node{} }) {
+		return false
+	}
+	if this.RowHeight != that.RowHeight {
+		return false
+	}
+	if this.First != that.First {
+		return false
+	}
+	if this.Total != that.Total {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Rows, that.Rows, func() *Row { return &Row{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *List) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*List)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Row) EqualVT(that *Row) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	if this.Rank != that.Rank {
+		return false
+	}
+	if this.Sort != that.Sort {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Fields, that.Fields) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Row) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Row)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ListWindow) EqualVT(that *ListWindow) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Node != that.Node {
+		return false
+	}
+	if this.First != that.First {
+		return false
+	}
+	if this.Count != that.Count {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListWindow) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ListWindow)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ListChange) EqualVT(that *ListChange) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Node != that.Node {
+		return false
+	}
+	if this.Reset_ != that.Reset_ {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Set, that.Set, func() *Row { return &Row{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Removed, that.Removed) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListChange) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ListChange)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Binding) EqualVT(that *Binding) bool {
@@ -6595,6 +7044,9 @@ func (this *Change) EqualVT(that *Change) bool {
 		return false
 	}
 	if this.Generation != that.Generation {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Lists, that.Lists, func() *ListChange { return &ListChange{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -8283,6 +8735,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.List != nil || s.HasField("list") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("list")
+		x.List.MarshalProtoJSON(s.WithField("list"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -8604,12 +9061,415 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Bindings = append(x.Bindings, v)
 			})
+		case "list":
+			if s.ReadNil() {
+				x.List = nil
+				return
+			}
+			x.List = &List{}
+			x.List.UnmarshalProtoJSON(s.WithField("list", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the List message to JSON.
+func (x *List) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Row) > 0 || s.HasField("row") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("row")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Row {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("row"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.RowHeight != 0 || s.HasField("rowHeight") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("rowHeight")
+		s.WriteFloat32(x.RowHeight)
+	}
+	if x.First != 0 || s.HasField("first") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("first")
+		s.WriteUint32(x.First)
+	}
+	if x.Total != 0 || s.HasField("total") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("total")
+		s.WriteUint32(x.Total)
+	}
+	if len(x.Rows) > 0 || s.HasField("rows") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("rows")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Rows {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("rows"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the List to JSON.
+func (x *List) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the List message from JSON.
+func (x *List) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "row":
+			s.AddField("row")
+			if s.ReadNil() {
+				x.Row = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Row = append(x.Row, nil)
+					return
+				}
+				v := &Node{}
+				v.UnmarshalProtoJSON(s.WithField("row", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Row = append(x.Row, v)
+			})
+		case "row_height", "rowHeight":
+			s.AddField("row_height")
+			x.RowHeight = s.ReadFloat32()
+		case "first":
+			s.AddField("first")
+			x.First = s.ReadUint32()
+		case "total":
+			s.AddField("total")
+			x.Total = s.ReadUint32()
+		case "rows":
+			s.AddField("rows")
+			if s.ReadNil() {
+				x.Rows = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Rows = append(x.Rows, nil)
+					return
+				}
+				v := &Row{}
+				v.UnmarshalProtoJSON(s.WithField("rows", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Rows = append(x.Rows, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the List from JSON.
+func (x *List) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Row_FieldsEntry message to JSON.
+func (x *Row_FieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Row_FieldsEntry to JSON.
+func (x *Row_FieldsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Row_FieldsEntry message from JSON.
+func (x *Row_FieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Row_FieldsEntry from JSON.
+func (x *Row_FieldsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Row message to JSON.
+func (x *Row) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Rank != 0 || s.HasField("rank") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("rank")
+		s.WriteFloat64(x.Rank)
+	}
+	if x.Sort != "" || s.HasField("sort") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sort")
+		s.WriteString(x.Sort)
+	}
+	if x.Fields != nil || s.HasField("fields") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("fields")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Fields)) {
+			v := x.Fields[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Row to JSON.
+func (x *Row) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Row message from JSON.
+func (x *Row) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "rank":
+			s.AddField("rank")
+			x.Rank = s.ReadFloat64()
+		case "sort":
+			s.AddField("sort")
+			x.Sort = s.ReadString()
+		case "fields":
+			s.AddField("fields")
+			if s.ReadNil() {
+				x.Fields = nil
+				return
+			}
+			x.Fields = make(map[string]string)
+			s.ReadStringMap(func(key string) {
+				x.Fields[key] = s.ReadString()
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Row from JSON.
+func (x *Row) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ListWindow message to JSON.
+func (x *ListWindow) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Node != "" || s.HasField("node") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("node")
+		s.WriteString(x.Node)
+	}
+	if x.First != 0 || s.HasField("first") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("first")
+		s.WriteUint32(x.First)
+	}
+	if x.Count != 0 || s.HasField("count") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("count")
+		s.WriteUint32(x.Count)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ListWindow to JSON.
+func (x *ListWindow) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ListWindow message from JSON.
+func (x *ListWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "node":
+			s.AddField("node")
+			x.Node = s.ReadString()
+		case "first":
+			s.AddField("first")
+			x.First = s.ReadUint32()
+		case "count":
+			s.AddField("count")
+			x.Count = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ListWindow from JSON.
+func (x *ListWindow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ListChange message to JSON.
+func (x *ListChange) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Node != "" || s.HasField("node") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("node")
+		s.WriteString(x.Node)
+	}
+	if x.Reset_ || s.HasField("reset") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reset")
+		s.WriteBool(x.Reset_)
+	}
+	if len(x.Set) > 0 || s.HasField("set") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("set")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Set {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("set"))
+		}
+		s.WriteArrayEnd()
+	}
+	if len(x.Removed) > 0 || s.HasField("removed") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("removed")
+		s.WriteStringArray(x.Removed)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ListChange to JSON.
+func (x *ListChange) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ListChange message from JSON.
+func (x *ListChange) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "node":
+			s.AddField("node")
+			x.Node = s.ReadString()
+		case "reset":
+			s.AddField("reset")
+			x.Reset_ = s.ReadBool()
+		case "set":
+			s.AddField("set")
+			if s.ReadNil() {
+				x.Set = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Set = append(x.Set, nil)
+					return
+				}
+				v := &Row{}
+				v.UnmarshalProtoJSON(s.WithField("set", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Set = append(x.Set, v)
+			})
+		case "removed":
+			s.AddField("removed")
+			if s.ReadNil() {
+				x.Removed = nil
+				return
+			}
+			x.Removed = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ListChange from JSON.
+func (x *ListChange) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -10968,6 +11828,17 @@ func (x *Change) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("generation")
 		s.WriteUint64(x.Generation)
 	}
+	if len(x.Lists) > 0 || s.HasField("lists") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lists")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Lists {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("lists"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -11016,6 +11887,24 @@ func (x *Change) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "generation":
 			s.AddField("generation")
 			x.Generation = s.ReadUint64()
+		case "lists":
+			s.AddField("lists")
+			if s.ReadNil() {
+				x.Lists = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Lists = append(x.Lists, nil)
+					return
+				}
+				v := &ListChange{}
+				v.UnmarshalProtoJSON(s.WithField("lists", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Lists = append(x.Lists, v)
+			})
 		}
 	})
 }
@@ -12014,6 +12903,18 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if m.List != nil {
+		size, err := m.List.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xba
+	}
 	if len(m.Bindings) > 0 {
 		for iNdEx := len(m.Bindings) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Bindings[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -12543,6 +13444,247 @@ func (m *Node_Range) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x3
 		i--
 		dAtA[i] = 0xaa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *List) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *List) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *List) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Rows) > 0 {
+		for iNdEx := len(m.Rows) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Rows[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if m.Total != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.First != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.First))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.RowHeight != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.RowHeight))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if len(m.Row) > 0 {
+		for iNdEx := len(m.Row) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Row[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Row) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Row) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Row) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Fields) > 0 {
+		for k := range m.Fields {
+			v := m.Fields[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeString(dAtA, i, v)
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Sort) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sort)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Rank != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Rank))))
+		i--
+		dAtA[i] = 0x11
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ListWindow) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListWindow) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ListWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Count != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Count))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.First != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.First))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Node) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ListChange) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListChange) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ListChange) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Removed) > 0 {
+		for iNdEx := len(m.Removed) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Removed[iNdEx])
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Set) > 0 {
+		for iNdEx := len(m.Set) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Set[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.Reset_ {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Reset_)
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Node) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -14456,6 +15598,18 @@ func (m *Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Lists) > 0 {
+		for iNdEx := len(m.Lists) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Lists[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
 	if m.Generation != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
 		i--
@@ -15429,6 +16583,10 @@ func (m *Node) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	if m.List != nil {
+		l = m.List.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -15505,6 +16663,76 @@ func (m *Node_Range) SizeVT() (n int) {
 	} else {
 		n += 3
 	}
+	return n
+}
+
+func (m *List) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Row {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.RowHeight)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.First)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Total)
+	for _, e := range m.Rows {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Row) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Rank)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sort)
+	for k, v := range m.Fields {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ListWindow) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.First)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Count)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ListChange) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Reset_)
+	for _, e := range m.Set {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeStringSlice(1, m.Removed)
+	n += len(m.unknownFields)
 	return n
 }
 
@@ -16077,6 +17305,10 @@ func (m *Change) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringSlice(1, m.Removed)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
+	for _, e := range m.Lists {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -16773,10 +18005,171 @@ func (x *Node) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if x.List != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "list")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.List)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *List) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "List")
+	if len(x.Row) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "row")
+		for i, v := range x.Row {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Node{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.RowHeight != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "row_height")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.RowHeight)
+	}
+	if x.First != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "first")
+		protobuf_go_lite.TextWriteUint(&sb, x.First)
+	}
+	if x.Total != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "total")
+		protobuf_go_lite.TextWriteUint(&sb, x.Total)
+	}
+	if len(x.Rows) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "rows")
+		for i, v := range x.Rows {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Row{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *List) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Row_FieldsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "FieldsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Row_FieldsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Row) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Row")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Rank != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "rank")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Rank)
+	}
+	if x.Sort != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sort")
+		protobuf_go_lite.TextWriteString(&sb, x.Sort)
+	}
+	if len(x.Fields) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "fields")
+		for _, k := range slices.Sorted(maps.Keys(x.Fields)) {
+			v := x.Fields[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Row) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ListWindow) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ListWindow")
+	if x.Node != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
+		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	if x.First != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "first")
+		protobuf_go_lite.TextWriteUint(&sb, x.First)
+	}
+	if x.Count != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "count")
+		protobuf_go_lite.TextWriteUint(&sb, x.Count)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ListWindow) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ListChange) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ListChange")
+	if x.Node != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
+		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	if x.Reset_ != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reset")
+		protobuf_go_lite.TextWriteBool(&sb, x.Reset_)
+	}
+	if len(x.Set) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "set")
+		for i, v := range x.Set {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Row{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Removed) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "removed")
+		for i, v := range x.Removed {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ListChange) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -17700,6 +19093,18 @@ func (x *Change) MarshalProtoText() string {
 	if x.Generation != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
 		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
+	if len(x.Lists) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "lists")
+		for i, v := range x.Lists {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &ListChange{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -18802,6 +20207,394 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 55:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field List", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.List == nil {
+				m.List = &List{}
+			}
+			if err := m.List.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *List) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: List: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: List: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Row", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Row = append(m.Row, &Node{})
+			if err := m.Row[len(m.Row)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RowHeight", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.RowHeight = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field First", wireType)
+			}
+			m.First = 0
+			m.First, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			m.Total, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rows", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Rows = append(m.Rows, &Row{})
+			if err := m.Rows[len(m.Rows)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Row) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Row: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Row: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		case 2:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rank", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Rank = float64(math.Float64frombits(v))
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sort", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sort = v
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fields", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Fields == nil {
+				m.Fields = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Fields[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ListWindow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ListWindow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Node = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field First", wireType)
+			}
+			m.First = 0
+			m.First, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
+			}
+			m.Count = 0
+			m.Count, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ListChange) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ListChange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ListChange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Node = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reset_", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Reset_ = bool(v)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Set", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Set = append(m.Set, &Row{})
+			if err := m.Set[len(m.Set)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Removed", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Removed = append(m.Removed, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -21803,6 +23596,19 @@ func (m *Change) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lists", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Lists = append(m.Lists, &ListChange{})
+			if err := m.Lists[len(m.Lists)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

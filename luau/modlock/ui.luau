@@ -565,6 +565,45 @@ export type DropdownProps = {
 	[number]: never,
 }
 
+-- ListRow is one row of a list: its key, 1 to 64 bytes and distinct within
+-- the list, the rank and sort text that order the rows, least rank first, and
+-- the fields its template's "{field}" names show, at most sixteen, each named
+-- by letters, digits and '_'.
+export type ListRow = {
+	key: string,
+	rank: number?,
+	sort: string?,
+	fields: { [string]: string }?,
+}
+
+-- ListProps make a list that scrolls its rows, drawing only those in view.
+-- rowHeight is each row's height in pixels, from 1 to 1000, and row the
+-- template each row is drawn from: a panel, label or image holding at most
+-- fifteen more, with no buttons or inputs. The host takes at most 20,000
+-- rows, and 2 MiB of rows across a player's interface. Each draw compares
+-- every row with those the player holds and sends only the rows added,
+-- changed and removed.
+export type ListProps = {
+	key: (string | number)?,
+	class: string?,
+	style: Style?,
+	hover: Style?,
+	tooltip: string?,
+	item: string?,
+	ability: AbilityTip?,
+	hoverSound: string?,
+	measure: string?,
+	enter: Style?,
+	exit: Style?,
+	cycle: Cycle?,
+	rowHeight: number,
+	row: Child,
+	rows: { ListRow },
+	-- A key of another name is a mistake, which the indexer makes the checker
+	-- report.
+	[number]: never,
+}
+
 -- LayoutProps load a layout from the mod's content addon: src is its path
 -- there, such as "shop.xml", and data is the JSON value its script reads
 -- with Modlock.data.
@@ -730,8 +769,20 @@ type Screen = {
 	wheels: { [string]: (player: Player, wheel: Wheel) -> () },
 	-- holds maps each enabled range's id to its handler of a hold.
 	holds: { [string]: (player: Player, event: RangeEvent) -> () },
+	-- lists names the screen's lists in layout order, and rows holds each
+	-- one's rows, which the screen sends apart from its nodes.
+	lists: { string },
+	rows: { [string]: RowSet },
 	-- next numbers the next new node, so an id is never reused.
 	next: number,
+}
+
+-- RowSet is the rows of one list a screen holds.
+type RowSet = {
+	-- order lists the keys in the order the mod gave the rows.
+	order: { string },
+	-- keys holds each row by key, as the wire takes it.
+	keys: { [string]: Node },
 }
 
 -- Layout holds one screen while place lays it out, with the screen before
@@ -809,6 +860,7 @@ local kinds: { [string]: string } = {
 	entry = "input",
 	slider = "input",
 	range = "input",
+	list = "list",
 	toggle = "input",
 	dropdown = "input",
 }
@@ -867,6 +919,13 @@ end
 -- range is a track with several handles the player drags.
 function ui.range(props: RangeProps): Element
 	return element("range", props)
+end
+
+-- list scrolls rows far more numerous than an interface's nodes may be, such
+-- as a leaderboard of every player; the player's game builds panels only for
+-- the rows in view.
+function ui.list(props: ListProps): Element
+	return element("list", props)
 end
 
 -- toggle is a box the player checks.
@@ -1225,6 +1284,22 @@ end
 -- below.
 local wireCodec: modlock.InterfaceWire
 
+-- newScreen returns an empty screen whose new nodes number from next.
+local function newScreen(next: number): Screen
+	return {
+		nodes = {},
+		encoded = {},
+		ids = {},
+		presses = {},
+		changes = {},
+		wheels = {},
+		holds = {},
+		lists = {},
+		rows = {},
+		next = next,
+	}
+end
+
 -- add records a node in layout's screen.
 local function add(layout: Layout, node: Node)
 	table.insert(layout.screen.nodes, node)
@@ -1266,6 +1341,90 @@ local function placeChildren(layout: Layout, props: { [any]: any }, at: string, 
 	else
 		placeList(layout, props, count, at, out)
 	end
+end
+
+-- template lays row out as a list's row template: its own nodes, the root
+-- named "".
+local function template(row: Child): { Node }
+	local own: Layout = { screen = newScreen(0) }
+	local top = {}
+	place(own, row, "", top)
+	if #top ~= 1 then
+		return {}
+	end
+	for _, node in own.screen.nodes do
+		if node.id == top[1] then
+			node.id = ""
+		end
+	end
+	return own.screen.nodes
+end
+
+-- rowSet keeps a list's rows by key; of two rows with one key, the last
+-- counts.
+local function rowSet(rows: { ListRow }): RowSet
+	local set: RowSet = { order = {}, keys = {} }
+	for _, row in rows do
+		if set.keys[row.key] == nil then
+			table.insert(set.order, row.key)
+		end
+		local fields: { Node } = {}
+		for name, value in row.fields or {} do
+			table.insert(fields, { key = name, value = value } :: Node)
+		end
+		table.sort(fields, function(x: Node, y: Node): boolean
+			return x.key < y.key
+		end)
+		set.keys[row.key] = { key = row.key, rank = row.rank, sort = row.sort, fields = fields }
+	end
+	return set
+end
+
+-- sameRow reports whether two wire rows are equal.
+local function sameRow(a: Node, b: Node): boolean
+	if a.key ~= b.key or (a.rank or 0) ~= (b.rank or 0) or (a.sort or "") ~= (b.sort or "") then
+		return false
+	end
+	local left: { Node }, right: { Node } = a.fields or {}, b.fields or {}
+	if #left ~= #right then
+		return false
+	end
+	for i, entry in left do
+		if entry.key ~= right[i].key or entry.value ~= right[i].value then
+			return false
+		end
+	end
+	return true
+end
+
+-- listChanges returns the changes that bring each list previous holds to its
+-- rows in next: every row of a list new to the screen, and the rows added,
+-- changed and removed of one it holds.
+local function listChanges(previous: Screen?, next: Screen): { Node }
+	local changes: { Node } = {}
+	for _, node in next.lists do
+		local rows = next.rows[node]
+		local held = if previous then previous.rows[node] else nil
+		local set, removed = {}, {}
+		for _, key in rows.order do
+			local row = rows.keys[key]
+			local before = if held then held.keys[key] else nil
+			if before == nil or not sameRow(before, row) then
+				table.insert(set, row)
+			end
+		end
+		if held then
+			for _, key in held.order do
+				if rows.keys[key] == nil then
+					table.insert(removed, key)
+				end
+			end
+		end
+		if held == nil or #set ~= 0 or #removed ~= 0 then
+			table.insert(changes, { node = node, reset = held == nil, set = set, removed = removed } :: Node)
+		end
+	end
+	return changes
 end
 
 -- input lays out an input of kind from props in node.
@@ -1414,6 +1573,10 @@ function place(layout: Layout, child: any, at: string, out: { string })
 		end
 		node.children = {}
 		placeChildren(layout, props, `{at}/`, node.children)
+	elseif kind == "list" then
+		node.list = { rowHeight = props.rowHeight, row = template(props.row) }
+		table.insert(layout.screen.lists, node.id)
+		layout.screen.rows[node.id] = rowSet(props.rows or {})
 	elseif kind == "layout" then
 		node.layout = props.src or ""
 		node.data = if props.data == nil then "" else json(props.data) or ""
@@ -1531,19 +1694,7 @@ local function render(previous: Screen?, current: View, display: { Node }): Scre
 	-- The root is the full-screen panel the elements hang from, and it lists
 	-- the parts of the game's HUD to hide, whether the cursor is free, the
 	-- mod's sheets and its last sounds.
-	local layout: Layout = {
-		previous = previous,
-		screen = {
-			nodes = {},
-			encoded = {},
-			ids = {},
-			presses = {},
-			changes = {},
-			wheels = {},
-			holds = {},
-			next = if previous then previous.next else 0,
-		},
-	}
+	local layout: Layout = { previous = previous, screen = newScreen(if previous then previous.next else 0) }
 	local children = {}
 	local root = { current.root or false, #current.notices ~= 0 and notices(current.notices) }
 	placeList(layout, root, 2, "/", children)
@@ -1588,10 +1739,11 @@ local function diff(previous: Screen?, next: Screen): Node?
 			end
 		end
 	end
-	if previous and #set == 0 and #removed == 0 then
+	local lists = listChanges(previous, next)
+	if previous and #set == 0 and #removed == 0 and #lists == 0 then
 		return nil
 	end
-	return { reset = previous == nil, set = set, removed = removed }
+	return { reset = previous == nil, set = set, removed = removed, lists = lists }
 end
 
 -- view returns what the mod shows player, made empty the first time.
