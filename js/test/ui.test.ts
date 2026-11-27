@@ -872,11 +872,20 @@ test('a list sends its rows apart from its node, only those that changed', () =>
   expect(sent.length).toBe(count)
 
   // Drawing the same array again does not walk its rows, so a redraw for
-  // another change costs the same however long the list is.
+  // another change costs the same however long the list is. The first row
+  // counts each read of its key, which any walk of the rows makes.
+  let walked = 0
   const held = Array.from({ length: 10000 }, (_, i) => ({
     key: `r${i}`,
     fields: { name: `Row ${i}` },
   }))
+  held[0] = {
+    get key() {
+      walked++
+      return 'r0'
+    },
+    fields: { name: 'Row 0' },
+  }
   const list = (title: string) =>
     jsx('panel', {
       children: [
@@ -890,12 +899,9 @@ test('a list sends its rows apart from its node, only those that changed', () =>
     })
   show(player, list('one'))
   expect(sent.at(-1)!.change!.lists![0]!.set!.length).toBe(10000)
-  Object.defineProperty(held, Symbol.iterator, {
-    value: () => {
-      throw new Error('the draw walked the held rows')
-    },
-  })
+  walked = 0
   show(player, list('two'))
+  expect(walked).toBe(0)
   expect(sent.at(-1)!.change!.lists ?? []).toEqual([])
 })
 
