@@ -113,8 +113,15 @@ const drawing = new Drawing(
 // payload; any other command a layout dispatches is the game's alone.
 onCommand((line) => {
   const press = layoutPress(line)
-  if (press) send({ body: { case: 'press', value: press } })
-  else console.debug(`console command ${line}`)
+  if (press) {
+    send({ body: { case: 'press', value: press } })
+    return
+  }
+  // A layout script's CitadelConCommand, such as monopolis_requestdiceroll,
+  // reaches the mods the same way a line typed in the preview's command bar
+  // does. A leading slash is optional, as the sandbox already allows.
+  const command = line.trim()
+  if (command) send({ body: { case: 'command', value: command } })
 })
 
 /** building is true while the latest state reports a build. */

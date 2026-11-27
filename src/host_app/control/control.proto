@@ -38,7 +38,23 @@ message ControlRequest {
     // Controllers carries the frames of one player's controller stream, which
     // the controller has bound to that player's own client.
     modlock.wasm.controllers.ControllerFrames controllers = 6;
+
+    // Command delivers a console command as if the player in slot sent it
+    // from their game, such as a line from the preview page.
+    PlayerCommand command = 7;
   }
+}
+
+// PlayerCommand is a console command the controller delivers as if the
+// player in slot typed it in their game, or pressed a button that sends
+// that command. A slot that is not a connected human uses the first
+// connected human instead.
+message PlayerCommand {
+  // Slot is the player's slot.
+  int32 slot = 1;
+  // Line is the command, without a leading slash, such as
+  // "monopolis_requestdiceroll" or "modlockpress my-mod node".
+  string line = 2;
 }
 
 // ModCall calls one method of a service a running mod serves, on the game's

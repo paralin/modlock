@@ -275,6 +275,10 @@ class MODLOCK_API WasmHost {
                                                              std::string_view method,
                                                              std::string_view payload);
 
+  // Command delivers line as if the player in slot sent that console command
+  // from their game, and reports whether a running mod claimed it.
+  bool Command(int32_t slot, std::string_view line);
+
  private:
   struct Impl;
   std::unique_ptr<Impl> impl_;

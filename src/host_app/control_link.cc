@@ -12,7 +12,11 @@
 #include <array>
 #include <iostream>
 #include <optional>
+#include <string>
+#include <string_view>
 #include <utility>
+
+#include "google/protobuf/io/coded_stream.h"
 
 namespace modlock::host_app {
 namespace {
@@ -23,6 +27,99 @@ constexpr uint32_t kMaxPacket = 10'000'000;
 // kMaxEvents bounds the events waiting for a slow controller; later events
 // are dropped.
 constexpr size_t kMaxEvents = 10'000;
+
+// kCommandField is ControlRequest.command. The generated schema this file is
+// compiled with may not name it yet, so a controller that sends it is read
+// from the request's unknown fields.
+constexpr int kCommandField = 7;
+
+int32_t FirstHumanSlot() {
+  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+    if (state.occupied && !state.is_bot) {
+      return slot;
+    }
+  }
+  return -1;
+}
+
+bool ReadStringField(google::protobuf::io::CodedInputStream& in, std::string& value) {
+  uint32_t length = 0;
+  if (!in.ReadVarint32(&length)) {
+    return false;
+  }
+  return in.ReadString(&value, static_cast<int>(length));
+}
+
+bool ParsePlayerCommand(const std::string& bytes, int32_t& slot, std::string& line) {
+  google::protobuf::io::CodedInputStream in(
+      reinterpret_cast<const uint8_t*>(bytes.data()), static_cast<int>(bytes.size()));
+  slot = 0;
+  line.clear();
+  while (const uint32_t tag = in.ReadTag()) {
+    const uint32_t field = tag >> 3;
+    const uint32_t typ = tag & 7;
+    switch (field) {
+      case 1: {
+        uint32_t value = 0;
+        if (typ != 0 || !in.ReadVarint32(&value)) {
+          return false;
+        }
+        slot = static_cast<int32_t>(value);
+        break;
+      }
+      case 2: {
+        if (typ != 2 || !ReadStringField(in, line)) {
+          return false;
+        }
+        break;
+      }
+      default:
+        if (!in.SkipField(tag)) {
+          return false;
+        }
+        break;
+    }
+  }
+  return true;
+}
+
+bool ReadUnknownCommand(const control::ControlRequest& request, int32_t& slot, std::string& line) {
+  const auto& fields = request.unknown_fields();
+  for (int i = 0; i < fields.field_count(); ++i) {
+    const auto& field = fields.field(i);
+    if (field.number() != kCommandField) {
+      continue;
+    }
+    for (int j = 0; j < field.length_delimited_size(); ++j) {
+      if (ParsePlayerCommand(field.length_delimited(j), slot, line)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void ResolveCommandSlot(int32_t& slot) {
+  if (gameinterop::IsPlayerSlot(slot)) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+    if (state.occupied && !state.is_bot) {
+      return;
+    }
+  }
+  slot = FirstHumanSlot();
+}
+
+void DeliverPreviewCommand(WasmHost& mods, int32_t slot, const std::string& line) {
+  ResolveCommandSlot(slot);
+  if (slot < 0) {
+    std::cerr << "control: no player is in the game to take the command\n";
+    return;
+  }
+  if (!mods.Command(slot, line)) {
+    std::cerr << "control: no mod handled " << line << '\n';
+  }
+}
 
 #if defined(_WIN32)
 constexpr intptr_t kNoSocket = static_cast<intptr_t>(INVALID_SOCKET);
@@ -303,8 +400,16 @@ void ControlLink::RunRequests(WasmHost& mods) {
         Push(std::move(event));
         break;
       }
-      default:
+      default: {
+        // When control.proto is regenerated, handle kCommand here and drop
+        // this unknown-field reader.
+        int32_t slot = 0;
+        std::string line;
+        if (ReadUnknownCommand(request, slot, line) && !line.empty()) {
+          DeliverPreviewCommand(mods, slot, line);
+        }
         break;
+      }
     }
   }
 

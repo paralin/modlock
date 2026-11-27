@@ -379,6 +379,21 @@ func (p *printer) refused(calls *control.ModCalls) {
 	}
 }
 
+// firstPlayer is the lowest slot among joined humans, or false when nobody
+// is in the game.
+func (p *printer) firstPlayer() (int32, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	var slot int32
+	var found bool
+	for s := range p.names {
+		if !found || s < slot {
+			slot, found = s, true
+		}
+	}
+	return slot, found
+}
+
 // name follows each player's name through joins and leaves, and returns the
 // name of the player who joined or left in event.
 func (p *printer) name(event *control.HostEvent) string {

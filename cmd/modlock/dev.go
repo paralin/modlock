@@ -16,6 +16,7 @@ import (
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/preview"
 	"github.com/paralin/modlock/sandbox"
+	"github.com/paralin/modlock/session"
 	"github.com/pkg/errors"
 )
 
@@ -66,16 +67,21 @@ func runDev(c *cli.Context, out *printer, command string) error {
 		return cancelled(err)
 	}
 
-	// Serve the preview page, which takes the player's input once
-	// the mods run in the sandbox.
+	// Serve the preview page, which takes the player's input once the mods
+	// run: in the sandbox as the stand-in player, or in a game session as
+	// the first connected human.
 	watch := c.Bool("watch")
 	var box atomic.Pointer[sandbox.Sandbox]
+	var game atomic.Pointer[session.Session]
 	if port := c.Uint("preview-port"); port != 0 {
 		servePreview(c.Context, out, int(port), opened.Output(), watch, func(ctx context.Context, in *modcli.Input) string {
 			if box := box.Load(); box != nil {
 				return deliver(ctx, box, in)
 			}
-			return "the preview passes input to the mods only in the sandbox, once they run"
+			if game := game.Load(); game != nil {
+				return deliverGame(ctx, out, game, in)
+			}
+			return "the preview passes input to the mods once they run"
 		})
 	}
 
@@ -121,6 +127,9 @@ func runDev(c *cli.Context, out *printer, command string) error {
 		running, err = startSession(c, out, []string{opened.Output()}, filepath.Join(opened.Output(), "server.log"))
 		if sandboxed, ok := running.(*sandbox.Sandbox); ok {
 			box.Store(sandboxed)
+		}
+		if play, ok := running.(*session.Session); ok {
+			game.Store(play)
 		}
 		started <- err
 	}

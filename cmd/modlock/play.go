@@ -477,9 +477,16 @@ func input(ctx context.Context, out *printer, running server, box *sandbox.Sandb
 		return
 	}
 
-	// The rest is the player's input, which only the sandbox takes: in the
-	// game the player is at the game's own keyboard.
+	// The rest is the player's input: the sandbox takes it as the stand-in
+	// player, and a game session delivers it to the host as the first
+	// connected human, as a command typed in that player's game would.
 	if box == nil {
+		if game, ok := running.(*session.Session); ok {
+			if note := deliverGame(ctx, out, game, in); note != "" {
+				out.note(note)
+			}
+			return
+		}
 		if strings.TrimSpace(line) != "" && !out.json {
 			out.note("type commands in the game's chat; a line that starts with > runs in the mod")
 		}
@@ -488,6 +495,41 @@ func input(ctx context.Context, out *printer, running server, box *sandbox.Sandb
 	if note := deliver(ctx, box, in); note != "" {
 		out.note(note)
 	}
+}
+
+// commandLine is the console command in represents, as the player's game
+// would send it: a typed command, or a button press encoded as the game
+// encodes it. A leading slash on a typed command is optional.
+func commandLine(in *modcli.Input) string {
+	if press := in.GetPress(); press != nil {
+		mod, node := press.GetMod(), press.GetNode()
+		if action := press.GetAction(); action != "" {
+			line := "modlockaction " + mod + " " + node + " " + action
+			if payload := press.GetPayload(); payload != "" {
+				return line + " " + payload
+			}
+			return line
+		}
+		return "modlockpress " + mod + " " + node
+	}
+	return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(in.GetCommand()), "/"))
+}
+
+// deliverGame delivers in to a running game session as the first connected
+// human, and returns a line for the creator when it cannot, or empty.
+func deliverGame(ctx context.Context, out *printer, game *session.Session, in *modcli.Input) string {
+	line := commandLine(in)
+	if line == "" {
+		return ""
+	}
+	slot, ok := out.firstPlayer()
+	if !ok {
+		return "no player is in the game to take the command"
+	}
+	if err := game.Command(ctx, slot, line); err != nil {
+		return err.Error()
+	}
+	return ""
 }
 
 // deliver presses the button or sends the command in to the sandbox's mods,

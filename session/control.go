@@ -28,6 +28,9 @@ type Control struct {
 	listener net.Listener
 	// requests carries requests to the host once it connects.
 	requests chan *control.ControlRequest
+	// raw carries already-encoded requests, such as a preview command the
+	// generated ControlRequest schema does not yet name.
+	raw chan []byte
 }
 
 // NewControl listens on a free loopback port.
@@ -36,7 +39,7 @@ func NewControl() (*Control, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "listen for the host")
 	}
-	return &Control{listener: listener, requests: make(chan *control.ControlRequest, 16)}, nil
+	return &Control{listener: listener, requests: make(chan *control.ControlRequest, 16), raw: make(chan []byte, 16)}, nil
 }
 
 // Address returns the address to pass to modlock-host --control.
@@ -82,10 +85,27 @@ func (c *Control) Call(ctx context.Context, call *control.ModCall) error {
 	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Call{Call: call}})
 }
 
+// Command asks the host to deliver line as if the player in slot sent that
+// console command from their game, including a preview button that would
+// send it. A negative slot lets the host choose the first connected human.
+func (c *Control) Command(ctx context.Context, slot int32, line string) error {
+	return c.requestRaw(ctx, encodePlayerCommandRequest(slot, line))
+}
+
 // request queues request for the call.
 func (c *Control) request(ctx context.Context, request *control.ControlRequest) error {
 	select {
 	case c.requests <- request:
+		return nil
+	case <-ctx.Done():
+		return context.Canceled
+	}
+}
+
+// requestRaw queues an already-encoded ControlRequest.
+func (c *Control) requestRaw(ctx context.Context, data []byte) error {
+	select {
+	case c.raw <- data:
 		return nil
 	case <-ctx.Done():
 		return context.Canceled
@@ -146,12 +166,22 @@ func (c *Control) send(ctx context.Context, conn net.Conn) {
 			if err != nil {
 				continue
 			}
-			frame := binary.LittleEndian.AppendUint32(make([]byte, 0, 4+len(data)), uint32(len(data)))
-			if _, err := conn.Write(append(frame, data...)); err != nil {
+			if err := writeControl(conn, data); err != nil {
+				return
+			}
+		case data := <-c.raw:
+			if err := writeControl(conn, data); err != nil {
 				return
 			}
 		}
 	}
+}
+
+// writeControl writes one framed control message to conn.
+func writeControl(conn net.Conn, data []byte) error {
+	frame := binary.LittleEndian.AppendUint32(make([]byte, 0, 4+len(data)), uint32(len(data)))
+	_, err := conn.Write(append(frame, data...))
+	return err
 }
 
 // readMessage reads one framed message into message.
