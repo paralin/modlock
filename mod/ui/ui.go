@@ -52,13 +52,18 @@ type keyed interface {
 // init registers the library's handlers with package mod. Its frame handler
 // runs before a mod's own, since a package's init runs before its importer's.
 func init() {
-	mod.OnFrame(func(f *mod.FrameEvent) { tick(f.GetTimeSeconds()) })
-	mod.OnUiPress(press)
-	mod.OnUiInput(change)
-	mod.OnUiAction(act)
-	mod.OnUiOverlay(overlaid)
-	mod.OnUiPlacement(placed)
-	mod.OnUiWindow(windowed)
-	mod.OnPlayers(forget)
-	mod.OnPlayerReturn(returned)
+	// Advance the game clock before the mod handles a frame.
+	mod.OnFrame(func(f *mod.FrameEvent) { lib.tick(f.GetTimeSeconds()) })
+
+	// Route interface input to the library instance.
+	mod.OnUiPress(lib.press)
+	mod.OnUiInput(lib.change)
+	mod.OnUiAction(lib.act)
+	mod.OnUiOverlay(lib.overlaid)
+	mod.OnUiPlacement(lib.placed)
+	mod.OnUiWindow(lib.windowed)
+
+	// Follow connection replacement and renderer return separately.
+	mod.OnPlayers(lib.forget)
+	mod.OnPlayerReturn(lib.returned)
 }

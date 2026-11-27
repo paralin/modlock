@@ -60,7 +60,7 @@ func (e Toggle) draw(l *layout, n *uipb.Node, _ string) {
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled
 	if e.OnChange != nil && !e.Disabled {
-		l.screen.handlers[n.Id] = handlers{on: e.OnChange}
+		l.record(n.Id, handlers{on: e.OnChange})
 	}
 	n.Text = e.Text
 	n.Input = &uipb.Node_Toggle{Toggle: &uipb.Toggle{On: e.On}}

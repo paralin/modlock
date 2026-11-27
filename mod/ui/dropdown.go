@@ -62,7 +62,7 @@ func (e Dropdown) draw(l *layout, n *uipb.Node, _ string) {
 	n.Kind = uipb.Kind_KIND_INPUT
 	n.Disabled = e.Disabled
 	if e.OnChange != nil && !e.Disabled {
-		l.screen.handlers[n.Id] = handlers{choice: e.OnChange}
+		l.record(n.Id, handlers{choice: e.OnChange})
 	}
 	n.Input = &uipb.Node_Dropdown{Dropdown: &uipb.Dropdown{Options: slices.Clone(e.Options), Selected: uint32(max(0, e.Selected))}}
 }

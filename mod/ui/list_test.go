@@ -102,25 +102,25 @@ func TestShowingAListCostsItsWindow(t *testing.T) {
 // leaves the screen.
 func TestListDrawsTheWindowTheScreenAsks(t *testing.T) {
 	p := mod.PlayerOf(2)
-	v := viewOf(p)
-	t.Cleanup(func() { delete(lib.views, 2); delete(lib.screens, 2) })
+	v := lib.viewOf(p)
+	t.Cleanup(func() { delete(lib.views, 2); lib.retained.invalidate(2) })
 	v.root = List{RowHeight: 20, Row: Label{Text: "{name}"}, Rows: numbered(1000)}
 	s := render(nil, v, v.root, nil)
-	lib.screens[2] = s
+	lib.retained.screens[2] = s
 	id := listNode(s).GetId()
 
 	// A window for a node that is no list is ignored.
-	windowed(&mod.UiWindowEvent{Player: 2, Node: "nope", First: 5, Count: 5})
+	lib.windowed(&mod.UiWindowEvent{Player: 2, Node: "nope", First: 5, Count: 5})
 	if len(v.windows) != 0 {
 		t.Fatalf("windows = %v", v.windows)
 	}
 
 	// The list's window is kept and drawn, whether or not the send lands.
-	windowed(&mod.UiWindowEvent{Player: 2, Node: id, First: 500, Count: 300})
+	lib.windowed(&mod.UiWindowEvent{Player: 2, Node: id, First: 500, Count: 300})
 	if w := v.windows[id]; w.first != 500 || w.count != maxWindow {
 		t.Fatalf("window = %+v", w)
 	}
-	l := &layout{screen: newScreen(0), windows: v.windows}
+	l := newLayout(nil, v.windows)
 	n := &uipb.Node{Id: id}
 	v.root.(List).draw(l, n, "")
 	if n.GetList().GetFirst() != 500 || len(n.GetList().GetRows()) != maxWindow {
@@ -156,5 +156,41 @@ func TestListHearsTheChosenRow(t *testing.T) {
 	s.handlers[node.GetId()].row(mod.PlayerOf(0), "a")
 	if chosen != "a" {
 		t.Fatalf("chosen = %q", chosen)
+	}
+}
+
+// TestRetainedCallbacksFollowAnUnchangedScreen checks callback replacement and
+// connection eviction without asking a host to accept a different encoding.
+func TestRetainedCallbacksFollowAnUnchangedScreen(t *testing.T) {
+	// Keep a keyed button while changing only its callback.
+	p := mod.PlayerOf(9)
+	t.Cleanup(func() { delete(lib.views, 9); lib.retained.invalidate(9); delete(lib.generations, 9) })
+	v := lib.viewOf(p)
+	chosen := 0
+	v.root = Nodes{Button{Key: "keep", Children: Text("Choose"), OnPress: func(mod.Player) { chosen = 1 }}}
+	previous := render(nil, v, Nodes{v.root, nil}, nil)
+	lib.retained.screens[9] = previous
+	v.root = Nodes{Button{Key: "keep", Children: Text("Choose"), OnPress: func(mod.Player) { chosen = 2 }}}
+	next := render(previous, v, Nodes{v.root, nil}, nil)
+	if diff(previous, next) != nil {
+		t.Fatal("a callback change altered the encoding")
+	}
+	if !lib.draw(v) {
+		t.Fatal("an unchanged screen tried to send")
+	}
+	for _, node := range next.order {
+		if h := lib.retained.lookup(9, node.Id).press; h != nil {
+			h(p)
+		}
+	}
+	if chosen != 2 {
+		t.Fatalf("callback = %d, want 2", chosen)
+	}
+
+	// A replacement connection must inherit neither the view nor its handlers.
+	lib.generations[9] = 1
+	lib.forget([]*mod.Connection{{Player: 9, Generation: 2}})
+	if lib.views[9] != nil || lib.retained.screens[9] != nil {
+		t.Fatal("replacement connection inherited a retained screen")
 	}
 }
