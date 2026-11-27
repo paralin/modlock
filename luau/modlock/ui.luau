@@ -1873,9 +1873,11 @@ end
 -- true, so they can click the mod's panels, such as a pick screen; false
 -- gives the mouse back to aiming. Each call with true shows the cursor again,
 -- even when the player put it away with the game's own keys; a screen that
--- changes without a call leaves their choice be. The game does not stop the
--- player's shots, camera or movement while the cursor is up: a screen that
--- must not fire a weapon calls player:blockInput for the buttons it takes.
+-- changes without a call leaves their choice be. A click on one of the mod's
+-- panels goes to the panel and fires no shot. A click anywhere else still
+-- shoots, and the camera and movement keep working while the cursor is up: a
+-- screen that must not fire a weapon calls player:blockInput for the buttons
+-- it takes.
 function ui.freeCursor(player: Player, free: boolean): boolean
 	local current = view(player)
 	current.cursor = free
