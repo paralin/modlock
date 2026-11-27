@@ -5186,6 +5186,18 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "text", "string", optional=True),
             wire.Field(3, "visible", "bool", optional=True),
             wire.Field(4, "press", "bool"),
+            wire.Field(5, "token", "string", optional=True),
+            wire.Field(6, "variables", "message", repeated=True, message="Binding_VariablesEntry"),
+            wire.Field(7, "classes", "string", repeated=True),
+            wire.Field(8, "style", "message", message="Style"),
+            wire.Field(9, "image", "string", optional=True),
+        ],
+    ),
+    "Binding_VariablesEntry": (
+        None,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "value", "string"),
         ],
     ),
     "Clock": (

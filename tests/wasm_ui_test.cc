@@ -529,6 +529,33 @@ TEST(UiTrees, RefusesBindingsALayoutCannotDraw) {
   EXPECT_FALSE(trees.Action(3, "card buy", kStart));
 }
 
+TEST(UiTrees, HoldsABindingsPropertiesToANodesLimits) {
+  // A binding may localize its panel's text, add classes, style it and set an
+  // image from the game's content.
+  UiTrees trees;
+  auto change = ShowLayout("card");
+  auto* price = change.mutable_set(0)->add_bindings();
+  price->set_panel("price");
+  price->set_token("#shop.price");
+  (*price->mutable_variables())["gold"] = "300";
+  price->add_classes("sold-out");
+  price->mutable_style()->set_color(0xff0000ff);
+  price->set_image("file://{images}/hud/gold.png");
+  ASSERT_TRUE(trees.Apply(3, change));
+
+  // A bad token, variable, class or image is refused as a node's would be.
+  const auto refused = [&](auto spoil) {
+    auto bad = change;
+    spoil(*bad.mutable_set(0)->mutable_bindings(0));
+    return !trees.Apply(3, bad);
+  };
+  EXPECT_TRUE(refused([](auto& b) { b.set_token("shop.price"); }));
+  EXPECT_TRUE(refused([](auto& b) { b.set_token("#shop price"); }));
+  EXPECT_TRUE(refused([](auto& b) { (*b.mutable_variables())["a b"] = "1"; }));
+  EXPECT_TRUE(refused([](auto& b) { b.add_classes("a.b"); }));
+  EXPECT_TRUE(refused([](auto& b) { b.set_image("https://example.com/a.png"); }));
+}
+
 TEST(UiTrees, RefusesALayoutsOversizedPayload) {
   UiTrees trees;
   ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));

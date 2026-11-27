@@ -2352,6 +2352,68 @@ test("binds a layout's named panels and hears only their current presses", () =>
   }
 })
 
+test('a binding sets the same text, classes, style and image as a typed node', () => {
+  // The layout's file builds a styled label and an image.
+  FakePanel.built = (panel: FakePanel) => {
+    const price = new FakePanel('Label', 'price')
+    price.text = 'author price'
+    price.classes.push('author')
+    price.style.color = '#abcdef'
+    const icon = new FakePanel('Image', 'icon')
+    for (const child of [price, icon]) {
+      child.parent = panel
+      panel.children.push(child)
+    }
+  }
+  try {
+    // Draw the same properties through bindings and through typed nodes.
+    const look = {
+      token: '#shop.price',
+      variables: { gold: '300' },
+      classes: ['sold-out', 'author'],
+      style: { color: 0xff0000ff, fontSize: 30 },
+    }
+    const image = 'file://{images}/hud/gold.png'
+    const root = new FakePanel('Panel', 'ModlockUi')
+    const drawing = new Drawing($, root, () => {}, {
+      url: (_, path) => `file://arena/${path}`,
+      addon: () => 'arena',
+      unloaded: () => {},
+    })
+    const draw = (...bindings: JsonObject[]) =>
+      drawing.draw(
+        screen(
+          { id: '', children: ['a', 'l', 'i'] },
+          { id: 'a', kind: 'KIND_LAYOUT', layout: 'shop.xml', bindings },
+          { id: 'l', kind: 'KIND_LABEL', ...look },
+          { id: 'i', kind: 'KIND_IMAGE', image },
+        ),
+      )
+    draw({ panel: 'price', ...look }, { panel: 'icon', image })
+
+    // The bound panels hold what the typed ones do.
+    const [layout, label, typed] = root.children[0]!.children
+    const [price, icon] = layout!.children
+    expect(price!.text).toBe(label!.text)
+    expect(price!.dialog).toEqual({ gold: '300' })
+    expect(price!.classes).toEqual(['author', 'sold-out'])
+    expect(price!.style.color).toBe(label!.style.color)
+    expect(price!.style.fontSize).toBe(label!.style.fontSize)
+    expect(icon!.image).toBe(typed!.image)
+
+    // Dropping the properties gives back the author's text, class and inline
+    // style, and the image stays.
+    draw({ panel: 'price' }, { panel: 'icon' })
+    expect(price!.text).toBe('author price')
+    expect(price!.classes).toEqual(['author'])
+    expect(price!.style.color).toBe('#abcdef')
+    expect(price!.style.fontSize).toBeNull()
+    expect(icon!.image).toBe(image)
+  } finally {
+    FakePanel.built = null
+  }
+})
+
 test("hands a mod's routes to each of its layouts", () => {
   // Draw one layout, with routes built the way the controller sends them.
   const root = new FakePanel('Panel', 'ModlockUi')
