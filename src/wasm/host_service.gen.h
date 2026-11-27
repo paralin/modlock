@@ -2517,6 +2517,12 @@ class ModClient {
     return Send<void>("UiPlacement", event);
   }
 
+  // UiWindow reports the run of a list's rows a player's renderer asks for,
+  // which the mod answers by drawing that list's window.
+  std::expected<void, std::string> UiWindow(const ui::UiWindowEvent& event) {
+    return Send<void>("UiWindow", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

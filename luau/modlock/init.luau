@@ -1851,6 +1851,23 @@ export type SettingChangedEvent = {
 	value: string,
 }
 
+-- UiWindowEvent is the run of a list's rows a player's renderer asks for:
+-- those near the list's visible box, which it draws as the player scrolls.
+-- The mod answers by drawing the list with that window's rows. A list the
+-- renderer has not asked about yet shows its first 50 rows.
+export type UiWindowEvent = {
+	-- player is the player whose screen this is.
+	player: Player,
+	-- node is the list node's id.
+	node: string,
+	-- first is the place of the first row, and count the number of rows, at
+	-- most 256.
+	first: number,
+	count: number,
+	-- focus is the key of the row that has the focus, or empty for none.
+	focus: string,
+}
+
 -- Wheel reports one wheel step over a slider, anchored to its pointer position.
 export type Wheel = {
 	-- delta is 1 for up and -1 for down. It never changes the slider's value.
@@ -4441,19 +4458,18 @@ schema.List = {
 }
 schema.Row = {
 	{ number = 1, name = "key", kind = "string" },
-	{ number = 2, name = "rank", kind = "double" },
-	{ number = 3, name = "sort", kind = "string" },
 	{ number = 4, name = "fields", kind = "message", repeated = true, message = "Row_FieldsEntry" },
 }
 schema.Row_FieldsEntry = {
 	{ number = 1, name = "key", kind = "string" },
 	{ number = 2, name = "value", kind = "string" },
 }
-schema.ListChange = {
-	{ number = 1, name = "node", kind = "string" },
-	{ number = 2, name = "reset", kind = "bool" },
-	{ number = 3, name = "set", kind = "message", repeated = true, message = "Row" },
-	{ number = 4, name = "removed", kind = "string", repeated = true },
+schema.UiWindowEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "node", kind = "string" },
+	{ number = 3, name = "first", kind = "uint32" },
+	{ number = 4, name = "count", kind = "uint32" },
+	{ number = 5, name = "focus", kind = "string" },
 }
 schema.Binding = {
 	{ number = 1, name = "panel", kind = "string" },
@@ -4681,7 +4697,6 @@ schema.Change = {
 	{ number = 2, name = "set", kind = "message", repeated = true, message = "Node" },
 	{ number = 3, name = "removed", kind = "string", repeated = true },
 	{ number = 4, name = "generation", kind = "uint64" },
-	{ number = 5, name = "lists", kind = "message", repeated = true, message = "ListChange" },
 }
 schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -5566,6 +5581,9 @@ export type ModHandlers = {
 	-- uiPlacement reports where a player's screen places the mod's interface,
 	-- to a mod whose root follows placement.
 	uiPlacement: (event: UiPlacementEvent) -> (),
+	-- uiWindow reports the run of a list's rows a player's renderer asks for,
+	-- which the mod answers by drawing that list's window.
+	uiWindow: (event: UiWindowEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- serviceReplied ends one StartServiceCall, in a frame after the call.
@@ -5661,6 +5679,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	UiAction = { request = "UiActionEvent", response = "Empty", handler = "uiAction" },
 	UiOverlay = { request = "UiOverlayEvent", response = "Empty", handler = "uiOverlay" },
 	UiPlacement = { request = "UiPlacementEvent", response = "Empty", handler = "uiPlacement" },
+	UiWindow = { request = "UiWindowEvent", response = "Empty", handler = "uiWindow" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	ServiceReplied = { request = "ServiceRepliedEvent", response = "Empty", handler = "serviceReplied" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
@@ -6105,6 +6124,8 @@ export type Interface = {
 	overlay: (player: Player, overlay: Overlay) -> (),
 	-- placement takes where the player's screen places the interface.
 	placement: (event: UiPlacementEvent) -> (),
+	-- window takes the window of a list a player's screen asks for.
+	window: (event: UiWindowEvent) -> (),
 	-- tick takes the game clock at each frame, before the timers run.
 	tick: (seconds: number) -> (),
 	-- players takes each player list the host reports.
@@ -7351,6 +7372,14 @@ local handlers: ModHandlers = {
 		if served then
 			modlock.after(0, function()
 				served.placement(event)
+			end)
+		end
+	end,
+	uiWindow = function(event)
+		local served = interface
+		if served then
+			modlock.after(0, function()
+				served.window(event)
 			end)
 		end
 	end,

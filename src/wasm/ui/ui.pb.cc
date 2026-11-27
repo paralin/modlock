@@ -56,6 +56,39 @@ struct WheelDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 WheelDefaultTypeInternal _Wheel_default_instance_;
 
+inline constexpr UiWindowEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        node_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        focus_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_{0},
+        first_{0u},
+        count_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR UiWindowEvent::UiWindowEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(UiWindowEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct UiWindowEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR UiWindowEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~UiWindowEventDefaultTypeInternal() {}
+  union {
+    UiWindowEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UiWindowEventDefaultTypeInternal _UiWindowEvent_default_instance_;
+
 inline constexpr UiPressEvent::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -468,38 +501,6 @@ struct MenuDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MenuDefaultTypeInternal _Menu_default_instance_;
-
-inline constexpr ListWindow::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        node_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        focus_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        first_{0u},
-        count_{0u} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR ListWindow::ListWindow(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ListWindow_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct ListWindowDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ListWindowDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ListWindowDefaultTypeInternal() {}
-  union {
-    ListWindow _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ListWindowDefaultTypeInternal _ListWindow_default_instance_;
 
 inline constexpr Length::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -972,10 +973,6 @@ inline constexpr Row::Impl_::Impl_(
         key_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        sort_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        rank_{0},
         fields_{} {}
 
 template <typename>
@@ -1237,36 +1234,6 @@ struct StyleDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StyleDefaultTypeInternal _Style_default_instance_;
-
-inline constexpr ListChange::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        set_{},
-        removed_{},
-        node_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        reset_{false} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR ListChange::ListChange(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ListChange_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct ListChangeDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ListChangeDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ListChangeDefaultTypeInternal() {}
-  union {
-    ListChange _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ListChangeDefaultTypeInternal _ListChange_default_instance_;
 
 inline constexpr TimelineStep::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -1581,7 +1548,6 @@ inline constexpr Change::Impl_::Impl_(
       : _cached_size_{0},
         set_{},
         removed_{},
-        lists_{},
         generation_{::uint64_t{0u}},
         reset_{false} {}
 
@@ -1822,36 +1788,23 @@ const ::uint32_t
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Row, _impl_._has_bits_),
-        7, // hasbit index offset
+        5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Row, _impl_.key_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Row, _impl_.rank_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Row, _impl_.sort_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Row, _impl_.fields_),
         0,
-        2,
-        1,
-        3,
-        0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListWindow, _impl_._has_bits_),
-        7, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListWindow, _impl_.node_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListWindow, _impl_.first_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListWindow, _impl_.count_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListWindow, _impl_.focus_),
-        0,
-        2,
-        3,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListChange, _impl_._has_bits_),
-        7, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListChange, _impl_.node_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListChange, _impl_.reset_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListChange, _impl_.set_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::ListChange, _impl_.removed_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_.node_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_.first_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_.count_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::UiWindowEvent, _impl_.focus_),
         2,
-        3,
         0,
+        3,
+        4,
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Binding_VariablesEntry_DoNotUse, _impl_._has_bits_),
@@ -2260,16 +2213,14 @@ const ::uint32_t
         3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_._has_bits_),
-        8, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.reset_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.set_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.removed_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.generation_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.lists_),
-        4,
+        3,
         0,
         1,
-        3,
         2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_._has_bits_),
@@ -2420,54 +2371,53 @@ static const ::_pbi::MigrationSchema
         {124, sizeof(::modlock::wasm::ui::List)},
         {147, sizeof(::modlock::wasm::ui::Row_FieldsEntry_DoNotUse)},
         {154, sizeof(::modlock::wasm::ui::Row)},
-        {165, sizeof(::modlock::wasm::ui::ListWindow)},
-        {176, sizeof(::modlock::wasm::ui::ListChange)},
-        {187, sizeof(::modlock::wasm::ui::Binding_VariablesEntry_DoNotUse)},
-        {194, sizeof(::modlock::wasm::ui::Binding)},
-        {215, sizeof(::modlock::wasm::ui::Clock)},
-        {228, sizeof(::modlock::wasm::ui::AbilityRow)},
-        {241, sizeof(::modlock::wasm::ui::ShownAbility)},
-        {250, sizeof(::modlock::wasm::ui::Cue)},
-        {259, sizeof(::modlock::wasm::ui::Timeline)},
-        {270, sizeof(::modlock::wasm::ui::TimelineStep)},
-        {285, sizeof(::modlock::wasm::ui::Menu)},
-        {296, sizeof(::modlock::wasm::ui::DocumentInput)},
-        {305, sizeof(::modlock::wasm::ui::TextEntry)},
-        {314, sizeof(::modlock::wasm::ui::Slider)},
-        {327, sizeof(::modlock::wasm::ui::Wheel)},
-        {334, sizeof(::modlock::wasm::ui::Toggle)},
-        {339, sizeof(::modlock::wasm::ui::Dropdown)},
-        {346, sizeof(::modlock::wasm::ui::Range)},
-        {357, sizeof(::modlock::wasm::ui::RangeHandle)},
-        {364, sizeof(::modlock::wasm::ui::RangeEvent)},
-        {373, sizeof(::modlock::wasm::ui::Cycle)},
-        {382, sizeof(::modlock::wasm::ui::Style)},
-        {479, sizeof(::modlock::wasm::ui::Clip)},
-        {484, sizeof(::modlock::wasm::ui::ClipRect)},
-        {495, sizeof(::modlock::wasm::ui::ClipRadial)},
-        {506, sizeof(::modlock::wasm::ui::Gradient)},
-        {513, sizeof(::modlock::wasm::ui::GradientStop)},
-        {520, sizeof(::modlock::wasm::ui::Shadow)},
-        {535, sizeof(::modlock::wasm::ui::Transform)},
-        {552, sizeof(::modlock::wasm::ui::Transition)},
-        {563, sizeof(::modlock::wasm::ui::Curve)},
-        {574, sizeof(::modlock::wasm::ui::Length)},
-        {581, sizeof(::modlock::wasm::ui::Edges)},
-        {592, sizeof(::modlock::wasm::ui::Change)},
-        {605, sizeof(::modlock::wasm::ui::Tree)},
-        {618, sizeof(::modlock::wasm::ui::Region)},
-        {629, sizeof(::modlock::wasm::ui::Screen)},
-        {636, sizeof(::modlock::wasm::ui::UiPressEvent)},
-        {647, sizeof(::modlock::wasm::ui::UiInputEvent)},
-        {670, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
-        {683, sizeof(::modlock::wasm::ui::DocumentDelivered)},
-        {688, sizeof(::modlock::wasm::ui::DocumentFailed)},
-        {693, sizeof(::modlock::wasm::ui::UiActionEvent)},
-        {702, sizeof(::modlock::wasm::ui::UiOverlayEvent)},
-        {709, sizeof(::modlock::wasm::ui::Bounds)},
-        {720, sizeof(::modlock::wasm::ui::UiPlacementEvent)},
-        {731, sizeof(::modlock::wasm::ui::Measured)},
-        {738, sizeof(::modlock::wasm::ui::UiRequest)},
+        {161, sizeof(::modlock::wasm::ui::UiWindowEvent)},
+        {174, sizeof(::modlock::wasm::ui::Binding_VariablesEntry_DoNotUse)},
+        {181, sizeof(::modlock::wasm::ui::Binding)},
+        {202, sizeof(::modlock::wasm::ui::Clock)},
+        {215, sizeof(::modlock::wasm::ui::AbilityRow)},
+        {228, sizeof(::modlock::wasm::ui::ShownAbility)},
+        {237, sizeof(::modlock::wasm::ui::Cue)},
+        {246, sizeof(::modlock::wasm::ui::Timeline)},
+        {257, sizeof(::modlock::wasm::ui::TimelineStep)},
+        {272, sizeof(::modlock::wasm::ui::Menu)},
+        {283, sizeof(::modlock::wasm::ui::DocumentInput)},
+        {292, sizeof(::modlock::wasm::ui::TextEntry)},
+        {301, sizeof(::modlock::wasm::ui::Slider)},
+        {314, sizeof(::modlock::wasm::ui::Wheel)},
+        {321, sizeof(::modlock::wasm::ui::Toggle)},
+        {326, sizeof(::modlock::wasm::ui::Dropdown)},
+        {333, sizeof(::modlock::wasm::ui::Range)},
+        {344, sizeof(::modlock::wasm::ui::RangeHandle)},
+        {351, sizeof(::modlock::wasm::ui::RangeEvent)},
+        {360, sizeof(::modlock::wasm::ui::Cycle)},
+        {369, sizeof(::modlock::wasm::ui::Style)},
+        {466, sizeof(::modlock::wasm::ui::Clip)},
+        {471, sizeof(::modlock::wasm::ui::ClipRect)},
+        {482, sizeof(::modlock::wasm::ui::ClipRadial)},
+        {493, sizeof(::modlock::wasm::ui::Gradient)},
+        {500, sizeof(::modlock::wasm::ui::GradientStop)},
+        {507, sizeof(::modlock::wasm::ui::Shadow)},
+        {522, sizeof(::modlock::wasm::ui::Transform)},
+        {539, sizeof(::modlock::wasm::ui::Transition)},
+        {550, sizeof(::modlock::wasm::ui::Curve)},
+        {561, sizeof(::modlock::wasm::ui::Length)},
+        {568, sizeof(::modlock::wasm::ui::Edges)},
+        {579, sizeof(::modlock::wasm::ui::Change)},
+        {590, sizeof(::modlock::wasm::ui::Tree)},
+        {603, sizeof(::modlock::wasm::ui::Region)},
+        {614, sizeof(::modlock::wasm::ui::Screen)},
+        {621, sizeof(::modlock::wasm::ui::UiPressEvent)},
+        {632, sizeof(::modlock::wasm::ui::UiInputEvent)},
+        {655, sizeof(::modlock::wasm::ui::UiDocumentEvent)},
+        {668, sizeof(::modlock::wasm::ui::DocumentDelivered)},
+        {673, sizeof(::modlock::wasm::ui::DocumentFailed)},
+        {678, sizeof(::modlock::wasm::ui::UiActionEvent)},
+        {687, sizeof(::modlock::wasm::ui::UiOverlayEvent)},
+        {694, sizeof(::modlock::wasm::ui::Bounds)},
+        {705, sizeof(::modlock::wasm::ui::UiPlacementEvent)},
+        {716, sizeof(::modlock::wasm::ui::Measured)},
+        {723, sizeof(::modlock::wasm::ui::UiRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_Node_VariablesEntry_DoNotUse_default_instance_._instance,
@@ -2475,8 +2425,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_List_default_instance_._instance,
     &::modlock::wasm::ui::_Row_FieldsEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::ui::_Row_default_instance_._instance,
-    &::modlock::wasm::ui::_ListWindow_default_instance_._instance,
-    &::modlock::wasm::ui::_ListChange_default_instance_._instance,
+    &::modlock::wasm::ui::_UiWindowEvent_default_instance_._instance,
     &::modlock::wasm::ui::_Binding_VariablesEntry_DoNotUse_default_instance_._instance,
     &::modlock::wasm::ui::_Binding_default_instance_._instance,
     &::modlock::wasm::ui::_Clock_default_instance_._instance,
@@ -2578,246 +2527,243 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "wasm.ui.Style\022.\n\016selected_style\030\007 \001(\0132\026."
     "modlock.wasm.ui.Style\022\020\n\010selected\030\010 \001(\t\022"
     "\r\n\005focus\030\t \001(\t\022\025\n\010focus_at\030\n \001(\rH\000\210\001\001B\013\n"
-    "\t_focus_at\"\217\001\n\003Row\022\013\n\003key\030\001 \001(\t\022\014\n\004rank\030"
-    "\002 \001(\001\022\014\n\004sort\030\003 \001(\t\0220\n\006fields\030\004 \003(\0132 .mo"
-    "dlock.wasm.ui.Row.FieldsEntry\032-\n\013FieldsE"
-    "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"G\n\n"
-    "ListWindow\022\014\n\004node\030\001 \001(\t\022\r\n\005first\030\002 \001(\r\022"
-    "\r\n\005count\030\003 \001(\r\022\r\n\005focus\030\004 \001(\t\"]\n\nListCha"
-    "nge\022\014\n\004node\030\001 \001(\t\022\r\n\005reset\030\002 \001(\010\022!\n\003set\030"
-    "\003 \003(\0132\024.modlock.wasm.ui.Row\022\017\n\007removed\030\004"
-    " \003(\t\"\307\002\n\007Binding\022\r\n\005panel\030\001 \001(\t\022\021\n\004text\030"
-    "\002 \001(\tH\000\210\001\001\022\024\n\007visible\030\003 \001(\010H\001\210\001\001\022\r\n\005pres"
-    "s\030\004 \001(\010\022\022\n\005token\030\005 \001(\tH\002\210\001\001\022:\n\tvariables"
-    "\030\006 \003(\0132\'.modlock.wasm.ui.Binding.Variabl"
-    "esEntry\022\017\n\007classes\030\007 \003(\t\022%\n\005style\030\010 \001(\0132"
-    "\026.modlock.wasm.ui.Style\022\022\n\005image\030\t \001(\tH\003"
-    "\210\001\001\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va"
-    "lue\030\002 \001(\t:\0028\001B\007\n\005_textB\n\n\010_visibleB\010\n\006_t"
-    "okenB\010\n\006_image\"o\n\005Clock\022\017\n\007seconds\030\001 \001(\001"
-    "\022\n\n\002up\030\002 \001(\010\022\016\n\006paused\030\003 \001(\010\022,\n\006format\030\004"
-    " \001(\0162\034.modlock.wasm.ui.ClockFormat\022\013\n\003ru"
-    "n\030\005 \001(\r\"w\n\nAbilityRow\022\016\n\006player\030\001 \001(\r\022\014\n"
-    "\004name\030\002 \001(\t\022\014\n\004hero\030\003 \001(\t\022\013\n\003own\030\004 \001(\010\0220"
-    "\n\tabilities\030\005 \003(\0132\035.modlock.wasm.ui.Show"
-    "nAbility\"@\n\014ShownAbility\022\017\n\007ability\030\001 \001("
-    "\r\022\r\n\005image\030\002 \001(\t\022\020\n\010upgrades\030\003 \001(\r\";\n\003Cu"
-    "e\022\016\n\006number\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\022\017\n\007seco"
-    "nds\030\003 \001(\002J\004\010\004\020\005\"\206\001\n\010Timeline\022\n\n\002id\030\001 \001(\t"
-    "\022\013\n\003run\030\002 \001(\r\022-\n\005clock\030\004 \001(\0162\036.modlock.w"
-    "asm.ui.TimelineClock\022,\n\005steps\030\005 \003(\0132\035.mo"
-    "dlock.wasm.ui.TimelineStepJ\004\010\003\020\004\"\203\001\n\014Tim"
-    "elineStep\022\n\n\002at\030\001 \001(\002\022\017\n\007measure\030\002 \001(\t\022\017"
-    "\n\007classes\030\003 \003(\t\022%\n\005style\030\004 \001(\0132\026.modlock"
-    ".wasm.ui.Style\022\r\n\005sound\030\005 \001(\t\022\017\n\007seconds"
-    "\030\006 \001(\002\"k\n\004Menu\022\'\n\004mode\030\001 \001(\0162\031.modlock.w"
-    "asm.ui.MenuMode\022\022\n\nopen_label\030\002 \001(\t\022\024\n\014o"
-    "pen_request\030\003 \001(\r\022\020\n\010priority\030\004 \001(\005\"K\n\rD"
-    "ocumentInput\022\023\n\013placeholder\030\001 \001(\t\022\024\n\014sub"
-    "mit_label\030\002 \001(\t\022\017\n\007control\030\003 \001(\004\"B\n\tText"
-    "Entry\022\014\n\004text\030\001 \001(\t\022\023\n\013placeholder\030\002 \001(\t"
-    "\022\022\n\nmax_length\030\003 \001(\r\"N\n\006Slider\022\r\n\005value\030"
-    "\001 \001(\002\022\013\n\003min\030\002 \001(\002\022\013\n\003max\030\003 \001(\002\022\014\n\004step\030"
-    "\004 \001(\002\022\r\n\005wheel\030\005 \001(\010\"(\n\005Wheel\022\r\n\005delta\030\001"
-    " \001(\002\022\020\n\010fraction\030\002 \001(\002\"\024\n\006Toggle\022\n\n\002on\030\001"
-    " \001(\010\"-\n\010Dropdown\022\017\n\007options\030\001 \003(\t\022\020\n\010sel"
-    "ected\030\002 \001(\r\"^\n\005Range\022-\n\007handles\030\001 \003(\0132\034."
-    "modlock.wasm.ui.RangeHandle\022\013\n\003min\030\002 \001(\002"
-    "\022\013\n\003max\030\003 \001(\002\022\014\n\004step\030\004 \001(\002\"*\n\013RangeHand"
-    "le\022\014\n\004name\030\001 \001(\t\022\r\n\005value\030\002 \001(\002\"Y\n\nRange"
-    "Event\022+\n\005phase\030\001 \001(\0162\034.modlock.wasm.ui.A"
-    "ctionPhase\022\016\n\006handle\030\002 \001(\t\022\016\n\006values\030\003 \003"
-    "(\002\"N\n\005Cycle\022%\n\005style\030\001 \001(\0132\026.modlock.was"
-    "m.ui.Style\022\017\n\007seconds\030\002 \001(\002\022\r\n\005count\030\003 \001"
-    "(\r\"\277\014\n\005Style\022&\n\005width\030\001 \001(\0132\027.modlock.wa"
-    "sm.ui.Length\022\'\n\006height\030\002 \001(\0132\027.modlock.w"
-    "asm.ui.Length\022#\n\004flow\030\003 \001(\0162\025.modlock.wa"
-    "sm.ui.Flow\0220\n\020horizontal_align\030\004 \001(\0162\026.m"
-    "odlock.wasm.ui.Align\022.\n\016vertical_align\030\005"
-    " \001(\0162\026.modlock.wasm.ui.Align\022&\n\006margin\030\006"
-    " \001(\0132\026.modlock.wasm.ui.Edges\022\'\n\007padding\030"
-    "\007 \001(\0132\026.modlock.wasm.ui.Edges\022\022\n\nbackgro"
-    "und\030\010 \001(\007\022\r\n\005color\030\t \001(\007\022\021\n\tfont_size\030\n "
-    "\001(\002\022\014\n\004bold\030\013 \001(\010\022*\n\ntext_align\030\014 \001(\0162\026."
-    "modlock.wasm.ui.Align\022\025\n\rborder_radius\030\r"
-    " \001(\002\022\024\n\007opacity\030\016 \001(\002H\000\210\001\001\022#\n\004face\030\017 \001(\016"
-    "2\025.modlock.wasm.ui.Face\022\021\n\tuppercase\030\020 \001"
-    "(\010\022\026\n\016letter_spacing\030\021 \001(\002\022\016\n\006shadow\030\022 \001"
-    "(\010\022\024\n\014border_width\030\023 \001(\002\022\024\n\014border_color"
-    "\030\024 \001(\007\022\"\n\001x\030\025 \001(\0132\027.modlock.wasm.ui.Leng"
-    "th\022\"\n\001y\030\026 \001(\0132\027.modlock.wasm.ui.Length\022*"
-    "\n\tmin_width\030\027 \001(\0132\027.modlock.wasm.ui.Leng"
-    "th\022*\n\tmax_width\030\030 \001(\0132\027.modlock.wasm.ui."
-    "Length\022+\n\nmin_height\030\031 \001(\0132\027.modlock.was"
-    "m.ui.Length\022+\n\nmax_height\030\032 \001(\0132\027.modloc"
-    "k.wasm.ui.Length\022\017\n\007z_index\030\033 \001(\005\022-\n\nove"
-    "rflow_x\030\034 \001(\0162\031.modlock.wasm.ui.Overflow"
-    "\022-\n\noverflow_y\030\035 \001(\0162\031.modlock.wasm.ui.O"
-    "verflow\022+\n\010gradient\030\036 \001(\0132\031.modlock.wasm"
-    ".ui.Gradient\022+\n\nbox_shadow\030\037 \001(\0132\027.modlo"
-    "ck.wasm.ui.Shadow\022,\n\013text_shadow\030  \001(\0132\027"
-    ".modlock.wasm.ui.Shadow\022\014\n\004tint\030! \001(\007\022\027\n"
-    "\nsaturation\030\" \001(\002H\001\210\001\001\022\027\n\nbrightness\030# \001"
-    "(\002H\002\210\001\001\022\025\n\010contrast\030$ \001(\002H\003\210\001\001\022\014\n\004blur\030%"
-    " \001(\002\022\016\n\006italic\030& \001(\010\022\'\n\006weight\030\' \001(\0162\027.m"
-    "odlock.wasm.ui.Weight\022\023\n\013line_height\030( \001"
-    "(\002\022\017\n\007no_wrap\030) \001(\010\0224\n\rtext_overflow\030* \001"
-    "(\0162\035.modlock.wasm.ui.TextOverflow\022/\n\ndec"
-    "oration\030+ \001(\0162\033.modlock.wasm.ui.Decorati"
-    "on\022-\n\ttransform\030, \001(\0132\032.modlock.wasm.ui."
-    "Transform\022/\n\ntransition\030- \001(\0132\033.modlock."
-    "wasm.ui.Transition\022#\n\004clip\030. \001(\0132\025.modlo"
-    "ck.wasm.ui.Clip\022\014\n\004turn\030/ \001(\002B\n\n\010_opacit"
-    "yB\r\n\013_saturationB\r\n\013_brightnessB\013\n\t_cont"
-    "rast\"i\n\004Clip\022)\n\004rect\030\001 \001(\0132\031.modlock.was"
-    "m.ui.ClipRectH\000\022-\n\006radial\030\002 \001(\0132\033.modloc"
-    "k.wasm.ui.ClipRadialH\000B\007\n\005shape\"D\n\010ClipR"
-    "ect\022\013\n\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006botto"
-    "m\030\003 \001(\002\022\014\n\004left\030\004 \001(\002\"r\n\nClipRadial\022\025\n\010c"
-    "enter_x\030\001 \001(\002H\000\210\001\001\022\025\n\010center_y\030\002 \001(\002H\001\210\001"
-    "\001\022\r\n\005start\030\003 \001(\002\022\r\n\005sweep\030\004 \001(\002B\013\n\t_cent"
-    "er_xB\013\n\t_center_y\"g\n\010Gradient\022-\n\005shape\030\001"
-    " \001(\0162\036.modlock.wasm.ui.GradientShape\022,\n\005"
-    "stops\030\002 \003(\0132\035.modlock.wasm.ui.GradientSt"
-    "op\")\n\014GradientStop\022\n\n\002at\030\001 \001(\002\022\r\n\005color\030"
-    "\002 \001(\007\"Z\n\006Shadow\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\014\n"
-    "\004blur\030\003 \001(\002\022\016\n\006spread\030\004 \001(\002\022\r\n\005color\030\005 \001"
-    "(\007\022\r\n\005inset\030\006 \001(\010\"\321\001\n\tTransform\022\023\n\013trans"
-    "late_x\030\001 \001(\002\022\023\n\013translate_y\030\002 \001(\002\022\024\n\007sca"
-    "le_x\030\003 \001(\002H\000\210\001\001\022\024\n\007scale_y\030\004 \001(\002H\001\210\001\001\022\016\n"
-    "\006rotate\030\005 \001(\002\022\025\n\010origin_x\030\006 \001(\002H\002\210\001\001\022\025\n\010"
-    "origin_y\030\007 \001(\002H\003\210\001\001B\n\n\010_scale_xB\n\n\010_scal"
-    "e_yB\013\n\t_origin_xB\013\n\t_origin_y\"|\n\nTransit"
-    "ion\022\017\n\007seconds\030\001 \001(\002\022\r\n\005delay\030\002 \001(\002\022\'\n\006e"
-    "asing\030\003 \001(\0162\027.modlock.wasm.ui.Easing\022%\n\005"
-    "curve\030\004 \001(\0132\026.modlock.wasm.ui.Curve\"7\n\005C"
-    "urve\022\n\n\002x1\030\001 \001(\002\022\n\n\002y1\030\002 \001(\002\022\n\n\002x2\030\003 \001(\002"
-    "\022\n\n\002y2\030\004 \001(\002\"^\n\006Length\022\020\n\006pixels\030\001 \001(\002H\000"
-    "\022\021\n\007percent\030\002 \001(\002H\000\022\026\n\014fit_children\030\003 \001("
-    "\010H\000\022\016\n\004fill\030\004 \001(\002H\000B\007\n\005value\"A\n\005Edges\022\013\n"
-    "\003top\030\001 \001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001("
-    "\002\022\014\n\004left\030\004 \001(\002\"\214\001\n\006Change\022\r\n\005reset\030\001 \001("
-    "\010\022\"\n\003set\030\002 \003(\0132\025.modlock.wasm.ui.Node\022\017\n"
-    "\007removed\030\003 \003(\t\022\022\n\ngeneration\030\004 \001(\004\022*\n\005li"
-    "sts\030\005 \003(\0132\033.modlock.wasm.ui.ListChange\"\205"
-    "\001\n\004Tree\022\013\n\003mod\030\001 \001(\t\022$\n\005nodes\030\002 \003(\0132\025.mo"
-    "dlock.wasm.ui.Node\022\'\n\006region\030\003 \001(\0132\027.mod"
-    "lock.wasm.ui.Region\022\r\n\005addon\030\004 \001(\t\022\022\n\nge"
-    "neration\030\005 \001(\004\"B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013"
-    "\n\003top\030\002 \001(\002\022\r\n\005width\030\003 \001(\002\022\016\n\006height\030\004 \001"
-    "(\002\">\n\006Screen\022$\n\005trees\030\001 \003(\0132\025.modlock.wa"
-    "sm.ui.Tree\022\016\n\006paused\030\002 \001(\010\"M\n\014UiPressEve"
-    "nt\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\006acti"
-    "on\030\003 \001(\t\022\017\n\007payload\030\004 \001(\t\"\335\001\n\014UiInputEve"
-    "nt\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\004text"
-    "\030\003 \001(\tH\000\022\020\n\006number\030\004 \001(\002H\000\022\014\n\002on\030\005 \001(\010H\000"
-    "\022\020\n\006choice\030\006 \001(\rH\000\022\'\n\005wheel\030\007 \001(\0132\026.modl"
-    "ock.wasm.ui.WheelH\000\022,\n\005range\030\010 \001(\0132\033.mod"
-    "lock.wasm.ui.RangeEventH\000\022\r\n\003row\030\t \001(\tH\000"
-    "B\007\n\005value\"\245\001\n\017UiDocumentEvent\022\016\n\006player\030"
-    "\001 \001(\005\022\014\n\004node\030\002 \001(\t\0227\n\tdelivered\030\003 \001(\0132\""
-    ".modlock.wasm.ui.DocumentDeliveredH\000\0221\n\006"
-    "failed\030\004 \001(\0132\037.modlock.wasm.ui.DocumentF"
-    "ailedH\000B\010\n\006result\"!\n\021DocumentDelivered\022\014"
-    "\n\004text\030\001 \001(\t\"B\n\016DocumentFailed\0220\n\006reason"
-    "\030\001 \001(\0162 .modlock.wasm.ui.DocumentFailure"
-    "\"y\n\rUiActionEvent\022\016\n\006player\030\001 \001(\005\022+\n\006act"
-    "ion\030\002 \001(\0162\033.modlock.wasm.ui.GameAction\022+"
-    "\n\005phase\030\003 \001(\0162\034.modlock.wasm.ui.ActionPh"
-    "ase\"K\n\016UiOverlayEvent\022\016\n\006player\030\001 \001(\005\022)\n"
-    "\007overlay\030\002 \001(\0162\030.modlock.wasm.ui.Overlay"
-    "\"=\n\006Bounds\022\t\n\001x\030\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\r\n\005widt"
-    "h\030\003 \001(\005\022\016\n\006height\030\004 \001(\005\"\236\001\n\020UiPlacementE"
-    "vent\022\016\n\006player\030\001 \001(\005\022\'\n\006screen\030\002 \001(\0132\027.m"
-    "odlock.wasm.ui.Bounds\022$\n\003hud\030\003 \001(\0132\027.mod"
-    "lock.wasm.ui.Bounds\022+\n\010measured\030\004 \003(\0132\031."
-    "modlock.wasm.ui.Measured\"A\n\010Measured\022\014\n\004"
-    "name\030\001 \001(\t\022\'\n\006bounds\030\002 \001(\0132\027.modlock.was"
-    "m.ui.Bounds\"D\n\tUiRequest\022\016\n\006player\030\001 \001(\005"
-    "\022\'\n\006change\030\002 \001(\0132\027.modlock.wasm.ui.Chang"
-    "e*(\n\005Frame\022\020\n\014FRAME_SCREEN\020\000\022\r\n\tFRAME_HU"
-    "D\020\001*Z\n\013ClockFormat\022\030\n\024CLOCK_FORMAT_MINUT"
-    "ES\020\000\022\030\n\024CLOCK_FORMAT_SECONDS\020\001\022\027\n\023CLOCK_"
-    "FORMAT_TENTHS\020\002*A\n\rTimelineClock\022\027\n\023TIME"
-    "LINE_CLOCK_WALL\020\000\022\027\n\023TIMELINE_CLOCK_GAME"
-    "\020\001*\230\001\n\007Scaling\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013S"
-    "CALING_FIT\020\001\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALI"
-    "NG_STRETCH\020\003\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022S"
-    "CALING_FIT_HEIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001"
-    "\n\010HeroLook\022\023\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_"
-    "LOOK_CARD\020\001\022\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_"
-    "LOOK_VERTICAL\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025"
-    "\n\021HERO_LOOK_MINIMAP\020\005*A\n\nGameAction\022\027\n\023G"
-    "AME_ACTION_UNKNOWN\020\000\022\032\n\026GAME_ACTION_SCOR"
-    "EBOARD\020\001*x\n\013ActionPhase\022\030\n\024ACTION_PHASE_"
-    "UNKNOWN\020\000\022\030\n\024ACTION_PHASE_PRESSED\020\001\022\031\n\025A"
-    "CTION_PHASE_RELEASED\020\002\022\032\n\026ACTION_PHASE_C"
-    "ANCELLED\020\003*\227\001\n\007Overlay\022\020\n\014OVERLAY_NONE\020\000"
-    "\022\020\n\014OVERLAY_CHAT\020\001\022\020\n\014OVERLAY_SHOP\020\002\022\022\n\016"
-    "OVERLAY_BUILDS\020\003\022\026\n\022OVERLAY_ITEM_DRAFT\020\004"
-    "\022\021\n\rOVERLAY_POPUP\020\005\022\027\n\023OVERLAY_ESCAPE_ME"
-    "NU\020\006*\325\003\n\007HudPart\022\024\n\020HUD_PART_UNKNOWN\020\000\022\025"
-    "\n\021HUD_PART_LEVEL_UP\020\001\022\027\n\023HUD_PART_OWN_HE"
-    "ALTH\020\002\022\024\n\020HUD_PART_TOP_BAR\020\003\022\021\n\rHUD_PART"
-    "_AMMO\020\004\022\022\n\016HUD_PART_SOULS\020\005\022\024\n\020HUD_PART_"
-    "MINIMAP\020\006\022\026\n\022HUD_PART_ABILITIES\020\007\022\023\n\017HUD"
-    "_PART_STATUS\020\010\022\022\n\016HUD_PART_STATS\020\t\022\030\n\024HU"
-    "D_PART_HERO_PICKER\020\n\022\035\n\031HUD_PART_BROKER_"
-    "COUNTDOWN\020\013\022\020\n\014HUD_PART_ALL\020\014\022\034\n\030HUD_PAR"
-    "T_MINIMAP_PLAYERS\020\r\022\026\n\022HUD_PART_INVENTOR"
-    "Y\020\016\022\026\n\022HUD_PART_CROSSHAIR\020\017\022\030\n\024HUD_PART_"
-    "CAST_FAILED\020\020\022\035\n\031HUD_PART_EVENT_INDICATO"
-    "RS\020\021\022\036\n\032HUD_PART_STATUS_INDICATORS\020\022*\204\002\n"
-    "\004Kind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n"
-    "\nKIND_IMAGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017\n\013KIND_L"
-    "AYOUT\020\004\022\016\n\nKIND_ROUTE\020\005\022\023\n\017KIND_HERO_IMA"
-    "GE\020\006\022\016\n\nKIND_INPUT\020\007\022\017\n\013KIND_AVATAR\020\010\022\r\n"
-    "\tKIND_MENU\020\t\022\023\n\017KIND_MENU_CLOSE\020\n\022\027\n\023KIN"
-    "D_DOCUMENT_INPUT\020\013\022\030\n\024KIND_DOCUMENT_OUTP"
-    "UT\020\014\022\r\n\tKIND_LIST\020\r*J\n\010MenuMode\022\024\n\020MENU_"
-    "MODE_MANUAL\020\000\022\024\n\020MENU_MODE_TOGGLE\020\001\022\022\n\016M"
-    "ENU_MODE_HOLD\020\002*p\n\010Overflow\022\024\n\020OVERFLOW_"
-    "DEFAULT\020\000\022\023\n\017OVERFLOW_SQUISH\020\001\022\021\n\rOVERFL"
-    "OW_CLIP\020\002\022\023\n\017OVERFLOW_SCROLL\020\003\022\021\n\rOVERFL"
-    "OW_SHOW\020\004*\215\001\n\rGradientShape\022\027\n\023GRADIENT_"
-    "SHAPE_DOWN\020\000\022\030\n\024GRADIENT_SHAPE_RIGHT\020\001\022\025"
-    "\n\021GRADIENT_SHAPE_UP\020\002\022\027\n\023GRADIENT_SHAPE_"
-    "LEFT\020\003\022\031\n\025GRADIENT_SHAPE_RADIAL\020\004*\236\001\n\006We"
-    "ight\022\022\n\016WEIGHT_DEFAULT\020\000\022\017\n\013WEIGHT_THIN\020"
-    "\001\022\020\n\014WEIGHT_LIGHT\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021"
-    "\n\rWEIGHT_MEDIUM\020\004\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022"
-    "\017\n\013WEIGHT_BOLD\020\006\022\020\n\014WEIGHT_BLACK\020\007*w\n\014Te"
-    "xtOverflow\022\031\n\025TEXT_OVERFLOW_DEFAULT\020\000\022\032\n"
-    "\026TEXT_OVERFLOW_ELLIPSIS\020\001\022\030\n\024TEXT_OVERFL"
-    "OW_SHRINK\020\002\022\026\n\022TEXT_OVERFLOW_CLIP\020\003*R\n\nD"
-    "ecoration\022\023\n\017DECORATION_NONE\020\000\022\030\n\024DECORA"
-    "TION_UNDERLINE\020\001\022\025\n\021DECORATION_STRIKE\020\002*"
-    "\\\n\006Easing\022\023\n\017EASING_EASE_OUT\020\000\022\022\n\016EASING"
-    "_EASE_IN\020\001\022\026\n\022EASING_EASE_IN_OUT\020\002\022\021\n\rEA"
-    "SING_LINEAR\020\003*G\n\004Face\022\020\n\014FACE_DEFAULT\020\000\022"
-    "\r\n\tFACE_BODY\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFACE_S"
-    "ERIF\020\003*]\n\004Flow\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLOW_DO"
-    "WN\020\001\022\016\n\nFLOW_RIGHT\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003"
-    "\022\023\n\017FLOW_RIGHT_WRAP\020\004*9\n\005Align\022\017\n\013ALIGN_"
-    "START\020\000\022\020\n\014ALIGN_CENTER\020\001\022\r\n\tALIGN_END\020\002"
-    "*\255\001\n\017DocumentFailure\022\034\n\030DOCUMENT_FAILURE"
-    "_UNKNOWN\020\000\022\036\n\032DOCUMENT_FAILURE_TOO_LARGE"
-    "\020\001\022\034\n\030DOCUMENT_FAILURE_EXPIRED\020\002\022\036\n\032DOCU"
-    "MENT_FAILURE_CANCELLED\020\003\022\036\n\032DOCUMENT_FAI"
-    "LURE_MALFORMED\020\004B+Z)github.com/paralin/m"
-    "odlock/src/wasm/ui;uib\006proto3"
+    "\t_focus_at\"\177\n\003Row\022\013\n\003key\030\001 \001(\t\0220\n\006fields"
+    "\030\004 \003(\0132 .modlock.wasm.ui.Row.FieldsEntry"
+    "\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 "
+    "\001(\t:\0028\001J\004\010\002\020\003J\004\010\003\020\004\"Z\n\rUiWindowEvent\022\016\n\006"
+    "player\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\r\n\005first\030\003 \001("
+    "\r\022\r\n\005count\030\004 \001(\r\022\r\n\005focus\030\005 \001(\t\"\307\002\n\007Bind"
+    "ing\022\r\n\005panel\030\001 \001(\t\022\021\n\004text\030\002 \001(\tH\000\210\001\001\022\024\n"
+    "\007visible\030\003 \001(\010H\001\210\001\001\022\r\n\005press\030\004 \001(\010\022\022\n\005to"
+    "ken\030\005 \001(\tH\002\210\001\001\022:\n\tvariables\030\006 \003(\0132\'.modl"
+    "ock.wasm.ui.Binding.VariablesEntry\022\017\n\007cl"
+    "asses\030\007 \003(\t\022%\n\005style\030\010 \001(\0132\026.modlock.was"
+    "m.ui.Style\022\022\n\005image\030\t \001(\tH\003\210\001\001\0320\n\016Variab"
+    "lesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
+    "B\007\n\005_textB\n\n\010_visibleB\010\n\006_tokenB\010\n\006_imag"
+    "e\"o\n\005Clock\022\017\n\007seconds\030\001 \001(\001\022\n\n\002up\030\002 \001(\010\022"
+    "\016\n\006paused\030\003 \001(\010\022,\n\006format\030\004 \001(\0162\034.modloc"
+    "k.wasm.ui.ClockFormat\022\013\n\003run\030\005 \001(\r\"w\n\nAb"
+    "ilityRow\022\016\n\006player\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\014"
+    "\n\004hero\030\003 \001(\t\022\013\n\003own\030\004 \001(\010\0220\n\tabilities\030\005"
+    " \003(\0132\035.modlock.wasm.ui.ShownAbility\"@\n\014S"
+    "hownAbility\022\017\n\007ability\030\001 \001(\r\022\r\n\005image\030\002 "
+    "\001(\t\022\020\n\010upgrades\030\003 \001(\r\";\n\003Cue\022\016\n\006number\030\001"
+    " \001(\r\022\r\n\005sound\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002J\004\010\004"
+    "\020\005\"\206\001\n\010Timeline\022\n\n\002id\030\001 \001(\t\022\013\n\003run\030\002 \001(\r"
+    "\022-\n\005clock\030\004 \001(\0162\036.modlock.wasm.ui.Timeli"
+    "neClock\022,\n\005steps\030\005 \003(\0132\035.modlock.wasm.ui"
+    ".TimelineStepJ\004\010\003\020\004\"\203\001\n\014TimelineStep\022\n\n\002"
+    "at\030\001 \001(\002\022\017\n\007measure\030\002 \001(\t\022\017\n\007classes\030\003 \003"
+    "(\t\022%\n\005style\030\004 \001(\0132\026.modlock.wasm.ui.Styl"
+    "e\022\r\n\005sound\030\005 \001(\t\022\017\n\007seconds\030\006 \001(\002\"k\n\004Men"
+    "u\022\'\n\004mode\030\001 \001(\0162\031.modlock.wasm.ui.MenuMo"
+    "de\022\022\n\nopen_label\030\002 \001(\t\022\024\n\014open_request\030\003"
+    " \001(\r\022\020\n\010priority\030\004 \001(\005\"K\n\rDocumentInput\022"
+    "\023\n\013placeholder\030\001 \001(\t\022\024\n\014submit_label\030\002 \001"
+    "(\t\022\017\n\007control\030\003 \001(\004\"B\n\tTextEntry\022\014\n\004text"
+    "\030\001 \001(\t\022\023\n\013placeholder\030\002 \001(\t\022\022\n\nmax_lengt"
+    "h\030\003 \001(\r\"N\n\006Slider\022\r\n\005value\030\001 \001(\002\022\013\n\003min\030"
+    "\002 \001(\002\022\013\n\003max\030\003 \001(\002\022\014\n\004step\030\004 \001(\002\022\r\n\005whee"
+    "l\030\005 \001(\010\"(\n\005Wheel\022\r\n\005delta\030\001 \001(\002\022\020\n\010fract"
+    "ion\030\002 \001(\002\"\024\n\006Toggle\022\n\n\002on\030\001 \001(\010\"-\n\010Dropd"
+    "own\022\017\n\007options\030\001 \003(\t\022\020\n\010selected\030\002 \001(\r\"^"
+    "\n\005Range\022-\n\007handles\030\001 \003(\0132\034.modlock.wasm."
+    "ui.RangeHandle\022\013\n\003min\030\002 \001(\002\022\013\n\003max\030\003 \001(\002"
+    "\022\014\n\004step\030\004 \001(\002\"*\n\013RangeHandle\022\014\n\004name\030\001 "
+    "\001(\t\022\r\n\005value\030\002 \001(\002\"Y\n\nRangeEvent\022+\n\005phas"
+    "e\030\001 \001(\0162\034.modlock.wasm.ui.ActionPhase\022\016\n"
+    "\006handle\030\002 \001(\t\022\016\n\006values\030\003 \003(\002\"N\n\005Cycle\022%"
+    "\n\005style\030\001 \001(\0132\026.modlock.wasm.ui.Style\022\017\n"
+    "\007seconds\030\002 \001(\002\022\r\n\005count\030\003 \001(\r\"\277\014\n\005Style\022"
+    "&\n\005width\030\001 \001(\0132\027.modlock.wasm.ui.Length\022"
+    "\'\n\006height\030\002 \001(\0132\027.modlock.wasm.ui.Length"
+    "\022#\n\004flow\030\003 \001(\0162\025.modlock.wasm.ui.Flow\0220\n"
+    "\020horizontal_align\030\004 \001(\0162\026.modlock.wasm.u"
+    "i.Align\022.\n\016vertical_align\030\005 \001(\0162\026.modloc"
+    "k.wasm.ui.Align\022&\n\006margin\030\006 \001(\0132\026.modloc"
+    "k.wasm.ui.Edges\022\'\n\007padding\030\007 \001(\0132\026.modlo"
+    "ck.wasm.ui.Edges\022\022\n\nbackground\030\010 \001(\007\022\r\n\005"
+    "color\030\t \001(\007\022\021\n\tfont_size\030\n \001(\002\022\014\n\004bold\030\013"
+    " \001(\010\022*\n\ntext_align\030\014 \001(\0162\026.modlock.wasm."
+    "ui.Align\022\025\n\rborder_radius\030\r \001(\002\022\024\n\007opaci"
+    "ty\030\016 \001(\002H\000\210\001\001\022#\n\004face\030\017 \001(\0162\025.modlock.wa"
+    "sm.ui.Face\022\021\n\tuppercase\030\020 \001(\010\022\026\n\016letter_"
+    "spacing\030\021 \001(\002\022\016\n\006shadow\030\022 \001(\010\022\024\n\014border_"
+    "width\030\023 \001(\002\022\024\n\014border_color\030\024 \001(\007\022\"\n\001x\030\025"
+    " \001(\0132\027.modlock.wasm.ui.Length\022\"\n\001y\030\026 \001(\013"
+    "2\027.modlock.wasm.ui.Length\022*\n\tmin_width\030\027"
+    " \001(\0132\027.modlock.wasm.ui.Length\022*\n\tmax_wid"
+    "th\030\030 \001(\0132\027.modlock.wasm.ui.Length\022+\n\nmin"
+    "_height\030\031 \001(\0132\027.modlock.wasm.ui.Length\022+"
+    "\n\nmax_height\030\032 \001(\0132\027.modlock.wasm.ui.Len"
+    "gth\022\017\n\007z_index\030\033 \001(\005\022-\n\noverflow_x\030\034 \001(\016"
+    "2\031.modlock.wasm.ui.Overflow\022-\n\noverflow_"
+    "y\030\035 \001(\0162\031.modlock.wasm.ui.Overflow\022+\n\010gr"
+    "adient\030\036 \001(\0132\031.modlock.wasm.ui.Gradient\022"
+    "+\n\nbox_shadow\030\037 \001(\0132\027.modlock.wasm.ui.Sh"
+    "adow\022,\n\013text_shadow\030  \001(\0132\027.modlock.wasm"
+    ".ui.Shadow\022\014\n\004tint\030! \001(\007\022\027\n\nsaturation\030\""
+    " \001(\002H\001\210\001\001\022\027\n\nbrightness\030# \001(\002H\002\210\001\001\022\025\n\010co"
+    "ntrast\030$ \001(\002H\003\210\001\001\022\014\n\004blur\030% \001(\002\022\016\n\006itali"
+    "c\030& \001(\010\022\'\n\006weight\030\' \001(\0162\027.modlock.wasm.u"
+    "i.Weight\022\023\n\013line_height\030( \001(\002\022\017\n\007no_wrap"
+    "\030) \001(\010\0224\n\rtext_overflow\030* \001(\0162\035.modlock."
+    "wasm.ui.TextOverflow\022/\n\ndecoration\030+ \001(\016"
+    "2\033.modlock.wasm.ui.Decoration\022-\n\ttransfo"
+    "rm\030, \001(\0132\032.modlock.wasm.ui.Transform\022/\n\n"
+    "transition\030- \001(\0132\033.modlock.wasm.ui.Trans"
+    "ition\022#\n\004clip\030. \001(\0132\025.modlock.wasm.ui.Cl"
+    "ip\022\014\n\004turn\030/ \001(\002B\n\n\010_opacityB\r\n\013_saturat"
+    "ionB\r\n\013_brightnessB\013\n\t_contrast\"i\n\004Clip\022"
+    ")\n\004rect\030\001 \001(\0132\031.modlock.wasm.ui.ClipRect"
+    "H\000\022-\n\006radial\030\002 \001(\0132\033.modlock.wasm.ui.Cli"
+    "pRadialH\000B\007\n\005shape\"D\n\010ClipRect\022\013\n\003top\030\001 "
+    "\001(\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004le"
+    "ft\030\004 \001(\002\"r\n\nClipRadial\022\025\n\010center_x\030\001 \001(\002"
+    "H\000\210\001\001\022\025\n\010center_y\030\002 \001(\002H\001\210\001\001\022\r\n\005start\030\003 "
+    "\001(\002\022\r\n\005sweep\030\004 \001(\002B\013\n\t_center_xB\013\n\t_cent"
+    "er_y\"g\n\010Gradient\022-\n\005shape\030\001 \001(\0162\036.modloc"
+    "k.wasm.ui.GradientShape\022,\n\005stops\030\002 \003(\0132\035"
+    ".modlock.wasm.ui.GradientStop\")\n\014Gradien"
+    "tStop\022\n\n\002at\030\001 \001(\002\022\r\n\005color\030\002 \001(\007\"Z\n\006Shad"
+    "ow\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\014\n\004blur\030\003 \001(\002\022\016"
+    "\n\006spread\030\004 \001(\002\022\r\n\005color\030\005 \001(\007\022\r\n\005inset\030\006"
+    " \001(\010\"\321\001\n\tTransform\022\023\n\013translate_x\030\001 \001(\002\022"
+    "\023\n\013translate_y\030\002 \001(\002\022\024\n\007scale_x\030\003 \001(\002H\000\210"
+    "\001\001\022\024\n\007scale_y\030\004 \001(\002H\001\210\001\001\022\016\n\006rotate\030\005 \001(\002"
+    "\022\025\n\010origin_x\030\006 \001(\002H\002\210\001\001\022\025\n\010origin_y\030\007 \001("
+    "\002H\003\210\001\001B\n\n\010_scale_xB\n\n\010_scale_yB\013\n\t_origi"
+    "n_xB\013\n\t_origin_y\"|\n\nTransition\022\017\n\007second"
+    "s\030\001 \001(\002\022\r\n\005delay\030\002 \001(\002\022\'\n\006easing\030\003 \001(\0162\027"
+    ".modlock.wasm.ui.Easing\022%\n\005curve\030\004 \001(\0132\026"
+    ".modlock.wasm.ui.Curve\"7\n\005Curve\022\n\n\002x1\030\001 "
+    "\001(\002\022\n\n\002y1\030\002 \001(\002\022\n\n\002x2\030\003 \001(\002\022\n\n\002y2\030\004 \001(\002\""
+    "^\n\006Length\022\020\n\006pixels\030\001 \001(\002H\000\022\021\n\007percent\030\002"
+    " \001(\002H\000\022\026\n\014fit_children\030\003 \001(\010H\000\022\016\n\004fill\030\004"
+    " \001(\002H\000B\007\n\005value\"A\n\005Edges\022\013\n\003top\030\001 \001(\002\022\r\n"
+    "\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left\030\004 \001"
+    "(\002\"f\n\006Change\022\r\n\005reset\030\001 \001(\010\022\"\n\003set\030\002 \003(\013"
+    "2\025.modlock.wasm.ui.Node\022\017\n\007removed\030\003 \003(\t"
+    "\022\022\n\ngeneration\030\004 \001(\004J\004\010\005\020\006\"\205\001\n\004Tree\022\013\n\003m"
+    "od\030\001 \001(\t\022$\n\005nodes\030\002 \003(\0132\025.modlock.wasm.u"
+    "i.Node\022\'\n\006region\030\003 \001(\0132\027.modlock.wasm.ui"
+    ".Region\022\r\n\005addon\030\004 \001(\t\022\022\n\ngeneration\030\005 \001"
+    "(\004\"B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013\n\003top\030\002 \001(\002\022"
+    "\r\n\005width\030\003 \001(\002\022\016\n\006height\030\004 \001(\002\">\n\006Screen"
+    "\022$\n\005trees\030\001 \003(\0132\025.modlock.wasm.ui.Tree\022\016"
+    "\n\006paused\030\002 \001(\010\"M\n\014UiPressEvent\022\016\n\006player"
+    "\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\006action\030\003 \001(\t\022\017\n\007"
+    "payload\030\004 \001(\t\"\335\001\n\014UiInputEvent\022\016\n\006player"
+    "\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\022\016\n\004text\030\003 \001(\tH\000\022\020\n\006"
+    "number\030\004 \001(\002H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006choice\030\006"
+    " \001(\rH\000\022\'\n\005wheel\030\007 \001(\0132\026.modlock.wasm.ui."
+    "WheelH\000\022,\n\005range\030\010 \001(\0132\033.modlock.wasm.ui"
+    ".RangeEventH\000\022\r\n\003row\030\t \001(\tH\000B\007\n\005value\"\245\001"
+    "\n\017UiDocumentEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004nod"
+    "e\030\002 \001(\t\0227\n\tdelivered\030\003 \001(\0132\".modlock.was"
+    "m.ui.DocumentDeliveredH\000\0221\n\006failed\030\004 \001(\013"
+    "2\037.modlock.wasm.ui.DocumentFailedH\000B\010\n\006r"
+    "esult\"!\n\021DocumentDelivered\022\014\n\004text\030\001 \001(\t"
+    "\"B\n\016DocumentFailed\0220\n\006reason\030\001 \001(\0162 .mod"
+    "lock.wasm.ui.DocumentFailure\"y\n\rUiAction"
+    "Event\022\016\n\006player\030\001 \001(\005\022+\n\006action\030\002 \001(\0162\033."
+    "modlock.wasm.ui.GameAction\022+\n\005phase\030\003 \001("
+    "\0162\034.modlock.wasm.ui.ActionPhase\"K\n\016UiOve"
+    "rlayEvent\022\016\n\006player\030\001 \001(\005\022)\n\007overlay\030\002 \001"
+    "(\0162\030.modlock.wasm.ui.Overlay\"=\n\006Bounds\022\t"
+    "\n\001x\030\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\r\n\005width\030\003 \001(\005\022\016\n\006h"
+    "eight\030\004 \001(\005\"\236\001\n\020UiPlacementEvent\022\016\n\006play"
+    "er\030\001 \001(\005\022\'\n\006screen\030\002 \001(\0132\027.modlock.wasm."
+    "ui.Bounds\022$\n\003hud\030\003 \001(\0132\027.modlock.wasm.ui"
+    ".Bounds\022+\n\010measured\030\004 \003(\0132\031.modlock.wasm"
+    ".ui.Measured\"A\n\010Measured\022\014\n\004name\030\001 \001(\t\022\'"
+    "\n\006bounds\030\002 \001(\0132\027.modlock.wasm.ui.Bounds\""
+    "D\n\tUiRequest\022\016\n\006player\030\001 \001(\005\022\'\n\006change\030\002"
+    " \001(\0132\027.modlock.wasm.ui.Change*(\n\005Frame\022\020"
+    "\n\014FRAME_SCREEN\020\000\022\r\n\tFRAME_HUD\020\001*Z\n\013Clock"
+    "Format\022\030\n\024CLOCK_FORMAT_MINUTES\020\000\022\030\n\024CLOC"
+    "K_FORMAT_SECONDS\020\001\022\027\n\023CLOCK_FORMAT_TENTH"
+    "S\020\002*A\n\rTimelineClock\022\027\n\023TIMELINE_CLOCK_W"
+    "ALL\020\000\022\027\n\023TIMELINE_CLOCK_GAME\020\001*\230\001\n\007Scali"
+    "ng\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013SCALING_FIT\020\001"
+    "\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALING_STRETCH\020\003"
+    "\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022SCALING_FIT_H"
+    "EIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001\n\010HeroLook\022\023"
+    "\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_LOOK_CARD\020\001\022"
+    "\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_LOOK_VERTICA"
+    "L\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025\n\021HERO_LOOK_"
+    "MINIMAP\020\005*A\n\nGameAction\022\027\n\023GAME_ACTION_U"
+    "NKNOWN\020\000\022\032\n\026GAME_ACTION_SCOREBOARD\020\001*x\n\013"
+    "ActionPhase\022\030\n\024ACTION_PHASE_UNKNOWN\020\000\022\030\n"
+    "\024ACTION_PHASE_PRESSED\020\001\022\031\n\025ACTION_PHASE_"
+    "RELEASED\020\002\022\032\n\026ACTION_PHASE_CANCELLED\020\003*\227"
+    "\001\n\007Overlay\022\020\n\014OVERLAY_NONE\020\000\022\020\n\014OVERLAY_"
+    "CHAT\020\001\022\020\n\014OVERLAY_SHOP\020\002\022\022\n\016OVERLAY_BUIL"
+    "DS\020\003\022\026\n\022OVERLAY_ITEM_DRAFT\020\004\022\021\n\rOVERLAY_"
+    "POPUP\020\005\022\027\n\023OVERLAY_ESCAPE_MENU\020\006*\325\003\n\007Hud"
+    "Part\022\024\n\020HUD_PART_UNKNOWN\020\000\022\025\n\021HUD_PART_L"
+    "EVEL_UP\020\001\022\027\n\023HUD_PART_OWN_HEALTH\020\002\022\024\n\020HU"
+    "D_PART_TOP_BAR\020\003\022\021\n\rHUD_PART_AMMO\020\004\022\022\n\016H"
+    "UD_PART_SOULS\020\005\022\024\n\020HUD_PART_MINIMAP\020\006\022\026\n"
+    "\022HUD_PART_ABILITIES\020\007\022\023\n\017HUD_PART_STATUS"
+    "\020\010\022\022\n\016HUD_PART_STATS\020\t\022\030\n\024HUD_PART_HERO_"
+    "PICKER\020\n\022\035\n\031HUD_PART_BROKER_COUNTDOWN\020\013\022"
+    "\020\n\014HUD_PART_ALL\020\014\022\034\n\030HUD_PART_MINIMAP_PL"
+    "AYERS\020\r\022\026\n\022HUD_PART_INVENTORY\020\016\022\026\n\022HUD_P"
+    "ART_CROSSHAIR\020\017\022\030\n\024HUD_PART_CAST_FAILED\020"
+    "\020\022\035\n\031HUD_PART_EVENT_INDICATORS\020\021\022\036\n\032HUD_"
+    "PART_STATUS_INDICATORS\020\022*\204\002\n\004Kind\022\016\n\nKIN"
+    "D_PANEL\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n\nKIND_IMAGE\020"
+    "\002\022\017\n\013KIND_BUTTON\020\003\022\017\n\013KIND_LAYOUT\020\004\022\016\n\nK"
+    "IND_ROUTE\020\005\022\023\n\017KIND_HERO_IMAGE\020\006\022\016\n\nKIND"
+    "_INPUT\020\007\022\017\n\013KIND_AVATAR\020\010\022\r\n\tKIND_MENU\020\t"
+    "\022\023\n\017KIND_MENU_CLOSE\020\n\022\027\n\023KIND_DOCUMENT_I"
+    "NPUT\020\013\022\030\n\024KIND_DOCUMENT_OUTPUT\020\014\022\r\n\tKIND"
+    "_LIST\020\r*J\n\010MenuMode\022\024\n\020MENU_MODE_MANUAL\020"
+    "\000\022\024\n\020MENU_MODE_TOGGLE\020\001\022\022\n\016MENU_MODE_HOL"
+    "D\020\002*p\n\010Overflow\022\024\n\020OVERFLOW_DEFAULT\020\000\022\023\n"
+    "\017OVERFLOW_SQUISH\020\001\022\021\n\rOVERFLOW_CLIP\020\002\022\023\n"
+    "\017OVERFLOW_SCROLL\020\003\022\021\n\rOVERFLOW_SHOW\020\004*\215\001"
+    "\n\rGradientShape\022\027\n\023GRADIENT_SHAPE_DOWN\020\000"
+    "\022\030\n\024GRADIENT_SHAPE_RIGHT\020\001\022\025\n\021GRADIENT_S"
+    "HAPE_UP\020\002\022\027\n\023GRADIENT_SHAPE_LEFT\020\003\022\031\n\025GR"
+    "ADIENT_SHAPE_RADIAL\020\004*\236\001\n\006Weight\022\022\n\016WEIG"
+    "HT_DEFAULT\020\000\022\017\n\013WEIGHT_THIN\020\001\022\020\n\014WEIGHT_"
+    "LIGHT\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021\n\rWEIGHT_MED"
+    "IUM\020\004\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022\017\n\013WEIGHT_BO"
+    "LD\020\006\022\020\n\014WEIGHT_BLACK\020\007*w\n\014TextOverflow\022\031"
+    "\n\025TEXT_OVERFLOW_DEFAULT\020\000\022\032\n\026TEXT_OVERFL"
+    "OW_ELLIPSIS\020\001\022\030\n\024TEXT_OVERFLOW_SHRINK\020\002\022"
+    "\026\n\022TEXT_OVERFLOW_CLIP\020\003*R\n\nDecoration\022\023\n"
+    "\017DECORATION_NONE\020\000\022\030\n\024DECORATION_UNDERLI"
+    "NE\020\001\022\025\n\021DECORATION_STRIKE\020\002*\\\n\006Easing\022\023\n"
+    "\017EASING_EASE_OUT\020\000\022\022\n\016EASING_EASE_IN\020\001\022\026"
+    "\n\022EASING_EASE_IN_OUT\020\002\022\021\n\rEASING_LINEAR\020"
+    "\003*G\n\004Face\022\020\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BODY"
+    "\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*]\n\004Fl"
+    "ow\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFLOW"
+    "_RIGHT\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003\022\023\n\017FLOW_RIG"
+    "HT_WRAP\020\004*9\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n\014A"
+    "LIGN_CENTER\020\001\022\r\n\tALIGN_END\020\002*\255\001\n\017Documen"
+    "tFailure\022\034\n\030DOCUMENT_FAILURE_UNKNOWN\020\000\022\036"
+    "\n\032DOCUMENT_FAILURE_TOO_LARGE\020\001\022\034\n\030DOCUME"
+    "NT_FAILURE_EXPIRED\020\002\022\036\n\032DOCUMENT_FAILURE"
+    "_CANCELLED\020\003\022\036\n\032DOCUMENT_FAILURE_MALFORM"
+    "ED\020\004B+Z)github.com/paralin/modlock/src/w"
+    "asm/ui;uib\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = {
     false,
     false,
-    11189,
+    11057,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
     "github.com/paralin/modlock/src/wasm/ui/ui.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once,
     nullptr,
     0,
-    53,
+    52,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto::offsets,
@@ -6135,7 +6081,6 @@ PROTOBUF_NDEBUG_INLINE Row::Impl_::Impl_(
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         key_(arena, from.key_),
-        sort_(arena, from.sort_),
         fields_{visibility, arena, from.fields_} {}
 
 Row::Row(
@@ -6151,7 +6096,6 @@ Row::Row(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.rank_ = from._impl_.rank_;
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.Row)
 }
@@ -6160,12 +6104,10 @@ PROTOBUF_NDEBUG_INLINE Row::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         key_(arena),
-        sort_(arena),
         fields_{visibility, arena} {}
 
 inline void Row::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.rank_ = {};
 }
 Row::~Row() {
   // @@protoc_insertion_point(destructor:modlock.wasm.ui.Row)
@@ -6179,7 +6121,6 @@ inline void Row::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.key_.Destroy();
-  this_._impl_.sort_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -6238,16 +6179,16 @@ Row::GetClassData() const {
   return Row_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 1, 41, 2>
+const ::_pbi::TcParseTable<0, 2, 1, 37, 2>
 Row::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Row, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    4, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967286,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    2,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Row_class_data_.base(),
@@ -6257,40 +6198,26 @@ Row::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::ui::Row>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // string key = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
       PROTOBUF_FIELD_OFFSET(Row, _impl_.key_)}},
-    // double rank = 2;
-    {::_pbi::TcParser::FastF64S1,
-     {17, 2, 0,
-      PROTOBUF_FIELD_OFFSET(Row, _impl_.rank_)}},
-    // string sort = 3;
-    {::_pbi::TcParser::FastUS1,
-     {26, 1, 0,
-      PROTOBUF_FIELD_OFFSET(Row, _impl_.sort_)}},
   }}, {{
     65535, 65535
   }}, {{
     // string key = 1;
     {PROTOBUF_FIELD_OFFSET(Row, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // double rank = 2;
-    {PROTOBUF_FIELD_OFFSET(Row, _impl_.rank_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-    // string sort = 3;
-    {PROTOBUF_FIELD_OFFSET(Row, _impl_.sort_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // map<string, string> fields = 4;
-    {PROTOBUF_FIELD_OFFSET(Row, _impl_.fields_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    {PROTOBUF_FIELD_OFFSET(Row, _impl_.fields_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
   }},
   {{
       {::_pbi::TcParser::GetMapAuxInfo(
           1, 0, 9, 9, 0)},
   }},
   {{
-    "\23\3\0\4\6\0\0\0"
+    "\23\3\6\0\0\0\0\0"
     "modlock.wasm.ui.Row"
     "key"
-    "sort"
     "fields"
   }},
 };
@@ -6306,13 +6233,7 @@ PROTOBUF_NOINLINE void Row::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _impl_.key_.ClearNonDefaultToEmpty();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
-      _impl_.sort_.ClearNonDefaultToEmpty();
-    }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
-    _impl_.rank_ = 0;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _impl_.fields_.Clear();
     }
   }
@@ -6349,27 +6270,8 @@ PROTOBUF_NOINLINE void Row::Clear() {
     }
   }
 
-  // double rank = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-    if (::absl::bit_cast<::uint64_t>(this_._internal_rank()) != 0) {
-      target = stream->EnsureSpace(target);
-      target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-          2, this_._internal_rank(), target);
-    }
-  }
-
-  // string sort = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
-    if (!this_._internal_sort().empty()) {
-      const ::std::string& _s = this_._internal_sort();
-      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.Row.sort");
-      target = stream->WriteStringMaybeAliased(3, _s, target);
-    }
-  }
-
   // map<string, string> fields = 4;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
     if (!this_._internal_fields().empty()) {
       using MapType = ::google::protobuf::Map<::std::string, ::std::string>;
       using WireHelper = _pbi::MapEntryFuncs<::std::string, ::std::string,
@@ -6428,7 +6330,7 @@ PROTOBUF_NOINLINE void Row::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     // string key = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_key().empty()) {
@@ -6436,21 +6338,8 @@ PROTOBUF_NOINLINE void Row::Clear() {
                                         this_._internal_key());
       }
     }
-    // string sort = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
-      if (!this_._internal_sort().empty()) {
-        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_sort());
-      }
-    }
-    // double rank = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_rank()) != 0) {
-        total_size += 9;
-      }
-    }
     // map<string, string> fields = 4;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       total_size +=
           1 * ::google::protobuf::internal::FromIntSize(this_._internal_fields_size());
       for (const auto& entry : this_._internal_fields()) {
@@ -6478,7 +6367,7 @@ void Row::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_key().empty()) {
         _this->_internal_set_key(from._internal_key());
@@ -6488,21 +6377,7 @@ void Row::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
-      if (!from._internal_sort().empty()) {
-        _this->_internal_set_sort(from._internal_sort());
-      } else {
-        if (_this->_impl_.sort_.IsDefault()) {
-          _this->_internal_set_sort("");
-        }
-      }
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_rank()) != 0) {
-        _this->_impl_.rank_ = from._impl_.rank_;
-      }
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _this->_impl_.fields_.MergeFrom(from._impl_.fields_);
     }
   }
@@ -6526,8 +6401,6 @@ void Row::InternalSwap(Row* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.key_, &other->_impl_.key_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.sort_, &other->_impl_.sort_, arena);
-  swap(_impl_.rank_, other->_impl_.rank_);
   _impl_.fields_.InternalSwap(&other->_impl_.fields_);
 }
 
@@ -6536,77 +6409,77 @@ void Row::InternalSwap(Row* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
 }
 // ===================================================================
 
-class ListWindow::_Internal {
+class UiWindowEvent::_Internal {
  public:
   using HasBits =
-      decltype(::std::declval<ListWindow>()._impl_._has_bits_);
+      decltype(::std::declval<UiWindowEvent>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(ListWindow, _impl_._has_bits_);
+      8 * PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_._has_bits_);
 };
 
-ListWindow::ListWindow(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+UiWindowEvent::UiWindowEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ListWindow_class_data_.base()) {
+    : ::google::protobuf::Message(arena, UiWindowEvent_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.ui.UiWindowEvent)
 }
-PROTOBUF_NDEBUG_INLINE ListWindow::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE UiWindowEvent::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::modlock::wasm::ui::ListWindow& from_msg)
+    [[maybe_unused]] const ::modlock::wasm::ui::UiWindowEvent& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         node_(arena, from.node_),
         focus_(arena, from.focus_) {}
 
-ListWindow::ListWindow(
+UiWindowEvent::UiWindowEvent(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const ListWindow& from)
+    const UiWindowEvent& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ListWindow_class_data_.base()) {
+    : ::google::protobuf::Message(arena, UiWindowEvent_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  ListWindow* const _this = this;
+  UiWindowEvent* const _this = this;
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
-               offsetof(Impl_, first_),
+               offsetof(Impl_, player_),
            reinterpret_cast<const char*>(&from._impl_) +
-               offsetof(Impl_, first_),
+               offsetof(Impl_, player_),
            offsetof(Impl_, count_) -
-               offsetof(Impl_, first_) +
+               offsetof(Impl_, player_) +
                sizeof(Impl_::count_));
 
-  // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.UiWindowEvent)
 }
-PROTOBUF_NDEBUG_INLINE ListWindow::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE UiWindowEvent::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         node_(arena),
         focus_(arena) {}
 
-inline void ListWindow::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+inline void UiWindowEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
   ::memset(reinterpret_cast<char*>(&_impl_) +
-               offsetof(Impl_, first_),
+               offsetof(Impl_, player_),
            0,
            offsetof(Impl_, count_) -
-               offsetof(Impl_, first_) +
+               offsetof(Impl_, player_) +
                sizeof(Impl_::count_));
 }
-ListWindow::~ListWindow() {
-  // @@protoc_insertion_point(destructor:modlock.wasm.ui.ListWindow)
+UiWindowEvent::~UiWindowEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.ui.UiWindowEvent)
   SharedDtor(*this);
 }
-inline void ListWindow::SharedDtor(MessageLite& self) {
-  ListWindow& this_ = static_cast<ListWindow&>(self);
+inline void UiWindowEvent::SharedDtor(MessageLite& self) {
+  UiWindowEvent& this_ = static_cast<UiWindowEvent&>(self);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
@@ -6617,106 +6490,115 @@ inline void ListWindow::SharedDtor(MessageLite& self) {
   this_._impl_.~Impl_();
 }
 
-inline void* PROTOBUF_NONNULL ListWindow::PlacementNew_(
+inline void* PROTOBUF_NONNULL UiWindowEvent::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) ListWindow(arena);
+  return ::new (mem) UiWindowEvent(arena);
 }
-constexpr auto ListWindow::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ListWindow),
-                                            alignof(ListWindow));
+constexpr auto UiWindowEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(UiWindowEvent),
+                                            alignof(UiWindowEvent));
 }
-constexpr auto ListWindow::InternalGenerateClassData_() {
+constexpr auto UiWindowEvent::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_ListWindow_default_instance_._instance,
+          &_UiWindowEvent_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &ListWindow::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<ListWindow>(),
+          &UiWindowEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<UiWindowEvent>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &ListWindow::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<ListWindow>(), &ListWindow::ByteSizeLong,
-              &ListWindow::_InternalSerialize,
+          &UiWindowEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<UiWindowEvent>(), &UiWindowEvent::ByteSizeLong,
+              &UiWindowEvent::_InternalSerialize,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(ListWindow, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_._cached_size_),
           false,
       },
-      &ListWindow::kDescriptorMethods,
+      &UiWindowEvent::kDescriptorMethods,
       &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull ListWindow_class_data_ =
-        ListWindow::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull UiWindowEvent_class_data_ =
+        UiWindowEvent::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-ListWindow::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&ListWindow_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(ListWindow_class_data_.tc_table);
-  return ListWindow_class_data_.base();
+UiWindowEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&UiWindowEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(UiWindowEvent_class_data_.tc_table);
+  return UiWindowEvent_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 0, 44, 2>
-ListWindow::_table_ = {
+const ::_pbi::TcParseTable<3, 5, 0, 47, 2>
+UiWindowEvent::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(ListWindow, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    5, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    5,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
-    ListWindow_class_data_.base(),
+    UiWindowEvent_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::ui::ListWindow>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::modlock::wasm::ui::UiWindowEvent>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string focus = 4;
+    {::_pbi::TcParser::MiniParse, {}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiWindowEvent, _impl_.player_), 2>(),
+     {8, 2, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.player_)}},
+    // string node = 2;
     {::_pbi::TcParser::FastUS1,
-     {34, 1, 0,
-      PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.focus_)}},
-    // string node = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.node_)}},
-    // uint32 first = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ListWindow, _impl_.first_), 2>(),
-     {16, 2, 0,
-      PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.first_)}},
-    // uint32 count = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ListWindow, _impl_.count_), 3>(),
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.node_)}},
+    // uint32 first = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiWindowEvent, _impl_.first_), 3>(),
      {24, 3, 0,
-      PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.count_)}},
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.first_)}},
+    // uint32 count = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(UiWindowEvent, _impl_.count_), 4>(),
+     {32, 4, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.count_)}},
+    // string focus = 5;
+    {::_pbi::TcParser::FastUS1,
+     {42, 1, 0,
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.focus_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
-    // string node = 1;
-    {PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.node_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // uint32 first = 2;
-    {PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.first_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
-    // uint32 count = 3;
-    {PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.count_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
-    // string focus = 4;
-    {PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.focus_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // string node = 2;
+    {PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.node_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 first = 3;
+    {PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.first_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // uint32 count = 4;
+    {PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.count_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string focus = 5;
+    {PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.focus_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
-    "\32\4\0\0\5\0\0\0"
-    "modlock.wasm.ui.ListWindow"
+    "\35\0\4\0\0\5\0\0"
+    "modlock.wasm.ui.UiWindowEvent"
     "node"
     "focus"
   }},
 };
-PROTOBUF_NOINLINE void ListWindow::Clear() {
-// @@protoc_insertion_point(message_clear_start:modlock.wasm.ui.ListWindow)
+PROTOBUF_NOINLINE void UiWindowEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.ui.UiWindowEvent)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -6731,69 +6613,78 @@ PROTOBUF_NOINLINE void ListWindow::Clear() {
       _impl_.focus_.ClearNonDefaultToEmpty();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
-    ::memset(&_impl_.first_, 0, static_cast<::size_t>(
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001cU)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.count_) -
-        reinterpret_cast<char*>(&_impl_.first_)) + sizeof(_impl_.count_));
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.count_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL ListWindow::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL UiWindowEvent::_InternalSerialize(
     const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const ListWindow& this_ = static_cast<const ListWindow&>(base);
+  const UiWindowEvent& this_ = static_cast<const UiWindowEvent&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL ListWindow::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL UiWindowEvent::_InternalSerialize(
     ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const ListWindow& this_ = *this;
+  const UiWindowEvent& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.ui.UiWindowEvent)
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // string node = 1;
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // string node = 2;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     if (!this_._internal_node().empty()) {
       const ::std::string& _s = this_._internal_node();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.ListWindow.node");
-      target = stream->WriteStringMaybeAliased(1, _s, target);
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.UiWindowEvent.node");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
     }
   }
 
-  // uint32 first = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  // uint32 first = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_first() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
-          2, this_._internal_first(), target);
+          3, this_._internal_first(), target);
     }
   }
 
-  // uint32 count = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  // uint32 count = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     if (this_._internal_count() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
-          3, this_._internal_count(), target);
+          4, this_._internal_count(), target);
     }
   }
 
-  // string focus = 4;
+  // string focus = 5;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     if (!this_._internal_focus().empty()) {
       const ::std::string& _s = this_._internal_focus();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.ListWindow.focus");
-      target = stream->WriteStringMaybeAliased(4, _s, target);
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.UiWindowEvent.focus");
+      target = stream->WriteStringMaybeAliased(5, _s, target);
     }
   }
 
@@ -6802,18 +6693,18 @@ PROTOBUF_NOINLINE void ListWindow::Clear() {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.ui.UiWindowEvent)
   return target;
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t ListWindow::ByteSizeLong(const MessageLite& base) {
-  const ListWindow& this_ = static_cast<const ListWindow&>(base);
+::size_t UiWindowEvent::ByteSizeLong(const MessageLite& base) {
+  const UiWindowEvent& this_ = static_cast<const UiWindowEvent&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::size_t ListWindow::ByteSizeLong() const {
-  const ListWindow& this_ = *this;
+::size_t UiWindowEvent::ByteSizeLong() const {
+  const UiWindowEvent& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.ui.UiWindowEvent)
   ::size_t total_size = 0;
 
   ::uint32_t cached_has_bits = 0;
@@ -6822,30 +6713,37 @@ PROTOBUF_NOINLINE void ListWindow::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // string node = 1;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // string node = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_node().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_node());
       }
     }
-    // string focus = 4;
+    // string focus = 5;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       if (!this_._internal_focus().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_focus());
       }
     }
-    // uint32 first = 2;
+    // int32 player = 1;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // uint32 first = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_first() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_first());
       }
     }
-    // uint32 count = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    // uint32 count = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (this_._internal_count() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_count());
@@ -6856,21 +6754,21 @@ PROTOBUF_NOINLINE void ListWindow::Clear() {
                                              &this_._impl_._cached_size_);
 }
 
-void ListWindow::MergeImpl(::google::protobuf::MessageLite& to_msg,
+void UiWindowEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
                             const ::google::protobuf::MessageLite& from_msg) {
    auto* const _this =
-      static_cast<ListWindow*>(&to_msg);
-  auto& from = static_cast<const ListWindow&>(from_msg);
+      static_cast<UiWindowEvent*>(&to_msg);
+  auto& from = static_cast<const UiWindowEvent&>(from_msg);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.ui.ListWindow)
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.ui.UiWindowEvent)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_node().empty()) {
         _this->_internal_set_node(from._internal_node());
@@ -6890,11 +6788,16 @@ void ListWindow::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_first() != 0) {
         _this->_impl_.first_ = from._impl_.first_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (from._internal_count() != 0) {
         _this->_impl_.count_ = from._impl_.count_;
       }
@@ -6905,15 +6808,15 @@ void ListWindow::MergeImpl(::google::protobuf::MessageLite& to_msg,
       from._internal_metadata_);
 }
 
-void ListWindow::CopyFrom(const ListWindow& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.ui.ListWindow)
+void UiWindowEvent::CopyFrom(const UiWindowEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.ui.UiWindowEvent)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 
-void ListWindow::InternalSwap(ListWindow* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+void UiWindowEvent::InternalSwap(UiWindowEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   auto* arena = GetArena();
   ABSL_DCHECK_EQ(arena, other->GetArena());
@@ -6922,417 +6825,14 @@ void ListWindow::InternalSwap(ListWindow* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.node_, &other->_impl_.node_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.focus_, &other->_impl_.focus_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.count_)
-      + sizeof(ListWindow::_impl_.count_)
-      - PROTOBUF_FIELD_OFFSET(ListWindow, _impl_.first_)>(
-          reinterpret_cast<char*>(&_impl_.first_),
-          reinterpret_cast<char*>(&other->_impl_.first_));
+      PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.count_)
+      + sizeof(UiWindowEvent::_impl_.count_)
+      - PROTOBUF_FIELD_OFFSET(UiWindowEvent, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
 }
 
-::google::protobuf::Metadata ListWindow::GetMetadata() const {
-  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
-}
-// ===================================================================
-
-class ListChange::_Internal {
- public:
-  using HasBits =
-      decltype(::std::declval<ListChange>()._impl_._has_bits_);
-  static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(ListChange, _impl_._has_bits_);
-};
-
-ListChange::ListChange(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ListChange_class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:modlock.wasm.ui.ListChange)
-}
-PROTOBUF_NDEBUG_INLINE ListChange::Impl_::Impl_(
-    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
-    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::modlock::wasm::ui::ListChange& from_msg)
-      : _has_bits_{from._has_bits_},
-        _cached_size_{0},
-        set_{visibility, arena, from.set_},
-        removed_{visibility, arena, from.removed_},
-        node_(arena, from.node_) {}
-
-ListChange::ListChange(
-    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const ListChange& from)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ListChange_class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  ListChange* const _this = this;
-  (void)_this;
-  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.reset_ = from._impl_.reset_;
-
-  // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.ListChange)
-}
-PROTOBUF_NDEBUG_INLINE ListChange::Impl_::Impl_(
-    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
-    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-      : _cached_size_{0},
-        set_{visibility, arena},
-        removed_{visibility, arena},
-        node_(arena) {}
-
-inline void ListChange::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.reset_ = {};
-}
-ListChange::~ListChange() {
-  // @@protoc_insertion_point(destructor:modlock.wasm.ui.ListChange)
-  SharedDtor(*this);
-}
-inline void ListChange::SharedDtor(MessageLite& self) {
-  ListChange& this_ = static_cast<ListChange&>(self);
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    this_.CheckHasBitConsistency();
-  }
-  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.node_.Destroy();
-  this_._impl_.~Impl_();
-}
-
-inline void* PROTOBUF_NONNULL ListChange::PlacementNew_(
-    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) ListChange(arena);
-}
-constexpr auto ListChange::InternalNewImpl_() {
-  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.set_) +
-          decltype(ListChange::_impl_.set_)::
-              InternalGetArenaOffset(
-                  ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.removed_) +
-          decltype(ListChange::_impl_.removed_)::
-              InternalGetArenaOffset(
-                  ::google::protobuf::Message::internal_visibility()),
-  });
-  if (arena_bits.has_value()) {
-    return ::google::protobuf::internal::MessageCreator::CopyInit(
-        sizeof(ListChange), alignof(ListChange), *arena_bits);
-  } else {
-    return ::google::protobuf::internal::MessageCreator(&ListChange::PlacementNew_,
-                                 sizeof(ListChange),
-                                 alignof(ListChange));
-  }
-}
-constexpr auto ListChange::InternalGenerateClassData_() {
-  return ::google::protobuf::internal::ClassDataFull{
-      ::google::protobuf::internal::ClassData{
-          &_ListChange_default_instance_._instance,
-          &_table_.header,
-          nullptr,  // OnDemandRegisterArenaDtor
-          nullptr,  // IsInitialized
-          &ListChange::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<ListChange>(),
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-          &ListChange::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<ListChange>(), &ListChange::ByteSizeLong,
-              &ListChange::_InternalSerialize,
-#endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(ListChange, _impl_._cached_size_),
-          false,
-      },
-      &ListChange::kDescriptorMethods,
-      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
-      nullptr,  // tracker
-  };
-}
-
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull ListChange_class_data_ =
-        ListChange::InternalGenerateClassData_();
-
-PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-ListChange::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&ListChange_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(ListChange_class_data_.tc_table);
-  return ListChange_class_data_.base();
-}
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 1, 46, 2>
-ListChange::_table_ = {
-  {
-    PROTOBUF_FIELD_OFFSET(ListChange, _impl_._has_bits_),
-    0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
-    1,  // num_aux_entries
-    offsetof(decltype(_table_), aux_entries),
-    ListChange_class_data_.base(),
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::GenericFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::ui::ListChange>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // repeated string removed = 4;
-    {::_pbi::TcParser::FastUR1,
-     {34, 1, 0,
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.removed_)}},
-    // string node = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 2, 0,
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.node_)}},
-    // bool reset = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ListChange, _impl_.reset_), 3>(),
-     {16, 3, 0,
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.reset_)}},
-    // repeated .modlock.wasm.ui.Row set = 3;
-    {::_pbi::TcParser::FastMtR1,
-     {26, 0, 0,
-      PROTOBUF_FIELD_OFFSET(ListChange, _impl_.set_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // string node = 1;
-    {PROTOBUF_FIELD_OFFSET(ListChange, _impl_.node_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // bool reset = 2;
-    {PROTOBUF_FIELD_OFFSET(ListChange, _impl_.reset_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-    // repeated .modlock.wasm.ui.Row set = 3;
-    {PROTOBUF_FIELD_OFFSET(ListChange, _impl_.set_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-    // repeated string removed = 4;
-    {PROTOBUF_FIELD_OFFSET(ListChange, _impl_.removed_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
-  }},
-  {{
-      {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Row>()},
-  }},
-  {{
-    "\32\4\0\0\7\0\0\0"
-    "modlock.wasm.ui.ListChange"
-    "node"
-    "removed"
-  }},
-};
-PROTOBUF_NOINLINE void ListChange::Clear() {
-// @@protoc_insertion_point(message_clear_start:modlock.wasm.ui.ListChange)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      _impl_.set_.Clear();
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
-      _impl_.removed_.Clear();
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _impl_.node_.ClearNonDefaultToEmpty();
-    }
-  }
-  _impl_.reset_ = false;
-  _impl_._has_bits_.Clear();
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL ListChange::_InternalSerialize(
-    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
-    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const ListChange& this_ = static_cast<const ListChange&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL ListChange::_InternalSerialize(
-    ::uint8_t* PROTOBUF_NONNULL target,
-    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const ListChange& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    this_.CheckHasBitConsistency();
-  }
-  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.ui.ListChange)
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  cached_has_bits = this_._impl_._has_bits_[0];
-  // string node = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-    if (!this_._internal_node().empty()) {
-      const ::std::string& _s = this_._internal_node();
-      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.ListChange.node");
-      target = stream->WriteStringMaybeAliased(1, _s, target);
-    }
-  }
-
-  // bool reset = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
-    if (this_._internal_reset() != 0) {
-      target = stream->EnsureSpace(target);
-      target = ::_pbi::WireFormatLite::WriteBoolToArray(
-          2, this_._internal_reset(), target);
-    }
-  }
-
-  // repeated .modlock.wasm.ui.Row set = 3;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-    for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_set_size());
-         i < n; i++) {
-      const auto& repfield = this_._internal_set().Get(i);
-      target =
-          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-              3, repfield, repfield.GetCachedSize(),
-              target, stream);
-    }
-  }
-
-  // repeated string removed = 4;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
-    for (int i = 0, n = this_._internal_removed_size(); i < n; ++i) {
-      const auto& s = this_._internal_removed().Get(i);
-      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.ui.ListChange.removed");
-      target = stream->WriteString(4, s, target);
-    }
-  }
-
-  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.ui.ListChange)
-  return target;
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t ListChange::ByteSizeLong(const MessageLite& base) {
-  const ListChange& this_ = static_cast<const ListChange&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-::size_t ListChange::ByteSizeLong() const {
-  const ListChange& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.ui.ListChange)
-  ::size_t total_size = 0;
-
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void)cached_has_bits;
-
-  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
-  cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // repeated .modlock.wasm.ui.Row set = 3;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      total_size += 1UL * this_._internal_set_size();
-      for (const auto& msg : this_._internal_set()) {
-        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
-      }
-    }
-    // repeated string removed = 4;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
-      total_size +=
-          1 * ::google::protobuf::internal::FromIntSize(this_._internal_removed().size());
-      for (int i = 0, n = this_._internal_removed().size(); i < n; ++i) {
-        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
-            this_._internal_removed().Get(i));
-      }
-    }
-    // string node = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (!this_._internal_node().empty()) {
-        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_node());
-      }
-    }
-    // bool reset = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
-      if (this_._internal_reset() != 0) {
-        total_size += 2;
-      }
-    }
-  }
-  return this_.MaybeComputeUnknownFieldsSize(total_size,
-                                             &this_._impl_._cached_size_);
-}
-
-void ListChange::MergeImpl(::google::protobuf::MessageLite& to_msg,
-                            const ::google::protobuf::MessageLite& from_msg) {
-   auto* const _this =
-      static_cast<ListChange*>(&to_msg);
-  auto& from = static_cast<const ListChange&>(from_msg);
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    from.CheckHasBitConsistency();
-  }
-  ::google::protobuf::Arena* arena = _this->GetArena();
-  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.ui.ListChange)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      _this->_internal_mutable_set()->InternalMergeFromWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_set());
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
-      _this->_internal_mutable_removed()->InternalMergeFromWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_removed());
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (!from._internal_node().empty()) {
-        _this->_internal_set_node(from._internal_node());
-      } else {
-        if (_this->_impl_.node_.IsDefault()) {
-          _this->_internal_set_node("");
-        }
-      }
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
-      if (from._internal_reset() != 0) {
-        _this->_impl_.reset_ = from._impl_.reset_;
-      }
-    }
-  }
-  _this->_impl_._has_bits_[0] |= cached_has_bits;
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-}
-
-void ListChange::CopyFrom(const ListChange& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.ui.ListChange)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-
-void ListChange::InternalSwap(ListChange* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
-  using ::std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  _impl_.set_.InternalSwap(&other->_impl_.set_);
-  _impl_.removed_.InternalSwap(&other->_impl_.removed_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.node_, &other->_impl_.node_, arena);
-  swap(_impl_.reset_, other->_impl_.reset_);
-}
-
-::google::protobuf::Metadata ListChange::GetMetadata() const {
+::google::protobuf::Metadata UiWindowEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
@@ -19627,8 +19127,7 @@ PROTOBUF_NDEBUG_INLINE Change::Impl_::Impl_(
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         set_{visibility, arena, from.set_},
-        removed_{visibility, arena, from.removed_},
-        lists_{visibility, arena, from.lists_} {}
+        removed_{visibility, arena, from.removed_} {}
 
 Change::Change(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -19658,8 +19157,7 @@ PROTOBUF_NDEBUG_INLINE Change::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         set_{visibility, arena},
-        removed_{visibility, arena},
-        lists_{visibility, arena} {}
+        removed_{visibility, arena} {}
 
 inline void Change::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -19697,10 +19195,6 @@ constexpr auto Change::InternalNewImpl_() {
                   ::google::protobuf::Message::internal_visibility()),
       PROTOBUF_FIELD_OFFSET(Change, _impl_.removed_) +
           decltype(Change::_impl_.removed_)::
-              InternalGetArenaOffset(
-                  ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(Change, _impl_.lists_) +
-          decltype(Change::_impl_.lists_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -19747,17 +19241,17 @@ Change::GetClassData() const {
   return Change_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 5, 2, 38, 2>
+const ::_pbi::TcParseTable<2, 4, 1, 38, 2>
 Change::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Change, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
-    2,  // num_aux_entries
+    4,  // num_field_entries
+    1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Change_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -19766,10 +19260,13 @@ Change::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::ui::Change>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // uint64 generation = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Change, _impl_.generation_), 2>(),
+     {32, 2, 0,
+      PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_)}},
     // bool reset = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Change, _impl_.reset_), 4>(),
-     {8, 4, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Change, _impl_.reset_), 3>(),
+     {8, 3, 0,
       PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_)}},
     // repeated .modlock.wasm.ui.Node set = 2;
     {::_pbi::TcParser::FastMtR1,
@@ -19779,33 +19276,20 @@ Change::_table_ = {
     {::_pbi::TcParser::FastUR1,
      {26, 1, 0,
       PROTOBUF_FIELD_OFFSET(Change, _impl_.removed_)}},
-    // uint64 generation = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Change, _impl_.generation_), 3>(),
-     {32, 3, 0,
-      PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_)}},
-    // repeated .modlock.wasm.ui.ListChange lists = 5;
-    {::_pbi::TcParser::FastMtR1,
-     {42, 2, 1,
-      PROTOBUF_FIELD_OFFSET(Change, _impl_.lists_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // bool reset = 1;
-    {PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // repeated .modlock.wasm.ui.Node set = 2;
     {PROTOBUF_FIELD_OFFSET(Change, _impl_.set_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated string removed = 3;
     {PROTOBUF_FIELD_OFFSET(Change, _impl_.removed_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
     // uint64 generation = 4;
-    {PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
-    // repeated .modlock.wasm.ui.ListChange lists = 5;
-    {PROTOBUF_FIELD_OFFSET(Change, _impl_.lists_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Node>()},
-      {::_pbi::TcParser::GetTable<::modlock::wasm::ui::ListChange>()},
   }},
   {{
     "\26\0\0\7\0\0\0\0"
@@ -19821,18 +19305,15 @@ PROTOBUF_NOINLINE void Change::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _impl_.set_.Clear();
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _impl_.removed_.Clear();
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
-      _impl_.lists_.Clear();
-    }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000018U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
     ::memset(&_impl_.generation_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.reset_) -
         reinterpret_cast<char*>(&_impl_.generation_)) + sizeof(_impl_.reset_));
@@ -19861,7 +19342,7 @@ PROTOBUF_NOINLINE void Change::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // bool reset = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_reset() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -19893,24 +19374,11 @@ PROTOBUF_NOINLINE void Change::Clear() {
   }
 
   // uint64 generation = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     if (this_._internal_generation() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
           4, this_._internal_generation(), target);
-    }
-  }
-
-  // repeated .modlock.wasm.ui.ListChange lists = 5;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
-    for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_lists_size());
-         i < n; i++) {
-      const auto& repfield = this_._internal_lists().Get(i);
-      target =
-          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-              5, repfield, repfield.GetCachedSize(),
-              target, stream);
     }
   }
 
@@ -19939,7 +19407,7 @@ PROTOBUF_NOINLINE void Change::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     // repeated .modlock.wasm.ui.Node set = 2;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_set_size();
@@ -19956,22 +19424,15 @@ PROTOBUF_NOINLINE void Change::Clear() {
             this_._internal_removed().Get(i));
       }
     }
-    // repeated .modlock.wasm.ui.ListChange lists = 5;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
-      total_size += 1UL * this_._internal_lists_size();
-      for (const auto& msg : this_._internal_lists()) {
-        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
-      }
-    }
     // uint64 generation = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (this_._internal_generation() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_generation());
       }
     }
     // bool reset = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_reset() != 0) {
         total_size += 2;
       }
@@ -19996,7 +19457,7 @@ void Change::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_set()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -20007,17 +19468,12 @@ void Change::MergeImpl(::google::protobuf::MessageLite& to_msg,
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_removed());
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
-      _this->_internal_mutable_lists()->InternalMergeFromWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_lists());
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (from._internal_generation() != 0) {
         _this->_impl_.generation_ = from._impl_.generation_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_reset() != 0) {
         _this->_impl_.reset_ = from._impl_.reset_;
       }
@@ -20042,7 +19498,6 @@ void Change::InternalSwap(Change* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.set_.InternalSwap(&other->_impl_.set_);
   _impl_.removed_.InternalSwap(&other->_impl_.removed_);
-  _impl_.lists_.InternalSwap(&other->_impl_.lists_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_)
       + sizeof(Change::_impl_.reset_)

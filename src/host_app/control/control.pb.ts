@@ -15,7 +15,7 @@ import type {
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
 import { CallProfile, SlowFrame } from '../../wasm/profile/profile.pb.js'
-import { Change, ListWindow } from '../../wasm/ui/ui.pb.js'
+import { Change } from '../../wasm/ui/ui.pb.js'
 
 /**
  * MessageKind is where a message shows on the player's screen.
@@ -506,7 +506,6 @@ export interface HostEvent {
     | { value: ModCallResult; case: 'called' }
     | { value: ServiceCall; case: 'serviceCall' }
     | { value: ControllerWants; case: 'controllersWanted' }
-    | { value: UiWindow; case: 'uiWindow' }
     | { value: GamePaused; case: 'paused' }
     | { value: CommandFailed; case: 'commandFailed' }
 }
@@ -530,7 +529,6 @@ export const HostEvent: MessageType<HostEvent> =
       [13, 'called', 11, 0, ModCallResult.codec, 'body'],
       [14, 'service_call', 11, 0, ServiceCall.codec, 'body'],
       [15, 'controllers_wanted', 11, 0, ControllerWants.codec, 'body'],
-      [16, 'ui_window', 11, 0, UiWindow.codec, 'body'],
       [17, 'paused', 11, 0, GamePaused.codec, 'body'],
       [18, 'command_failed', 11, 0, CommandFailed.codec, 'body'],
     ],
@@ -690,16 +688,6 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
-            case 16:
-              m.body = {
-                case: 'uiWindow',
-                value: UiWindow.decode(
-                  r,
-                  r.delimited(),
-                  m.body?.case === 'uiWindow' ? m.body.value : {},
-                ),
-              }
-              break
             case 17:
               m.body = {
                 case: 'paused',
@@ -801,11 +789,6 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'controllersWanted' && o.value != null)
             ControllerWants.writeField(w, 15, o.value)
-        }
-        {
-          const o = m.body
-          if (o?.case === 'uiWindow' && o.value != null)
-            UiWindow.writeField(w, 16, o.value)
         }
         {
           const o = m.body
@@ -1488,72 +1471,6 @@ export const UiChanged: MessageType<UiChanged> =
         {
           const v = m.change
           if (v != null) Change.writeField(w, 3, v)
-        }
-      },
-    },
-  )
-
-/**
- * UiWindow is the window of one list a player's renderer asks for.
- *
- * @generated from message modlock.host_app.control.UiWindow
- */
-export interface UiWindow {
-  /**
-   * Mod is the mod's name.
-   */
-  mod?: string
-  /**
-   * Slot identifies the player.
-   */
-  slot?: number
-  /**
-   * ListWindow names the list and its rows.
-   */
-  window?: ListWindow
-}
-
-export const UiWindow: MessageType<UiWindow> =
-  /* @__PURE__ */ createMessageType<UiWindow>(
-    'modlock.host_app.control.UiWindow',
-    () => [
-      [1, 'mod', 9],
-      [2, 'slot', 5],
-      [3, 'window', 11, 0, ListWindow.codec],
-    ],
-    {
-      decode: (r: BinaryReader, end: number, m: UiWindow): UiWindow => {
-        while (r.pos < end) {
-          const t = r.tag()
-          if ((t & 7) === 4) return m
-          switch (t >>> 3) {
-            case 1:
-              m.mod = r.string()
-              break
-            case 2:
-              m.slot = r.int32()
-              break
-            case 3:
-              m.window = ListWindow.decode(r, r.delimited(), m.window ?? {})
-              break
-            default:
-              r.skip(t)
-          }
-        }
-        return m
-      },
-      encode: (m: UiWindow, w: Writer): void => {
-        {
-          const v = m.mod
-          if (v) w.uint32(10).string(v)
-        }
-        {
-          const v = m.slot
-          if (v) w.uint32(16).int32(v)
-        }
-        {
-          const v = m.window
-          if (v != null) ListWindow.writeField(w, 3, v)
         }
       },
     },

@@ -122,7 +122,6 @@ import {
   type Edges as WireEdges,
   type Gradient as WireGradient,
   type Length as WireLength,
-  type ListChange,
   type Node,
   type Row,
   type Shadow as WireShadow,
@@ -147,6 +146,7 @@ import {
   type UiActionEvent,
   type UiOverlayEvent,
   type UiPlacementEvent,
+  type UiWindowEvent,
   type Bounds,
   type Wheel,
   type RangeEvent,
@@ -707,9 +707,12 @@ export interface ListRow {
  * ListProps make a list that scrolls its rows, drawing only those in view.
  * rowHeight is each row's height in pixels, from 1 to 1000, and row the
  * template each row is drawn from: a panel, label or image holding at most
- * fifteen more, with no buttons or inputs. The host takes at most 20,000 rows,
- * and 2 MiB of rows across a player's interface. A draw that passes the same
- * rows array as the last one sends nothing; pass a new array to change rows.
+ * fifteen more, with no buttons or inputs. A list holds at most 20,000 rows.
+ * The mod keeps the rows and sends each player only the window of rows their
+ * screen shows, at most 256, and 2 MiB of windows across a player's
+ * interface, so showing or scrolling a list costs its window, not its rows.
+ * The mod orders a rows array once and draws it again from that order, even
+ * after a draw without it, so pass a new array to change rows.
  *
  * The player focuses a row with the arrow keys or the controller, and chooses
  * it with Enter, the controller's confirm or a click, which calls onChange
@@ -1311,8 +1314,10 @@ export function returned(player: Player): void {
  * in the slot starts with nothing of theirs, and takes down their chat line.
  */
 export function left(player: Player): void {
+  // Forget everything kept for the player, then their chat line.
   views.delete(player.slot)
   screens.delete(player.slot)
+  windows.delete(player.slot)
   forgetSpeakers(player.slot)
   if (forgetChat(player.slot)) drawAll(['chat'])
 }
@@ -1656,7 +1661,23 @@ const layers: readonly Layer[] = ['view', 'chat', 'voice', 'notices', 'routes']
 function draw(player: Player, changed: readonly Layer[] = layers): boolean {
   // Lay out the changed layers against the last screen sent.
   const previous = screens.get(player.slot)
-  const next = compose(player, previous, previous ? changed : layers)
+  return commit(
+    player,
+    previous,
+    compose(player, previous, previous ? changed : layers),
+  )
+}
+
+/**
+ * commit sends player the change from previous to next and keeps next as
+ * the screen they hold, then drops the windows of lists it no longer shows.
+ */
+function commit(
+  player: Player,
+  previous: Screen | undefined,
+  next: Screen,
+): boolean {
+  // Diff the screen the player has against the next one.
   const change = diff(previous, next)
 
   // Send the change; a failed send means the player may have left, so send
@@ -1668,12 +1689,63 @@ function draw(player: Player, changed: readonly Layer[] = layers): boolean {
       return false
     }
     screens.set(player.slot, whole)
+    forgetWindows(player.slot, whole)
     return true
   }
 
   // Keep the screen the player now holds.
   screens.set(player.slot, next)
+  forgetWindows(player.slot, next)
   return true
+}
+
+/** forgetWindows drops slot's windows of lists screen does not hold. */
+function forgetWindows(slot: number, screen: Screen): void {
+  const held = windows.get(slot)
+  if (!held) return
+  for (const id of held.keys()) {
+    if (![...screen.parts.values()].some((part) => part.lists.has(id))) {
+      held.delete(id)
+    }
+  }
+  if (held.size === 0) windows.delete(slot)
+}
+
+/**
+ * windowed draws the window of a list a player's screen asks for. Only the
+ * list's node changes, so the window costs its rows, not the list's.
+ */
+export function windowed(event: UiWindowEvent): void {
+  // Keep the window for the list the player's screen holds.
+  const { player, node: id } = event
+  const previous = screens.get(player.slot)
+  let layer: Layer | undefined
+  for (const [name, part] of previous?.parts ?? []) {
+    if (part.lists.has(id)) layer = name
+  }
+  if (!previous || layer === undefined) return
+  let held = windows.get(player.slot)
+  if (!held) {
+    held = new Map()
+    windows.set(player.slot, held)
+  }
+  held.set(id, {
+    first: event.first,
+    count: Math.min(event.count, maxWindow),
+    focus: event.focus,
+  })
+
+  // Fill that list again in a copy of its layer, and send the change.
+  const part = previous.parts.get(layer)!
+  const refilled: Part = {
+    ...part,
+    nodes: new Map(part.nodes),
+    lists: new Map(part.lists),
+  }
+  fillLists(player.slot, refilled)
+  const next: Screen = { ...previous, parts: new Map(previous.parts) }
+  next.parts.set(layer, refilled)
+  commit(player, previous, next)
 }
 
 /**
@@ -1711,6 +1783,7 @@ function compose(
       }
     } else {
       layout.part.top = place(layout, content(layer, current), '/')
+      fillLists(player.slot, layout.part)
     }
     screen.parts.set(layer, layout.part)
   }
@@ -1850,23 +1923,59 @@ interface Part {
    */
   readonly placed: Map<string, Placed>
   /**
-   * rows maps each list's id to its rows, which the screen sends apart from
-   * its nodes.
+   * lists maps each list's id to its rows and the node they fill, which
+   * compose fills with the player's window.
    */
-  readonly rows: Map<string, Rows>
+  readonly lists: Map<string, ListState>
   /** top lists the ids of the layer's outermost nodes, the root's children. */
   top: string[]
 }
 
 /**
- * Rows is one list's rows by key, with the array the mod drew them from. A
- * row the mod left unchanged since the last draw keeps the object that draw
- * held, so comparing rows by identity finds what changed.
+ * Rows is one list's rows in order, with each key's place in that order. Of
+ * two rows with one key, the last counts.
  */
 interface Rows {
-  readonly source: readonly ListRow[]
-  readonly byKey: Map<string, Row>
+  readonly order: readonly ListRow[]
+  readonly at: ReadonlyMap<string, number>
 }
+
+/**
+ * ListState is one list as a layer lays it out: its rows, its node without a
+ * window, and the window and node the last fill made, which a fill with the
+ * same rows and window reuses.
+ */
+interface ListState {
+  readonly rows: Rows
+  readonly node: Node
+  readonly window?: ListWindow
+  readonly filled?: { readonly node: Node; readonly encoded: string }
+}
+
+/**
+ * ListWindow is the run of a list's rows a player's screen asks for: the
+ * place of the first, how many, and the key of the row with the focus.
+ */
+interface ListWindow {
+  readonly first: number
+  readonly count: number
+  readonly focus: string
+}
+
+/** defaultWindow is what a list shows before the screen asks for a window. */
+const defaultWindow: ListWindow = { first: 0, count: 50, focus: '' }
+
+/** maxWindow is the most rows a window holds. */
+const maxWindow = 256
+
+/** windows holds each player's list windows, by slot and then list id. */
+const windows = new Map<number, Map<string, ListWindow>>()
+
+/**
+ * ordered holds the Rows of each rows array a mod drew, so drawing that array
+ * again, even after a draw without it, costs nothing however long it is.
+ */
+const ordered = new WeakMap<readonly ListRow[], Rows>()
 
 /** Placed is what one element laid out in a part. */
 interface Placed {
@@ -1940,7 +2049,7 @@ class Layout {
       documents: new Map(),
       wheels: new Map(),
       placed: new Map(),
-      rows: new Map(),
+      lists: new Map(),
       top: [],
     }
   }
@@ -1991,19 +2100,14 @@ class Layout {
       if (wheel) part.wheels.set(id, wheel)
       const document = previous.documents.get(id)
       if (document) part.documents.set(id, document)
-      const rows = previous.rows.get(id)
-      if (rows) part.rows.set(id, rows)
+      const list = previous.lists.get(id)
+      if (list) part.lists.set(id, list)
     }
     for (const at of placed.elements) {
       part.placed.set(at, previous.placed.get(at)!)
       this.elementsLog.push(at)
     }
     return placed.top
-  }
-
-  /** heldRows returns the rows the previous draw held for the list id. */
-  heldRows(id: string): Rows | undefined {
-    return this.previous?.rows.get(id)
   }
 
   /** mark notes where the logs end, before placing an element. */
@@ -2157,10 +2261,10 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
         selected:
           typeof props.selected === 'string' ? props.selected : undefined,
       }
-      layout.part.rows.set(
-        node.id!,
-        listRows(props.rows ?? [], layout.heldRows(node.id!)),
-      )
+      layout.part.lists.set(node.id!, {
+        rows: listRows(props.rows ?? []),
+        node,
+      })
       if (props.onChange) {
         layout.part.changes.set(node.id!, { handler: props.onChange })
       }
@@ -2227,75 +2331,108 @@ function template(row: Child): Node[] {
 }
 
 /**
- * listRows keeps a list's rows by key; of two with one key, the last counts.
- * The same array as the held rows' returns them, so a draw that leaves the
- * list alone costs nothing however long it is; a mod changes rows by passing
- * a new array. A new array is compared row by row with the held rows: a row
- * equal to its held one keeps that object, and when every row does, the held
- * rows return. A changed row is copied, so the mod may reuse its objects.
+ * listRows orders a list's rows by rank, then sort, then key, and indexes
+ * each key's place. Rows already in order are kept as they are, so ordering
+ * a sorted array costs one pass. Each array is ordered once; drawing it again
+ * finds that order.
  */
-function listRows(source: readonly ListRow[], held: Rows | undefined): Rows {
-  // The same array holds the same rows.
-  if (held?.source === source) return held
+function listRows(source: readonly ListRow[]): Rows {
+  // Reuse the order of an array drawn before.
+  const held = ordered.get(source)
+  if (held) return held
 
-  // Keep each row equal to its held one, and copy the rest.
-  const byKey = new Map<string, Row>()
-  let same = held !== undefined
-  for (const { key, rank, sort, fields } of source) {
-    const was = held?.byKey.get(key)
-    if (was && sameRow(was, rank, sort, fields)) {
-      byKey.set(key, was)
-    } else {
-      byKey.set(key, { key, rank, sort, fields: fields && { ...fields } })
-      same = false
+  // Index the keys, noting whether the rows are in order with no key twice.
+  const at = new Map<string, number>()
+  let sorted = true
+  for (let i = 0; i < source.length; i++) {
+    const row = source[i]!
+    if (at.has(row.key) || (i > 0 && compareRows(source[i - 1]!, row) > 0)) {
+      sorted = false
     }
+    at.set(row.key, i)
   }
-  if (same && byKey.size === held!.byKey.size)
-    return { source, byKey: held!.byKey }
-  return { source, byKey }
+
+  // Otherwise keep each key's last row, in order.
+  let order = source
+  if (!sorted) {
+    order = [...at.values()].map((i) => source[i]!).sort(compareRows)
+    at.clear()
+    order.forEach((row, i) => at.set(row.key, i))
+  }
+  const rows = { order, at }
+  ordered.set(source, rows)
+  return rows
 }
 
-/** sameRow reports whether row holds rank, sort and fields. */
-function sameRow(
-  row: Row,
-  rank: number | undefined,
-  sort: string | undefined,
-  fields: Readonly<Record<string, string>> | undefined,
-): boolean {
-  // Compare the scalars, then each field both ways by count.
-  if (row.rank !== rank || row.sort !== sort) return false
-  const had = row.fields
-  if (!had || !fields) return !had === !fields
-  let count = 0
-  for (const name in fields) {
-    if (had[name] !== fields[name]) return false
-    count++
-  }
-  return count === Object.keys(had).length
+/** compareRows orders two rows by rank, then sort, then key. */
+function compareRows(a: ListRow, b: ListRow): number {
+  // Compare the ranks, then the sort keys, then the keys.
+  const rank = (a.rank ?? 0) - (b.rank ?? 0)
+  if (rank !== 0) return rank
+  const sort = a.sort ?? ''
+  const other = b.sort ?? ''
+  if (sort !== other) return sort < other ? -1 : 1
+  return a.key < b.key ? -1 : a.key > b.key ? 1 : 0
 }
 
 /**
- * listChanges returns the changes that bring each list before holds to its
- * rows in after: every row of a list new to the screen, and the rows added,
- * changed and removed of one it holds.
+ * fillList returns the list's node with the window of its rows: the window
+ * moved back to end at the last row, the list's total, the focused key with
+ * its place while the list holds it, and the selected key only while the
+ * list holds it. A fill with the rows and window of the last returns it.
  */
-function listChanges(
-  before: Part | undefined,
-  after: Part | undefined,
-): ListChange[] {
-  const changes: ListChange[] = []
-  for (const [node, { byKey: rows }] of after?.rows ?? []) {
-    const held = before?.rows.get(node)?.byKey
-    if (held === rows) continue
-    const set: Row[] = []
-    for (const [key, row] of rows) {
-      if (held?.get(key) !== row) set.push(row)
-    }
-    const removed = [...(held?.keys() ?? [])].filter((key) => !rows.has(key))
-    if (held && set.length === 0 && removed.length === 0) continue
-    changes.push({ node, reset: !held, set, removed })
+function fillList(
+  list: ListState,
+  window: ListWindow,
+): { node: Node; encoded: string } {
+  // Reuse the last fill of these rows and this window.
+  if (list.filled && list.window === window) return list.filled
+
+  // Clamp the window to the list, ending it at the last row.
+  const { order, at } = list.rows
+  const total = order.length
+  const count = Math.min(window.count, maxWindow, total)
+  const first = Math.min(window.first, total - count)
+
+  // Take the window's rows, then the focus and the selection.
+  const rows: Row[] = []
+  for (let i = first; i < first + count; i++) {
+    const { key, fields } = order[i]!
+    rows.push({ key, fields })
   }
-  return changes
+  const focusAt = window.focus === '' ? undefined : at.get(window.focus)
+  const selected = list.node.list!.selected
+  const node: Node = {
+    ...list.node,
+    list: {
+      ...list.node.list,
+      first,
+      total,
+      rows,
+      focus: window.focus === '' ? undefined : window.focus,
+      focusAt,
+      selected:
+        selected !== undefined && at.has(selected) ? selected : undefined,
+    },
+  }
+  const value: unknown = node
+  return { node, encoded: JSON.stringify(value) }
+}
+
+/**
+ * fillLists fills each list of part with slot's window of it, and drops the
+ * windows of lists the screen no longer holds.
+ */
+function fillLists(slot: number, part: Part): void {
+  const held = windows.get(slot)
+  for (const [id, list] of part.lists) {
+    const window = held?.get(id) ?? defaultWindow
+    const filled = fillList(list, window)
+    part.nodes.set(id, filled)
+    if (filled !== list.filled) {
+      part.lists.set(id, { ...list, window, filled })
+    }
+  }
 }
 
 /** sparseNode builds a node's common fields, only those props sets. */
@@ -2576,7 +2713,6 @@ function diff(previous: Screen | undefined, next: Screen): Change | undefined {
   // changed nodes and removes the ones it no longer holds.
   const set: Node[] = []
   const removed: string[] = []
-  const lists: ListChange[] = []
   if (previous?.root.encoded !== next.root.encoded) set.push(next.root.node)
   for (const layer of layers) {
     const before = previous?.parts.get(layer)
@@ -2588,17 +2724,9 @@ function diff(previous: Screen | undefined, next: Screen): Change | undefined {
     for (const id of before?.nodes.keys() ?? []) {
       if (!after?.nodes.has(id)) removed.push(id)
     }
-    lists.push(...listChanges(before, after))
   }
-  if (
-    previous &&
-    set.length === 0 &&
-    removed.length === 0 &&
-    lists.length === 0
-  ) {
-    return undefined
-  }
-  return { reset: !previous, set, removed, lists }
+  if (previous && set.length === 0 && removed.length === 0) return undefined
+  return { reset: !previous, set, removed }
 }
 
 /** send asks the host to apply change to the player in slot. */

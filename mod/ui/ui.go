@@ -58,6 +58,7 @@ func init() {
 	mod.OnUiAction(act)
 	mod.OnUiOverlay(overlaid)
 	mod.OnUiPlacement(placed)
+	mod.OnUiWindow(windowed)
 	mod.OnPlayers(forget)
 	mod.OnPlayerReturn(returned)
 }

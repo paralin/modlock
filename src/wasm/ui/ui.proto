@@ -291,11 +291,12 @@ message Node {
 }
 
 // List is a scrolling list of keyed rows, which may hold far more rows than a
-// tree holds nodes. The mod sends the template here and the rows in
-// Change.lists. The host keeps every row in order and fills first, total and
-// rows with the window of rows the player's renderer asks for, so the screen
-// carries only the rows near the visible box and the renderer builds a panel
-// only for those. The list scrolls with the mouse wheel over it.
+// tree holds nodes. The mod keeps every row in order and sends here only the
+// window of rows the player's renderer asked for with a UiWindowEvent, with
+// the list's total, so the screen carries only the rows near the visible box
+// and the renderer builds a panel only for those. Showing a list, or scrolling
+// it, costs the window and not the list. The list scrolls with the mouse wheel
+// over it.
 //
 // The list takes the keyboard and controller as one panel and holds which
 // row has the focus by key, so the focus stays on its row as rows arrive,
@@ -317,12 +318,12 @@ message List {
   float row_height = 2;
 
   // First is the place of rows[0] in the whole list, and Total the number of
-  // rows the list holds. The host sets them; a mod's are ignored.
+  // rows the list holds, at most 20,000.
   uint32 first = 3;
   uint32 total = 4;
 
-  // Rows holds the rows in the window the renderer asked for, in order. The
-  // host sets them; a mod's are ignored.
+  // Rows holds the rows in the window the renderer asked for, in order: at
+  // most 256, each key distinct.
   repeated Row rows = 5;
 
   // FocusStyle is laid over the focused row's own style, and SelectedStyle
@@ -330,57 +331,47 @@ message List {
   Style focus_style = 6;
   Style selected_style = 7;
 
-  // Selected is the key of the row the mod draws as chosen, or empty. The
-  // host clears a key the list no longer holds.
+  // Selected is the key of the row the mod draws as chosen, or empty when
+  // the list holds no such row.
   string selected = 8;
 
   // Focus is the key the renderer last said has the focus, and FocusAt its
-  // place in the whole list, unset when the list holds no such row. The host
-  // sets them; a mod's are refused.
+  // place in the whole list, unset when the list holds no such row. The
+  // renderer reads them to keep the focus on its row as rows come and go.
   string focus = 9;
   optional uint32 focus_at = 10;
 }
 
-// Row is one row of a list, known by its key. Rows sort by rank, then by
-// sort, then by key, each in increasing order.
+// Row is one row of a list's window, known by its key. The mod orders the
+// rows; the renderer draws them in the order they come.
 message Row {
   // Key names the row within its list: one to 64 bytes.
   string key = 1;
 
-  // Rank and sort order the row; sort compares bytewise.
-  double rank = 2;
-  string sort = 3;
+  reserved 2, 3;
 
   // Fields hold the values the row's template shows, at most 16, by name.
   map<string, string> fields = 4;
 }
 
-// ListWindow is the run of a list's rows a player's renderer asks for: those
-// near the list's visible box, which it draws as the player scrolls.
-message ListWindow {
+// UiWindowEvent is the run of a list's rows a player's renderer asks for:
+// those near the list's visible box, which it draws as the player scrolls.
+// The mod answers by drawing the list with that window's rows. A list the
+// renderer has not asked about yet shows its first 50 rows.
+message UiWindowEvent {
+  // Player is the player whose screen this is.
+  int32 player = 1;
+
   // Node is the list node's id.
-  string node = 1;
+  string node = 2;
 
   // First is the place of the first row, and count the number of rows, at
   // most 256.
-  uint32 first = 2;
-  uint32 count = 3;
+  uint32 first = 3;
+  uint32 count = 4;
 
   // Focus is the key of the row that has the focus, or empty for none.
-  string focus = 4;
-}
-
-// ListChange changes the rows of one list node.
-message ListChange {
-  // Node is the list node's id.
-  string node = 1;
-
-  // Reset drops every row before the rest of the change applies.
-  bool reset = 2;
-
-  // Set holds the new or changed rows, and removed the keys of rows to drop.
-  repeated Row set = 3;
-  repeated string removed = 4;
+  string focus = 5;
 }
 
 // Binding sets parts of one panel of a layout. A property the binding leaves
@@ -1441,11 +1432,7 @@ message Change {
   // deltas carry the screen owner's nonzero generation unchanged.
   uint64 generation = 4;
 
-  // Lists changes the rows of list nodes, after set and removed apply. A
-  // list node's rows go with the node. The host keeps the rows and shows the
-  // renderer a change without lists, setting instead each list node whose
-  // window of rows changed.
-  repeated ListChange lists = 5;
+  reserved 5;
 }
 
 // Tree is one mod's whole tree for one player.

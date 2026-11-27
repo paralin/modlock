@@ -3038,6 +3038,38 @@ function fromSettingChangedEvent(message: settingsPb.SettingChangedEvent): Setti
 }
 
 /**
+ * UiWindowEvent is the run of a list's rows a player's renderer asks for:
+ * those near the list's visible box, which it draws as the player scrolls.
+ * The mod answers by drawing the list with that window's rows. A list the
+ * renderer has not asked about yet shows its first 50 rows.
+ */
+export interface UiWindowEvent {
+  /** player is the player whose screen this is. */
+  readonly player: Player
+  /** node is the list node's id. */
+  readonly node: string
+  /**
+   * first is the place of the first row, and count the number of rows, at
+   * most 256.
+   */
+  readonly first: number
+  readonly count: number
+  /** focus is the key of the row that has the focus, or empty for none. */
+  readonly focus: string
+}
+
+/** fromUiWindowEvent decodes an UiWindowEvent. */
+function fromUiWindowEvent(message: uiPb.UiWindowEvent): UiWindowEvent {
+  return {
+    player: Player.of(message.player ?? 0),
+    node: message.node ?? '',
+    first: message.first ?? 0,
+    count: message.count ?? 0,
+    focus: message.focus ?? '',
+  }
+}
+
+/**
  * Wheel reports one wheel step over a slider, anchored to its pointer position.
  */
 export interface Wheel {
@@ -5074,6 +5106,11 @@ export interface ModHandlers {
    * to a mod whose root follows placement.
    */
   uiPlacement(event: UiPlacementEvent): void
+  /**
+   * uiWindow reports the run of a list's rows a player's renderer asks for,
+   * which the mod answers by drawing that list's window.
+   */
+  uiWindow(event: UiWindowEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /** serviceReplied ends one StartServiceCall, in a frame after the call. */
@@ -5234,6 +5271,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiPlacement':
         handlers.uiPlacement(fromUiPlacementEvent(uiPb.UiPlacementEvent.fromBinary(input)))
+        return reply()
+      case 'UiWindow':
+        handlers.uiWindow(fromUiWindowEvent(uiPb.UiWindowEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

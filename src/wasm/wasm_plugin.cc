@@ -347,7 +347,8 @@ std::expected<void, std::string> WasmPlugin::Placement(int32_t slot, std::string
 }
 
 std::expected<void, std::string> WasmPlugin::Window(int32_t slot, std::string_view line) {
-  // Pass on a window only for a list the player's tree shows.
+  // Pass on a window only for a list the player's tree shows; the mod keeps
+  // the rows and answers by drawing the window.
   if (!instance_) {
     return std::unexpected(name_ + " is not running");
   }
@@ -355,7 +356,7 @@ std::expected<void, std::string> WasmPlugin::Window(int32_t slot, std::string_vi
   if (!window) {
     return std::unexpected(name_ + " " + window.error());
   }
-  host_.Notify([&](WasmHostObserver& observer) { observer.UiWindow(name_, slot, *window); });
+  static_cast<void>(mod_.UiWindow(*window));
   return {};
 }
 

@@ -57,6 +57,7 @@ import {
   acted,
   overlaid,
   placed,
+  windowed,
   away,
   change,
   heard,
@@ -863,6 +864,11 @@ const handlers: ModHandlers = {
   uiPlacement(event) {
     // A placement runs with the next frame, as a press does.
     after(0, () => placed(event))
+  },
+
+  uiWindow(event) {
+    // A list's window draws with the next frame, as a press does.
+    after(0, () => windowed(event))
   },
 
   serve(event) {

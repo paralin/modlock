@@ -95,6 +95,8 @@ message ReloadRequest {
 
 // HostEvent is one thing that happened in the host.
 message HostEvent {
+  reserved 16;
+
   // Body selects the event.
   oneof body {
     // Started reports a mod that started or restarted after a reload.
@@ -148,9 +150,6 @@ message HostEvent {
     // each time the list changes.
     modlock.wasm.controllers.ControllerWants controllers_wanted = 15;
 
-    // UiWindow carries the run of a list's rows a player's renderer asks
-    // for, which the screen owner fills the list node with.
-    UiWindow ui_window = 16;
 
     // Paused reports each time the game pauses or resumes, from the first
     // world on. Until the first, the game is not paused.
@@ -295,18 +294,6 @@ message UiChanged {
 
   // Change updates the player's tree for the mod.
   modlock.wasm.ui.Change change = 3;
-}
-
-// UiWindow is the window of one list a player's renderer asks for.
-message UiWindow {
-  // Mod is the mod's name.
-  string mod = 1;
-
-  // Slot identifies the player.
-  int32 slot = 2;
-
-  // ListWindow names the list and its rows.
-  modlock.wasm.ui.ListWindow window = 3;
 }
 
 // GamePaused is whether the game is paused, by the pause a mod sets or by the

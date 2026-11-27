@@ -535,7 +535,7 @@ func (x *Input) GetConsole() *ConsoleLine {
 	return nil
 }
 
-func (x *Input) GetWindow() *control.UiWindow {
+func (x *Input) GetWindow() *Window {
 	if x, ok := x.GetBody().(*Input_Window); ok {
 		return x.Window
 	}
@@ -568,7 +568,7 @@ type Input_Console struct {
 
 type Input_Window struct {
 	// Window asks for the rows near a list's visible box.
-	Window *control.UiWindow `protobuf:"bytes,5,opt,name=window,proto3,oneof"`
+	Window *Window `protobuf:"bytes,5,opt,name=window,proto3,oneof"`
 }
 
 func (*Input_Command) isInput_Body() {}
@@ -644,6 +644,35 @@ func (x *Change) GetMod() string {
 }
 
 func (x *Change) GetEvent() *ui.UiInputEvent {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+// Window is the run of a list's rows a player's renderer asks a mod for.
+type Window struct {
+	unknownFields []byte
+	// Mod is the mod's name.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Event names the player, the list and its rows.
+	Event *ui.UiWindowEvent `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+}
+
+func (x *Window) Reset() {
+	*x = Window{}
+}
+
+func (*Window) ProtoMessage() {}
+
+func (x *Window) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *Window) GetEvent() *ui.UiWindowEvent {
 	if x != nil {
 		return x.Event
 	}
@@ -1311,6 +1340,23 @@ func (m *Change) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *Window) CloneVT() *Window {
+	if m == nil {
+		return (*Window)(nil)
+	}
+	r := new(Window)
+	r.Mod = m.Mod
+	r.Event = protobuf_go_lite.CloneVTValue(m.Event)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Window) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *Press) CloneVT() *Press {
 	if m == nil {
 		return (*Press)(nil)
@@ -1957,7 +2003,7 @@ func (this *Input_Window) EqualVT(thatIface isInput_Body) bool {
 	if this == nil && that != nil || this != nil && that == nil {
 		return false
 	}
-	if !protobuf_go_lite.EqualVTImplicit(this.Window, that.Window, func() *control.UiWindow { return &control.UiWindow{} }) {
+	if !protobuf_go_lite.EqualVTImplicit(this.Window, that.Window, func() *Window { return &Window{} }) {
 		return false
 	}
 	return true
@@ -2006,6 +2052,29 @@ func (this *Change) EqualVT(that *Change) bool {
 
 func (this *Change) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Change)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Window) EqualVT(that *Window) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Event, that.Event) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Window) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Window)
 	if !ok {
 		return false
 	}
@@ -2874,7 +2943,7 @@ func (x *Input) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				ov.Window = nil
 				return
 			}
-			ov.Window = &control.UiWindow{}
+			ov.Window = &Window{}
 			ov.Window.UnmarshalProtoJSON(s.WithField("window", true))
 		}
 	})
@@ -2994,6 +3063,60 @@ func (x *Change) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the Change from JSON.
 func (x *Change) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Window message to JSON.
+func (x *Window) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Event != nil || s.HasField("event") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("event")
+		x.Event.MarshalProtoJSON(s.WithField("event"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Window to JSON.
+func (x *Window) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Window message from JSON.
+func (x *Window) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "event":
+			if s.ReadNil() {
+				x.Event = nil
+				return
+			}
+			x.Event = &ui.UiWindowEvent{}
+			x.Event.UnmarshalProtoJSON(s.WithField("event", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Window from JSON.
+func (x *Window) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -4174,6 +4297,53 @@ func (m *Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Window) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Window) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Window) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Event != nil {
+		size, err := m.Event.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Press) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4884,6 +5054,21 @@ func (m *Change) SizeVT() (n int) {
 	return n
 }
 
+func (m *Window) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	if m.Event != nil {
+		l = m.Event.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *Press) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -5275,7 +5460,7 @@ func (x *Input) MarshalProtoText() string {
 	case *Input_Window:
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "window")
 		if body.Window == nil {
-			protobuf_go_lite.TextWriteTextMarshaler(&sb, &control.UiWindow{})
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Window{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Window)
 		}
@@ -5324,6 +5509,24 @@ func (x *Change) MarshalProtoText() string {
 }
 
 func (x *Change) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Window) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Window")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Event != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "event")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Event)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Window) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -6272,7 +6475,7 @@ func (m *Input) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 			} else {
-				v := &control.UiWindow{}
+				v := &Window{}
 				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 					return err
 				}
@@ -6415,6 +6618,74 @@ func (m *Change) UnmarshalVT(dAtA []byte) error {
 			}
 			if m.Event == nil {
 				m.Event = &ui.UiInputEvent{}
+			}
+			if err := m.Event.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Window) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Window: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Window: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Event", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Event == nil {
+				m.Event = &ui.UiWindowEvent{}
 			}
 			if err := m.Event.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err

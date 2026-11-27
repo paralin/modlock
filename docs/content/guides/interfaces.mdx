@@ -369,21 +369,22 @@ images and variables name the row's fields as `{field}`:
 ```
 
 The rows show in order of `rank`, then `sort`, then `key`, and each row's key
-names it while the rows change. The host holds every row and sends the
-player's game only the rows near what the list shows, and the game builds
-panels only for the rows in view, so a list of ten thousand rows costs the
-player what a list of a hundred does. The player scrolls with the wheel. A
-draw that passes the same `rows` array as the last draw sends nothing and
-costs nothing, however long the list, so keep the array while its rows stay
-the same and pass a new one to change them. A draw with a new array compares
-every row with the rows the player holds and sends only the rows added,
-changed and removed.
+names it while the rows change; of two rows with one key, the last counts. The
+mod holds every row. The list's node carries only the window of rows near what
+the list shows, and the player's game asks the mod for a new window as the
+player scrolls with the wheel, so a list of ten thousand rows costs the mod's
+draw and the player's game what a list of a hundred does. The library orders
+an array of rows once, and rows already in order cost one pass. A draw that
+passes the same `rows` array again, even after draws without the list, costs
+only its window, so keep the array while its rows stay the same and pass a new
+one to change them. In Go and Python the rows are a value made once, with
+`ui.NewRows` and `ui.Rows`, which a draw keeps the same way.
 
 A row's height is fixed by `rowHeight`, from 1 to 1000 pixels, and the list's
 own `height` is how much of it shows. The template is a panel, label or image
 holding at most fifteen more, with no buttons or inputs. A row has at most
-sixteen fields. The host takes at most 20,000 rows in a list, and 2 MiB of rows
-across a player's interface. In Python the element is `list_`, and in Go
+sixteen fields. The host takes at most 20,000 rows in a list, and a window of
+at most 256, with 2 MiB of rows across a player's interface. In Python the element is `list_`, and in Go
 `ui.List`.
 
 The player focuses a row with the arrow keys or the controller, and chooses
@@ -409,7 +410,7 @@ the same way an input draws back its value:
 `selectedStyle` while it is selected. The focus belongs to the player's game,
 which keeps it on its row as rows are added, removed or reordered above it.
 When the focused row leaves the list, the focus moves to the row that took its
-place. A selected key that the list no longer holds shows nothing selected.
+place. A selected key that the list does not hold shows nothing selected.
 
 ## Local menus and portable text
 

@@ -330,9 +330,11 @@ std::expected<void, std::string> Check(const ui::Node& node);
 
 // CheckList returns why a list node cannot be drawn: its row template holds
 // at most kMaxTemplate panels, labels and images with distinct ids, one of
-// them the row's own panel, whose children name only template nodes, and an
-// image the template fills from a field passes as content. Rows travel in
-// the change, never in the node, and a row's height is bounded.
+// them the row's own panel, whose children name only template nodes, and a
+// row's height is bounded. The node carries the window of rows the mod
+// shows: at most kMaxWindow rows with distinct short keys and few short
+// fields, an image field holding content, inside a list of at most kMaxRows
+// whose focused row, when the list holds it, falls inside the list.
 std::expected<void, std::string> CheckList(const ui::Node& node) {
   if ((node.kind() == ui::KIND_LIST) != node.has_list()) {
     return std::unexpected("node " + node.id() + ": a list node holds a list, and only it");
@@ -341,11 +343,13 @@ std::expected<void, std::string> CheckList(const ui::Node& node) {
     return {};
   }
   const auto& list = node.list();
-  if (list.rows_size() > 0 || list.first() != 0 || list.total() != 0) {
-    return std::unexpected("node " + node.id() + ": a list's rows travel in the change's lists");
+  if (list.total() > UiTrees::kMaxRows || list.rows_size() > UiTrees::kMaxWindow ||
+      list.first() + static_cast<uint64_t>(list.rows_size()) > list.total()) {
+    return std::unexpected("node " + node.id() +
+                           ": a list shows at most 256 of its rows, and holds at most 20000");
   }
-  if (!list.focus().empty() || list.has_focus_at()) {
-    return std::unexpected("node " + node.id() + ": a list's focus is the player's");
+  if (list.focus().size() > kMaxId || (list.has_focus_at() && list.focus_at() >= list.total())) {
+    return std::unexpected("node " + node.id() + ": a list's focus is a key it holds");
   }
   if (list.selected().size() > kMaxId) {
     return std::unexpected("node " + node.id() + ": a list's selected key is at most 64 bytes");
@@ -381,6 +385,35 @@ std::expected<void, std::string> CheckList(const ui::Node& node) {
     for (const auto& child : part.children()) {
       if (child.empty() || !ids.contains(child)) {
         return std::unexpected("node " + node.id() + ": a list's row names only its own nodes");
+      }
+    }
+  }
+
+  // Each row of the window has its own short key and short fields, and the
+  // fields the template shows as images hold content.
+  std::vector<std::string_view> images;
+  for (const auto& part : list.row()) {
+    if (const auto field = Placeholder(part.image()); !field.empty()) {
+      images.push_back(field);
+    }
+  }
+  std::set<std::string_view> keys;
+  for (const auto& row : list.rows()) {
+    if (row.key().empty() || row.key().size() > kMaxId) {
+      return std::unexpected("list " + node.id() + ": a row's key is 1 to 64 bytes");
+    }
+    if (!keys.insert(row.key()).second) {
+      return std::unexpected("list " + node.id() + " shows row " + row.key() + " twice");
+    }
+    if (row.fields_size() > kMaxFields) {
+      return std::unexpected("list " + node.id() + ": a row holds at most 16 fields");
+    }
+    for (const auto& [name, value] : row.fields()) {
+      if (!IsWord(name, "") || value.size() > kMaxText) {
+        return std::unexpected("list " + node.id() + ": a row's field is a word and short text");
+      }
+      if (std::ranges::contains(images, name) && !value.empty() && !IsContentImage(value)) {
+        return std::unexpected("list " + node.id() + ": images come from the game's content");
       }
     }
   }
@@ -752,13 +785,7 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
     if (node.kind() == ui::KIND_DOCUMENT_INPUT && !node.disabled()) {
       kept.document_control = NextDocumentControl();
     }
-
-    // A list keeps its rows through a change to its node.
-    auto& slot_node = tree[node.id()];
-    if (kept.kind == ui::KIND_LIST && slot_node.kind == ui::KIND_LIST) {
-      kept.rows = slot_node.rows;
-    }
-    slot_node = std::move(kept);
+    tree[node.id()] = std::move(kept);
   }
   for (const auto& id : change.removed()) {
     tree.erase(id);
@@ -766,9 +793,14 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
   if (tree.size() > kMaxNodes) {
     return std::unexpected("the interface has too many nodes");
   }
-  auto lists = CheckLists(tree, change);
-  if (!lists) {
-    return std::unexpected(lists.error());
+
+  // Bound the windows of every list of the tree together.
+  size_t list_bytes = 0;
+  for (const auto& [id, shown] : tree) {
+    list_bytes += shown.window_bytes;
+  }
+  if (list_bytes > kMaxListBytes) {
+    return std::unexpected("the interface's lists hold too many bytes");
   }
 
   // A player gets one form and one export per tree. Only an input reachable
@@ -833,9 +865,7 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
     document_controls_.erase(slot);
   }
 
-  // Apply the rows, then store the tree, dropping an empty one. The rows
-  // change in place: the tree they share is the one this replaces.
-  Commit(*lists);
+  // Store the tree, dropping an empty one.
   left_.erase(slot);
   if (tree.empty()) {
     trees_.erase(slot);
@@ -845,104 +875,8 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
   return {};
 }
 
-std::expected<std::vector<UiTrees::Pending>, std::string> UiTrees::CheckLists(
-    std::map<std::string, Shown, std::less<>>& tree, const ui::Change& change) {
-  // Each change names a list node of the tree, once.
-  std::vector<Pending> lists;
-  std::set<std::string_view> named;
-  for (const auto& rows : change.lists()) {
-    const auto found = tree.find(rows.node());
-    if (found == tree.end() || found->second.kind != ui::KIND_LIST) {
-      return std::unexpected("node " + rows.node() + " is not a list");
-    }
-    if (!named.insert(rows.node()).second) {
-      return std::unexpected("the change names list " + rows.node() + " twice");
-    }
-    auto& pending = lists.emplace_back(Pending{.list = &found->second, .reset = rows.reset()});
-    const auto& fields = found->second.image_fields;
-
-    // Size each row it sets, which has a short key and few short fields, and
-    // whose image fields pass as content.
-    for (const auto& key : rows.removed()) {
-      pending.touched[key] = std::nullopt;
-    }
-    for (const auto& row : rows.set()) {
-      if (row.key().empty() || row.key().size() > kMaxId) {
-        return std::unexpected("list " + rows.node() + ": a row's key is 1 to 64 bytes");
-      }
-      if (row.fields_size() > kMaxFields) {
-        return std::unexpected("list " + rows.node() + ": a row holds at most 16 fields");
-      }
-      for (const auto& [name, value] : row.fields()) {
-        if (!IsWord(name, "") || value.size() > kMaxText) {
-          return std::unexpected("list " + rows.node() +
-                                 ": a row's field is a word and short text");
-        }
-        if (std::ranges::contains(fields, name) && !value.empty() && !IsContentImage(value)) {
-          return std::unexpected("list " + rows.node() + ": images come from the game's content");
-        }
-      }
-      pending.touched[row.key()] = row.ByteSizeLong();
-    }
-
-    // Count what the list holds once the change applies.
-    const Rows* base = rows.reset() || !found->second.rows ? nullptr : found->second.rows.get();
-    pending.count = base ? base->sizes.size() : 0;
-    pending.bytes = base ? base->bytes : 0;
-    for (const auto& [key, size] : pending.touched) {
-      if (base) {
-        if (const auto old = base->sizes.find(key); old != base->sizes.end()) {
-          pending.count--;
-          pending.bytes -= old->second;
-        }
-      }
-      if (size) {
-        pending.count++;
-        pending.bytes += *size;
-      }
-    }
-    if (pending.count > kMaxRows) {
-      return std::unexpected("list " + rows.node() + " has too many rows");
-    }
-  }
-
-  // Bound every list of the tree together, a reset dropping a list's rows.
-  size_t bytes = 0;
-  for (const auto& [id, shown] : tree) {
-    const bool changed = named.contains(id);
-    if (shown.kind == ui::KIND_LIST && shown.rows && !changed) {
-      bytes += shown.rows->bytes;
-    }
-  }
-  for (const auto& pending : lists) {
-    bytes += pending.bytes;
-  }
-  if (bytes > kMaxListBytes) {
-    return std::unexpected("the interface's lists hold too many bytes");
-  }
-  return lists;
-}
-
-void UiTrees::Commit(std::vector<Pending>& lists) {
-  for (auto& pending : lists) {
-    // A reset, or a list without rows, starts from none.
-    auto& rows = pending.list->rows;
-    if (pending.reset || !rows) {
-      rows = std::make_shared<Rows>();
-    }
-    for (const auto& [key, size] : pending.touched) {
-      if (size) {
-        rows->sizes.insert_or_assign(std::string(key), *size);
-      } else if (const auto found = rows->sizes.find(key); found != rows->sizes.end()) {
-        rows->sizes.erase(found);
-      }
-    }
-    rows->bytes = pending.bytes;
-  }
-}
-
-std::expected<ui::ListWindow, std::string> UiTrees::Window(int32_t slot,
-                                                           std::string_view line) const {
+std::expected<ui::UiWindowEvent, std::string> UiTrees::Window(int32_t slot,
+                                                              std::string_view line) const {
   // Read the list's id, two decimal numbers and the focused key, if any.
   const auto first_space = line.find(' ');
   const auto second_space =
@@ -975,7 +909,8 @@ std::expected<ui::ListWindow, std::string> UiTrees::Window(int32_t slot,
   if (found == tree->second.end() || found->second.kind != ui::KIND_LIST) {
     return std::unexpected("node " + std::string(node) + " is not a list");
   }
-  ui::ListWindow window;
+  ui::UiWindowEvent window;
+  window.set_player(slot);
   window.set_node(std::string(node));
   window.set_first(static_cast<uint32_t>(*first));
   window.set_count(static_cast<uint32_t>(*count));
@@ -1203,10 +1138,15 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
     shown.follows_placement = node.follows_placement();
   }
   shown.measure = node.measure();
-  for (const auto& part : node.list().row()) {
-    if (const auto field = Placeholder(part.image()); !field.empty()) {
-      shown.image_fields.emplace_back(field);
+  if (node.has_list()) {
+    const auto& list = node.list();
+    for (const auto& row : list.rows()) {
+      shown.rows.push_back(row.key());
     }
+    if (list.has_focus_at()) {
+      shown.held_focus = list.focus();
+    }
+    shown.window_bytes = list.ByteSizeLong();
   }
   shown.bound = node.bindings_size() > 0;
   for (const auto& binding : node.bindings()) {
@@ -1347,12 +1287,14 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::ChooseRow(int32_t slot,
                                                                 const std::string& name,
                                                                 const Shown& shown,
                                                                 std::string_view value) {
-  // Read "row:<key>", the key in base64url, and refuse a row the list lacks.
+  // Read "row:<key>", the key in base64url, and refuse a row the list does
+  // not show, unless it is the focused row the list holds.
   if (!value.starts_with("row:")) {
     return std::unexpected("list " + name + " takes the row a player chose");
   }
   const auto key = DecodeBase64Url(value.substr(4));
-  if (!key || !shown.rows || !shown.rows->sizes.contains(*key)) {
+  if (!key || key->empty() ||
+      (*key != shown.held_focus && !std::ranges::contains(shown.rows, *key))) {
     return std::unexpected("list " + name + " has no such row");
   }
   ui::UiInputEvent event;

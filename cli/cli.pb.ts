@@ -2,18 +2,14 @@
 // @generated from file github.com/paralin/modlock/cli/cli.proto (package modlock.cli, syntax proto3)
 /* eslint-disable */
 
-import {
-  HostEvent,
-  ModFailed,
-  UiWindow,
-} from '../src/host_app/control/control.pb.js'
+import { HostEvent, ModFailed } from '../src/host_app/control/control.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
 import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
-import { Screen, UiInputEvent } from '../src/wasm/ui/ui.pb.js'
+import { Screen, UiInputEvent, UiWindowEvent } from '../src/wasm/ui/ui.pb.js'
 import { Release } from '../publish/publish.pb.js'
 
 /**
@@ -675,7 +671,7 @@ export interface Input {
     | { value: Press; case: 'press' }
     | { value: Change; case: 'change' }
     | { value: ConsoleLine; case: 'console' }
-    | { value: UiWindow; case: 'window' }
+    | { value: Window; case: 'window' }
 }
 
 export const Input: MessageType<Input> =
@@ -686,7 +682,7 @@ export const Input: MessageType<Input> =
       [2, 'press', 11, 0, Press.codec, 'body'],
       [3, 'change', 11, 0, Change.codec, 'body'],
       [4, 'console', 11, 0, ConsoleLine.codec, 'body'],
-      [5, 'window', 11, 0, UiWindow.codec, 'body'],
+      [5, 'window', 11, 0, Window.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Input): Input => {
@@ -730,7 +726,7 @@ export const Input: MessageType<Input> =
             case 5:
               m.body = {
                 case: 'window',
-                value: UiWindow.decode(
+                value: Window.decode(
                   r,
                   r.delimited(),
                   m.body?.case === 'window' ? m.body.value : {},
@@ -767,7 +763,7 @@ export const Input: MessageType<Input> =
         {
           const o = m.body
           if (o?.case === 'window' && o.value != null)
-            UiWindow.writeField(w, 5, o.value)
+            Window.writeField(w, 5, o.value)
         }
       },
     },
@@ -890,6 +886,60 @@ export const Change: MessageType<Change> =
         {
           const v = m.event
           if (v != null) UiInputEvent.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
+ * Window is the run of a list's rows a player's renderer asks a mod for.
+ *
+ * @generated from message modlock.cli.Window
+ */
+export interface Window {
+  /**
+   * Mod is the mod's name.
+   */
+  mod?: string
+  /**
+   * Event names the player, the list and its rows.
+   */
+  event?: UiWindowEvent
+}
+
+export const Window: MessageType<Window> =
+  /* @__PURE__ */ createMessageType<Window>(
+    'modlock.cli.Window',
+    () => [
+      [1, 'mod', 9],
+      [2, 'event', 11, 0, UiWindowEvent.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Window): Window => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.event = UiWindowEvent.decode(r, r.delimited(), m.event ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Window, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.event
+          if (v != null) UiWindowEvent.writeField(w, 2, v)
         }
       },
     },

@@ -133,7 +133,8 @@ class UiTrees {
   // for a release and 3 for a cancel; a release adds ":" and every handle's
   // value, comma-separated, each clamped and snapped as a slider's, and is
   // refused when they fall out of order. A list's value is "row:" and the
-  // chosen row's key in base64url, refused unless the list holds that row.
+  // chosen row's key in base64url, refused unless the list's window holds
+  // that row or it is the focused row the list holds.
   [[nodiscard]] std::expected<ui::UiInputEvent, std::string> Input(int32_t slot,
                                                                    std::string_view node,
                                                                    std::string_view value) const;
@@ -160,17 +161,17 @@ class UiTrees {
   // Window reads the run of a list's rows a player's renderer asks for, as
   // the game sends it: "<node> <first> <count>", decimal, then the key of
   // the row the player has focused, in base64url, when one is. It returns
-  // the window while slot's tree shows node as a list and count is at most
-  // kMaxWindow.
-  [[nodiscard]] std::expected<ui::ListWindow, std::string> Window(int32_t slot,
-                                                                  std::string_view line) const;
+  // the event the mod hears from slot while slot's tree shows node as a list
+  // and count is at most kMaxWindow.
+  [[nodiscard]] std::expected<ui::UiWindowEvent, std::string> Window(int32_t slot,
+                                                                     std::string_view line) const;
 
-  // kMaxWindow is the most rows one window asks for.
+  // kMaxWindow is the most rows one window asks for, and one list node
+  // holds.
   static constexpr uint32_t kMaxWindow = 256;
 
-  // kMaxRows bounds one list's rows, and kMaxListBytes the encoded rows of
-  // all of one tree's lists, so the program that keeps them holds a bounded
-  // amount per player.
+  // kMaxRows bounds the rows a list holds, which its node's total counts,
+  // and kMaxListBytes the encoded window rows of all of one tree's lists.
   static constexpr size_t kMaxRows = 20000;
   static constexpr size_t kMaxListBytes = 2 << 20;
 
@@ -182,13 +183,6 @@ class UiTrees {
   std::vector<int32_t> Clear();
 
  private:
-  // Rows is what the host keeps of one list's rows: each row's encoded size
-  // by key, and their sum.
-  struct Rows {
-    std::map<std::string, size_t, std::less<>> sizes;
-    size_t bytes = 0;
-  };
-
   // Shown is what the host keeps of one node: its kind, and for an input
   // whether it is disabled and the bounds of the value it holds. length is a
   // text entry's limit in characters, min, max and step a slider's range,
@@ -222,30 +216,13 @@ class UiTrees {
     // from presses, the panels its bindings let press.
     bool bound = false;
     std::vector<std::string> presses;
-    // rows are a list's rows, which a change to the node keeps, and
-    // image_fields the fields its template shows as images.
-    std::shared_ptr<Rows> rows;
-    std::vector<std::string> image_fields;
+    // rows are the keys of a list's window, held_focus its focused key
+    // while the list holds that row, and window_bytes the window's encoded
+    // size.
+    std::vector<std::string> rows;
+    std::string held_focus;
+    size_t window_bytes = 0;
   };
-
-  // Pending is one list's rows once a change applies: the size of each row
-  // the change sets and nullopt for each it removes, whether it drops the
-  // rest first, and the count and bytes that result.
-  struct Pending {
-    Shown* list = nullptr;
-    bool reset = false;
-    std::map<std::string_view, std::optional<size_t>> touched;
-    size_t count = 0;
-    size_t bytes = 0;
-  };
-
-  // CheckLists checks change's rows against tree, the tree the change
-  // leaves, and returns what each list becomes, which Commit applies.
-  static std::expected<std::vector<Pending>, std::string> CheckLists(
-      std::map<std::string, Shown, std::less<>>& tree, const ui::Change& change);
-
-  // Commit applies each list's checked rows.
-  static void Commit(std::vector<Pending>& lists);
 
   // Keep returns what the host keeps of node.
   static Shown Keep(const ui::Node& node);

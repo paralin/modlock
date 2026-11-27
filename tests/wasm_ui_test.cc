@@ -859,17 +859,25 @@ Change ShowList() {
   return change;
 }
 
-// AddRows adds rows keyed "row<first>" onward to change's list "scores",
-// each with a name field of size bytes.
-void AddRows(Change& change, int first, int count, size_t size = 4) {
-  auto* rows = change.add_lists();
-  rows->set_node("scores");
+// AddRows makes change's list "scores" show the window of count rows keyed
+// "row<first>" onward, out of total, each with fields fields of size bytes.
+void AddRows(Change& change, int first, int count, int total, size_t size = 4, int fields = 1) {
+  auto* list = change.mutable_set(0)->mutable_list();
+  list->set_first(first);
+  list->set_total(total);
   for (int i = first; i < first + count; ++i) {
-    auto* row = rows->add_set();
+    auto* row = list->add_rows();
     row->set_key("row" + std::to_string(i));
-    row->set_rank(i);
     (*row->mutable_fields())["name"] = std::string(size, 'n');
+    for (int f = 1; f < fields; ++f) {
+      (*row->mutable_fields())["f" + std::to_string(f)] = std::string(size, 'n');
+    }
   }
+}
+
+// Row returns change's list's row at, for a test to spoil.
+modlock::wasm::ui::Row& Row(Change& change, int at) {
+  return *change.mutable_set(0)->mutable_list()->mutable_rows(at);
 }
 
 TEST(UiTrees, ChecksAListsTemplateAndRows) {
@@ -877,34 +885,49 @@ TEST(UiTrees, ChecksAListsTemplateAndRows) {
   // row's own panel, is drawn; its rows may name content images.
   UiTrees trees;
   auto shown = ShowList();
-  AddRows(shown, 0, 2);
-  (*shown.mutable_lists(0)->mutable_set(0)->mutable_fields())["hero"] =
-      "file://{images}/heroes/haze.png";
+  AddRows(shown, 0, 2, 2);
+  (*Row(shown, 0).mutable_fields())["hero"] = "file://{images}/heroes/haze.png";
   ASSERT_TRUE(trees.Apply(3, shown));
 
-  // An image field from outside the game's content, a long key and too many
-  // fields are refused, and so is a row change for a node that is no list.
-  auto web = Change();
-  AddRows(web, 5, 1);
-  (*web.mutable_lists(0)->mutable_set(0)->mutable_fields())["hero"] = "https://example.com/x.png";
+  // An image field from outside the game's content, a long or repeated key
+  // and too many fields are refused.
+  auto web = ShowList();
+  AddRows(web, 0, 1, 1);
+  (*Row(web, 0).mutable_fields())["hero"] = "https://example.com/x.png";
   EXPECT_FALSE(trees.Apply(3, web));
-  auto key = Change();
-  AddRows(key, 5, 1);
-  key.mutable_lists(0)->mutable_set(0)->set_key(std::string(65, 'k'));
+  auto key = ShowList();
+  AddRows(key, 0, 1, 1);
+  Row(key, 0).set_key(std::string(65, 'k'));
   EXPECT_FALSE(trees.Apply(3, key));
-  auto fields = Change();
-  AddRows(fields, 5, 1);
-  for (int i = 0; i < 17; ++i) {
-    (*fields.mutable_lists(0)->mutable_set(0)->mutable_fields())["f" + std::to_string(i)] = "x";
-  }
+  auto twice = ShowList();
+  AddRows(twice, 0, 2, 2);
+  Row(twice, 1).set_key("row0");
+  EXPECT_FALSE(trees.Apply(3, twice));
+  auto fields = ShowList();
+  AddRows(fields, 0, 1, 1, 1, 17);
   EXPECT_FALSE(trees.Apply(3, fields));
-  auto other = Change();
-  AddRows(other, 5, 1);
-  other.mutable_lists(0)->set_node("missing");
-  EXPECT_FALSE(trees.Apply(3, other));
 
-  // A template without the row's own panel, with an input, with a child it
-  // lacks or with rows carried in the node is refused, as is a height of 0.
+  // The window fits the list: at most kMaxWindow rows, ending by the total,
+  // which is at most kMaxRows, with the focused row inside the list.
+  auto wide = ShowList();
+  AddRows(wide, 0, UiTrees::kMaxWindow + 1, 1000);
+  EXPECT_FALSE(trees.Apply(3, wide));
+  auto past = ShowList();
+  AddRows(past, 10, 5, 12);
+  EXPECT_FALSE(trees.Apply(3, past));
+  auto huge = ShowList();
+  AddRows(huge, 0, 1, UiTrees::kMaxRows + 1);
+  EXPECT_FALSE(trees.Apply(3, huge));
+  auto focused = ShowList();
+  AddRows(focused, 0, 1, 5);
+  focused.mutable_set(0)->mutable_list()->set_focus("row4");
+  focused.mutable_set(0)->mutable_list()->set_focus_at(4);
+  EXPECT_TRUE(trees.Apply(3, focused));
+  focused.mutable_set(0)->mutable_list()->set_focus_at(5);
+  EXPECT_FALSE(trees.Apply(3, focused));
+
+  // A template without the row's own panel, with an input or with a child it
+  // lacks is refused, as is a height of 0.
   auto rootless = ShowList();
   rootless.mutable_set(0)->mutable_list()->mutable_row(0)->set_id("row");
   EXPECT_FALSE(trees.Apply(3, rootless));
@@ -914,58 +937,34 @@ TEST(UiTrees, ChecksAListsTemplateAndRows) {
   auto stray = ShowList();
   stray.mutable_set(0)->mutable_list()->mutable_row(0)->add_children("gone");
   EXPECT_FALSE(trees.Apply(3, stray));
-  auto carried = ShowList();
-  carried.mutable_set(0)->mutable_list()->add_rows()->set_key("row0");
-  EXPECT_FALSE(trees.Apply(3, carried));
   auto flat = ShowList();
   flat.mutable_set(0)->mutable_list()->set_row_height(0);
   EXPECT_FALSE(trees.Apply(3, flat));
 }
 
-TEST(UiTrees, RefusesARowChangePastTheLimitsAndKeepsTheList) {
-  // A list holds kMaxRows rows; one more is refused.
+TEST(UiTrees, BoundsTheWindowsOfATreeTogether) {
+  // One full window of large rows fits, and a second list of the same size
+  // pushes the tree past kMaxListBytes. A row encodes to a little more than
+  // its fields, so five 1000-byte fields over 256 rows is about 1.3 MB, and
+  // two such windows are past the 2 MiB limit.
   UiTrees trees;
-  auto full = ShowList();
-  AddRows(full, 0, UiTrees::kMaxRows);
-  ASSERT_TRUE(trees.Apply(3, full));
-  auto more = Change();
-  AddRows(more, UiTrees::kMaxRows, 1);
-  EXPECT_FALSE(trees.Apply(3, more));
+  auto first = ShowList();
+  AddRows(first, 0, UiTrees::kMaxWindow, 20000, 1000, 5);
+  ASSERT_TRUE(trees.Apply(3, first));
+  auto second = ShowList();
+  second.set_reset(false);
+  second.mutable_set(0)->set_id("more");
+  AddRows(second, 0, UiTrees::kMaxWindow, 20000, 1000, 5);
+  EXPECT_FALSE(trees.Apply(3, second));
 
-  // The refusal left the list as it was: dropping one row makes room for
-  // exactly one, and a change to its node keeps its rows.
-  auto swap = Change();
-  AddRows(swap, UiTrees::kMaxRows, 1);
-  swap.mutable_lists(0)->add_removed("row0");
-  ASSERT_TRUE(trees.Apply(3, swap));
-  auto renamed = ShowList();
-  renamed.set_reset(false);
-  ASSERT_TRUE(trees.Apply(3, renamed));
-  auto again = Change();
-  AddRows(again, 0, 1);
-  EXPECT_FALSE(trees.Apply(3, again));
-
-  // A reset drops the rows.
-  ASSERT_TRUE(trees.Apply(3, ShowList()));
-  ASSERT_TRUE(trees.Apply(3, more));
-
-  // The lists' bytes are bounded together, and a refused change leaves the
-  // bytes as they were, so a row of the same size still fits. A row encodes
-  // to more than its field's bytes and less than 64 more, so fits rows fit
-  // and more than kMaxListBytes / row rows do not.
-  UiTrees sized;
-  const size_t row = 1000;
-  const int fits = static_cast<int>(UiTrees::kMaxListBytes / (row + 64));
-  const int over = static_cast<int>(UiTrees::kMaxListBytes / row) + 1;
-  auto big = ShowList();
-  AddRows(big, 0, fits, row);
-  ASSERT_TRUE(sized.Apply(3, big));
-  auto past = Change();
-  AddRows(past, fits, over - fits, row);
-  EXPECT_FALSE(sized.Apply(3, past));
-  auto replaced = Change();
-  AddRows(replaced, 0, 1, row);
-  EXPECT_TRUE(sized.Apply(3, replaced));
+  // The refused change left the tree as it was, so a small second list fits.
+  ASSERT_TRUE(trees.Window(3, "scores 0 50"));
+  EXPECT_FALSE(trees.Window(3, "more 0 50"));
+  auto small = ShowList();
+  small.set_reset(false);
+  small.mutable_set(0)->set_id("more");
+  AddRows(small, 0, 10, 10);
+  EXPECT_TRUE(trees.Apply(3, small));
 }
 
 TEST(UiTrees, TakesAWindowOnlyForAListTheTreeShows) {
@@ -975,6 +974,7 @@ TEST(UiTrees, TakesAWindowOnlyForAListTheTreeShows) {
   ASSERT_TRUE(trees.Apply(3, ShowList()));
   auto window = trees.Window(3, "scores 120 64");
   ASSERT_TRUE(window) << window.error();
+  EXPECT_EQ(window->player(), 3);
   EXPECT_EQ(window->node(), "scores");
   EXPECT_EQ(window->first(), 120u);
   EXPECT_EQ(window->count(), 64u);
@@ -990,7 +990,7 @@ TEST(UiTrees, TakesTheFocusAndChosenRowOfAList) {
   // A window carries the focused row's key, of 1 to 64 bytes, in base64url.
   UiTrees trees;
   auto shown = ShowList();
-  AddRows(shown, 0, 2);
+  AddRows(shown, 0, 2, 2);
   ASSERT_TRUE(trees.Apply(3, shown));
   auto window = trees.Window(3, "scores 0 50 cm93MQ");
   ASSERT_TRUE(window) << window.error();
@@ -1009,14 +1009,21 @@ TEST(UiTrees, TakesTheFocusAndChosenRowOfAList) {
   EXPECT_FALSE(trees.Input(3, "scores", "row:cm93OQ"));
   EXPECT_FALSE(trees.Input(3, "scores", "1"));
 
-  // The focus is the player's, so a mod may not set it, and a selected key
-  // is bounded as a row's is.
-  auto focus = ShowList();
-  focus.mutable_set(0)->mutable_list()->set_focus("row1");
-  EXPECT_FALSE(trees.Apply(3, focus));
-  auto at = ShowList();
-  at.mutable_set(0)->mutable_list()->set_focus_at(1);
-  EXPECT_FALSE(trees.Apply(3, at));
+  // A focused row the list holds outside its window may be chosen too, and
+  // a focus the list lost may not.
+  auto held = ShowList();
+  AddRows(held, 10, 2, 20);
+  held.mutable_set(0)->mutable_list()->set_focus("row3");
+  held.mutable_set(0)->mutable_list()->set_focus_at(3);
+  ASSERT_TRUE(trees.Apply(3, held));
+  EXPECT_TRUE(trees.Input(3, "scores", "row:cm93Mw"));
+  EXPECT_TRUE(trees.Input(3, "scores", "row:cm93MTA"));
+  EXPECT_FALSE(trees.Input(3, "scores", "row:cm93MQ"));
+  held.mutable_set(0)->mutable_list()->clear_focus_at();
+  ASSERT_TRUE(trees.Apply(3, held));
+  EXPECT_FALSE(trees.Input(3, "scores", "row:cm93Mw"));
+
+  // A selected key is bounded as a row's is.
   auto selected = ShowList();
   selected.mutable_set(0)->mutable_list()->set_selected("row1");
   EXPECT_TRUE(trees.Apply(3, selected));
