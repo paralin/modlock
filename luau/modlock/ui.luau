@@ -469,7 +469,9 @@ export type RangeHandle = {
 -- holds a handle a redraw leaves the handles where the player has them.
 -- onChange runs with every value as the player lets go of a handle, and
 -- onHold with each grab, release and cancellation by the handle's name.
--- Changing the handles' names draws a new range.
+-- Left and right step the active handle from the keyboard or a controller,
+-- confirm makes the next handle active, and each step reports every value at
+-- once, as a release. Changing the handles' names draws a new range.
 export type RangeProps = {
 	key: (string | number)?,
 	class: string?,
