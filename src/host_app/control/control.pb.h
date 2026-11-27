@@ -80,6 +80,10 @@ class Forward;
 struct ForwardDefaultTypeInternal;
 extern ForwardDefaultTypeInternal _Forward_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull Forward_class_data_;
+class GamePaused;
+struct GamePausedDefaultTypeInternal;
+extern GamePausedDefaultTypeInternal _GamePaused_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull GamePaused_class_data_;
 class HostEvent;
 struct HostEventDefaultTypeInternal;
 extern HostEventDefaultTypeInternal _HostEvent_default_instance_;
@@ -272,7 +276,7 @@ class ServiceResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceResult*>(
         &_ServiceResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(ServiceResult& a, ServiceResult& b) { a.Swap(&b); }
   inline void Swap(ServiceResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -484,7 +488,7 @@ class ServiceReply final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceReply*>(
         &_ServiceReply_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(ServiceReply& a, ServiceReply& b) { a.Swap(&b); }
   inline void Swap(ServiceReply* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -764,7 +768,7 @@ class ServiceCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceCall*>(
         &_ServiceCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(ServiceCall& a, ServiceCall& b) { a.Swap(&b); }
   inline void Swap(ServiceCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1022,7 +1026,7 @@ class ServiceAnswer final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceAnswer*>(
         &_ServiceAnswer_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(ServiceAnswer& a, ServiceAnswer& b) { a.Swap(&b); }
   inline void Swap(ServiceAnswer* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3636,6 +3640,196 @@ class ModCall final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ModCall_class_data_;
 // -------------------------------------------------------------------
 
+class GamePaused final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.GamePaused) */ {
+ public:
+  inline GamePaused() : GamePaused(nullptr) {}
+  ~GamePaused() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(GamePaused* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(GamePaused));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR GamePaused(::google::protobuf::internal::ConstantInitialized);
+
+  inline GamePaused(const GamePaused& from) : GamePaused(nullptr, from) {}
+  inline GamePaused(GamePaused&& from) noexcept
+      : GamePaused(nullptr, ::std::move(from)) {}
+  inline GamePaused& operator=(const GamePaused& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline GamePaused& operator=(GamePaused&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const GamePaused& default_instance() {
+    return *reinterpret_cast<const GamePaused*>(
+        &_GamePaused_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 17;
+  friend void swap(GamePaused& a, GamePaused& b) { a.Swap(&b); }
+  inline void Swap(GamePaused* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(GamePaused* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  GamePaused* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<GamePaused>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const GamePaused& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const GamePaused& from) { GamePaused::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(GamePaused* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.GamePaused"; }
+
+  explicit GamePaused(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  GamePaused(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const GamePaused& from);
+  GamePaused(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, GamePaused&& from) noexcept
+      : GamePaused(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPausedFieldNumber = 1,
+  };
+  // bool paused = 1;
+  void clear_paused() ;
+  bool paused() const;
+  void set_paused(bool value);
+
+  private:
+  bool _internal_paused() const;
+  void _internal_set_paused(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.GamePaused)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const GamePaused& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    bool paused_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull GamePaused_class_data_;
+// -------------------------------------------------------------------
+
 class Forward final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.host_app.control.Forward) */ {
  public:
@@ -3691,7 +3885,7 @@ class Forward final : public ::google::protobuf::Message
     return *reinterpret_cast<const Forward*>(
         &_Forward_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(Forward& a, Forward& b) { a.Swap(&b); }
   inline void Swap(Forward* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3920,7 +4114,7 @@ class Fixture final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixture*>(
         &_Fixture_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(Fixture& a, Fixture& b) { a.Swap(&b); }
   inline void Swap(Fixture* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4407,7 +4601,7 @@ class Fixtures final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixtures*>(
         &_Fixtures_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(Fixtures& a, Fixtures& b) { a.Swap(&b); }
   inline void Swap(Fixtures* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5615,6 +5809,7 @@ class HostEvent final : public ::google::protobuf::Message
     kServiceCall = 14,
     kControllersWanted = 15,
     kUiWindow = 16,
+    kPaused = 17,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 4;
@@ -5720,6 +5915,7 @@ class HostEvent final : public ::google::protobuf::Message
     kServiceCallFieldNumber = 14,
     kControllersWantedFieldNumber = 15,
     kUiWindowFieldNumber = 16,
+    kPausedFieldNumber = 17,
   };
   // .modlock.host_app.control.ModStarted started = 1;
   bool has_started() const;
@@ -6025,6 +6221,25 @@ class HostEvent final : public ::google::protobuf::Message
   ::modlock::host_app::control::UiWindow* PROTOBUF_NONNULL _internal_mutable_ui_window();
 
   public:
+  // .modlock.host_app.control.GamePaused paused = 17;
+  bool has_paused() const;
+  private:
+  bool _internal_has_paused() const;
+
+  public:
+  void clear_paused() ;
+  const ::modlock::host_app::control::GamePaused& paused() const;
+  [[nodiscard]] ::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE release_paused();
+  ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL mutable_paused();
+  void set_allocated_paused(::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_paused(::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE unsafe_arena_release_paused();
+
+  private:
+  const ::modlock::host_app::control::GamePaused& _internal_paused() const;
+  ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL _internal_mutable_paused();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.HostEvent)
@@ -6046,11 +6261,12 @@ class HostEvent final : public ::google::protobuf::Message
   void set_has_service_call();
   void set_has_controllers_wanted();
   void set_has_ui_window();
+  void set_has_paused();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 16,
-                                   16, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 17,
+                                   17, 0,
                                    2>
       _table_;
 
@@ -6088,6 +6304,7 @@ class HostEvent final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE service_call_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE controllers_wanted_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE ui_window_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE paused_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -8561,6 +8778,88 @@ inline ::modlock::host_app::control::UiWindow* PROTOBUF_NONNULL HostEvent::mutab
   return _msg;
 }
 
+// .modlock.host_app.control.GamePaused paused = 17;
+inline bool HostEvent::has_paused() const {
+  return body_case() == kPaused;
+}
+inline bool HostEvent::_internal_has_paused() const {
+  return body_case() == kPaused;
+}
+inline void HostEvent::set_has_paused() {
+  _impl_._oneof_case_[0] = kPaused;
+}
+inline void HostEvent::clear_paused() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kPaused) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.paused_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.paused_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE HostEvent::release_paused() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.HostEvent.paused)
+  if (body_case() == kPaused) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::GamePaused*>(_impl_.body_.paused_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.paused_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::GamePaused& HostEvent::_internal_paused() const {
+  return body_case() == kPaused ? static_cast<const ::modlock::host_app::control::GamePaused&>(*reinterpret_cast<::modlock::host_app::control::GamePaused*>(_impl_.body_.paused_))
+                     : reinterpret_cast<const ::modlock::host_app::control::GamePaused&>(::modlock::host_app::control::_GamePaused_default_instance_);
+}
+inline const ::modlock::host_app::control::GamePaused& HostEvent::paused() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.HostEvent.paused)
+  return _internal_paused();
+}
+inline ::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE HostEvent::unsafe_arena_release_paused() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.HostEvent.paused)
+  if (body_case() == kPaused) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::GamePaused*>(_impl_.body_.paused_);
+    _impl_.body_.paused_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void HostEvent::unsafe_arena_set_allocated_paused(
+    ::modlock::host_app::control::GamePaused* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_paused();
+    _impl_.body_.paused_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.HostEvent.paused)
+}
+inline ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL HostEvent::_internal_mutable_paused() {
+  if (body_case() != kPaused) {
+    clear_body();
+    set_has_paused();
+    _impl_.body_.paused_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::GamePaused>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::GamePaused*>(_impl_.body_.paused_);
+}
+inline ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL HostEvent::mutable_paused()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::GamePaused* _msg = _internal_mutable_paused();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.paused)
+  return _msg;
+}
+
 inline bool HostEvent::has_body() const {
   return body_case() != BODY_NOT_SET;
 }
@@ -10343,6 +10642,35 @@ inline void UiWindow::set_allocated_window(::modlock::wasm::ui::ListWindow* PROT
 
   _impl_.window_ = reinterpret_cast<::modlock::wasm::ui::ListWindow*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.UiWindow.window)
+}
+
+// -------------------------------------------------------------------
+
+// GamePaused
+
+// bool paused = 1;
+inline void GamePaused::clear_paused() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.paused_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline bool GamePaused::paused() const {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.GamePaused.paused)
+  return _internal_paused();
+}
+inline void GamePaused::set_paused(bool value) {
+  _internal_set_paused(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.GamePaused.paused)
+}
+inline bool GamePaused::_internal_paused() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.paused_;
+}
+inline void GamePaused::_internal_set_paused(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.paused_ = value;
 }
 
 // -------------------------------------------------------------------

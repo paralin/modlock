@@ -376,8 +376,9 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 			}
 			wasPresent = present
 		}
-		if changes := session.Changes(sent, screen); reset || len(changes) != 0 {
-			frame := &ScreenFrame{Changes: changes, Reset_: reset}
+		changes := session.Changes(sent, screen)
+		if reset || len(changes) != 0 || screen.GetPaused() != sent.GetPaused() {
+			frame := &ScreenFrame{Changes: changes, Reset_: reset, Paused: screen.GetPaused()}
 			if err := strm.Send(&SessionEvent{Body: &SessionEvent_Screen{Screen: frame}}); err != nil {
 				return err
 			}

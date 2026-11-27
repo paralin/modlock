@@ -26,6 +26,8 @@ type Screens struct {
 	players map[int32]*control.PlayerJoined
 	// trees holds each mod's tree, per slot.
 	trees map[int32]trees
+	// paused is whether the game is paused, which every screen carries.
+	paused bool
 	// changed is closed and replaced whenever any player's screen changes.
 	changed chan struct{}
 }
@@ -42,8 +44,9 @@ func NewScreens(account uint64) *Screens {
 }
 
 // Handle follows one host event: a join that binds a person's slot, a leave
-// that frees it, a mod's change to a player's interface, or the window of a
-// list's rows that player's renderer asks for.
+// that frees it, a mod's change to a player's interface, the window of a
+// list's rows that player's renderer asks for, or the game pausing or
+// resuming.
 func (s *Screens) Handle(event *control.HostEvent) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -69,6 +72,12 @@ func (s *Screens) Handle(event *control.HostEvent) {
 		if !s.trees[update.GetSlot()].window(update.GetMod(), update.GetWindow()) {
 			return
 		}
+	case event.GetPaused() != nil:
+		paused := event.GetPaused().GetPaused()
+		if paused == s.paused {
+			return
+		}
+		s.paused = paused
 	default:
 		return
 	}
@@ -106,7 +115,7 @@ func (s *Screens) notify() {
 func (s *Screens) Screen() (*ui.Screen, <-chan struct{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.trees[s.slot].screen(true), s.changed
+	return s.pause(s.trees[s.slot].screen(true)), s.changed
 }
 
 // Player returns the screen of the person with the Steam ID account, whether
@@ -117,15 +126,21 @@ func (s *Screens) Player(account uint64) (*ui.Screen, bool, <-chan struct{}) {
 	defer s.mu.Unlock()
 	for slot, joined := range s.players {
 		if joined.GetSteamId() == account {
-			return s.trees[slot].screen(true), true, s.changed
+			return s.pause(s.trees[slot].screen(true)), true, s.changed
 		}
 	}
-	return &ui.Screen{}, false, s.changed
+	return s.pause(&ui.Screen{}), false, s.changed
+}
+
+// pause marks screen with whether the game is paused. Callers hold mu.
+func (s *Screens) pause(screen *ui.Screen) *ui.Screen {
+	screen.Paused = s.paused
+	return screen
 }
 
 // Snapshot returns the events that bring new Screens to this one's state:
 // each person's join, then each tree as a reset change with every list's
-// rows, then each list's window.
+// rows, then each list's window, then the pause while the game is paused.
 func (s *Screens) Snapshot() []*control.HostEvent {
 	// Join each person, in slot order.
 	s.mu.Lock()
@@ -153,6 +168,10 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 			events = append(events, &control.HostEvent{Body: &control.HostEvent_Ui{Ui: update}})
 		}
 		events = append(events, windows...)
+	}
+	if s.paused {
+		paused := &control.GamePaused{Paused: true}
+		events = append(events, &control.HostEvent{Body: &control.HostEvent_Paused{Paused: paused}})
 	}
 	return events
 }

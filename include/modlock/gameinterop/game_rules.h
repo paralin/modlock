@@ -63,6 +63,9 @@ class MODLOCK_API GamePause {
                                                        void* schema_system);
   // Set also refreshes pause modifiers on newly created entities when already paused.
   std::expected<void, std::string> Set(bool paused) const;
+  // Paused reports whether the rules hold the server's pause, the one Set
+  // changes. With no active rules the game is not paused.
+  std::expected<bool, std::string> Paused() const;
 
  private:
   void* const* current_ = nullptr;

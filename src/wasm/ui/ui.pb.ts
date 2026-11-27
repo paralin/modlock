@@ -5401,12 +5401,20 @@ export interface Screen {
    * Trees holds one tree per mod that shows this player anything.
    */
   trees?: Tree[]
+  /**
+   * Paused is true while the game is paused, which holds every timeline on
+   * the game's clock.
+   */
+  paused?: boolean
 }
 
 export const Screen: MessageType<Screen> =
   /* @__PURE__ */ createMessageType<Screen>(
     'modlock.wasm.ui.Screen',
-    () => [[1, 'trees', 11, 1, Tree.codec]],
+    () => [
+      [1, 'trees', 11, 1, Tree.codec],
+      [2, 'paused', 8],
+    ],
     {
       decode: (r: BinaryReader, end: number, m: Screen): Screen => {
         while (r.pos < end) {
@@ -5415,6 +5423,9 @@ export const Screen: MessageType<Screen> =
           switch (t >>> 3) {
             case 1:
               ;(m.trees ??= []).push(Tree.decode(r, r.delimited(), {}))
+              break
+            case 2:
+              m.paused = r.bool()
               break
             default:
               r.skip(t)
@@ -5426,6 +5437,10 @@ export const Screen: MessageType<Screen> =
         {
           const a = m.trees
           if (a != null) for (const e of a) Tree.writeField(w, 1, e)
+        }
+        {
+          const v = m.paused
+          if (v) w.uint32(16).bool(v)
         }
       },
     },

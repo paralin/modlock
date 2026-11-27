@@ -14526,6 +14526,7 @@ class MODLOCK_API Screen final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kTreesFieldNumber = 1,
+    kPausedFieldNumber = 2,
   };
   // repeated .modlock.wasm.ui.Tree trees = 1;
   int trees_size() const;
@@ -14544,11 +14545,21 @@ class MODLOCK_API Screen final : public ::google::protobuf::Message
   const ::modlock::wasm::ui::Tree& trees(int index) const;
   ::modlock::wasm::ui::Tree* PROTOBUF_NONNULL add_trees();
   const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Tree>& trees() const;
+  // bool paused = 2;
+  void clear_paused() ;
+  bool paused() const;
+  void set_paused(bool value);
+
+  private:
+  bool _internal_paused() const;
+  void _internal_set_paused(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Screen)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 1,
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
                                    1, 0,
                                    2>
       _table_;
@@ -14571,6 +14582,7 @@ class MODLOCK_API Screen final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Tree > trees_;
+    bool paused_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -26424,6 +26436,31 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Tree>* PROTOBUF
 Screen::_internal_mutable_trees() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.trees_;
+}
+
+// bool paused = 2;
+inline void Screen::clear_paused() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.paused_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline bool Screen::paused() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Screen.paused)
+  return _internal_paused();
+}
+inline void Screen::set_paused(bool value) {
+  _internal_set_paused(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Screen.paused)
+}
+inline bool Screen::_internal_paused() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.paused_;
+}
+inline void Screen::_internal_set_paused(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.paused_ = value;
 }
 
 // -------------------------------------------------------------------

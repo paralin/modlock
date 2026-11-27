@@ -129,4 +129,26 @@ std::expected<void, std::string> MatchClock::Restore(float seconds, float curren
   return {};
 }
 
+std::expected<bool, std::string> MatchClock::Paused() const {
+  // No active rules hold no pause.
+  void* active = nullptr;
+  if (current_) {
+    std::memcpy(&active, current_, sizeof(active));
+  }
+  if (!active) {
+    return false;
+  }
+
+  // Read the pause flag from rules that check out.
+  auto rules = Current();
+  if (!rules) {
+    return std::unexpected(rules.error());
+  }
+  const auto value = *(static_cast<const uint8_t*>(*rules) + offsets_[2]);
+  if (value > 1) {
+    return std::unexpected("native match clock fields are invalid");
+  }
+  return value != 0;
+}
+
 }  // namespace modlock::gameinterop

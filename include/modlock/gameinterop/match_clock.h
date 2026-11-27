@@ -20,6 +20,9 @@ class MODLOCK_API MatchClock {
   std::expected<float, std::string> GameTime(float current_time, float interval) const;
   std::expected<float, std::string> Read(float current_time, float interval) const;
   std::expected<void, std::string> Restore(float seconds, float current_time, float interval);
+  // Paused reports whether the game's own pause holds the match clock. With
+  // no active rules the game is not paused.
+  std::expected<bool, std::string> Paused() const;
 
  private:
   std::expected<void*, std::string> Current() const;

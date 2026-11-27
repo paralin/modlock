@@ -438,6 +438,7 @@ export interface HostEvent {
     | { value: ServiceCall; case: 'serviceCall' }
     | { value: ControllerWants; case: 'controllersWanted' }
     | { value: UiWindow; case: 'uiWindow' }
+    | { value: GamePaused; case: 'paused' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -460,6 +461,7 @@ export const HostEvent: MessageType<HostEvent> =
       [14, 'service_call', 11, 0, ServiceCall.codec, 'body'],
       [15, 'controllers_wanted', 11, 0, ControllerWants.codec, 'body'],
       [16, 'ui_window', 11, 0, UiWindow.codec, 'body'],
+      [17, 'paused', 11, 0, GamePaused.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -627,6 +629,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 17:
+              m.body = {
+                case: 'paused',
+                value: GamePaused.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'paused' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -713,6 +725,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'uiWindow' && o.value != null)
             UiWindow.writeField(w, 16, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'paused' && o.value != null)
+            GamePaused.writeField(w, 17, o.value)
         }
       },
     },
@@ -1451,6 +1468,47 @@ export const UiWindow: MessageType<UiWindow> =
         {
           const v = m.window
           if (v != null) ListWindow.writeField(w, 3, v)
+        }
+      },
+    },
+  )
+
+/**
+ * GamePaused is whether the game is paused, by the pause a mod sets or by the
+ * game's own, which holds the match clock.
+ *
+ * @generated from message modlock.host_app.control.GamePaused
+ */
+export interface GamePaused {
+  /**
+   * Paused is true while the game is paused.
+   */
+  paused?: boolean
+}
+
+export const GamePaused: MessageType<GamePaused> =
+  /* @__PURE__ */ createMessageType<GamePaused>(
+    'modlock.host_app.control.GamePaused',
+    () => [[1, 'paused', 8]],
+    {
+      decode: (r: BinaryReader, end: number, m: GamePaused): GamePaused => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.paused = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: GamePaused, w: Writer): void => {
+        {
+          const v = m.paused
+          if (v) w.uint32(8).bool(v)
         }
       },
     },

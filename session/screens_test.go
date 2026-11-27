@@ -59,7 +59,7 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	if !present {
 		t.Fatal("a joined guest is not in the server")
 	}
-	mirror.Apply(Changes(&ui.Screen{}, sent), true)
+	mirror.Apply(Changes(&ui.Screen{}, sent), true, false)
 
 	// A later change reaches it as the one node that changed.
 	screens.Handle(shown(0, "arena", "Go"))
@@ -68,7 +68,7 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	if len(changes) != 1 || changes["arena"].GetReset_() || len(changes["arena"].GetSet()) != 1 {
 		t.Fatalf("the change was not one node: %v", changes)
 	}
-	mirror.Apply(changes, false)
+	mirror.Apply(changes, false, false)
 	if screen, _ := mirror.Screen(); label(screen) != "Go" || !screen.EqualVT(now) {
 		t.Fatalf("the mirror shows %v", screen)
 	}
@@ -89,7 +89,7 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	if !changes["arena"].GetReset_() || changes["arena"].GetGeneration() != now.GetTrees()[0].GetGeneration()+1 {
 		t.Fatalf("the reload lost its lifetime: %v", changes)
 	}
-	mirror.Apply(changes, false)
+	mirror.Apply(changes, false, false)
 	if screen, _ := mirror.Screen(); !screen.EqualVT(reloaded) {
 		t.Fatalf("the mirrored reload differs: %v", screen)
 	}
@@ -109,7 +109,7 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	}
 
 	// Mirroring the new owner preserves its stamp through the next relay.
-	mirror.Apply(changes, false)
+	mirror.Apply(changes, false, false)
 	if screen, _ := mirror.Screen(); !screen.EqualVT(fresh) {
 		t.Fatalf("the restarted screen differs: %v", screen)
 	}
@@ -119,7 +119,7 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	// leaves has an empty screen.
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Change: &ui.Change{Reset_: true}}}})
 	gone, _, _ := screens.Player(guest)
-	mirror.Apply(Changes(now, gone), false)
+	mirror.Apply(Changes(now, gone), false, false)
 	if screen, _ := mirror.Screen(); len(screen.GetTrees()) != 0 {
 		t.Fatalf("the hidden tree stayed: %v", screen)
 	}
@@ -127,6 +127,49 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	if screen, present, _ := screens.Player(local); present || len(screen.GetTrees()) != 0 {
 		t.Fatalf("a player who left kept a screen: %v, present %v", screen, present)
 	}
+}
+
+// TestScreensCarryThePause marks every screen while the game is paused, in
+// the snapshot a later stream starts from and in a guest's mirror, so a
+// renderer that joins during a pause holds its game-clock timelines.
+func TestScreensCarryThePause(t *testing.T) {
+	// The game pauses while a guest is shown a panel.
+	const guest = 76561198000000002
+	screens := NewScreens(0)
+	screens.Handle(joined(0, guest))
+	screens.Handle(shown(0, "arena", "Held"))
+	screens.Handle(paused(true))
+	if screen, _, _ := screens.Player(guest); !screen.GetPaused() {
+		t.Fatal("a paused game's screen is not paused")
+	}
+
+	// A feed that starts now replays the pause after the trees.
+	later := NewScreens(0)
+	for _, event := range screens.Snapshot() {
+		later.Handle(event)
+	}
+	sent, _, _ := later.Player(guest)
+	if !sent.GetPaused() || label(sent) != "Held" {
+		t.Fatalf("the snapshot lost the pause or the tree: %v", sent)
+	}
+
+	// The guest's mirror holds the pause, and drops it on the resume.
+	mirror := NewMirror()
+	mirror.Apply(Changes(&ui.Screen{}, sent), true, sent.GetPaused())
+	if screen, _ := mirror.Screen(); !screen.GetPaused() {
+		t.Fatal("the mirror lost the pause")
+	}
+	screens.Handle(paused(false))
+	resumed, _, _ := screens.Player(guest)
+	mirror.Apply(Changes(sent, resumed), false, resumed.GetPaused())
+	if screen, _ := mirror.Screen(); screen.GetPaused() || label(screen) != "Held" {
+		t.Fatalf("the resumed mirror is wrong: %v", screen)
+	}
+}
+
+// paused is the host's report that the game paused or resumed.
+func paused(paused bool) *control.HostEvent {
+	return &control.HostEvent{Body: &control.HostEvent_Paused{Paused: &control.GamePaused{Paused: paused}}}
 }
 
 // TestRelayKeepsAlive writes the keepalive while the screen is unchanged,

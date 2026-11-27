@@ -325,6 +325,7 @@ type HostEvent struct {
 	//	*HostEvent_ServiceCall
 	//	*HostEvent_ControllersWanted
 	//	*HostEvent_UiWindow
+	//	*HostEvent_Paused
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -453,6 +454,13 @@ func (x *HostEvent) GetUiWindow() *UiWindow {
 	return nil
 }
 
+func (x *HostEvent) GetPaused() *GamePaused {
+	if x, ok := x.GetBody().(*HostEvent_Paused); ok {
+		return x.Paused
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -545,6 +553,12 @@ type HostEvent_UiWindow struct {
 	UiWindow *UiWindow `protobuf:"bytes,16,opt,name=ui_window,json=uiWindow,proto3,oneof"`
 }
 
+type HostEvent_Paused struct {
+	// Paused reports each time the game pauses or resumes, from the first
+	// world on. Until the first, the game is not paused.
+	Paused *GamePaused `protobuf:"bytes,17,opt,name=paused,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -576,6 +590,8 @@ func (*HostEvent_ServiceCall) isHostEvent_Body() {}
 func (*HostEvent_ControllersWanted) isHostEvent_Body() {}
 
 func (*HostEvent_UiWindow) isHostEvent_Body() {}
+
+func (*HostEvent_Paused) isHostEvent_Body() {}
 
 // PlayerChat is a line a player said in chat, to everyone or to their team.
 type PlayerChat struct {
@@ -992,6 +1008,27 @@ func (x *UiWindow) GetWindow() *ui.ListWindow {
 		return x.Window
 	}
 	return nil
+}
+
+// GamePaused is whether the game is paused, by the pause a mod sets or by the
+// game's own, which holds the match clock.
+type GamePaused struct {
+	unknownFields []byte
+	// Paused is true while the game is paused.
+	Paused bool `protobuf:"varint,1,opt,name=paused,proto3" json:"paused,omitempty"`
+}
+
+func (x *GamePaused) Reset() {
+	*x = GamePaused{}
+}
+
+func (*GamePaused) ProtoMessage() {}
+
+func (x *GamePaused) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
 }
 
 // ServiceReply supplies a host extension's answer for one mod. The controller
@@ -1683,6 +1720,19 @@ func (m *HostEvent_UiWindow) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *HostEvent_Paused) CloneVT() *HostEvent_Paused {
+	if m == nil {
+		return (*HostEvent_Paused)(nil)
+	}
+	r := new(HostEvent_Paused)
+	r.Paused = protobuf_go_lite.CloneVTValue(m.Paused)
+	return r
+}
+
+func (m *HostEvent_Paused) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *PlayerChat) CloneVT() *PlayerChat {
 	if m == nil {
 		return (*PlayerChat)(nil)
@@ -1891,6 +1941,22 @@ func (m *UiWindow) CloneVT() *UiWindow {
 }
 
 func (m *UiWindow) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *GamePaused) CloneVT() *GamePaused {
+	if m == nil {
+		return (*GamePaused)(nil)
+	}
+	r := new(GamePaused)
+	r.Paused = m.Paused
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *GamePaused) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -2536,6 +2602,23 @@ func (this *HostEvent_UiWindow) EqualVT(thatIface isHostEvent_Body) bool {
 	return true
 }
 
+func (this *HostEvent_Paused) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_Paused)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Paused, that.Paused, func() *GamePaused { return &GamePaused{} }) {
+		return false
+	}
+	return true
+}
+
 func (this *PlayerChat) EqualVT(that *PlayerChat) bool {
 	if this == that {
 		return true
@@ -2827,6 +2910,26 @@ func (this *UiWindow) EqualVT(that *UiWindow) bool {
 
 func (this *UiWindow) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*UiWindow)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *GamePaused) EqualVT(that *GamePaused) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Paused != that.Paused {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GamePaused) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*GamePaused)
 	if !ok {
 		return false
 	}
@@ -3442,6 +3545,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("uiWindow")
 			ov.UiWindow.MarshalProtoJSON(s.WithField("uiWindow"))
+		case *HostEvent_Paused:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("paused")
+			ov.Paused.MarshalProtoJSON(s.WithField("paused"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -3605,6 +3712,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.UiWindow = &UiWindow{}
 			ov.UiWindow.UnmarshalProtoJSON(s.WithField("ui_window", true))
+		case "paused":
+			ov := &HostEvent_Paused{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Paused = nil
+				return
+			}
+			ov.Paused = &GamePaused{}
+			ov.Paused.UnmarshalProtoJSON(s.WithField("paused", true))
 		}
 	})
 }
@@ -4283,6 +4399,48 @@ func (x *UiWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the UiWindow from JSON.
 func (x *UiWindow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the GamePaused message to JSON.
+func (x *GamePaused) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Paused || s.HasField("paused") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("paused")
+		s.WriteBool(x.Paused)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the GamePaused to JSON.
+func (x *GamePaused) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the GamePaused message from JSON.
+func (x *GamePaused) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "paused":
+			s.AddField("paused")
+			x.Paused = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the GamePaused from JSON.
+func (x *GamePaused) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -5534,6 +5692,34 @@ func (m *HostEvent_UiWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HostEvent_Paused) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_Paused) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Paused != nil {
+		size, err := m.Paused.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x8a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x8a
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PlayerChat) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -6089,6 +6275,43 @@ func (m *UiWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GamePaused) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GamePaused) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *GamePaused) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Paused {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Paused)
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -6857,6 +7080,21 @@ func (m *HostEvent_UiWindow) SizeVT() (n int) {
 	return n
 }
 
+func (m *HostEvent_Paused) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Paused != nil {
+		l = m.Paused.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
 func (m *PlayerChat) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -7016,6 +7254,17 @@ func (m *UiWindow) SizeVT() (n int) {
 		l = m.Window.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *GamePaused) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Paused)
 	n += len(m.unknownFields)
 	return n
 }
@@ -7366,6 +7615,13 @@ func (x *HostEvent) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.UiWindow)
 		}
+	case *HostEvent_Paused:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "paused")
+		if body.Paused == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &GamePaused{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Paused)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -7615,6 +7871,20 @@ func (x *UiWindow) MarshalProtoText() string {
 }
 
 func (x *UiWindow) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *GamePaused) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "GamePaused")
+	if x.Paused != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "paused")
+		protobuf_go_lite.TextWriteBool(&sb, x.Paused)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *GamePaused) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -8536,6 +8806,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 				m.Body = &HostEvent_UiWindow{UiWindow: v}
 			}
 			iNdEx = postIndex
+		case 17:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_Paused); ok {
+				if err := oneof.Paused.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &GamePaused{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_Paused{Paused: v}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -9377,6 +9667,59 @@ func (m *UiWindow) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *GamePaused) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GamePaused: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GamePaused: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Paused = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

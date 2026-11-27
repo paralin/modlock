@@ -723,6 +723,8 @@ type ScreenFrame struct {
 	// reset starts the screen over before the changes, as the first frame of
 	// each watch does.
 	Reset_ bool `protobuf:"varint,2,opt,name=reset,proto3" json:"reset,omitempty"`
+	// paused is whether the game is paused, which every frame carries.
+	Paused bool `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
 }
 
 func (x *ScreenFrame) Reset() {
@@ -741,6 +743,13 @@ func (x *ScreenFrame) GetChanges() map[string]*ui.Change {
 func (x *ScreenFrame) GetReset_() bool {
 	if x != nil {
 		return x.Reset_
+	}
+	return false
+}
+
+func (x *ScreenFrame) GetPaused() bool {
+	if x != nil {
+		return x.Paused
 	}
 	return false
 }
@@ -1312,6 +1321,7 @@ func (m *ScreenFrame) CloneVT() *ScreenFrame {
 	}
 	r := new(ScreenFrame)
 	r.Reset_ = m.Reset_
+	r.Paused = m.Paused
 	r.Changes = protobuf_go_lite.CloneVTMap(m.Changes)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -2014,6 +2024,9 @@ func (this *ScreenFrame) EqualVT(that *ScreenFrame) bool {
 		return false
 	}
 	if this.Reset_ != that.Reset_ {
+		return false
+	}
+	if this.Paused != that.Paused {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -3060,6 +3073,11 @@ func (x *ScreenFrame) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("reset")
 		s.WriteBool(x.Reset_)
 	}
+	if x.Paused || s.HasField("paused") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("paused")
+		s.WriteBool(x.Paused)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -3092,6 +3110,9 @@ func (x *ScreenFrame) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "reset":
 			s.AddField("reset")
 			x.Reset_ = s.ReadBool()
+		case "paused":
+			s.AddField("paused")
+			x.Paused = s.ReadBool()
 		}
 	})
 }
@@ -4098,6 +4119,11 @@ func (m *ScreenFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Paused {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Paused)
+		i--
+		dAtA[i] = 0x18
+	}
 	if m.Reset_ {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Reset_)
 		i--
@@ -4629,6 +4655,7 @@ func (m *ScreenFrame) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Reset_)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Paused)
 	n += len(m.unknownFields)
 	return n
 }
@@ -5040,6 +5067,10 @@ func (x *ScreenFrame) MarshalProtoText() string {
 	if x.Reset_ != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reset")
 		protobuf_go_lite.TextWriteBool(&sb, x.Reset_)
+	}
+	if x.Paused != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "paused")
+		protobuf_go_lite.TextWriteBool(&sb, x.Paused)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -6204,6 +6235,16 @@ func (m *ScreenFrame) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Reset_ = bool(v)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Paused = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

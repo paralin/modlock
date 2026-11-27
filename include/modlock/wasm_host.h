@@ -267,6 +267,13 @@ class MODLOCK_API WasmHost {
       const google::protobuf::RepeatedPtrField<wasm::controllers::ControllerFrame>& frames,
       bool ended);
 
+  // Paused reports whether the game is paused, by the server's pause a mod
+  // sets or by the game's own, which holds the match clock. It runs on the
+  // engine thread. A game whose pause does not resolve returns an error, and
+  // each call resolves it again, so a caller stops asking until the next
+  // world.
+  [[nodiscard]] std::expected<bool, std::string> Paused();
+
   // Call calls method of the service mod serves and returns the mod's answer.
   // A mod that is not running, serves no such service or fails returns an
   // error. A mod cannot be called while it is calling the host.

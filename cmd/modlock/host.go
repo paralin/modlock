@@ -230,7 +230,7 @@ func newHostFeed() *hostFeed {
 func (f *hostFeed) observe(event *modcli.Event) {
 	// Take only the events that change what a guest sees.
 	host := event.GetHost()
-	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetUiWindow() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil {
+	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetUiWindow() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil && host.GetPaused() == nil {
 		return
 	}
 
@@ -366,7 +366,7 @@ func joinCommand(out *printer) *cli.Command {
 				case *peernet.JoinEvent_Arrived:
 					out.mark("✓", green, "joined")
 				case *peernet.JoinEvent_Screen:
-					mirror.Apply(body.Screen.GetChanges(), body.Screen.GetReset_())
+					mirror.Apply(body.Screen.GetChanges(), body.Screen.GetReset_(), body.Screen.GetPaused())
 				case *peernet.JoinEvent_Chat:
 					out.host(&control.HostEvent{Body: &control.HostEvent_Chat{Chat: body.Chat}})
 				}

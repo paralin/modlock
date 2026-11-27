@@ -13,6 +13,8 @@ type Mirror struct {
 	mu sync.Mutex
 	// trees is the player's screen.
 	trees trees
+	// paused is whether the game is paused.
+	paused bool
 	// changed is closed and replaced whenever the screen changes.
 	changed chan struct{}
 }
@@ -23,14 +25,15 @@ func NewMirror() *Mirror {
 }
 
 // Apply applies each mod's change to the screen, first clearing it on reset,
-// when changes hold the whole screen.
-func (m *Mirror) Apply(changes map[string]*ui.Change, reset bool) {
+// when changes hold the whole screen, and keeps whether the game is paused.
+func (m *Mirror) Apply(changes map[string]*ui.Change, reset, paused bool) {
 	// Change the trees, then wake every stream.
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if reset {
 		m.trees = make(trees)
 	}
+	m.paused = paused
 	for mod, change := range changes {
 		m.trees.apply(mod, change)
 	}
@@ -42,7 +45,9 @@ func (m *Mirror) Apply(changes map[string]*ui.Change, reset bool) {
 func (m *Mirror) Screen() (*ui.Screen, <-chan struct{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.trees.screen(false), m.changed
+	screen := m.trees.screen(false)
+	screen.Paused = m.paused
+	return screen, m.changed
 }
 
 // Changes returns each mod's change that turns the screen from into to: the
