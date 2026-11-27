@@ -19,8 +19,8 @@ TypeScript library has calls for each part of that:
 | The leaderboard                      | `leaderboard`, `Roster`                     |
 | Heroes left behind by a swap         | `Strays`                                    |
 
-The rotation calls exist only in TypeScript. Import them, `holdBystander` and
-`Strays` from `modlock/kit`, and import `Cast`, `playCamera`, `curve` and
+The rotation calls exist only in TypeScript. Import them from `modlock/kit`,
+along with `holdBystander` and `Strays`, and import `Cast`, `playCamera`, `curve` and
 `Roster` from `modlock`. Each rotation call is pure. Your mod keeps the line
 and the standings, and each call reads only what you pass it. Because the calls
 are pure, `js/test/rotation.test.ts` runs a whole session without the game.
@@ -120,7 +120,7 @@ function unseat(player: Player, pawn: number): void {
 }
 ```
 
-`playCamera` returns nothing while the player has no hero. So mark the seat
+`playCamera` returns nothing while the player does not have a hero. So mark the seat
 taken only once `seat` returns true, and try again each frame until it does. A
 bystander can still die from a fall or world damage, so respawn it and seat it
 again.
@@ -211,7 +211,7 @@ show(
 ## Heroes left behind
 
 Swapping a player's hero, or moving them to the spectators and back, can
-leave the old hero with no player controlling it. The game still revives that
+leave the old hero without a player controlling it. The game still revives that
 hero on its own timer. A hero belongs to a player while the player's controller
 points to it, so a player who joins or spectates keeps their hero. Once a hero
 has belonged to nobody for `strayGraceSeconds`, `Strays` kills it once and holds

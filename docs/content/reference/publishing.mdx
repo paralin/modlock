@@ -3,10 +3,10 @@ title: Publishing
 description: Release a mod for others to play.
 ---
 
-`modlock publish` builds the mod and runs the same check every host runs before
-loading it. The module may import only Modlock and WASI functions, and it must
-start and answer its first event within the time limits. Then the command
-uploads the mod to the destination you choose with `--to`:
+`modlock publish` builds the mod and runs the same check that every host runs
+before loading a mod. The module may import only Modlock and WASI functions, and
+it must start and answer its first event within the time limits. Then the
+command uploads the mod to the destination you choose with `--to`:
 
 | `--to`      | Effect                                                                                           |
 | ----------- | ------------------------------------------------------------------------------------------------ |
@@ -16,18 +16,18 @@ uploads the mod to the destination you choose with `--to`:
 
 On your first upload to hyperline.gg, the command opens your browser to sign
 in, as `modlock login` does, and saves the sign-in for later commands. During
-the alpha, you can publish there only once you have access, which you can ask
-for in the [Hyperline Discord](https://discord.gg/DCErWrCFvh). To publish to
+the alpha, you can publish there only once you have access. Ask for access in
+the [Hyperline Discord](https://discord.gg/DCErWrCFvh). To publish to
 another service with the same API, pass its address with `--origin`. The
 `github` destination publishes with the [`gh`](https://cli.github.com) command
 line, signed in as `gh` is.
 
 The build copies every field that Modlock itself does not read, such as a
-description for a store, into the built `mod.json`. The destination reads those
-fields there. Hyperline accepts each version only once: raise `version` in
-`mod.json` before you publish again.
+description for a store, into the built `mod.json`, and the destination reads
+those fields there. Hyperline accepts each version only once, so raise
+`version` in `mod.json` before you publish again.
 
-Pass `--notes` to say what changed: hyperline.gg shows the notes on the game's
+Pass `--notes` to say what changed. hyperline.gg shows the notes on the game's
 page, and the `github` destination puts them on the new release.
 
 `--prerelease` publishes a version such as `0.2.0-pre.1` to hyperline.gg for the
@@ -37,9 +37,9 @@ as "Zombie Tag Prerelease". Anyone a tester invites may join that copy. A later
 prerelease replaces the one before it. When you choose the Draft copy as current
 on hyperline.gg, the same build becomes the release without another publish.
 
-After the upload, `modlock publish` tells you where the release can be
-played. A mod with code plays on hyperline.gg's game servers at once, and on
-players' own PCs after a reviewer approves it. A trusted creator's releases play
+After the upload, `modlock publish` tells you where players can play the
+release. A mod with code plays on hyperline.gg's game servers at once, and on
+players' own PCs once a reviewer approves it. A trusted creator's releases play
 everywhere as soon as they are published. When your mod has its own layouts,
 models or sounds, `modlock publish` uploads them with it, as [client
 content](/guides/client-content) explains.
@@ -56,8 +56,8 @@ Team on the mod's page:
 | Tester    | See and start the mod's Draft games and prereleases, and invite others into them.                                  | A sign-in only |
 
 Whoever publishes a mod first owns it. A player must have signed in to
-hyperline.gg once before you can add them, and a developer also needs Creator
-access, which the administrators grant. The owner cannot be removed; hand the
-mod over first, and the previous owner stays a developer. Hyperline owns the
-mods it publishes itself, so on those only its administrators hand the mod
-over.
+hyperline.gg once before you can add them to the team. A developer also needs
+Creator access, which the administrators grant. No one can remove the owner.
+To change owners, hand the mod over first, and the previous owner stays a
+developer. Hyperline owns the mods it publishes itself, so only its
+administrators can hand those mods over.
