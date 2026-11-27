@@ -3259,6 +3259,14 @@ local HeroLook: { [any]: any } = {
 	minimap = 5,
 }
 
+-- TimelineClock holds the wire names of the interface enum TimelineClock.
+local TimelineClock: { [any]: any } = {
+	[0] = "wall",
+	wall = 0,
+	[1] = "game",
+	game = 1,
+}
+
 -- ClockFormat holds the wire names of the interface enum ClockFormat.
 local ClockFormat: { [any]: any } = {
 	[0] = "minutes",
@@ -4368,6 +4376,7 @@ schema.Node = {
 	{ number = 31, name = "freeCursor", kind = "bool" },
 	{ number = 33, name = "freeCursorAsks", kind = "uint32" },
 	{ number = 36, name = "cues", kind = "message", repeated = true, message = "Cue" },
+	{ number = 56, name = "timelines", kind = "message", repeated = true, message = "Timeline" },
 	{ number = 37, name = "abilityBarPresses", kind = "bool" },
 	{ number = 38, name = "abilityDisplay", kind = "message", repeated = true, message = "AbilityRow" },
 	{ number = 39, name = "clock", kind = "message", message = "Clock" },
@@ -4458,6 +4467,20 @@ schema.Cue = {
 	{ number = 2, name = "sound", kind = "string" },
 	{ number = 3, name = "seconds", kind = "float" },
 	{ number = 4, name = "delay", kind = "float" },
+}
+schema.Timeline = {
+	{ number = 1, name = "id", kind = "string" },
+	{ number = 2, name = "run", kind = "uint32" },
+	{ number = 4, name = "clock", kind = "enum", enum = TimelineClock },
+	{ number = 5, name = "steps", kind = "message", repeated = true, message = "TimelineStep" },
+}
+schema.TimelineStep = {
+	{ number = 1, name = "at", kind = "float" },
+	{ number = 2, name = "measure", kind = "string" },
+	{ number = 3, name = "classes", kind = "string", repeated = true },
+	{ number = 4, name = "style", kind = "message", message = "Style" },
+	{ number = 5, name = "sound", kind = "string" },
+	{ number = 6, name = "seconds", kind = "float" },
 }
 schema.Menu = {
 	{ number = 1, name = "mode", kind = "enum", enum = MenuMode },

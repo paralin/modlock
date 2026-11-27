@@ -102,6 +102,8 @@ import {
   type Clock as WireClock,
   ClockFormat,
   type Cue,
+  type Timeline as WireTimeline,
+  TimelineClock,
   type Cycle as WireCycle,
   Decoration,
   Easing,
@@ -1360,6 +1362,82 @@ export function uiSound(
 }
 
 /**
+ * TimelineStep is one moment of a timeline, at seconds from its start, 0 to
+ * 60. From then on the elements whose measure the step names take its look:
+ * class adds classes from the mod's sheets, separated by spaces, and style is
+ * laid over each element's own, setting, as a hover does, only what the
+ * element's style sets or what has a resting value. A step's look replaces
+ * the look an earlier step gave the same measure. sound plays the game's
+ * sound event, cut after seconds unless seconds is zero.
+ */
+export interface TimelineStep {
+  readonly at: number
+  readonly measure?: string
+  readonly class?: string
+  readonly style?: Style
+  readonly sound?: string
+  readonly seconds?: number
+}
+
+/**
+ * Timeline is a timed presentation: its steps run on the player's own time,
+ * or, with clock 'game', hold while the game is paused.
+ */
+export interface Timeline {
+  readonly clock?: 'wall' | 'game'
+  readonly steps: readonly TimelineStep[]
+}
+
+/**
+ * playTimeline starts timeline id in player's interface, or starts it again
+ * from its start, taking back the looks its last run gave. A finished
+ * timeline keeps its last looks until it is played again or cancelled. A
+ * renderer that reloads mid-run shows the run's last looks and plays none of
+ * its sounds.
+ */
+export function playTimeline(
+  player: Player,
+  id: string,
+  timeline: Timeline,
+): boolean {
+  const current = view(player)
+  const wire: WireTimeline = {
+    id,
+    run: nextRun++,
+    clock: timeline.clock === 'game' ? TimelineClock.GAME : TimelineClock.WALL,
+    steps: timeline.steps.map((step) => ({
+      at: step.at,
+      measure: step.measure ?? '',
+      classes: classes(step.class),
+      style: wireStyle(step.style),
+      sound: step.sound ?? '',
+      seconds: step.seconds ?? 0,
+    })),
+  }
+  views.set(player.slot, {
+    ...current,
+    timelines: new Map(current.timelines).set(id, wire),
+  })
+  return draw(player, [])
+}
+
+/**
+ * cancelTimeline stops timeline id in player's interface, taking back its
+ * looks and playing none of its sounds still to come.
+ */
+export function cancelTimeline(player: Player, id: string): boolean {
+  // Drop the timeline from the root; one already gone needs no draw.
+  const current = view(player)
+  if (!current.timelines.has(id)) {
+    return true
+  }
+  const timelines = new Map(current.timelines)
+  timelines.delete(id)
+  views.set(player.slot, { ...current, timelines })
+  return draw(player, [])
+}
+
+/**
  * press runs the handler of the button the player pressed, or, for a press
  * with an action, the handler of the layout whose script sent it, with the
  * payload's JSON, undefined for none or for text JSON cannot read.
@@ -1478,6 +1556,8 @@ interface View {
   readonly routes: ReadonlyMap<string, string>
   /** cues are the last sounds played, which the renderer plays once each. */
   readonly cues: readonly Cue[]
+  /** timelines are the timelines the mod plays, by id. */
+  readonly timelines: ReadonlyMap<string, WireTimeline>
   /** bar takes clicks on the game's ability bar, while the mod asks for them. */
   readonly bar: { readonly handler: AbilityBarHandler } | undefined
   /** actions takes each phase of the game actions the mod follows. */
@@ -1515,6 +1595,9 @@ let nextNotice = 0
 /** nextCue numbers the next sound, so the renderer plays each once. */
 let nextCue = 1
 
+/** nextRun numbers the next timeline run, so each play is a new run. */
+let nextRun = 1
+
 /**
  * maxCues is how many sounds the root keeps, so a player whose screens come
  * slower than the mod plays sounds misses none of the last few.
@@ -1542,6 +1625,7 @@ function view(player: Player): View {
       asks: 0,
       routes: new Map(),
       cues: [],
+      timelines: new Map(),
       bar: undefined,
       actions: new Map(),
       overlay: undefined,
@@ -1647,6 +1731,7 @@ function compose(
     freeCursorAsks: current.asks,
     sheets: [...sheets],
     cues: [...current.cues],
+    timelines: [...current.timelines.values()],
     abilityBarPresses: current.bar !== undefined,
     gameActions: [...current.actions.keys()].map(
       (action) => gameActions[action],

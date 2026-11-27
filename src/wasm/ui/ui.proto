@@ -183,6 +183,10 @@ message Node {
   // lifetime's list from its start. The list keeps only the last few cues.
   repeated Cue cues = 36;
 
+  // Timelines are the root's timed presentations, by id; only the root's
+  // list counts.
+  repeated Timeline timelines = 56;
+
   // AbilityBarPresses asks for clicks on the game's own ability bar: a click
   // on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
   // the mod as a press of the node "ability:N", which no element's id can be.
@@ -525,6 +529,64 @@ message Cue {
   // draw. A cue whose mod leaves or clears its interface before then does
   // not play.
   float delay = 4;
+}
+
+// Timeline is a timed presentation: steps at times from its start that
+// change named nodes' looks and play sounds, on one clock. A finished
+// timeline keeps its last looks until the mod starts it again or cancels it
+// by dropping it, which clears its looks and plays nothing more. A
+// renderer that first sees a run already under way, such as one that
+// reloads, joins it at its end: it shows the last looks and plays no sound.
+message Timeline {
+  // Id names the timeline among the root's.
+  string id = 1;
+
+  // Run counts the mod's starts of the timeline: a rise starts it again from
+  // its start, clearing the looks the last run gave.
+  uint32 run = 2;
+
+  // A mod cancels a timeline by dropping it from the root.
+  reserved 3;
+
+  // Clock is the clock the steps' times run on.
+  TimelineClock clock = 4;
+
+  // Steps are the timeline's steps, in any order.
+  repeated TimelineStep steps = 5;
+}
+
+// TimelineClock is the clock a timeline runs on.
+enum TimelineClock {
+  // TIMELINE_CLOCK_WALL runs on the player's own time, through the game's
+  // pauses.
+  TIMELINE_CLOCK_WALL = 0;
+
+  // TIMELINE_CLOCK_GAME holds while the game is paused, and runs on after.
+  TIMELINE_CLOCK_GAME = 1;
+}
+
+// TimelineStep is one moment of a timeline.
+message TimelineStep {
+  // At is the step's time from the timeline's start, in seconds, 0 to 60.
+  float at = 1;
+
+  // Measure names the nodes whose look the step sets by their measure, each
+  // node of that name taking it, or nothing for a step that only plays a
+  // sound.
+  string measure = 2;
+
+  // Classes and Style are the nodes' look from this step on: classes added
+  // to their own and a style laid over their own, replacing the look an
+  // earlier step gave them. A style change eases by the node's transition. As with
+  // hover, the style sets only the properties that a node's own style sets
+  // or that have a resting value to return to when the look ends.
+  repeated string classes = 3;
+  Style style = 4;
+
+  // Sound is a game sound event to play at the step, named as Node's sound
+  // is, cut after seconds unless seconds is zero.
+  string sound = 5;
+  float seconds = 6;
 }
 
 // Scaling fits a picture into its node's box.

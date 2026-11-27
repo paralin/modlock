@@ -715,6 +715,15 @@ _ClockFormat: dict[Any, Any] = {
 }
 
 
+# _TimelineClock maps each TimelineClock to its number and back.
+_TimelineClock: dict[Any, Any] = {
+    0: "wall",
+    "wall": 0,
+    1: "game",
+    "game": 1,
+}
+
+
 # _Scaling maps each Scaling to its number and back.
 _Scaling: dict[Any, Any] = {
     0: "default",
@@ -5112,6 +5121,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(31, "free_cursor", "bool"),
             wire.Field(33, "free_cursor_asks", "uint32"),
             wire.Field(36, "cues", "message", repeated=True, message="Cue"),
+            wire.Field(56, "timelines", "message", repeated=True, message="Timeline"),
             wire.Field(37, "ability_bar_presses", "bool"),
             wire.Field(38, "ability_display", "message", repeated=True, message="AbilityRow"),
             wire.Field(39, "clock", "message", message="Clock"),
@@ -5235,6 +5245,26 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "sound", "string"),
             wire.Field(3, "seconds", "float"),
             wire.Field(4, "delay", "float"),
+        ],
+    ),
+    "Timeline": (
+        None,
+        [
+            wire.Field(1, "id", "string"),
+            wire.Field(2, "run", "uint32"),
+            wire.Field(4, "clock", "enum", enum=_TimelineClock),
+            wire.Field(5, "steps", "message", repeated=True, message="TimelineStep"),
+        ],
+    ),
+    "TimelineStep": (
+        None,
+        [
+            wire.Field(1, "at", "float"),
+            wire.Field(2, "measure", "string"),
+            wire.Field(3, "classes", "string", repeated=True),
+            wire.Field(4, "style", "message", message="Style"),
+            wire.Field(5, "sound", "string"),
+            wire.Field(6, "seconds", "float"),
         ],
     ),
     "Menu": (

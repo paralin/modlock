@@ -42,6 +42,12 @@ constexpr int kMaxOptions = 64;
 // line.
 constexpr int kMaxHandles = 8;
 
+// kMaxTimelines bounds a root's timelines, kMaxSteps each one's steps, and
+// kMaxStepAt a step's time in seconds, so a redraw stays cheap.
+constexpr int kMaxTimelines = 16;
+constexpr int kMaxSteps = 64;
+constexpr float kMaxStepAt = 60;
+
 // kMaxInput bounds the text a player sends an entry, in bytes, so its console
 // line stays short of the engine's limit; kEntryLength is an entry's limit
 // in characters when the mod sets none.
@@ -188,6 +194,48 @@ std::expected<void, std::string> CheckBindings(const ui::Node& node) {
     }
     if (auto checked = CheckClasses(what, binding.classes()); !checked) {
       return checked;
+    }
+  }
+  return {};
+}
+
+// CheckTimelines returns why a node's timelines cannot be run: they are
+// bounded in number, each has its own id and a bounded run of steps, and
+// each step's time, measure, classes and sound fit a node's limits.
+std::expected<void, std::string> CheckTimelines(const ui::Node& node) {
+  if (node.timelines_size() > kMaxTimelines) {
+    return std::unexpected("node " + node.id() + ": too many timelines");
+  }
+  std::unordered_set<std::string_view> ids;
+  for (const auto& timeline : node.timelines()) {
+    const auto what = "node " + node.id() + ": timeline " + timeline.id();
+    if (!IsWord(timeline.id(), "-.") || timeline.id().size() > kMaxId) {
+      return std::unexpected("node " + node.id() +
+                             ": a timeline id is at most 64 letters, digits, '_', '-' and '.'");
+    }
+    if (!ids.insert(timeline.id()).second) {
+      return std::unexpected(what + ": two timelines share the id");
+    }
+    if (!ui::TimelineClock_IsValid(timeline.clock())) {
+      return std::unexpected(what + ": invalid clock");
+    }
+    if (timeline.steps_size() > kMaxSteps) {
+      return std::unexpected(what + ": too many steps");
+    }
+    for (const auto& step : timeline.steps()) {
+      if (!(step.at() >= 0 && step.at() <= kMaxStepAt)) {
+        return std::unexpected(what + ": a step's time is 0 to 60 seconds");
+      }
+      if (!step.measure().empty() &&
+          (step.measure().size() > kMaxId || !IsWord(step.measure(), "-."))) {
+        return std::unexpected(what + ": a step names its nodes by their measure");
+      }
+      if (step.sound().size() > kMaxName || !(step.seconds() >= 0)) {
+        return std::unexpected(what + ": a step's sound is a short name and a length");
+      }
+      if (auto checked = CheckClasses(what, step.classes()); !checked) {
+        return checked;
+      }
     }
   }
   return {};
@@ -415,6 +463,9 @@ std::expected<void, std::string> Check(const ui::Node& node) {
     return checked;
   }
   if (auto checked = CheckList(node); !checked) {
+    return checked;
+  }
+  if (auto checked = CheckTimelines(node); !checked) {
     return checked;
   }
   return CheckInput(node);

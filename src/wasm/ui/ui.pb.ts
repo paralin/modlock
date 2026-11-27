@@ -70,6 +70,32 @@ export const ClockFormat_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * TimelineClock is the clock a timeline runs on.
+ *
+ * @generated from enum modlock.wasm.ui.TimelineClock
+ */
+export enum TimelineClock {
+  /**
+   * TIMELINE_CLOCK_WALL runs on the player's own time, through the game's
+   * pauses.
+   */
+  WALL = 0,
+
+  /**
+   * TIMELINE_CLOCK_GAME holds while the game is paused, and runs on after.
+   */
+  GAME = 1,
+}
+
+export const TimelineClock_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.TimelineClock',
+  [
+    [0, 'TIMELINE_CLOCK_WALL'],
+    [1, 'TIMELINE_CLOCK_GAME'],
+  ],
+)
+
+/**
  * Scaling fits a picture into its node's box.
  *
  * @generated from enum modlock.wasm.ui.Scaling
@@ -1158,6 +1184,11 @@ export interface Node {
    */
   cues?: Cue[]
   /**
+   * Timelines are the root's timed presentations, by id; only the root's
+   * list counts.
+   */
+  timelines?: Timeline[]
+  /**
    * AbilityBarPresses asks for clicks on the game's own ability bar: a click
    * on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
    * the mod as a press of the node "ability:N", which no element's id can be.
@@ -1355,6 +1386,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [53, 'range', 11, 0, Range.codec, 'input'],
     [54, 'bindings', 11, 1, Binding.codec],
     [55, 'list', 11, 0, List.codec],
+    [56, 'timelines', 11, 1, Timeline.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1577,6 +1609,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 55:
             m.list = List.decode(r, r.delimited(), m.list ?? {})
+            break
+          case 56:
+            ;(m.timelines ??= []).push(Timeline.decode(r, r.delimited(), {}))
             break
           default:
             r.skip(t)
@@ -1823,6 +1858,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.list
         if (v != null) List.writeField(w, 55, v)
+      }
+      {
+        const a = m.timelines
+        if (a != null) for (const e of a) Timeline.writeField(w, 56, e)
       }
     },
   },
@@ -2744,6 +2783,193 @@ export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
     },
   },
 )
+
+/**
+ * Timeline is a timed presentation: steps at times from its start that
+ * change named nodes' looks and play sounds, on one clock. A finished
+ * timeline keeps its last looks until the mod starts it again or cancels it
+ * by dropping it, which clears its looks and plays nothing more. A
+ * renderer that first sees a run already under way, such as one that
+ * reloads, joins it at its end: it shows the last looks and plays no sound.
+ *
+ * @generated from message modlock.wasm.ui.Timeline
+ */
+export interface Timeline {
+  /**
+   * Id names the timeline among the root's.
+   */
+  id?: string
+  /**
+   * Run counts the mod's starts of the timeline: a rise starts it again from
+   * its start, clearing the looks the last run gave.
+   */
+  run?: number
+  /**
+   * Clock is the clock the steps' times run on.
+   */
+  clock?: TimelineClock
+  /**
+   * Steps are the timeline's steps, in any order.
+   */
+  steps?: TimelineStep[]
+}
+
+export const Timeline: MessageType<Timeline> =
+  /* @__PURE__ */ createMessageType<Timeline>(
+    'modlock.wasm.ui.Timeline',
+    () => [
+      [1, 'id', 9],
+      [2, 'run', 13],
+      [4, 'clock', 14, 0, TimelineClock_Enum],
+      [5, 'steps', 11, 1, TimelineStep.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Timeline): Timeline => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.string()
+              break
+            case 2:
+              m.run = r.uint32()
+              break
+            case 4:
+              m.clock = r.int32()
+              break
+            case 5:
+              ;(m.steps ??= []).push(TimelineStep.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Timeline, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.run
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.clock
+          if (v) w.uint32(32).int32(v)
+        }
+        {
+          const a = m.steps
+          if (a != null) for (const e of a) TimelineStep.writeField(w, 5, e)
+        }
+      },
+    },
+  )
+
+/**
+ * TimelineStep is one moment of a timeline.
+ *
+ * @generated from message modlock.wasm.ui.TimelineStep
+ */
+export interface TimelineStep {
+  /**
+   * At is the step's time from the timeline's start, in seconds, 0 to 60.
+   */
+  at?: number
+  /**
+   * Measure names the nodes whose look the step sets by their measure, each
+   * node of that name taking it, or nothing for a step that only plays a
+   * sound.
+   */
+  measure?: string
+  /**
+   * Classes and Style are the nodes' look from this step on: classes added
+   * to their own and a style laid over their own, replacing the look an
+   * earlier step gave them. A style change eases by the node's transition. As with
+   * hover, the style sets only the properties that a node's own style sets
+   * or that have a resting value to return to when the look ends.
+   */
+  classes?: string[]
+  style?: Style
+  /**
+   * Sound is a game sound event to play at the step, named as Node's sound
+   * is, cut after seconds unless seconds is zero.
+   */
+  sound?: string
+  seconds?: number
+}
+
+export const TimelineStep: MessageType<TimelineStep> =
+  /* @__PURE__ */ createMessageType<TimelineStep>(
+    'modlock.wasm.ui.TimelineStep',
+    () => [
+      [1, 'at', 2],
+      [2, 'measure', 9],
+      [3, 'classes', 9, 1],
+      [4, 'style', 11, 0, Style.codec],
+      [5, 'sound', 9],
+      [6, 'seconds', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: TimelineStep): TimelineStep => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.at = r.float()
+              break
+            case 2:
+              m.measure = r.string()
+              break
+            case 3:
+              ;(m.classes ??= []).push(r.string())
+              break
+            case 4:
+              m.style = Style.decode(r, r.delimited(), m.style ?? {})
+              break
+            case 5:
+              m.sound = r.string()
+              break
+            case 6:
+              m.seconds = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: TimelineStep, w: Writer): void => {
+        {
+          const v = m.at
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.measure
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const a = m.classes
+          if (a != null) for (const e of a) w.uint32(26).string(e)
+        }
+        {
+          const v = m.style
+          if (v != null) Style.writeField(w, 4, v)
+        }
+        {
+          const v = m.sound
+          if (v) w.uint32(42).string(v)
+        }
+        {
+          const v = m.seconds
+          if (v != null && v !== 0) w.uint32(53).float(v)
+        }
+      },
+    },
+  )
 
 /**
  * Menu defines a local surface, not a stream of key events for the mod.
