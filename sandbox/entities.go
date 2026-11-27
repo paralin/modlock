@@ -6,7 +6,8 @@ package sandbox
 // beside its services, the map archive maps/<map>.vpk, whose entity lumps the
 // world resource lists (or default_ents when it lists none), and then the
 // fixture data/sandbox-entities.json, an EntityFixture. It keeps the first
-// source that reads whole and holds an entity.
+// source that reads whole and holds an entity. Names drop the prefab prefix
+// [PR#] that lumps keep, because the game drops it.
 
 import (
 	"os"
@@ -91,6 +92,12 @@ func newEntityIndex() *entityIndex {
 
 // add records entity under the next handle.
 func (idx *entityIndex) add(entity *mapEntity) {
+	// Present the name as the game does, without its prefab prefix.
+	if name, ok := strings.CutPrefix(entity.name, prefabPrefix); ok {
+		entity.name = name
+		entity.keys["targetname"] = name
+	}
+
 	handle := firstMapEntity + uint32(len(idx.order))
 	idx.order = append(idx.order, entity)
 	if entity.class != "" {
@@ -100,6 +107,12 @@ func (idx *entityIndex) add(entity *mapEntity) {
 		idx.byName[entity.name] = append(idx.byName[entity.name], handle)
 	}
 }
+
+// prefabPrefix is the marker Hammer puts before the targetname of an entity
+// placed from a prefab, such as [PR#]sapphire_trooper_detector. Compiled lumps
+// keep it, but the game drops it at spawn: FindEntitiesByName finds the bare
+// name and nothing by the prefixed one.
+const prefabPrefix = "[PR#]"
 
 // entity returns the entity with handle, or nil.
 func (idx *entityIndex) entity(handle uint32) *mapEntity {

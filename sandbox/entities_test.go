@@ -92,9 +92,17 @@ func TestEntities(t *testing.T) {
 	if s.entities, err = loadMapArchive(vpkPath, "hl_test"); err != nil {
 		t.Fatal(err)
 	}
+	// The lump stores [PR#]start, a prefab's name, which the game finds
+	// only as start.
 	handles := mustFindByName(t, s, build, "start")
 	if len(handles) != 1 {
 		t.Fatalf("lump FindEntitiesByName(start) = %v, want 1", handles)
+	}
+	if found := mustFindByName(t, s, build, "[PR#]start"); len(found) != 0 {
+		t.Fatalf("lump FindEntitiesByName([PR#]start) = %v, want none", found)
+	}
+	if name := mustName(t, s, build, handles[0]); name != "start" {
+		t.Fatalf("lump EntityName = %q, want start", name)
 	}
 	if width := mustFloat(t, s, build, handles[0], "m_flWidth"); width != 64 {
 		t.Fatalf("lump m_flWidth = %v, want 64", width)
@@ -231,7 +239,7 @@ func mustFloat(t *testing.T, s *Sandbox, build *Build, handle uint32, field stri
 }
 
 // writeTestMap writes a map archive at vpkPath holding default_ents with one
-// entity, start. With broken set, it also holds a world listing that lump and
+// entity, the prefab entity [PR#]start. With broken set, it also holds a world listing that lump and
 // one the archive lacks.
 func writeTestMap(vpkPath string, broken bool) error {
 	// Compile the lump.
@@ -244,7 +252,7 @@ func writeTestMap(vpkPath string, broken bool) error {
 			map[string]any{
 				"keyValues3Data": map[string]any{
 					"values": map[string]any{
-						"targetname": "start",
+						"targetname": "[PR#]start",
 						"classname":  "point_clientui_world_panel",
 						"origin":     "10 20 30",
 						"angles":     "0 90 0",
