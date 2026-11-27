@@ -146,7 +146,7 @@ func (m *Mode) StartRace(p mod.Player, args string) {
 	}
 
 	// Call the race off when nobody could line up.
-	if len(m.race.Racers()) == 0 {
+	if m.race.Entrants() == 0 {
 		m.race = nil
 		_ = p.Chat("Nobody has a living hero to race.")
 		return
@@ -227,7 +227,7 @@ func (m *Mode) Frame(f *mod.FrameEvent) {
 
 	// Track the racers still on the server.
 	m.dropLeavers()
-	for _, racer := range m.race.Racers() {
+	for racer := range m.race.Racers() {
 		m.track(racer, tick)
 	}
 
@@ -261,7 +261,7 @@ func (m *Mode) dropLeavers() {
 
 	// Drop each racer whose player is gone.
 	var left []*Racer
-	for _, racer := range m.race.Racers() {
+	for racer := range m.race.Racers() {
 		if generation, ok := present[racer.Player.Slot()]; !ok || generation != racer.Generation {
 			left = append(left, racer)
 		}
@@ -444,7 +444,7 @@ func (m *Mode) Damage(hit *mod.DamageEvent) *mod.DamageResult {
 	if m.race == nil {
 		return nil
 	}
-	for _, racer := range m.race.Racers() {
+	for racer := range m.race.Racers() {
 		if racer.Entity == hit.GetVictim() {
 			block := true
 			return &mod.DamageResult{Block: &block}
@@ -471,7 +471,7 @@ func (m *Mode) SettingChanged(p mod.Player, key, value string) {
 
 // everyRacer calls do for each racer in the race.
 func (m *Mode) everyRacer(do func(racer *Racer)) {
-	for _, racer := range m.race.Racers() {
+	for racer := range m.race.Racers() {
 		do(racer)
 	}
 }
