@@ -3,10 +3,10 @@ title: Toolkit
 description: 'Helpers built on the library: seating, a player roster, free-for-all, clearing stragglers, vectors, number formats, the floor, race gates and a frame clock.'
 ---
 
-The toolkit's helpers are built on the library calls and do the work most modes
-repeat. TypeScript imports `Stragglers` and `RaceGate` from `modlock/kit`, the
-module of parts that game modes build from the library, and the rest from
-`modlock`:
+The toolkit's helpers are built on the library calls, and they do the work that
+most modes repeat. TypeScript imports `Stragglers` and `RaceGate` from
+`modlock/kit`, the module of parts that game modes build from the library. It
+imports the rest from `modlock`:
 
 | Helper                                | Does                                                                                | Languages  |
 | ------------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
@@ -63,16 +63,16 @@ mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 
 The hero appears on a later frame. The library asks the game again until the
 player has the seat, and once more after the player changes hero. Seating a
-player again replaces the seat, and the seat ends when they leave. `seat`
-returns false when nobody holds the player's slot. To give players different
-teams, pick the team in the handler.
+player again replaces the seat, and the seat ends when the player leaves.
+`seat` returns false when nobody holds the player's slot. To give players
+different teams, pick each player's team in the handler.
 
-Seating runs on a [`Cast`](#keep-the-players-with-cast) of the library's own.
-Use a Cast directly when the mod keeps its own state for each player or
-changes what a player wants during the game.
+Seating runs on a [`Cast`](#keep-the-players-with-cast) that the library keeps
+for itself. Use a Cast directly when the mod keeps its own state for each
+player, or changes what a player wants during the game.
 
-The respawn delay is a separate call and applies to every hero, seated or not.
-A fallen hero keeps its hero and team:
+The respawn delay is a separate call, and it applies to every hero, seated or
+not. A player whose hero falls keeps their hero and team:
 
 <Samples>
 
@@ -98,8 +98,8 @@ mod.SetRespawnDelay(3 * time.Second)
 
 ## Play free-for-all
 
-`setFreeForAll(true)` makes every hero an enemy of every other. New players
-get no hero picker, so seat them from the join handler:
+`setFreeForAll(true)` makes every hero an enemy of every other. New players get
+no hero picker, so seat them from the join handler:
 
 <Samples>
 
@@ -150,15 +150,16 @@ mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 | `setFreeForAll(false)`   | Restores the stock teams; players keep the team they are on.                                                 |
 
 `"freeForAll": true` in [`mod.json`](/reference/manifest) starts the mod in
-free-for-all. `setTeamSeating(true)` also seats new players on the smaller team with no team
-screen or hero picker, but leaves friendly fire and team changes as the game has
-them.
+free-for-all. `setTeamSeating(true)` also seats new players on the smaller team,
+with no team screen or hero picker. But it leaves friendly fire and team
+changes as the game has them.
 
 ## Keep the players with Cast
 
-`Cast` keeps one member per human who finished joining, and gets each the
-hero, team and respawn delay they want. This cast welcomes each player, seats
-them on any hero and brings a fallen hero back after 3 seconds:
+`Cast` keeps one member for each human who finished joining, and gets each
+member the hero, team and respawn delay they want. This cast welcomes each
+player, seats them on any hero and brings a fallen hero back after 3
+seconds:
 
 <Samples>
 
@@ -228,10 +229,10 @@ mod.OnFrame(func(frame *mod.FrameEvent) { cast.Frame(frame.GetTimeSeconds()) })
 | `want`  | A hero, team and respawn delay for everyone, or a function of the member read each frame. Without a team, a member keeps their hero's team or joins the side with fewer members. |
 
 On each frame, Cast reads each member's hero once. At most once a second, it
-asks the game again for the hero, team or respawn delay a member wants but does
-not have yet. Cast learns of joins from the host's player reports, so on a
-frame where nobody joined or left it does not walk the player list.
-Read the hero back from the cast rather than asking the game again:
+asks the game again for any hero, team or respawn delay that a member wants but
+does not have yet. Cast learns of joins from the host's player reports, so on a
+frame where nobody joined or left, it does not walk the player list.
+Read each hero back from the cast, rather than asking the game again:
 
 | TypeScript and Luau | Python      | Go        | Returns                                   |
 | ------------------- | ----------- | --------- | ----------------------------------------- |
@@ -243,11 +244,13 @@ Read the hero back from the cast rather than asking the game again:
 ## Clear stragglers
 
 A player who stops loading keeps their slot, listed with `ready` false, until
-the network gives up on them. The game can keep a disconnected player's hero
-standing in the world, and revives it on its own timer with no player.
-`Stragglers` kicks a human still joining after `connectSeconds` and
-kills each hero no player holds, as [`Strays`](/mechanics/rotation#heroes-left-behind)
-does. Keep one and call `sweep(now)` each frame:
+the network gives up on them. The game can also keep a disconnected player's
+hero standing in the world, and it revives that hero on its own timer with no
+player.
+`Stragglers` kicks a human who is still joining after `connectSeconds`, and it
+kills each hero that no player holds, as
+[`Strays`](/mechanics/rotation#heroes-left-behind) does. Keep one and call
+`sweep(now)` each frame:
 
 ```ts
 import { onFrame } from 'modlock'
@@ -257,7 +260,7 @@ const stragglers = new Stragglers({ connectSeconds: 120 })
 onFrame(({ timeSeconds }) => stragglers.sweep(timeSeconds))
 ```
 
-`sweepStragglers(options?)` does the same in one line, with the library calling
+`sweepStragglers(options?)` does the same in one line. The library then calls
 `sweep` each frame for as long as the mod runs:
 
 ```ts
@@ -272,25 +275,26 @@ sweepStragglers()
 | `heroes`         | `true`  | Kills each hero that has had no player for `strayGraceSeconds` and holds off its respawn.       |
 
 The sweep checks once a second and kicks each connection once, by name, with
-`kick "name"`. A name that is empty or holds a quote is logged instead. A
-player who reconnects gets a new slot connection and a new deadline. A
-disconnect already fires [`onPlayerLeave`](/guides/events#joins-and-leaves)
-with `disconnected` true and drops the player from the player list, so remove
-them from your own teams and rounds there. The sweep sees only slots the
-server put a player in: a connection attempt that never got that far, shown by
-`status` with id 65535, has no slot a mod can kick.
+`kick "name"`. When a name is empty or holds a quote, the sweep logs it instead.
+A player who reconnects gets a new slot connection and a new deadline.
+
+A disconnect already fires [`onPlayerLeave`](/guides/events#joins-and-leaves)
+with `disconnected` true, and drops the player from the player list. So remove
+the player from your own teams and rounds in that handler. The sweep sees only
+slots that the server put a player in. A connection attempt that never got that
+far, which `status` shows with id 65535, has no slot a mod can kick.
 
 ## Vectors and HUD text
 
-`vector` works in world units with z up, and view angles in degrees with
-pitch positive looking down.
+`vector` works in world units with z up. It takes view angles in degrees, with
+positive pitch looking down.
 
 | Call                                                            | Does                                                 |
 | --------------------------------------------------------------- | ---------------------------------------------------- |
 | `vector.distance`, `flatDistance`, `toward`, `lerp`, arithmetic | Measure and combine points.                          |
 | `yawToward`, `level`, `aimAt`, `forward`                        | Turn a hero to face a point, or read where it looks. |
 
-`format` writes numbers the way players read them, since the game's scripts
+`format` writes numbers the way players read them, because the game's scripts
 have no locale data:
 
 | Call                          | Result    |
@@ -305,18 +309,19 @@ have no locale data:
 
 ## Find the floor
 
-`ground(point)` returns the floor under a point, or nothing when no floor is
-in reach, the point is inside a wall, or the world's collision is not ready
-yet. `ground(spawn) ?? spawn` keeps the point when there is no floor. It
-traces straight down through solid and player clip, from 64 units above to
-1024 below. `above`, `below` and `layers` change the reach.
+`ground(point)` returns the floor under a point. It returns nothing when no
+floor is in reach, when the point is inside a wall, or when the world's
+collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when there
+is no floor. `ground` traces straight down through solid and player clip, from
+64 units above the point to 1024 below. The `above`, `below` and `layers`
+options change the reach.
 
 ## Stand a race gate
 
-`RaceGate.stand` stands a checkpoint or finish gate across a lane: thin
-glowing lines inside a racing checker band, Tron cyan by default. `foot` is
-the road point under the middle of the opening and `yaw` the direction a
-runner passes through, in degrees. Precache `raceGateResources` in
+`RaceGate.stand` stands a checkpoint or finish gate across a lane. The gate is
+thin glowing lines inside a racing checker band, Tron cyan by default. `foot`
+is the road point under the middle of the opening, and `yaw` is the direction
+in degrees that a runner passes through. Precache `raceGateResources` in
 `onStart`:
 
 ```ts
@@ -337,9 +342,9 @@ gate.remove()
 
 ## Time your frames
 
-`frameClock` shows how much of a slow server frame is your mod's, and which
-part spends it. Call `begin` as a frame starts, `lap` with a name after each
-part, and `end` with the frame's tick:
+`frameClock` shows how much of a slow server frame your mod spends, and which
+part of the mod spends it. Call `begin` as a frame starts, `lap` with a name
+after each part, and `end` with the frame's tick:
 
 ```ts
 import { frameClock, onFrame } from 'modlock'
@@ -354,7 +359,8 @@ onFrame((frame) => {
 })
 ```
 
-Once a minute `frameClock` logs the median and slowest frame, each part's mean and
-slowest milliseconds, and the parts that cost most in the minute's slowest
-frame. That last figure shows a part that spikes only once a minute.
+Once a minute, `frameClock` logs the median and slowest frame, and each part's
+mean and slowest milliseconds. It also logs the parts that cost the most in the
+minute's slowest frame. That last figure shows a part that spikes only once a
+minute.
 [Measure a mod](/performance/measure) shows the other ways to find a slow frame.

@@ -3,46 +3,50 @@ title: Layouts
 description: Draw the mod's own layouts and style sheets, and how the game draws interfaces.
 ---
 
-`<layout src="shop.xml" data={stock} />` loads a layout from the mod's
-content addon. No other element runs code in the player's game. The
-game draws every other element from the typed tree in
+`<layout src="shop.xml" data={stock} />` loads a layout from the mod's content
+addon. It is the only element that runs code in the player's game. The game
+draws every other element from the typed tree in
 [`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto),
-and when the player presses one, the press comes back to its `onPress`. The host clears an interface when
-the player leaves or the mod stops.
+and when the player presses one, the press comes back to the element's
+`onPress`. The host clears an interface when the player leaves or the mod
+stops.
 
 - A layout with no content to load draws an empty panel and logs one line in
   the game's console.
 - The `modlock dev` preview page draws the layout from the mod's latest build,
   with its panels, inline styles and style sheets, but runs none of its
   scripts.
-- A host with its own interface script loads layouts by passing `Layouts` to the
-  `Drawing` in `panorama/src/draw.ts`. `AddonLayouts`, for example, loads each
-  layout from the `addon` given in the screen's tree. Modlock's own renderer loads
-  the layouts of the content its session mounted.
+- A host with its own interface script loads layouts by passing `Layouts` to
+  the `Drawing` in `panorama/src/draw.ts`. `AddonLayouts`, for example, loads
+  each layout from the `addon` that the screen's tree names. Modlock's own
+  renderer loads the layouts of the content its session mounted.
 
 ## Style sheets
 
 `sheet('hud.css')` adds a sheet from `content/styles/` to every interface the
-mod shows. When two sheets set the same property, the later sheet wins. In TypeScript,
-`import './content/styles/hud.css'` builds to the same call, and the build
-refuses a sheet outside `content/styles/`. An element takes the sheet's
-classes through `class="board gold"`. Changing its classes runs the sheet's
-transitions, and the element's own style wins over a class.
+mod shows. When two sheets set the same property, the later sheet wins. In
+TypeScript, `import './content/styles/hud.css'` builds to the same call, and the
+build refuses a sheet outside `content/styles/`. An element takes the sheet's
+classes through `class="board gold"`. Changing an element's classes runs the
+sheet's transitions, and the element's own style wins over a class.
 
-Sheets load where layouts do. Beside each sheet, the build writes a layout that
-includes only that sheet, and the game loads that layout into the interface's
-root panel. A host that passes no `Layouts` draws the interface without them, and
-a sheet that fails to load leaves it drawn with one log line.
+Sheets load wherever layouts load. Beside each sheet, the build writes a layout
+that includes only that sheet, and the game loads that layout into the
+interface's root panel. A host that passes no `Layouts` draws the interface
+without the sheets. When a sheet fails to load, the interface still draws, and
+the game logs one line.
 
 ## Hand values to a layout
 
-Your mod hands values to a layout in two ways: the `data` of the layout's own
-element, and routes. `route(player, 'scores', scores)` hands its value to every
-layout your mod shows that player, so several layouts share one value without a parent passing
-it down. A value travels as JSON, and the layout sees a change only
-when your mod sends a different value. `route(player, name, undefined)` removes the route. Go's `ui.Route`
-takes the value as JSON text, and an empty one removes it. The layout's
-script includes the library `scripts/modlock/layout.js` and reads them:
+Your mod hands values to a layout in two ways, through the `data` of the
+layout's own element and through routes. `route(player, 'scores', scores)`
+hands its value to every layout your mod shows that player. So several layouts
+share one value, without a parent passing it down. A value travels as JSON, and
+the layout sees a change only when your mod sends a different value.
+`route(player, name, undefined)` removes the route. Go's `ui.Route` takes the
+value as JSON text, and an empty text removes the route. The layout's script
+includes the library `scripts/modlock/layout.js` and reads the values with
+it:
 
 ```xml
 <scripts>
@@ -56,29 +60,31 @@ Modlock.data((stock) => drawShop(stock))
 Modlock.route('scores', (scores) => drawScores(scores))
 ```
 
-Each handler runs at once with the current value and again after each change,
-with `undefined` while the mod sends none.
+Each handler runs at once with the current value, and again after each change.
+While the mod sends no value, the handler gets `undefined`.
 
-When your mod sends a new value, the renderer writes it the next time it draws
-the screen, to an attribute of the layout's panel: `modlock_data` for the
-element's `data`, or `modlock_route_<name>` for a route. After a draw that changed any of these, the renderer plays the sound
-event `modlock_data_changed`. The game delivers no custom event to a script, but
-it delivers `PlaySoundEffect` to every script, and no sound has that name, so
-none plays. The library hears it, rereads each attribute, and calls the handler
-of each value that changed.
+When your mod sends a new value, the renderer writes it to an attribute of the
+layout's panel the next time it draws the screen. The attribute is
+`modlock_data` for the element's `data`, or `modlock_route_<name>` for a route.
+After a draw that changed any of these, the renderer plays the sound event
+`modlock_data_changed`. It uses a sound because the game delivers no custom
+event to a script, but it delivers `PlaySoundEffect` to every script. No sound
+has that name, so nothing plays. The library hears the event, rereads each
+attribute, and calls the handler of each value that changed.
 
-`Modlock.onUnload(() => ...)` runs once when the renderer starts removing or
-replaces the layout's panel, reloads the tree, or releases the screen as the
-player leaves, so a layout can cancel scheduled timers, drop event handlers, or
-undo changes outside its panel. Do cleanup synchronously, since the panel is
-deleted on the next frame (or after its exit transition). A handler registered
-after unload runs at once, and no `data` or `route` handler runs after it. A
-layout whose screen was released loads afresh on the next draw, so its script
-starts again from the top and should set up everything it needs there.
+`Modlock.onUnload(() => ...)` runs its handler once, when the renderer starts
+to remove or replace the layout's panel, reloads the tree, or releases the
+screen as the player leaves. There a layout can cancel scheduled timers, drop
+event handlers, or undo changes outside its panel. Do the cleanup
+synchronously, because the game deletes the panel on the next frame (or after
+its exit transition). A handler registered after the unload runs at once, and
+no `data` or `route` handler runs after it. When a layout's screen was
+released, the layout loads afresh on the next draw. Its script starts again
+from the top, so it should set up everything it needs there.
 
 The layout answers the mod by pressing back. `Modlock.press('buy', { item:
-'boots' })` sends the action with its payload as JSON, and the layout's
-element hears it as `onAction`, with the player the server says sent it:
+'boots' })` sends the action with its payload as JSON. The layout's element
+hears it as `onAction`, with the player that the server says sent it:
 
 ```tsx
 <layout
@@ -89,25 +95,27 @@ element hears it as `onAction`, with the player the server says sent it:
 ```
 
 A press runs the console command `modlockaction <mod> <node> <action>
-[payload]` in the player's game, the payload's UTF-8 in unpadded base64url.
-The server checks the press against the player who sent it and that
-player's tree. It takes a press only while that player's tree shows the
+[payload]` in the player's game, with the payload's UTF-8 in unpadded
+base64url. The server checks the press against the player who sent it and that
+player's tree, and it takes a press only while that player's tree shows the
 layout. The action must be one to 64 letters, digits, `_`, `-` and `.`, and
-the payload at most 180 bytes of UTF-8. Each player gets a burst of 8
-presses, refilling at 4 a second. It takes nothing once the mod stops.
-`press` returns false and logs a line for a press it will not send: a name
-the server would refuse, a payload over 180 bytes, or a layout the renderer
-did not name. A press the server refuses goes to the server's log. A
-layout may still run its own console commands. `modlock dev` and
-`modlock play` in the sandbox draw a layout's panels but run none of its
-scripts, so a press happens only in the game.
+the payload must be at most 180 bytes of UTF-8. Each player gets a burst of 8
+presses, which refills at 4 a second. Once the mod stops, the server takes no
+presses.
+`press` returns false and logs a line when it will not send a press. That
+happens for a name the server would refuse, a payload over 180 bytes, or a
+layout the renderer did not name. When the server refuses a press, it writes
+the press to its log. A layout may still run its own console commands.
+`modlock dev` and `modlock play` in the sandbox draw a layout's panels but run
+none of its scripts, so a press happens only in the game.
 
 ## Bind named panels
 
 A layout can keep its fonts, art and localized text from its file while the
 mod sets a few of its panels. `bindings` names panels of the layout by their
-`id` and sets parts of each panel, or takes its presses with `onPress`, and
-no script is needed. Each part means what it means on an element:
+`id`. For each panel, it sets some of the panel's parts, or takes the panel's
+presses with `onPress`, and no script is needed. Each part means what it means
+on an element:
 
 - `text` replaces a label's words, and `token` with `variables` replaces them
   with the game's text in the player's language, as a `<label>`'s do.
@@ -130,27 +138,32 @@ no script is needed. Each part means what it means on an element:
 ```
 
 Python's `layout(bindings={"buy": {"on_press": buy}})`, Luau's `bindings = {
-buy = { onPress = buy } }` and Go's `Layout.Bindings` take the same map. A
-property a binding leaves unset keeps the layout's own value, and one the mod
-stops setting goes back to the value the layout had: its text, its visibility,
-its inline style, and its lack of each class the binding added. A class the
-layout's author gave the panel stays when the binding drops it. `src` is the
-exception: the game cannot read an image's picture back, so the last one a
-binding set stays until the layout loads again. The renderer looks each panel
-up inside the layout's panel once the layout loads, applies every binding, and
-then applies each change as the mod draws it. After each draw, once the
-layout's script has read the draw's data, the renderer looks up any panel it
-has not found, and when the script has built its panels anew it finds them all
-again and applies every binding. A name the layout has no panel for logs one
-line in the game's console, and the other bindings still apply.
+buy = { onPress = buy } }` and Go's `Layout.Bindings` take the same map.
 
-A press on a bound panel reaches the mod as a press of the layout whose
-action is the panel's `id`, with no payload. A layout with any binding takes
-presses only from its bindings that have `onPress`, so the server refuses a
-press its script sends with `Modlock.press`, and a press from a panel the mod
-stopped binding. A layout holds at most 64 bindings, each naming a different
-panel by an `id` of up to 64 letters, digits, `_`, `-` and `.`. A binding's
-text, token, classes and image are held to an element's limits.
+A property that a binding leaves unset keeps the layout's own value. When the
+mod stops setting a property, the property goes back to the value the layout
+had. That covers its text, its visibility, its inline style, and its lack of
+each class the binding added. A class that the layout's author gave the panel
+stays when the binding drops it. `src` is the exception. The game cannot read
+an image's picture back, so the last picture a binding set stays until the
+layout loads again.
+
+Once the layout loads, the renderer looks up each panel inside the layout's
+panel and applies every binding. Then it applies each change as the mod draws
+it. After each draw, once the layout's script has read the draw's data, the
+renderer looks up any panel it has not found yet. When the script has built
+its panels anew, the renderer finds them all again and applies every binding.
+A name that matches no panel in the layout logs one line in the game's console,
+and the other bindings still apply.
+
+A press on a bound panel reaches the mod as a press of the layout, with the
+panel's `id` as the action and no payload. A layout with any binding takes
+presses only from its bindings that have `onPress`. So the server refuses a
+press that the layout's script sends with `Modlock.press`, and a press from a
+panel the mod stopped binding. A layout holds at most 64 bindings. Each one
+names a different panel, by an `id` of up to 64 letters, digits, `_`, `-` and
+`.`. A binding's text, token, classes and image are held to the same limits as
+an element's.
 
 ## The renderer
 
@@ -158,25 +171,28 @@ The game draws interfaces with the renderer in [`panorama/`](https://github.com/
 
 - The layout `panorama/layout/modlock/ui.xml` and its script, which a client
   content package installs as `scripts/modlock/ui.js`, beside the layout
-  library `scripts/modlock/layout.js`. The `modlock` command
-  line in a release has the library built in. `go run ./cmd/modlock-library`
-  builds it from source into `js/built`, where the next build of the command
-  line embeds it.
-- The game keeps a client content package, and the layout in it, loaded
-  through matches. The renderer draws over the HUD.
+  library `scripts/modlock/layout.js`. The `modlock` command line in a release
+  has the library built in. `go run ./cmd/modlock-library` builds the library
+  from source into `js/built`, and the next build of the command line embeds
+  it.
+- The game keeps a client content package, and the layout in it, loaded from
+  one match to the next. The renderer draws over the HUD.
 - `modlock dev` and `modlock play` serve the local player's interfaces on
   `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
-  https pages, so the renderer reads them through a relay page at `--ui-relay`,
-  `https://hyperline.gg` by default. The controller answers only that origin's
-  page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
-  and the page reads the screen from that loopback port.
-- Both commands also install the renderer in the game for the session, so its
-  interfaces show with no setup. They write `game/citadel/modlock_dev`, a package that adds the
-  renderer to the stock news layout. They mount it between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other mounted
-  content, and remove it when the session ends. The game reads the package at startup, so a game that was already running shows the interfaces only
-  after a restart.
+  https pages, so the renderer reads the interfaces through a relay page at
+  `--ui-relay`, which is `https://hyperline.gg` by default. The controller
+  answers only that origin's page. The session's package loads the page at
+  `/app/relay/bridge.html?port=<port>`, and the page reads the screen from that
+  loopback port.
+- Both commands also install the renderer in the game for the session, so the
+  interfaces show with no setup. They write `game/citadel/modlock_dev`, a
+  package that adds the renderer to the stock news layout. They mount the
+  package between `// MODLOCK DEV` markers in `gameinfo.gi`, ahead of other
+  mounted content, and remove it when the session ends. The game reads the
+  package at startup, so a game that was already running shows the interfaces
+  only after a restart.
 - A press runs the console command `modlockpress <mod> <node>` in the player's
   game. `pressCommand` in `panorama/src/draw.ts` builds that command, and a host
-  with its own renderer calls it to press the same way. The server presses the node for the
-  player who sent it, and only when that player's interface shows it as a
-  button.
+  with its own renderer calls it to press the same way. The server presses the
+  node for the player who sent the command, and only when that player's
+  interface shows the node as a button.

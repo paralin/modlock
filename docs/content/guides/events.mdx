@@ -3,9 +3,9 @@ title: Events
 description: The moments a mod hears about, and how to register a handler for each.
 ---
 
-Your mod registers its handlers as it loads. The server calls each one when its
-moment comes:
-a chat command, a frame, a player joining, a hit about to land.
+Your mod registers its handlers as it loads. The server calls each handler when
+its moment comes, such as a chat command, a frame, a player joining or a hit
+about to land.
 
 <Samples>
 
@@ -98,10 +98,10 @@ func main() {}
 
 ## Every event
 
-Python spells each as a `snake_case` decorator, such as
-`@modlock.on_player_join`, and Go as an exported function, such as
-`mod.OnPlayerJoin`. A call that takes a name takes it in the decorator, as
-`@modlock.on_modifier_event("PRE_UNIT_HEALED")` does.
+Python spells each event as a `snake_case` decorator, such as
+`@modlock.on_player_join`. Go spells it as an exported function, such as
+`mod.OnPlayerJoin`. In Python, an event that takes a name takes it in the
+decorator, as `@modlock.on_modifier_event("PRE_UNIT_HEALED")` does.
 
 | Call                                                | Runs the handler                                                                           |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -141,24 +141,25 @@ the hero.
 
 Between joined and in play, the player is picking a team or a hero, or the game
 has not placed the hero yet. [`player.seat`](/guides/toolkit#seat-the-players)
-skips the team and hero screens. A call that needs a hero, such as a teleport, fails
-before the hero spawns. Make it in `onSpawn`, which fires for the first hero and
-each respawn. A bot joins as soon as it is added.
+skips the team and hero screens. A call that needs a hero, such as a teleport,
+fails before the hero spawns. So make that call in `onSpawn`, which fires for
+the first hero and for each respawn. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
-A player whose connection drops is away, not gone: the game keeps their seat,
-hero and team for five minutes, and a player who reconnects in that time returns
-to them as the same Player. Interfaces sent while a player is away are dropped,
-and Modlock draws each one again when they return. A mod that pauses on an
-absence, such as a ready check, can listen with `onPlayerAway` and
-`onPlayerReturn`.
+When a player's connection drops, the player is away, not gone. The game keeps
+their seat, hero and team for five minutes. When they reconnect in that time,
+they return to all of it as the same Player. Modlock drops the interfaces your
+mod sends while a player is away, and draws each one again when they return. A
+mod that pauses while someone is missing, such as for a ready check, can listen
+with `onPlayerAway` and `onPlayerReturn`.
 
-Each joined player leaves exactly once, when their seat ends: they leave from
-the game, the mod stops serving them, a stranger takes the held slot, or the
-five minutes run out. Your handler can still read their hero. A moment later
-Modlock kills the hero, keeps it from respawning and takes the controller off
-its team, so a mod never has to clear what a leaver left in the world:
+Each joined player leaves exactly once, when their seat ends. The seat ends
+when they leave the game, when the mod stops serving them, when a stranger
+takes the held slot, or when the five minutes run out. Your leave handler can
+still read their hero. A moment later, Modlock kills the hero, keeps it from
+respawning and takes the controller off its team. So a mod never has to clean
+up a hero that a player left behind in the world:
 
 <Samples>
 
@@ -238,9 +239,9 @@ mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
 </Samples>
 
 The library hears a spawn from the game's `PLAYER_RESPAWNED` modifier event,
-once for a player's first hero and once for each respawn, and runs your
-handler before that frame's frame handlers. A team change is not a spawn. A
-server that cannot watch modifier events hears no spawns.
+once for a player's first hero and once for each respawn. It runs your handler
+before that frame's frame handlers. A team change is not a spawn. A server that
+cannot watch modifier events hears no spawns.
 
 ## Casts and modifier events
 
@@ -301,11 +302,11 @@ mod.OnModifierEvent("PRE_UNIT_HEALED", func(event *mod.ModifierFiredEvent) {
 
 </Samples>
 
-A cast arrives once it takes effect, after any cast time, for a hero's
-abilities and for the items a player activates. The sample checks `slot`
-because only a player's hero casts from a slot, and only then does the cast
-carry a name. The game fires `PRE_UNIT_HEALED` before every heal and every tick
-of regeneration, so a real handler for it should do less work than the sample,
+A cast arrives once it takes effect, after any cast time. Casts arrive for a
+hero's abilities and for the items a player activates. The sample checks `slot`
+because only a player's hero casts from a slot, and only such a cast carries a
+name. The game fires `PRE_UNIT_HEALED` before every heal and every tick of
+regeneration. So a real handler for it should do less work than the sample,
 which writes a log line for every one.
 
 | Cast field | Holds                                                                                     |
@@ -319,17 +320,21 @@ which writes a log line for every one.
 
 `onModifierEvent` takes any of the game's `EModifierEvent` names, with or
 without the `MODIFIER_EVENT_` prefix. The event's `name` is the spelling your
-handler registered with. A name the running game lacks is logged once and never
-fires. Register the handler as the mod loads, since the server asks for the
-events when it starts the mod.
+handler registered with. When the running game lacks a name, the mod logs it
+once, and that handler never fires. Register the handler as the mod loads,
+because the server asks for the events when it starts the mod.
 
-Every modifier event has the same fields, but which ones the game fills depends
-on the event: `caster`, the entity the event is about; `player`, the player
-whose hero the caster is, or slot -1; `target`, the other entity, such as the
-victim of a kill; and `ability`, the entity the event gives as its source. An
-unfilled entity is 0. These events have been seen in a running game. Where one
-has a typed call for the same moment, use the call, which gives each field its
-own name:
+Every modifier event has the same four fields, but which ones the game fills
+depends on the event:
+
+- `caster` is the entity the event is about.
+- `player` is the player whose hero the caster is, or slot -1.
+- `target` is the other entity, such as the victim of a kill.
+- `ability` is the entity that the event gives as its source.
+
+An entity field the game does not fill is 0. The events below have been seen in
+a running game. When one of them has a typed call for the same moment, use the
+call, which gives each field its own name:
 
 | Event                | Fills                                           | Typed call      |
 | -------------------- | ----------------------------------------------- | --------------- |
@@ -398,12 +403,13 @@ mod.OnLevelChange(func(change *mod.LevelEvent) {
 
 </Samples>
 
-The sample logs heals to players' heroes, since a slot of -1 means a unit. A
-heal is health a hero or unit regains at once from an ability, an item or
-lifesteal. Regeneration reports nothing, including what Siphon Life restores
-as regeneration, and neither does the mod's own heal or a heal that finds the
-target at full health. To hear regeneration, listen for the `PRE_UNIT_HEALED`
-[modifier event](#casts-and-modifier-events), which the game fires before every
+The sample logs heals to players' heroes, because a slot of -1 means a unit. A
+heal is health that a hero or unit regains all at once, from an ability, an
+item or lifesteal. Regeneration reports nothing, and that includes what Siphon
+Life restores as regeneration. The mod's own heal reports nothing either, and
+neither does a heal that finds the target at full health. To hear
+regeneration, listen for the `PRE_UNIT_HEALED`
+[modifier event](#casts-and-modifier-events). The game fires it before every
 heal and every tick of regeneration, with no amount. Each of the four events
 arrives before the next frame.
 Python spells the fields in `snake_case`, and Go reads each player as a slot,
@@ -429,11 +435,11 @@ such as `heal.GetTargetPlayer()`.
 
 ## Pings
 
-Your mod hears each ping a player sends, from the comms wheel, a quick ping
-key, the minimap or an ability, before anyone sees it, and can block it. A
-blocked ping reaches nobody, its sender included: no marker, sound, voice line
-or chat line. This mod silences the comms wheel of each player who typed
-`/quiet`:
+Your mod hears each ping a player sends before anyone sees it, and it can
+block the ping. That covers pings from the comms wheel, a quick ping key, the
+minimap or an ability. A blocked ping reaches nobody, its sender included, so
+no one gets its marker, sound, voice line or chat line. This mod silences the
+comms wheel of each player who typed `/quiet`:
 
 <Samples>
 
@@ -501,11 +507,11 @@ mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
 
 </Samples>
 
-A handler can instead mute the ping's voice line for some players and leave them
-its marker and sound: `muteVoice` lists them by slot. The game puts the line's
-name in the ping and each player's game speaks it, so a muted player hears
-nothing of it while the others hear it as usual. This mod lets each player mute
-the pings of a player who spams them:
+A handler can instead mute the ping's voice line for some players, and leave
+them its marker and sound. `muteVoice` lists those players by slot. The game
+puts the voice line's name in the ping, and each player's game speaks the line.
+So a muted player hears nothing of it, while the others hear it as usual. This
+mod lets each player mute the pings of a player who spams them:
 
 <Samples>
 
@@ -584,10 +590,11 @@ mod.OnPing(func(ping *mod.PingEvent) *mod.PingResult {
 
 </Samples>
 
-The handler runs inside the server's ping, so it answers at once. Put other
-work, such as a message to the player, in a timer. When several handlers
-answer, the first that blocks the ping decides, and otherwise each player any
-handler mutes gets the ping without its voice.
+The handler runs inside the server's handling of the ping, so it must answer
+at once. Put other work, such as a message to the player, in a timer. When
+several handlers answer, the first one that blocks the ping decides. When none
+blocks it, each player that any handler mutes gets the ping without its
+voice.
 
 | Field     | Meaning                                                                     |
 | --------- | --------------------------------------------------------------------------- |

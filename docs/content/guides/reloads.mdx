@@ -3,11 +3,13 @@ title: Reloads and failures
 description: What a reload resets, how to carry state across one, and what a failed call does.
 ---
 
-While the game runs, `modlock dev` reloads your mod with the new build each time you save. A reload starts the mod fresh: its variables reset, and the host removes everything it placed.
+While the game runs, `modlock dev` reloads your mod with the new build each time you save. A reload starts the mod fresh. Its variables reset, and the host removes everything the mod placed.
 
 ## Failed calls
 
-A call that fails logs the reason and returns `false` or `undefined`, and your mod keeps running. Everything your mod places is removed when the world changes. Stopping or reloading the mod removes it too, and releases the heroes it froze, the modifier states it held and the input it blocked.
+A call that fails logs the reason and returns `false` or `undefined`, and your mod keeps running.
+
+When the world changes, the host removes everything your mod placed. Stopping or reloading the mod removes it too. It also releases the heroes the mod froze, the modifier states it held and the input it blocked.
 
 <Only lang="go">
   In Go, each call returns an error instead, and your mod can ignore the error
@@ -16,8 +18,9 @@ A call that fails logs the reason and returns `false` or `undefined`, and your m
 
 ## Slow and stopped mods
 
-An event's processor time includes the game calls its handler makes, but not a
-stall where the server waits, such as paging on a machine short of memory.
+An event's processor time includes the game calls that its handler makes. It
+does not include a stall where the server waits, such as paging on a machine
+short of memory.
 
 | An event that                      | Does                                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -25,21 +28,22 @@ stall where the server waits, such as paging on a machine short of memory.
 | runs past five seconds             | Stops the mod, as a crash does.                                                                                                                        |
 
 When a mod stops, the host removes what it placed and the interfaces it showed,
-and the mod stays stopped. The host warns in chat each minute until a player types `/restartmod` or a reload replaces it.
-A restart starts the same build in a new instance, as a reload does.
+and the mod stays stopped. The host warns in chat each minute until a player
+types `/restartmod` or a reload replaces the mod. A restart starts the same
+build in a new instance, as a reload does.
 
-A frame handler has a much smaller allowance than an event: past 8 ms the mod
-skips frames to repay it. See [The frame budget](/performance/frame-budget).
+A frame handler has a much smaller allowance than an event. When it runs past
+8 ms, the mod skips frames to repay the time. See [The frame budget](/performance/frame-budget).
 
 ## Restart a running mod
 
-A program that hosts mods can restart one in place with `WasmHost::Restart(mod)`, without restarting the server, as when a mod's frames have grown slow over a long game. The restart runs on the mod's next frame: a new instance of the running build starts, every value its code kept is gone, and it hears the loaded world and the players as a fresh start does. Its handoff state, scope and players' settings carry over, as through a reload. A stopped mod starts again.
+A program that hosts mods can restart one in place with `WasmHost::Restart(mod)`, without restarting the server. It might do this when a mod's frames have grown slow over a long game. The restart runs on the mod's next frame. A new instance of the running build starts, and every value the old code kept is gone. The new instance hears the loaded world and the players, as a fresh start does. Its handoff state, scope and players' settings carry over, as they do through a reload. A stopped mod starts again.
 
-A restart honors the mod's [reload hold](#hold-a-reload): while the mod holds its build, the restart waits and runs on the first frame after the release. `Restart(mod, true)` restarts it despite the hold. Asking again while a restart waits changes nothing, except that `true` stops it waiting. `Held(mod)` reports whether the mod holds its build, and `Restarting(mod)` whether a restart waits.
+A restart honors the mod's [reload hold](#hold-a-reload). While the mod holds its build, the restart waits, and it runs on the first frame after the mod releases the hold. `Restart(mod, true)` restarts the mod despite the hold. Asking again while a restart waits changes nothing, except that passing `true` ends the wait. `Held(mod)` reports whether the mod holds its build, and `Restarting(mod)` reports whether a restart is waiting.
 
 ## Hold a reload
 
-When a new build would lose work in progress, such as a timed run, call `holdReload(true)` at the start and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits, and the newest build replaces the running one on the next frame after you release the hold. A restart the host asks for waits the same way, unless it forces one. A mod that stops also releases its hold.
+When a new build would lose work in progress, such as a timed run, call `holdReload(true)` as the work starts and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits. Then the newest build replaces the running one on the next frame after you release the hold. A restart that the host asks for waits the same way, unless the host forces it. A mod that stops also releases its hold.
 
 <Samples>
 
@@ -150,4 +154,4 @@ func nextRound() {
 | `player.handoff(text)`, `player.handedOff()` | Write one player's state, and read it on load. | That player leaves. A bot has none.   |
 
 Handoff state lasts only through a reload in the same game. The host keeps it
-only in memory, up to 64 KiB per call, and handing off an empty text clears it.
+only in memory, up to 64 KiB per call. Handing off an empty text clears it.
