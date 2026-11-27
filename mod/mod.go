@@ -22,157 +22,45 @@
 // host.gen.go.
 package mod
 
-import (
-	"errors"
-	"maps"
-	"slices"
-	"strings"
-	"time"
-
-	"github.com/paralin/modlock/src/wasm"
-	"github.com/paralin/modlock/src/wasm/players"
-)
-
-// Service answers calls to one service the mod serves: the method's name and
-// payload in, the answer out.
-type Service func(method string, payload []byte) ([]byte, error)
-
-// handlers holds what the mod registered. A module is exactly one mod, and the
-// host enters it through the modlock_event export, which has no receiver, so
-// the module keeps one handlers value that init registers into and every event
-// reads. Each list runs in registration order.
-type handlers struct {
-	// commands maps each registered command name to its handler.
-	commands map[string]func(Player, string)
-	// services maps each service the mod serves to its handler.
-	services map[string]Service
-	// waiting maps each started service call's number to the function its
-	// end runs.
-	waiting map[uint64]func(reply []byte, err error)
-
-	starts        []func(args []string)
-	frames        []func(*FrameEvent)
-	chats         []func(*ChatEvent)
-	joins         []func(*PlayerJoinedEvent)
-	leaves        []func(*PlayerLeftEvent)
-	aways         []func(*PlayerAwayEvent)
-	returns       []func(*PlayerReturnedEvent)
-	worlds        []func(mapName string)
-	inputs        []func(p Player, pressed, released uint64)
-	restoreds     []func(p Player, err error)
-	npcsRestoreds []func(err error)
-	damages       []func(*DamageEvent) *DamageResult
-	pings         []func(*PingEvent) *PingResult
-	damageds      []func(*DamagedEvent)
-	kills         []func(*KillEvent)
-	casts         []func(*AbilityCastEvent)
-	heals         []func(*HealEvent)
-	levels        []func(*LevelEvent)
-	melees        []func(*MeleeEvent)
-	parries       []func(*ParryEvent)
-	modifiers     map[string][]func(*ModifierFiredEvent)
-	launches      []func(*LaunchEvent)
-	impacts       []func(*ImpactEvent)
-	landeds       []func(*LandedEvent)
-	settings      []func(p Player, key, value string)
-	presses       []func(event *UiPressEvent)
-	changes       []func(*UiInputEvent)
-	documents     []func(*UiDocumentEvent)
-	actions       []func(*UiActionEvent)
-	overlays      []func(*UiOverlayEvent)
-	placements    []func(*UiPlacementEvent)
-	windows       []func(*UiWindowEvent)
-	rosterWatches []func(players []*Connection)
-
-	// roster is the player list the host last reported, or nil before one.
-	roster []*Connection
-	// rosters counts the player lists the host reported, so a Cast settles
-	// joins and leaves only after a new one.
-	rosters uint64
-	// generations holds each slot's connection generation in the last player
-	// list, and tenures counts the connections each slot has lost since the
-	// mod started, so PlayerOf tells a newcomer from the one who left.
-	generations map[int32]uint32
-	tenures     map[int32]uint32
-
-	// result holds the last encoded Reply until the host has copied it.
-	result []byte
-}
-
-// registered is the mod's single set of handlers.
-var registered = &handlers{
-	commands:    map[string]func(Player, string){},
-	services:    map[string]Service{},
-	waiting:     map[uint64]func(reply []byte, err error){},
-	generations: map[int32]uint32{},
-	tenures:     map[int32]uint32{},
-}
+// defaultRegistry is the module's registration target for package functions.
+var defaultRegistry Registry
 
 // Command calls handler when a player types /name in chat. The handler runs
 // with the next server frame, before the frame handlers, and receives the
 // text after the name, trimmed of surrounding spaces. Registering a name
 // again replaces its handler.
 func Command(name string, handler func(p Player, args string)) {
-	registered.commands[name] = handler
+	defaultRegistry.RegisterCommand(name, handler)
 }
 
 // Serve answers the host's calls to service with handler. Registering a
 // service again replaces its handler.
 func Serve(service string, handler Service) {
-	registered.services[service] = handler
-}
-
-// ServiceError ends a started service call without an answer: Failure says
-// why and Message describes it.
-type ServiceError struct {
-	Failure ServiceFailure
-	Message string
-}
-
-// Error returns the failure's description.
-func (e *ServiceError) Error() string {
-	return e.Message
-}
-
-// CallServiceLater calls method of a service the host provides and returns
-// at once; done runs in a later frame with the answer, or with a
-// *ServiceError when the service refused, the call waited past timeout or
-// nobody provides the service. A zero timeout waits the host's longest, 30
-// seconds. done runs exactly once while the mod runs; calls still waiting
-// when the mod stops end with it.
-func CallServiceLater(service, method string, payload []byte, timeout time.Duration, done func(reply []byte, err error)) {
-	// A call the host refuses to start ends in the next frame as well, so
-	// done never runs before this returns.
-	call, err := StartServiceCall(service, method, payload, uint32(timeout.Milliseconds()))
-	if err != nil {
-		After(0, func() { done(nil, &ServiceError{Failure: ServiceFailureUnavailable, Message: err.Error()}) })
-		return
-	}
-	registered.waiting[call] = done
+	defaultRegistry.RegisterService(service, handler)
 }
 
 // OnStart calls handler once when the server starts the mod, with the
 // words after -- on the modlock dev or play command line.
 func OnStart(handler func(args []string)) {
-	registered.starts = append(registered.starts, handler)
+	defaultRegistry.OnStart(handler)
 }
 
 // OnFrame calls handler once per server frame.
 func OnFrame(handler func(f *FrameEvent)) {
-	registered.frames = append(registered.frames, handler)
+	defaultRegistry.OnFrame(handler)
 }
 
 // OnChat calls handler with each chat line a player writes, commands
 // included, on the next server frame.
 func OnChat(handler func(line *ChatEvent)) {
-	registered.chats = append(registered.chats, handler)
+	defaultRegistry.OnChat(handler)
 }
 
 // OnPlayerJoin calls handler once for each player the mod serves when they
 // are ready: a human who finished joining, a bot once added, and at start
 // each player already in the game.
 func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
-	registered.joins = append(registered.joins, handler)
+	defaultRegistry.OnPlayerJoin(handler)
 }
 
 // OnPlayerAway calls handler once each time a joined human's client
@@ -180,14 +68,14 @@ func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
 // hero and controller stay in the game, and OnPlayerReturn follows if they
 // come back, so keep their seat as it stands rather than clear it.
 func OnPlayerAway(handler func(away *PlayerAwayEvent)) {
-	registered.aways = append(registered.aways, handler)
+	defaultRegistry.OnPlayerAway(handler)
 }
 
 // OnPlayerReturn calls handler once each time an away player reconnects to
 // their seat and finishes joining again, with the same Player, generation and
 // hero they left.
 func OnPlayerReturn(handler func(returned *PlayerReturnedEvent)) {
-	registered.returns = append(registered.returns, handler)
+	defaultRegistry.OnPlayerReturn(handler)
 }
 
 // OnPlayerLeave calls handler once for each joined player who leaves the mod,
@@ -199,40 +87,40 @@ func OnPlayerReturn(handler func(returned *PlayerReturnedEvent)) {
 // and takes the controller off its team, so the mod need not clear them. A
 // player the mod stops serving leaves too, with Disconnected false.
 func OnPlayerLeave(handler func(left *PlayerLeftEvent)) {
-	registered.leaves = append(registered.leaves, handler)
+	defaultRegistry.OnPlayerLeave(handler)
 }
 
 // OnWorld calls handler with the map's name each time a world loads, and at
 // start when one already has. Objects and bots from an earlier world are gone
 // by then.
 func OnWorld(handler func(mapName string)) {
-	registered.worlds = append(registered.worlds, handler)
+	defaultRegistry.OnWorld(handler)
 }
 
 // OnInput calls handler with the watched buttons a player pressed and
 // released, as Button bits, before the next frame. A button is held from its
 // press until its release.
 func OnInput(handler func(p Player, pressed, released uint64)) {
-	registered.inputs = append(registered.inputs, handler)
+	defaultRegistry.OnInput(handler)
 }
 
 // OnRestored calls handler when a player's Player.RestoreHero ends: err is
 // nil once the target held for a second, or says why it did not.
 func OnRestored(handler func(p Player, err error)) {
-	registered.restoreds = append(registered.restoreds, handler)
+	defaultRegistry.OnRestored(handler)
 }
 
 // OnNpcsRestored calls handler when RestoreNpcs ends: err is nil once the map
 // holds every target, or says why it does not.
 func OnNpcsRestored(handler func(err error)) {
-	registered.npcsRestoreds = append(registered.npcsRestoreds, handler)
+	defaultRegistry.OnNpcsRestored(handler)
 }
 
 // OnDamage calls handler before each hit lands, so it can block the hit or
 // change its damage by returning a result; nil lets the hit through. Later
 // handlers see the earlier ones' amount.
 func OnDamage(handler func(hit *DamageEvent) *DamageResult) {
-	registered.damages = append(registered.damages, handler)
+	defaultRegistry.OnDamage(handler)
 }
 
 // OnPing calls handler with each ping a player sends, from the comms wheel, a
@@ -243,26 +131,26 @@ func OnDamage(handler func(hit *DamageEvent) *DamageResult) {
 // The handler runs inside the server's ping, so it decides at once and defers
 // other work to a frame.
 func OnPing(handler func(ping *PingEvent) *PingResult) {
-	registered.pings = append(registered.pings, handler)
+	defaultRegistry.OnPing(handler)
 }
 
 // OnDamaged calls handler on the frame after each hit lands.
 func OnDamaged(handler func(hit *DamagedEvent)) {
-	registered.damageds = append(registered.damageds, handler)
+	defaultRegistry.OnDamaged(handler)
 }
 
 // OnKill calls handler after each hit that kills a hero or a unit, before the
 // next frame. The kill names both entities and the player of each: a slot of
 // -1 is a unit's, or a hazard's for the attacker.
 func OnKill(handler func(kill *KillEvent)) {
-	registered.kills = append(registered.kills, handler)
+	defaultRegistry.OnKill(handler)
 }
 
 // OnAbilityCast calls handler after each ability the game executes, before
 // the next frame: a hero's abilities and the items a player activates, at
 // the moment the cast takes effect.
 func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
-	registered.casts = append(registered.casts, handler)
+	defaultRegistry.OnAbilityCast(handler)
 }
 
 // OnHeal calls handler after each heal, before the next frame: health a hero
@@ -272,25 +160,25 @@ func OnAbilityCast(handler func(cast *AbilityCastEvent)) {
 // The heal names the entity healed, the healer and ability when the game
 // names them, and the player of each: a slot of -1 is a unit's, or no one's.
 func OnHeal(handler func(heal *HealEvent)) {
-	registered.heals = append(registered.heals, handler)
+	defaultRegistry.OnHeal(handler)
 }
 
 // OnLevelChange calls handler as each hero reaches a new level, before the
 // next frame.
 func OnLevelChange(handler func(change *LevelEvent)) {
-	registered.levels = append(registered.levels, handler)
+	defaultRegistry.OnLevelChange(handler)
 }
 
 // OnMelee calls handler after each melee swing, before the next frame, with
 // whether it was heavy and the entities it struck, none for a miss.
 func OnMelee(handler func(swing *MeleeEvent)) {
-	registered.melees = append(registered.melees, handler)
+	defaultRegistry.OnMelee(handler)
 }
 
 // OnParry calls handler after each parry that catches a melee swing, before
 // the next frame, naming the hero that parried and the attacker it caught.
 func OnParry(handler func(parry *ParryEvent)) {
-	registered.parries = append(registered.parries, handler)
+	defaultRegistry.OnParry(handler)
 }
 
 // OnModifierEvent calls handler each time the game fires the modifier event
@@ -298,35 +186,32 @@ func OnParry(handler func(parry *ParryEvent)) {
 // or PLAYER_RESPAWNED, before the next frame. Register before the mod
 // starts. A name the running game lacks is logged once and never fires.
 func OnModifierEvent(name string, handler func(event *ModifierFiredEvent)) {
-	if registered.modifiers == nil {
-		registered.modifiers = map[string][]func(*ModifierFiredEvent){}
-	}
-	registered.modifiers[name] = append(registered.modifiers[name], handler)
+	defaultRegistry.OnModifierEvent(name, handler)
 }
 
 // OnLaunch calls handler with each watched projectile's first frame, before
 // the next frame. WatchProjectiles names the projectiles.
 func OnLaunch(handler func(projectile *LaunchEvent)) {
-	registered.launches = append(registered.launches, handler)
+	defaultRegistry.OnLaunch(handler)
 }
 
 // OnImpact calls handler when a watched projectile strikes something, inside
 // the game's impact: its calls apply before the game continues.
 func OnImpact(handler func(impact *ImpactEvent)) {
-	registered.impacts = append(registered.impacts, handler)
+	defaultRegistry.OnImpact(handler)
 }
 
 // OnLanded calls handler when a hero lands under the manifest's QuakeWorld
 // movement, before the next frame.
 func OnLanded(handler func(landing *LandedEvent)) {
-	registered.landeds = append(registered.landeds, handler)
+	defaultRegistry.OnLanded(handler)
 }
 
 // OnSettingChanged calls handler when a player's setting changes outside the
 // mod, such as on the player's profile. The mod's own Player.SetSetting calls
 // do not reach it.
 func OnSettingChanged(handler func(p Player, key, value string)) {
-	registered.settings = append(registered.settings, handler)
+	defaultRegistry.OnSettingChanged(handler)
 }
 
 // OnUiPress calls handler with each press a player makes in the mod's
@@ -334,485 +219,54 @@ func OnSettingChanged(handler func(p Player, key, value string)) {
 // action its bound panel or its script names. Package ui registers it to run
 // the buttons' and the bindings' handlers.
 func OnUiPress(handler func(event *UiPressEvent)) {
-	registered.presses = append(registered.presses, handler)
+	defaultRegistry.OnUiPress(handler)
 }
 
 // OnUiInput calls handler with each change a player makes to an input in the
 // mod's interface, with the next server frame. Package ui registers it to run
 // the inputs' handlers.
 func OnUiInput(handler func(event *UiInputEvent)) {
-	registered.changes = append(registered.changes, handler)
+	defaultRegistry.OnUiInput(handler)
 }
 
 // OnUiDocument calls handler with the end of each submission from a player's
 // document input, with the next server frame: the whole document, or why it
 // did not arrive.
 func OnUiDocument(handler func(event *UiDocumentEvent)) {
-	registered.documents = append(registered.documents, handler)
+	defaultRegistry.OnUiDocument(handler)
 }
 
 // OnUiAction calls handler with each phase of a game action the root of a
 // player's interface follows, with the next server frame. Package ui
 // registers it to run the followers' handlers.
 func OnUiAction(handler func(event *UiActionEvent)) {
-	registered.actions = append(registered.actions, handler)
+	defaultRegistry.OnUiAction(handler)
 }
 
 // OnUiOverlay calls handler with each stock overlay that takes or gives back
 // the input of a player whose interface root follows overlays, with the next
 // server frame. Package ui registers it to run the followers' handlers.
 func OnUiOverlay(handler func(event *UiOverlayEvent)) {
-	registered.overlays = append(registered.overlays, handler)
+	defaultRegistry.OnUiOverlay(handler)
 }
 
 // OnUiPlacement calls handler with each placement of the interface of a
 // player whose interface root follows placement, with the next server frame.
 // Package ui registers it to run the followers' handlers.
 func OnUiPlacement(handler func(event *UiPlacementEvent)) {
-	registered.placements = append(registered.placements, handler)
+	defaultRegistry.OnUiPlacement(handler)
 }
 
 // OnUiWindow calls handler with each run of a list's rows a player's screen
 // asks the mod to show, with the next server frame. Package ui registers it
 // to draw the window it asks for.
 func OnUiWindow(handler func(event *UiWindowEvent)) {
-	registered.windows = append(registered.windows, handler)
+	defaultRegistry.OnUiWindow(handler)
 }
 
 // OnPlayers calls handler with each player list the host reports, before the
 // event it arrives with. A slot whose generation changed holds a new
 // connection.
 func OnPlayers(handler func(players []*Connection)) {
-	registered.rosterWatches = append(registered.rosterWatches, handler)
-}
-
-// Start runs the start handlers and asks for the events the mod handles.
-func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
-	for _, handler := range h.starts {
-		handler(event.GetArgs())
-	}
-	// Timers run from frames, so the library always takes them.
-	return &StartResult{
-		Frames:  true,
-		Damage:  len(h.damages) != 0,
-		Damaged: len(h.damageds) != 0,
-		Chat:    len(h.chats) != 0,
-		Joins:   len(h.joins) != 0 || len(h.leaves) != 0 || len(h.aways) != 0 || len(h.returns) != 0,
-		Casts:   len(h.casts) != 0,
-		Kills:   len(h.kills) != 0,
-		Heals:   len(h.heals) != 0,
-		Levels:  len(h.levels) != 0,
-		Melees:  len(h.melees) != 0,
-		Parries: len(h.parries) != 0,
-		Pings:   len(h.pings) != 0,
-
-		ModifierEvents: h.modifierEvents(),
-	}, nil
-}
-
-// modifierEvents names the modifier events the mod's handlers watch.
-func (h *handlers) modifierEvents() []string {
-	names := slices.Collect(maps.Keys(h.modifiers))
-	if _, ok := h.modifiers[respawnedEvent]; !ok && len(spawns.handlers) != 0 {
-		names = append(names, respawnedEvent)
-	}
-	slices.Sort(names)
-	return names
-}
-
-// Frame runs the timers that came due and the frame handlers.
-func (h *handlers) Frame(event *FrameEvent) error {
-	advanceTimers(event.GetTimeSeconds())
-	spawns.frame++
-	for _, handler := range h.frames {
-		handler(event)
-	}
-	return nil
-}
-
-// Command runs the handler registered for the command's name and claims the
-// command when one exists.
-func (h *handlers) Command(event *CommandEvent) (*CommandResult, error) {
-	// Split the command line into its name and arguments.
-	name, args, _ := strings.Cut(strings.TrimSpace(event.GetLine()), " ")
-	handler, ok := h.commands[name]
-	if !ok {
-		return &CommandResult{}, nil
-	}
-
-	// Claim the command and run its handler with the next frame. The server
-	// reads a client's commands under a CPU budget and drops the client when
-	// one handler spends it; slow work in a frame only delays that frame.
-	player, args := PlayerOf(event.GetPlayer()), strings.TrimSpace(args)
-	After(0, func() { handler(player, args) })
-	return &CommandResult{Claimed: true}, nil
-}
-
-// Chat runs the chat handlers with the next frame, since the line arrives
-// under the same CPU budget as a command.
-func (h *handlers) Chat(event *ChatEvent) error {
-	After(0, func() {
-		for _, handler := range h.chats {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// World runs the world handlers.
-func (h *handlers) World(event *WorldEvent) error {
-	for _, handler := range h.worlds {
-		handler(event.GetMap())
-	}
-	return nil
-}
-
-// UiPress runs the press handlers with the next frame, since a press arrives
-// under the same CPU budget as a command.
-func (h *handlers) UiPress(event *UiPressEvent) error {
-	After(0, func() {
-		for _, handler := range h.presses {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiInput runs the input handlers with the next frame, as a press does.
-func (h *handlers) UiInput(event *UiInputEvent) error {
-	After(0, func() {
-		for _, handler := range h.changes {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiDocument runs the document handlers with the next frame, as a change does.
-func (h *handlers) UiDocument(event *UiDocumentEvent) error {
-	After(0, func() {
-		for _, handler := range h.documents {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiAction runs the game action handlers with the next frame, as a press does.
-func (h *handlers) UiAction(event *UiActionEvent) error {
-	After(0, func() {
-		for _, handler := range h.actions {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiOverlay runs the overlay handlers with the next frame, as a press does.
-func (h *handlers) UiOverlay(event *UiOverlayEvent) error {
-	After(0, func() {
-		for _, handler := range h.overlays {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiPlacement runs the placement handlers with the next frame, as a press
-// does.
-func (h *handlers) UiPlacement(event *UiPlacementEvent) error {
-	After(0, func() {
-		for _, handler := range h.placements {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// UiWindow runs the window handlers with the next frame, as a press does.
-func (h *handlers) UiWindow(event *UiWindowEvent) error {
-	After(0, func() {
-		for _, handler := range h.windows {
-			handler(event)
-		}
-	})
-	return nil
-}
-
-// Serve runs the handler of the called service.
-func (h *handlers) Serve(event *ServiceCall) (*ServiceReply, error) {
-	handler, ok := h.services[event.GetService()]
-	if !ok {
-		return nil, errors.New("the mod serves no service " + event.GetService())
-	}
-	payload, err := handler(event.GetMethod(), event.GetPayload())
-	if err != nil {
-		return nil, err
-	}
-	return &ServiceReply{Payload: payload}, nil
-}
-
-// Damage chains the hit's amount through the damage handlers, stopping at the
-// first that blocks it.
-func (h *handlers) Damage(event *DamageEvent) (*DamageResult, error) {
-	hit := event.CloneVT()
-	for _, handler := range h.damages {
-		change := handler(hit)
-		if change.GetBlock() {
-			return change, nil
-		}
-		if change != nil && change.Amount != nil {
-			hit.Amount = change.GetAmount()
-		}
-	}
-	if hit.GetAmount() == event.GetAmount() {
-		return &DamageResult{}, nil
-	}
-	return &DamageResult{Amount: &hit.Amount}, nil
-}
-
-// Ping offers the ping to each ping handler, stopping at the first that
-// blocks it; the others add the players they mute its voice line for.
-func (h *handlers) Ping(event *PingEvent) (*PingResult, error) {
-	var muteVoice []int32
-	for _, handler := range h.pings {
-		result := handler(event)
-		if result.GetBlock() {
-			return &PingResult{Block: true}, nil
-		}
-		for _, slot := range result.GetMuteVoice() {
-			if !slices.Contains(muteVoice, slot) {
-				muteVoice = append(muteVoice, slot)
-			}
-		}
-	}
-	return &PingResult{MuteVoice: muteVoice}, nil
-}
-
-// Damaged runs the damaged handlers.
-func (h *handlers) Damaged(event *DamagedEvent) error { return each(h.damageds, event) }
-
-// Killed runs the kill handlers.
-func (h *handlers) Killed(event *KillEvent) error { return each(h.kills, event) }
-
-// AbilityCast runs the cast handlers.
-func (h *handlers) AbilityCast(event *AbilityCastEvent) error { return each(h.casts, event) }
-
-// Healed runs the heal handlers.
-func (h *handlers) Healed(event *HealEvent) error { return each(h.heals, event) }
-
-// LevelChanged runs the level handlers.
-func (h *handlers) LevelChanged(event *LevelEvent) error { return each(h.levels, event) }
-
-// Melee runs the melee handlers.
-func (h *handlers) Melee(event *MeleeEvent) error { return each(h.melees, event) }
-
-// Parried runs the parry handlers.
-func (h *handlers) Parried(event *ParryEvent) error { return each(h.parries, event) }
-
-// each calls every handler with the event.
-func each[E any](handlers []func(E), event E) error {
-	for _, handler := range handlers {
-		handler(event)
-	}
-	return nil
-}
-
-// ModifierFired tells the spawn handlers of a respawn, then runs the
-// handlers of the event's name.
-func (h *handlers) ModifierFired(event *ModifierFiredEvent) error {
-	if event.GetName() == respawnedEvent && len(spawns.handlers) != 0 {
-		respawned(PlayerOf(event.GetPlayer()))
-	}
-	for _, handler := range h.modifiers[event.GetName()] {
-		handler(event)
-	}
-	return nil
-}
-
-// Input runs the input handlers.
-func (h *handlers) Input(event *InputEvent) error {
-	for _, handler := range h.inputs {
-		handler(PlayerOf(event.GetPlayer()), event.GetPressed(), event.GetReleased())
-	}
-	return nil
-}
-
-// Restored runs the restored handlers.
-func (h *handlers) Restored(event *RestoredEvent) error {
-	err := errorOf(event.GetError())
-	for _, handler := range h.restoreds {
-		handler(PlayerOf(event.GetPlayer()), err)
-	}
-	return nil
-}
-
-// NpcsRestored runs the NPC restored handlers.
-func (h *handlers) NpcsRestored(event *NpcsRestoredEvent) error {
-	err := errorOf(event.GetError())
-	for _, handler := range h.npcsRestoreds {
-		handler(err)
-	}
-	return nil
-}
-
-// ServiceReplied ends one started service call.
-func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
-	done, ok := h.waiting[event.GetCall()]
-	if !ok {
-		return nil
-	}
-	delete(h.waiting, event.GetCall())
-	if event.GetFailure() != ServiceFailureNone {
-		done(nil, &ServiceError{Failure: event.GetFailure(), Message: event.GetError()})
-		return nil
-	}
-	done(event.GetPayload(), nil)
-	return nil
-}
-
-// Launch runs the launch handlers.
-func (h *handlers) Launch(event *LaunchEvent) error { return each(h.launches, event) }
-
-// Impact runs the impact handlers.
-func (h *handlers) Impact(event *ImpactEvent) error { return each(h.impacts, event) }
-
-// Landed runs the landing handlers.
-func (h *handlers) Landed(event *LandedEvent) error { return each(h.landeds, event) }
-
-// SettingChanged runs the setting handlers.
-func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
-	for _, handler := range h.settings {
-		handler(PlayerOf(event.GetPlayer()), event.GetKey(), event.GetValue())
-	}
-	return nil
-}
-
-// PlayersChanged keeps the reported player list for Players, and ends the
-// tenure of each slot whose connection left or was replaced, so PlayerOf
-// gives the next holder a different Player. The host reports the list before
-// any event once it changed, so every event's Player names its connection.
-func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
-	// Keep the list.
-	h.roster = event.GetPlayers()
-	if h.roster == nil {
-		h.roster = []*Connection{}
-	}
-	h.rosters++
-
-	// End each tenure whose connection is gone, then note the new list's.
-	current := make(map[int32]uint32, len(h.roster))
-	for _, connection := range h.roster {
-		current[connection.GetPlayer()] = connection.GetGeneration()
-	}
-	for slot, generation := range h.generations {
-		if held, ok := current[slot]; !ok || held != generation {
-			h.tenures[slot]++
-		}
-	}
-	h.generations = current
-
-	// Tell the watchers.
-	for _, handler := range h.rosterWatches {
-		handler(h.roster)
-	}
-	return nil
-}
-
-// PlayerJoined runs the join handlers.
-func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error { return each(h.joins, event) }
-
-// PlayerAway runs the away handlers.
-func (h *handlers) PlayerAway(event *PlayerAwayEvent) error { return each(h.aways, event) }
-
-// PlayerReturned runs the return handlers.
-func (h *handlers) PlayerReturned(event *PlayerReturnedEvent) error {
-	return each(h.returns, event)
-}
-
-// PlayerLeft runs the leave handlers at once, so the leaving player's hero
-// still reads.
-func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
-	for _, handler := range h.leaves {
-		handler(event)
-	}
-	return nil
-}
-
-// roster returns the player list the host last reported, or asks for it.
-func roster() []*Connection {
-	if held := registered.roster; held != nil {
-		return held
-	}
-	held, _ := Players()
-	return held
-}
-
-// Player addresses one connected player by their server slot. Two Players
-// are equal only when they name the same connection: a person who takes a
-// slot another left gets a different Player, so a map keyed by Player never
-// hands the newcomer the entry of the one who left. PlayerOf makes one; the
-// zero Player names nobody.
-type Player struct {
-	// slot identifies the player on the server.
-	slot int32
-	// tenure is one more than the number of connections the slot had lost
-	// when the Player was made, so it is zero only in the zero Player.
-	tenure uint32
-}
-
-// PlayerOf returns the Player of the connection that holds slot now, equal
-// to every other Player made for that connection.
-func PlayerOf(slot int32) Player {
-	return Player{slot: slot, tenure: registered.tenures[slot] + 1}
-}
-
-// Slot returns the server slot the player holds.
-func (p Player) Slot() int32 {
-	return p.slot
-}
-
-// Connection returns the player's connection: their name, Steam ID, whether
-// they are a bot and whether they finished joining. It returns nil when
-// nobody holds the slot.
-func (p Player) Connection() *Connection {
-	for _, connection := range roster() {
-		if connection.GetPlayer() == p.slot {
-			return connection
-		}
-	}
-	return nil
-}
-
-// ConnectionOfSteamID returns the connection of the account with a Steam ID,
-// or nil when it is not connected. Its GetPlayer is the slot of the Player to
-// call.
-func ConnectionOfSteamID(steamID uint64) *Connection {
-	for _, connection := range roster() {
-		if connection.GetSteamId() == steamID {
-			return connection
-		}
-	}
-	return nil
-}
-
-// Players lists the occupied player slots in slot order. It answers from the
-// roster the host last reported, and asks the host until a report arrives.
-func Players() ([]*Connection, error) {
-	if registered.roster != nil {
-		return slices.Clone(registered.roster), nil
-	}
-	response := &players.PlayersResponse{}
-	if err := invoke("Players", &wasm.Empty{}, response); err != nil {
-		return nil, err
-	}
-	return response.GetPlayers(), nil
-}
-
-// errorOf returns message as an error, or nil when it is empty.
-func errorOf(message string) error {
-	if message == "" {
-		return nil
-	}
-	return errors.New(message)
+	defaultRegistry.OnPlayers(handler)
 }

@@ -3,10 +3,8 @@ package mod
 // respawnedEvent is the game's modifier event for a hero entering play.
 const respawnedEvent = "PLAYER_RESPAWNED"
 
-// spawns holds the spawn handlers and when they last heard of each hero.
-var spawns struct {
-	// handlers run in registration order.
-	handlers []func(Player, *Pawn)
+// spawnTracker filters repeated reports of a hero entering play.
+type spawnTracker struct {
 	// frame counts frames, so heardAt can tell one frame's events apart.
 	frame uint64
 	// heardAt maps each slot to the frame the handlers last heard of its
@@ -14,17 +12,23 @@ var spawns struct {
 	heardAt map[int32]uint64
 }
 
+// spawns tracks the default module's spawn deduplication window.
+var spawns spawnTracker
+
 // OnSpawn calls handler each time a player's hero enters play: their first
 // hero after joining, and each respawn. The
 // player has a hero to move, equip and read from then on, which OnPlayerJoin
 // does not promise. The library hears it from the game's PLAYER_RESPAWNED
 // event, before the frame handlers run.
 func OnSpawn(handler func(player Player, pawn *Pawn)) {
-	spawns.handlers = append(spawns.handlers, handler)
+	defaultRegistry.OnSpawn(handler)
 }
 
+// nextFrame advances the deduplication window before frame handlers.
+func (s *spawnTracker) nextFrame() { s.frame++ }
+
 // respawned tells the spawn handlers that the player's hero entered play.
-func respawned(player Player) {
+func (s *spawnTracker) respawned(player Player, notify func(Player, *Pawn)) {
 	// Skip a placeholder pawn, which has hero 0, and a hero already told of this frame.
 	if player.Slot() < 0 {
 		return
@@ -33,16 +37,14 @@ func respawned(player Player) {
 	if err != nil || pawn == nil || pawn.GetHero() == 0 || pawn.GetHealth() <= 0 {
 		return
 	}
-	if frame, ok := spawns.heardAt[player.Slot()]; ok && frame == spawns.frame {
+	if frame, ok := s.heardAt[player.Slot()]; ok && frame == s.frame {
 		return
 	}
-	if spawns.heardAt == nil {
-		spawns.heardAt = map[int32]uint64{}
+	if s.heardAt == nil {
+		s.heardAt = map[int32]uint64{}
 	}
-	spawns.heardAt[player.Slot()] = spawns.frame
+	s.heardAt[player.Slot()] = s.frame
 
-	// Tell each handler.
-	for _, handler := range spawns.handlers {
-		handler(player, pawn)
-	}
+	// Deliver the accepted spawn before named modifier callbacks.
+	notify(player, pawn)
 }

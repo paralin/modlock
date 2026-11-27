@@ -21,6 +21,9 @@ func hostCall(data unsafe.Pointer, size uint32) uint32
 //go:wasmimport modlock host_read
 func hostRead(data unsafe.Pointer, size uint32)
 
+// eventReply retains the last successful encoded reply while the host copies it.
+var eventReply []byte
+
 // modlockEvent receives one encoded Call of size bytes, serves it, and returns
 // the encoded Reply's address in the high 32 bits and its length in the low
 // 32 bits.
@@ -41,7 +44,7 @@ func modlockEvent(size uint32) uint64 {
 	if err != nil || len(reply) == 0 {
 		return 0
 	}
-	registered.result = reply
+	eventReply = reply
 	address := uint64(uintptr(unsafe.Pointer(unsafe.SliceData(reply))))
 	return address<<32 | uint64(len(reply))
 }

@@ -107,9 +107,10 @@ func (c *Cast[M]) Pawn(p Player) *Pawn {
 // show yet. seconds is the game clock, as FrameEvent.TimeSeconds reports it.
 func (c *Cast[M]) Frame(seconds float64) {
 	// Settle a player list the host reported since the last frame.
-	if c.rosters != registered.rosters {
-		c.rosters = registered.rosters
-		c.settle(registered.roster, seconds)
+	roster, revision := connections.snapshot()
+	if c.rosters != revision {
+		c.rosters = revision
+		c.settle(roster, seconds)
 	}
 
 	// Reconcile each member's hero with their want.

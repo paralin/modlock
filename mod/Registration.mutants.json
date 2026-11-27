@@ -1,6 +1,16 @@
 [
   {
-    "name": "Premature completion leaves the pending call visible during its callback",
+    "name": "Premature completion invokes a refused start callback before return",
+    "replace": [
+      [
+        "FailureFrame == /\\ refusedPhase = \"scheduled\" /\\ refusedReturned",
+        "FailureFrame == /\\ refusedPhase = \"scheduled\""
+      ]
+    ],
+    "expect": "NoPrematureCompletion"
+  },
+  {
+    "name": "Completion remains pending during its callback",
     "replace": [
       [
         "/\\ pending' = FALSE\n              /\\ completions'",
@@ -15,23 +25,6 @@
     "expect": "SavedConnection"
   },
   {
-    "name": "Command lookup is delayed until the frame",
-    "replace": [
-      ["/\\ delivered' = <<captured>>", "/\\ delivered' = <<command>>"]
-    ],
-    "expect": "CallbackOrder"
-  },
-  {
-    "name": "Deferred lists are captured at enqueue",
-    "replace": [
-      [
-        "/\\ delivered' = <<captured>> \\o handlers \\o handlers",
-        "/\\ delivered' = <<captured>> \\o <<1, 2>> \\o <<1, 2>>"
-      ]
-    ],
-    "expect": "CallbackOrder"
-  },
-  {
     "name": "Subscriptions are computed before the Start callbacks",
     "replace": [
       [
@@ -40,5 +33,50 @@
       ]
     ],
     "expect": "SubscriptionsAfterStart"
+  },
+  {
+    "name": "Command lookup is delayed until the frame",
+    "replace": [
+      [
+        "[kind |-> \"command\", id |-> captured]",
+        "[kind |-> \"command\", id |-> command]"
+      ]
+    ],
+    "expect": "CallbackOrder"
+  },
+  {
+    "name": "Deferred lists are captured at enqueue",
+    "replace": [
+      [
+        "/\\ snapshot' = handlers /\\ cursor' = 1",
+        "/\\ snapshot' = <<1, 2>> /\\ cursor' = 1"
+      ]
+    ],
+    "expect": "CallbackOrder"
+  },
+  {
+    "name": "Range grows when a callback registers another handler",
+    "replace": [
+      [
+        "/\\ handlers' = Append(handlers, 4) /\\ duringAdded' = TRUE",
+        "/\\ handlers' = Append(handlers, 4) /\\ duringAdded' = TRUE /\\ snapshot' = Append(snapshot, 4)"
+      ],
+      [
+        "/\\ UNCHANGED <<snapshot, cursor, timersDone, delivered, expected, queue,",
+        "/\\ UNCHANGED <<cursor, timersDone, delivered, expected, queue,"
+      ]
+    ],
+    "expect": "CallbackOrder"
+  },
+  {
+    "name": "Frame handlers overtake a deferred UI callback",
+    "replace": [
+      [
+        "Frame == /\\ queue = \"frame\" /\\ timersDone /\\ BeginList(\"frame\")",
+        "Frame == /\\ queue = \"frame\" /\\ BeginList(\"frame\")"
+      ],
+      ["EndList(\"chat\", \"ui\")", "EndList(\"chat\", \"frame\")"]
+    ],
+    "expect": "TimersBeforeFrames"
   }
 ]
