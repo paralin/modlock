@@ -6340,25 +6340,23 @@ export type CastOptions<M> = {
 }
 
 -- Cast keeps a mode's players: one member for each human who finished
--- joining, made by the mode's join and ended by its leave. Members are keyed
--- by slot and connection generation, so a reconnect is a leave and a join.
--- Cast learns of joins and leaves from the host's player reports and settles
--- them on the next frame; it never walks the player list on a frame where
--- nothing changed.
+-- Cast tracks a mode's active players: one member per connected human, created
+-- by the mode's join callback and cleaned up by its leave callback. Members are
+-- keyed by slot and connection generation, so a reconnect is treated as a leave
+-- followed by a join. Cast updates membership from host player events on the
+-- next frame and avoids scanning the player list when nothing changed.
 --
--- A member may carry a want: to sit on a hero and team, and to come back a
--- while after its hero falls. The mode gives one want for every member or a
--- function that reads it from the member each frame, so a want follows the
--- member's own state. A human whose want leaves the hero free still gets one
--- when the game leaves them on a team without a hero, as its own spawn on
--- joining can, since nothing else would ever seat them. Each frame Cast
--- compares the want with what the member's hero shows, asks the game again at
--- most once a second while they differ, and stops asking once they match.
--- That is a reconciliation loop: a lost or refused ask is only asked again,
--- never reported as a failure.
+-- Each member can declare a target state (hero, team, and respawn delay),
+-- either shared across all members or computed per frame from the member's
+-- state. If the target omits a hero but the game places the player on a team
+-- without one, Cast assigns a hero so the player is not stuck unseated. On each
+-- frame, Cast compares the target state with the member's live hero, retries at
+-- most once per second while they differ, and stops once they match. This is a
+-- reconciliation loop: dropped or rejected requests are retried automatically
+-- rather than reported as errors.
 --
--- A frame costs one pawn read per member, which the mode reads back with
--- pawn instead of asking the game again.
+-- Each frame costs one pawn lookup per member, which the mode can read back
+-- through pawn instead of querying the game again.
 export type Cast<M> = {
 	-- size returns the number of members.
 	size: (self: Cast<M>) -> number,

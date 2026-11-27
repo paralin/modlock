@@ -3360,12 +3360,12 @@ class Player:
         has or else a random one. team is 2 or 3; without one the player
         keeps their hero's team or joins the side with fewer heroes.
 
-        The hero appears on a later frame, and on_spawn hears of it. The
-        library asks the game again until the player has the seat, and once
-        more after the player changes hero, so a call before the game is
-        ready is not lost. Seating the player again replaces the seat, and it
-        ends when they leave. It returns False when nobody holds the player's
-        slot."""
+        The hero spawns on a later frame and triggers on_spawn. The library
+        retries the assignment until the player is seated, and reapplies it if
+        the player changes hero, so a call made before the game is ready is not
+        lost. Calling seat again replaces the previous assignment, and the
+        assignment clears when the player leaves. Returns False if the player
+        slot is empty."""
         held = connection(self)
         if held is None:
             return False
@@ -6824,23 +6824,20 @@ def _watch_players(watcher: Callable[[list[Connection]], object]) -> None:
 # Cast keeps a mode's players: one member for each human who finished
 # joining, made by the mode's join and ended by its leave. Members are keyed
 # by slot and connection generation, so a reconnect is a leave and a join.
-# Cast learns of joins and leaves from the host's player reports and settles
-# them on the next frame; it never walks the player list on a frame where
-# nothing changed.
+# Cast updates membership from host player events on the next frame and avoids
+# scanning the player list when nothing changed.
 #
-# A member may carry a want: to sit on a hero and team, and to come back a
-# while after its hero falls. The mode gives one want for every member or a
-# function that reads it from the member each frame, so a want follows the
-# member's own state. A human whose want leaves the hero free still gets one
-# when the game leaves them on a team without a hero, as its own spawn on
-# joining can, since nothing else would ever seat them. Each frame Cast
-# compares the want with what the member's hero shows, asks the game again at
-# most once a second while they differ, and stops asking once they match.
-# That is a reconciliation loop: a lost or refused ask is only asked again,
-# never reported as a failure.
+# Each member can declare a target state (hero, team, and respawn delay),
+# either shared across all members or computed per frame from the member's
+# state. If the target omits a hero but the game places the player on a team
+# without one, Cast assigns a hero so the player is not stuck unseated. On each
+# frame, Cast compares the target state with the member's live hero, retries at
+# most once per second while they differ, and stops once they match. This is a
+# reconciliation loop: dropped or rejected requests are retried automatically
+# rather than reported as errors.
 #
-# A frame costs one pawn read per member, which the mode reads back with
-# Cast.pawn instead of asking the game again.
+# Each frame costs one pawn lookup per member, which the mode can read back
+# through Cast.pawn instead of querying the game again.
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)

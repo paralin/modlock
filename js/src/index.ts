@@ -435,11 +435,12 @@ declare module './host.gen.js' {
      *
      *     onPlayerJoin(({ connection }) => connection.player.seat({ hero: 'haze', team: 2 }))
      *
-     * The hero appears on a later frame, and onSpawn hears of it. The library
-     * asks the game again until the player has the seat, and once more after
-     * the player changes hero, so a call before the game is ready is not
-     * lost. Seating the player again replaces the seat, and it ends when they
-     * leave. It returns false when nobody holds the player's slot.
+     * The hero spawns on a later frame and triggers onSpawn. The library
+     * retries the assignment until the player is seated, and reapplies it if
+     * the player changes hero, so a call made before the game is ready is not
+     * lost. Calling seat again replaces the previous assignment, and the
+     * assignment clears when the player leaves. Returns false if the player
+     * slot is empty.
      */
     seat(seating?: Seating): boolean
   }

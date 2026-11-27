@@ -61,15 +61,15 @@ mod.OnPlayerJoin(func(joined *mod.PlayerJoinedEvent) {
 | `hero` | A [hero name](/guides/players#heroes), an id, or `any`: the player's own hero, else a random one. `any` is the default. |
 | `team` | 2 or 3. Without one, the player keeps their hero's team or joins the side with fewer heroes.                            |
 
-The hero appears on a later frame. The library asks the game again until the
-player has the seat, and once more after the player changes hero. Seating a
-player again replaces the seat, and the seat ends when the player leaves.
-`seat` returns false when nobody holds the player's slot. To give players
-different teams, pick each player's team in the handler.
+The hero spawns on a later frame. The library retries the assignment until the
+player is seated, and reapplies it if the player changes hero. Calling `seat`
+again replaces the previous assignment, and the assignment clears when the
+player leaves. `seat` returns `false` if the player slot is empty. To assign
+players to different teams, choose each player's team in the join handler.
 
-Seating runs on a [`Cast`](#keep-the-players-with-cast) that the library keeps
-for itself. Use a Cast directly when the mod keeps its own state for each
-player, or changes what a player wants during the game.
+Seating is backed by an internal [`Cast`](#keep-the-players-with-cast). Use
+`Cast` directly when your mod tracks per-player state or updates a player's
+desired hero, team, or respawn delay during the match.
 
 The respawn delay is a separate call, and it applies to every hero, seated or
 not. A player whose hero falls keeps their hero and team:
@@ -228,11 +228,11 @@ mod.OnFrame(func(frame *mod.FrameEvent) { cast.Frame(frame.GetTimeSeconds()) })
 | `bots`  | Makes bots members or kicks them; without it bots are left out.                                                                                                                  |
 | `want`  | A hero, team and respawn delay for everyone, or a function of the member read each frame. Without a team, a member keeps their hero's team or joins the side with fewer members. |
 
-On each frame, Cast reads each member's hero once. At most once a second, it
-asks the game again for any hero, team or respawn delay that a member wants but
-does not have yet. Cast learns of joins from the host's player reports, so on a
-frame where nobody joined or left, it does not walk the player list.
-Read each hero back from the cast, rather than asking the game again:
+On each frame, `Cast` reads each member's hero once. At most once per second, it
+retries applying any desired hero, team, or respawn delay that has not taken
+effect yet. `Cast` tracks joins and leaves from host player events, so on frames
+with no membership changes it does not scan the player list. Read the cached
+hero from `Cast` instead of querying the game again:
 
 | TypeScript and Luau | Python      | Go        | Returns                                   |
 | ------------------- | ----------- | --------- | ----------------------------------------- |

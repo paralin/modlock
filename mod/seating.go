@@ -95,11 +95,11 @@ func (s *seats) delay(delay time.Duration) {
 // Seat gives the player a hero on a team, skipping the game's team and hero
 // screens. Call it as the player joins, in an OnPlayerJoin handler.
 //
-// The hero appears on a later frame, and OnSpawn hears of it. The library
-// asks the game again until the player has the seat, and once more after the
-// player changes hero, so a call before the game is ready is not lost.
-// Seating the player again replaces the seat, and it ends when they leave.
-// It returns false when nobody holds the player's slot.
+// The hero spawns on a later frame and triggers OnSpawn. The library retries
+// the assignment until the player is seated, and reapplies it if the player
+// changes hero, so a call made before the game is ready is not lost. Calling
+// Seat again replaces the previous assignment, and the assignment clears when
+// the player leaves. Returns false if the player slot is empty.
 func (p Player) Seat(seat Seating) bool {
 	// Find the connection the seat is for.
 	held := p.Connection()

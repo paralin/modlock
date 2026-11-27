@@ -5,7 +5,9 @@ description: Build a small brawl with a countdown, a score, a HUD and a sign.
 
 This tutorial starts from the template that `modlock new` makes and builds a small brawl, with a countdown, a score, a HUD and a sign. Run `modlock dev` to start the server and the game. It reloads the mod each time you save, so you never restart the game. The [examples](/start/examples) build the same ideas into complete game modes you can play.
 
-Each step adds code to the main file. Put the step's import lines at the top of the file and the rest of its code at the end. A step's imports list only the names that step adds, so keep the imports from the earlier steps.
+Each step adds code to the main file. Place each step's imports at the top of
+the file and the rest of its code at the end. Each snippet shows only the new
+imports for that step, so keep the imports from earlier steps.
 
 ## 1. Answer a command
 
@@ -656,7 +658,10 @@ _ = scorer.AddMetric("brawl.defeats", 1, nil)
 
 </Samples>
 
-A player who chose "Top left" now sees the score in the top left corner, and everyone else keeps it in the top right, since the sample moves it only for `left`. `setting` returns the player's choice, or the setting's default before they choose. Each defeat now also adds one to the player's `brawl.defeats` total.
+Players who select "Top left" now see the score in the top-left corner, while
+everyone else sees the default top-right position. `setting` returns the
+player's saved choice or the setting's default. Each defeat now also increments
+the player's `brawl.defeats` metric.
 
 A board ranks players against each other by a score your mod reports, such as each player's fastest clear of each course. [Settings, metrics and boards](/guides/data) shows how to declare a board and report scores to it.
 
