@@ -14,19 +14,24 @@ modlock.command("hello", function(player)
 end)
 ```
 
-The library's types check in strict mode, and an editor with the Luau
-language server finds the library and completes its calls. A module requires another by its relative path, such as
-`require("./round")`, as the [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example does.
+The library's types check in strict mode. An editor with the Luau language
+server finds the library and completes its calls. One module requires another by
+its relative path, such as `require("./round")`, as the
+[`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty)
+example does.
 
-The library has the TypeScript library's calls under the same names, which you
-call as methods, such as `player:chat(text)`. Because a Luau number cannot hold
-every 64-bit integer, a 64-bit id such as a Steam ID is a decimal string. A
-`Player` stays one object while the same person holds its slot. So `==` tells
-whether two values are the same player, and a `Player` works as a table key.
-Someone new in the slot gets a new object, so they never inherit the entries of
-the player who left. Build interfaces with `@modlock/ui`, `@modlock/hud` and
-`@modlock/theme`. Choose Luau with the switch in the sidebar, and the
-[guides](/guides/events) show every call in it.
+The library has the TypeScript library's calls under the same names, and you
+call them as methods, such as `player:chat(text)`. A Luau number cannot hold
+every 64-bit integer, so a 64-bit id, such as a Steam ID, is a decimal string.
+
+A `Player` stays the same object for as long as one person holds its slot. So
+`==` tells you whether two values are the same player, and a `Player` works as a
+table key. When someone new takes the slot, they get a new object, so they never
+inherit the table entries of the player who left.
+
+Build interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`. Choose
+Luau with the switch in the sidebar, and the [guides](/guides/events) show every
+call in Luau.
 
 ## Typed entities
 
