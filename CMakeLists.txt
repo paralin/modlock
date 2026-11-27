@@ -161,6 +161,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/match_clock.cc
   src/gameinterop/native_chat_hook.cc
   src/gameinterop/native_ping_filter.cc
+  src/gameinterop/native_post_filter.cc
   src/gameinterop/native_damage.cc
   src/gameinterop/native_trace.cc
   src/gameinterop/native_user_messages.cc

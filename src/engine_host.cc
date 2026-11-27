@@ -98,6 +98,8 @@ struct EngineHost::Impl {
 
   std::optional<gameinterop::EngineFrameHook> frame_hook;
   std::optional<gameinterop::NativeChatHook> chat_hook;
+  // post_filter outlives the filters that register with it.
+  std::optional<gameinterop::NativePostFilter> post_filter;
   std::optional<gameinterop::NativePingFilter> ping_filter;
   std::optional<gameinterop::ClientCommandHook> command_hook;
   std::optional<gameinterop::CombatEventsHook> combat_hook;
@@ -253,8 +255,16 @@ std::expected<Subscription, std::string> EngineHost::OnPing(
   if (auto tracked = EnsureConnectionHook(); !tracked) {
     return std::unexpected(tracked.error());
   }
+  if (!impl_->post_filter) {
+    auto posts = gameinterop::NativePostFilter::Install();
+    if (!posts) {
+      return std::unexpected(posts.error());
+    }
+    impl_->post_filter.emplace(std::move(*posts));
+  }
   if (!impl_->ping_filter) {
     auto filter = gameinterop::NativePingFilter::Install(
+        *impl_->post_filter,
         [this](const gameinterop::NativePingFilter::Ping& ping, uint64_t& voice_muted) {
           return impl_->pings.Dispatch(ping, voice_muted);
         });
