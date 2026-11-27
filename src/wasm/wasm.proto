@@ -422,6 +422,11 @@ service Host {
   // concepts until called again, on top of those silenced for everyone.
   rpc SilencePlayerVoice(modlock.wasm.effects.SilencePlayerVoiceRequest) returns (Empty);
 
+  // HideCues replaces the mod's cue rules: each keeps the particle or sound
+  // it names from its viewers until called again, while the event that
+  // caused the cue still resolves. Stopping the mod shows every cue again.
+  rpc HideCues(modlock.wasm.effects.HideCuesRequest) returns (Empty);
+
   // ReadField reads one schema field of a live entity, such as the int32
   // m_iHealth of CBaseEntity. The host finds the field by name, so it
   // survives game updates that move it, and refuses an entity that is not of

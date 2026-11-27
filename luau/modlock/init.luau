@@ -992,6 +992,24 @@ export type ScreenTiming = {
 	fadeOut: number?,
 }
 
+-- CueRule keeps one particle or sound the server starts from chosen players.
+-- The event that caused the cue still resolves; only who sees or hears it
+-- changes. A cue a player's own client predicts, such as their own parry,
+-- never comes from the server, so no rule reaches it.
+export type CueRule = {
+	-- sound is a game sound event's name, such as player.melee.parry.shared.
+	-- A rule names a sound or a particle, never both.
+	sound: string?,
+	-- particleId is a particle system's 64-bit resource name, as the game sends
+	-- it in a particle create.
+	particleId: string?,
+	-- source is the handle of the entity the cue plays on; unset matches any.
+	source: number?,
+	-- viewers are the player slots that do not get the cue; empty means every
+	-- player.
+	viewers: { number }?,
+}
+
 -- FieldValue is one field's value. The host accepts any numeric case for a
 -- numeric type and answers with the case its type reads as: a boolean, a
 -- number for a type of 32 bits or less and a handle, an integer for a 64-bit
@@ -3609,6 +3627,15 @@ schema.ClearScreenEffectRequest = {
 schema.SilenceVoiceRequest = {
 	{ number = 1, name = "concepts", kind = "string", repeated = true },
 }
+schema.CueRule = {
+	{ number = 1, name = "sound", kind = "string", optional = true },
+	{ number = 2, name = "particleId", kind = "fixed64", optional = true, id = true },
+	{ number = 3, name = "source", kind = "uint32", optional = true },
+	{ number = 4, name = "viewers", kind = "int32", repeated = true },
+}
+schema.HideCuesRequest = {
+	{ number = 1, name = "rules", kind = "message", repeated = true, message = "CueRule" },
+}
 schema.SilencePlayerVoiceRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "concepts", kind = "string", repeated = true },
@@ -5000,6 +5027,13 @@ end
 -- and the known ones still apply.
 function modlock.silenceVoice(concepts: { string }?): boolean
 	return call("SilenceVoice", "SilenceVoiceRequest", { concepts = concepts }) ~= nil
+end
+
+-- hideCues replaces the mod's cue rules: each keeps the particle or sound
+-- it names from its viewers until called again, while the event that
+-- caused the cue still resolves. Stopping the mod shows every cue again.
+function modlock.hideCues(rules: { CueRule }?): boolean
+	return call("HideCues", "HideCuesRequest", { rules = rules }) ~= nil
 end
 
 -- readField reads one schema field of a live entity, such as the int32

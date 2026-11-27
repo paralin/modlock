@@ -23,44 +23,6 @@ namespace {
 // centers the text on screen.
 constexpr int32_t kHudPrintCenter = 4;
 
-// MurmurHash2 is the hash the sound system names sound events and their
-// fields by, over the lowercased bytes of the name.
-uint32_t MurmurHash2(std::string_view text, uint32_t seed) {
-  constexpr uint32_t m = 0x5bd1e995;
-  const auto byte = [&](size_t i) {
-    const auto c = static_cast<uint8_t>(text[i]);
-    return static_cast<uint32_t>(c >= 'A' && c <= 'Z' ? c + 32 : c);
-  };
-  uint32_t h = seed ^ static_cast<uint32_t>(text.size());
-  size_t i = 0;
-  for (; text.size() - i >= 4; i += 4) {
-    uint32_t k = byte(i) | byte(i + 1) << 8 | byte(i + 2) << 16 | byte(i + 3) << 24;
-    k *= m;
-    k ^= k >> 24;
-    k *= m;
-    h = h * m ^ k;
-  }
-  switch (text.size() - i) {
-    case 3:
-      h ^= byte(i + 2) << 16;
-      [[fallthrough]];
-    case 2:
-      h ^= byte(i + 1) << 8;
-      [[fallthrough]];
-    case 1:
-      h ^= byte(i);
-      h *= m;
-  }
-  h ^= h >> 13;
-  h *= m;
-  return h ^ h >> 15;
-}
-
-// kSoundNameSeed and kSoundFieldSeed seed the hashes of sound event names
-// and of their field names.
-constexpr uint32_t kSoundNameSeed = 0x53524332;
-constexpr uint32_t kSoundFieldSeed = 0x31415926;
-
 // next_sound_id allocates sound ids. The game numbers its own sounds upward
 // from 1 and wraps below 2^31, so starting at 2^30 keeps ours apart from
 // every sound a session plays; the game's count would need a billion sounds

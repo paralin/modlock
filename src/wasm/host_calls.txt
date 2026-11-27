@@ -32,5 +32,6 @@ projectiles: WatchProjectiles
 restores: RestoreHero RestoreNpcs
 seating: SetFreeForAll SetTeamSeating
 voice: SilenceVoice SilencePlayerVoice
+cues: HideCues
 effects: ServerCommand Chat CenterText Announce Heal Sound ScreenEffect
     ClearScreenEffect Damage KillEntity Trace EmitSound AdjustSound StopSound

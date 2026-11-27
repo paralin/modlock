@@ -80,10 +80,18 @@ class ClearScreenEffectRequest;
 struct ClearScreenEffectRequestDefaultTypeInternal;
 MODLOCK_API extern ClearScreenEffectRequestDefaultTypeInternal _ClearScreenEffectRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ClearScreenEffectRequest_class_data_;
+class CueRule;
+struct CueRuleDefaultTypeInternal;
+MODLOCK_API extern CueRuleDefaultTypeInternal _CueRule_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull CueRule_class_data_;
 class EmitSoundRequest;
 struct EmitSoundRequestDefaultTypeInternal;
 MODLOCK_API extern EmitSoundRequestDefaultTypeInternal _EmitSoundRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EmitSoundRequest_class_data_;
+class HideCuesRequest;
+struct HideCuesRequestDefaultTypeInternal;
+MODLOCK_API extern HideCuesRequestDefaultTypeInternal _HideCuesRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HideCuesRequest_class_data_;
 class ScreenEffectRequest;
 struct ScreenEffectRequestDefaultTypeInternal;
 MODLOCK_API extern ScreenEffectRequestDefaultTypeInternal _ScreenEffectRequest_default_instance_;
@@ -1037,7 +1045,7 @@ class MODLOCK_API SilencePlayerVoiceRequest final : public ::google::protobuf::M
     return *reinterpret_cast<const SilencePlayerVoiceRequest*>(
         &_SilencePlayerVoiceRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(SilencePlayerVoiceRequest& a, SilencePlayerVoiceRequest& b) { a.Swap(&b); }
   inline void Swap(SilencePlayerVoiceRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1424,6 +1432,249 @@ class MODLOCK_API ScreenTiming final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ScreenTiming_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API CueRule final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.CueRule) */ {
+ public:
+  inline CueRule() : CueRule(nullptr) {}
+  ~CueRule() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(CueRule* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(CueRule));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR CueRule(::google::protobuf::internal::ConstantInitialized);
+
+  inline CueRule(const CueRule& from) : CueRule(nullptr, from) {}
+  inline CueRule(CueRule&& from) noexcept
+      : CueRule(nullptr, ::std::move(from)) {}
+  inline CueRule& operator=(const CueRule& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CueRule& operator=(CueRule&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CueRule& default_instance() {
+    return *reinterpret_cast<const CueRule*>(
+        &_CueRule_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 13;
+  friend void swap(CueRule& a, CueRule& b) { a.Swap(&b); }
+  inline void Swap(CueRule* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CueRule* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CueRule* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<CueRule>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const CueRule& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const CueRule& from) { CueRule::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(CueRule* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.CueRule"; }
+
+  explicit CueRule(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  CueRule(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const CueRule& from);
+  CueRule(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, CueRule&& from) noexcept
+      : CueRule(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kViewersFieldNumber = 4,
+    kSoundFieldNumber = 1,
+    kParticleIdFieldNumber = 2,
+    kSourceFieldNumber = 3,
+  };
+  // repeated int32 viewers = 4;
+  int viewers_size() const;
+  private:
+  int _internal_viewers_size() const;
+
+  public:
+  void clear_viewers() ;
+  ::int32_t viewers(int index) const;
+  void set_viewers(int index, ::int32_t value);
+  void add_viewers(::int32_t value);
+  const ::google::protobuf::RepeatedField<::int32_t>& viewers() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL mutable_viewers();
+
+  private:
+  const ::google::protobuf::RepeatedField<::int32_t>& _internal_viewers() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_viewers();
+
+  public:
+  // optional string sound = 1;
+  bool has_sound() const;
+  void clear_sound() ;
+  const ::std::string& sound() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_sound(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_sound();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_sound();
+  void set_allocated_sound(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_sound() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_sound(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_sound();
+
+  public:
+  // optional fixed64 particle_id = 2;
+  bool has_particle_id() const;
+  void clear_particle_id() ;
+  ::uint64_t particle_id() const;
+  void set_particle_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_particle_id() const;
+  void _internal_set_particle_id(::uint64_t value);
+
+  public:
+  // optional uint32 source = 3;
+  bool has_source() const;
+  void clear_source() ;
+  ::uint32_t source() const;
+  void set_source(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_source() const;
+  void _internal_set_source(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.CueRule)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 42,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const CueRule& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::int32_t> viewers_;
+    ::google::protobuf::internal::CachedSize _viewers_cached_byte_size_;
+    ::google::protobuf::internal::ArenaStringPtr sound_;
+    ::uint64_t particle_id_;
+    ::uint32_t source_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull CueRule_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API ClearScreenEffectRequest final : public ::google::protobuf::Message
@@ -2923,6 +3174,203 @@ class MODLOCK_API ScreenEffectRequest final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ScreenEffectRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API HideCuesRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.effects.HideCuesRequest) */ {
+ public:
+  inline HideCuesRequest() : HideCuesRequest(nullptr) {}
+  ~HideCuesRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(HideCuesRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(HideCuesRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR HideCuesRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline HideCuesRequest(const HideCuesRequest& from) : HideCuesRequest(nullptr, from) {}
+  inline HideCuesRequest(HideCuesRequest&& from) noexcept
+      : HideCuesRequest(nullptr, ::std::move(from)) {}
+  inline HideCuesRequest& operator=(const HideCuesRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline HideCuesRequest& operator=(HideCuesRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const HideCuesRequest& default_instance() {
+    return *reinterpret_cast<const HideCuesRequest*>(
+        &_HideCuesRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 14;
+  friend void swap(HideCuesRequest& a, HideCuesRequest& b) { a.Swap(&b); }
+  inline void Swap(HideCuesRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(HideCuesRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  HideCuesRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<HideCuesRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const HideCuesRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const HideCuesRequest& from) { HideCuesRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(HideCuesRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.effects.HideCuesRequest"; }
+
+  explicit HideCuesRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  HideCuesRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const HideCuesRequest& from);
+  HideCuesRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, HideCuesRequest&& from) noexcept
+      : HideCuesRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kRulesFieldNumber = 1,
+  };
+  // repeated .modlock.wasm.effects.CueRule rules = 1;
+  int rules_size() const;
+  private:
+  int _internal_rules_size() const;
+
+  public:
+  void clear_rules() ;
+  ::modlock::wasm::effects::CueRule* PROTOBUF_NONNULL mutable_rules(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>* PROTOBUF_NONNULL mutable_rules();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>& _internal_rules() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>* PROTOBUF_NONNULL _internal_mutable_rules();
+  public:
+  const ::modlock::wasm::effects::CueRule& rules(int index) const;
+  ::modlock::wasm::effects::CueRule* PROTOBUF_NONNULL add_rules();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>& rules() const;
+  // @@protoc_insertion_point(class_scope:modlock.wasm.effects.HideCuesRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const HideCuesRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::effects::CueRule > rules_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2feffects_2feffects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HideCuesRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API EmitSoundRequest final : public ::google::protobuf::Message
@@ -4551,6 +4999,247 @@ inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
 SilenceVoiceRequest::_internal_mutable_concepts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.concepts_;
+}
+
+// -------------------------------------------------------------------
+
+// CueRule
+
+// optional string sound = 1;
+inline bool CueRule::has_sound() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  return value;
+}
+inline void CueRule::clear_sound() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.sound_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& CueRule::sound() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.CueRule.sound)
+  return _internal_sound();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void CueRule::set_sound(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.sound_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.CueRule.sound)
+}
+inline ::std::string* PROTOBUF_NONNULL CueRule::mutable_sound()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_sound();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.CueRule.sound)
+  return _s;
+}
+inline const ::std::string& CueRule::_internal_sound() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.sound_.Get();
+}
+inline void CueRule::_internal_set_sound(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.sound_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL CueRule::_internal_mutable_sound() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.sound_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE CueRule::release_sound() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.effects.CueRule.sound)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.sound_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.sound_.Set("", GetArena());
+  }
+  return released;
+}
+inline void CueRule::set_allocated_sound(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.sound_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.sound_.IsDefault()) {
+    _impl_.sound_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.effects.CueRule.sound)
+}
+
+// optional fixed64 particle_id = 2;
+inline bool CueRule::has_particle_id() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void CueRule::clear_particle_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.particle_id_ = ::uint64_t{0u};
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint64_t CueRule::particle_id() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.CueRule.particle_id)
+  return _internal_particle_id();
+}
+inline void CueRule::set_particle_id(::uint64_t value) {
+  _internal_set_particle_id(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.CueRule.particle_id)
+}
+inline ::uint64_t CueRule::_internal_particle_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.particle_id_;
+}
+inline void CueRule::_internal_set_particle_id(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.particle_id_ = value;
+}
+
+// optional uint32 source = 3;
+inline bool CueRule::has_source() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  return value;
+}
+inline void CueRule::clear_source() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.source_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t CueRule::source() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.CueRule.source)
+  return _internal_source();
+}
+inline void CueRule::set_source(::uint32_t value) {
+  _internal_set_source(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.CueRule.source)
+}
+inline ::uint32_t CueRule::_internal_source() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.source_;
+}
+inline void CueRule::_internal_set_source(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.source_ = value;
+}
+
+// repeated int32 viewers = 4;
+inline int CueRule::_internal_viewers_size() const {
+  return _internal_viewers().size();
+}
+inline int CueRule::viewers_size() const {
+  return _internal_viewers_size();
+}
+inline void CueRule::clear_viewers() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.viewers_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t CueRule::viewers(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.CueRule.viewers)
+  return _internal_viewers().Get(index);
+}
+inline void CueRule::set_viewers(int index, ::int32_t value) {
+  _internal_mutable_viewers()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.effects.CueRule.viewers)
+}
+inline void CueRule::add_viewers(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_viewers()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.effects.CueRule.viewers)
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>& CueRule::viewers() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.effects.CueRule.viewers)
+  return _internal_viewers();
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL CueRule::mutable_viewers()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.effects.CueRule.viewers)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_viewers();
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>&
+CueRule::_internal_viewers() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.viewers_;
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
+CueRule::_internal_mutable_viewers() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.viewers_;
+}
+
+// -------------------------------------------------------------------
+
+// HideCuesRequest
+
+// repeated .modlock.wasm.effects.CueRule rules = 1;
+inline int HideCuesRequest::_internal_rules_size() const {
+  return _internal_rules().size();
+}
+inline int HideCuesRequest::rules_size() const {
+  return _internal_rules_size();
+}
+inline void HideCuesRequest::clear_rules() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.rules_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::effects::CueRule* PROTOBUF_NONNULL HideCuesRequest::mutable_rules(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.effects.HideCuesRequest.rules)
+  return _internal_mutable_rules()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>* PROTOBUF_NONNULL HideCuesRequest::mutable_rules()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.effects.HideCuesRequest.rules)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_rules();
+}
+inline const ::modlock::wasm::effects::CueRule& HideCuesRequest::rules(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.effects.HideCuesRequest.rules)
+  return _internal_rules().Get(index);
+}
+inline ::modlock::wasm::effects::CueRule* PROTOBUF_NONNULL HideCuesRequest::add_rules()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::effects::CueRule* _add =
+      _internal_mutable_rules()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.effects.HideCuesRequest.rules)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>& HideCuesRequest::rules() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.effects.HideCuesRequest.rules)
+  return _internal_rules();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>&
+HideCuesRequest::_internal_rules() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.rules_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::effects::CueRule>* PROTOBUF_NONNULL
+HideCuesRequest::_internal_mutable_rules() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.rules_;
 }
 
 // -------------------------------------------------------------------

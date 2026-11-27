@@ -54,6 +54,38 @@ std::expected<void, std::string> GameServices::Voice() {
   return {};
 }
 
+std::expected<void, std::string> GameServices::Cues(EngineHost* engine) {
+  // Install the effect filter once, for every mod.
+  if (cues_) {
+    return {};
+  }
+  if (!engine) {
+    return std::unexpected("cue rules need the engine host");
+  }
+  auto posts = engine->Posts();
+  if (!posts) {
+    return std::unexpected(posts.error());
+  }
+  auto filter = gameinterop::NativeEffectFilter::Install(
+      **posts,
+      [this](gameinterop::NativeEffectFilter::Kind kind) {
+        return std::ranges::any_of(cue_sources_,
+                                   [&](const CueSource* source) { return source->Names(kind); });
+      },
+      [this](const gameinterop::NativeEffectFilter::Cue& cue) {
+        uint64_t skipped = 0;
+        for (const auto* source : cue_sources_) {
+          skipped |= source->Skipped(cue);
+        }
+        return skipped;
+      });
+  if (!filter) {
+    return std::unexpected(filter.error());
+  }
+  cues_ = std::move(*filter);
+  return {};
+}
+
 bool GameServices::Speaks(void* speaker, int32_t concept_value) {
   // A concept silenced for everyone needs no speaker.
   if (std::ranges::any_of(

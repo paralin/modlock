@@ -154,6 +154,32 @@ message SilenceVoiceRequest {
   repeated string concepts = 1;
 }
 
+// CueRule keeps one particle or sound the server starts from chosen players.
+// The event that caused the cue still resolves; only who sees or hears it
+// changes. A cue a player's own client predicts, such as their own parry,
+// never comes from the server, so no rule reaches it.
+message CueRule {
+  // Sound is a game sound event's name, such as player.melee.parry.shared.
+  // A rule names a sound or a particle, never both.
+  optional string sound = 1;
+
+  // ParticleId is a particle system's 64-bit resource name, as the game sends
+  // it in a particle create.
+  optional fixed64 particle_id = 2;
+
+  // Source is the handle of the entity the cue plays on; unset matches any.
+  optional uint32 source = 3;
+
+  // Viewers are the player slots that do not get the cue; empty means every
+  // player.
+  repeated int32 viewers = 4;
+}
+
+// HideCuesRequest is a mod's whole set of cue rules.
+message HideCuesRequest {
+  repeated CueRule rules = 1;
+}
+
 // SilencePlayerVoiceRequest names the voice concepts one player's hero keeps
 // silent.
 message SilencePlayerVoiceRequest {

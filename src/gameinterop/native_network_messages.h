@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <string_view>
 #include <vector>
 
 #include "modlock/gameinterop/virtual_slots.h"
@@ -24,6 +25,10 @@ inline constexpr size_t kSerializerMessageIdOffset = 0x18;
 inline constexpr int16_t kSoundStartMessageId = 208;
 inline constexpr int16_t kSoundStopMessageId = 209;
 inline constexpr int16_t kSoundParamsMessageId = 210;
+
+// CUserMsg_ParticleManager, the user message that creates, changes and
+// releases each particle the server plays.
+inline constexpr int16_t kParticleManagerMessageId = 145;
 
 // The user message ids the framework sends or reads: CUserMessageSayText2,
 // CUserMessageTextMsg, Deadlock's chat message, CameraController,
@@ -44,6 +49,44 @@ inline constexpr int16_t kMapPingMessageId = 303;
 inline constexpr int16_t kPingWheelMessageId = 312;
 inline constexpr int16_t kQuickResponseMessageId = 315;
 inline constexpr int16_t kAbilityPingMessageId = 331;
+
+// MurmurHash2 is the hash the sound system names sound events and their
+// fields by, over the lowercased bytes of the name.
+inline uint32_t MurmurHash2(std::string_view text, uint32_t seed) {
+  constexpr uint32_t m = 0x5bd1e995;
+  const auto byte = [&](size_t i) {
+    const auto c = static_cast<uint8_t>(text[i]);
+    return static_cast<uint32_t>(c >= 'A' && c <= 'Z' ? c + 32 : c);
+  };
+  uint32_t h = seed ^ static_cast<uint32_t>(text.size());
+  size_t i = 0;
+  for (; text.size() - i >= 4; i += 4) {
+    uint32_t k = byte(i) | byte(i + 1) << 8 | byte(i + 2) << 16 | byte(i + 3) << 24;
+    k *= m;
+    k ^= k >> 24;
+    k *= m;
+    h = h * m ^ k;
+  }
+  switch (text.size() - i) {
+    case 3:
+      h ^= byte(i + 2) << 16;
+      [[fallthrough]];
+    case 2:
+      h ^= byte(i + 1) << 8;
+      [[fallthrough]];
+    case 1:
+      h ^= byte(i);
+      h *= m;
+  }
+  h ^= h >> 13;
+  h *= m;
+  return h ^ h >> 15;
+}
+
+// kSoundNameSeed and kSoundFieldSeed seed the hashes of sound event names
+// and of their field names.
+inline constexpr uint32_t kSoundNameSeed = 0x53524332;
+inline constexpr uint32_t kSoundFieldSeed = 0x31415926;
 
 // kMaxUserMessageSize bounds one serialized user message.
 inline constexpr size_t kMaxUserMessageSize = 4096;
