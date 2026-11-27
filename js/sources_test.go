@@ -9,7 +9,10 @@ import (
 )
 
 // relativeImport matches a TypeScript import or export from a relative path.
-var relativeImport = regexp.MustCompile(`from '(\.{1,2}/[^']+)\.js'`)
+// It reads only lines that begin a statement, or close a multi-line one, so a
+// usage example in a comment, which imports from the mod's own files, is not
+// taken for an import of the library's.
+var relativeImport = regexp.MustCompile(`(?m)^\s*(?:import\b|export\b|\})[^\n]*?\bfrom '(\.{1,2}/[^']+)\.js'`)
 
 // TestSourcesCloseOverImports checks that Sources holds the library's entry
 // module and every module its source imports from inside src, so a vendored
