@@ -60,7 +60,7 @@ export interface Focus {
 export interface Scroll {
   /** offset is the distance scrolled from the first row, in pixels. */
   offset: number
-  /** viewport is the height the list shows, in pixels; 0 until laid out. */
+  /** viewport is the height the list shows, in layout units; 0 until laid out. */
   viewport: number
   /**
    * asked is the window last asked for, which the host answers with the
