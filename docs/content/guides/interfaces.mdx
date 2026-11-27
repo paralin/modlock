@@ -125,9 +125,10 @@ capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
 
 ## The cursor
 
-While the cursor is up, the game still shoots, turns and moves the hero. The mod
-blocks those buttons itself, and releases them in the same call that hides the
-screen. `hide` gives the mouse back to aiming.
+While the cursor is up, a click on one of the mod's panels goes to the panel
+and fires no shot. A click anywhere else still shoots, and the game still turns
+and moves the hero. A screen that must not fire a weapon blocks those buttons
+itself, and releases them in the same call that hides the screen. `hide` gives the mouse back to aiming.
 
 The player can also put the cursor away with the game's own keys. The cursor
 then stays away while the screen changes, until the next
