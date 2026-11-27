@@ -135,6 +135,10 @@ message HostEvent {
     // UiWindow carries the run of a list's rows a player's renderer asks
     // for, which the screen owner fills the list node with.
     UiWindow ui_window = 16;
+
+    // Paused reports each time the game pauses or resumes, from the first
+    // world on. Until the first, the game is not paused.
+    GamePaused paused = 17;
   }
 }
 
@@ -283,6 +287,13 @@ message UiWindow {
 
   // ListWindow names the list and its rows.
   modlock.wasm.ui.ListWindow window = 3;
+}
+
+// GamePaused is whether the game is paused, by the pause a mod sets or by the
+// game's own, which holds the match clock.
+message GamePaused {
+  // Paused is true while the game is paused.
+  bool paused = 1;
 }
 
 // ServiceReply supplies a host extension's answer for one mod. The controller

@@ -164,7 +164,7 @@ func TestWatchClearsALostScreen(t *testing.T) {
 	frames := make(chan int, 16)
 	go (&Service{}).watch(ctx, host, &WatchRequest{Session: code, SteamId: guest}, func(event *JoinEvent) error {
 		if frame := event.GetScreen(); frame != nil {
-			mirror.Apply(frame.GetChanges(), frame.GetReset_())
+			mirror.Apply(frame.GetChanges(), frame.GetReset_(), frame.GetPaused())
 			screen, _ := mirror.Screen()
 			frames <- len(screen.GetTrees())
 		}

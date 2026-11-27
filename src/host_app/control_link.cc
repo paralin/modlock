@@ -159,10 +159,11 @@ std::expected<std::unique_ptr<ControlLink>, std::string> ControlLink::Dial(
 std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
   // Player joins need the network system, which loads with the first world.
   auto world = engine.OnWorld(nullptr, [this, &engine](std::string_view map) {
-    // Report the ready world.
+    // Report the ready world, and watch its pause.
     control::HostEvent event;
     event.mutable_ready()->set_map(std::string(map));
     Push(std::move(event));
+    watching_ = true;
     if (joining_) {
       return;
     }
@@ -200,6 +201,7 @@ std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
 }
 
 void ControlLink::RunRequests(WasmHost& mods) {
+  WatchPause(mods);
   if (!pending_.load(std::memory_order_acquire)) {
     return;
   }
@@ -374,6 +376,28 @@ void ControlLink::SlowFrame(std::string_view mod, const wasm::profile::SlowFrame
   control::HostEvent event;
   event.mutable_slow_frame()->set_mod(std::string(mod));
   *event.mutable_slow_frame()->mutable_report() = report;
+  Push(std::move(event));
+}
+
+void ControlLink::WatchPause(WasmHost& mods) {
+  // Read the pause while the watch lasts; a failed read ends it, resuming.
+  if (!watching_) {
+    return;
+  }
+  auto paused = mods.Paused();
+  if (!paused) {
+    std::cerr << "control: the game's pause is unavailable: " << paused.error() << '\n';
+    watching_ = false;
+    paused = false;
+  }
+
+  // Report a change.
+  if (*paused == paused_) {
+    return;
+  }
+  paused_ = *paused;
+  control::HostEvent event;
+  event.mutable_paused()->set_paused(paused_);
   Push(std::move(event));
 }
 

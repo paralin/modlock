@@ -216,6 +216,8 @@ message ScreenFrame {
   // reset starts the screen over before the changes, as the first frame of
   // each watch does.
   bool reset = 2;
+  // paused is whether the game is paused, which every frame carries.
+  bool paused = 3;
 }
 
 // SessionEvent is one thing a guest sees in a hosted session.

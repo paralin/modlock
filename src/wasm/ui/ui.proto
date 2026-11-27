@@ -1491,6 +1491,10 @@ message Region {
 message Screen {
   // Trees holds one tree per mod that shows this player anything.
   repeated Tree trees = 1;
+
+  // Paused is true while the game is paused, which holds every timeline on
+  // the game's clock.
+  bool paused = 2;
 }
 
 // UiPressEvent reports a press on a button in a player's interface, or a

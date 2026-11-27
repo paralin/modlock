@@ -919,6 +919,53 @@ test('runs a timeline: restarts it, cancels it and joins it on reload', () => {
   expect(sounds).toEqual(['Gong', 'Gong'])
 })
 
+test("holds a game-clock timeline while the host's screen is paused", () => {
+  // A mod's lifetime starts while the game is paused, then runs a timeline on
+  // the game's clock whose one step comes a second in.
+  setSystemTime(new Date(1_000_000))
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  const held = (paused: boolean, timed: boolean) =>
+    Screen.fromJson({
+      paused,
+      trees: [
+        {
+          mod: 'arena',
+          generation: '1',
+          nodes: [
+            {
+              id: '',
+              children: ['banner'],
+              timelines: timed
+                ? [
+                    {
+                      id: 'intro',
+                      run: 1,
+                      clock: 'TIMELINE_CLOCK_GAME',
+                      steps: [{ at: 1, measure: 'banner', classes: ['Shown'] }],
+                    },
+                  ]
+                : [],
+            },
+            { id: 'banner', kind: 'KIND_LABEL', measure: 'banner' },
+          ],
+        },
+      ],
+    })
+  const banner = () => root.children[0]!.children[0]!
+  drawing.draw(held(true, false))
+  drawing.draw(held(true, true))
+
+  // Five seconds of pause show nothing; the resume runs the last second.
+  setSystemTime(new Date(1_005_000))
+  runScheduled()
+  expect(banner().classes).not.toContain('Shown')
+  drawing.draw(held(false, true))
+  setSystemTime(new Date(1_006_500))
+  runScheduled()
+  expect(banner().classes).toContain('Shown')
+})
+
 test('holds a game-clock timeline through a pause and not a wall-clock one', () => {
   // Run two timelines with one step at 2s on a clock the test moves.
   let time = 0

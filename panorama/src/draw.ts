@@ -795,6 +795,9 @@ export class Drawing {
     { generation: bigint; timelines: Timelines }
   >()
 
+  /** paused is whether the last screen found the game paused. */
+  private paused = false
+
   /** addons holds the content addon each mod's tree names, by mod. */
   private readonly addons = new Map<string, string>()
 
@@ -884,8 +887,10 @@ export class Drawing {
 
   /** draw makes the panels match screen, keeping each panel whose node stays. */
   draw(screen: Screen | null): void {
-    // Keep the screen, which a scroll draws again.
+    // Keep the screen, which a scroll draws again, and the game's pause,
+    // which holds the game-clock timelines.
     this.last = screen
+    this.paused = screen?.paused ?? false
 
     // Delete the trees of mods the screen no longer holds.
     const trees = new Map(
@@ -1285,6 +1290,7 @@ export class Drawing {
       }
       this.timelines.set(mod, kept)
     }
+    kept.timelines.pause(this.paused)
     kept.timelines.draw(timelines)
   }
 

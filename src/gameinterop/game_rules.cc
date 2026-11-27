@@ -236,6 +236,24 @@ std::expected<void, std::string> GamePause::Set(bool paused) const {
   return {};
 }
 
+std::expected<bool, std::string> GamePause::Paused() const {
+  // No active rules hold no pause.
+  void* rules = nullptr;
+  if (current_) {
+    std::memcpy(&rules, current_, sizeof(rules));
+  }
+  if (!rules) {
+    return false;
+  }
+
+  // Read the replicated field Set toggles.
+  const auto value = *(static_cast<const uint8_t*>(rules) + paused_offset_);
+  if (value > 1) {
+    return std::unexpected("invalid native server-pause state");
+  }
+  return value != 0;
+}
+
 std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& server,
                                                          void* schema_system) {
   // Find the current rules and the server module's bounds.

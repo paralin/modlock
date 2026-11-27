@@ -4088,6 +4088,9 @@ type Screen struct {
 	unknownFields []byte
 	// Trees holds one tree per mod that shows this player anything.
 	Trees []*Tree `protobuf:"bytes,1,rep,name=trees,proto3" json:"trees,omitempty"`
+	// Paused is true while the game is paused, which holds every timeline on
+	// the game's clock.
+	Paused bool `protobuf:"varint,2,opt,name=paused,proto3" json:"paused,omitempty"`
 }
 
 func (x *Screen) Reset() {
@@ -4101,6 +4104,13 @@ func (x *Screen) GetTrees() []*Tree {
 		return x.Trees
 	}
 	return nil
+}
+
+func (x *Screen) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
 }
 
 // UiPressEvent reports a press on a button in a player's interface, or a
@@ -5689,6 +5699,7 @@ func (m *Screen) CloneVT() *Screen {
 		return (*Screen)(nil)
 	}
 	r := new(Screen)
+	r.Paused = m.Paused
 	r.Trees = protobuf_go_lite.CloneVTSlice(m.Trees)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -7601,6 +7612,9 @@ func (this *Screen) EqualVT(that *Screen) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Trees, that.Trees, func() *Tree { return &Tree{} }) {
+		return false
+	}
+	if this.Paused != that.Paused {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -13010,6 +13024,11 @@ func (x *Screen) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.Paused || s.HasField("paused") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("paused")
+		s.WriteBool(x.Paused)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -13045,6 +13064,9 @@ func (x *Screen) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Trees = append(x.Trees, v)
 			})
+		case "paused":
+			s.AddField("paused")
+			x.Paused = s.ReadBool()
 		}
 	})
 }
@@ -16932,6 +16954,11 @@ func (m *Screen) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Paused {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Paused)
+		i--
+		dAtA[i] = 0x10
+	}
 	if len(m.Trees) > 0 {
 		for iNdEx := len(m.Trees) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Trees[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -18575,6 +18602,7 @@ func (m *Screen) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Paused)
 	n += len(m.unknownFields)
 	return n
 }
@@ -20575,6 +20603,10 @@ func (x *Screen) MarshalProtoText() string {
 			}
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Paused != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "paused")
+		protobuf_go_lite.TextWriteBool(&sb, x.Paused)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -25599,6 +25631,16 @@ func (m *Screen) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Paused = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

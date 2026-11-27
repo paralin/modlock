@@ -25,8 +25,9 @@ namespace modlock::host_app {
 // ControlLink connects modlock-host to the program that started it, such as
 // modlock dev, with the framing control.proto describes. The host dials the
 // controller's loopback address, streams mod starts, logs, failures, server
-// readiness, player joins and leaves and mod interfaces, and takes reloads,
-// the players' roles and the answers to the service calls it forwards.
+// readiness, player joins and leaves, mod interfaces and the game's pause, and
+// takes reloads, the players' roles and the answers to the service calls it
+// forwards.
 // Requests run on the engine thread through RunRequests. When the controller
 // disconnects, events are dropped and the host keeps running.
 class ControlLink final : public WasmHostObserver, public gameinterop::ConnectionEventSink {
@@ -78,6 +79,11 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
 
   explicit ControlLink(intptr_t socket);
 
+  // WatchPause reports the game's pause when it changes, while the world
+  // the watch started in lasts. A pause that cannot be read stops the watch
+  // until the next world. It runs on the engine thread.
+  void WatchPause(WasmHost& mods);
+
   void Push(control::HostEvent event);
   void Send(std::stop_token stop);
   void Read();
@@ -98,6 +104,10 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   Subscription connections_;
   Subscription chat_;
   bool joining_ = false;
+  // watching_ is true from a world's load until its pause cannot be read,
+  // and paused_ is the pause last reported. Both are on the engine thread.
+  bool watching_ = false;
+  bool paused_ = false;
   // names_ holds each joined human's name by slot, on the engine thread.
   std::unordered_map<int32_t, std::string> names_;
   // reader_ queues requests and sender_ sends events; the destructor stops

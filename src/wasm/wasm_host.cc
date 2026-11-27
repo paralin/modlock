@@ -285,6 +285,29 @@ void WasmHost::ApplyControllers(
   impl_->game.Controllers().Apply(slot, frames, ended, wasm::ControllerTable::Clock::now());
 }
 
+std::expected<bool, std::string> WasmHost::Paused() {
+  // Resolve both pauses.
+  auto server = impl_->game.Pause();
+  if (!server) {
+    return std::unexpected(server.error());
+  }
+  auto clock = impl_->game.Clock();
+  if (!clock) {
+    return std::unexpected(clock.error());
+  }
+
+  // Either one pauses the game.
+  auto held = (*server)->Paused();
+  if (!held) {
+    return std::unexpected(held.error());
+  }
+  auto own = (*clock)->Paused();
+  if (!own) {
+    return std::unexpected(own.error());
+  }
+  return *held || *own;
+}
+
 std::expected<std::string, std::string> WasmHost::Call(std::string_view mod,
                                                        std::string_view service,
                                                        std::string_view method,
