@@ -127,6 +127,7 @@ func TestServiceProviders(t *testing.T) {
 		want: []string{
 			modLog("service example.drills.v1: fixture %s"),
 			modLog("service example.ghosts.v1: nobody (optional)"),
+			modLog("joined Player"),
 			(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: "hello"}}}).String(),
 		},
 	}, {

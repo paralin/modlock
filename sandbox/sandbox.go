@@ -38,11 +38,12 @@ var player = &players.Connection{
 	Roles:      []players.ModRole{players.ModRole_MOD_ROLE_DEVELOPER, players.ModRole_MOD_ROLE_TESTER},
 }
 
-// Sandbox runs mods without a game, as a server would with one player who
-// never has a hero: it starts each mod, gives it the world and the frame
-// clock, passes the player's commands and button presses to it, and reports
-// its logs, the messages it shows the player and its interface as host
-// events. Host calls that need the game answer empty.
+// Sandbox runs mods without a game, as a server would with a stand-in
+// player and the bots a mod adds: it starts each mod, gives it the world
+// and the frame clock, passes the player's commands and button presses to
+// it, and reports its logs, the messages it shows the player and its
+// interface as host events. Host calls that need the game answer empty,
+// except the roster and stand-in pawn calls a bot session uses.
 type Sandbox struct {
 	// config describes the session.
 	config Config
@@ -69,6 +70,12 @@ type Sandbox struct {
 	// handoff holds the handoff state of each mod for the game and for the
 	// stand-in player, which the next build reads back after a reload.
 	handoff map[handoffKey]string
+	// roster is the session's players: the stand-in human and every bot a
+	// mod has added.
+	roster *roster
+	// entities are the session map's entities, loaded from maps/<map>.vpk or
+	// data/sandbox-entities.json, or none.
+	entities *entityIndex
 }
 
 // handoffLimit is the most handoff state a mod sets in one call, as a server
@@ -94,22 +101,36 @@ type running struct {
 	// calls holds the instance's started service calls until a frame ends
 	// them.
 	calls *serviceCalls
+	// heard is the player in each slot as the instance last heard of them in
+	// PlayerJoined, so it hears each join and leave once.
+	heard [maxPlayerSlots]*players.Connection
+	// seen is the roster revision the instance last heard of.
+	seen uint64
 }
 
 // Start starts the mods in a new sandbox. A mod that fails to load reports
 // the failure and leaves the others running.
 func Start(ctx context.Context, config Config) *Sandbox {
+	// Make the session and run it on its own goroutine.
 	ctx, stop := context.WithCancel(ctx)
-	s := &Sandbox{
-		config:  config,
-		cache:   compilationCache(config.Compiled),
-		actions: make(chan func(context.Context)),
-		stop:    stop,
-		done:    make(chan struct{}),
-		tallies: map[string]*metrics.Tally{},
-	}
+	s := newSandbox(config)
+	s.cache = compilationCache(config.Compiled)
+	s.actions = make(chan func(context.Context))
+	s.stop = stop
+	s.done = make(chan struct{})
 	go s.run(ctx)
 	return s
+}
+
+// newSandbox returns a session holding only the stand-in player, with no map
+// entities and no mods.
+func newSandbox(config Config) *Sandbox {
+	return &Sandbox{
+		config:   config,
+		tallies:  map[string]*metrics.Tally{},
+		roster:   newRoster(),
+		entities: newEntityIndex(),
+	}
 }
 
 // compilationCache returns a cache that keeps compiled modules in dir, or in
@@ -255,7 +276,9 @@ func (s *Sandbox) run(ctx context.Context) {
 		s.log("", "settings: "+err.Error()+"; starting without them")
 	}
 
-	// Start the world and its mods, then the player joins.
+	// Load the map's entities before the mods start, then start the world
+	// and its mods, then the player joins.
+	s.loadMapEntities()
 	s.event(&control.HostEvent{Body: &control.HostEvent_Ready{Ready: &control.ServerReady{Map: s.config.Map}}})
 	for _, path := range s.config.Mods {
 		s.load(ctx, path)
@@ -266,7 +289,9 @@ func (s *Sandbox) run(ctx context.Context) {
 		SteamId: player.GetSteamId(),
 	}}})
 
-	// Handle the session's requests and frames until it ends.
+	// Handle the session's requests and frames until it ends. The frame
+	// clock is the server's tick, not a wait on state.
+	//gostyle:timer deadline
 	clock := time.NewTicker(frameInterval)
 	defer clock.Stop()
 	started := time.Now()
@@ -312,67 +337,79 @@ func (s *Sandbox) load(ctx context.Context, path string) {
 		return
 	}
 
+	// Drop this mod's earlier bots before the new instance starts, so it
+	// can take the same slots. Restore them if the new build fails, and
+	// keep the running instance as it is.
+	snapshot := s.roster.take(name)
+
 	// Load its module and start it in the world.
-	calls := &serviceCalls{}
-	mod, wants, err := s.start(ctx, name, build, calls)
+	run, err := s.start(ctx, name, build)
 	if err != nil {
+		s.roster.restore(snapshot)
 		fail(err)
 		return
 	}
 
 	// Replace the running mod of the same name, or add it; the calls the
-	// old instance started end with it.
-	for _, old := range s.mods {
+	// old instance started end with it. The other mods then hear of the
+	// bots it added.
+	reloaded := false
+	for i, old := range s.mods {
 		if old.name == name {
 			if old.mod != nil {
 				_ = old.mod.Close(ctx)
 			}
-			old.mod, old.wants, old.calls = mod, wants, calls
-			s.event(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: name, Reloaded: true}}})
-			return
+			s.mods[i], reloaded = run, true
 		}
 	}
-	s.mods = append(s.mods, &running{name: name, mod: mod, wants: wants, calls: calls})
-	s.event(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: name}}})
+	if !reloaded {
+		s.mods = append(s.mods, run)
+	}
+	s.event(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: name, Reloaded: reloaded}}})
+	s.announceAll(ctx)
 }
 
-// start loads build's module, starts it and gives it the world.
-func (s *Sandbox) start(ctx context.Context, name string, build *Build, calls *serviceCalls) (*Mod, *wasm.StartResult, error) {
+// start loads build's module, starts it and gives it the world. A failure
+// takes back the bots the instance added.
+func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*running, error) {
 	// Choose the module: the mod's own, or the interpreter for its source.
 	module, source, err := s.module(ctx, build)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// Load it with the sandbox answering its host calls.
-	mod, err := Load(ctx, module, Options{
-		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(build, calls, call) },
+	run := &running{name: name, calls: &serviceCalls{}, wants: &wasm.StartResult{}}
+	run.mod, err = Load(ctx, module, Options{
+		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(build, run.calls, call) },
 		Output: &lines{write: func(line string) { s.log(name, line) }},
 		Cache:  s.cache,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	// Start it, report its one player as a game server does before the next
-	// event, then give it the world. A build from before the report answers
+	// Start it, report the roster as a game server does before the next
+	// event, then give it the world and report the roster again. Bots added
+	// during Start or World are announced after each returns, so join events
+	// are not nested in a host call. A build from before the report answers
 	// that it has no such method and keeps asking for its players.
-	wants := &wasm.StartResult{}
-	err = mod.Deliver(ctx, "Start", &wasm.StartEvent{Args: s.config.Args, Source: source}, wants)
+	err = run.mod.Deliver(ctx, "Start", &wasm.StartEvent{Args: s.config.Args, Source: source}, run.wants)
 	if err == nil {
-		_ = mod.Deliver(ctx, "PlayersChanged", &players.PlayersChangedEvent{Players: []*players.Connection{player}}, nil)
-		if wants.GetJoins() {
-			_ = mod.Deliver(ctx, "PlayerJoined", &players.PlayerJoinedEvent{Connection: player}, nil)
-		}
+		s.announceTo(ctx, run)
 	}
 	if err == nil && s.config.Map != "" {
-		err = mod.Deliver(ctx, "World", &wasm.WorldEvent{Map: s.config.Map}, nil)
+		err = run.mod.Deliver(ctx, "World", &wasm.WorldEvent{Map: s.config.Map}, nil)
+		if err == nil {
+			s.announceTo(ctx, run)
+		}
 	}
 	if err != nil {
-		_ = mod.Close(ctx)
-		return nil, nil, err
+		s.roster.take(name)
+		_ = run.mod.Close(ctx)
+		return nil, err
 	}
-	return mod, wants, nil
+	return run, nil
 }
 
 // module returns the module that runs build and the source it evaluates,
@@ -427,7 +464,7 @@ func (s *Sandbox) frame(ctx context.Context, elapsed time.Duration) {
 	for _, mod := range s.mods {
 		s.endCalls(ctx, mod)
 		if mod.wants.GetFrames() {
-			s.deliver(ctx, mod, "Frame", &wasm.FrameEvent{Tick: s.tick, TimeSeconds: elapsed.Seconds()}, nil)
+			s.deliver(ctx, mod, "Frame", s.frameEvent(elapsed.Seconds()), nil)
 		}
 	}
 }
@@ -443,10 +480,15 @@ func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, requ
 	// Deliver the event; a session that is ending reports nothing.
 	err := s.attempt(ctx, mod, method, request, response)
 	if err == nil {
+		s.announceAll(ctx)
 		return true
 	}
 	if ctx.Err() == nil {
+		if mod.mod == nil {
+			s.roster.take(mod.name)
+		}
 		s.failed(mod.name, err)
+		s.announceAll(ctx)
 	}
 	return false
 }
@@ -521,8 +563,14 @@ func (s *Sandbox) answer(build *Build, calls *serviceCalls, call *wasm.Call) *wa
 			}}})
 		}
 	case "Players":
-		response, _ := (&players.PlayersResponse{Players: []*players.Connection{player}}).MarshalVT()
+		response, _ := (&players.PlayersResponse{Players: s.roster.connections()}).MarshalVT()
 		return &wasm.Reply{Response: response}
+	case "AddBot", "RemoveBot", "Pawn", "Pawns", "SelectHero", "ChangeTeam", "Spectate", "Kill", "Respawn":
+		return s.answerPlayerCall(mod, call)
+	case "Teleport", "MovePlayer", "WatchMovement":
+		return s.answerWorldCall(call)
+	case "FindEntities", "FindEntitiesByName", "EntityPosition", "EntityName", "EntityClass", "ReadField":
+		return s.answerEntityCall(call)
 	case "PlayerSetting":
 		request := &settingspb.PlayerSettingRequest{}
 		if request.UnmarshalVT(call.GetRequest()) == nil {

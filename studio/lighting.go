@@ -2,8 +2,9 @@ package studio
 
 import (
 	"math"
-	"strconv"
 	"strings"
+
+	"github.com/paralin/modlock/source2/entitylump"
 )
 
 // directDynamic is a light's directlight value when the game draws its
@@ -35,44 +36,17 @@ func (a *Assets) lighting(data map[string]any) *Lighting {
 		return nil
 	}
 
-	// Gather the stationary lights from every entity lump.
-	for _, item := range list(data["m_entityLumps"]) {
-		if name, _ := item.(string); name != "" {
-			a.lights(name+"_c", out, 0)
-		}
+	// Gather the stationary lights from every entity lump; a lump that
+	// cannot be read adds none.
+	read := func(name string) ([]byte, error) { return a.archiveOf(name).ReadFile(name) }
+	for _, lump := range entitylump.Lumps(data) {
+		_ = entitylump.Walk(read, lump, func(values map[string]any) {
+			if light := stationary(values); light != nil {
+				out.Lights = append(out.Lights, light)
+			}
+		})
 	}
 	return out
-}
-
-// lights adds the stationary lights of one entity lump and its children,
-// which nest at most a few deep.
-func (a *Assets) lights(name string, out *Lighting, depth int) {
-	// Read the lump; one that cannot be read adds nothing.
-	_, blocks, err := a.read(name)
-	if err != nil || depth > 4 {
-		return
-	}
-	data, err := decodeTag(blocks, "DATA")
-	if err != nil {
-		return
-	}
-
-	// Add each enabled light whose direct light the game draws at runtime.
-	for _, item := range list(data["m_entityKeyValues"]) {
-		entity, _ := item.(map[string]any)
-		kv3, _ := entity["keyValues3Data"].(map[string]any)
-		values, _ := kv3["values"].(map[string]any)
-		if light := stationary(values); light != nil {
-			out.Lights = append(out.Lights, light)
-		}
-	}
-
-	// Descend into the child lumps.
-	for _, item := range list(data["m_childLumps"]) {
-		if child, _ := item.(string); child != "" {
-			a.lights(child+"_c", out, depth+1)
-		}
-	}
 }
 
 // stationary returns the light an entity's values describe, or nil for an
@@ -90,22 +64,22 @@ func stationary(values map[string]any) *Light {
 	default:
 		return nil
 	}
-	if values["enabled"] == false || entityNumber(values["directlight"]) != directDynamic {
+	if values["enabled"] == false || entitylump.Number(values["directlight"]) != directDynamic {
 		return nil
 	}
 
 	// The color is sRGB bytes, scaled by the brightness.
 	color := list(values["color"])
-	brightness := entityNumber(values["brightness"]) * entityNumberOr(values["brightnessscale"], 1)
+	brightness := entitylump.Number(values["brightness"]) * entityNumberOr(values["brightnessscale"], 1)
 	for i := range min(3, len(color)) {
-		light.Color = append(light.Color, float32(linear(entityNumber(color[i])/255)*brightness))
+		light.Color = append(light.Color, float32(linear(entitylump.Number(color[i])/255)*brightness))
 	}
 
 	// Place it and aim it along its forward axis.
 	light.Origin = vector(values["origin"])
 	light.Direction = forward(vector(values["angles"]))
-	light.Range = float32(entityNumber(values["range"]))
-	light.Shadow = uint32(entityNumber(values["bakedshadowindex"]))
+	light.Range = float32(entitylump.Number(values["range"]))
+	light.Shadow = uint32(entitylump.Number(values["bakedshadowindex"]))
 	light.Inner = float32(entityNumberOr(values["inner_angle"], 180))
 	light.Outer = float32(entityNumberOr(values["outer_angle"], 180))
 	return light
@@ -139,7 +113,7 @@ func vector(value any) []float32 {
 	items := list(value)
 	out := make([]float32, len(items))
 	for i, item := range items {
-		out[i] = float32(entityNumber(item))
+		out[i] = float32(entitylump.Number(item))
 	}
 	return out
 }
@@ -150,21 +124,5 @@ func entityNumberOr(value any, fallback float64) float64 {
 	if value == nil {
 		return fallback
 	}
-	return entityNumber(value)
-}
-
-// entityNumber returns an entity value as a number: entity lumps store many
-// numbers as text, and booleans as true or false.
-func entityNumber(value any) float64 {
-	switch v := value.(type) {
-	case string:
-		f, _ := strconv.ParseFloat(strings.TrimSpace(v), 64)
-		return f
-	case bool:
-		if v {
-			return 1
-		}
-		return 0
-	}
-	return number(value)
+	return entitylump.Number(value)
 }

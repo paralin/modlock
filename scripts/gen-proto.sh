@@ -43,6 +43,9 @@ aptre --rpc none --language go --language ts \
   --targets './publish/*.proto' --targets './cli/*.proto' --targets './mod/spot/*.proto' \
   --targets './studio/*.proto'
 
+# The sandbox's entity fixture serves the sandbox that reads it.
+aptre --rpc none --language go --targets './sandbox/*.proto'
+
 # The daemon's service serves the modlock processes on one PC.
 aptre --rpc starpc --language go --targets './daemon/*.proto'
 

@@ -16,7 +16,8 @@ import (
 // TestSandbox runs a Go mod that answers /hello: the stand-in player joins,
 // the command reaches the mod and its chat comes back as a message, an
 // unknown command and a press in a missing mod go unhandled, a layout press
-// the game could not carry is refused, and a reload restarts the mod.
+// the game could not carry is refused, and a reload restarts the mod, whose
+// new instance hears the player join again.
 func TestSandbox(t *testing.T) {
 	// Build the mod.
 	dist := t.TempDir()
@@ -88,9 +89,11 @@ func TestSandbox(t *testing.T) {
 	// Check what a server would have reported.
 	want := []string{
 		(&control.HostEvent{Body: &control.HostEvent_Ready{Ready: &control.ServerReady{}}}).String(),
+		modLog("joined Player"),
 		(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: "hello"}}}).String(),
 		(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Name: "Player", SteamId: player.GetSteamId()}}}).String(),
 		(&control.HostEvent{Body: &control.HostEvent_Message{Message: &control.PlayerMessage{Mod: "hello", Text: "Hello!"}}}).String(),
+		modLog("joined Player"),
 		(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: "hello", Reloaded: true}}}).String(),
 	}
 	if !slices.Equal(events, want) {

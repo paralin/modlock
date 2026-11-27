@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package modlock.sandbox;
+
+option go_package = "github.com/paralin/modlock/sandbox;sandbox";
+
+import "github.com/paralin/modlock/src/geometry/geometry.proto";
+
+// EntityFixture is data/sandbox-entities.json, the map entities a sandbox
+// serves when it cannot read the map's own entity lumps. A mod author writes
+// it in the protobuf JSON encoding:
+//
+//   {"entities": [{
+//     "targetname": "start",
+//     "classname": "info_target",
+//     "origin": {"x": 625, "y": -700},
+//     "angles": {"yaw": 90},
+//     "keyvalues": {"width": "200"}
+//   }]}
+message EntityFixture {
+  // Entities are the map's entities, in the order FindEntities and
+  // FindEntitiesByName list them.
+  repeated FixtureEntity entities = 1;
+}
+
+// FixtureEntity is one map entity as a compiled entity lump stores it.
+message FixtureEntity {
+  // Targetname is the name FindEntitiesByName matches exactly, or empty.
+  string targetname = 1;
+
+  // Classname is the designer class FindEntities matches.
+  string classname = 2;
+
+  // Origin is where the entity stands.
+  modlock.geometry.Vec3 origin = 3;
+
+  // Angles are the entity's pitch, yaw and roll.
+  modlock.geometry.EulerAngles angles = 4;
+
+  // Keyvalues are the entity's other keyvalues as text, as Hammer writes
+  // them, which ReadField parses to the type the mod asks for: "200",
+  // "0 90 0" or "1".
+  map<string, string> keyvalues = 5;
+}
