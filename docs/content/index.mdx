@@ -5,8 +5,9 @@ description: Write custom game modes for Deadlock in TypeScript, JavaScript, Lua
 
 <Hero />
 
-Each language's library has the same events and calls, so you can pick the
-language you know. This mod replies when a player types `/hello` in chat:
+Modlock gives each language a library with the same events and calls, so you
+can write your mod in the language you already know. This mod replies when a
+player types `/hello` in chat:
 
 <Samples>
 
@@ -92,12 +93,12 @@ func main() {}
     You can write a mod in any language that compiles to WebAssembly.
   </Card>
   <Card icon={<Package />} title="Built once">
-    The server looks up each field and input a mod uses by name, so a mod built
-    before a game update still works after it.
+    The server looks up each game field and input a mod uses by its name, not
+    its position, so a mod built before a game update still works after it.
   </Card>
   <Card icon={<Zap />} title="Fast">
-    The server calls each mod inside the game's own frame, and Wasmtime runs its
-    WebAssembly as machine code.
+    The server calls each mod inside the game's own frame, and Wasmtime compiles
+    the mod's WebAssembly to machine code before it runs.
   </Card>
 </Cards>
 
