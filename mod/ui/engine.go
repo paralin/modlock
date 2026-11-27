@@ -75,6 +75,20 @@ type screen struct {
 	handlers map[string]handlers
 	// next numbers the next new node, so an id is never reused.
 	next int
+	// rows holds the rows of each list node, by the node's id, which the
+	// screen sends apart from its nodes.
+	rows map[string]*rowSet
+}
+
+// newScreen returns an empty screen that numbers its new nodes from next.
+func newScreen(next int) *screen {
+	return &screen{
+		nodes:    map[string]*uipb.Node{},
+		ids:      map[string]string{},
+		handlers: map[string]handlers{},
+		rows:     map[string]*rowSet{},
+		next:     next,
+	}
 }
 
 // handlers are the handlers of one button or input; each is nil when unset.
@@ -189,14 +203,11 @@ func render(previous *screen, v *view, root Node, display []*uipb.AbilityRow) *s
 	// The root is the full-screen panel the elements hang from, and it lists
 	// the parts of the game's HUD to hide, whether the cursor is free, the
 	// mod's sheets and its last sounds.
-	l := &layout{previous: previous, screen: &screen{
-		nodes:    map[string]*uipb.Node{},
-		ids:      map[string]string{},
-		handlers: map[string]handlers{},
-	}}
+	next := 0
 	if previous != nil {
-		l.screen.next = previous.next
+		next = previous.next
 	}
+	l := &layout{previous: previous, screen: newScreen(next)}
 	l.add(&uipb.Node{
 		Id:                "",
 		Kind:              uipb.Kind_KIND_PANEL,
@@ -289,10 +300,11 @@ func diff(previous *screen, next *screen) *uipb.Change {
 			}
 		}
 	}
-	if previous != nil && len(set) == 0 && len(removed) == 0 {
+	lists := listChanges(previous, next)
+	if previous != nil && len(set) == 0 && len(removed) == 0 && len(lists) == 0 {
 		return nil
 	}
-	return &uipb.Change{Reset_: previous == nil, Set: set, Removed: removed}
+	return &uipb.Change{Reset_: previous == nil, Set: set, Removed: removed, Lists: lists}
 }
 
 // send asks the host to apply change to the player.

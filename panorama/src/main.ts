@@ -9,7 +9,13 @@ import { GameAction } from '../../src/wasm/ui/ui.pb.js'
 import { actionCommand } from './data.js'
 import { gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
-import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
+import {
+  AddonLayouts,
+  Drawing,
+  inputCommand,
+  pressCommand,
+  windowCommand,
+} from './draw.js'
 import { StockGuard } from './guard.js'
 import { gameHud, mountInterfaceLayer } from './mount.js'
 import {
@@ -110,6 +116,11 @@ const drawing = new Drawing(
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
   menuHost,
+  (mod, node, first, count) =>
+    $.DispatchEvent(
+      'CitadelConCommand',
+      windowCommand(mod, node, first, count),
+    ),
 )
 // placing tells each mod whose root follows placement where the screen put
 // its interface.

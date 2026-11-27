@@ -230,7 +230,7 @@ func newHostFeed() *hostFeed {
 func (f *hostFeed) observe(event *modcli.Event) {
 	// Take only the events that change what a guest sees.
 	host := event.GetHost()
-	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil {
+	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetUiWindow() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil && host.GetControllersWanted() == nil {
 		return
 	}
 

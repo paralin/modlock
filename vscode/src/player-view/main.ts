@@ -54,6 +54,12 @@ const drawing = new Drawing(
       vscode.postMessage({ type: 'change', mod, node, value })
     }
   },
+  undefined,
+  (mod, node, first, count) => {
+    if (shown?.sandbox) {
+      vscode.postMessage({ type: 'window', mod, node, first, count })
+    }
+  },
 )
 
 // Scale the stage to fit the page, centered.

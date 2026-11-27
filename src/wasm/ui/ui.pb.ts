@@ -526,6 +526,12 @@ export enum Kind {
    * KIND_DOCUMENT_OUTPUT shows selectable, non-editable plain text.
    */
   DOCUMENT_OUTPUT = 12,
+
+  /**
+   * KIND_LIST scrolls the keyed rows of its list, drawing each from the
+   * list's row template. It lists no children.
+   */
+  LIST = 13,
 }
 
 export const Kind_Enum = /* @__PURE__ */ createEnumType(
@@ -544,6 +550,7 @@ export const Kind_Enum = /* @__PURE__ */ createEnumType(
     [10, 'KIND_MENU_CLOSE'],
     [11, 'KIND_DOCUMENT_INPUT'],
     [12, 'KIND_DOCUMENT_OUTPUT'],
+    [13, 'KIND_LIST'],
   ],
 )
 
@@ -1266,6 +1273,11 @@ export interface Node {
    */
   bindings?: Binding[]
   /**
+   * List draws a list node's rows from one row template, building only the
+   * rows near the list's visible box. Only a list node holds one.
+   */
+  list?: List
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's or a range's bounds and step, a
@@ -1342,6 +1354,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [52, 'follows_placement', 8],
     [53, 'range', 11, 0, Range.codec, 'input'],
     [54, 'bindings', 11, 1, Binding.codec],
+    [55, 'list', 11, 0, List.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1561,6 +1574,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 54:
             ;(m.bindings ??= []).push(Binding.decode(r, r.delimited(), {}))
+            break
+          case 55:
+            m.list = List.decode(r, r.delimited(), m.list ?? {})
             break
           default:
             r.skip(t)
@@ -1804,9 +1820,340 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
         const a = m.bindings
         if (a != null) for (const e of a) Binding.writeField(w, 54, e)
       }
+      {
+        const v = m.list
+        if (v != null) List.writeField(w, 55, v)
+      }
     },
   },
 )
+
+/**
+ * List is a scrolling list of keyed rows, which may hold far more rows than a
+ * tree holds nodes. The mod sends the template here and the rows in
+ * Change.lists. The host keeps every row in order and fills first, total and
+ * rows with the window of rows the player's renderer asks for, so the screen
+ * carries only the rows near the visible box and the renderer builds a panel
+ * only for those. The list scrolls with the mouse wheel over it.
+ *
+ * @generated from message modlock.wasm.ui.List
+ */
+export interface List {
+  /**
+   * Row is the template each row draws: its nodes, at most 16, with the node
+   * whose id is empty as the row's own panel, whose children name the others
+   * by id. A label's text and a node's variables fill each "{field}" from the
+   * row's fields, and an image that is "{field}" shows that field, which must
+   * name an image from the game's content. A template node is a panel, a
+   * label or an image.
+   */
+  row?: Node[]
+  /**
+   * RowHeight is each row's height in layout pixels, 1 to 1000.
+   */
+  rowHeight?: number
+  /**
+   * First is the place of rows[0] in the whole list, and Total the number of
+   * rows the list holds. The host sets them; a mod's are ignored.
+   */
+  first?: number
+  total?: number
+  /**
+   * Rows holds the rows in the window the renderer asked for, in order. The
+   * host sets them; a mod's are ignored.
+   */
+  rows?: Row[]
+}
+
+export const List: MessageType<List> = /* @__PURE__ */ createMessageType<List>(
+  'modlock.wasm.ui.List',
+  () => [
+    [1, 'row', 11, 1, Node.codec],
+    [2, 'row_height', 2],
+    [3, 'first', 13],
+    [4, 'total', 13],
+    [5, 'rows', 11, 1, Row.codec],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: List): List => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            ;(m.row ??= []).push(Node.decode(r, r.delimited(), {}))
+            break
+          case 2:
+            m.rowHeight = r.float()
+            break
+          case 3:
+            m.first = r.uint32()
+            break
+          case 4:
+            m.total = r.uint32()
+            break
+          case 5:
+            ;(m.rows ??= []).push(Row.decode(r, r.delimited(), {}))
+            break
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: List, w: Writer): void => {
+      {
+        const a = m.row
+        if (a != null) for (const e of a) Node.writeField(w, 1, e)
+      }
+      {
+        const v = m.rowHeight
+        if (v != null && v !== 0) w.uint32(21).float(v)
+      }
+      {
+        const v = m.first
+        if (v) w.uint32(24).uint32(v)
+      }
+      {
+        const v = m.total
+        if (v) w.uint32(32).uint32(v)
+      }
+      {
+        const a = m.rows
+        if (a != null) for (const e of a) Row.writeField(w, 5, e)
+      }
+    },
+  },
+)
+
+/**
+ * Row is one row of a list, known by its key. Rows sort by rank, then by
+ * sort, then by key, each in increasing order.
+ *
+ * @generated from message modlock.wasm.ui.Row
+ */
+export interface Row {
+  /**
+   * Key names the row within its list: one to 64 bytes.
+   */
+  key?: string
+  /**
+   * Rank and sort order the row; sort compares bytewise.
+   */
+  rank?: number
+  sort?: string
+  /**
+   * Fields hold the values the row's template shows, at most 16, by name.
+   */
+  fields?: { [key: string]: string }
+}
+
+export const Row: MessageType<Row> = /* @__PURE__ */ createMessageType<Row>(
+  'modlock.wasm.ui.Row',
+  () => [
+    [1, 'key', 9],
+    [2, 'rank', 1],
+    [3, 'sort', 9],
+    [4, 'fields', 9, 584],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: Row): Row => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            m.key = r.string()
+            break
+          case 2:
+            m.rank = r.double()
+            break
+          case 3:
+            m.sort = r.string()
+            break
+          case 4: {
+            const [k, v] = r.entry(
+              (r) => r.string(),
+              (r) => r.string(),
+              '',
+              '',
+            )
+            m.fields ??= newMap()
+            m.fields[k] = v
+            break
+          }
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: Row, w: Writer): void => {
+      {
+        const v = m.key
+        if (v) w.uint32(10).string(v)
+      }
+      {
+        const v = m.rank
+        if (v != null && v !== 0) w.uint32(17).double(v)
+      }
+      {
+        const v = m.sort
+        if (v) w.uint32(26).string(v)
+      }
+      {
+        const o = m.fields
+        if (o != null)
+          for (const [k, v] of Object.entries(o)) {
+            const s = w.uint32(34).fork()
+            w.uint32(10).string(k)
+            w.uint32(18).string(v)
+            w.join(s)
+          }
+      }
+    },
+  },
+)
+
+/**
+ * ListWindow is the run of a list's rows a player's renderer asks for: those
+ * near the list's visible box, which it draws as the player scrolls.
+ *
+ * @generated from message modlock.wasm.ui.ListWindow
+ */
+export interface ListWindow {
+  /**
+   * Node is the list node's id.
+   */
+  node?: string
+  /**
+   * First is the place of the first row, and count the number of rows, at
+   * most 256.
+   */
+  first?: number
+  count?: number
+}
+
+export const ListWindow: MessageType<ListWindow> =
+  /* @__PURE__ */ createMessageType<ListWindow>(
+    'modlock.wasm.ui.ListWindow',
+    () => [
+      [1, 'node', 9],
+      [2, 'first', 13],
+      [3, 'count', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ListWindow): ListWindow => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.node = r.string()
+              break
+            case 2:
+              m.first = r.uint32()
+              break
+            case 3:
+              m.count = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ListWindow, w: Writer): void => {
+        {
+          const v = m.node
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.first
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.count
+          if (v) w.uint32(24).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ListChange changes the rows of one list node.
+ *
+ * @generated from message modlock.wasm.ui.ListChange
+ */
+export interface ListChange {
+  /**
+   * Node is the list node's id.
+   */
+  node?: string
+  /**
+   * Reset drops every row before the rest of the change applies.
+   */
+  reset?: boolean
+  /**
+   * Set holds the new or changed rows, and removed the keys of rows to drop.
+   */
+  set?: Row[]
+  removed?: string[]
+}
+
+export const ListChange: MessageType<ListChange> =
+  /* @__PURE__ */ createMessageType<ListChange>(
+    'modlock.wasm.ui.ListChange',
+    () => [
+      [1, 'node', 9],
+      [2, 'reset', 8],
+      [3, 'set', 11, 1, Row.codec],
+      [4, 'removed', 9, 1],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ListChange): ListChange => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.node = r.string()
+              break
+            case 2:
+              m.reset = r.bool()
+              break
+            case 3:
+              ;(m.set ??= []).push(Row.decode(r, r.delimited(), {}))
+              break
+            case 4:
+              ;(m.removed ??= []).push(r.string())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ListChange, w: Writer): void => {
+        {
+          const v = m.node
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.reset
+          if (v) w.uint32(16).bool(v)
+        }
+        {
+          const a = m.set
+          if (a != null) for (const e of a) Row.writeField(w, 3, e)
+        }
+        {
+          const a = m.removed
+          if (a != null) for (const e of a) w.uint32(34).string(e)
+        }
+      },
+    },
+  )
 
 /**
  * Binding sets parts of one panel of a layout. A property the binding leaves
@@ -4429,6 +4776,13 @@ export interface Change {
    * deltas carry the screen owner's nonzero generation unchanged.
    */
   generation?: bigint
+  /**
+   * Lists changes the rows of list nodes, after set and removed apply. A
+   * list node's rows go with the node. The host keeps the rows and shows the
+   * renderer a change without lists, setting instead each list node whose
+   * window of rows changed.
+   */
+  lists?: ListChange[]
 }
 
 export const Change: MessageType<Change> =
@@ -4439,6 +4793,7 @@ export const Change: MessageType<Change> =
       [2, 'set', 11, 1, Node.codec],
       [3, 'removed', 9, 1],
       [4, 'generation', 4],
+      [5, 'lists', 11, 1, ListChange.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Change): Change => {
@@ -4457,6 +4812,9 @@ export const Change: MessageType<Change> =
               break
             case 4:
               m.generation = r.uint64()
+              break
+            case 5:
+              ;(m.lists ??= []).push(ListChange.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -4480,6 +4838,10 @@ export const Change: MessageType<Change> =
         {
           const v = m.generation
           if (v) w.uint32(32).uint64(v)
+        }
+        {
+          const a = m.lists
+          if (a != null) for (const e of a) ListChange.writeField(w, 5, e)
         }
       },
     },

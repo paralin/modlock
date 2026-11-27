@@ -131,6 +131,10 @@ message HostEvent {
     // ControllersWanted lists every player whose controllers some mod watches,
     // each time the list changes.
     modlock.wasm.controllers.ControllerWants controllers_wanted = 15;
+
+    // UiWindow carries the run of a list's rows a player's renderer asks
+    // for, which the screen owner fills the list node with.
+    UiWindow ui_window = 16;
   }
 }
 
@@ -267,6 +271,18 @@ message UiChanged {
 
   // Change updates the player's tree for the mod.
   modlock.wasm.ui.Change change = 3;
+}
+
+// UiWindow is the window of one list a player's renderer asks for.
+message UiWindow {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Slot identifies the player.
+  int32 slot = 2;
+
+  // ListWindow names the list and its rows.
+  modlock.wasm.ui.ListWindow window = 3;
 }
 
 // ServiceReply supplies a host extension's answer for one mod. The controller

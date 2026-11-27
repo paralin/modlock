@@ -490,6 +490,7 @@ type Input struct {
 	//	*Input_Press
 	//	*Input_Change
 	//	*Input_Console
+	//	*Input_Window
 	Body isInput_Body `protobuf_oneof:"body"`
 }
 
@@ -534,6 +535,13 @@ func (x *Input) GetConsole() *ConsoleLine {
 	return nil
 }
 
+func (x *Input) GetWindow() *control.UiWindow {
+	if x, ok := x.GetBody().(*Input_Window); ok {
+		return x.Window
+	}
+	return nil
+}
+
 type isInput_Body interface {
 	isInput_Body()
 }
@@ -558,6 +566,11 @@ type Input_Console struct {
 	Console *ConsoleLine `protobuf:"bytes,4,opt,name=console,proto3,oneof"`
 }
 
+type Input_Window struct {
+	// Window asks for the rows near a list's visible box.
+	Window *control.UiWindow `protobuf:"bytes,5,opt,name=window,proto3,oneof"`
+}
+
 func (*Input_Command) isInput_Body() {}
 
 func (*Input_Press) isInput_Body() {}
@@ -565,6 +578,8 @@ func (*Input_Press) isInput_Body() {}
 func (*Input_Change) isInput_Body() {}
 
 func (*Input_Console) isInput_Body() {}
+
+func (*Input_Window) isInput_Body() {}
 
 // ConsoleLine is a line of code for a running mod to run, as typed at its
 // language's console. The answer is the host's called event with the same
@@ -1248,6 +1263,19 @@ func (m *Input_Console) CloneOneofVT() isInput_Body {
 	return m.CloneVT()
 }
 
+func (m *Input_Window) CloneVT() *Input_Window {
+	if m == nil {
+		return (*Input_Window)(nil)
+	}
+	r := new(Input_Window)
+	r.Window = protobuf_go_lite.CloneVTValue(m.Window)
+	return r
+}
+
+func (m *Input_Window) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
 func (m *ConsoleLine) CloneVT() *ConsoleLine {
 	if m == nil {
 		return (*ConsoleLine)(nil)
@@ -1913,6 +1941,23 @@ func (this *Input_Console) EqualVT(thatIface isInput_Body) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Console, that.Console, func() *ConsoleLine { return &ConsoleLine{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Input_Window) EqualVT(thatIface isInput_Body) bool {
+	that, ok := thatIface.(*Input_Window)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Window, that.Window, func() *control.UiWindow { return &control.UiWindow{} }) {
 		return false
 	}
 	return true
@@ -2767,6 +2812,10 @@ func (x *Input) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("console")
 			ov.Console.MarshalProtoJSON(s.WithField("console"))
+		case *Input_Window:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("window")
+			ov.Window.MarshalProtoJSON(s.WithField("window"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2818,6 +2867,15 @@ func (x *Input) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Console = &ConsoleLine{}
 			ov.Console.UnmarshalProtoJSON(s.WithField("console", true))
+		case "window":
+			ov := &Input_Window{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Window = nil
+				return
+			}
+			ov.Window = &control.UiWindow{}
+			ov.Window.UnmarshalProtoJSON(s.WithField("window", true))
 		}
 	})
 }
@@ -3998,6 +4056,30 @@ func (m *Input_Console) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Input_Window) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input_Window) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Window != nil {
+		size, err := m.Window.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x2a
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ConsoleLine) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4759,6 +4841,21 @@ func (m *Input_Console) SizeVT() (n int) {
 	return n
 }
 
+func (m *Input_Window) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Window != nil {
+		l = m.Window.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *ConsoleLine) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -5174,6 +5271,13 @@ func (x *Input) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ConsoleLine{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Console)
+		}
+	case *Input_Window:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "window")
+		if body.Window == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &control.UiWindow{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Window)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -6153,6 +6257,26 @@ func (m *Input) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &Input_Console{Console: v}
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Window", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Input_Window); ok {
+				if err := oneof.Window.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &control.UiWindow{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Input_Window{Window: v}
 			}
 			iNdEx = postIndex
 		default:

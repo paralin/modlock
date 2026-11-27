@@ -3551,3 +3551,100 @@ test('a form focuses its marked control on open and Enter presses its submit but
     'modlockpress arena save',
   ])
 })
+
+/** listScreen draws a list of total rows, holding the rows from first. */
+function listScreen(total: number, first: number, count: number): Screen {
+  const rows = Array.from(
+    { length: Math.min(count, total - first) },
+    (_, i) => ({
+      key: `k${first + i}`,
+      rank: first + i,
+      fields: {
+        name: `row ${first + i}`,
+        icon: `file://{images}/i${first + i}.png`,
+      },
+    }),
+  )
+  return screen(
+    { id: '', children: ['scores'] },
+    {
+      id: 'scores',
+      kind: 'KIND_LIST',
+      style: { height: { pixels: 200 } },
+      list: {
+        rowHeight: 20,
+        first,
+        total,
+        rows,
+        row: [
+          { id: '', children: ['name', 'icon'], style: { flow: 'FLOW_RIGHT' } },
+          { id: 'name', kind: 'KIND_LABEL', text: '{name}!' },
+          { id: 'icon', kind: 'KIND_IMAGE', image: '{icon}' },
+        ],
+      },
+    },
+  )
+}
+
+/** descendants returns every panel under panel. */
+function descendants(panel: FakePanel): FakePanel[] {
+  return panel.children.flatMap((child) => [child, ...descendants(child)])
+}
+
+test('draws only the rows a list shows, however long the list', () => {
+  const drawnFor = (total: number) => {
+    // Draw the list with the window the host starts it with.
+    const root = new FakePanel('Panel', 'ModlockUi')
+    const windows: string[] = []
+    const drawing = new Drawing(
+      $,
+      root,
+      () => {},
+      undefined,
+      undefined,
+      undefined,
+      (mod, node, first, count) =>
+        windows.push(`${mod} ${node} ${first} ${count}`),
+    )
+    drawing.draw(listScreen(total, 0, 50))
+    const list = root.children[0]!.children[0]!
+    const panels = descendants(root).length
+    const texts = descendants(root)
+      .filter((each) => each.paneltype === 'Label')
+      .map((each) => each.text)
+    const image = descendants(list).find((each) => each.paneltype === 'Image')
+    const icon = image?.image || image?.properties?.src
+
+    // Scroll near the end of the rows held, which asks for the next ones.
+    for (let i = 0; i < 15; i++) handlers.get(list)!.get('ScrollDown')!()
+    const blank = descendants(root).filter((each) => each.paneltype === 'Label')
+    drawing.draw(listScreen(total, 32, 30))
+    const scrolled = descendants(root)
+      .filter((each) => each.paneltype === 'Label')
+      .map((each) => each.text)
+      .sort()
+    return {
+      panels,
+      texts,
+      icon,
+      blank: blank.length,
+      windows,
+      scrolled,
+      after: descendants(root).length,
+      overflow: list.style.overflow,
+    }
+  }
+
+  // A list of 10,000 rows builds the same panels as one of 100.
+  const small = drawnFor(100)
+  const large = drawnFor(10000)
+  expect(large).toEqual(small)
+  expect(small.texts).toEqual(Array.from({ length: 10 }, (_, i) => `row ${i}!`))
+  expect(small.icon).toBe('file://{images}/i0.png')
+  expect(small.overflow).toBe('clip clip')
+  expect(small.windows).toEqual(['arena scores 26 30', 'arena scores 32 30'])
+  expect(small.scrolled).toEqual(
+    Array.from({ length: 10 }, (_, i) => `row ${45 + i}!`).sort(),
+  )
+  expect(small.after).toBe(small.panels)
+})

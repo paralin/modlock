@@ -98,6 +98,15 @@ const drawing = new Drawing(
       },
     })
   },
+  undefined,
+  (mod, node, first, count) => {
+    send({
+      body: {
+        case: 'window',
+        value: { mod, slot: 0, window: { node, first, count } },
+      },
+    })
+  },
 )
 
 // A layout's press reaches the mods as the player's, with its action and

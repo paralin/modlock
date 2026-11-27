@@ -42,7 +42,7 @@ func (m *Mirror) Apply(changes map[string]*ui.Change, reset bool) {
 func (m *Mirror) Screen() (*ui.Screen, <-chan struct{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.trees.screen(), m.changed
+	return m.trees.screen(false), m.changed
 }
 
 // Changes returns each mod's change that turns the screen from into to: the

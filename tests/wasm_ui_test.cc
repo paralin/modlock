@@ -770,4 +770,147 @@ TEST(UiTrees, BoundsAndValidatesDocumentNodesWithoutWideningLabels) {
   EXPECT_FALSE(trees.Apply(3, output));
 }
 
+// ShowList returns a reset change that shows a list node named "scores",
+// whose rows show a name label and a portrait from the field "hero".
+Change ShowList() {
+  auto change = Set("scores", modlock::wasm::ui::KIND_LIST, true);
+  auto* list = change.mutable_set(0)->mutable_list();
+  list->set_row_height(32);
+  auto* row = list->add_row();
+  row->set_kind(modlock::wasm::ui::KIND_PANEL);
+  row->add_children("name");
+  row->add_children("portrait");
+  auto* name = list->add_row();
+  name->set_id("name");
+  name->set_kind(modlock::wasm::ui::KIND_LABEL);
+  name->set_text("{name}");
+  auto* portrait = list->add_row();
+  portrait->set_id("portrait");
+  portrait->set_kind(modlock::wasm::ui::KIND_IMAGE);
+  portrait->set_image("{hero}");
+  return change;
+}
+
+// AddRows adds rows keyed "row<first>" onward to change's list "scores",
+// each with a name field of size bytes.
+void AddRows(Change& change, int first, int count, size_t size = 4) {
+  auto* rows = change.add_lists();
+  rows->set_node("scores");
+  for (int i = first; i < first + count; ++i) {
+    auto* row = rows->add_set();
+    row->set_key("row" + std::to_string(i));
+    row->set_rank(i);
+    (*row->mutable_fields())["name"] = std::string(size, 'n');
+  }
+}
+
+TEST(UiTrees, ChecksAListsTemplateAndRows) {
+  // A list with a row template of panels, labels and images, one of them the
+  // row's own panel, is drawn; its rows may name content images.
+  UiTrees trees;
+  auto shown = ShowList();
+  AddRows(shown, 0, 2);
+  (*shown.mutable_lists(0)->mutable_set(0)->mutable_fields())["hero"] =
+      "file://{images}/heroes/haze.png";
+  ASSERT_TRUE(trees.Apply(3, shown));
+
+  // An image field from outside the game's content, a long key and too many
+  // fields are refused, and so is a row change for a node that is no list.
+  auto web = Change();
+  AddRows(web, 5, 1);
+  (*web.mutable_lists(0)->mutable_set(0)->mutable_fields())["hero"] = "https://example.com/x.png";
+  EXPECT_FALSE(trees.Apply(3, web));
+  auto key = Change();
+  AddRows(key, 5, 1);
+  key.mutable_lists(0)->mutable_set(0)->set_key(std::string(65, 'k'));
+  EXPECT_FALSE(trees.Apply(3, key));
+  auto fields = Change();
+  AddRows(fields, 5, 1);
+  for (int i = 0; i < 17; ++i) {
+    (*fields.mutable_lists(0)->mutable_set(0)->mutable_fields())["f" + std::to_string(i)] = "x";
+  }
+  EXPECT_FALSE(trees.Apply(3, fields));
+  auto other = Change();
+  AddRows(other, 5, 1);
+  other.mutable_lists(0)->set_node("missing");
+  EXPECT_FALSE(trees.Apply(3, other));
+
+  // A template without the row's own panel, with an input, with a child it
+  // lacks or with rows carried in the node is refused, as is a height of 0.
+  auto rootless = ShowList();
+  rootless.mutable_set(0)->mutable_list()->mutable_row(0)->set_id("row");
+  EXPECT_FALSE(trees.Apply(3, rootless));
+  auto input = ShowList();
+  input.mutable_set(0)->mutable_list()->mutable_row(1)->set_kind(modlock::wasm::ui::KIND_BUTTON);
+  EXPECT_FALSE(trees.Apply(3, input));
+  auto stray = ShowList();
+  stray.mutable_set(0)->mutable_list()->mutable_row(0)->add_children("gone");
+  EXPECT_FALSE(trees.Apply(3, stray));
+  auto carried = ShowList();
+  carried.mutable_set(0)->mutable_list()->add_rows()->set_key("row0");
+  EXPECT_FALSE(trees.Apply(3, carried));
+  auto flat = ShowList();
+  flat.mutable_set(0)->mutable_list()->set_row_height(0);
+  EXPECT_FALSE(trees.Apply(3, flat));
+}
+
+TEST(UiTrees, RefusesARowChangePastTheLimitsAndKeepsTheList) {
+  // A list holds kMaxRows rows; one more is refused.
+  UiTrees trees;
+  auto full = ShowList();
+  AddRows(full, 0, UiTrees::kMaxRows);
+  ASSERT_TRUE(trees.Apply(3, full));
+  auto more = Change();
+  AddRows(more, UiTrees::kMaxRows, 1);
+  EXPECT_FALSE(trees.Apply(3, more));
+
+  // The refusal left the list as it was: dropping one row makes room for
+  // exactly one, and a change to its node keeps its rows.
+  auto swap = Change();
+  AddRows(swap, UiTrees::kMaxRows, 1);
+  swap.mutable_lists(0)->add_removed("row0");
+  ASSERT_TRUE(trees.Apply(3, swap));
+  auto renamed = ShowList();
+  renamed.set_reset(false);
+  ASSERT_TRUE(trees.Apply(3, renamed));
+  EXPECT_FALSE(trees.Apply(3, more));
+
+  // A reset drops the rows.
+  ASSERT_TRUE(trees.Apply(3, ShowList()));
+  ASSERT_TRUE(trees.Apply(3, more));
+
+  // The lists' bytes are bounded together, and a refused change leaves the
+  // bytes as they were, so a row of the same size still fits.
+  UiTrees sized;
+  const size_t row = 1000;
+  const int fits = static_cast<int>(UiTrees::kMaxListBytes / (row + 64));
+  auto big = ShowList();
+  AddRows(big, 0, fits, row);
+  ASSERT_TRUE(sized.Apply(3, big));
+  auto past = Change();
+  AddRows(past, fits, 64, row);
+  EXPECT_FALSE(sized.Apply(3, past));
+  auto replaced = Change();
+  AddRows(replaced, 0, 1, row);
+  EXPECT_TRUE(sized.Apply(3, replaced));
+}
+
+TEST(UiTrees, TakesAWindowOnlyForAListTheTreeShows) {
+  // A window names a shown list, its first row and at most kMaxWindow rows.
+  UiTrees trees;
+  EXPECT_FALSE(trees.Window(3, "scores 0 50"));
+  ASSERT_TRUE(trees.Apply(3, ShowList()));
+  auto window = trees.Window(3, "scores 120 64");
+  ASSERT_TRUE(window) << window.error();
+  EXPECT_EQ(window->node(), "scores");
+  EXPECT_EQ(window->first(), 120u);
+  EXPECT_EQ(window->count(), 64u);
+  EXPECT_FALSE(trees.Window(3, "scores 0 257"));
+  EXPECT_FALSE(trees.Window(3, "scores -1 5"));
+  EXPECT_FALSE(trees.Window(3, "scores 5"));
+  EXPECT_FALSE(trees.Window(4, "scores 0 5"));
+  ASSERT_TRUE(trees.Apply(3, Set("scores", modlock::wasm::ui::KIND_LABEL, true)));
+  EXPECT_FALSE(trees.Window(3, "scores 0 5"));
+}
+
 }  // namespace

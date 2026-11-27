@@ -2,7 +2,11 @@
 // @generated from file github.com/paralin/modlock/cli/cli.proto (package modlock.cli, syntax proto3)
 /* eslint-disable */
 
-import { HostEvent, ModFailed } from '../src/host_app/control/control.pb.js'
+import {
+  HostEvent,
+  ModFailed,
+  UiWindow,
+} from '../src/host_app/control/control.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -671,6 +675,7 @@ export interface Input {
     | { value: Press; case: 'press' }
     | { value: Change; case: 'change' }
     | { value: ConsoleLine; case: 'console' }
+    | { value: UiWindow; case: 'window' }
 }
 
 export const Input: MessageType<Input> =
@@ -681,6 +686,7 @@ export const Input: MessageType<Input> =
       [2, 'press', 11, 0, Press.codec, 'body'],
       [3, 'change', 11, 0, Change.codec, 'body'],
       [4, 'console', 11, 0, ConsoleLine.codec, 'body'],
+      [5, 'window', 11, 0, UiWindow.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Input): Input => {
@@ -721,6 +727,16 @@ export const Input: MessageType<Input> =
                 ),
               }
               break
+            case 5:
+              m.body = {
+                case: 'window',
+                value: UiWindow.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'window' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -747,6 +763,11 @@ export const Input: MessageType<Input> =
           const o = m.body
           if (o?.case === 'console' && o.value != null)
             ConsoleLine.writeField(w, 4, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'window' && o.value != null)
+            UiWindow.writeField(w, 5, o.value)
         }
       },
     },

@@ -58,6 +58,13 @@ export function activate(context: vscode.ExtensionContext): void {
           value: { mod, event: { player: slot, node, value } },
         },
       }),
+    window: (slot, mod, node, first, count) =>
+      running?.send({
+        body: {
+          case: 'window',
+          value: { mod, slot, window: { node, first, count } },
+        },
+      }),
   })
 
   // Report the session's events, and show its players in the sidebar.

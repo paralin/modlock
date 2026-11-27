@@ -405,6 +405,32 @@ class RangeProps(InputProps, total=False):
     on_hold: Callable[[Player, str, ActionPhase], object] | None
 
 
+class ListRow(TypedDict):
+    """ListRow is one row of a list: its key, 1 to 64 bytes and distinct
+    within the list, the rank and sort text that order the rows, least rank
+    first, and the fields its template's "{field}" names show, at most
+    sixteen, each named by letters, digits and '_'."""
+
+    key: str
+    rank: NotRequired[float]
+    sort: NotRequired[str]
+    fields: NotRequired[Mapping[str, str]]
+
+
+class ListProps(ElementProps, total=False):
+    """ListProps make a list that scrolls its rows, drawing only those in
+    view. row_height is each row's height in pixels, from 1 to 1000, and row
+    the template each row is drawn from: a panel, label or image holding at
+    most fifteen more, with no buttons or inputs. The host takes at most
+    20,000 rows, and 2 MiB of rows across a player's interface. Each draw
+    compares every row with those the player holds and sends only the rows
+    added, changed and removed."""
+
+    row_height: Required[float]
+    row: Required["Child"]
+    rows: Required[Sequence[ListRow]]
+
+
 class ToggleProps(InputProps, total=False):
     """ToggleProps make a box the player checks, labeled by its text
     children."""
@@ -571,6 +597,13 @@ def slider(**props: Unpack[SliderProps]) -> Element:
 def range_(**props: Unpack[RangeProps]) -> Element:
     """range_ is a track with several handles the player drags."""
     return Element("range", props)
+
+
+def list_(**props: Unpack[ListProps]) -> Element:
+    """list_ scrolls rows far more numerous than an interface's nodes may be,
+    such as a leaderboard of every player; the player's game builds panels
+    only for the rows in view."""
+    return Element("list", props)
 
 
 def toggle(**props: Unpack[ToggleProps]) -> Parent:
@@ -1148,6 +1181,11 @@ class _Screen:
     wheels: dict[str, Callable[[Player, Wheel], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player, Wheel], object]]()
     )
+    # rows maps each list's id to its rows by key, which the screen sends
+    # apart from its nodes, each with its encoding to find what changed.
+    rows: dict[str, dict[str, tuple[dict[str, Any], bytes]]] = field(
+        default_factory=lambda: dict[str, dict[str, tuple[dict[str, Any], bytes]]]()
+    )
     # next numbers the next new node, so an id is never reused.
     next: int = 0
 
@@ -1282,6 +1320,10 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             if on_press is not None and not props.get("disabled"):
                 layout.screen.presses[node["id"]] = on_press
             node["children"] = _place(layout, children, f"{at}/")
+        case "list":
+            node["kind"] = "list"
+            node["list"] = {"row_height": props.get("row_height"), "row": _template(props.get("row"))}
+            layout.screen.rows[node["id"]] = _rows(props.get("rows", ()))
         case "layout":
             node["kind"] = "layout"
             node["layout"] = props.get("src", "")
@@ -1293,6 +1335,53 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             node["children"] = _place(layout, children, f"{at}/")
     layout.add(node)
     return [node["id"]]
+
+
+def _template(row: Child) -> list[dict[str, Any]]:
+    """_template lays row out as a list's row template: its own nodes, the
+    root named ""."""
+    own = _Layout(None)
+    top = _place(own, row, "")
+    if len(top) != 1:
+        return []
+    nodes = [node for node, _ in own.screen.nodes.values()]
+    for node in nodes:
+        if node["id"] == top[0]:
+            node["id"] = ""
+    return nodes
+
+
+def _rows(rows: Iterable[ListRow]) -> dict[str, tuple[dict[str, Any], bytes]]:
+    """_rows keeps a list's rows by key with their encodings; of two rows
+    with one key, the last counts."""
+    kept: dict[str, tuple[dict[str, Any], bytes]] = {}
+    for row in rows:
+        fields = row.get("fields")
+        encoded: dict[str, Any] = {
+            "key": row["key"],
+            "rank": row.get("rank"),
+            "sort": row.get("sort"),
+            "fields": None if not fields else [{"key": k, "value": v} for k, v in fields.items()],
+        }
+        kept.pop(row["key"], None)
+        kept[row["key"]] = (encoded, wire.encode(_SCHEMA, "Row", encoded))
+    return kept
+
+
+def _list_changes(previous: _Screen | None, following: _Screen) -> list[dict[str, Any]]:
+    """_list_changes returns the changes that bring each list previous holds
+    to its rows in following: every row of a list new to the screen, and the
+    rows added, changed and removed of one it holds."""
+    changes: list[dict[str, Any]] = []
+    for node, rows in following.rows.items():
+        held = None if previous is None else previous.rows.get(node)
+        before = held or {}
+        changed = [row for key, (row, encoded) in rows.items() if key not in before or before[key][1] != encoded]
+        removed = [key for key in before if key not in rows]
+        if held is not None and not changed and not removed:
+            continue
+        changes.append({"node": node, "reset": held is None, "set": changed, "removed": removed})
+    return changes
 
 
 def _classes(names: str | None) -> list[str] | None:
@@ -1407,9 +1496,10 @@ def _diff(previous: _Screen | None, following: _Screen) -> dict[str, Any] | None
     before = {} if previous is None else previous.nodes
     changed = [node for id, (node, encoded) in following.nodes.items() if id not in before or before[id][1] != encoded]
     removed = [id for id in before if id not in following.nodes]
-    if previous is not None and not changed and not removed:
+    lists = _list_changes(previous, following)
+    if previous is not None and not changed and not removed and not lists:
         return None
-    return {"reset": previous is None, "set": changed, "removed": removed}
+    return {"reset": previous is None, "set": changed, "removed": removed, "lists": lists}
 
 
 def _send(slot: int, change: dict[str, Any]) -> bool:

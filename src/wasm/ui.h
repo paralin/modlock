@@ -156,6 +156,22 @@ class UiTrees {
   static constexpr double kActionBurst = 8;
   static constexpr double kActionsPerSecond = 4;
 
+  // Window reads the run of a list's rows a player's renderer asks for, as
+  // the game sends it: "<node> <first> <count>", decimal. It returns the
+  // window while slot's tree shows node as a list and count is at most
+  // kMaxWindow.
+  [[nodiscard]] std::expected<ui::ListWindow, std::string> Window(int32_t slot,
+                                                                  std::string_view line) const;
+
+  // kMaxWindow is the most rows one window asks for.
+  static constexpr uint32_t kMaxWindow = 256;
+
+  // kMaxRows bounds one list's rows, and kMaxListBytes the encoded rows of
+  // all of one tree's lists, so the program that keeps them holds a bounded
+  // amount per player.
+  static constexpr size_t kMaxRows = 20000;
+  static constexpr size_t kMaxListBytes = 2 << 20;
+
   // Drop forgets slot's tree when its player leaves, and reports whether it
   // held any node.
   bool Drop(int32_t slot);
@@ -164,6 +180,13 @@ class UiTrees {
   std::vector<int32_t> Clear();
 
  private:
+  // Rows is what the host keeps of one list's rows: each row's encoded size
+  // by key, and their sum.
+  struct Rows {
+    std::map<std::string, size_t, std::less<>> sizes;
+    size_t bytes = 0;
+  };
+
   // Shown is what the host keeps of one node: its kind, and for an input
   // whether it is disabled and the bounds of the value it holds. length is a
   // text entry's limit in characters, min, max and step a slider's range,
@@ -197,7 +220,30 @@ class UiTrees {
     // from presses, the panels its bindings let press.
     bool bound = false;
     std::vector<std::string> presses;
+    // rows are a list's rows, which a change to the node keeps, and
+    // image_fields the fields its template shows as images.
+    std::shared_ptr<Rows> rows;
+    std::vector<std::string> image_fields;
   };
+
+  // Pending is one list's rows once a change applies: the size of each row
+  // the change sets and nullopt for each it removes, whether it drops the
+  // rest first, and the count and bytes that result.
+  struct Pending {
+    Shown* list = nullptr;
+    bool reset = false;
+    std::map<std::string_view, std::optional<size_t>> touched;
+    size_t count = 0;
+    size_t bytes = 0;
+  };
+
+  // CheckLists checks change's rows against tree, the tree the change
+  // leaves, and returns what each list becomes, which Commit applies.
+  static std::expected<std::vector<Pending>, std::string> CheckLists(
+      std::map<std::string, Shown, std::less<>>& tree, const ui::Change& change);
+
+  // Commit applies each list's checked rows.
+  static void Commit(std::vector<Pending>& lists);
 
   // Keep returns what the host keeps of node.
   static Shown Keep(const ui::Node& node);

@@ -393,6 +393,16 @@ void ControlLink::Ui(std::string_view mod, int32_t slot, const wasm::ui::Change&
   Push(std::move(event));
 }
 
+void ControlLink::UiWindow(std::string_view mod, int32_t slot, const wasm::ui::ListWindow& window) {
+  // Report the window a player's renderer asks for.
+  control::HostEvent event;
+  auto* update = event.mutable_ui_window();
+  update->set_mod(std::string(mod));
+  update->set_slot(slot);
+  *update->mutable_window() = window;
+  Push(std::move(event));
+}
+
 void ControlLink::OnConnected(int32_t slot, uint64_t xuid, bool bot, const char* name) {
   // Report a human's join.
   if (bot) {
