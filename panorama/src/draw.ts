@@ -786,7 +786,7 @@ export class Drawing {
    */
   private readonly cues = new Map<
     string,
-    { generation: bigint; heard: number; playing: number[]; silenced: number }
+    { generation: bigint; heard: number; playing: number[] }
   >()
 
   /** timelines holds each mod's timelines and the lifetime they belong to. */
@@ -1276,7 +1276,7 @@ export class Drawing {
             play: (sound, seconds) => {
               const memory = this.cues.get(mod)
               if (memory) {
-                this.play(memory, { number: 0, sound, seconds, delay: 0 })
+                this.play(memory, { number: 0, sound, seconds })
               }
             },
           },
@@ -1343,7 +1343,6 @@ export class Drawing {
         generation,
         heard: newest,
         playing: [],
-        silenced: 0,
       })
       return
     }
@@ -1353,24 +1352,13 @@ export class Drawing {
       memory.heard = 0
     }
 
-    // Play the cues not yet heard, oldest first, each after its delay. A
-    // delayed cue plays only if its mod's sounds were not silenced meanwhile.
+    // Play the cues not yet heard, oldest first.
     const fresh = cues
       .filter((each) => (each.number ?? 0) > memory.heard)
       .sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
     memory.heard = Math.max(memory.heard, newest)
     for (const each of fresh) {
-      const delay = clamp(each.delay ?? 0, 0, 60)
-      if (delay === 0 || !this.panorama.Schedule) {
-        this.play(memory, each)
-        continue
-      }
-      const silenced = memory.silenced
-      this.panorama.Schedule(delay, () => {
-        if (memory.silenced === silenced && this.cues.get(mod) === memory) {
-          this.play(memory, each)
-        }
-      })
+      this.play(memory, each)
     }
   }
 
@@ -1395,7 +1383,7 @@ export class Drawing {
     }
   }
 
-  /** silence stops the sounds a mod's cues lately started and those waiting. */
+  /** silence stops the sounds a mod's cues and timelines lately started. */
   private silence(mod: string): void {
     // Find the mod's cues; a mod that never played one has nothing to stop.
     const memory = this.cues.get(mod)
@@ -1403,12 +1391,11 @@ export class Drawing {
       return
     }
 
-    // Stop what plays, and outdate the cues still waiting to play.
+    // Stop what plays.
     for (const playing of memory.playing) {
       this.panorama.StopSound?.(playing)
     }
     memory.playing = []
-    memory.silenced++
   }
 
   /**

@@ -524,11 +524,8 @@ message Cue {
   // plays it out.
   float seconds = 3;
 
-  // Delay is how long the renderer waits before it plays the sound, in
-  // seconds, so a mod times a run of sounds, such as a wheel's ticks, in one
-  // draw. A cue whose mod leaves or clears its interface before then does
-  // not play.
-  float delay = 4;
+  // A mod times a run of sounds, such as a wheel's ticks, with a timeline.
+  reserved 4;
 }
 
 // Timeline is a timed presentation: steps at times from its start that

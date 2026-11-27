@@ -4466,7 +4466,6 @@ schema.Cue = {
 	{ number = 1, name = "number", kind = "uint32" },
 	{ number = 2, name = "sound", kind = "string" },
 	{ number = 3, name = "seconds", kind = "float" },
-	{ number = 4, name = "delay", kind = "float" },
 }
 schema.Timeline = {
 	{ number = 1, name = "id", kind = "string" },

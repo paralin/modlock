@@ -1337,22 +1337,20 @@ export function toast(player: Player, text: string, seconds = 4): boolean {
 /**
  * uiSound plays the game's sound event sound, such as 'UI.ItemDraft.Start', in
  * player's game alone, once; seconds cuts it after that long, keeping only its
- * start, and delay waits that long before it plays, so one draw can time a
- * run of sounds, such as a wheel's ticks. It plays with the next screen the
- * player reads, and not at all if the player reads it only after the mod's
- * next few sounds, or the mod clears its interface before its delay ends.
+ * start. It plays with the next screen the player reads, and not at all if
+ * the player reads it only after the mod's next few sounds. playTimeline
+ * times a run of sounds, such as a wheel's ticks.
  */
 export function uiSound(
   player: Player,
   sound: string,
-  options: { readonly seconds?: number; readonly delay?: number } = {},
+  options: { readonly seconds?: number } = {},
 ): boolean {
   const current = view(player)
   const cue = {
     number: nextCue++,
     sound,
     seconds: options.seconds ?? 0,
-    delay: options.delay ?? 0,
   }
   views.set(player.slot, {
     ...current,
