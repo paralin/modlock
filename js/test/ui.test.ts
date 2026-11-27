@@ -870,6 +870,33 @@ test('a list sends its rows apart from its node, only those that changed', () =>
     ]),
   )
   expect(sent.length).toBe(count)
+
+  // Drawing the same array again does not walk its rows, so a redraw for
+  // another change costs the same however long the list is.
+  const held = Array.from({ length: 10000 }, (_, i) => ({
+    key: `r${i}`,
+    fields: { name: `Row ${i}` },
+  }))
+  const list = (title: string) =>
+    jsx('panel', {
+      children: [
+        jsx('label', { children: title }),
+        jsx('list', {
+          rowHeight: 20,
+          row: jsx('label', { children: '{name}' }),
+          rows: held,
+        }),
+      ],
+    })
+  show(player, list('one'))
+  expect(sent.at(-1)!.change!.lists![0]!.set!.length).toBe(10000)
+  Object.defineProperty(held, Symbol.iterator, {
+    value: () => {
+      throw new Error('the draw walked the held rows')
+    },
+  })
+  show(player, list('two'))
+  expect(sent.at(-1)!.change!.lists ?? []).toEqual([])
 })
 
 test('a list hears the row a player chose and draws it as selected', () => {

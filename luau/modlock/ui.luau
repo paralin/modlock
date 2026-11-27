@@ -805,6 +805,8 @@ type Screen = {
 
 -- RowSet is the rows of one list a screen holds.
 type RowSet = {
+	-- source is the table the mod drew the rows from.
+	source: { ListRow },
 	-- order lists the keys in the order the mod gave the rows.
 	order: { string },
 	-- keys holds each row by key, as the wire takes it.
@@ -1390,9 +1392,14 @@ local function template(row: Child): { Node }
 end
 
 -- rowSet keeps a list's rows by key; of two rows with one key, the last
--- counts.
-local function rowSet(rows: { ListRow }): RowSet
-	local set: RowSet = { order = {}, keys = {} }
+-- counts. The same table as the held rows' returns them, so a draw that
+-- leaves the list alone costs nothing however long it is; a mod changes rows
+-- by passing a new table.
+local function rowSet(rows: { ListRow }, held: RowSet?): RowSet
+	if held and held.source == rows then
+		return held
+	end
+	local set: RowSet = { source = rows, order = {}, keys = {} }
 	for _, row in rows do
 		if set.keys[row.key] == nil then
 			table.insert(set.order, row.key)
@@ -1434,6 +1441,9 @@ local function listChanges(previous: Screen?, next: Screen): { Node }
 	for _, node in next.lists do
 		local rows = next.rows[node]
 		local held = if previous then previous.rows[node] else nil
+		if held == rows then
+			continue
+		end
 		local set, removed = {}, {}
 		for _, key in rows.order do
 			local row = rows.keys[key]
@@ -1624,7 +1634,8 @@ function place(layout: Layout, child: any, at: string, out: { string })
 			layout.screen.changes[node.id] = props.onChange
 		end
 		table.insert(layout.screen.lists, node.id)
-		layout.screen.rows[node.id] = rowSet(props.rows or {})
+		local held = if layout.previous then layout.previous.rows[node.id] else nil
+		layout.screen.rows[node.id] = rowSet(props.rows or {}, held)
 	elseif kind == "layout" then
 		node.layout = props.src or ""
 		node.data = if props.data == nil then "" else json(props.data) or ""

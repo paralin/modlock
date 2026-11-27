@@ -1241,6 +1241,16 @@ def _notices(stack: list[_Notice]) -> Element:
 
 
 @dataclass(slots=True)
+class _Rows:
+    """_Rows is one list's rows by key, with the sequence the mod drew them
+    from. A row the mod left unchanged since the last draw keeps the dict that
+    draw held, so comparing rows by identity finds what changed."""
+
+    source: object
+    by_key: dict[str, dict[str, Any]]
+
+
+@dataclass(slots=True)
 class _Screen:
     """_Screen is what one player's interface holds, as the host last
     accepted it."""
@@ -1271,11 +1281,9 @@ class _Screen:
     wheels: dict[str, Callable[[Player, Wheel], object]] = field(
         default_factory=lambda: dict[str, Callable[[Player, Wheel], object]]()
     )
-    # rows maps each list's id to its rows by key, which the screen sends
-    # apart from its nodes, each with its encoding to find what changed.
-    rows: dict[str, dict[str, tuple[dict[str, Any], bytes]]] = field(
-        default_factory=lambda: dict[str, dict[str, tuple[dict[str, Any], bytes]]]()
-    )
+    # rows maps each list's id to its rows, which the screen sends apart
+    # from its nodes.
+    rows: dict[str, _Rows] = field(default_factory=lambda: dict[str, _Rows]())
     # next numbers the next new node, so an id is never reused.
     next: int = 0
 
@@ -1326,6 +1334,11 @@ class _Layout:
         """The layout continues previous's id counter and keeps its ids."""
         self._previous = previous
         self.screen = _Screen(next=0 if previous is None else previous.next)
+
+    def held_rows(self, node: str) -> _Rows | None:
+        """held_rows returns the rows the previous draw held for the list
+        node."""
+        return None if self._previous is None else self._previous.rows.get(node)
 
     def add(self, node: dict[str, Any]) -> None:
         """add records a node with its encoding."""
@@ -1423,7 +1436,7 @@ def _place(layout: _Layout, child: Child, at: str) -> list[str]:
             on_change = props.get("on_change")
             if on_change is not None:
                 layout.screen.changes[node["id"]] = on_change
-            layout.screen.rows[node["id"]] = _rows(props.get("rows", ()))
+            layout.screen.rows[node["id"]] = _rows(props.get("rows", ()), layout.held_rows(node["id"]))
         case "layout":
             node["kind"] = "layout"
             node["layout"] = props.get("src", "")
@@ -1451,11 +1464,19 @@ def _template(row: Child) -> list[dict[str, Any]]:
     return nodes
 
 
-def _rows(rows: Iterable[ListRow]) -> dict[str, tuple[dict[str, Any], bytes]]:
-    """_rows keeps a list's rows by key with their encodings; of two rows
-    with one key, the last counts."""
-    kept: dict[str, tuple[dict[str, Any], bytes]] = {}
-    for row in rows:
+def _rows(source: Iterable[ListRow], held: _Rows | None) -> _Rows:
+    """_rows keeps a list's rows by key; of two rows with one key, the last
+    counts. The same sequence as the held rows' returns them, so a draw that
+    leaves the list alone costs nothing however long it is; a mod changes rows
+    by passing a new sequence. A new one is compared row by row with the held
+    rows: a row equal to its held one keeps that dict, and when every row
+    does, the held rows return."""
+    if held is not None and held.source is source:
+        return held
+    before = {} if held is None else held.by_key
+    kept: dict[str, dict[str, Any]] = {}
+    same = held is not None
+    for row in source:
         fields = row.get("fields")
         encoded: dict[str, Any] = {
             "key": row["key"],
@@ -1463,9 +1484,16 @@ def _rows(rows: Iterable[ListRow]) -> dict[str, tuple[dict[str, Any], bytes]]:
             "sort": row.get("sort"),
             "fields": None if not fields else [{"key": k, "value": v} for k, v in fields.items()],
         }
+        was = before.get(row["key"])
+        if was is not None and was == encoded:
+            encoded = was
+        else:
+            same = False
         kept.pop(row["key"], None)
-        kept[row["key"]] = (encoded, wire.encode(_SCHEMA, "Row", encoded))
-    return kept
+        kept[row["key"]] = encoded
+    if same and len(kept) == len(before):
+        return _Rows(source, before)
+    return _Rows(source, kept)
 
 
 def _list_changes(previous: _Screen | None, following: _Screen) -> list[dict[str, Any]]:
@@ -1473,10 +1501,14 @@ def _list_changes(previous: _Screen | None, following: _Screen) -> list[dict[str
     to its rows in following: every row of a list new to the screen, and the
     rows added, changed and removed of one it holds."""
     changes: list[dict[str, Any]] = []
-    for node, rows in following.rows.items():
-        held = None if previous is None else previous.rows.get(node)
+    for node, list_rows in following.rows.items():
+        rows = list_rows.by_key
+        held_rows = None if previous is None else previous.rows.get(node)
+        held = None if held_rows is None else held_rows.by_key
+        if held is rows:
+            continue
         before = held or {}
-        changed = [row for key, (row, encoded) in rows.items() if key not in before or before[key][1] != encoded]
+        changed = [row for key, row in rows.items() if before.get(key) is not row]
         removed = [key for key in before if key not in rows]
         if held is not None and not changed and not removed:
             continue

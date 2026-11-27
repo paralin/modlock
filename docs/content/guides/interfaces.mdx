@@ -371,9 +371,12 @@ The rows show in order of `rank`, then `sort`, then `key`, and each row's key
 names it while the rows change. The host holds every row and sends the
 player's game only the rows near what the list shows, and the game builds
 panels only for the rows in view, so a list of ten thousand rows costs the
-player what a list of a hundred does. The player scrolls with the wheel. Each
-draw compares every row with the rows the player holds and sends only the rows
-added, changed and removed.
+player what a list of a hundred does. The player scrolls with the wheel. A
+draw that passes the same `rows` array as the last draw sends nothing and
+costs nothing, however long the list, so keep the array while its rows stay
+the same and pass a new one to change them. A draw with a new array compares
+every row with the rows the player holds and sends only the rows added,
+changed and removed.
 
 A row's height is fixed by `rowHeight`, from 1 to 1000 pixels, and the list's
 own `height` is how much of it shows. The template is a panel, label or image
