@@ -8,10 +8,10 @@ import (
 	"github.com/paralin/modlock/source2/resource"
 )
 
-// Tessellation of spheres and capsules: rings from pole to pole and segments
-// around the axis.
 const (
-	capRings    = 8
+	// capRings is the number of sphere and capsule rings from pole to pole.
+	capRings = 8
+	// capSegments is the number of vertices around each ring.
 	capSegments = 12
 )
 
@@ -65,21 +65,34 @@ func readPoints(data []byte) []vec3 {
 // collisionMesh gathers triangles in model space, each part placed by its
 // bone's bind pose.
 type collisionMesh struct {
-	positions, indices []byte
-	vertices           uint32
-	shapes             uint32
-	pose               []float64
+	// positions holds the emitted model-space vertices as little-endian floats.
+	positions []byte
+	// indices holds the triangle vertex indices as little-endian integers.
+	indices []byte
+	// vertices counts the emitted vertices.
+	vertices uint32
+	// shapes counts the emitted collision shapes.
+	shapes uint32
+	// pose places the current part in model space, nil for an unposed part.
+	pose []float64
 }
 
 // collision reads every collision shape of a model's PHYS block, or returns
 // nil for a model without one. A shape it cannot read is left out.
 func collision(blocks []resource.Block) *Collision {
+	// Decode the resource before building its geometry.
 	phys, err := decodeTag(blocks, "PHYS")
 	if err != nil {
 		return nil
 	}
+	return new(collisionMesh).build(phys)
+}
+
+// build emits each part with its own bind pose and returns the complete mesh,
+// or nil when no shape can be read.
+func (m *collisionMesh) build(phys map[string]any) *Collision {
+	// Place each part independently, so an unposed part keeps model coordinates.
 	poses := list(phys["m_bindPose"])
-	m := &collisionMesh{}
 	for index, part := range list(phys["m_parts"]) {
 		part, _ := part.(map[string]any)
 		shape, _ := part["m_rnShape"].(map[string]any)
@@ -89,6 +102,8 @@ func collision(blocks []resource.Block) *Collision {
 				m.pose = pose
 			}
 		}
+
+		// Emit the part's analytic shapes and stored triangle geometry.
 		for _, item := range list(shape["m_spheres"]) {
 			sphere := field(item, "m_Sphere")
 			center := readVec3(sphere["m_vCenter"])
@@ -108,6 +123,8 @@ func collision(blocks []resource.Block) *Collision {
 			m.mesh(field(item, "m_Mesh"))
 		}
 	}
+
+	// A model without readable collision shapes has no collision layer.
 	if m.shapes == 0 {
 		return nil
 	}
@@ -199,10 +216,13 @@ func (m *collisionMesh) capsule(c0, c1 vec3, radius float64) {
 // that bounds it. Each edge is 4 bytes: the next edge around its face, its
 // twin, its origin vertex and its face.
 func (m *collisionMesh) hull(hull map[string]any) {
+	// Require the hull's vertices, edges and faces before emitting it.
 	positions, edges, faces := blob(hull["m_VertexPositions"]), blob(hull["m_Edges"]), blob(hull["m_Faces"])
 	if len(positions) == 0 || len(edges) == 0 || len(faces) == 0 {
 		return
 	}
+
+	// Place the hull's vertices and triangulate each face in stored order.
 	first := m.vertices
 	points := readPoints(positions)
 	count := len(points)
@@ -231,11 +251,14 @@ func (m *collisionMesh) hull(hull map[string]any) {
 // mesh adds a triangle mesh: vertices as three floats and triangles as
 // three 32-bit vertex indices.
 func (m *collisionMesh) mesh(mesh map[string]any) {
+	// Ignore an empty mesh before adding its triangles.
 	points, triangles := readPoints(blob(mesh["m_Vertices"])), blob(mesh["m_Triangles"])
 	count := uint32(len(points))
 	if count == 0 {
 		return
 	}
+
+	// Place every vertex and keep only triangles whose indices exist.
 	first := m.vertices
 	for _, p := range points {
 		m.vertex(p)
