@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -96,15 +97,53 @@ func TestLobbySetupReconnect(t *testing.T) {
 			t.Fatal(ctx.Err())
 		}
 	}
+
 	// A refused newer setup must not restart the previous successful game.
 	refused := reply.CloneVT()
 	refused.Id = "apply-2"
 	if !application.offer(refused) {
 		t.Fatal("a new setup was skipped")
 	}
-	application.adopt(&control.ServiceResult{Id: refused.GetId(), Error: "reload failed"})
+
+	// A deterministic closed socket refuses the write after recording the result.
+	closed := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := websocket.Accept(w, r, nil)
+		if err == nil {
+			conn.CloseNow()
+		}
+	}))
+	defer closed.Close()
+	socket, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(closed.URL, "http"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	socket.CloseNow()
+	failure := &control.ServiceResult{Id: refused.GetId(), Error: "reload failed"}
+	if err := application.send(ctx, socket, failure); err == nil {
+		t.Fatal("a closed socket accepted an adoption result")
+	}
 	if application.offer(reply) {
 		t.Fatal("a failed Apply restarted the earlier game")
+	}
+
+	// Reconnect must replay the refusal, while the earlier game stays confirmed.
+	err = service.holdLobbySocket(ctx, "signed-in", &publish.DevLobbyOpen{ModName: "Arena", Secret: 7, ManifestJson: []byte("local manifest")}, nil, results, application, func(state *publish.DevLobbyState) {
+		if application.offer(state.GetSetup()) {
+			t.Error("reconnecting restarted the confirmed configuration")
+		}
+	})
+	if err == nil {
+		t.Fatal("the dropped socket remained open after refusal replay")
+	}
+	select {
+	case result := <-received:
+		if !result.EqualVT(failure) {
+			t.Fatalf("refusal replay = %v, want %v", result, failure)
+		}
+	case err := <-failures:
+		t.Fatal(err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
 	}
 
 }

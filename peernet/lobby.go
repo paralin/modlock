@@ -25,7 +25,16 @@ const lobbyAnswerTimeout = 30 * time.Second
 // after it drops, which resumes the lobby, and stops once the service refuses
 // or there is no sign-in. Ending ctx closes the socket normally, which ends
 // the lobby. The peer's new links use the lobby's relay until it returns.
-func (s *Service) holdLobby(ctx context.Context, req *LobbyRequest, mods []string, changed <-chan struct{}, results <-chan *control.ServiceResult, secret uint64, report func(*LobbyState), setup func(*control.ServiceReply)) {
+func (s *Service) holdLobby(
+	ctx context.Context,
+	req *LobbyRequest,
+	mods []string,
+	changed <-chan struct{},
+	results <-chan *control.ServiceResult,
+	secret uint64,
+	report func(*LobbyState),
+	setup func(*control.ServiceReply),
+) {
 	// Ask for the session's lobby, and drop its relay once it closes.
 	open := &publish.DevLobbyOpen{ModName: req.GetModName(), Version: req.GetVersion(), Secret: secret}
 	defer s.relay.Hold(nil)
@@ -72,6 +81,7 @@ func (s *Service) holdLobby(ctx context.Context, req *LobbyRequest, mods []strin
 		last = &LobbyState{State: &LobbyState_Reconnecting{Reconnecting: err.Error()}}
 		report(last)
 		select {
+		//gostyle:timer backoff
 		case <-time.After(retry):
 		case <-ctx.Done():
 			return
@@ -89,7 +99,15 @@ var errLobbyRefused = errors.New("the service refused the lobby")
 // holdLobbySocket opens one dev lobby socket with token, passes each of the
 // service's states to answered, and holds the socket until it drops or ctx
 // ends. It returns errLobbyRefused after a refusal.
-func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publish.DevLobbyOpen, changed <-chan struct{}, results <-chan *control.ServiceResult, application *lobbyApplication, answered func(*publish.DevLobbyState)) error {
+func (s *Service) holdLobbySocket(
+	ctx context.Context,
+	token string,
+	open *publish.DevLobbyOpen,
+	changed <-chan struct{},
+	results <-chan *control.ServiceResult,
+	application *lobbyApplication,
+	answered func(*publish.DevLobbyState),
+) error {
 	// Open the socket.
 	dial, cancel := context.WithTimeout(ctx, lobbyAnswerTimeout)
 	defer cancel()
@@ -123,14 +141,8 @@ func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publi
 	}
 
 	// Replay the last adoption result if its earlier connection dropped.
-	if application.result != nil {
-		data, err := application.result.MarshalVT()
-		if err != nil {
-			return err
-		}
-		if err := conn.Write(ctx, websocket.MessageBinary, data); err != nil {
-			return err
-		}
+	if err := application.replay(ctx, conn); err != nil {
+		return err
 	}
 
 	// Read the service's later states until the socket closes.
@@ -153,17 +165,13 @@ func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publi
 	}()
 
 	// Ping it and pass on each state until either side closes it.
+	//gostyle:timer deadline
 	ticker := time.NewTicker(admitPing)
 	defer ticker.Stop()
 	for {
 		select {
 		case result := <-results:
-			application.adopt(result)
-			data, err := result.MarshalVT()
-			if err != nil {
-				return err
-			}
-			if err := conn.Write(ctx, websocket.MessageBinary, data); err != nil {
+			if err := application.send(ctx, conn, result); err != nil {
 				return err
 			}
 		case <-changed:
