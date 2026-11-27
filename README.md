@@ -38,10 +38,12 @@ command('hello', (player) => {
 ```
 
 > **Early development.** APIs may change without notice between any two
-> releases. [TypeScript, JavaScript](https://paralin.github.io/modlock/languages/typescript),
-> [Luau](https://paralin.github.io/modlock/languages/luau), [Python](https://paralin.github.io/modlock/languages/python) and
-> [Go](https://paralin.github.io/modlock/languages/go) mods, the `modlock` command line and
-> `modlock publish` all work in the current release.
+> releases. In the current release,
+> [TypeScript, JavaScript](https://paralin.github.io/modlock/languages/typescript),
+> [Luau](https://paralin.github.io/modlock/languages/luau),
+> [Python](https://paralin.github.io/modlock/languages/python) and
+> [Go](https://paralin.github.io/modlock/languages/go) mods all work, and so do
+> the `modlock` command line and `modlock publish`.
 
 ## Getting started
 
@@ -82,10 +84,10 @@ modlock dev
 
 `modlock new` asks for the mod's name and its language. `modlock dev` builds the
 mod, starts a local server and launches Deadlock through Steam to join it. Each
-time you save, it rebuilds the mod and replaces the running one. The
-starter mod replies to `/hello` in chat, and
-[Your first mod](https://paralin.github.io/modlock/start/first-mod) walks
-through the rest.
+time you save, it rebuilds the mod and replaces the running one. The starter
+mod replies to `/hello` in chat, and
+[Your first mod](https://paralin.github.io/modlock/start/first-mod) walks through
+the rest.
 
 Complete game modes to start from include [`arena`](examples/arena) in
 TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
@@ -106,15 +108,14 @@ language, every page shows its samples in it.
 | [Reference](https://paralin.github.io/modlock/reference/cli)        | The command line, the manifest and publishing.                            |
 | [Internals](https://paralin.github.io/modlock/internals/protocol)   | The protocol, the framework, building from source and native plugins.     |
 
-The site's source is in [`docs`](docs). Run `bun install` and `bun run dev`
-there to serve the site locally. Complete mods to read and run are in
-[`examples`](examples).
+The site's source is in [`docs`](docs). To serve the site locally, run
+`bun install` and `bun run dev` there.
 
 ## Why WebAssembly
 
 - **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server, where
   it can reach only the calls the schema declares. Those calls let it read and
-  write its own files, but it has no network access and no environment
+  write its own files, but it cannot reach the network or read environment
   variables. When a mod crashes, loops forever or allocates past its limit, the
   server stops that mod. It logs why and keeps the match running. A slow event
   still finishes, and the players see a warning in chat. Any player can restart

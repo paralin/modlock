@@ -3,9 +3,9 @@ title: Files
 description: Keep text files on the host, with defaults included in the mod.
 ---
 
-Your mod can read and write text files on the host, such as its configuration
-or the areas a player drew in the game. Put each file's default in your
-project's `data/` directory. `modlock build` copies that directory into the build, and
+Your mod can read and write text files on the host, such as its configuration or
+the areas a player drew in the game. Put each file's default in your project's
+`data/` directory. `modlock build` copies that directory into the build, and
 `modlock publish` uploads it with the rest of the build.
 
 <Samples>
@@ -121,8 +121,8 @@ should treat a missing file as a reason to use its default, not as an error.
 
 ## Structured files
 
-The host hands your mod each file's contents as a string and never parses
-them. So you choose the format, and you bundle a parser for it. This TypeScript mod
+The host hands your mod each file's contents as a string and never parses them.
+So you choose the format, and you bundle a parser for it. This TypeScript mod
 keeps its areas in YAML and imports the `yaml` package to read them:
 
 ```ts
@@ -142,8 +142,8 @@ command('savearea', (player) => {
 
 ## Binary files
 
-`readFileBytes` returns a file as a `Uint8Array`, without decoding it as text. So a
-mod can include a table it built offline and view it in place with typed
+`readFileBytes` returns a file as a `Uint8Array`, without decoding it as text.
+So a mod can include a table it built offline and view it in place with typed
 arrays, instead of parsing text when it loads. The host reads the whole file
 during the call, so the frame that makes the call waits for the read.
 

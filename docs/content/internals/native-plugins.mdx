@@ -60,8 +60,8 @@ MODLOCK_PLUGIN(Greeter)
 [`examples/hello`](https://github.com/paralin/modlock/tree/master/examples/hello)
 is a complete plugin. It creates a world text entity, runs a console command,
 removes the entity before the world shuts down, and then exits. Build and run it
-against the SDK you installed, with `jobs` set as in [Building
-Modlock](/internals/building):
+against the SDK you installed, with `jobs` set as in
+[Building Modlock](/internals/building):
 
 ```sh
 cmake -S examples/hello -B build-hello -DCMAKE_BUILD_TYPE=Release \
@@ -108,11 +108,11 @@ captured.
 sandboxed mods. It loads them into that `WasmHost`, provides services to them
 with `Provide`, and calls their services with `Call`. The plugin itself drives
 each of these mods, from its own `Start`, `Tick` and `Stop` calls. `Restart`
-starts one of the mods again in a fresh instance, as [Reloads and
-failures](/guides/reloads#restart-a-running-mod) describes. `Held` reports
-whether the mod holds its build through reloads and restarts, and `Restarting`
-reports whether a restart waits for the mod's next frame or for its hold's
-release.
+starts one of the mods again in a fresh instance, as
+[Reloads and failures](/guides/reloads#restart-a-running-mod) describes. `Held`
+reports whether the mod holds its build through reloads and restarts, and
+`Restarting` reports whether a restart waits for the mod's next frame or for its
+hold's release.
 
 **Dispatch.** Callbacks run on the engine thread, in the order they were
 registered. For a command, a damage decision or a respawn decision, the first

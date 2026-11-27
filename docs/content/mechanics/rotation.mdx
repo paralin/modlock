@@ -20,10 +20,11 @@ TypeScript library has calls for each part of that:
 | Heroes left behind by a swap         | `Strays`                                    |
 
 The rotation calls exist only in TypeScript. Import them from `modlock/kit`,
-along with `holdBystander` and `Strays`, and import `Cast`, `playCamera`, `curve` and
-`Roster` from `modlock`. Each rotation call is pure. Your mod keeps the line
-and the standings, and each call reads only what you pass it. Because the calls
-are pure, `js/test/rotation.test.ts` runs a whole session without the game.
+along with `holdBystander` and `Strays`, and import `Cast`, `playCamera`,
+`curve` and `Roster` from `modlock`. Each rotation call is pure. Your mod keeps
+the line and the standings, and each call reads only what you pass it. Because
+the calls are pure, `js/test/rotation.test.ts` runs a whole session without the
+game.
 
 ## The line and the standings
 
@@ -120,10 +121,10 @@ function unseat(player: Player, pawn: number): void {
 }
 ```
 
-`playCamera` returns nothing while the player does not have a hero. So mark the seat
-taken only once `seat` returns true, and try again each frame until it does. A
-bystander can still die from a fall or world damage, so respawn it and seat it
-again.
+`playCamera` returns nothing while the player does not have a hero. So mark the
+seat taken only once `seat` returns true, and try again each frame until it
+does. A bystander can still die from a fall or world damage, so respawn it and
+seat it again.
 
 ## The next match
 

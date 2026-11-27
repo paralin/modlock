@@ -8,8 +8,7 @@ addon. It is the only element that runs code in the player's game. The game
 draws every other element from the typed tree in
 [`src/wasm/ui/ui.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/ui/ui.proto),
 and when the player presses one, the press comes back to the element's
-`onPress`. The host clears an interface when the player leaves or the mod
-stops.
+`onPress`. The host clears an interface when the player leaves or the mod stops.
 
 - A layout without content to load draws an empty panel and logs one line in
   the game's console.
@@ -67,9 +66,9 @@ When your mod sends a new value, the renderer writes it to an attribute of the
 layout's panel the next time it draws the screen. The attribute is
 `modlock_data` for the element's `data`, or `modlock_route_<name>` for a route.
 After a draw that changed any of these, the renderer plays the sound event
-`modlock_data_changed`. It uses a sound because the game does not deliver a custom
-event to a script, but it delivers `PlaySoundEffect` to every script. No sound
-has that name, so nothing plays. The library hears the event, rereads each
+`modlock_data_changed`. It uses a sound because the game does not deliver a
+custom event to a script, but it delivers `PlaySoundEffect` to every script. No
+sound has that name, so nothing plays. The library hears the event, rereads each
 attribute, and calls the handler of each value that changed.
 
 `Modlock.onUnload(() => ...)` runs its handler once, when the renderer starts
@@ -111,11 +110,11 @@ none of its scripts, so a press happens only in the game.
 
 ## Bind named panels
 
-A layout can keep its fonts, art and localized text from its file while the
-mod sets a few of its panels. `bindings` lists panels of the layout by their
-`id`. For each panel, the renderer sets some of the panel's parts, or takes the panel's
-presses with `onPress`, so the layout does not need a script. Each part means what it means
-on an element:
+A layout can keep its fonts, art and localized text from its file while the mod
+sets a few of its panels. `bindings` lists panels of the layout by their `id`.
+For each panel, the renderer sets some of the panel's parts, or takes the
+panel's presses with `onPress`, so the layout does not need a script. Each part
+means what it means on an element:
 
 - `text` replaces a label's words, and `token` with `variables` replaces them
   with the game's text in the player's language, as a `<label>`'s do.
@@ -151,15 +150,15 @@ layout loads again.
 Once the layout loads, the renderer looks up each panel inside the layout's
 panel and applies every binding. Then it applies each change as the mod draws
 it. After each draw, once the layout's script has read the draw's data, the
-renderer looks up any panel it has not found yet. When the script has built
-its panels anew, the renderer finds them all again and applies every binding.
-A name that does not match a panel in the layout logs one line in the game's console,
+renderer looks up any panel it has not found yet. When the script has built its
+panels anew, the renderer finds them all again and applies every binding. A name
+that does not match a panel in the layout logs one line in the game's console,
 and the other bindings still apply.
 
 A press on a bound panel reaches the mod as a press of the layout, with the
-panel's `id` as the action and without a payload. A layout with any binding takes
-presses only from its bindings that have `onPress`. So the server refuses a
-press that the layout's script sends with `Modlock.press`, and a press from a
+panel's `id` as the action and without a payload. A layout with any binding
+takes presses only from its bindings that have `onPress`. So the server refuses
+a press that the layout's script sends with `Modlock.press`, and a press from a
 panel the mod stopped binding. A layout holds at most 64 bindings. Each one
 names a different panel, by an `id` of up to 64 letters, digits, `_`, `-` and
 `.`. A binding's text, token, classes and image are held to the same limits as

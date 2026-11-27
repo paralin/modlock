@@ -13,8 +13,8 @@ classes.
 
 ## Read and write fields
 
-Your mod reads and writes any schema field of a live entity by its class and field
-names:
+Your mod reads and writes any schema field of a live entity by its class and
+field names:
 
 <Samples>
 
@@ -206,8 +206,9 @@ _ = hero.IHealth().Set(health + 50)
 
 </Samples>
 
-Your mod's build bundles only the classes it uses. [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) lists every
-class, its base and its fields in `schemas.json`.
+Your mod's build bundles only the classes it uses.
+[`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) lists
+every class, its base and its fields in `schemas.json`.
 
 ## Create entities and send inputs
 
@@ -291,10 +292,10 @@ if err == nil {
 </Samples>
 
 The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
-while it spawns, and `subclass` is that entry's name. Without a subclass, the host
-looks for an entry named after the class. The game does not have an entry named
-`npc_trooper_boss`, and the class crashes the server without an entry. So the
-host refuses the call, and its message gives an entry you can pass.
+while it spawns, and `subclass` is that entry's name. Without a subclass, the
+host looks for an entry named after the class. The game does not have an entry
+named `npc_trooper_boss`, and the class crashes the server without an entry. So
+the host refuses the call, and its message gives an entry you can pass.
 
 Each value you pass to `fireInput` must already have the type its input takes,
 because an input does not convert text. `Alpha` takes an integer, and `Color`
@@ -389,11 +390,11 @@ if err == nil {
 dedicated server, which is 578 of the 1,191 surveyed. Each name that needs a
 subclass gets the subclass it spawned with. So `create('npc_trooper_boss', ...)`
 makes a Guardian without asking for `npc_boss_tier1`. A name that never stayed
-alive, such as an abstract base or one that crashes the server, has no
+alive, such as an abstract base or one that crashes the server, does not get a
 constructor, and the type checker rejects it.
-[Entity schema](/internals/entity-schema) describes the whole entity
-system: the dump, the survey, the generated classes in each language and what
-the host checks.
+[Entity schema](/internals/entity-schema) describes the whole entity system: the
+dump, the survey, the generated classes in each language and what the host
+checks.
 
 `showEntityOnlyTo` sends an entity the mod created only to the listed player
 slots, and `showEntityToAll` undoes that. Call `showEntityOnlyTo` right after

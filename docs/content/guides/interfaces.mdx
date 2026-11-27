@@ -145,10 +145,10 @@ aiming.
 The player can also put the cursor away with the game's own keys. It then stays
 away, even when your mod draws a new screen, until your mod calls
 `freeCursor(player, true)` again. `cursorFree(player)` tells you whether the
-cursor is up now, whether your mod or the player put it there. It does not return a
-value while the player does not have a hero, because the game keeps the cursor's state
-on the hero. To bring the cursor back, check `cursorFree` on a press or a timer,
-and call `freeCursor(player, true)` when it returns false.
+cursor is up now, whether your mod or the player put it there. It does not
+return a value while the player does not have a hero, because the game keeps the
+cursor's state on the hero. To bring the cursor back, check `cursorFree` on a
+press or a timer, and call `freeCursor(player, true)` when it returns false.
 
 ## Follow a game action
 
@@ -272,9 +272,9 @@ and the voice icon. A row stays for a moment after the voice stops, so it does
 not blink off in a pause between words. The rows stay in slot order, so the
 stack does not reorder as people talk over each other. The player's own game
 shows and hides each row from the voice marks on the hidden top bar, so your mod
-does not have to act when a voice starts or stops. `{ scale }` sizes the rows, and
-`{ speaker }` takes the same function as `showChatLines`, so a player looks the
-same in both.
+does not have to act when a voice starts or stops. `{ scale }` sizes the rows,
+and `{ speaker }` takes the same function as `showChatLines`, so a player looks
+the same in both.
 
 The library draws the chat lines and the speakers as layers of their own, over
 whatever interface your mod shows each player, in the same way it draws toasts.
@@ -368,12 +368,12 @@ holds a handle, a redraw leaves the handles where the player has them. If you
 change the handles' names, the player sees a new range.
 
 The range is a single stop in the game's keyboard and controller navigation.
-While it has the focus, left and right move its active handle by `step`, or by
-a twentieth of the track when it has no `step`, and the handle still stops at
-its neighbors. Enter, or the controller's confirm button, makes the next handle
-active, and the active handle shows an outline. Each step runs `onChange` with
-every value at once, and `onHold` hears it as a release. In Python the element
-is `range_`, and in Go it is `ui.Range`.
+While it has the focus, left and right move its active handle by `step`, or by a
+twentieth of the track when it does not set a `step`, and the handle still stops
+at its neighbors. Enter, or the controller's confirm button, makes the next
+handle active, and the active handle shows an outline. Each step runs `onChange`
+with every value at once, and `onHold` hears it as a release. In Python the
+element is `range_`, and in Go it is `ui.Range`.
 
 In TypeScript, a form can decide where the keyboard goes. `focusOrder` on a
 button or an input sets its place in the game's keyboard and controller

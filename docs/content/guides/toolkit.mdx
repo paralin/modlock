@@ -98,8 +98,8 @@ mod.SetRespawnDelay(3 * time.Second)
 
 ## Play free-for-all
 
-`setFreeForAll(true)` makes every hero an enemy of every other. New players do not
-get a hero picker, so seat them from the join handler:
+`setFreeForAll(true)` makes every hero an enemy of every other. New players do
+not get a hero picker, so seat them from the join handler:
 
 <Samples>
 
@@ -245,10 +245,9 @@ Read each hero back from the cast, rather than asking the game again:
 
 A player who stops loading keeps their slot, listed with `ready` false, until
 the network gives up on them. The game can also keep a disconnected player's
-hero standing in the world, and it revives that hero on its own timer with no
-player.
-`Stragglers` kicks a human who is still joining after `connectSeconds`, and it
-kills each hero that no player holds, as
+hero standing in the world, and it revives that hero on its own timer while the
+player is gone. `Stragglers` kicks a human who is still joining after
+`connectSeconds`, and it kills each hero that no player holds, as
 [`Strays`](/mechanics/rotation#heroes-left-behind) does. Keep one and call
 `sweep(now)` each frame:
 
@@ -311,10 +310,10 @@ do not have locale data:
 
 `ground(point)` returns the floor under a point. It returns nothing when no
 floor is in reach, when the point is inside a wall, or when the world's
-collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when `ground`
-finds nothing below it. `ground` traces straight down through solid and player clip, from
-64 units above the point to 1024 below. The `above`, `below` and `layers`
-options change the reach.
+collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when
+`ground` finds nothing below it. `ground` traces straight down through solid and
+player clip, from 64 units above the point to 1024 below. The `above`, `below`
+and `layers` options change the reach.
 
 ## Stand a race gate
 
