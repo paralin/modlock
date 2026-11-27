@@ -3,8 +3,8 @@ title: Building Modlock
 description: Build the command line, the host and the libraries from source.
 ---
 
-Requirements: Go, CMake 3.24+ and a C++23 compiler. CMake downloads
-[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) for QuickJS and Luau.
+To build Modlock, you need Go, CMake 3.24+ and a C++23 compiler. CMake downloads
+[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) to build QuickJS and Luau.
 
 ```sh
 git submodule update --init --recursive
@@ -17,13 +17,13 @@ ctest --test-dir build --output-on-failure
 cmake --install build --prefix "$PWD/build/sdk"
 ```
 
-Protobuf and abseil take a long time to build. Use half the cores, as shown, so
-the build leaves the machine usable.
+Protobuf and abseil take a long time to build, so use half the cores, as shown,
+and the machine stays usable while it builds.
 
-The native tests build into two programs: `modlock_tests`, which needs only the
-SDK, and `modlock_mod_tests`, which runs built example mods and so needs Go and
-the mod runtimes. CTest runs each case in its own process. To run a few cases,
-select them by name:
+The native tests build into two programs. `modlock_tests` needs only the SDK.
+`modlock_mod_tests` runs built example mods, so it also needs Go and the mod
+runtimes. CTest runs each case in its own process. To run a few cases, select
+them by name:
 
 ```sh
 cmake --build build --target modlock_tests
@@ -32,9 +32,9 @@ build/modlock_tests --gtest_filter='EntityRules.*'
 ```
 
 CMake downloads the [Wasmtime C API](https://docs.wasmtime.dev/c-api/) release
-for the target platform. Pass `-DMODLOCK_WASMTIME_DIR=<extracted release>` to
-build offline. Install puts the Wasmtime library next to `modlock-host`, where
-the host loads it.
+for the target platform. To build offline, pass
+`-DMODLOCK_WASMTIME_DIR=<extracted release>`. The install step puts the Wasmtime
+library next to `modlock-host`, and the host loads it from there.
 
 - **Windows:** run `scripts/win-build.ps1` from a Visual Studio developer shell.
 - **macOS or Linux, targeting Windows:** `scripts/proton-build.sh` cross-builds
@@ -78,18 +78,19 @@ cd modlock
 go build -o "$(go env GOPATH)/bin/modlock" ./cmd/modlock
 ```
 
-Build without `-trimpath`: the command finds the checkout through the paths
-compiled into it. It builds the TypeScript library in
+Build without `-trimpath`, because the command finds the checkout through the
+paths compiled into it. The command then builds the TypeScript library in
 [`js/`](https://github.com/paralin/modlock/tree/master/js), the renderer and the
-preview page from the checkout, so your mods use the checkout's library.
-`modlock build` does the same from Modlock source in the Go module cache, and
-caches the result, while a release build downloads the library its release
-publishes. After a `git pull`, build the command again.
+preview page from the checkout, so your mods use the checkout's library. A
+command built from Modlock source in the Go module cache, as `go install` builds
+it, does the same from that source, and caches the result. A release build has
+the library built in, and copies it into your user cache the first time it needs
+it. After a `git pull`, build the command again.
 
-A build from source has no release to download the host from, so set
-`MODLOCK_HOST` to a `modlock-host.exe`. The sandbox runs the interpreters beside
-the host and needs it too. For a checkout of a release, or close to one,
-unpack that release's host:
+A command built from source cannot download the host from a release, so set
+`MODLOCK_HOST` to a `modlock-host.exe`. The sandbox needs it too, because it
+runs the interpreters that come beside the host. For a checkout of a release, or
+one close to a release, unpack that release's host:
 
 ```sh
 curl -LO https://github.com/paralin/modlock/releases/latest/download/modlock-host-windows-x64.zip
@@ -100,8 +101,9 @@ cd my-mod
 modlock dev
 ```
 
-On Windows, build `modlock.exe` the same way and set `$env:MODLOCK_HOST`. A
-change to the host itself, the C++ under `src/`, needs a host built from the
-same checkout: `scripts/win-build.ps1` installs it in `build-win/sdk/bin`, and
-`scripts/proton-build.sh` in `build-proton/sdk/bin`. A release's host can lack calls that a newer checkout's
-library makes.
+On Windows, build `modlock.exe` the same way, and set `$env:MODLOCK_HOST`. When
+you change the host itself, the C++ under `src/`, build the host from the same
+checkout. `scripts/win-build.ps1` installs it in `build-win/sdk/bin`, and
+`scripts/proton-build.sh` installs it in `build-proton/sdk/bin`. Build the host
+from the checkout too when the checkout's library is newer than a release,
+because a release's host may not have every call that a newer library makes.

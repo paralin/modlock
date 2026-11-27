@@ -3,37 +3,42 @@ title: Engine access
 description: How the host loads game modules and lends native capabilities to plugins.
 ---
 
-The host loads the game modules and installs and removes every native hook, and a plugin borrows what it needs from `PluginContext::engine`. A borrowed interface, function pointer, or entity
-view must not outlive its module or world.
+The host loads the game modules, and installs and removes every native hook. A
+plugin borrows what it needs from `PluginContext::engine`. A borrowed interface,
+function pointer or entity view must not outlive its module or its world.
 
 ## Modules and interfaces
 
-`MappedModuleImage::ForModule` borrows an already loaded module's address and
-bytes. `ResolveEngineInterface` calls that module's `CreateInterface` export
-with the requested registration name. Neither operation loads, retains, or
-unloads a module. Missing modules, exports, and registrations return errors.
+`MappedModuleImage::ForModule` borrows the address and bytes of a module that is
+already loaded. `ResolveEngineInterface` calls that module's `CreateInterface`
+export with the requested registration name. Neither call loads, retains or
+unloads a module. Each returns an error when the module, the export or the
+registration is missing.
 
-CMake selects the Windows implementation or an unsupported-host implementation
-that returns errors. Callers use the same API on every host. Windows ABI calls
-and inline detours remain guarded where they need Windows types or SafetyHook.
-Portable parsing, callback dispatch, and fixture tests run without game modules.
+CMake selects the Windows implementation, or on any other host an implementation
+whose calls return errors. So callers use the same API on every host. The
+Windows ABI calls and inline detours stay behind guards wherever they need
+Windows types or SafetyHook. The portable parsing, callback dispatch and fixture
+tests run without game modules.
 
 ## Signatures and addresses
 
-`ParseSignature` and `SignatureScan` operate on borrowed byte spans. Every
-game signature is one entry in the game data file `data/game_signatures.txtpb`,
-a protobuf text file of `src/gameinterop/signatures/signatures.proto`. An entry
-has a stable id, the modules where the pattern matches exactly once, the pattern, what the match
-resolves to, and the native shape.
+`ParseSignature` and `SignatureScan` work on borrowed byte spans. Every game
+signature is one entry in the game data file `data/game_signatures.txtpb`, a
+protobuf text file of `src/gameinterop/signatures/signatures.proto`. An entry
+has a stable id, the modules where the pattern matches exactly once, the
+pattern, what the match resolves to, and the native shape.
 
-- **Loading.** The SDK embeds the file as of its build. `modlock-host` loads the
-  file named by `--game-data`, else the copy installed beside it, at start. When a game patch moves a pattern, a new file fixes it without a new host. A
-  malformed entry is skipped with a log line, and only the features that
-  resolve its id fail.
-- **Resolving.** `ResolveSignature(image, id)` returns the match itself, the
-  target of the `E8` call at a delta into the match, or the RIP-relative operand
-  of a seven-byte instruction at a delta. A relative target checks that the
-  whole instruction fits before reading its signed displacement.
+- **Loading.** The SDK embeds the file as it was at the SDK's build. At start,
+  `modlock-host` loads the file you pass with `--game-data`, or else the copy
+  installed beside it. So when a game patch moves a pattern, a new file fixes
+  it, and you do not need a new host. The host skips a malformed entry with a
+  log line, and only the features that resolve that entry's id fail.
+- **Resolving.** `ResolveSignature(image, id)` returns one of three addresses:
+  the match itself, the target of the `E8` call at a delta into the match, or
+  the RIP-relative operand of a seven-byte instruction at a delta. For a
+  relative target, it checks that the whole instruction fits before it reads the
+  signed displacement.
 - **Failing.** A missing or ambiguous match fails with the entry's id.
 
 After a game update, build `modlock-sigcheck` and run it against the Deadlock
@@ -44,56 +49,65 @@ modlock-sigcheck <deadlock-dir> [--baseline <previous-deadlock-dir>] \
   [--signatures data/game_signatures.txtpb]
 ```
 
-It resolves every entry in every module you pass it and exits nonzero when any
-fails. `--signatures` checks an edited game data file without a rebuild. With a
-copy of the previous build as the baseline, `modlock-sigcheck` also suggests a pattern for each
-failed entry. It decodes the old match, turns its relative displacements and
-branch targets into wildcards, and prints the shortest instruction-aligned
-prefix that resolves once in the new build. Review each suggestion against the
-recorded shape before replacing the entry in the game data file.
+It resolves every entry in every module you pass it, and exits nonzero when any
+entry fails. `--signatures` checks an edited game data file without a rebuild.
+When you also give it a copy of the previous build as the baseline,
+`modlock-sigcheck` suggests a pattern for each failed entry. It decodes the old
+match, turns its relative displacements and branch targets into wildcards, and
+prints the shortest instruction-aligned prefix that resolves once in the new
+build. Review each suggestion against the recorded shape before you replace the
+entry in the game data file.
 
-Virtual functions that modlock calls or hooks through a dispatch table are
-`slots` entries in the same file. Each gives its module, its class's RTTI name,
-the index it held when recorded, and a pattern for the function's entry bytes.
-`ResolveVirtualSlot(id)` (`modlock/gameinterop/virtual_slots.h`) finds the
-class's table through its RTTI and returns the index of the one function that
-matches the pattern. A game update that inserts a virtual ahead of the slot
-moves the index without breaking the caller, and the host logs the move once.
-Zero or several matches are an error that gives the slot, and the feature that
-needs it stays off.
+Each virtual function that modlock calls or hooks through a dispatch table is a
+`slots` entry in the same file. An entry gives the function's module, its
+class's RTTI name, the index the function held when the entry was recorded, and
+a pattern for the function's entry bytes. `ResolveVirtualSlot(id)`
+(`modlock/gameinterop/virtual_slots.h`) finds the class's table through its
+RTTI, and returns the index of the one function that matches the pattern. So
+when a game update inserts a virtual function ahead of the slot, the index
+moves, the caller still works, and the host logs the move once. When the pattern
+matches zero functions or several, the call fails with an error that names the
+slot, and the feature that needs the slot stays off.
 
-`modlock-sigcheck` checks every slot the same way. A moved slot passes and
-prints its new index, which belongs in the data file so the hint stays
-current. A failure prints the reason: no function of the table matches, or the
-indexes of every match when the pattern no longer tells them apart. Re-derive
-or lengthen the pattern.
+`modlock-sigcheck` checks every slot the same way. A moved slot passes, and
+`modlock-sigcheck` prints its new index. Write that index into the data file, so
+the recorded index stays current. A failure prints its reason. Either the
+pattern matches none of the table's functions, or it matches several, and then
+`modlock-sigcheck` prints the index of each match. Re-derive or lengthen the
+pattern.
 
-An address is evidence of a pattern match, not proof that an arbitrary function
-signature is safe to call. Callers must use the recorded calling convention and
-layout. Schema offsets remain a separate resolution path.
+An address shows only that a pattern matched. It does not prove that calling the
+function with any particular signature is safe, so callers must use the recorded
+calling convention and layout. Schema offsets are resolved separately.
 
 ## Hook lifetime
 
-`VtableSlotHook` patches one entry in the module's original dispatch table.
-It never copies the table or changes an object's table pointer, so unnamed slots
-remain available to the engine. The caller supplies a valid slot and keeps the
-table alive until restoration. Hooks stacked on the same slot must be removed
-in reverse installation order.
+`VtableSlotHook` patches one entry in the module's original dispatch table. It
+never copies the table or changes an object's table pointer, so the engine keeps
+every other slot as it was. The caller passes a valid slot, and keeps the table
+alive until the hook restores the slot. Remove hooks stacked on the same slot in
+the reverse of the order you installed them.
 
-`ThunkOwner` couples a slot hook to its callback cleanup. Destruction and move
-assignment restore the old slot before they clear the callback state, and a move hands both duties to the new owner. Callback holders declare their owner after borrowed handler storage
-so dispatch is restored before that storage is destroyed.
+`ThunkOwner` ties a slot hook to the cleanup of its callback. When a
+`ThunkOwner` is destroyed or move-assigned, it restores the old slot first, and
+then clears the callback state. A move hands both duties to the new owner. A
+callback holder declares its owner after the handler storage it borrows, so C++
+destroys the owner first, and the slot is restored before that storage is
+destroyed.
 
-Inline detours use SafetyHook directly because native code can call a function
+Inline detours use SafetyHook directly, because native code can call a function
 without going through its virtual slot. Each hook keeps its own original-call
-signature, callback ordering, and thread contract. Installation and teardown
-follow the host's engine lifecycle, but the RAII owners do not synchronize concurrent
-hook installation or wait for callbacks on other threads.
+signature, callback order and thread contract. The host installs and removes the
+hooks along its engine lifecycle. The RAII owners do not guard against two
+threads installing hooks at once, and they do not wait for callbacks running on
+other threads.
 
 ## What the tests cover
 
-The SDK tests exercise unique signature matching, relative instruction bounds,
-dispatch-table preservation, move ownership, and restore-before-clear ordering.
-The independent hello plugin checks the installed SDK and plugin admission.
-Windows builds check the native code paths, but only a live game run can validate
-patterns and ABI layouts against a new game binary.
+The SDK tests check that a signature matches exactly once, that a relative
+instruction stays in bounds, that a hook leaves the rest of the dispatch table
+as it was, that a move hands over ownership, and that a hook restores its slot
+before it clears its callback. The separate hello plugin checks the installed
+SDK and that the loader admits the plugin. The Windows builds check the native
+code paths, but only a run of the live game can check the patterns and ABI
+layouts against a new game binary.

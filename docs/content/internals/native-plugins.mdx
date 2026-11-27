@@ -4,8 +4,8 @@ description: Write a plugin in C++ against the host itself.
 ---
 
 Native C++ plugins extend the host with engine hooks, host calls for mods and
-framework features. They have full access to the game and no sandbox. The
-installed SDK exports `modlock::sdk` through CMake:
+framework features. A plugin runs outside the sandbox, with full access to the
+game. The installed SDK exports `modlock::sdk` through CMake:
 
 ```cmake
 find_package(Modlock CONFIG REQUIRED)
@@ -14,8 +14,8 @@ target_link_libraries(my_plugin PRIVATE modlock::sdk)
 target_compile_features(my_plugin PRIVATE cxx_std_23)
 ```
 
-A plugin implements `modlock::Plugin`, and `MODLOCK_PLUGIN` exports it to the
-host. `Load`, `Tick` and `Stop` are optional:
+A plugin implements `modlock::Plugin`, and the `MODLOCK_PLUGIN` macro exports it
+to the host. `Load`, `Tick` and `Stop` are optional:
 
 ```cpp
 #include <print>
@@ -57,10 +57,11 @@ class Greeter final : public modlock::Plugin {
 MODLOCK_PLUGIN(Greeter)
 ```
 
-[`examples/hello`](https://github.com/paralin/modlock/tree/master/examples/hello) is a complete plugin that creates a world
-text entity, runs a console command, removes the entity before the world shuts
-down, and then exits. Build and run it against the SDK you installed, with
-`jobs` set as in [Building Modlock](/internals/building):
+[`examples/hello`](https://github.com/paralin/modlock/tree/master/examples/hello)
+is a complete plugin. It creates a world text entity, runs a console command,
+removes the entity before the world shuts down, and then exits. Build and run it
+against the SDK you installed, with `jobs` set as in [Building
+Modlock](/internals/building):
 
 ```sh
 cmake -S examples/hello -B build-hello -DCMAKE_BUILD_TYPE=Release \
@@ -87,40 +88,45 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 
 `modlock-host` runs only a dedicated server, and players join it with the game's
-own, unchanged client. See `modlock-host --help` for every option.
+own, unchanged client. `modlock-host --help` lists every option.
 
 ## Plugin contract
 
 **ABI.** Before it creates a plugin, the loader checks that the plugin was built
 with the same interface version, SDK source, public headers, compiler, standard
-library, build mode, and runtime configuration as the host. A plugin loads only
-into the host it was built with, so build and ship the host, SDK, and plugins
-together.
+library, build mode and runtime configuration as the host. A plugin loads only
+into the host it was built with, so build the host, the SDK and the plugins
+together, and release them together.
 
-**Engine access.** The host loads the engine and its hooks. Plugins reach it
-through `PluginContext::engine` and keep the returned `Subscription`s. Resetting
-one removes its callback and frees what it captured.
+**Engine access.** The host loads the engine and its hooks. A plugin reaches the
+engine through `PluginContext::engine`, and keeps each `Subscription` it gets
+back. Resetting a subscription removes its callback and frees what the callback
+captured.
 
-**Sandboxed mods.** `PluginContext::wasm` lends the host's `WasmHost`. A plugin
-that hosts games of its own, such as game modes published as sandboxed mods,
-loads them there, provides them services with `Provide` and calls theirs with
-`Call`. The plugin itself drives each of these mods through its `Start`, `Tick`
-and `Stop` calls. `Restart` starts one of them again in a fresh instance, as
-[Reloads and failures](/guides/reloads#restart-a-running-mod) describes, and
-`Held` and `Restarting` report whether it holds its build and whether a restart
-waits.
+**Sandboxed mods.** `PluginContext::wasm` lends the plugin the host's
+`WasmHost`. A plugin can host games of its own, such as game modes published as
+sandboxed mods. It loads them into that `WasmHost`, provides services to them
+with `Provide`, and calls their services with `Call`. The plugin itself drives
+each of these mods, from its own `Start`, `Tick` and `Stop` calls. `Restart`
+starts one of the mods again in a fresh instance, as [Reloads and
+failures](/guides/reloads#restart-a-running-mod) describes. `Held` reports
+whether the mod holds its build through reloads and restarts, and `Restarting`
+reports whether a restart waits for the mod's next frame or for its hold's
+release.
 
-**Dispatch.** Callbacks run on the engine thread in the order they were
-registered. For a command, damage, or respawn decision, the first callback that
-returns true handles it, and later callbacks are not called.
+**Dispatch.** Callbacks run on the engine thread, in the order they were
+registered. For a command, a damage decision or a respawn decision, the first
+callback that returns true handles it, and the host does not call the later
+callbacks.
 
-**Lifecycle.** `Load`, `Start`, and `Stop` each run once, in order, with `Tick`
-once per frame between `Start` and `Stop`. If startup fails, every plugin that
-began starting stops in reverse order, including the one that failed. Remove
-live entities in `OnWorldEnding`, before the engine tears down the world, and
-drop views of the previous world in `OnWorld`. `Stop` runs after the engine
-returns. Each plugin is destroyed inside its own library before that library
-unloads. Plugins cannot be reloaded while the host runs: to load a new build of a plugin, restart the host.
+**Lifecycle.** `Load`, `Start` and `Stop` each run once, in that order, and
+`Tick` runs once per frame between `Start` and `Stop`. If startup fails, every
+plugin that began starting stops, in reverse order, including the one that
+failed. Remove live entities in `OnWorldEnding`, before the engine tears down
+the world, and drop views of the previous world in `OnWorld`. `Stop` runs after
+the engine returns. The host destroys each plugin inside its own library, before
+that library unloads. A plugin cannot be reloaded while the host runs, so to
+load a new build of a plugin, restart the host.
 
 [Engine access](/internals/engine-access) describes module lookup, signature
-resolution, platform boundaries, and hook lifetime.
+resolution, platform boundaries and hook lifetimes.

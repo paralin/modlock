@@ -3,9 +3,10 @@ title: Entity calls
 description: What the host does and checks when a mod creates an entity, touches a field, sends an input or deals damage.
 ---
 
-Each entity call takes an entity by one of its [four names](/internals/entity-schema#four-names-for-one-entity). The typed
-libraries [generated from the game](/internals/entity-schema) reduce to the
-calls on this page, which a mod may also make by hand.
+Each entity call takes an entity by one of its [four
+names](/internals/entity-schema#four-names-for-one-entity). Every method of the
+typed libraries [generated from the game](/internals/entity-schema) comes down
+to the calls on this page, and a mod may also make these calls by hand.
 
 ## Creating an entity
 
@@ -37,18 +38,18 @@ And in Luau:
 local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { team = 3, position = position })
 ```
 
-Underneath, each is one `createEntity` call, which a mod may also make by
-hand with any designer name and untyped key values. The host runs it in this
-order:
+Underneath, each sample makes one `createEntity` call. A mod may also make that
+call by hand, with any designer name and untyped key values. The host runs the
+call in this order:
 
 1. It checks that the placement is finite.
 2. It resolves the designer name's entity class through the game's own class
-   lookup. A name the server lacks fails here.
-3. It refuses an ability, item or weapon: any class deriving from
-   `CCitadelBaseAbility`. One created alone, with no hero to hold it, takes the
-   server down once it thinks or is removed, so the refusal happens before the
-   entity exists. The message points at `giveItem` and `replaceAbility`, which
-   give one to a hero.
+   lookup. A name the server does not have fails here.
+3. It refuses an ability, item or weapon, which is any class that derives from
+   `CCitadelBaseAbility`. Created alone, without a hero to hold it, such an
+   entity takes the server down once it thinks or is removed. So the host
+   refuses it before the entity exists. The message points at `giveItem` and
+   `replaceAbility`, which give one to a hero.
 4. It creates the entity, installs its subclass, and applies the spawn key
    values, the position and the facing.
 5. It writes the fields in `EntityOptions.fields`. These are fields the game
@@ -56,43 +57,43 @@ order:
    that fails removes the entity unspawned and fails the call.
 6. It spawns the entity and returns its handle.
 
-The host records every entity a mod creates. The world removes them when it
-ends, and stopping or reloading the mod removes them too. A mod never leaves
-entities behind.
+The host records every entity a mod creates. It removes them when the world
+ends, and when the mod stops or reloads. So a mod never leaves entities behind.
 
 ### Units and pickups
 
 `spawnNpc` and `createPickup` are built on the same call. `spawnNpc` takes any
 unit class the server has, with its subclass as `unit`, and adds what a unit
-needs: health and maximum health, and a lane. The host writes the lane to the
+needs: health, maximum health and a lane. The host writes the lane to the
 class's `m_iLane` field before the unit spawns. For a class without that field,
 such as `npc_yakuza_gangster`, the call fails with a message that gives the
-class. `Npc` reads,
-moves, heals and removes the unit.
+class. The `Npc` it returns reads, moves, heals and removes the unit.
 
-`createPickup` makes the soul urn or the movement buff with the designer name
-and subclass each needs. `Pickup` reports whether it still lies in the world
-and removes it.
+`createPickup` makes the soul urn or the movement buff, with the designer name
+and subclass each needs. The `Pickup` it returns reports whether the pickup
+still lies in the world, and removes it.
 
 ### Scale
 
-Every entity takes the `SetScale` input, `inputSetScale` on `CBaseEntity`. It
-sets the scene node's absolute scale, and the server rebuilds the entity's
-physics shape at that scale, so collision and the model grow together. Send it
-once the entity has spawned:
+Every entity takes the `SetScale` input, which is `inputSetScale` on
+`CBaseEntity`. The input sets the scene node's absolute scale, and the server
+rebuilds the entity's physics shape at that scale, so the collision and the
+model grow together. Send it once the entity has spawned:
 
 ```ts
 const ball = create('citadel_hideout_ball', { position })
 ball?.inputSetScale(9)
 ```
 
-The sample sends the input instead of passing the spawn keys `scale` or
-`ModelScale`. Those keys set the same scale before spawn, but an entity whose
-game data sets its own model scale replaces them while spawning. The hideout
-ball shows both: its model spans ±7 units, and its game data sets a model scale
-of 3, which gives it a radius of 21. With either key its collision stayed at 21
-units, but after `inputSetScale(9)` a trace meets it at 63, and at 7 times the
-scale for every value from 0.5 to 9. Use the input for a scale that must hold.
+The sample sends the input in place of passing the spawn keys `scale` or
+`ModelScale`. Those keys set the same scale before the entity spawns. But an
+entity whose game data sets its own model scale replaces them while it spawns.
+
+The hideout ball shows both. Its model spans ±7 units, and its game data sets a
+model scale of 3, which gives it a radius of 21. With either key, its collision
+stayed at 21 units. After `inputSetScale(9)`, a trace meets it at 63 units, and
+for every scale from 0.5 to 9, a trace meets it at 7 times the scale. So use the
+input for a scale that must hold.
 
 ## Fields
 
@@ -115,14 +116,15 @@ hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
 The typed `hero.m_iHealth` calls `readField` and `writeField` with the class
-that declares the field, `CBaseEntity`, so both samples make the same calls.
+that declares the field, `CBaseEntity`, so the two samples make the same calls.
 
-The first time any mod on the server uses a field, the host looks up its offset
-in the schema and caches it until the server exits. Before it touches memory, it
-checks that the entity is of the class the call gives or derives from it. A
-`writeField` call that passes a trooper's handle with the class
-`CCitadelPlayerPawn` fails with a message giving both classes, and nothing is
-written. A write marks the field changed so the server sends it to the players.
+The first time any mod on the server uses a field, the host looks up the field's
+offset in the schema, and caches it until the server exits. Before it touches
+memory, the host checks that the entity is of the class the call gives, or of a
+class that derives from it. So a `writeField` call that passes a trooper's
+handle with the class `CCitadelPlayerPawn` fails with a message that gives both
+classes, and the host writes nothing. A write marks the field changed, so the
+server sends it to the players.
 
 A dotted field name reaches a field inside an embedded structure, such as the
 collision group of a model entity's collision property:
@@ -140,17 +142,18 @@ writeField(
 
 In the first call, `m_Collision` holds the collision property, and
 `m_CollisionGroup` is a field inside it. Each segment of a path is a field of
-the structure that the segment before it holds, and the host refuses a path
-through a field that holds a number, a pointer or a handle.
+the structure that the segment before it holds. The host refuses a path that
+goes through a field holding a number, a pointer or a handle.
 
-Field types cover booleans, signed and unsigned integers of 8 to 64 bits, 32
-and 64-bit floats, vectors, entity handles and strings. Angles travel as
-vectors. A typed field whose type is another entity class reads as that
-class, so `hero.m_hController` is a controller a mod can read further.
+A field can be a boolean, a signed or unsigned integer of 8 to 64 bits, a 32 or
+64-bit float, a vector, an entity handle or a string. Angles are read and
+written as vectors. A typed field whose type is another entity class reads as
+that class, so `hero.m_hController` is a controller whose own fields a mod can
+read.
 
 The host checks the requested type against the type the schema declares for the
-field, and refuses a mismatch with a message giving both types. Each requested
-type fits these fields:
+field, and refuses a mismatch with a message that gives both types. Each
+requested type reads these fields:
 
 - Any number type, a boolean or a handle reads a field that holds a number,
   boolean, enum, handle or boxed number such as `GameTime_t`. The value is cut
@@ -160,16 +163,16 @@ type fits these fields:
 - A list call reads a `CUtlVector` or `CNetworkUtlVectorBase` of one of those,
   and a single-value call never reads a list.
 
-A pointer, an embedded structure and any other container hold nothing a mod
-can read or write by value. Reach a structure's fields with a dotted name.
+A mod cannot read or write a pointer, an embedded structure or any other
+container by value. Reach a structure's fields with a dotted name instead.
 
 ### The match's state
 
-The match's state is in the game rules, which are not an entity: each team's
-gold, the game state, the winning team, the Mid Boss count and the pause fields.
-Their proxy entity, `citadel_gamerules`, points to them and sends them to the
-players. A mod reads them through the classes `CGameRules` and
-`CCitadelGameRules` with the proxy's handle:
+The match's state is in the game rules: each team's gold, the game state, the
+winning team, the Mid Boss count and the pause fields. The game rules are not an
+entity. Their proxy entity, `citadel_gamerules`, points to them and sends them
+to the players. A mod reads them through the classes `CGameRules` and
+`CCitadelGameRules`, with the proxy's handle:
 
 ```ts
 import { findEntities } from 'modlock'
@@ -180,15 +183,16 @@ const rules = new CCitadelGameRules(proxy)
 rules.m_nAmberGold = 10000
 ```
 
-Setting `m_nAmberGold` sends the whole rules to the players, so players already
-in the match see the change at once. A field the game's clients derive from
-other state may be set again by the game on its next update.
+Setting `m_nAmberGold` sends all of the game rules to the players, so the
+players already in the match see the change at once. When the game's clients
+derive a field from other state, the game may set that field again on its next
+update.
 
 A field that holds a list of numbers, handles, booleans, vectors or text, such
-as the banned heroes or the neutral camp spawn times, reads as an array and
-writes by replacing the array. The host grows the game's list when the
-new array is longer than the space the game allocated. A list of structures,
-such as the Mid Boss team states, has no accessor.
+as the banned heroes or the neutral camp spawn times, reads as an array. Writing
+it replaces the whole array. When the new array is longer than the space the
+game allocated, the host grows the game's list. A mod cannot read or write a
+list of structures, such as the Mid Boss team states.
 
 ```ts
 rules.m_vecBannedHeroes = [1, 2, 3]
@@ -198,11 +202,11 @@ const times = rules.m_vecNeutralCampNextSpawnTimes // number[]
 ## Inputs
 
 `fireInput(handle, input, value)` sends an entity an input, as a map's output
-would: `Kill`, `Color`, `Alpha`, `Skin`, `SetScale`, `StartShake`, `Explode` and
-the thousand others in `entities.json`. An input reads its value as the type it
-takes and does not convert text. `Alpha` takes an integer, and `Color` takes a
-color written as `0xRRGGBBAA`. A typed class sends each input as a method whose
-parameter has that type:
+would. The inputs include `Kill`, `Color`, `Alpha`, `Skin`, `SetScale`,
+`StartShake`, `Explode` and the thousand others in `entities.json`. The entity
+reads the value as the type the input takes, and does not convert text. `Alpha`
+takes an integer, and `Color` takes a color written as `0xRRGGBBAA`. A typed
+class sends each input from a method whose parameter has that type:
 
 ```ts
 const shake = create('env_shake', {
@@ -221,40 +225,41 @@ boom?.inputExplode()
 Each `input` method calls `fireInput` with its input's name, so
 `shake?.inputStartShake()` fires `StartShake`. A `fireInput` call with an input
 the entity does not have returns `false`, and the host logs the entity's
-designer name and the input's. Only that call fails: the rest of the handler
-runs, and the mod keeps running.
+designer name and the input's name. Only that call fails, so the rest of the
+handler runs, and the mod keeps running.
 
 ## Damage and deaths
 
 `damage` deals ordinary damage through the engine, and `killEntity` forces a
-hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor`, which
-defaults to the attacker, and an optional `ability`, and `damage` also takes an
-`amount`.
+hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor` and an
+optional `ability`. The `inflictor` defaults to the attacker. `damage` also
+takes an `amount`.
 
-- A handle includes its entity's generation, so a stale handle fails instead of
-  selecting a replacement entity. An attacker that has since died or left
-  credits nobody.
+- A handle includes its entity's generation, so a stale handle fails, in place
+  of selecting a replacement entity. When the attacker has since died or left,
+  the engine credits nobody.
 - `killEntity` credits the attacker through the game's own damage and reward
-  logic, bypasses resistance and damage modification, and suppresses item
-  procs. A living pawn at zero health still receives its death transition, and
-  a victim already dead succeeds without a second reward. The caller releases
-  any immortality its mode gave the victim first.
-- A call with no attacker causes an environmental death with no credit or
-  rewards, as `player.kill()` does.
+  logic. It bypasses resistance and damage modification, and suppresses item
+  procs. A living pawn at zero health still goes through its death, and a call
+  on a victim already dead succeeds without paying a second reward. Before the
+  call, release any immortality your mode gave the victim.
+- A call without an attacker causes an environmental death, as `player.kill()`
+  does, and nobody gets credit or rewards for it.
 - Both calls refuse the world, props and buildings, because clients cannot
   safely process their damage events.
 
-The engine credits no one for some deaths, such as a hero knocked out of the
-play area or into a hazard. To credit one, the mod keeps the handle of the last
-enemy that hit or pushed the victim. When the victim dies, the mod passes that
-handle as `attacker` to `killEntity`. The engine then awards the kill, assists
-and rewards, so a mod should leave the scoreboard fields alone.
+For some deaths, such as a hero knocked out of the play area or into a hazard,
+the engine does not credit anyone. To credit such a death, the mod keeps the
+handle of the last enemy that hit or pushed the victim. When the victim dies,
+the mod passes that handle as `attacker` to `killEntity`. The engine then awards
+the kill, the assists and the rewards, so a mod should leave the scoreboard
+fields alone.
 
 ## What fails, and how
 
-Every entity call fails on its own: it logs, returns `undefined` or `false`
-in TypeScript and Luau and an error in Go, and the mod keeps running. The
-failures a mod can meet:
+Every entity call fails on its own. It logs the failure, and returns `undefined`
+or `false` in TypeScript and Luau, or an error in Go, and the mod keeps running.
+These are the failures a mod can meet:
 
 | Message                                       | Cause                                                        |
 | --------------------------------------------- | ------------------------------------------------------------ |
@@ -266,11 +271,12 @@ failures a mod can meet:
 | `NAME has no input INPUT`                     | The input is not one the entity accepts                      |
 | A class mismatch naming both classes          | A field was named on a class the entity does not derive from |
 
-`createEntity` refuses the 25 designer names below before they exist, and none
-has a constructor. Each reads state that a map, a game mode, an owning hero or
-the ability that makes it provides, and crashes the server when made alone. A bounce pad, for one, is created safely but finds its team through the
-ability that placed it. The first hero to cross a pad made alone crashes the
-server.
+`createEntity` refuses the 25 designer names below before they exist, and the
+libraries do not have a constructor for any of them. Each one reads state that a
+map, a game mode, an owning hero or the ability that makes it provides, and
+crashes the server when it is made alone. A bounce pad, for example, is created
+safely, but finds its team through the ability that placed it. So the first hero
+to cross a pad made alone crashes the server.
 
 | Needs                      | Designer names                                                                                                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
