@@ -1,0 +1,37 @@
+[
+  {
+    "name": "A failed adoption erases the running configuration",
+    "replace": [
+      [
+        "confirmed' = IF ok THEN id ELSE confirmed",
+        "confirmed' = IF ok THEN id ELSE 0"
+      ]
+    ],
+    "expect": "SuccessfulIdentity"
+  },
+  {
+    "name": "A failed write forgets the retained result",
+    "replace": [["result' = result", "result' = None"]],
+    "expect": "RetainedResult"
+  },
+  {
+    "name": "Replay sends the new offer instead of the last adoption result",
+    "replace": [
+      [
+        "Replay == /\\ phase = \"replay\" /\\ phase' = \"ready\"\n          /\\ wire' = result",
+        "Replay == /\\ phase = \"replay\" /\\ phase' = \"ready\"\n          /\\ wire' = <<offered, TRUE>>"
+      ]
+    ],
+    "expect": "ReplayIdentity"
+  },
+  {
+    "name": "Repeating the running configuration after refusal restarts it",
+    "replace": [
+      [
+        "Offer(next) == /\\ phase = \"ready\"\n               /\\ offered' = IF next = 0 THEN offered ELSE next\n               /\\ apply' = Needs(next) /\\ expectedApply' = Needs(next)\n",
+        "Offer(next) == /\\ phase = \"ready\"\n               /\\ offered' = IF next = 0 THEN offered ELSE next\n               /\\ apply' = (next # 0 /\\ next # offered) /\\ expectedApply' = Needs(next)\n"
+      ]
+    ],
+    "expect": "NoRedundantApply"
+  }
+]
