@@ -29,6 +29,9 @@ type rowList struct {
 	// first and count are the window: the place of its first row and the
 	// number of rows it holds.
 	first, count uint32
+	// focus is the key of the row the player's renderer last said it focuses,
+	// or "" for none.
+	focus string
 }
 
 // newRowList returns an empty list with the default window.
@@ -90,15 +93,33 @@ func (l *rowList) remove(key string) {
 	delete(l.keys, key)
 }
 
-// window sets the window to window's run of rows, at most MaxWindow.
+// window sets the window to window's run of rows, at most MaxWindow, and
+// the focus to the row it names.
 func (l *rowList) window(window *ui.ListWindow) {
 	l.first, l.count = window.GetFirst(), min(window.GetCount(), MaxWindow)
+	l.focus = window.GetFocus()
+}
+
+// place returns the place of the row with key, and whether the list holds it.
+func (l *rowList) place(key string) (uint32, bool) {
+	row := l.keys[key]
+	if row == nil {
+		return 0, false
+	}
+	at, found := slices.BinarySearchFunc(l.order, row, compareRows)
+	return uint32(at), found
 }
 
 // fill returns a copy of the list node with the window's rows, in place of
 // any the mod sent. A window past the end moves back to end at the last row.
 // The copy shares the rows but not the slice, which later changes shift.
+//
+// The copy echoes the focus with its row's place, which the renderer reads to
+// keep the focus on that row as rows come and go, or, with no place, to move
+// it once the row has left. A selected key the list lacks is cleared, so a
+// chosen row that left shows nothing chosen.
 func (l *rowList) fill(node *ui.Node) *ui.Node {
+	// Fill the window's rows.
 	total := uint32(len(l.order))
 	first := min(l.first, total-min(l.count, total))
 	end := min(first+l.count, total)
@@ -108,6 +129,15 @@ func (l *rowList) fill(node *ui.Node) *ui.Node {
 	}
 	filled.List.First, filled.List.Total = first, total
 	filled.List.Rows = slices.Clone(l.order[first:end])
+
+	// Echo the focus and its place, and drop a selection that left.
+	filled.List.Focus = l.focus
+	if at, ok := l.place(l.focus); ok {
+		filled.List.FocusAt = &at
+	}
+	if _, ok := l.keys[filled.List.GetSelected()]; !ok {
+		filled.List.Selected = ""
+	}
 	return filled
 }
 

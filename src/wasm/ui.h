@@ -132,7 +132,8 @@ class UiTrees {
   // range's value is "range:<phase>:<handle>", with phase 1 for a press, 2
   // for a release and 3 for a cancel; a release adds ":" and every handle's
   // value, comma-separated, each clamped and snapped as a slider's, and is
-  // refused when they fall out of order.
+  // refused when they fall out of order. A list's value is "row:" and the
+  // chosen row's key in base64url, refused unless the list holds that row.
   [[nodiscard]] std::expected<ui::UiInputEvent, std::string> Input(int32_t slot,
                                                                    std::string_view node,
                                                                    std::string_view value) const;
@@ -157,8 +158,9 @@ class UiTrees {
   static constexpr double kActionsPerSecond = 4;
 
   // Window reads the run of a list's rows a player's renderer asks for, as
-  // the game sends it: "<node> <first> <count>", decimal. It returns the
-  // window while slot's tree shows node as a list and count is at most
+  // the game sends it: "<node> <first> <count>", decimal, then the key of
+  // the row the player has focused, in base64url, when one is. It returns
+  // the window while slot's tree shows node as a list and count is at most
   // kMaxWindow.
   [[nodiscard]] std::expected<ui::ListWindow, std::string> Window(int32_t slot,
                                                                   std::string_view line) const;
@@ -247,6 +249,12 @@ class UiTrees {
 
   // Keep returns what the host keeps of node.
   static Shown Keep(const ui::Node& node);
+
+  // ChooseRow reads the row a player chose in a list, as Input describes.
+  static std::expected<ui::UiInputEvent, std::string> ChooseRow(int32_t slot,
+                                                                const std::string& name,
+                                                                const Shown& shown,
+                                                                std::string_view value);
 
   // ReadRange reads a range's value, as Input describes, against what the
   // host keeps of the range.

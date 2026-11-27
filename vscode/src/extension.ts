@@ -58,11 +58,11 @@ export function activate(context: vscode.ExtensionContext): void {
           value: { mod, event: { player: slot, node, value } },
         },
       }),
-    window: (slot, mod, node, first, count) =>
+    window: (slot, mod, node, first, count, focus) =>
       running?.send({
         body: {
           case: 'window',
-          value: { mod, slot, window: { node, first, count } },
+          value: { mod, slot, window: { node, first, count, focus } },
         },
       }),
   })

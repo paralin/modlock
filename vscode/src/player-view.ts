@@ -29,7 +29,14 @@ export type Asked =
   | { type: 'command'; line: string }
   | { type: 'press'; mod: string; node: string }
   | { type: 'change'; mod: string; node: string; value: InputValue }
-  | { type: 'window'; mod: string; node: string; first: number; count: number }
+  | {
+      type: 'window'
+      mod: string
+      node: string
+      first: number
+      count: number
+      focus: string
+    }
 
 /** Player acts as the stand-in player in the sandbox. */
 export interface Player {
@@ -39,13 +46,17 @@ export interface Player {
   press(slot: number, mod: string, node: string): void
   /** change sets node, an input mod shows the player in slot, to value. */
   change(slot: number, mod: string, node: string, value: InputValue): void
-  /** window asks for count rows of a list node from first, for slot. */
+  /**
+   * window asks for count rows of a list node from first, for slot, and
+   * names the focused row's key, or "" for none.
+   */
   window(
     slot: number,
     mod: string,
     node: string,
     first: number,
     count: number,
+    focus: string,
   ): void
 }
 
@@ -132,8 +143,8 @@ export class PlayerView {
         break
       case 'window':
         if (slot !== undefined) {
-          const { mod, node, first, count } = asked
-          this.player.window(slot, mod, node, first, count)
+          const { mod, node, first, count, focus } = asked
+          this.player.window(slot, mod, node, first, count, focus)
         }
         break
     }

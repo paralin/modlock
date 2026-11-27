@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/paralin/modlock/mod"
 	uipb "github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -59,5 +60,29 @@ func TestListSendsOnlyTheRowsThatChanged(t *testing.T) {
 	// The same rows send nothing.
 	if change := diff(next, render(next, v, v.root, nil)); change != nil {
 		t.Fatalf("unchanged draw sent %v", change)
+	}
+}
+
+// TestListHearsTheChosenRow checks that a list encodes its selection and row
+// styles, and hands the chosen row's key to OnChange.
+func TestListHearsTheChosenRow(t *testing.T) {
+	var chosen string
+	v := &view{}
+	v.root = List{
+		RowHeight:     20,
+		Row:           Label{Text: "{name}"},
+		Rows:          []Row{{Key: "a"}},
+		Selected:      "a",
+		SelectedStyle: &Style{Bold: true},
+		OnChange:      func(_ mod.Player, key string) { chosen = key },
+	}
+	s := render(nil, v, v.root, nil)
+	node := s.nodes[s.order[len(s.order)-2].Id]
+	if list := node.GetList(); list.GetSelected() != "a" || !list.GetSelectedStyle().GetBold() || list.GetFocusStyle() != nil {
+		t.Fatalf("list = %v", list)
+	}
+	s.handlers[node.GetId()].row(mod.PlayerOf(0), "a")
+	if chosen != "a" {
+		t.Fatalf("chosen = %q", chosen)
 	}
 }

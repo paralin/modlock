@@ -193,7 +193,9 @@ std::expected<void, std::string> CheckInput(const ui::Node& node) {
   }
   for (int i = 0; i < handles.size(); ++i) {
     const auto& name = handles[i].name();
-    const auto same = [&](const ui::RangeHandle& other) { return other.name() == name; };
+    const auto same = [&](const ui::RangeHandle& other) {
+      return other.name() == name;
+    };
     if (name.size() > kMaxId || !IsWord(name, "-.") ||
         std::any_of(handles.begin(), handles.begin() + i, same)) {
       return std::unexpected("node " + node.id() + ": a range's handles have distinct names");
@@ -264,6 +266,12 @@ std::expected<void, std::string> CheckList(const ui::Node& node) {
   if (list.rows_size() > 0 || list.first() != 0 || list.total() != 0) {
     return std::unexpected("node " + node.id() + ": a list's rows travel in the change's lists");
   }
+  if (!list.focus().empty() || list.has_focus_at()) {
+    return std::unexpected("node " + node.id() + ": a list's focus is the player's");
+  }
+  if (list.selected().size() > kMaxId) {
+    return std::unexpected("node " + node.id() + ": a list's selected key is at most 64 bytes");
+  }
   if (!(list.row_height() >= 1 && list.row_height() <= kMaxRowHeight)) {
     return std::unexpected("node " + node.id() + ": a list's row height is 1 to 1000");
   }
@@ -274,7 +282,8 @@ std::expected<void, std::string> CheckList(const ui::Node& node) {
   for (const auto& part : list.row()) {
     if (part.kind() != ui::KIND_PANEL && part.kind() != ui::KIND_LABEL &&
         part.kind() != ui::KIND_IMAGE) {
-      return std::unexpected("node " + node.id() + ": a list's row holds panels, labels and images");
+      return std::unexpected("node " + node.id() +
+                             ": a list's row holds panels, labels and images");
     }
     if (!ids.insert(part.id()).second) {
       return std::unexpected("node " + node.id() + ": a list's row repeats node " + part.id());
@@ -790,7 +799,8 @@ std::expected<std::vector<UiTrees::Pending>, std::string> UiTrees::CheckLists(
       }
       for (const auto& [name, value] : row.fields()) {
         if (!IsWord(name, "") || value.size() > kMaxText) {
-          return std::unexpected("list " + rows.node() + ": a row's field is a word and short text");
+          return std::unexpected("list " + rows.node() +
+                                 ": a row's field is a word and short text");
         }
         if (std::ranges::contains(fields, name) && !value.empty() && !IsContentImage(value)) {
           return std::unexpected("list " + rows.node() + ": images come from the game's content");
@@ -857,18 +867,27 @@ void UiTrees::Commit(std::vector<Pending>& lists) {
 
 std::expected<ui::ListWindow, std::string> UiTrees::Window(int32_t slot,
                                                            std::string_view line) const {
-  // Read the list's id and two decimal numbers.
+  // Read the list's id, two decimal numbers and the focused key, if any.
   const auto first_space = line.find(' ');
   const auto second_space =
       first_space == std::string_view::npos ? first_space : line.find(' ', first_space + 1);
   if (second_space == std::string_view::npos) {
     return std::unexpected("a window is a list, its first row and its count");
   }
+  const auto third_space = line.find(' ', second_space + 1);
   const auto node = line.substr(0, first_space);
   const auto first = Decimal(line.substr(first_space + 1, second_space - first_space - 1));
-  const auto count = Decimal(line.substr(second_space + 1));
+  const auto count = Decimal(line.substr(second_space + 1, third_space - second_space - 1));
   if (!first || !count || *first > kMaxRows || *count > kMaxWindow) {
     return std::unexpected("a window starts within the list and holds at most 256 rows");
+  }
+  std::string focus;
+  if (third_space != std::string_view::npos) {
+    const auto decoded = DecodeBase64Url(line.substr(third_space + 1));
+    if (!decoded || decoded->empty() || decoded->size() > kMaxId) {
+      return std::unexpected("a window's focus is a row key of 1 to 64 bytes");
+    }
+    focus = *decoded;
   }
 
   // The list must be one the player's tree shows.
@@ -884,6 +903,7 @@ std::expected<ui::ListWindow, std::string> UiTrees::Window(int32_t slot,
   window.set_node(std::string(node));
   window.set_first(static_cast<uint32_t>(*first));
   window.set_count(static_cast<uint32_t>(*count));
+  window.set_focus(std::move(focus));
   return window;
 }
 
@@ -1154,6 +1174,9 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
     return std::unexpected("shows no input " + name);
   }
   const auto found = tree->second.find(node);
+  if (found != tree->second.end() && found->second.kind == ui::KIND_LIST) {
+    return ChooseRow(slot, name, found->second, value);
+  }
   if (found == tree->second.end() || found->second.input == ui::Node::INPUT_NOT_SET) {
     return std::unexpected("shows no input " + name);
   }
@@ -1244,6 +1267,25 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
   return event;
 }
 
+std::expected<ui::UiInputEvent, std::string> UiTrees::ChooseRow(int32_t slot,
+                                                                const std::string& name,
+                                                                const Shown& shown,
+                                                                std::string_view value) {
+  // Read "row:<key>", the key in base64url, and refuse a row the list lacks.
+  if (!value.starts_with("row:")) {
+    return std::unexpected("list " + name + " takes the row a player chose");
+  }
+  const auto key = DecodeBase64Url(value.substr(4));
+  if (!key || !shown.rows || !shown.rows->sizes.contains(*key)) {
+    return std::unexpected("list " + name + " has no such row");
+  }
+  ui::UiInputEvent event;
+  event.set_player(slot);
+  event.set_node(name);
+  event.set_row(*key);
+  return event;
+}
+
 std::expected<ui::RangeEvent, std::string> UiTrees::ReadRange(const Shown& shown,
                                                               std::string_view value) {
   // Split "range:<phase>:<handle>" and a release's ":<values>".
@@ -1257,7 +1299,8 @@ std::expected<ui::RangeEvent, std::string> UiTrees::ReadRange(const Shown& shown
   const auto rest = first == std::string_view::npos ? std::string_view() : value.substr(first + 1);
   const auto second = rest.find(':');
   const auto handle = rest.substr(0, second);
-  const auto values = second == std::string_view::npos ? std::string_view() : rest.substr(second + 1);
+  const auto values =
+      second == std::string_view::npos ? std::string_view() : rest.substr(second + 1);
   const auto released = phase == "2";
   if (first == std::string_view::npos || (phase != "1" && !released && phase != "3") ||
       released != (second != std::string_view::npos)) {

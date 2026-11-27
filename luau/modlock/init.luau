@@ -4397,6 +4397,11 @@ schema.List = {
 	{ number = 3, name = "first", kind = "uint32" },
 	{ number = 4, name = "total", kind = "uint32" },
 	{ number = 5, name = "rows", kind = "message", repeated = true, message = "Row" },
+	{ number = 6, name = "focusStyle", kind = "message", message = "Style" },
+	{ number = 7, name = "selectedStyle", kind = "message", message = "Style" },
+	{ number = 8, name = "selected", kind = "string" },
+	{ number = 9, name = "focus", kind = "string" },
+	{ number = 10, name = "focusAt", kind = "uint32", optional = true },
 }
 schema.Row = {
 	{ number = 1, name = "key", kind = "string" },
@@ -4635,6 +4640,7 @@ schema.UiInputEvent = {
 	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
 	{ number = 7, name = "wheel", kind = "message", oneof = "value", message = "Wheel" },
 	{ number = 8, name = "range", kind = "message", oneof = "value", message = "RangeEvent" },
+	{ number = 9, name = "row", kind = "string", oneof = "value" },
 }
 schema.UiDocumentEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

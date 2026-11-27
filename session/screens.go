@@ -145,7 +145,7 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 			for _, node := range slices.Sorted(maps.Keys(lists)) {
 				list := lists[node]
 				change.Lists = append(change.Lists, list.reset(node))
-				window := &ui.ListWindow{Node: node, First: list.first, Count: list.count}
+				window := &ui.ListWindow{Node: node, First: list.first, Count: list.count, Focus: list.focus}
 				update := &control.UiWindow{Mod: tree.GetMod(), Slot: slot, Window: window}
 				windows = append(windows, &control.HostEvent{Body: &control.HostEvent_UiWindow{UiWindow: update}})
 			}

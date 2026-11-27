@@ -913,4 +913,42 @@ TEST(UiTrees, TakesAWindowOnlyForAListTheTreeShows) {
   EXPECT_FALSE(trees.Window(3, "scores 0 5"));
 }
 
+TEST(UiTrees, TakesTheFocusAndChosenRowOfAList) {
+  // A window carries the focused row's key, of 1 to 64 bytes, in base64url.
+  UiTrees trees;
+  auto shown = ShowList();
+  AddRows(shown, 0, 2);
+  ASSERT_TRUE(trees.Apply(3, shown));
+  auto window = trees.Window(3, "scores 0 50 cm93MQ");
+  ASSERT_TRUE(window) << window.error();
+  EXPECT_EQ(window->focus(), "row1");
+  EXPECT_EQ(trees.Window(3, "scores 0 50")->focus(), "");
+  EXPECT_FALSE(trees.Window(3, "scores 0 50 !"));
+  EXPECT_FALSE(trees.Window(
+      3,
+      "scores 0 50 "
+      "a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s"));
+
+  // A chosen row must be one the list holds.
+  auto chosen = trees.Input(3, "scores", "row:cm93MQ");
+  ASSERT_TRUE(chosen) << chosen.error();
+  EXPECT_EQ(chosen->row(), "row1");
+  EXPECT_FALSE(trees.Input(3, "scores", "row:cm93OQ"));
+  EXPECT_FALSE(trees.Input(3, "scores", "1"));
+
+  // The focus is the player's, so a mod may not set it, and a selected key
+  // is bounded as a row's is.
+  auto focus = ShowList();
+  focus.mutable_set(0)->mutable_list()->set_focus("row1");
+  EXPECT_FALSE(trees.Apply(3, focus));
+  auto at = ShowList();
+  at.mutable_set(0)->mutable_list()->set_focus_at(1);
+  EXPECT_FALSE(trees.Apply(3, at));
+  auto selected = ShowList();
+  selected.mutable_set(0)->mutable_list()->set_selected("row1");
+  EXPECT_TRUE(trees.Apply(3, selected));
+  selected.mutable_set(0)->mutable_list()->set_selected(std::string(65, 'k'));
+  EXPECT_FALSE(trees.Apply(3, selected));
+}
+
 }  // namespace

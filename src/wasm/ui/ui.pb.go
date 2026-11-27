@@ -1732,6 +1732,14 @@ func (*Node_Range) isNode_Input() {}
 // rows with the window of rows the player's renderer asks for, so the screen
 // carries only the rows near the visible box and the renderer builds a panel
 // only for those. The list scrolls with the mouse wheel over it.
+//
+// The list takes the keyboard and controller as one panel and holds which
+// row has the focus by key, so the focus stays on its row as rows arrive,
+// leave or move, and passes to the next row, or the one before the last,
+// when its own row leaves. The player chooses the focused row with Enter or
+// the controller's confirm, or any row by clicking it, and the mod hears its
+// key as the list's input. The mod's selected names the row it draws as
+// chosen.
 type List struct {
 	unknownFields []byte
 	// Row is the template each row draws: its nodes, at most 16, with the node
@@ -1750,6 +1758,18 @@ type List struct {
 	// Rows holds the rows in the window the renderer asked for, in order. The
 	// host sets them; a mod's are ignored.
 	Rows []*Row `protobuf:"bytes,5,rep,name=rows,proto3" json:"rows,omitempty"`
+	// FocusStyle is laid over the focused row's own style, and SelectedStyle
+	// over the selected row's.
+	FocusStyle    *Style `protobuf:"bytes,6,opt,name=focus_style,json=focusStyle,proto3" json:"focusStyle,omitempty"`
+	SelectedStyle *Style `protobuf:"bytes,7,opt,name=selected_style,json=selectedStyle,proto3" json:"selectedStyle,omitempty"`
+	// Selected is the key of the row the mod draws as chosen, or empty. The
+	// host clears a key the list no longer holds.
+	Selected string `protobuf:"bytes,8,opt,name=selected,proto3" json:"selected,omitempty"`
+	// Focus is the key the renderer last said has the focus, and FocusAt its
+	// place in the whole list, unset when the list holds no such row. The host
+	// sets them; a mod's are refused.
+	Focus   string  `protobuf:"bytes,9,opt,name=focus,proto3" json:"focus,omitempty"`
+	FocusAt *uint32 `protobuf:"varint,10,opt,name=focus_at,json=focusAt,proto3,oneof" json:"focusAt,omitempty"`
 }
 
 func (x *List) Reset() {
@@ -1791,6 +1811,41 @@ func (x *List) GetRows() []*Row {
 		return x.Rows
 	}
 	return nil
+}
+
+func (x *List) GetFocusStyle() *Style {
+	if x != nil {
+		return x.FocusStyle
+	}
+	return nil
+}
+
+func (x *List) GetSelectedStyle() *Style {
+	if x != nil {
+		return x.SelectedStyle
+	}
+	return nil
+}
+
+func (x *List) GetSelected() string {
+	if x != nil {
+		return x.Selected
+	}
+	return ""
+}
+
+func (x *List) GetFocus() string {
+	if x != nil {
+		return x.Focus
+	}
+	return ""
+}
+
+func (x *List) GetFocusAt() uint32 {
+	if x != nil && x.FocusAt != nil {
+		return *x.FocusAt
+	}
+	return 0
 }
 
 // Row is one row of a list, known by its key. Rows sort by rank, then by
@@ -1850,6 +1905,8 @@ type ListWindow struct {
 	// most 256.
 	First uint32 `protobuf:"varint,2,opt,name=first,proto3" json:"first,omitempty"`
 	Count uint32 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+	// Focus is the key of the row that has the focus, or empty for none.
+	Focus string `protobuf:"bytes,4,opt,name=focus,proto3" json:"focus,omitempty"`
 }
 
 func (x *ListWindow) Reset() {
@@ -1877,6 +1934,13 @@ func (x *ListWindow) GetCount() uint32 {
 		return x.Count
 	}
 	return 0
+}
+
+func (x *ListWindow) GetFocus() string {
+	if x != nil {
+		return x.Focus
+	}
+	return ""
 }
 
 // ListChange changes the rows of one list node.
@@ -3900,6 +3964,7 @@ type UiInputEvent struct {
 	//	*UiInputEvent_Choice
 	//	*UiInputEvent_Wheel
 	//	*UiInputEvent_Range
+	//	*UiInputEvent_Row
 	Value isUiInputEvent_Value `protobuf_oneof:"value"`
 }
 
@@ -3972,6 +4037,13 @@ func (x *UiInputEvent) GetRange() *RangeEvent {
 	return nil
 }
 
+func (x *UiInputEvent) GetRow() string {
+	if x, ok := x.GetValue().(*UiInputEvent_Row); ok {
+		return x.Row
+	}
+	return ""
+}
+
 type isUiInputEvent_Value interface {
 	isUiInputEvent_Value()
 }
@@ -4006,6 +4078,11 @@ type UiInputEvent_Range struct {
 	Range *RangeEvent `protobuf:"bytes,8,opt,name=range,proto3,oneof"`
 }
 
+type UiInputEvent_Row struct {
+	// Row is the key of the row the player chose in a list.
+	Row string `protobuf:"bytes,9,opt,name=row,proto3,oneof"`
+}
+
 func (*UiInputEvent_Text) isUiInputEvent_Value() {}
 
 func (*UiInputEvent_Number) isUiInputEvent_Value() {}
@@ -4017,6 +4094,8 @@ func (*UiInputEvent_Choice) isUiInputEvent_Value() {}
 func (*UiInputEvent_Wheel) isUiInputEvent_Value() {}
 
 func (*UiInputEvent_Range) isUiInputEvent_Value() {}
+
+func (*UiInputEvent_Row) isUiInputEvent_Value() {}
 
 // UiDocumentEvent ends one submission from a player's document input: the
 // whole document, or why it did not arrive.
@@ -4553,8 +4632,13 @@ func (m *List) CloneVT() *List {
 	r.RowHeight = m.RowHeight
 	r.First = m.First
 	r.Total = m.Total
+	r.Selected = m.Selected
+	r.Focus = m.Focus
 	r.Row = protobuf_go_lite.CloneVTSlice(m.Row)
 	r.Rows = protobuf_go_lite.CloneVTSlice(m.Rows)
+	r.FocusStyle = protobuf_go_lite.CloneVTValue(m.FocusStyle)
+	r.SelectedStyle = protobuf_go_lite.CloneVTValue(m.SelectedStyle)
+	r.FocusAt = protobuf_go_lite.ClonePtr(m.FocusAt)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -4592,6 +4676,7 @@ func (m *ListWindow) CloneVT() *ListWindow {
 	r.Node = m.Node
 	r.First = m.First
 	r.Count = m.Count
+	r.Focus = m.Focus
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -5454,6 +5539,19 @@ func (m *UiInputEvent_Range) CloneOneofVT() isUiInputEvent_Value {
 	return m.CloneVT()
 }
 
+func (m *UiInputEvent_Row) CloneVT() *UiInputEvent_Row {
+	if m == nil {
+		return (*UiInputEvent_Row)(nil)
+	}
+	r := new(UiInputEvent_Row)
+	r.Row = m.Row
+	return r
+}
+
+func (m *UiInputEvent_Row) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
 func (m *UiDocumentEvent) CloneVT() *UiDocumentEvent {
 	if m == nil {
 		return (*UiDocumentEvent)(nil)
@@ -5924,6 +6022,21 @@ func (this *List) EqualVT(that *List) bool {
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Rows, that.Rows, func() *Row { return &Row{} }) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.FocusStyle, that.FocusStyle) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.SelectedStyle, that.SelectedStyle) {
+		return false
+	}
+	if this.Selected != that.Selected {
+		return false
+	}
+	if this.Focus != that.Focus {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.FocusAt, that.FocusAt) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -5977,6 +6090,9 @@ func (this *ListWindow) EqualVT(that *ListWindow) bool {
 		return false
 	}
 	if this.Count != that.Count {
+		return false
+	}
+	if this.Focus != that.Focus {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -7302,6 +7418,23 @@ func (this *UiInputEvent_Range) EqualVT(thatIface isUiInputEvent_Value) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Range, that.Range, func() *RangeEvent { return &RangeEvent{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *UiInputEvent_Row) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_Row)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Row != that.Row {
 		return false
 	}
 	return true
@@ -9122,6 +9255,31 @@ func (x *List) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.FocusStyle != nil || s.HasField("focusStyle") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("focusStyle")
+		x.FocusStyle.MarshalProtoJSON(s.WithField("focusStyle"))
+	}
+	if x.SelectedStyle != nil || s.HasField("selectedStyle") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("selectedStyle")
+		x.SelectedStyle.MarshalProtoJSON(s.WithField("selectedStyle"))
+	}
+	if x.Selected != "" || s.HasField("selected") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("selected")
+		s.WriteString(x.Selected)
+	}
+	if x.Focus != "" || s.HasField("focus") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("focus")
+		s.WriteString(x.Focus)
+	}
+	if x.FocusAt != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("focusAt")
+		s.WriteUint32(*x.FocusAt)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -9184,6 +9342,34 @@ func (x *List) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Rows = append(x.Rows, v)
 			})
+		case "focus_style", "focusStyle":
+			if s.ReadNil() {
+				x.FocusStyle = nil
+				return
+			}
+			x.FocusStyle = &Style{}
+			x.FocusStyle.UnmarshalProtoJSON(s.WithField("focus_style", true))
+		case "selected_style", "selectedStyle":
+			if s.ReadNil() {
+				x.SelectedStyle = nil
+				return
+			}
+			x.SelectedStyle = &Style{}
+			x.SelectedStyle.UnmarshalProtoJSON(s.WithField("selected_style", true))
+		case "selected":
+			s.AddField("selected")
+			x.Selected = s.ReadString()
+		case "focus":
+			s.AddField("focus")
+			x.Focus = s.ReadString()
+		case "focus_at", "focusAt":
+			s.AddField("focus_at")
+			if s.ReadNil() {
+				x.FocusAt = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.FocusAt = &t
 		}
 	})
 }
@@ -9347,6 +9533,11 @@ func (x *ListWindow) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("count")
 		s.WriteUint32(x.Count)
 	}
+	if x.Focus != "" || s.HasField("focus") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("focus")
+		s.WriteString(x.Focus)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -9373,6 +9564,9 @@ func (x *ListWindow) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "count":
 			s.AddField("count")
 			x.Count = s.ReadUint32()
+		case "focus":
+			s.AddField("focus")
+			x.Focus = s.ReadString()
 		}
 	})
 }
@@ -12252,6 +12446,10 @@ func (x *UiInputEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("range")
 			ov.Range.MarshalProtoJSON(s.WithField("range"))
+		case *UiInputEvent_Row:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("row")
+			s.WriteString(ov.Row)
 		}
 	}
 	s.WriteObjectEnd()
@@ -12315,6 +12513,11 @@ func (x *UiInputEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Range = &RangeEvent{}
 			ov.Range.UnmarshalProtoJSON(s.WithField("range", true))
+		case "row":
+			s.AddField("row")
+			ov := &UiInputEvent_Row{}
+			x.Value = ov
+			ov.Row = s.ReadString()
 		}
 	})
 }
@@ -13477,6 +13680,41 @@ func (m *List) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.FocusAt != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.FocusAt))
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Focus) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Focus)
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.Selected) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Selected)
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.SelectedStyle != nil {
+		size, err := m.SelectedStyle.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.FocusStyle != nil {
+		size, err := m.FocusStyle.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	}
 	if len(m.Rows) > 0 {
 		for iNdEx := len(m.Rows) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Rows[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -13609,6 +13847,11 @@ func (m *ListWindow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Focus) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Focus)
+		i--
+		dAtA[i] = 0x22
 	}
 	if m.Count != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Count))
@@ -16010,6 +16253,19 @@ func (m *UiInputEvent_Range) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiInputEvent_Row) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_Row) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeString(dAtA, i, m.Row)
+	i--
+	dAtA[i] = 0x4a
+	return len(dAtA) - i, nil
+}
+
 func (m *UiDocumentEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -16683,6 +16939,17 @@ func (m *List) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	if m.FocusStyle != nil {
+		l = m.FocusStyle.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.SelectedStyle != nil {
+		l = m.SelectedStyle.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Selected)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Focus)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.FocusAt)
 	n += len(m.unknownFields)
 	return n
 }
@@ -16715,6 +16982,7 @@ func (m *ListWindow) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.First)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Count)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Focus)
 	n += len(m.unknownFields)
 	return n
 }
@@ -17461,6 +17729,16 @@ func (m *UiInputEvent_Range) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiInputEvent_Row) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringValue(1, m.Row)
+	return n
+}
+
 func (m *UiDocumentEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -18055,6 +18333,26 @@ func (x *List) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if x.FocusStyle != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "focus_style")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.FocusStyle)
+	}
+	if x.SelectedStyle != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "selected_style")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.SelectedStyle)
+	}
+	if x.Selected != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "selected")
+		protobuf_go_lite.TextWriteString(&sb, x.Selected)
+	}
+	if x.Focus != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "focus")
+		protobuf_go_lite.TextWriteString(&sb, x.Focus)
+	}
+	if x.FocusAt != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "focus_at")
+		protobuf_go_lite.TextWriteUint(&sb, *x.FocusAt)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -18127,6 +18425,10 @@ func (x *ListWindow) MarshalProtoText() string {
 	if x.Count != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "count")
 		protobuf_go_lite.TextWriteUint(&sb, x.Count)
+	}
+	if x.Focus != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "focus")
+		protobuf_go_lite.TextWriteString(&sb, x.Focus)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -19263,6 +19565,9 @@ func (x *UiInputEvent) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Range)
 		}
+	case *UiInputEvent_Row:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "row")
+		protobuf_go_lite.TextWriteString(&sb, body.Row)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -20321,6 +20626,66 @@ func (m *List) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FocusStyle", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.FocusStyle == nil {
+				m.FocusStyle = &Style{}
+			}
+			if err := m.FocusStyle.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SelectedStyle", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.SelectedStyle == nil {
+				m.SelectedStyle = &Style{}
+			}
+			if err := m.SelectedStyle.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Selected", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Selected = v
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Focus", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Focus = v
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FocusAt", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.FocusAt = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -20509,6 +20874,16 @@ func (m *ListWindow) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Focus", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Focus = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -24083,6 +24458,16 @@ func (m *UiInputEvent) UnmarshalVT(dAtA []byte) error {
 				m.Value = &UiInputEvent_Range{Range: v}
 			}
 			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Row", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = &UiInputEvent_Row{Row: v}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

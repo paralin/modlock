@@ -134,6 +134,8 @@ export interface Panel {
   BHasKeyFocus?(): boolean
   BHasDescendantKeyFocus?(): boolean
   SetFocus?(): void
+  /** SetAcceptsFocus lets a panel made without acceptsfocus take the focus. */
+  SetAcceptsFocus?(accepts: boolean): void
   GetChild(index: number): Panel | null
   FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
@@ -346,8 +348,9 @@ export function pressCommand(mod: string, node: string): string {
  * mod's interface, as pressCommand sends a press: text as unpadded base64url
  * of its UTF-8, cut to the 240 bytes the host takes, a number in decimal, a
  * toggle's state as 1 or 0, a choice as its index, a wheel step as
- * wheel:direction:fraction and a hold on a range's handle as
- * range:phase:handle, which a release follows with every handle's value.
+ * wheel:direction:fraction, a hold on a range's handle as
+ * range:phase:handle, which a release follows with every handle's value, and
+ * a list's chosen row as row: and its key in unpadded base64url.
  */
 export function inputCommand(
   mod: string,
@@ -362,19 +365,23 @@ export function inputCommand(
 
 /**
  * windowCommand is the console command that asks for the run of rows of the
- * list node in mod's interface that starts at first and is count long.
+ * list node in mod's interface that starts at first and is count long, and
+ * names the focused row's key, if any, in unpadded base64url.
  */
 export function windowCommand(
   mod: string,
   node: string,
   first: number,
   count: number,
+  focus: string,
 ): string {
-  if (isSlug(mod) && isNodeId(node)) {
-    return `modlockwindow ${mod} ${node} ${first} ${count}`
-  }
-  return ''
+  if (!isSlug(mod) || !isNodeId(node)) return ''
+  const window = `modlockwindow ${mod} ${node} ${first} ${count}`
+  return focus === '' ? window : `${window} ${base64Url(utf8(focus, maxKey))}`
 }
+
+/** maxKey is the most bytes a list row's key holds. */
+const maxKey = 64
 
 /** encodeInput writes an input's value as inputCommand sends it. */
 function encodeInput(value: InputValue): string {
@@ -389,6 +396,8 @@ function encodeInput(value: InputValue): string {
       return String(Math.trunc(finite(value.value)))
     case 'wheel':
       return `wheel:${finite(value.value.delta)}:${clamp(finite(value.value.fraction), 0, 1)}`
+    case 'row':
+      return `row:${base64Url(utf8(value.value, maxKey))}`
     case 'range': {
       const { phase, handle, values } = value.value
       const held = `range:${phase ?? 0}:${handle ?? ''}`
@@ -793,6 +802,9 @@ export class Drawing {
   /** lists keeps where each list is scrolled to. */
   private readonly lists: Lists
 
+  /** pressed holds the row panels a press is bound to. */
+  private readonly pressed = new WeakSet<Panel>()
+
   /** last is the screen last drawn, which a scrolled list draws again. */
   private last: Screen | null = null
 
@@ -1015,10 +1027,10 @@ export class Drawing {
   }
 
   /**
-   * scrollLists binds the wheel to each list's panel, once per panel, and
-   * reads the height each list shows. A list whose height changed, or that
-   * is not laid out yet, is drawn again shortly; one never laid out is
-   * waited on once.
+   * scrollLists binds the wheel and the keyboard to each list's panel and a
+   * press to each row's, once per panel, and reads the height each list
+   * shows. A list whose height changed, or that is not laid out yet, is
+   * drawn again shortly; one never laid out is waited on once.
    */
   private scrollLists(
     mod: string,
@@ -1041,7 +1053,10 @@ export class Drawing {
         this.panorama.RegisterEventHandler?.('ScrollDown', panel, () =>
           wheel(1),
         )
+        this.focusList(mod, id, panel)
       }
+      panel.hittest = true
+      this.pressRows(mod, id, scroll.slots, drawn)
       const height = panel.actuallayoutheight ?? 0
       if (height > 0 && height !== scroll.viewport) {
         scroll.viewport = height
@@ -1054,6 +1069,53 @@ export class Drawing {
     if (again && this.panorama.Schedule) {
       this.panorama.Schedule(0, () => this.draw(this.last))
     }
+  }
+
+  /**
+   * focusList lets a list's panel take the keyboard focus, which the game's
+   * move events step through the rows and its activate chooses the row
+   * focused.
+   */
+  private focusList(mod: string, id: string, panel: Panel): void {
+    // Step the focus a row at a time, and choose the row it rests on.
+    const move = (delta: number) => {
+      if (this.lists.move(mod, id, delta)) this.draw(this.last)
+    }
+    panel.SetAcceptsFocus?.(true)
+    panel.SetPanelEvent('onmoveup', () => move(-1))
+    panel.SetPanelEvent('onmovedown', () => move(1))
+    panel.SetPanelEvent('onactivate', () =>
+      this.chooseRow(mod, id, this.lists.scroll(mod, id).focus.key),
+    )
+  }
+
+  /**
+   * pressRows binds a press to each drawn row's panel, once per panel: the
+   * press focuses the row its panel shows then and chooses it.
+   */
+  private pressRows(
+    mod: string,
+    id: string,
+    slots: Map<string, string>,
+    drawn: Map<string, Drawn>,
+  ): void {
+    for (const slot of slots.keys()) {
+      const panel = drawn.get(slot)?.panel
+      if (!panel) continue
+      panel.hittest = true
+      if (this.pressed.has(panel)) continue
+      this.pressed.add(panel)
+      panel.SetPanelEvent('onactivate', () => {
+        const key = this.lists.focusSlot(mod, id, slot)
+        this.chooseRow(mod, id, key)
+        this.draw(this.last)
+      })
+    }
+  }
+
+  /** chooseRow tells the mod the player chose the row with key, if any. */
+  private chooseRow(mod: string, id: string, key: string): void {
+    if (key !== '') this.change?.(mod, id, { case: 'row', value: key })
   }
 
   /** drawTree draws one mod's nodes from its root down, in its region. */

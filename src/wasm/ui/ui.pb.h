@@ -4530,6 +4530,7 @@ class MODLOCK_API ListWindow final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kNodeFieldNumber = 1,
+    kFocusFieldNumber = 4,
     kFirstFieldNumber = 2,
     kCountFieldNumber = 3,
   };
@@ -4546,6 +4547,21 @@ class MODLOCK_API ListWindow final : public ::google::protobuf::Message
   const ::std::string& _internal_node() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
   ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
+
+  public:
+  // string focus = 4;
+  void clear_focus() ;
+  const ::std::string& focus() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_focus(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_focus();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_focus();
+  void set_allocated_focus(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_focus() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_focus(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_focus();
 
   public:
   // uint32 first = 2;
@@ -4572,8 +4588,8 @@ class MODLOCK_API ListWindow final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   0, 39,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 44,
                                    2>
       _table_;
 
@@ -4595,6 +4611,7 @@ class MODLOCK_API ListWindow final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr node_;
+    ::google::protobuf::internal::ArenaStringPtr focus_;
     ::uint32_t first_;
     ::uint32_t count_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -7781,6 +7798,7 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
     kChoice = 6,
     kWheel = 7,
     kRange = 8,
+    kRow = 9,
     VALUE_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 40;
@@ -7878,6 +7896,7 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
     kChoiceFieldNumber = 6,
     kWheelFieldNumber = 7,
     kRangeFieldNumber = 8,
+    kRowFieldNumber = 9,
   };
   // string node = 2;
   void clear_node() ;
@@ -7991,6 +8010,22 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
   ::modlock::wasm::ui::RangeEvent* PROTOBUF_NONNULL _internal_mutable_range();
 
   public:
+  // string row = 9;
+  bool has_row() const;
+  void clear_row() ;
+  const ::std::string& row() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_row(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_row();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_row();
+  void set_allocated_row(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_row() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_row(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_row();
+
+  public:
   void clear_value();
   ValueCase value_case() const;
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.UiInputEvent)
@@ -8002,11 +8037,12 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
   void set_has_choice();
   void set_has_wheel();
   void set_has_range();
+  void set_has_row();
   inline bool has_value() const;
   inline void clear_has_value();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 8,
-                                   2, 53,
+  static const ::google::protobuf::internal::TcParseTable<1, 9,
+                                   2, 56,
                                    2>
       _table_;
 
@@ -8038,6 +8074,7 @@ class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
       ::uint32_t choice_;
       ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE wheel_;
       ::modlock::wasm::ui::RangeEvent* PROTOBUF_NULLABLE range_;
+      ::google::protobuf::internal::ArenaStringPtr row_;
     } value_;
     ::uint32_t _oneof_case_[1];
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -11615,9 +11652,14 @@ class MODLOCK_API List final : public ::google::protobuf::Message
   enum : int {
     kRowFieldNumber = 1,
     kRowsFieldNumber = 5,
+    kSelectedFieldNumber = 8,
+    kFocusFieldNumber = 9,
+    kFocusStyleFieldNumber = 6,
+    kSelectedStyleFieldNumber = 7,
     kRowHeightFieldNumber = 2,
     kFirstFieldNumber = 3,
     kTotalFieldNumber = 4,
+    kFocusAtFieldNumber = 10,
   };
   // repeated .modlock.wasm.ui.Node row = 1;
   int row_size() const;
@@ -11653,6 +11695,66 @@ class MODLOCK_API List final : public ::google::protobuf::Message
   const ::modlock::wasm::ui::Row& rows(int index) const;
   ::modlock::wasm::ui::Row* PROTOBUF_NONNULL add_rows();
   const ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>& rows() const;
+  // string selected = 8;
+  void clear_selected() ;
+  const ::std::string& selected() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_selected(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_selected();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_selected();
+  void set_allocated_selected(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_selected() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_selected(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_selected();
+
+  public:
+  // string focus = 9;
+  void clear_focus() ;
+  const ::std::string& focus() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_focus(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_focus();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_focus();
+  void set_allocated_focus(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_focus() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_focus(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_focus();
+
+  public:
+  // .modlock.wasm.ui.Style focus_style = 6;
+  bool has_focus_style() const;
+  void clear_focus_style() ;
+  const ::modlock::wasm::ui::Style& focus_style() const;
+  [[nodiscard]] ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE release_focus_style();
+  ::modlock::wasm::ui::Style* PROTOBUF_NONNULL mutable_focus_style();
+  void set_allocated_focus_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_focus_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE unsafe_arena_release_focus_style();
+
+  private:
+  const ::modlock::wasm::ui::Style& _internal_focus_style() const;
+  ::modlock::wasm::ui::Style* PROTOBUF_NONNULL _internal_mutable_focus_style();
+
+  public:
+  // .modlock.wasm.ui.Style selected_style = 7;
+  bool has_selected_style() const;
+  void clear_selected_style() ;
+  const ::modlock::wasm::ui::Style& selected_style() const;
+  [[nodiscard]] ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE release_selected_style();
+  ::modlock::wasm::ui::Style* PROTOBUF_NONNULL mutable_selected_style();
+  void set_allocated_selected_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_selected_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE unsafe_arena_release_selected_style();
+
+  private:
+  const ::modlock::wasm::ui::Style& _internal_selected_style() const;
+  ::modlock::wasm::ui::Style* PROTOBUF_NONNULL _internal_mutable_selected_style();
+
+  public:
   // float row_height = 2;
   void clear_row_height() ;
   float row_height() const;
@@ -11683,12 +11785,23 @@ class MODLOCK_API List final : public ::google::protobuf::Message
   void _internal_set_total(::uint32_t value);
 
   public:
+  // optional uint32 focus_at = 10;
+  bool has_focus_at() const;
+  void clear_focus_at() ;
+  ::uint32_t focus_at() const;
+  void set_focus_at(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_focus_at() const;
+  void _internal_set_focus_at(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.List)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
-                                   2, 0,
+  static const ::google::protobuf::internal::TcParseTable<4, 10,
+                                   4, 50,
                                    2>
       _table_;
 
@@ -11711,9 +11824,14 @@ class MODLOCK_API List final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Node > row_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Row > rows_;
+    ::google::protobuf::internal::ArenaStringPtr selected_;
+    ::google::protobuf::internal::ArenaStringPtr focus_;
+    ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE focus_style_;
+    ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE selected_style_;
     float row_height_;
     ::uint32_t first_;
     ::uint32_t total_;
+    ::uint32_t focus_at_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -16979,7 +17097,7 @@ inline void List::clear_row_height() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.row_height_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000040U);
 }
 inline float List::row_height() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.row_height)
@@ -16987,7 +17105,7 @@ inline float List::row_height() const {
 }
 inline void List::set_row_height(float value) {
   _internal_set_row_height(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.row_height)
 }
 inline float List::_internal_row_height() const {
@@ -17004,7 +17122,7 @@ inline void List::clear_first() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.first_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000080U);
 }
 inline ::uint32_t List::first() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.first)
@@ -17012,7 +17130,7 @@ inline ::uint32_t List::first() const {
 }
 inline void List::set_first(::uint32_t value) {
   _internal_set_first(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.first)
 }
 inline ::uint32_t List::_internal_first() const {
@@ -17029,7 +17147,7 @@ inline void List::clear_total() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.total_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000100U);
 }
 inline ::uint32_t List::total() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.total)
@@ -17037,7 +17155,7 @@ inline ::uint32_t List::total() const {
 }
 inline void List::set_total(::uint32_t value) {
   _internal_set_total(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.total)
 }
 inline ::uint32_t List::_internal_total() const {
@@ -17103,6 +17221,363 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Row>* PROTOBUF_
 List::_internal_mutable_rows() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.rows_;
+}
+
+// .modlock.wasm.ui.Style focus_style = 6;
+inline bool List::has_focus_style() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
+  PROTOBUF_ASSUME(!value || _impl_.focus_style_ != nullptr);
+  return value;
+}
+inline void List::clear_focus_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.focus_style_ != nullptr) _impl_.focus_style_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline const ::modlock::wasm::ui::Style& List::_internal_focus_style() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::ui::Style* p = _impl_.focus_style_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::ui::Style&>(::modlock::wasm::ui::_Style_default_instance_);
+}
+inline const ::modlock::wasm::ui::Style& List::focus_style() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.focus_style)
+  return _internal_focus_style();
+}
+inline void List::unsafe_arena_set_allocated_focus_style(
+    ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.focus_style_);
+  }
+  _impl_.focus_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.List.focus_style)
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE List::release_focus_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ::modlock::wasm::ui::Style* released = _impl_.focus_style_;
+  _impl_.focus_style_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE List::unsafe_arena_release_focus_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.List.focus_style)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ::modlock::wasm::ui::Style* temp = _impl_.focus_style_;
+  _impl_.focus_style_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL List::_internal_mutable_focus_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.focus_style_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::Style>(GetArena());
+    _impl_.focus_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(p);
+  }
+  return _impl_.focus_style_;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL List::mutable_focus_style()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ::modlock::wasm::ui::Style* _msg = _internal_mutable_focus_style();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.focus_style)
+  return _msg;
+}
+inline void List::set_allocated_focus_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.focus_style_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  }
+
+  _impl_.focus_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.List.focus_style)
+}
+
+// .modlock.wasm.ui.Style selected_style = 7;
+inline bool List::has_selected_style() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
+  PROTOBUF_ASSUME(!value || _impl_.selected_style_ != nullptr);
+  return value;
+}
+inline void List::clear_selected_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.selected_style_ != nullptr) _impl_.selected_style_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline const ::modlock::wasm::ui::Style& List::_internal_selected_style() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::ui::Style* p = _impl_.selected_style_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::ui::Style&>(::modlock::wasm::ui::_Style_default_instance_);
+}
+inline const ::modlock::wasm::ui::Style& List::selected_style() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.selected_style)
+  return _internal_selected_style();
+}
+inline void List::unsafe_arena_set_allocated_selected_style(
+    ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.selected_style_);
+  }
+  _impl_.selected_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.List.selected_style)
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE List::release_selected_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ::modlock::wasm::ui::Style* released = _impl_.selected_style_;
+  _impl_.selected_style_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE List::unsafe_arena_release_selected_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.List.selected_style)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ::modlock::wasm::ui::Style* temp = _impl_.selected_style_;
+  _impl_.selected_style_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL List::_internal_mutable_selected_style() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.selected_style_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::Style>(GetArena());
+    _impl_.selected_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(p);
+  }
+  return _impl_.selected_style_;
+}
+inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL List::mutable_selected_style()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ::modlock::wasm::ui::Style* _msg = _internal_mutable_selected_style();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.selected_style)
+  return _msg;
+}
+inline void List::set_allocated_selected_style(::modlock::wasm::ui::Style* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.selected_style_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  }
+
+  _impl_.selected_style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.List.selected_style)
+}
+
+// string selected = 8;
+inline void List::clear_selected() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.selected_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& List::selected() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.selected)
+  return _internal_selected();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void List::set_selected(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.selected_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.selected)
+}
+inline ::std::string* PROTOBUF_NONNULL List::mutable_selected()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_selected();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.selected)
+  return _s;
+}
+inline const ::std::string& List::_internal_selected() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.selected_.Get();
+}
+inline void List::_internal_set_selected(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.selected_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL List::_internal_mutable_selected() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.selected_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE List::release_selected() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.List.selected)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.selected_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.selected_.Set("", GetArena());
+  }
+  return released;
+}
+inline void List::set_allocated_selected(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.selected_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.selected_.IsDefault()) {
+    _impl_.selected_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.List.selected)
+}
+
+// string focus = 9;
+inline void List::clear_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline const ::std::string& List::focus() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.focus)
+  return _internal_focus();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void List::set_focus(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  _impl_.focus_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.focus)
+}
+inline ::std::string* PROTOBUF_NONNULL List::mutable_focus()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ::std::string* _s = _internal_mutable_focus();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.List.focus)
+  return _s;
+}
+inline const ::std::string& List::_internal_focus() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.focus_.Get();
+}
+inline void List::_internal_set_focus(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL List::_internal_mutable_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.focus_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE List::release_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.List.focus)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  auto* released = _impl_.focus_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.focus_.Set("", GetArena());
+  }
+  return released;
+}
+inline void List::set_allocated_focus(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  }
+  _impl_.focus_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.focus_.IsDefault()) {
+    _impl_.focus_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.List.focus)
+}
+
+// optional uint32 focus_at = 10;
+inline bool List::has_focus_at() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000200U);
+  return value;
+}
+inline void List::clear_focus_at() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_at_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000200U);
+}
+inline ::uint32_t List::focus_at() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.List.focus_at)
+  return _internal_focus_at();
+}
+inline void List::set_focus_at(::uint32_t value) {
+  _internal_set_focus_at(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.List.focus_at)
+}
+inline ::uint32_t List::_internal_focus_at() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.focus_at_;
+}
+inline void List::_internal_set_focus_at(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_at_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -17372,7 +17847,7 @@ inline void ListWindow::clear_first() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.first_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::uint32_t ListWindow::first() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.first)
@@ -17380,7 +17855,7 @@ inline ::uint32_t ListWindow::first() const {
 }
 inline void ListWindow::set_first(::uint32_t value) {
   _internal_set_first(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.first)
 }
 inline ::uint32_t ListWindow::_internal_first() const {
@@ -17397,7 +17872,7 @@ inline void ListWindow::clear_count() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.count_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::uint32_t ListWindow::count() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.count)
@@ -17405,7 +17880,7 @@ inline ::uint32_t ListWindow::count() const {
 }
 inline void ListWindow::set_count(::uint32_t value) {
   _internal_set_count(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.count)
 }
 inline ::uint32_t ListWindow::_internal_count() const {
@@ -17415,6 +17890,71 @@ inline ::uint32_t ListWindow::_internal_count() const {
 inline void ListWindow::_internal_set_count(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.count_ = value;
+}
+
+// string focus = 4;
+inline void ListWindow::clear_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& ListWindow::focus() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.ListWindow.focus)
+  return _internal_focus();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ListWindow::set_focus(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.focus_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.ListWindow.focus)
+}
+inline ::std::string* PROTOBUF_NONNULL ListWindow::mutable_focus()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_focus();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.ListWindow.focus)
+  return _s;
+}
+inline const ::std::string& ListWindow::_internal_focus() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.focus_.Get();
+}
+inline void ListWindow::_internal_set_focus(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.focus_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ListWindow::_internal_mutable_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.focus_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ListWindow::release_focus() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.ListWindow.focus)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.focus_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.focus_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ListWindow::set_allocated_focus(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.focus_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.focus_.IsDefault()) {
+    _impl_.focus_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.ListWindow.focus)
 }
 
 // -------------------------------------------------------------------
@@ -24929,6 +25469,85 @@ inline ::modlock::wasm::ui::RangeEvent* PROTOBUF_NONNULL UiInputEvent::mutable_r
   ::modlock::wasm::ui::RangeEvent* _msg = _internal_mutable_range();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiInputEvent.range)
   return _msg;
+}
+
+// string row = 9;
+inline bool UiInputEvent::has_row() const {
+  return value_case() == kRow;
+}
+inline void UiInputEvent::set_has_row() {
+  _impl_._oneof_case_[0] = kRow;
+}
+inline void UiInputEvent::clear_row() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value_case() == kRow) {
+    _impl_.value_.row_.Destroy();
+    clear_has_value();
+  }
+}
+inline const ::std::string& UiInputEvent::row() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiInputEvent.row)
+  return _internal_row();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void UiInputEvent::set_row(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value_case() != kRow) {
+    clear_value();
+
+    set_has_row();
+    _impl_.value_.row_.InitDefault();
+  }
+  _impl_.value_.row_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.UiInputEvent.row)
+}
+inline ::std::string* PROTOBUF_NONNULL UiInputEvent::mutable_row()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  if (value_case() != kRow) {
+    clear_value();
+
+    set_has_row();
+    _impl_.value_.row_.InitDefault();
+  }
+  ::std::string* _s = _internal_mutable_row();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiInputEvent.row)
+  return _s;
+}
+inline const ::std::string& UiInputEvent::_internal_row() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  if (value_case() != kRow) {
+    return ::google::protobuf::internal::GetEmptyStringAlreadyInited();
+  }
+  return _impl_.value_.row_.Get();
+}
+inline void UiInputEvent::_internal_set_row(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.value_.row_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL UiInputEvent::_internal_mutable_row() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.value_.row_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE UiInputEvent::release_row() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiInputEvent.row)
+  if (value_case() != kRow) {
+    return nullptr;
+  }
+  clear_has_value();
+  return _impl_.value_.row_.Release();
+}
+inline void UiInputEvent::set_allocated_row(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (has_value()) {
+    clear_value();
+  }
+  if (value != nullptr) {
+    set_has_row();
+    _impl_.value_.row_.InitAllocated(value, GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.UiInputEvent.row)
 }
 
 inline bool UiInputEvent::has_value() const {

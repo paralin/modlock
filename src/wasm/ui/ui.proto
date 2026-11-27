@@ -292,6 +292,14 @@ message Node {
 // rows with the window of rows the player's renderer asks for, so the screen
 // carries only the rows near the visible box and the renderer builds a panel
 // only for those. The list scrolls with the mouse wheel over it.
+//
+// The list takes the keyboard and controller as one panel and holds which
+// row has the focus by key, so the focus stays on its row as rows arrive,
+// leave or move, and passes to the next row, or the one before the last,
+// when its own row leaves. The player chooses the focused row with Enter or
+// the controller's confirm, or any row by clicking it, and the mod hears its
+// key as the list's input. The mod's selected names the row it draws as
+// chosen.
 message List {
   // Row is the template each row draws: its nodes, at most 16, with the node
   // whose id is empty as the row's own panel, whose children name the others
@@ -312,6 +320,21 @@ message List {
   // Rows holds the rows in the window the renderer asked for, in order. The
   // host sets them; a mod's are ignored.
   repeated Row rows = 5;
+
+  // FocusStyle is laid over the focused row's own style, and SelectedStyle
+  // over the selected row's.
+  Style focus_style = 6;
+  Style selected_style = 7;
+
+  // Selected is the key of the row the mod draws as chosen, or empty. The
+  // host clears a key the list no longer holds.
+  string selected = 8;
+
+  // Focus is the key the renderer last said has the focus, and FocusAt its
+  // place in the whole list, unset when the list holds no such row. The host
+  // sets them; a mod's are refused.
+  string focus = 9;
+  optional uint32 focus_at = 10;
 }
 
 // Row is one row of a list, known by its key. Rows sort by rank, then by
@@ -338,6 +361,9 @@ message ListWindow {
   // most 256.
   uint32 first = 2;
   uint32 count = 3;
+
+  // Focus is the key of the row that has the focus, or empty for none.
+  string focus = 4;
 }
 
 // ListChange changes the rows of one list node.
@@ -1436,6 +1462,9 @@ message UiInputEvent {
 
     // Range is the player's hold on a handle of a range.
     RangeEvent range = 8;
+
+    // Row is the key of the row the player chose in a list.
+    string row = 9;
   }
 }
 

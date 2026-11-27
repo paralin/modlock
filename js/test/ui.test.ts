@@ -827,3 +827,32 @@ test('a list sends its rows apart from its node, only those that changed', () =>
   )
   expect(sent.length).toBe(count)
 })
+
+test('a list hears the row a player chose and draws it as selected', () => {
+  // A chosen row reaches onChange with its key, and the mod draws it back.
+  const player = new Player(9)
+  let selected = ''
+  const board = () =>
+    jsx('list', {
+      rowHeight: 20,
+      row: jsx('label', { children: '{name}' }),
+      rows: [{ key: 'a', fields: { name: 'Ann' } }],
+      selected,
+      selectedStyle: { bold: true },
+      onChange: (_: Player, key: string) => {
+        selected = key
+      },
+    })
+  show(player, board())
+  const node = sent
+    .at(-1)!
+    .change!.set!.find((each) => each.kind === Kind.LIST)!
+  expect(node.list!.selectedStyle?.bold).toBe(true)
+  change(player, node.id!, 'a')
+  expect(selected).toBe('a')
+  show(player, board())
+  const drawn = sent
+    .at(-1)!
+    .change!.set!.find((each) => each.kind === Kind.LIST)!
+  expect(drawn.list!.selected).toBe('a')
+})
