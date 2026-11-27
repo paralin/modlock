@@ -1164,6 +1164,141 @@ function panelOf(element: Element | null | undefined): DomPanel | null {
   return (element as (Element & { panel?: DomPanel }) | null)?.panel ?? null
 }
 
+// rawMargins holds each element's authored margin values, so vertical
+// percentages can be resolved again when the parent is resized.
+const rawMargins = new WeakMap<
+  HTMLElement,
+  Partial<Record<'top' | 'right' | 'bottom' | 'left', string>>
+>()
+const marginElements = new Set<HTMLElement>()
+const marginResized = new ResizeObserver(() => writeAllMargins())
+let marginResizeHooked = false
+
+// applyMargin records one margin property and writes the used values.
+function applyMargin(element: HTMLElement, name: string, value: string): void {
+  const raw = rawMargins.get(element) ?? {}
+  if (name === 'margin') {
+    const parts = value.trim().split(/\s+/).filter(Boolean)
+    let top = ''
+    let right = ''
+    let bottom = ''
+    let left = ''
+    if (parts.length === 1) {
+      top = right = bottom = left = parts[0] ?? ''
+    } else if (parts.length === 2) {
+      top = bottom = parts[0] ?? ''
+      right = left = parts[1] ?? ''
+    } else if (parts.length === 3) {
+      top = parts[0] ?? ''
+      right = left = parts[1] ?? ''
+      bottom = parts[2] ?? ''
+    } else if (parts.length >= 4) {
+      top = parts[0] ?? ''
+      right = parts[1] ?? ''
+      bottom = parts[2] ?? ''
+      left = parts[3] ?? ''
+    }
+    raw.top = top
+    raw.right = right
+    raw.bottom = bottom
+    raw.left = left
+  } else {
+    const side = name.slice('margin'.length).toLowerCase() as
+      | 'top'
+      | 'right'
+      | 'bottom'
+      | 'left'
+    raw[side] = value
+  }
+  rawMargins.set(element, raw)
+  writeMargins(element)
+  watchMargin(element)
+}
+
+// writeMargins resolves vertical percentage margins against the parent's
+// definite height and writes all recorded sides.
+function writeMargins(element: HTMLElement): void {
+  const raw = rawMargins.get(element)
+  if (!raw) return
+  const write = (
+    side: 'top' | 'right' | 'bottom' | 'left',
+    vertical: boolean,
+  ) => {
+    const value = raw[side]
+    if (value === undefined) return
+    if (value === '') element.style.removeProperty(`margin-${side}`)
+    else {
+      element.style.setProperty(
+        `margin-${side}`,
+        resolveMargin(element, value, vertical),
+      )
+    }
+  }
+  write('top', true)
+  write('right', false)
+  write('bottom', true)
+  write('left', false)
+}
+
+// resolveMargin converts a vertical percentage margin into pixels against
+// the parent's definite height. CSS resolves every percentage margin against
+// the parent's width, which stretches a height-based margin and can shove
+// siblings. Horizontal percentages already match Panorama and pass through.
+function resolveMargin(
+  element: HTMLElement,
+  value: string,
+  vertical: boolean,
+): string {
+  if (!vertical) return value
+  const match = /^(-?[\d.]+)%$/.exec(value.trim())
+  if (!match) return value
+  const basis = verticalMarginBasis(element)
+  if (!(basis > 0)) return value
+  return `${(Number(match[1]) / 100) * basis}px`
+}
+
+// verticalMarginBasis is the height a vertical percentage margin is of: the
+// parent's used height when it is definite, otherwise the stage's 1080-unit
+// screen height.
+function verticalMarginBasis(element: HTMLElement): number {
+  const stage = document.getElementById('stage')
+  const parent = element.parentElement
+  if (!parent || parent === stage) return stage?.clientHeight ?? 0
+  const used = parseFloat(getComputedStyle(parent).height)
+  if (Number.isFinite(used) && used > 0) return used
+  return parent.clientHeight || stage?.clientHeight || 0
+}
+
+// watchMargin recomputes an element's percentage margins when its parent
+// is resized, or when the window is, so a margin applied before layout, or
+// before the parent had a height, does not stay wrong.
+function watchMargin(element: HTMLElement): void {
+  const raw = rawMargins.get(element)
+  const needs =
+    !!raw &&
+    [raw.top, raw.bottom].some(
+      (value) => value !== undefined && /%$/.test(value),
+    )
+  if (!needs) return
+  marginElements.add(element)
+  if (element.parentElement) marginResized.observe(element.parentElement)
+  marginResized.observe(element)
+  if (!marginResizeHooked) {
+    marginResizeHooked = true
+    window.addEventListener('resize', writeAllMargins)
+  }
+}
+
+function writeAllMargins(): void {
+  for (const element of [...marginElements]) {
+    if (!element.isConnected) {
+      marginElements.delete(element)
+      continue
+    }
+    writeMargins(element)
+  }
+}
+
 // applyStyle translates one Panorama style property, named in either case
 // the engine accepts, into CSS.
 function applyStyle(element: HTMLElement, kebab: string, value: string): void {
@@ -1306,6 +1441,14 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
     case 'washColor':
     case 'soundOut':
       return
+    case 'margin':
+    case 'marginTop':
+    case 'marginRight':
+    case 'marginBottom':
+    case 'marginLeft': {
+      applyMargin(element, name, value)
+      return
+    }
     default:
       css.setProperty(
         name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`),
