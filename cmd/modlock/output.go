@@ -275,6 +275,8 @@ func (p *printer) host(event *control.HostEvent) {
 		p.called(event.GetCalled())
 	case event.GetSlowFrame() != nil:
 		p.slowFrame(event.GetSlowFrame())
+	case event.GetCommandFailed() != nil:
+		p.mark("!", yellow, event.GetCommandFailed().GetLine()+": "+event.GetCommandFailed().GetReason())
 	}
 }
 

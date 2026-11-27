@@ -38,7 +38,23 @@ message ControlRequest {
     // Controllers carries the frames of one player's controller stream, which
     // the controller has bound to that player's own client.
     modlock.wasm.controllers.ControllerFrames controllers = 6;
+
+    // Command delivers a console command, such as a line from the preview
+    // page, to the running mods as if the first connected human sent it from
+    // their game. A command the host cannot deliver comes back as a
+    // CommandFailed event.
+    string command = 7;
   }
+}
+
+// CommandFailed reports a ControlRequest.command that no running mod took.
+message CommandFailed {
+  // Line is the command.
+  string line = 1;
+
+  // Reason says why the command was not taken, such as that no player is in
+  // the game.
+  string reason = 2;
 }
 
 // ModCall calls one method of a service a running mod serves, on the game's
@@ -139,6 +155,10 @@ message HostEvent {
     // Paused reports each time the game pauses or resumes, from the first
     // world on. Until the first, the game is not paused.
     GamePaused paused = 17;
+
+    // CommandFailed reports a command the controller sent that no running
+    // mod took.
+    CommandFailed command_failed = 18;
   }
 }
 

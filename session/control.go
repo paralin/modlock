@@ -82,6 +82,13 @@ func (c *Control) Call(ctx context.Context, call *control.ModCall) error {
 	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Call{Call: call}})
 }
 
+// Command asks the host to deliver line to the running mods as if the first
+// connected human sent that console command from their game. A command no
+// mod takes comes back as a CommandFailed event.
+func (c *Control) Command(ctx context.Context, line string) error {
+	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Command{Command: line}})
+}
+
 // request queues request for the call.
 func (c *Control) request(ctx context.Context, request *control.ControlRequest) error {
 	select {

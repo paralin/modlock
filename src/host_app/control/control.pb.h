@@ -64,6 +64,10 @@ namespace host_app {
 namespace control {
 enum MessageKind : int;
 extern const uint32_t MessageKind_internal_data_[];
+class CommandFailed;
+struct CommandFailedDefaultTypeInternal;
+extern CommandFailedDefaultTypeInternal _CommandFailed_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull CommandFailed_class_data_;
 class ControlRequest;
 struct ControlRequestDefaultTypeInternal;
 extern ControlRequestDefaultTypeInternal _ControlRequest_default_instance_;
@@ -276,7 +280,7 @@ class ServiceResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceResult*>(
         &_ServiceResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(ServiceResult& a, ServiceResult& b) { a.Swap(&b); }
   inline void Swap(ServiceResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -488,7 +492,7 @@ class ServiceReply final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceReply*>(
         &_ServiceReply_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(ServiceReply& a, ServiceReply& b) { a.Swap(&b); }
   inline void Swap(ServiceReply* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -768,7 +772,7 @@ class ServiceCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceCall*>(
         &_ServiceCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(ServiceCall& a, ServiceCall& b) { a.Swap(&b); }
   inline void Swap(ServiceCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1026,7 +1030,7 @@ class ServiceAnswer final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceAnswer*>(
         &_ServiceAnswer_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(ServiceAnswer& a, ServiceAnswer& b) { a.Swap(&b); }
   inline void Swap(ServiceAnswer* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1250,7 +1254,7 @@ class ServerReady final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServerReady*>(
         &_ServerReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(ServerReady& a, ServerReady& b) { a.Swap(&b); }
   inline void Swap(ServerReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1445,7 +1449,7 @@ class ReloadRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ReloadRequest*>(
         &_ReloadRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(ReloadRequest& a, ReloadRequest& b) { a.Swap(&b); }
   inline void Swap(ReloadRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1640,7 +1644,7 @@ class PlayerMessage final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerMessage*>(
         &_PlayerMessage_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(PlayerMessage& a, PlayerMessage& b) { a.Swap(&b); }
   inline void Swap(PlayerMessage* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1893,7 +1897,7 @@ class PlayerLeft final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerLeft*>(
         &_PlayerLeft_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(PlayerLeft& a, PlayerLeft& b) { a.Swap(&b); }
   inline void Swap(PlayerLeft* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2083,7 +2087,7 @@ class PlayerJoined final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerJoined*>(
         &_PlayerJoined_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(PlayerJoined& a, PlayerJoined& b) { a.Swap(&b); }
   inline void Swap(PlayerJoined* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2331,7 +2335,7 @@ class PlayerChat final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerChat*>(
         &_PlayerChat_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(PlayerChat& a, PlayerChat& b) { a.Swap(&b); }
   inline void Swap(PlayerChat* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2555,7 +2559,7 @@ class ModStarted final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModStarted*>(
         &_ModStarted_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(ModStarted& a, ModStarted& b) { a.Swap(&b); }
   inline void Swap(ModStarted* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2762,7 +2766,7 @@ class ModLog final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModLog*>(
         &_ModLog_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(ModLog& a, ModLog& b) { a.Swap(&b); }
   inline void Swap(ModLog* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2974,7 +2978,7 @@ class ModFailed final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModFailed*>(
         &_ModFailed_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(ModFailed& a, ModFailed& b) { a.Swap(&b); }
   inline void Swap(ModFailed* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3186,7 +3190,7 @@ class ModCallResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCallResult*>(
         &_ModCallResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(ModCallResult& a, ModCallResult& b) { a.Swap(&b); }
   inline void Swap(ModCallResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3432,7 +3436,7 @@ class ModCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCall*>(
         &_ModCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(ModCall& a, ModCall& b) { a.Swap(&b); }
   inline void Swap(ModCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3695,7 +3699,7 @@ class GamePaused final : public ::google::protobuf::Message
     return *reinterpret_cast<const GamePaused*>(
         &_GamePaused_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(GamePaused& a, GamePaused& b) { a.Swap(&b); }
   inline void Swap(GamePaused* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3885,7 +3889,7 @@ class Forward final : public ::google::protobuf::Message
     return *reinterpret_cast<const Forward*>(
         &_Forward_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(Forward& a, Forward& b) { a.Swap(&b); }
   inline void Swap(Forward* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4114,7 +4118,7 @@ class Fixture final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixture*>(
         &_Fixture_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(Fixture& a, Fixture& b) { a.Swap(&b); }
   inline void Swap(Fixture* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4322,6 +4326,218 @@ class Fixture final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull Fixture_class_data_;
 // -------------------------------------------------------------------
 
+class CommandFailed final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.CommandFailed) */ {
+ public:
+  inline CommandFailed() : CommandFailed(nullptr) {}
+  ~CommandFailed() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(CommandFailed* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(CommandFailed));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR CommandFailed(::google::protobuf::internal::ConstantInitialized);
+
+  inline CommandFailed(const CommandFailed& from) : CommandFailed(nullptr, from) {}
+  inline CommandFailed(CommandFailed&& from) noexcept
+      : CommandFailed(nullptr, ::std::move(from)) {}
+  inline CommandFailed& operator=(const CommandFailed& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CommandFailed& operator=(CommandFailed&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CommandFailed& default_instance() {
+    return *reinterpret_cast<const CommandFailed*>(
+        &_CommandFailed_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(CommandFailed& a, CommandFailed& b) { a.Swap(&b); }
+  inline void Swap(CommandFailed* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CommandFailed* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CommandFailed* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<CommandFailed>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const CommandFailed& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const CommandFailed& from) { CommandFailed::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(CommandFailed* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.CommandFailed"; }
+
+  explicit CommandFailed(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  CommandFailed(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const CommandFailed& from);
+  CommandFailed(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, CommandFailed&& from) noexcept
+      : CommandFailed(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kLineFieldNumber = 1,
+    kReasonFieldNumber = 2,
+  };
+  // string line = 1;
+  void clear_line() ;
+  const ::std::string& line() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_line(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_line();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_line();
+  void set_allocated_line(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_line() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_line(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_line();
+
+  public:
+  // string reason = 2;
+  void clear_reason() ;
+  const ::std::string& reason() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_reason(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_reason();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_reason();
+  void set_allocated_reason(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_reason() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_reason(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_reason();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.CommandFailed)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 57,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const CommandFailed& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr line_;
+    ::google::protobuf::internal::ArenaStringPtr reason_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull CommandFailed_class_data_;
+// -------------------------------------------------------------------
+
 class UiWindow final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.host_app.control.UiWindow) */ {
  public:
@@ -4377,7 +4593,7 @@ class UiWindow final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiWindow*>(
         &_UiWindow_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(UiWindow& a, UiWindow& b) { a.Swap(&b); }
   inline void Swap(UiWindow* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4601,7 +4817,7 @@ class Fixtures final : public ::google::protobuf::Message
     return *reinterpret_cast<const Fixtures*>(
         &_Fixtures_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(Fixtures& a, Fixtures& b) { a.Swap(&b); }
   inline void Swap(Fixtures* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4817,7 +5033,7 @@ class ModCalls final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModCalls*>(
         &_ModCalls_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ModCalls& a, ModCalls& b) { a.Swap(&b); }
   inline void Swap(ModCalls* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5029,7 +5245,7 @@ class ModSlowFrame final : public ::google::protobuf::Message
     return *reinterpret_cast<const ModSlowFrame*>(
         &_ModSlowFrame_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ModSlowFrame& a, ModSlowFrame& b) { a.Swap(&b); }
   inline void Swap(ModSlowFrame* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5248,6 +5464,7 @@ class ControlRequest final : public ::google::protobuf::Message
     kCall = 4,
     kAnswer = 5,
     kControllers = 6,
+    kCommand = 7,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 0;
@@ -5343,6 +5560,7 @@ class ControlRequest final : public ::google::protobuf::Message
     kCallFieldNumber = 4,
     kAnswerFieldNumber = 5,
     kControllersFieldNumber = 6,
+    kCommandFieldNumber = 7,
   };
   // .modlock.host_app.control.ReloadRequest reload = 1;
   bool has_reload() const;
@@ -5458,6 +5676,22 @@ class ControlRequest final : public ::google::protobuf::Message
   ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL _internal_mutable_controllers();
 
   public:
+  // string command = 7;
+  bool has_command() const;
+  void clear_command() ;
+  const ::std::string& command() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_command(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_command();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_command();
+  void set_allocated_command(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_command() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_command(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_command();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.ControlRequest)
@@ -5469,11 +5703,12 @@ class ControlRequest final : public ::google::protobuf::Message
   void set_has_call();
   void set_has_answer();
   void set_has_controllers();
+  void set_has_command();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 6,
-                                   6, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 7,
+                                   6, 55,
                                    2>
       _table_;
 
@@ -5501,6 +5736,7 @@ class ControlRequest final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE call_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE answer_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE controllers_;
+      ::google::protobuf::internal::ArenaStringPtr command_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -5568,7 +5804,7 @@ class UiChanged final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiChanged*>(
         &_UiChanged_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(UiChanged& a, UiChanged& b) { a.Swap(&b); }
   inline void Swap(UiChanged* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5810,9 +6046,10 @@ class HostEvent final : public ::google::protobuf::Message
     kControllersWanted = 15,
     kUiWindow = 16,
     kPaused = 17,
+    kCommandFailed = 18,
     BODY_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(HostEvent& a, HostEvent& b) { a.Swap(&b); }
   inline void Swap(HostEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5916,6 +6153,7 @@ class HostEvent final : public ::google::protobuf::Message
     kControllersWantedFieldNumber = 15,
     kUiWindowFieldNumber = 16,
     kPausedFieldNumber = 17,
+    kCommandFailedFieldNumber = 18,
   };
   // .modlock.host_app.control.ModStarted started = 1;
   bool has_started() const;
@@ -6240,6 +6478,25 @@ class HostEvent final : public ::google::protobuf::Message
   ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL _internal_mutable_paused();
 
   public:
+  // .modlock.host_app.control.CommandFailed command_failed = 18;
+  bool has_command_failed() const;
+  private:
+  bool _internal_has_command_failed() const;
+
+  public:
+  void clear_command_failed() ;
+  const ::modlock::host_app::control::CommandFailed& command_failed() const;
+  [[nodiscard]] ::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE release_command_failed();
+  ::modlock::host_app::control::CommandFailed* PROTOBUF_NONNULL mutable_command_failed();
+  void set_allocated_command_failed(::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_command_failed(::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE unsafe_arena_release_command_failed();
+
+  private:
+  const ::modlock::host_app::control::CommandFailed& _internal_command_failed() const;
+  ::modlock::host_app::control::CommandFailed* PROTOBUF_NONNULL _internal_mutable_command_failed();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.HostEvent)
@@ -6262,11 +6519,12 @@ class HostEvent final : public ::google::protobuf::Message
   void set_has_controllers_wanted();
   void set_has_ui_window();
   void set_has_paused();
+  void set_has_command_failed();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 17,
-                                   17, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 18,
+                                   18, 0,
                                    2>
       _table_;
 
@@ -6305,6 +6563,7 @@ class HostEvent final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE controllers_wanted_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE ui_window_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE paused_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE command_failed_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -6802,6 +7061,85 @@ inline ::modlock::wasm::controllers::ControllerFrames* PROTOBUF_NONNULL ControlR
   return _msg;
 }
 
+// string command = 7;
+inline bool ControlRequest::has_command() const {
+  return body_case() == kCommand;
+}
+inline void ControlRequest::set_has_command() {
+  _impl_._oneof_case_[0] = kCommand;
+}
+inline void ControlRequest::clear_command() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kCommand) {
+    _impl_.body_.command_.Destroy();
+    clear_has_body();
+  }
+}
+inline const ::std::string& ControlRequest::command() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControlRequest.command)
+  return _internal_command();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ControlRequest::set_command(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() != kCommand) {
+    clear_body();
+
+    set_has_command();
+    _impl_.body_.command_.InitDefault();
+  }
+  _impl_.body_.command_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ControlRequest.command)
+}
+inline ::std::string* PROTOBUF_NONNULL ControlRequest::mutable_command()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  if (body_case() != kCommand) {
+    clear_body();
+
+    set_has_command();
+    _impl_.body_.command_.InitDefault();
+  }
+  ::std::string* _s = _internal_mutable_command();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.command)
+  return _s;
+}
+inline const ::std::string& ControlRequest::_internal_command() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  if (body_case() != kCommand) {
+    return ::google::protobuf::internal::GetEmptyStringAlreadyInited();
+  }
+  return _impl_.body_.command_.Get();
+}
+inline void ControlRequest::_internal_set_command(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.body_.command_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ControlRequest::_internal_mutable_command() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.body_.command_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ControlRequest::release_command() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.command)
+  if (body_case() != kCommand) {
+    return nullptr;
+  }
+  clear_has_body();
+  return _impl_.body_.command_.Release();
+}
+inline void ControlRequest::set_allocated_command(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (has_body()) {
+    clear_body();
+  }
+  if (value != nullptr) {
+    set_has_command();
+    _impl_.body_.command_.InitAllocated(value, GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ControlRequest.command)
+}
+
 inline bool ControlRequest::has_body() const {
   return body_case() != BODY_NOT_SET;
 }
@@ -6811,6 +7149,140 @@ inline void ControlRequest::clear_has_body() {
 inline ControlRequest::BodyCase ControlRequest::body_case() const {
   return ControlRequest::BodyCase(_impl_._oneof_case_[0]);
 }
+// -------------------------------------------------------------------
+
+// CommandFailed
+
+// string line = 1;
+inline void CommandFailed::clear_line() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.line_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& CommandFailed::line() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.CommandFailed.line)
+  return _internal_line();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void CommandFailed::set_line(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.line_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.CommandFailed.line)
+}
+inline ::std::string* PROTOBUF_NONNULL CommandFailed::mutable_line()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_line();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.CommandFailed.line)
+  return _s;
+}
+inline const ::std::string& CommandFailed::_internal_line() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.line_.Get();
+}
+inline void CommandFailed::_internal_set_line(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.line_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL CommandFailed::_internal_mutable_line() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.line_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE CommandFailed::release_line() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.CommandFailed.line)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.line_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.line_.Set("", GetArena());
+  }
+  return released;
+}
+inline void CommandFailed::set_allocated_line(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.line_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.line_.IsDefault()) {
+    _impl_.line_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.CommandFailed.line)
+}
+
+// string reason = 2;
+inline void CommandFailed::clear_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& CommandFailed::reason() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.CommandFailed.reason)
+  return _internal_reason();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void CommandFailed::set_reason(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.reason_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.CommandFailed.reason)
+}
+inline ::std::string* PROTOBUF_NONNULL CommandFailed::mutable_reason()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_reason();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.CommandFailed.reason)
+  return _s;
+}
+inline const ::std::string& CommandFailed::_internal_reason() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.reason_.Get();
+}
+inline void CommandFailed::_internal_set_reason(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL CommandFailed::_internal_mutable_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.reason_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE CommandFailed::release_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.CommandFailed.reason)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.reason_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.reason_.Set("", GetArena());
+  }
+  return released;
+}
+inline void CommandFailed::set_allocated_reason(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.reason_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.reason_.IsDefault()) {
+    _impl_.reason_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.CommandFailed.reason)
+}
+
 // -------------------------------------------------------------------
 
 // ModCall
@@ -8857,6 +9329,88 @@ inline ::modlock::host_app::control::GamePaused* PROTOBUF_NONNULL HostEvent::mut
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::modlock::host_app::control::GamePaused* _msg = _internal_mutable_paused();
   // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.paused)
+  return _msg;
+}
+
+// .modlock.host_app.control.CommandFailed command_failed = 18;
+inline bool HostEvent::has_command_failed() const {
+  return body_case() == kCommandFailed;
+}
+inline bool HostEvent::_internal_has_command_failed() const {
+  return body_case() == kCommandFailed;
+}
+inline void HostEvent::set_has_command_failed() {
+  _impl_._oneof_case_[0] = kCommandFailed;
+}
+inline void HostEvent::clear_command_failed() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kCommandFailed) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.command_failed_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.command_failed_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE HostEvent::release_command_failed() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.HostEvent.command_failed)
+  if (body_case() == kCommandFailed) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::CommandFailed*>(_impl_.body_.command_failed_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.command_failed_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::CommandFailed& HostEvent::_internal_command_failed() const {
+  return body_case() == kCommandFailed ? static_cast<const ::modlock::host_app::control::CommandFailed&>(*reinterpret_cast<::modlock::host_app::control::CommandFailed*>(_impl_.body_.command_failed_))
+                     : reinterpret_cast<const ::modlock::host_app::control::CommandFailed&>(::modlock::host_app::control::_CommandFailed_default_instance_);
+}
+inline const ::modlock::host_app::control::CommandFailed& HostEvent::command_failed() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.HostEvent.command_failed)
+  return _internal_command_failed();
+}
+inline ::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE HostEvent::unsafe_arena_release_command_failed() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.HostEvent.command_failed)
+  if (body_case() == kCommandFailed) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::CommandFailed*>(_impl_.body_.command_failed_);
+    _impl_.body_.command_failed_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void HostEvent::unsafe_arena_set_allocated_command_failed(
+    ::modlock::host_app::control::CommandFailed* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_command_failed();
+    _impl_.body_.command_failed_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.HostEvent.command_failed)
+}
+inline ::modlock::host_app::control::CommandFailed* PROTOBUF_NONNULL HostEvent::_internal_mutable_command_failed() {
+  if (body_case() != kCommandFailed) {
+    clear_body();
+    set_has_command_failed();
+    _impl_.body_.command_failed_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::CommandFailed>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::CommandFailed*>(_impl_.body_.command_failed_);
+}
+inline ::modlock::host_app::control::CommandFailed* PROTOBUF_NONNULL HostEvent::mutable_command_failed()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::CommandFailed* _msg = _internal_mutable_command_failed();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.command_failed)
   return _msg;
 }
 

@@ -12,7 +12,10 @@
 #include <array>
 #include <iostream>
 #include <optional>
+#include <string>
 #include <utility>
+
+#include "modlock/gameinterop/connection_tracker.h"
 
 namespace modlock::host_app {
 namespace {
@@ -23,6 +26,19 @@ constexpr uint32_t kMaxPacket = 10'000'000;
 // kMaxEvents bounds the events waiting for a slow controller; later events
 // are dropped.
 constexpr size_t kMaxEvents = 10'000;
+
+// FirstHuman returns the lowest slot of a human who has finished joining, or
+// -1 when none has. It reads the engine's connections, so it runs on the
+// engine thread.
+int32_t FirstHuman() {
+  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
+    const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+    if (state.occupied && state.fully_connected && !state.is_bot) {
+      return slot;
+    }
+  }
+  return -1;
+}
 
 #if defined(_WIN32)
 constexpr intptr_t kNoSocket = static_cast<intptr_t>(INVALID_SOCKET);
@@ -303,6 +319,25 @@ void ControlLink::RunRequests(WasmHost& mods) {
           result->set_error(reply.error());
         }
         Push(std::move(event));
+        break;
+      }
+      case control::ControlRequest::kCommand: {
+        // Offer the command to the mods as the first human's, and report a
+        // command nobody took.
+        const auto& line = request.command();
+        std::string reason;
+        if (const auto slot = FirstHuman(); slot < 0) {
+          reason = "no player is in the game to send the command";
+        } else if (!mods.Command(slot, line)) {
+          reason = "no mod handled the command";
+        }
+        if (!reason.empty()) {
+          control::HostEvent event;
+          auto* failed = event.mutable_command_failed();
+          failed->set_line(line);
+          failed->set_reason(std::move(reason));
+          Push(std::move(event));
+        }
         break;
       }
       default:

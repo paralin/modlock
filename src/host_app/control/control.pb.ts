@@ -67,6 +67,7 @@ export interface ControlRequest {
     | { value: ModCall; case: 'call' }
     | { value: ServiceAnswer; case: 'answer' }
     | { value: ControllerFrames; case: 'controllers' }
+    | { value: string; case: 'command' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
@@ -79,6 +80,7 @@ export const ControlRequest: MessageType<ControlRequest> =
       [4, 'call', 11, 0, ModCall.codec, 'body'],
       [5, 'answer', 11, 0, ServiceAnswer.codec, 'body'],
       [6, 'controllers', 11, 0, ControllerFrames.codec, 'body'],
+      [7, 'command', 9, 0, 0, 'body'],
     ],
     {
       decode: (
@@ -150,6 +152,9 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 7:
+              m.body = { case: 'command', value: r.string() }
+              break
             default:
               r.skip(t)
           }
@@ -186,6 +191,70 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'controllers' && o.value != null)
             ControllerFrames.writeField(w, 6, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'command' && o.value != null)
+            w.uint32(58).string(o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * CommandFailed reports a ControlRequest.command that no running mod took.
+ *
+ * @generated from message modlock.host_app.control.CommandFailed
+ */
+export interface CommandFailed {
+  /**
+   * Line is the command.
+   */
+  line?: string
+  /**
+   * Reason says why the command was not taken, such as that no player is in
+   * the game.
+   */
+  reason?: string
+}
+
+export const CommandFailed: MessageType<CommandFailed> =
+  /* @__PURE__ */ createMessageType<CommandFailed>(
+    'modlock.host_app.control.CommandFailed',
+    () => [
+      [1, 'line', 9],
+      [2, 'reason', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: CommandFailed,
+      ): CommandFailed => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.line = r.string()
+              break
+            case 2:
+              m.reason = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: CommandFailed, w: Writer): void => {
+        {
+          const v = m.line
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.reason
+          if (v) w.uint32(18).string(v)
         }
       },
     },
@@ -439,6 +508,7 @@ export interface HostEvent {
     | { value: ControllerWants; case: 'controllersWanted' }
     | { value: UiWindow; case: 'uiWindow' }
     | { value: GamePaused; case: 'paused' }
+    | { value: CommandFailed; case: 'commandFailed' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -462,6 +532,7 @@ export const HostEvent: MessageType<HostEvent> =
       [15, 'controllers_wanted', 11, 0, ControllerWants.codec, 'body'],
       [16, 'ui_window', 11, 0, UiWindow.codec, 'body'],
       [17, 'paused', 11, 0, GamePaused.codec, 'body'],
+      [18, 'command_failed', 11, 0, CommandFailed.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -639,6 +710,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 18:
+              m.body = {
+                case: 'commandFailed',
+                value: CommandFailed.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'commandFailed' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -730,6 +811,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'paused' && o.value != null)
             GamePaused.writeField(w, 17, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'commandFailed' && o.value != null)
+            CommandFailed.writeField(w, 18, o.value)
         }
       },
     },

@@ -35,7 +35,7 @@ When Deadlock is not installed, `dev` and `play` run your mod in the sandbox ins
 | `--preview-port PORT` | Serve the browser preview of the interface on a port other than 4322. `0` turns it off.                  |
 | `-- ARG...`           | Pass the words after `--` to the mods' `onStart` handlers, as in `modlock dev -- probe 4`.               |
 
-While `dev` or `play` watches a project, saving a file rebuilds the mod and replaces the running one. Saving files in `build/` and `node_modules`, hidden files and `*.log` files does not. The terminal shows the mod's log, its reloads and the players who join, and the server's own console output goes to `build/server.log`. In the sandbox, a line you type in the terminal is sent as chat from the stand-in player.
+While `dev` or `play` watches a project, saving a file rebuilds the mod and replaces the running one. Saving files in `build/` and `node_modules`, hidden files and `*.log` files does not. The terminal shows the mod's log, its reloads and the players who join, and the server's own console output goes to `build/server.log`. In the sandbox, a line you type in the terminal is sent as chat from the stand-in player. In a game, the line reaches the mods as a console command from the connected player in the lowest slot, and so do the presses and commands sent from the preview page. The terminal says when no player is in the game or no mod took the command.
 
 In a Python mod, a line that starts with `>` runs in `main.py`'s module, as at Python's own prompt, so `> modlock.players()` prints the players. When the line raises an error, the terminal shows its traceback and the mod keeps running. Mods in other languages have no such prompt yet.
 

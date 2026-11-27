@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"maps"
 	"os"
 	"path/filepath"
@@ -477,9 +478,16 @@ func input(ctx context.Context, out *printer, running server, box *sandbox.Sandb
 		return
 	}
 
-	// The rest is the player's input, which only the sandbox takes: in the
-	// game the player is at the game's own keyboard.
+	// The rest is the player's input: the sandbox takes it as the stand-in
+	// player, and a game session delivers it to the host as the first
+	// connected human, as a command typed in that player's game would.
 	if box == nil {
+		if game, ok := running.(*session.Session); ok {
+			if note := deliverGame(ctx, game, in); note != "" {
+				out.note(note)
+			}
+			return
+		}
 		if strings.TrimSpace(line) != "" && !out.json {
 			out.note("type commands in the game's chat; a line that starts with > runs in the mod")
 		}
@@ -488,6 +496,45 @@ func input(ctx context.Context, out *printer, running server, box *sandbox.Sandb
 	if note := deliver(ctx, box, in); note != "" {
 		out.note(note)
 	}
+}
+
+// commandLine is the console command the player's game would send for in: a
+// press as the game's button or layout script sends it, with a layout's
+// payload in base64url, or a typed command, whose leading slash is optional
+// as in chat. It is empty for an empty command and for input that no console
+// command carries.
+func commandLine(in *modcli.Input) string {
+	press := in.GetPress()
+	switch {
+	case press == nil:
+		return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(in.GetCommand()), "/"))
+	case press.GetAction() == "":
+		return "modlockpress " + press.GetMod() + " " + press.GetNode()
+	}
+	line := "modlockaction " + press.GetMod() + " " + press.GetNode() + " " + press.GetAction()
+	if payload := press.GetPayload(); payload != "" {
+		line += " " + base64.RawURLEncoding.EncodeToString([]byte(payload))
+	}
+	return line
+}
+
+// deliverGame sends in to a game session's host as a console command from
+// the first connected human, and returns a line for the creator when it
+// cannot, or empty. The host reports a command no mod took as a
+// CommandFailed event.
+func deliverGame(ctx context.Context, game *session.Session, in *modcli.Input) string {
+	// Only a command or a press travels as a console command.
+	if in.GetChange() != nil || in.GetWindow() != nil {
+		return "input changes and list rows reach the mods only in the sandbox"
+	}
+	line := commandLine(in)
+	if line == "" {
+		return ""
+	}
+	if err := game.Command(ctx, line); err != nil && ctx.Err() == nil {
+		return err.Error()
+	}
+	return ""
 }
 
 // deliver presses the button or sends the command in to the sandbox's mods,

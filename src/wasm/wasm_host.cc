@@ -324,4 +324,15 @@ std::expected<std::string, std::string> WasmHost::Call(std::string_view mod,
   return found->second->Serve(call);
 }
 
+bool WasmHost::Command(int32_t slot, std::string_view line) {
+  // Offer the line to each running mod until one takes it, as the engine
+  // offers a player's console command.
+  for (const auto& [name, plugin] : impl_->plugins) {
+    if (plugin->Command(slot, line)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace modlock

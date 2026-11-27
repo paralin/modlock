@@ -70,6 +70,7 @@ type ControlRequest struct {
 	//	*ControlRequest_Call
 	//	*ControlRequest_Answer
 	//	*ControlRequest_Controllers
+	//	*ControlRequest_Command
 	Body isControlRequest_Body `protobuf_oneof:"body"`
 }
 
@@ -128,6 +129,13 @@ func (x *ControlRequest) GetControllers() *controllers.ControllerFrames {
 	return nil
 }
 
+func (x *ControlRequest) GetCommand() string {
+	if x, ok := x.GetBody().(*ControlRequest_Command); ok {
+		return x.Command
+	}
+	return ""
+}
+
 type isControlRequest_Body interface {
 	isControlRequest_Body()
 }
@@ -164,6 +172,14 @@ type ControlRequest_Controllers struct {
 	Controllers *controllers.ControllerFrames `protobuf:"bytes,6,opt,name=controllers,proto3,oneof"`
 }
 
+type ControlRequest_Command struct {
+	// Command delivers a console command, such as a line from the preview
+	// page, to the running mods as if the first connected human sent it from
+	// their game. A command the host cannot deliver comes back as a
+	// CommandFailed event.
+	Command string `protobuf:"bytes,7,opt,name=command,proto3,oneof"`
+}
+
 func (*ControlRequest_Reload) isControlRequest_Body() {}
 
 func (*ControlRequest_Roles) isControlRequest_Body() {}
@@ -175,6 +191,38 @@ func (*ControlRequest_Call) isControlRequest_Body() {}
 func (*ControlRequest_Answer) isControlRequest_Body() {}
 
 func (*ControlRequest_Controllers) isControlRequest_Body() {}
+
+func (*ControlRequest_Command) isControlRequest_Body() {}
+
+// CommandFailed reports a ControlRequest.command that no running mod took.
+type CommandFailed struct {
+	unknownFields []byte
+	// Line is the command.
+	Line string `protobuf:"bytes,1,opt,name=line,proto3" json:"line,omitempty"`
+	// Reason says why the command was not taken, such as that no player is in
+	// the game.
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+}
+
+func (x *CommandFailed) Reset() {
+	*x = CommandFailed{}
+}
+
+func (*CommandFailed) ProtoMessage() {}
+
+func (x *CommandFailed) GetLine() string {
+	if x != nil {
+		return x.Line
+	}
+	return ""
+}
+
+func (x *CommandFailed) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
 
 // ModCall calls one method of a service a running mod serves, on the game's
 // thread between frames. Only the controller can send it; no player can.
@@ -326,6 +374,7 @@ type HostEvent struct {
 	//	*HostEvent_ControllersWanted
 	//	*HostEvent_UiWindow
 	//	*HostEvent_Paused
+	//	*HostEvent_CommandFailed
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -461,6 +510,13 @@ func (x *HostEvent) GetPaused() *GamePaused {
 	return nil
 }
 
+func (x *HostEvent) GetCommandFailed() *CommandFailed {
+	if x, ok := x.GetBody().(*HostEvent_CommandFailed); ok {
+		return x.CommandFailed
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -559,6 +615,12 @@ type HostEvent_Paused struct {
 	Paused *GamePaused `protobuf:"bytes,17,opt,name=paused,proto3,oneof"`
 }
 
+type HostEvent_CommandFailed struct {
+	// CommandFailed reports a command the controller sent that no running
+	// mod took.
+	CommandFailed *CommandFailed `protobuf:"bytes,18,opt,name=command_failed,json=commandFailed,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -592,6 +654,8 @@ func (*HostEvent_ControllersWanted) isHostEvent_Body() {}
 func (*HostEvent_UiWindow) isHostEvent_Body() {}
 
 func (*HostEvent_Paused) isHostEvent_Body() {}
+
+func (*HostEvent_CommandFailed) isHostEvent_Body() {}
 
 // PlayerChat is a line a player said in chat, to everyone or to their team.
 type PlayerChat struct {
@@ -1439,6 +1503,36 @@ func (m *ControlRequest_Controllers) CloneOneofVT() isControlRequest_Body {
 	return m.CloneVT()
 }
 
+func (m *ControlRequest_Command) CloneVT() *ControlRequest_Command {
+	if m == nil {
+		return (*ControlRequest_Command)(nil)
+	}
+	r := new(ControlRequest_Command)
+	r.Command = m.Command
+	return r
+}
+
+func (m *ControlRequest_Command) CloneOneofVT() isControlRequest_Body {
+	return m.CloneVT()
+}
+
+func (m *CommandFailed) CloneVT() *CommandFailed {
+	if m == nil {
+		return (*CommandFailed)(nil)
+	}
+	r := new(CommandFailed)
+	r.Line = m.Line
+	r.Reason = m.Reason
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *CommandFailed) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *ModCall) CloneVT() *ModCall {
 	if m == nil {
 		return (*ModCall)(nil)
@@ -1730,6 +1824,19 @@ func (m *HostEvent_Paused) CloneVT() *HostEvent_Paused {
 }
 
 func (m *HostEvent_Paused) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
+func (m *HostEvent_CommandFailed) CloneVT() *HostEvent_CommandFailed {
+	if m == nil {
+		return (*HostEvent_CommandFailed)(nil)
+	}
+	r := new(HostEvent_CommandFailed)
+	r.CommandFailed = protobuf_go_lite.CloneVTValue(m.CommandFailed)
+	return r
+}
+
+func (m *HostEvent_CommandFailed) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
@@ -2222,6 +2329,46 @@ func (this *ControlRequest_Controllers) EqualVT(thatIface isControlRequest_Body)
 	return true
 }
 
+func (this *ControlRequest_Command) EqualVT(thatIface isControlRequest_Body) bool {
+	that, ok := thatIface.(*ControlRequest_Command)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Command != that.Command {
+		return false
+	}
+	return true
+}
+
+func (this *CommandFailed) EqualVT(that *CommandFailed) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Line != that.Line {
+		return false
+	}
+	if this.Reason != that.Reason {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CommandFailed) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*CommandFailed)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *ModCall) EqualVT(that *ModCall) bool {
 	if this == that {
 		return true
@@ -2614,6 +2761,23 @@ func (this *HostEvent_Paused) EqualVT(thatIface isHostEvent_Body) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Paused, that.Paused, func() *GamePaused { return &GamePaused{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *HostEvent_CommandFailed) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_CommandFailed)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.CommandFailed, that.CommandFailed, func() *CommandFailed { return &CommandFailed{} }) {
 		return false
 	}
 	return true
@@ -3207,6 +3371,10 @@ func (x *ControlRequest) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("controllers")
 			ov.Controllers.MarshalProtoJSON(s.WithField("controllers"))
+		case *ControlRequest_Command:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("command")
+			s.WriteString(ov.Command)
 		}
 	}
 	s.WriteObjectEnd()
@@ -3280,12 +3448,67 @@ func (x *ControlRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Controllers = &controllers.ControllerFrames{}
 			ov.Controllers.UnmarshalProtoJSON(s.WithField("controllers", true))
+		case "command":
+			s.AddField("command")
+			ov := &ControlRequest_Command{}
+			x.Body = ov
+			ov.Command = s.ReadString()
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the ControlRequest from JSON.
 func (x *ControlRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the CommandFailed message to JSON.
+func (x *CommandFailed) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Line != "" || s.HasField("line") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("line")
+		s.WriteString(x.Line)
+	}
+	if x.Reason != "" || s.HasField("reason") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reason")
+		s.WriteString(x.Reason)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the CommandFailed to JSON.
+func (x *CommandFailed) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the CommandFailed message from JSON.
+func (x *CommandFailed) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "line":
+			s.AddField("line")
+			x.Line = s.ReadString()
+		case "reason":
+			s.AddField("reason")
+			x.Reason = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the CommandFailed from JSON.
+func (x *CommandFailed) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3549,6 +3772,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("paused")
 			ov.Paused.MarshalProtoJSON(s.WithField("paused"))
+		case *HostEvent_CommandFailed:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("commandFailed")
+			ov.CommandFailed.MarshalProtoJSON(s.WithField("commandFailed"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -3721,6 +3948,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Paused = &GamePaused{}
 			ov.Paused.UnmarshalProtoJSON(s.WithField("paused", true))
+		case "command_failed", "commandFailed":
+			ov := &HostEvent_CommandFailed{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.CommandFailed = nil
+				return
+			}
+			ov.CommandFailed = &CommandFailed{}
+			ov.CommandFailed.UnmarshalProtoJSON(s.WithField("command_failed", true))
 		}
 	})
 }
@@ -5117,6 +5353,61 @@ func (m *ControlRequest_Controllers) MarshalToSizedBufferVT(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *ControlRequest_Command) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ControlRequest_Command) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeString(dAtA, i, m.Command)
+	i--
+	dAtA[i] = 0x3a
+	return len(dAtA) - i, nil
+}
+
+func (m *CommandFailed) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CommandFailed) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *CommandFailed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Reason) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Reason)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Line) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Line)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ModCall) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -5716,6 +6007,34 @@ func (m *HostEvent_Paused) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x1
 		i--
 		dAtA[i] = 0x8a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HostEvent_CommandFailed) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_CommandFailed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.CommandFailed != nil {
+		size, err := m.CommandFailed.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x92
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x92
 	}
 	return len(dAtA) - i, nil
 }
@@ -6787,6 +7106,28 @@ func (m *ControlRequest_Controllers) SizeVT() (n int) {
 	return n
 }
 
+func (m *ControlRequest_Command) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringValue(1, m.Command)
+	return n
+}
+
+func (m *CommandFailed) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Line)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Reason)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *ModCall) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -7088,6 +7429,21 @@ func (m *HostEvent_Paused) SizeVT() (n int) {
 	_ = l
 	if m.Paused != nil {
 		l = m.Paused.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
+func (m *HostEvent_CommandFailed) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CommandFailed != nil {
+		l = m.CommandFailed.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	} else {
 		n += 3
@@ -7421,11 +7777,32 @@ func (x *ControlRequest) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Controllers)
 		}
+	case *ControlRequest_Command:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command")
+		protobuf_go_lite.TextWriteString(&sb, body.Command)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *ControlRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *CommandFailed) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "CommandFailed")
+	if x.Line != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "line")
+		protobuf_go_lite.TextWriteString(&sb, x.Line)
+	}
+	if x.Reason != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reason")
+		protobuf_go_lite.TextWriteString(&sb, x.Reason)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *CommandFailed) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -7621,6 +7998,13 @@ func (x *HostEvent) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &GamePaused{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Paused)
+		}
+	case *HostEvent_CommandFailed:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command_failed")
+		if body.CommandFailed == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &CommandFailed{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.CommandFailed)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -8218,6 +8602,79 @@ func (m *ControlRequest) UnmarshalVT(dAtA []byte) error {
 				m.Body = &ControlRequest_Controllers{Controllers: v}
 			}
 			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Command", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Body = &ControlRequest_Command{Command: v}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *CommandFailed) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CommandFailed: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CommandFailed: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Line", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Line = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Reason = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -8824,6 +9281,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &HostEvent_Paused{Paused: v}
+			}
+			iNdEx = postIndex
+		case 18:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CommandFailed", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_CommandFailed); ok {
+				if err := oneof.CommandFailed.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &CommandFailed{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_CommandFailed{CommandFailed: v}
 			}
 			iNdEx = postIndex
 		default:

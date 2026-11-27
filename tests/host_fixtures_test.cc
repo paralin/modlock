@@ -3,9 +3,10 @@
 // the service, an optional one starts the mod, a fixture handed to the host
 // at start answers each method with its reply, for its own mod only, and a
 // forwarded service reaches the controller over the control link and ends
-// with its answer.
+// with its answer. A command no player can send comes back with the reason.
 #ifndef _WIN32
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #endif
@@ -231,6 +232,12 @@ class Controller {
     }
   }
 
+  // Waiting reports whether an event from the link is waiting to be read.
+  bool Waiting() const {
+    pollfd ready{.fd = conn_, .events = POLLIN, .revents = 0};
+    return ::poll(&ready, 1, 0) > 0;
+  }
+
   // Next reads the link's next event.
   modlock::host_app::control::HostEvent Next() {
     std::array<unsigned char, 4> header{};
@@ -340,6 +347,26 @@ TEST(HostFixtures, TheControlLinkAsksTheControllerAndEndsTheCallWithItsAnswer) {
   link.Forward("drills", "example.drills.v1", "read", "{}", keep);
   ASSERT_EQ(ended.size(), 4u);
   EXPECT_EQ(ended[3].error(), "the program that answers this service has gone");
+}
+
+TEST(HostFixtures, TheControlLinkReportsACommandNoPlayerCanSend) {
+  // Dial a controller.
+  Controller controller;
+  auto dialed = modlock::host_app::ControlLink::Dial(controller.Address());
+  ASSERT_TRUE(dialed) << dialed.error();
+  controller.Accept();
+  auto& link = **dialed;
+  WasmHost host({});
+
+  // With nobody in the game, a command comes back with the reason.
+  modlock::host_app::control::ControlRequest command;
+  command.set_command("modlockpress arena ready");
+  controller.Send(command);
+  ASSERT_TRUE(Until(link, host, [&] { return controller.Waiting(); }));
+  const auto event = controller.Next();
+  ASSERT_TRUE(event.has_command_failed());
+  EXPECT_EQ(event.command_failed().line(), "modlockpress arena ready");
+  EXPECT_EQ(event.command_failed().reason(), "no player is in the game to send the command");
 }
 #endif
 

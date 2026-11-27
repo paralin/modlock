@@ -296,6 +296,12 @@ class WasmPlugin final : public Plugin {
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 
+  // Command offers the mod a console command the player in slot sent, a
+  // press of one of its buttons included, and reports whether the mod took
+  // it. The game's own commands reach it through the engine; the host's
+  // controller sends others in the player's name.
+  bool Command(int32_t slot, std::string_view line);
+
   // Log writes one line to the server log under the mod's name.
   void Log(std::string_view text);
 
@@ -460,7 +466,6 @@ class WasmPlugin final : public Plugin {
   // Steer delivers last frame's landings and gives the movement model this
   // frame's heroes.
   void Steer();
-  bool Command(int32_t slot, std::string_view line);
   // Chat delivers one chat line to a mod that asked for chat.
   void Chat(const gameinterop::NativeChatHook::Message& line);
   // Ping offers one player's ping to a mod that asked for pings, reports

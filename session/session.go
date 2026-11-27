@@ -199,6 +199,13 @@ func (s *Session) Call(ctx context.Context, call *control.ModCall) error {
 	return s.control.Call(ctx, call)
 }
 
+// Command asks the host to deliver line to the running mods as if the first
+// connected human sent that console command from their game. A command no
+// mod takes comes back as a CommandFailed event.
+func (s *Session) Command(ctx context.Context, line string) error {
+	return s.control.Command(ctx, line)
+}
+
 // Controllers passes one player's controller frames, which the caller bound
 // to that player, to the host.
 func (s *Session) Controllers(ctx context.Context, frames *controllers.ControllerFrames) error {

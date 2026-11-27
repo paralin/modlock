@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/src/host_app/control"
 )
 
@@ -144,4 +145,37 @@ func capture(t *testing.T, fn func() (string, error)) (string, string) {
 		t.Fatal(fnErr)
 	}
 	return string(printed), path
+}
+
+// TestCommandLine checks a game session sends the console command the
+// player's game would: a press as the game's button sends it, a layout's
+// press with its payload in base64url as actionCommand writes it, and a
+// typed command without its optional slash.
+func TestCommandLine(t *testing.T) {
+	command := func(line string) *modcli.Input {
+		return &modcli.Input{Body: &modcli.Input_Command{Command: line}}
+	}
+	press := func(action, payload string) *modcli.Input {
+		return &modcli.Input{Body: &modcli.Input_Press{Press: &modcli.Press{
+			Mod: "arena", Node: "card", Action: action, Payload: payload,
+		}}}
+	}
+	cases := []struct {
+		in   *modcli.Input
+		want string
+	}{
+		{command("roll"), "roll"},
+		{command("  /start  "), "start"},
+		{command(""), ""},
+		{press("", ""), "modlockpress arena card"},
+		{press("close", ""), "modlockaction arena card close"},
+		{press("vote", `{"vote":1}`), "modlockaction arena card vote eyJ2b3RlIjoxfQ"},
+		{press("name", "Anaïs"), "modlockaction arena card name QW5hw69z"},
+		{&modcli.Input{Body: &modcli.Input_Change{Change: &modcli.Change{Mod: "arena"}}}, ""},
+	}
+	for _, c := range cases {
+		if got := commandLine(c.in); got != c.want {
+			t.Errorf("commandLine(%v) = %q, want %q", c.in, got, c.want)
+		}
+	}
 }

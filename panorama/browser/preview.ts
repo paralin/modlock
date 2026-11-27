@@ -110,11 +110,20 @@ const drawing = new Drawing(
 )
 
 // A layout's press reaches the mods as the player's, with its action and
-// payload; any other command a layout dispatches is the game's alone.
+// payload. Any other command a layout's script dispatches reaches them as a
+// line typed in the command bar does, since in the game a command the client
+// does not run itself goes on to the server's mods.
 onCommand((line) => {
+  // Send a layout's press with its action and payload.
   const press = layoutPress(line)
-  if (press) send({ body: { case: 'press', value: press } })
-  else console.debug(`console command ${line}`)
+  if (press) {
+    send({ body: { case: 'press', value: press } })
+    return
+  }
+
+  // Send any other command as typed.
+  const command = line.trim()
+  if (command) send({ body: { case: 'command', value: command } })
 })
 
 /** building is true while the latest state reports a build. */
