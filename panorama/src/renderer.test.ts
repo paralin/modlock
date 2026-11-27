@@ -1219,7 +1219,57 @@ test('ranges follow a dragged handle and report it by name', () => {
     case: 'range',
     value: { phase: ActionPhase.CANCELLED, handle: 'min', values: [] },
   })
-  expect(grab(knobs(panel)[0]!)).toBe(false)
+  expect(grab(built[0]!)).toBe(false)
+
+  // Left and right step the active handle by the track's step and report
+  // every value at once, stopping at its neighbor.
+  drawing.draw(delay([0.25, 0.5, 0.75]))
+  const press = (event: string) => panel.events.get(event)!()
+  press('onfocus')
+  expect(built[0]!.style.border).toBe('2px solid #ffffff')
+  press('onmoveright')
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: {
+      phase: ActionPhase.RELEASED,
+      handle: 'min',
+      values: [0.5, 0.5, 0.75],
+    },
+  })
+  const stepped = changes.length
+  press('onmoveright')
+  expect(changes.length).toBe(stepped)
+  expect(shown()).toEqual(['50.000%', '50.000%', '75.000%'])
+
+  // Confirm makes the next handle active, which stops at the track's end.
+  press('onactivate')
+  press('onactivate')
+  expect(built[0]!.style.border).toBe(null)
+  expect(built[2]!.style.border).toBe('2px solid #ffffff')
+  press('onmoveright')
+  press('onmoveright')
+  expect(changes.length).toBe(stepped + 1)
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'range',
+    value: {
+      phase: ActionPhase.RELEASED,
+      handle: 'max',
+      values: [0.5, 0.5, 1],
+    },
+  })
+
+  // A redraw of the mod's old values leaves the step shown, and a stock
+  // overlay or a disabled control takes no step.
+  drawing.draw(delay([0.25, 0.5, 0.75]))
+  expect(shown()).toEqual(['50.000%', '50.000%', '100.000%'])
+  stock = 'other'
+  press('onmoveleft')
+  stock = null
+  drawing.draw(delay([0.5, 0.5, 1], true))
+  press('onmoveleft')
+  expect(changes.length).toBe(stepped + 1)
+  press('onblur')
+  expect(built[2]!.style.border).toBe(null)
 })
 
 test('sliders map native fractions to ranges and send scoped wheel anchors', () => {

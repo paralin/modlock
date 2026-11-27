@@ -11,7 +11,14 @@
 // follows the pointer past the track's ends. A handle stops at its
 // neighbors. Where knobs overlap, the drag takes the lowest of them when it
 // starts down the track and the highest when it starts up, so the player can
-// always pull the stack apart. Letting go reports every value. A stock
+// always pull the stack apart. Letting go reports every value.
+//
+// The track is one stop in the game's keyboard and controller navigation, so
+// up and down still move between controls. While it has the focus, left and
+// right step the active handle by the track's step, or a twentieth of the
+// track without one, stopping at its neighbors, and each step reports every
+// value at once. Enter or the controller's confirm makes the next handle
+// active, and the active knob is outlined while the track has the focus. A stock
 // overlay or the menu's closing cancels the hold and puts the handles back,
 // and a control that goes mid-drag reports nothing, so a control drawn again
 // shows the mod's values.
@@ -22,7 +29,13 @@ import {
   type RangeEvent,
 } from '../../src/wasm/ui/ui.pb.js'
 import type { Panel, Panorama } from './draw.js'
-import { clamp, finite, trackFraction, trackValue } from './number.js'
+import {
+  clamp,
+  finite,
+  trackFraction,
+  trackRange,
+  trackValue,
+} from './number.js'
 
 /** RangeHost is what a range needs from the drawing around it. */
 export interface RangeHost {
@@ -56,6 +69,9 @@ export const rangeLook: Record<string, string> = {
 /** knobWidth is a knob's width in layout units; a knob centers on its value. */
 const knobWidth = 16
 
+/** knobOutline marks the knob the keyboard and controller step. */
+const knobOutline = '2px solid #ffffff'
+
 /** RangeControl draws one range and drives the player's hold on it. */
 export class RangeControl {
   private readonly knobs: Panel[] = []
@@ -67,6 +83,10 @@ export class RangeControl {
   private disabled: boolean
   /** top is the knob drawn above the others, once one has moved. */
   private top: Panel | null = null
+  /** active is the handle the keyboard and controller step. */
+  private active = 0
+  /** focused reports whether the track has the keyboard focus. */
+  private focused = false
 
   constructor(
     private readonly panorama: Panorama,
@@ -87,6 +107,75 @@ export class RangeControl {
       this.knobs.push(this.knob(index))
     }
     this.place()
+
+    // Take the focus, step on left and right, and pass the step on with
+    // confirm.
+    panel.SetAcceptsFocus?.(true)
+    panel.SetPanelEvent('onmoveleft', () => this.step(-1))
+    panel.SetPanelEvent('onmoveright', () => this.step(1))
+    panel.SetPanelEvent('onactivate', () => this.next())
+    panel.SetPanelEvent('onfocus', () => this.outline(true))
+    panel.SetPanelEvent('onblur', () => this.outline(false))
+  }
+
+  /**
+   * step moves the active handle one step toward delta's sign, stopping at
+   * its neighbors and the track's ends, and reports every value. It returns
+   * whether the handle moved.
+   */
+  step(delta: number): boolean {
+    // Step only while no hold runs and the player's input is the control's.
+    if (
+      this.hold.state !== 'idle' ||
+      this.disabled ||
+      !this.host.live() ||
+      !this.host.open()
+    ) {
+      return false
+    }
+
+    // Find the room the active handle has between its neighbors.
+    const handle = this.active
+    const [min, max] = trackRange(this.track)
+    const value = this.shown[handle]!
+    const low = Math.max(min, this.shown[handle - 1] ?? -Infinity)
+    const high = Math.min(max, this.shown[handle + 1] ?? Infinity)
+
+    // Move by the track's step, snapped to it, within that room.
+    const step = finite(this.track.step)
+    const moved =
+      value + Math.sign(delta) * (step > 0 ? step : (max - min) / 20)
+    const next = clamp(
+      trackValue(this.track, trackFraction(this.track, moved)),
+      low,
+      high,
+    )
+    if (next === value) return false
+
+    // Show the step and report it as a hold let go at once.
+    this.shown[handle] = next
+    this.raise(handle)
+    this.place()
+    this.host.send({
+      phase: ActionPhase.RELEASED,
+      handle: this.name(handle),
+      values: [...this.shown],
+    })
+    return true
+  }
+
+  /** next makes the next handle active, after the last the first. */
+  next(): void {
+    this.active = (this.active + 1) % this.knobs.length
+    this.outline(this.focused)
+  }
+
+  /** outline marks the active knob while the track has the focus. */
+  private outline(focused: boolean): void {
+    this.focused = focused
+    for (const [handle, knob] of this.knobs.entries()) {
+      knob.style.border = focused && handle === this.active ? knobOutline : null
+    }
   }
 
   /**

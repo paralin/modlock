@@ -330,8 +330,14 @@ lets go. `onHold` hears each grab, release and cancellation by the handle's
 name. A stock overlay, the menu's closing or disabling the range cancels the
 drag and puts the handles where your mod last drew them. While the player holds
 a handle, a redraw leaves the handles where the player has them. Changing the
-handles' names draws a new range. In Python the element is `range_`, and in Go
-`ui.Range`.
+handles' names draws a new range.
+
+The range is one stop in the game's keyboard and controller navigation. While
+it has the focus, left and right step its active handle by `step`, or a
+twentieth of the track without one, stopping at its neighbors, and Enter or
+the controller's confirm makes the next handle active, which shows outlined.
+Each step runs `onChange` with every value at once, and `onHold` hears it as a
+release. In Python the element is `range_`, and in Go `ui.Range`.
 
 In TypeScript, a form can direct the keyboard. `focusOrder` on a button or
 input sets its place in the game's keyboard and controller navigation, lowest

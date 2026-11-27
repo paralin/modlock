@@ -672,6 +672,9 @@ export interface RangeHandle {
  * stopping at each step when step is set. The handles keep their order: one
  * stops at its neighbors. While the player holds a handle the game moves it,
  * and onChange receives every handle's value, in order, when they let go.
+ * Left and right step the active handle from the keyboard or a controller,
+ * confirm makes the next handle active, and each step reaches onChange at
+ * once and onHold as 'released'.
  * onHold hears each hold: 'pressed' as the player takes a handle, then
  * 'released', or 'cancelled' when a stock overlay or the menu's closing ended
  * it and put the handles back.

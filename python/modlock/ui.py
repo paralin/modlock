@@ -395,7 +395,10 @@ class RangeProps(InputProps, total=False):
     in order, each a number from min to max, 0 to 1 unless set, stopping at
     each step when step is set. A handle stops at its neighbors. While the
     player holds a handle a redraw leaves the handles where the player has
-    them. Changing the handles' names draws a new range."""
+    them. Left and right step the active handle from the keyboard or a
+    controller, confirm makes the next handle active, and each step reports
+    every value at once, as a release. Changing the handles' names draws a
+    new range."""
 
     handles: Required[Sequence[RangeHandle]]
     min: float

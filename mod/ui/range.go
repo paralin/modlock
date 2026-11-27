@@ -10,8 +10,10 @@ import (
 // to 1 unless set, stopping at each Step when Step is set. The handles keep
 // their order: a handle stops at its neighbors. While the player holds a
 // handle a redraw leaves the handles where the player has them, and letting go
-// reports every value. A disabled range takes no changes. Changing the handles'
-// names draws a new range.
+// reports every value. Left and right step the active handle from the
+// keyboard or a controller, confirm makes the next handle active, and each
+// step reports every value at once, as a release. A disabled range takes no
+// changes. Changing the handles' names draws a new range.
 type Range struct {
 	// Key keeps the range's node in a list while the list changes.
 	Key string
