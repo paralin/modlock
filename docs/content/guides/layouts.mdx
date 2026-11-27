@@ -71,7 +71,7 @@ of each value that changed.
 replaces the layout's panel, reloads the tree, or releases the screen as the
 player leaves, so a layout can cancel scheduled timers, drop event handlers, or
 undo changes outside its panel. Do cleanup synchronously, since the panel is
-deleted on the next frame (or after its exit transition); a handler registered
+deleted on the next frame (or after its exit transition). A handler registered
 after unload runs at once, and no `data` or `route` handler runs after it. A
 layout whose screen was released loads afresh on the next draw, so its script
 starts again from the top and should set up everything it needs there.

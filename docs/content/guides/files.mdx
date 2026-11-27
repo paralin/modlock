@@ -1,6 +1,6 @@
 ---
 title: Files
-description: Keep text files on the host, with defaults shipped in the mod.
+description: Keep text files on the host, with defaults included in the mod.
 ---
 
 Your mod reads and writes text files on the host, such as its configuration or the
@@ -112,8 +112,8 @@ configuration directory:
 | macOS   | `~/Library/Application Support/modlock/files/<slug>/` |
 | Windows | `%AppData%\modlock\files\<slug>\`                     |
 
-To replace a file your mod ships, a server operator puts a file of the same name
-in that directory.
+To replace a file your mod includes, a server operator puts a file of the same
+name in that directory.
 
 The files your mod writes can take up to 4 MiB together, and the host refuses a
 write that would pass that. Each host keeps its own files, so your mod should
@@ -143,7 +143,7 @@ command('savearea', (player) => {
 ## Binary files
 
 `readFileBytes` returns a file as a `Uint8Array` with no text decoding, so a
-mod can ship a table it built offline and view it in place with typed arrays,
+mod can include a table it built offline and view it in place with typed arrays,
 instead of parsing text at load. The host reads the whole file during the call,
 so the frame that makes it waits for the read. A view such as a
 `Float64Array` needs its offset to be a multiple of its element size, and the

@@ -6,7 +6,7 @@ description: Make fewer game calls, act on changes instead of every frame, and s
 A common cause of slow frames is work repeated on every frame for every
 player. A game call costs more than plain code: the mod encodes the request,
 the game does the work, and the mod decodes the reply. Some calls, such as
-`giveModifier`, look up game data each time. The skipped-frames line names the
+`giveModifier`, look up game data each time. The skipped-frames line gives the
 [slowest call](/performance/frame-budget#frames-over-the-allowance), and the
 sampled stacks in `modlock play` show which code makes it.
 
@@ -86,7 +86,7 @@ abilities or model: set it once, and again only when something changes it.
 Read a value once and pass it to the code that needs it. `player.pawn()` and
 `findEntities` each make a call, and `findEntities` searches the world's
 entities. In Go, Luau and Python, read each player's pawn once at the top of
-the frame; a mode that reads every hero calls `pawns()` instead, which answers
+the frame. A mode that reads every hero calls `pawns()` instead, which answers
 every player's pawn in one call.
 
 The TypeScript library does this for `player.pawn()` itself. Within one event

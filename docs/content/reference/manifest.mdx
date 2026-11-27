@@ -247,7 +247,7 @@ totals.
 | `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
 
 A board with `teamSize` ranks teams: the score of a run two players finished
-together, say. Each report names the scoring player's teammates, enrolled with
+together, say. Each report lists the scoring player's teammates, enrolled with
 `bindScorePlayer` as the player is, the team size less one of them. The same
 players in any order are one team, so a pair keeps one standing whoever
 reported, and a player belongs to as many teams as they play in. Each row of
@@ -269,10 +269,10 @@ its board and logs it, and the mod logs any score the host does not accept.
 
 ## Services
 
-Name each service the mod calls in `mod.json`; a service is needed unless it
-is marked optional. The sandbox and the game host refuse to start a mod whose
-needed service nobody provides there, naming it, and start one without an
-optional service, whose calls then fail:
+Name each service the mod calls in `mod.json`. A service is needed unless it is
+marked optional. The sandbox and the game host refuse to start a mod whose
+needed service nobody provides there, and the refusal gives the service's name.
+They start a mod without an optional service, whose calls then fail:
 
 ```json
 "services": [
@@ -285,18 +285,18 @@ optional service, whose calls then fail:
 sandbox and in the game: `services/<name>.json`, an object whose keys are the
 service's methods and whose values are their replies, sent as JSON. Before the
 mod starts, it logs which provider answers each named service: a fixture or
-nobody. In the game, `modlock play` hands the host the fixtures in a file it
-names with `--fixtures`, and each fixture answers only its own mod.
+nobody. In the game, `modlock play` hands the host the fixtures in a file whose
+path it passes with `--fixtures`, and each fixture answers only its own mod.
 
-`modlock play --forward-services <origin>` answers the mod's named services
-from the service at that origin in place of fixtures, in the game only. Each
-call a mod starts goes from the host over `--control` to `modlock play`, which
-posts it to `<origin>/api/mods/services/call` with the session `modlock login`
-saved, read at each call, and hands back the answer. It never signs in: without
-a saved session for that origin the call fails, naming `modlock login`. The
-origin must be https, or http on 127.0.0.1. A forwarded service answers only
-calls started with `callServiceLater`, and at most 8 calls wait on the origin
-at once; the host fails the calls still waiting when `modlock play` goes.
+`modlock play --forward-services <origin>` answers the mod's named services from
+the service at that origin in place of fixtures, in the game only. Each call a
+mod starts goes from the host over `--control` to `modlock play`, which posts it
+to `<origin>/api/mods/services/call` with the session `modlock login` saved,
+read at each call, and hands back the answer. It never signs in: without a saved
+session for that origin the call fails, and its error mentions `modlock login`.
+The origin must be https, or http on 127.0.0.1. A forwarded service answers only
+calls started with `callServiceLater`, and at most 8 calls wait on the origin at
+once. The host fails the calls still waiting when `modlock play` goes.
 
 A service may answer in a later frame, as one that asks a server across the
 network does. `callServiceLater(service, method, payload, done)` returns at
@@ -331,10 +331,10 @@ answers later with `WasmHost::ProvideLater`.
 ]
 ```
 
-A mod keeps one record of each declared type for each player, up to 8 types,
-and names the `persist` service. Each type has up to 32 fields, and a record
-holds up to 8 KB. Hosts may also bound the manifest size; keep `mod.json` under
-256 KiB for hosts that use that limit.
+A mod keeps one record of each declared type for each player, up to 8 types, and
+declares the `persist` service. Each type has up to 32 fields, and a record
+holds up to 8 KB. Hosts may also bound the manifest size, so keep `mod.json`
+under 256 KiB for hosts that use that limit.
 
 | Kind          | Holds                                                            | Changes                    |
 | ------------- | ---------------------------------------------------------------- | -------------------------- |
@@ -363,13 +363,13 @@ field, a field whose stored value is of another kind than mod.json now
 declares, or a record past its bound is refused whole, and the record is
 unchanged. A `Player` kept after its player left reaches no record: its reads
 answer `unavailable` and its updates are refused without being sent, even when
-another player has taken the slot. Each request names the player's connection,
-and the host refuses one whose connection is gone.
+another player has taken the slot. Each request includes the player's
+connection, and the host refuses one whose connection is gone.
 
 `modlock play` keeps the records itself, in the sandbox and in the game, one
 file per player in the project's `.modlock/persist/`, so they survive a
 restart. In the game it learns the player in each slot and their connection
-as they join, and refuses a bot's record. A game host too old to name the
+as they join, and refuses a bot's record. A game host too old to send the
 connection has every persist call refused, rather than answered for whoever
 holds the slot. It answers persist itself even with
 `--forward-services`.

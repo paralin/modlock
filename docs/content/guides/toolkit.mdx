@@ -272,7 +272,7 @@ sweepStragglers()
 | `heroes`         | `true`  | Kills each hero that has had no player for `strayGraceSeconds` and holds off its respawn.       |
 
 The sweep checks once a second and kicks each connection once, by name, with
-`kick "name"`; a name that is empty or holds a quote is logged instead. A
+`kick "name"`. A name that is empty or holds a quote is logged instead. A
 player who reconnects gets a new slot connection and a new deadline. A
 disconnect already fires [`onPlayerLeave`](/guides/events#joins-and-leaves)
 with `disconnected` true and drops the player from the player list, so remove
@@ -309,7 +309,7 @@ have no locale data:
 in reach, the point is inside a wall, or the world's collision is not ready
 yet. `ground(spawn) ?? spawn` keeps the point when there is no floor. It
 traces straight down through solid and player clip, from 64 units above to
-1024 below; `above`, `below` and `layers` change the reach.
+1024 below. `above`, `below` and `layers` change the reach.
 
 ## Stand a race gate
 

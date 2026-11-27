@@ -29,14 +29,14 @@ the game. Type a chat command, such as `/hello`, in the Player View and press
 the buttons your mod shows to play as them.
 
 **Host for Friends** runs the same project and opens a friends lobby on your
-computer. Copy its invite from the sidebar; friends open the link to join.
+computer. Copy its invite from the sidebar, and friends open the link to join.
 
 ## See what players see
 
 The **Player View** shows each mod's interface, drawn as the game lays it out,
 and the chat lines, center text and announcements mods show. Click a player in
 the Modlock view to open it. The view's other rows show where the mods run and
-each mod's state; right-click them for their actions.
+each mod's state. Right-click them for their actions.
 
 ## Publish it
 
@@ -49,6 +49,6 @@ each mod's state; right-click them for their actions.
 
 The extension manages the `modlock` command line for you. It downloads the one
 from the Modlock release it came with and puts it on `PATH` in VS Code's
-terminals, so `modlock` there is the same one. When a newer release is out,
-the command line moves to it on its own; turn `modlock.autoUpdate` off to be
-asked first. To run your own build instead, set `modlock.path` to it.
+terminals, so `modlock` there is the same one. When a newer release is out, the
+extension switches the command line to it on its own. Turn `modlock.autoUpdate`
+off to be asked first. To run your own build instead, set `modlock.path` to it.

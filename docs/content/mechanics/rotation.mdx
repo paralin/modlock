@@ -22,10 +22,10 @@ goes to the back again, and each part of that has its calls:
 | Heroes left behind by a swap         | `Strays`                                    |
 
 The rotation calls are TypeScript only, and they and `holdBystander` and
-`Strays` import from `modlock/kit`; `Cast`, `playCamera`, `curve` and `Roster`
-import from `modlock`. Each rotation call is pure: your mod keeps the line
-and the standings, and each call reads only what you pass it. Because the calls
-are pure, `js/test/rotation.test.ts` runs a whole session without the game.
+`Strays` import from `modlock/kit`. `Cast`, `playCamera`, `curve` and `Roster`
+import from `modlock`. Each rotation call is pure: your mod keeps the line and
+the standings, and each call reads only what you pass it. Because the calls are
+pure, `js/test/rotation.test.ts` runs a whole session without the game.
 
 ## The line and the standings
 
