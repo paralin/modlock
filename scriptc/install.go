@@ -12,7 +12,7 @@ import (
 // Version is the scriptc release that builds script mods. It comes from the
 // paralin/scriptc fork, which carries compiler fixes upstream has not
 // released yet.
-const Version = "0.4.16-paralin.6"
+const Version = "0.4.17-paralin.2"
 
 // asset is one file of the release and its SHA-256.
 type asset struct{ name, sum string }
@@ -20,15 +20,15 @@ type asset struct{ name, sum string }
 // compilers maps each system to the release asset holding its standalone
 // compiler.
 var compilers = map[string]asset{
-	"darwin/arm64":  {"scriptc-" + Version + "-darwin-arm64.tar.gz", "5468607b03a2da9eac1cfe154e00eb093b631b754763129f806952dd60538d09"},
-	"linux/amd64":   {"scriptc-" + Version + "-linux-x64-gnu.tar.gz", "5bb40adc578f7150c7773f6ea993f542d10781866868362044783d2108ad8542"},
-	"linux/arm64":   {"scriptc-" + Version + "-linux-arm64-gnu.tar.gz", "c311a1b273103f99b917f8cff4fdbe41169ffca391f90845a4e58ef6c33bcee7"},
-	"windows/amd64": {"scriptc-" + Version + "-win32-x64-msvc.tar.gz", "218de77b1f5765234b77c32ef31cc1dbf440b638d6f90a06951ec7875d3d80dc"},
+	"darwin/arm64":  {"scriptc-" + Version + "-darwin-arm64.tar.gz", "858057bc93bfdf50855abb3dfa3b8f8de1b2b7a46d1080b294e58804d9cff6f1"},
+	"linux/amd64":   {"scriptc-" + Version + "-linux-x64-gnu.tar.gz", "e8a191b1fd4c52adfa91c02779261c1b6bde8905333bbb3668f4b3cb45d0ca86"},
+	"linux/arm64":   {"scriptc-" + Version + "-linux-arm64-gnu.tar.gz", "42d055c83fb406ed729d144534c347db65d20a554f8d55cb640fae3c0cf294cc"},
+	"windows/amd64": {"scriptc-" + Version + "-win32-x64-msvc.tar.gz", "a71fc9addd462df8b7be3e66c2e9b2da514df23432104fb8accf1b198539311f"},
 }
 
 // runtimePack is the release asset holding the wasm32-wasi runtime pack, an
 // npm package archive.
-var runtimePack = asset{"scriptc-runtime-wasm32-wasi-" + Version + ".tgz", "068da8c8b5cf81f9846b0ce151d10690171e0e083700533c17c214279627f744"}
+var runtimePack = asset{"scriptc-runtime-wasm32-wasi-" + Version + ".tgz", "f82207ce4be7474d6b4dce5fd4d1ad24d20d940861d4cfa78cc1cf905e767011"}
 
 // Compiler returns the scriptc compiler for this system and the runtime pack
 // it links WebAssembly modules against.
