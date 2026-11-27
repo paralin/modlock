@@ -3,8 +3,8 @@ title: Checkpoint race
 description: Time each runner through a course of checkpoints.
 ---
 
-This page shows you how to build a race that times each runner through a
-course. The course is a list of points: a start line, checkpoints and a finish.
+This page builds a race that times each runner through a course. The course is
+a list of points, with a start line, checkpoints and a finish.
 
 A runner starts with `/race`, and each frame your mod checks whether they have
 reached their next checkpoint:
@@ -249,9 +249,9 @@ func main() {}
 
 Move the course's points to where your hero can run, then type `/race` in chat.
 
-The runner sees `Go!` in the middle of the screen at the start line, then each
-checkpoint's number, such as `Checkpoint 1 of 1`. At the finish they see the
-announcement "Finished" with their time in seconds.
+At the start line, the runner sees `Go!` in the middle of the screen. Then they
+see each checkpoint's number as they reach it, such as `Checkpoint 1 of 1`. At
+the finish, they see the announcement "Finished" with their time in seconds.
 
 ## Variations
 

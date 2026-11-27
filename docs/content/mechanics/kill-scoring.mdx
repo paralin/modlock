@@ -175,15 +175,16 @@ func main() {}
 
 Bring a second player or a bot into the game and defeat them.
 
-The kill gives the player on each side, with a slot of -1 where no player's
-hero stands: a unit that died, or a unit or hazard that killed. A hero that
-killed itself is its own attacker, so it scores nothing. Each point shows every
-player the scorer's name and total, such as `Ana: 4 / 10`, in the middle of the
-screen, and at ten every player sees the announcement "_name_ wins".
+The kill gives the player on each side. The slot is -1 on a side where no
+player's hero stands, which means a unit died, or a unit or hazard made the
+kill. A hero that killed itself is its own attacker, so it scores nothing. Each
+point shows every player the scorer's name and total, such as `Ana: 4 / 10`, in
+the middle of the screen. At ten, every player sees the announcement "_name_
+wins".
 
 ## Variations
 
 - Keep a score through a reconnect by keying it by Steam ID instead of player. The sample keys scores by player and drops them when the player leaves.
-- Pay the scorer with `adjustSouls` or heal them to reward a streak.
+- Reward a streak by paying the scorer with `adjustSouls`, or by healing them.
 - Count kills across sessions with a [metric](/guides/data#metrics), or rank players with a [board](/guides/data#boards).
 - The [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty) example builds on this. The leader carries a marker, and whoever defeats them takes it.

@@ -3,9 +3,9 @@ title: Ready up and count down
 description: Hold the round until every player is ready, then count it in.
 ---
 
-Most modes open a round the same way, and this page shows you how to build it: the round waits until every player is ready, then counts them in.
+Most modes open a round the same way. The round waits until every player is ready, and then it counts them in. This page builds that opening.
 
-The round is a state machine with three phases, and each handler checks the phase before it acts:
+The round is a state machine with three phases. Each handler checks the phase before it acts:
 
 | Phase       | Players can     | Moves on when             |
 | ----------- | --------------- | ------------------------- |
@@ -285,10 +285,11 @@ func main() {}
 To try it, save while `modlock dev` runs and type `/ready` in chat. When you
 play alone, nobody else is missing, so the count starts at once.
 
-While anyone is missing, every player sees how many, such as `Waiting for 2
-more`, in the middle of the screen. When the last one is ready, their heroes
-freeze and they see 3, 2 and 1, one second apart. Then the heroes are released,
-and everyone sees the announcement "Fight!" with "The round is live."
+While anyone is missing, every player sees how many are missing, such as
+`Waiting for 2 more`, in the middle of the screen. When the last player is
+ready, every hero freezes, and the players see 3, 2 and 1, one second apart.
+Then the mod releases the heroes, and everyone sees the announcement "Fight!"
+with "The round is live."
 
 ## Variations
 

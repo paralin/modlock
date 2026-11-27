@@ -4,11 +4,9 @@ description: Run a lobby through one fight at a time, with a fair line and balan
 ---
 
 A rotation mode, such as a duel ring or a two against two pit, runs a lobby
-through one fight at a time, and the TypeScript library has a call for each
-part of one.
-
-A player joins the line, waits in the stands, fights when their turn comes and
-goes to the back again, and each part of that has its calls:
+through one fight at a time. A player joins the line, waits in the stands,
+fights when their turn comes and goes to the back of the line again. The
+TypeScript library has calls for each part of that:
 
 | Piece                                | Call                                        |
 | ------------------------------------ | ------------------------------------------- |
@@ -21,23 +19,23 @@ goes to the back again, and each part of that has its calls:
 | The leaderboard                      | `leaderboard`, `Roster`                     |
 | Heroes left behind by a swap         | `Strays`                                    |
 
-The rotation calls are TypeScript only, and they and `holdBystander` and
-`Strays` import from `modlock/kit`. `Cast`, `playCamera`, `curve` and `Roster`
-import from `modlock`. Each rotation call is pure: your mod keeps the line and
-the standings, and each call reads only what you pass it. Because the calls are
-pure, `js/test/rotation.test.ts` runs a whole session without the game.
+The rotation calls exist only in TypeScript. Import them, `holdBystander` and
+`Strays` from `modlock/kit`, and import `Cast`, `playCamera`, `curve` and
+`Roster` from `modlock`. Each rotation call is pure. Your mod keeps the line
+and the standings, and each call reads only what you pass it. Because the calls
+are pure, `js/test/rotation.test.ts` runs a whole session without the game.
 
 ## The line and the standings
 
-A player's standing is their record for the session: matches played, rating,
-wins, losses and current win streak. A `Standings` contains one `Standing` per
-Steam ID. Keep the line as an array of your own players, in arrival order,
-beside one `Standings`:
+A player's standing is their record for the session. It holds their matches
+played, rating, wins, losses and current win streak. A `Standings` contains one
+`Standing` for each Steam ID. Keep the line as an array of your own players, in
+the order they arrived, beside one `Standings`:
 
 - A player who leaves and rejoins keeps their record and place.
-- `join` creates the standing at `startingRating`, then raises matches played
-  to the fewest anyone present has played, so arriving late or leaving to skip
-  a turn never jumps the line.
+- `join` creates the standing at `startingRating`. Then it raises the player's
+  matches played to the fewest that anyone present has played. So arriving late,
+  or leaving to skip a turn, never jumps the line.
 - A function passed to `Standings` adds your own fields to each new standing,
   such as matches played as each hero:
 
@@ -66,8 +64,8 @@ const cast = new Cast({
 
 ## The stands
 
-A waiting player can sit in the stands with a hero that the fight does not
-use. `holdBystander(entity)` keeps it out of play, and
+A waiting player can sit in the stands, with a hero that the fight does not
+use. `holdBystander(entity)` keeps that hero out of play, and
 `holdBystander(entity, false)` gives it back before the player fights. A held
 hero:
 
@@ -76,11 +74,11 @@ hero:
   over it;
 - cannot be pulled from its seat by displacement.
 
-Teleport the hero to its seat facing the ring. Then aim `playCamera`'s `target`,
-the point the camera turns around, at the ring's center with a long `distance`.
-The player circles that view with the mouse. Each param snaps
-back when its curve ends. Hold each curve longer than any wait, and clear
-the context when the player leaves the stands:
+Teleport the hero to its seat, facing the ring. Then aim `playCamera`'s
+`target`, the point the camera turns around, at the ring's center, with a long
+`distance`. The player circles that view with the mouse. Each param snaps back
+when its curve ends, so hold each curve longer than any wait. Clear the context
+when the player leaves the stands:
 
 ```ts
 import {
@@ -122,23 +120,24 @@ function unseat(player: Player, pawn: number): void {
 }
 ```
 
-`playCamera` returns nothing while the player has no hero. Mark the seat taken
-only once `seat` returns true, and try again each frame. A bystander
-can still die from a fall or world damage, so respawn it and seat it again.
+`playCamera` returns nothing while the player has no hero. So mark the seat
+taken only once `seat` returns true, and try again each frame until it does. A
+bystander can still die from a fall or world damage, so respawn it and seat it
+again.
 
 ## The next match
 
 When it is time for the next fight, `nextMatch(line, size, standing)` picks
 who fights, in two steps:
 
-1. It takes the `2 * size` players who have played fewest. Among equals, the
-   one earlier in line goes first.
+1. It takes the `2 * size` players who have played the fewest matches. Among
+   equals, the one earlier in the line goes first.
 2. It deals them to the sides by rating in a snake (first, second, second,
    first), which keeps the sides' ratings close. With two per side, the best
    pairs with the worst against the middle two.
 
 While too few players wait, `nextMatch` returns nothing, and your HUD can show
-that as waiting for players.
+that the mode is waiting for players.
 
 ```ts
 const sides = nextMatch(line, size, (each) => each.standing)
@@ -149,13 +148,15 @@ if (sides) {
 }
 ```
 
-Count the match as played when it is seated, not when it ends, so a fighter who leaves mid-match still goes to the back of the order.
+Count the match as played when it is seated, not when it ends. Then a fighter who leaves in the middle of a match still goes to the back of the order.
 
 ## An even share of heroes
 
-When the mode picks each fighter's hero from a short list, count each
-player's matches per hero. `leastUsed(counts, prefer)` returns the one played
-least, or `prefer` on a tie, so everyone plays every hero about equally and two fighters can start on different heroes by preferring different ones.
+When the mode picks each fighter's hero from a short list, count each player's
+matches on each hero. `leastUsed(counts, prefer)` returns the hero the player
+has played least, or `prefer` on a tie. So everyone plays every hero about
+equally, and two fighters can start on different heroes by preferring
+different ones.
 
 ```ts
 const choice = leastUsed(fighter.standing.heroes, side === 0 ? 0 : 1)
@@ -183,13 +184,13 @@ line = afterMatch(line, [...winners, ...losers])
 
 ## The leaderboard
 
-`leaderboard(players, standing, rows, viewer)` ranks by wins, then rating,
-and returns the first `rows`, keeping the viewer on the last row if they would
-fall off. `Roster` draws each row's hero, avatar and a line of activity. Its
-`groups` put players under headings, such as one per team, and its rows shrink
-and then run in columns as players join, so every row fits between `top` and
-`bottom`. `rosterBottom` takes the same props and gives the line where the
-roster ends, for a panel drawn under it:
+`leaderboard(players, standing, rows, viewer)` ranks players by wins, then by
+rating, and returns the first `rows`. When the viewer would fall off the list,
+it keeps them on the last row. `Roster` draws each row's hero, avatar and a
+line of activity. Its `groups` put players under headings, such as one for each
+team. As players join, its rows shrink and then run in columns, so every row
+fits between `top` and `bottom`. `rosterBottom` takes the same props and gives
+the line where the roster ends, for a panel drawn under it:
 
 ```ts
 const rows = leaderboard(line, (each) => each.standing, 8, viewer)
@@ -215,8 +216,8 @@ hero on its own timer. A hero belongs to a player while the player's controller
 points to it, so a player who joins or spectates keeps their hero. Once a hero
 has belonged to nobody for `strayGraceSeconds`, `Strays` kills it once and holds
 off its respawn for good. The sweep checks once a second, with one entity
-listing and two field reads per hero. Keep one `Strays` and call `sweep(now)`
-each frame:
+listing and two field reads for each hero. Keep one `Strays` and call
+`sweep(now)` each frame:
 
 ```ts
 import { onFrame } from 'modlock'
