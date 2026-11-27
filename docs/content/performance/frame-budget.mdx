@@ -3,10 +3,10 @@ title: The frame budget
 description: How much of a server frame a mod may spend, and what the host does when it spends more.
 ---
 
-The server runs 64 frames a second, so each frame lasts about 15.6 ms. The
-game, every other mod and the network share that time with your mod. The host
-gives each mod's frame handler 8 ms, which is half a frame. It holds back a mod
-that takes longer, so that the server keeps up and no player times out.
+The server ticks at 64 Hz (15.6 ms per frame), sharing that time across the
+game, all loaded mods, and networking. The host budgets 8 ms (half a frame) for
+each mod's frame handler and throttles mods that exceed it so the server stays
+on tick and players do not time out.
 
 ## Frames over the allowance
 

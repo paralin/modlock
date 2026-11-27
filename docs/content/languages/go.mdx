@@ -30,9 +30,9 @@ packages.
 Each call into the game returns an error. You may ignore the error when the
 mod should keep playing anyway, such as when a chat message fails to send.
 
-Keep your game rules in functions that never call the game, as the
-[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example
-does. Then you can test those rules with plain `go test`.
+Keep your game logic in pure functions with no engine calls, as in the
+[`race`](https://github.com/paralin/modlock/tree/master/examples/race) example,
+so you can test it with `go test`.
 
 ## Typed entities and the console
 

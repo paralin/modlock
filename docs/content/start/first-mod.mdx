@@ -3,13 +3,12 @@ title: Your first mod
 description: Make a project, run it in the game and change it while it runs.
 ---
 
-You will start with the `modlock` command installed, make a project, and run
-your own mod in the game. Then you will change the mod while you play it, and
-see the change without restarting the game.
+With `modlock` installed, you can create a project, run it in Deadlock, and
+hot-reload changes while playing.
 
-## Make a project
+## Create a project
 
-Run each line in a terminal:
+Run these commands in a terminal:
 
 ```sh
 modlock new
@@ -17,57 +16,55 @@ cd my-mod
 modlock dev
 ```
 
-`modlock new` asks for your mod's name and language, then writes the project
-into a directory named after the mod, so "Zombie Tag" becomes `zombie-tag`.
+`modlock new` prompts for your mod's name and language, then creates a project
+directory named after the slug (for example, "Zombie Tag" becomes `zombie-tag`).
 
 ## Project files
 
-A project is a directory with the manifest, an entry file and the files your
-editor needs for the mod's language:
+A project directory contains the manifest, an entry file, and the language-specific
+configuration your editor uses:
 
 | Language   | Files                                                    | Notes                                                   |
 | ---------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`, `node_modules/`  | `node_modules/modlock` contains the library's types.    |
+| TypeScript | `mod.json`, `main.ts`, `tsconfig.json`, `node_modules/`  | `node_modules/modlock` provides the type definitions.   |
 | JavaScript | `mod.json`, `main.js`, `tsconfig.json`, `node_modules/`  | Your editor checks types from JSDoc comments.           |
-| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` contains the library's types.               |
-| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | `.modlock/` contains the library's types.               |
-| Go         | `mod.json`, `main.go`, `go.mod`, `go.sum`                | `modlock new` needs [Go](https://go.dev/dl/) installed. |
+| Luau       | `mod.json`, `main.luau`, `.luaurc`, `.modlock/`          | `.modlock/` provides the type definitions.              |
+| Python     | `mod.json`, `main.py`, `pyrightconfig.json`, `.modlock/` | `.modlock/` provides the type definitions.              |
+| Go         | `mod.json`, `main.go`, `go.mod`, `go.sum`                | `modlock new` requires [Go](https://go.dev/dl/).        |
 
-Every project also gets a `.gitignore` and a `.vscode/extensions.json`, which
-lists the editor extensions suggested for its language.
+Every project also includes a `.gitignore` and `.vscode/extensions.json` with
+recommended editor extensions for its language.
 
-`mod.json` is the [manifest](/reference/manifest), which has the mod's slug,
-name and version. The entry file, such as `main.ts`, contains your mod's code,
-and `modlock new` fills it with what most game modes start from. It turns off
-lane troopers and jungle creeps and lets any number of players pick the same
-hero. It [seats](/guides/toolkit#seat-the-players) each player who joins on a
-team with a hero and brings a fallen hero back after 3 seconds. It also welcomes
-each player and answers `/hello` in chat. Delete the parts your mode does not
-want.
+`mod.json` is the [manifest](/reference/manifest), which defines the mod's slug,
+name, and version. The entry file (such as `main.ts`) holds your mod's code.
+`modlock new` generates a starter template that disables lane troopers and
+jungle creeps, allows duplicate hero picks, [seats](/guides/toolkit#seat-the-players)
+joining players on a team with a hero, and respawns fallen heroes after 3
+seconds. It also welcomes each player and responds to `/hello` in chat. Remove
+anything your mode does not need.
 
 ## Run it
 
-The last line you ran, `modlock dev`, built your mod, started a local server
-with it and launched Deadlock through Steam to join that server. The terminal
-shows your mod's log while it runs.
+`modlock dev` builds your mod, starts a local server, and launches Deadlock
+through Steam to connect. The terminal streams your mod's logs while it runs.
 
-Type `/hello` in the game's chat. Then change the reply in the entry file and
-save it. `modlock dev` rebuilds the mod each time you save and reloads it
-in the running server, so typing `/hello` again shows your new reply. When a
-build fails, `modlock dev` prints its errors and the server keeps running the
-last build that worked.
+Type `/hello` in the game chat, then edit the reply in the entry file and save.
+`modlock dev` rebuilds and hot-reloads the mod in the running server on every
+save, so typing `/hello` again shows your updated reply. If a build fails,
+`modlock dev` prints the errors and the server keeps running the last working
+build.
 
-On a computer without Deadlock, such as a Mac, `modlock dev` runs your mod in
-the [sandbox](/guides/testing#in-the-sandbox) instead, and you type `/hello` in
-the terminal.
+On systems without Deadlock (such as macOS), `modlock dev` runs your mod in the
+[sandbox](/guides/testing#in-the-sandbox) instead, where you can type `/hello`
+directly in the terminal.
 
-## If something goes wrong
+## Troubleshooting
 
-| You see                                                  | Do this                                                                                                             |
+| Symptom                                                  | Fix                                                                                                                 |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `modlock` is not recognized                              | See [Install](/start/install).                                                                                      |
-| `Import "modlock" could not be resolved` in a Python mod | Open the mod's own folder in the editor. Pyright reads `pyrightconfig.json` only from the folder the editor opened. |
-| `modlock new` stops before writing a Go project          | Install [Go](https://go.dev/dl/), then run it again.                                                                |
+| `Import "modlock" could not be resolved` in a Python mod | Open the mod's own folder in your editor. Pyright reads `pyrightconfig.json` only from the workspace root.          |
+| `modlock new` exits before creating a Go project         | Install [Go](https://go.dev/dl/), then run `modlock new` again.                                                     |
 
 ## Next
 

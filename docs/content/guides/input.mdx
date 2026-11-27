@@ -3,8 +3,8 @@ title: Input
 description: Hear button presses, press buttons for a hero and withhold them.
 ---
 
-Your mod hears only the buttons it watches. Watch them once, and from then on
-the input event reports each press and release of those buttons as button bits.
+Mods receive input events only for buttons registered via `watchInput`. Once
+registered, `onInput` reports presses and releases as bitmasks.
 
 <Samples>
 

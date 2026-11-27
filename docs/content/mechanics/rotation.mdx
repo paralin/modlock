@@ -3,28 +3,27 @@ title: A rotation mode
 description: Run a lobby through one fight at a time, with a fair line and balanced sides.
 ---
 
-A rotation mode, such as a duel ring or a two against two pit, runs a lobby
-through one fight at a time. A player joins the line, waits in the stands,
-fights when their turn comes and goes to the back of the line again. The
-TypeScript library has calls for each part of that:
+A rotation mode (such as a 1v1 duel ring or 2v2 arena) cycles a lobby through
+one match at a time: players join a queue, wait in the stands, fight when their
+turn comes, and return to the back of the queue. The TypeScript library
+provides helpers for each part:
 
 | Piece                                | Call                                        |
 | ------------------------------------ | ------------------------------------------- |
-| Who is here                          | `Cast`                                      |
-| Each player's record for the session | `Standings`, `Standing`                     |
+| Active players                       | `Cast`                                      |
+| Per-session player records           | `Standings`, `Standing`                     |
 | Waiting in the stands                | `holdBystander`, `playCamera`, `curve.hold` |
-| Who fights next, and on which side   | `nextMatch`, `afterMatch`                   |
-| An even share of heroes              | `leastUsed`                                 |
-| The result                           | `settle`, `ratingChange`                    |
-| The leaderboard                      | `leaderboard`, `Roster`                     |
-| Heroes left behind by a swap         | `Strays`                                    |
+| Matchmaking and team balancing       | `nextMatch`, `afterMatch`                   |
+| Hero rotation                        | `leastUsed`                                 |
+| Elo settlement                       | `settle`, `ratingChange`                    |
+| Leaderboard UI                       | `leaderboard`, `Roster`                     |
+| Orphaned hero cleanup                | `Strays`                                    |
 
-The rotation calls exist only in TypeScript. Import them from `modlock/kit`,
-along with `holdBystander` and `Strays`, and import `Cast`, `playCamera`,
-`curve` and `Roster` from `modlock`. Each rotation call is pure. Your mod keeps
-the line and the standings, and each call reads only what you pass it. Because
-the calls are pure, `js/test/rotation.test.ts` runs a whole session without the
-game.
+The rotation helpers are available only in TypeScript. Import them from
+`modlock/kit` (along with `holdBystander` and `Strays`), and import `Cast`,
+`playCamera`, `curve`, and `Roster` from `modlock`. Each rotation function is
+pure: your mod owns the queue and standings, and `js/test/rotation.test.ts`
+exercises a full session without a running game server.
 
 ## The line and the standings
 
@@ -121,24 +120,24 @@ function unseat(player: Player, pawn: number): void {
 }
 ```
 
-`playCamera` returns nothing while the player does not have a hero. So mark the
-seat taken only once `seat` returns true, and try again each frame until it
-does. A bystander can still die from a fall or world damage, so respawn it and
-seat it again.
+`playCamera` returns `undefined` if the player lacks an active pawn yet, so mark the
+seat occupied only when `seat` returns `true` and retry on subsequent frames
+until it succeeds. Because bystanders can still die from fall or world damage,
+respawn and reseat them if they die.
 
 ## The next match
 
-When it is time for the next fight, `nextMatch(line, size, standing)` picks
-who fights, in two steps:
+When it is time for the next fight, `nextMatch(line, size, standing)` selects
+and balances the fighters in two steps:
 
-1. It takes the `2 * size` players who have played the fewest matches. Among
-   equals, the one earlier in the line goes first.
-2. It deals them to the sides by rating in a snake (first, second, second,
-   first), which keeps the sides' ratings close. With two per side, the best
-   pairs with the worst against the middle two.
+1. It takes the `2 * size` players with the fewest matches played, breaking ties
+   by queue order.
+2. It assigns them to teams by rating in snake order (1st, 2nd, 2nd, 1st) to
+   keep team ratings close. In a 2v2, the highest-rated player pairs with the
+   lowest-rated against the middle two.
 
-While too few players wait, `nextMatch` returns nothing, and your HUD can show
-that the mode is waiting for players.
+If fewer than `2 * size` players are available, `nextMatch` returns `undefined`
+so your HUD can show a waiting state.
 
 ```ts
 const sides = nextMatch(line, size, (each) => each.standing)
@@ -149,7 +148,8 @@ if (sides) {
 }
 ```
 
-Count the match as played when it is seated, not when it ends. Then a fighter who leaves in the middle of a match still goes to the back of the order.
+Increment `played` when the match is seated rather than when it ends, so a
+fighter who disconnects mid-match still moves to the back of the queue.
 
 ## An even share of heroes
 

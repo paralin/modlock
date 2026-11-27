@@ -26,9 +26,9 @@ in:
 - A release that changes only code has the same addon and paths as the release
   before it. So a game that mounted the previous release still finds the new
   release's resources.
-- Keep sources outside `content/`, because the build refuses a source that the
-  game cannot load, such as a `.vmdl` or a Hammer map's `.vmap`. The publishing
-  check refuses client files outside the addon's directories.
+- Keep uncompiled source files outside `content/`: the build rejects formats
+  the engine cannot load directly (such as `.vmdl` or `.vmap`). The publishing
+  check also rejects client files outside the addon's directories.
 - The build does not rewrite a path inside a compiled resource. Point such a
   path at the game's own resources, or at the addon's name for the version you
   build.
@@ -96,12 +96,11 @@ _, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: positi
 
 </Samples>
 
-A panel that the map placed got its layout path before the addon's name
-existed. Point that panel at your mod's layout with `writeField`, which also
-fills in `{addon}`. Mods start before the map's entities exist, so make the
-write as each world loads. Each write sends connected players a full update,
-and that update stalls their game for a moment. So write a layout only when it
-has changed:
+Map-placed panels are initialized before the addon digest exists, so update
+their layout path with `writeField` (which also expands `{addon}`). Because
+mods start before map entities spawn, run the write on `onWorld`. Each write
+triggers a full entity update to connected clients and causes a brief hitch, so
+only write the layout path when it changes:
 
 <Samples>
 
@@ -166,10 +165,10 @@ drags items with the freed cursor. The script sends each move as a console
 command, and the mod answers with the new slots. The mod's style sheet styles
 the frame and slots, and a class that the mod adds fades the bag in.
 
-A layout that loads a script or handles an event runs code in each player's
-game. So a publishing service may hold such a layout for review, unless it comes
-from a creator the service trusts. A layout that only draws does not run code in
-a player's game, so a service does not have that reason to hold it back.
+Layouts that load scripts or bind event handlers execute code on players'
+clients, so publishing services may hold them for review unless the creator is
+trusted. Declarative layouts without scripts or handlers do not require code
+review.
 
 ## Models and particles
 

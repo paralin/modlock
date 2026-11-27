@@ -71,13 +71,13 @@ func main() {}
     Build a small brawl with a countdown, a score, a HUD and a sign.
   </Card>
   <Card icon={<BookOpen />} title="Guides" href="/guides/events">
-    One page for each thing a mod does: players, timers, damage, the world.
+    Guides for players, timers, damage, and the world.
   </Card>
   <Card icon={<Swords />} title="Mechanics" href="/mechanics/ready-up">
-    Recipes for whole mechanics: a countdown, kill scoring, a hill, a race.
+    Complete mechanics: a countdown, kill scoring, a hill, and a race.
   </Card>
   <Card icon={<SquareTerminal />} title="Reference" href="/reference/cli">
-    Every command, every manifest field and how to publish.
+    CLI commands, manifest fields, and publishing.
   </Card>
 </Cards>
 
@@ -85,20 +85,20 @@ func main() {}
 
 <Cards>
   <Card icon={<ShieldCheck />} title="Safe to share">
-    Each mod runs in a [Wasmtime] sandbox, where it can reach only its own files
-    and never the network. When a mod crashes or hangs, the server stops that
-    mod and the match goes on.
+    Each mod runs in a [Wasmtime] sandbox with access only to its own files and
+    no network access. If a mod crashes or hangs, the server halts that mod and
+    the match continues.
   </Card>
   <Card icon={<Languages />} title="Any language">
-    You can write a mod in any language that compiles to WebAssembly.
+    Write a mod in any language that compiles to WebAssembly.
   </Card>
   <Card icon={<Package />} title="Built once">
-    The server looks up each game field and input a mod uses by its name, not
-    its position, so a mod built before a game update still works after it.
+    The server resolves each game field and input by name rather than offset, so
+    a mod compiled before a game update continues to work after the update.
   </Card>
   <Card icon={<Zap />} title="Fast">
-    The server calls each mod inside the game's own frame, and Wasmtime compiles
-    the mod's WebAssembly to machine code before it runs.
+    Wasmtime compiles the mod's WebAssembly to machine code ahead of time, and
+    the server invokes it directly inside the game frame.
   </Card>
 </Cards>
 

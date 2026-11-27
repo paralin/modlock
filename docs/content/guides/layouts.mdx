@@ -68,8 +68,8 @@ layout's panel the next time it draws the screen. The attribute is
 After a draw that changed any of these, the renderer plays the sound event
 `modlock_data_changed`. It uses a sound because the game does not deliver a
 custom event to a script, but it delivers `PlaySoundEffect` to every script. No
-sound has that name, so nothing plays. The library hears the event, rereads each
-attribute, and calls the handler of each value that changed.
+sound has that name, so nothing plays. The library receives the event, rereads each attribute, and invokes the handler
+for each changed value.
 
 `Modlock.onUnload(() => ...)` runs its handler once, when the renderer starts
 to remove or replace the layout's panel, reloads the tree, or releases the
@@ -81,9 +81,10 @@ no `data` or `route` handler runs after it. When a layout's screen was
 released, the layout loads afresh on the next draw. Its script starts again
 from the top, so it should set up everything it needs there.
 
-The layout answers the mod by pressing back. `Modlock.press('buy', { item:
-'boots' })` sends the action with its payload as JSON. The layout's element
-hears it as `onAction`, with the player that the server says sent it:
+The layout sends actions back to the mod with
+`Modlock.press('buy', { item: 'boots' })`, which transmits the action and JSON
+payload. The mod receives it via `onAction` along with the authenticated
+sending player:
 
 ```tsx
 <layout
@@ -140,12 +141,11 @@ Python's `layout(bindings={"buy": {"on_press": buy}})`, Luau's `bindings = {
 buy = { onPress = buy } }` and Go's `Layout.Bindings` take the same map.
 
 A property that a binding leaves unset keeps the layout's own value. When the
-mod stops setting a property, the property goes back to the value the layout
-had. That covers its text, its visibility, its inline style, and its lack of
-each class the binding added. A class that the layout's author gave the panel
-stays when the binding drops it. `src` is the exception. The game cannot read
-an image's picture back, so the last picture a binding set stays until the
-layout loads again.
+mod stops setting a property, the property reverts to the layout's original
+value. This applies to text, visibility, inline style, and classes added by the
+binding; classes authored in the layout file itself remain. `src` is the
+exception: the engine cannot read an image path back, so the last image set by
+a binding persists until the layout reloads.
 
 Once the layout loads, the renderer looks up each panel inside the layout's
 panel and applies every binding. Then it applies each change as the mod draws

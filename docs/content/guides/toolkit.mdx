@@ -156,10 +156,9 @@ changes as the game has them.
 
 ## Keep the players with Cast
 
-`Cast` keeps one member for each human who finished joining, and gets each
-member the hero, team and respawn delay they want. This cast welcomes each
-player, seats them on any hero and brings a fallen hero back after 3
-seconds:
+`Cast` maintains a member record for each joined human player and applies their
+desired hero, team, and respawn delay. This cast welcomes each player, seats them
+on any hero, and respawns fallen heroes after 3 seconds:
 
 <Samples>
 
@@ -246,9 +245,9 @@ hero from `Cast` instead of querying the game again:
 A player who stops loading keeps their slot, listed with `ready` false, until
 the network gives up on them. The game can also keep a disconnected player's
 hero standing in the world, and it revives that hero on its own timer while the
-player is gone. `Stragglers` kicks a human who is still joining after
-`connectSeconds`, and it kills each hero that no player holds, as
-[`Strays`](/mechanics/rotation#heroes-left-behind) does. Keep one and call
+player is gone. `Stragglers` kicks human players who remain stuck loading past `connectSeconds`
+and kills unowned heroes, just like
+[`Strays`](/mechanics/rotation#heroes-left-behind). Keep one and call
 `sweep(now)` each frame:
 
 ```ts
@@ -308,12 +307,12 @@ do not have locale data:
 
 ## Find the floor
 
-`ground(point)` returns the floor under a point. It returns nothing when no
-floor is in reach, when the point is inside a wall, or when the world's
-collision is not ready yet. `ground(spawn) ?? spawn` keeps the point when
-`ground` finds nothing below it. `ground` traces straight down through solid and
-player clip, from 64 units above the point to 1024 below. The `above`, `below`
-and `layers` options change the reach.
+`ground(point)` returns the floor position beneath a point, or `undefined` if no
+floor is within range, the point is inside solid geometry, or world collision is
+not ready. `ground(spawn) ?? spawn` keeps the point when `ground` finds nothing
+below it. `ground` traces straight down through solid and player clip, from 64
+units above the point to 1024 below. The `above`, `below` and `layers` options
+change the reach.
 
 ## Stand a race gate
 
@@ -341,9 +340,9 @@ gate.remove()
 
 ## Time your frames
 
-`frameClock` shows how much of a slow server frame your mod spends, and which
-part of the mod spends it. Call `begin` as a frame starts, `lap` with a name
-after each part, and `end` with the frame's tick:
+`frameClock` measures how much of a server frame your mod spends and breaks it
+down by named section. Call `begin` as a frame starts, `lap` with a name after
+each part, and `end` with the frame's tick:
 
 ```ts
 import { frameClock, onFrame } from 'modlock'

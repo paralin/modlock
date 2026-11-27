@@ -3,11 +3,11 @@ title: Measure a mod
 description: Find a mod's slow frames and what spends them before players do.
 ---
 
-Measure your mod in the game, with as many players as a real match has. The
-sandbox runs your mod with one stand-in player, who does not have a hero, and it
-does not hold back a slow frame. It only logs `slow: Frame took 612 ms` for an
-event that runs past 500 ms. So a mod that runs well in the sandbox can still
-skip most of its frames on a server.
+Measure your mod in the game with as many players as a real match has. The
+sandbox runs with a single synthetic player without a hero pawn and does not
+throttle slow frames, logging only `slow: Frame took 612 ms` when an event
+exceeds 500 ms. A mod that runs smoothly in the sandbox can still skip frames
+on a live server.
 
 ## Play with bots
 

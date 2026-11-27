@@ -7,8 +7,8 @@ description: Try a mod in seconds without the game, and test a whole round in it
 
 On macOS, or on any computer without Deadlock, `modlock dev` runs your mod in
 the sandbox. The sandbox has the same runtime and event limits as a server, and
-one stand-in player without a hero. It does not hold back a slow frame the way a
-server does, so [measure speed](/performance/measure) in the game.
+one stand-in player without a hero. It does not throttle slow frames like a
+live server, so [measure performance](/performance/measure) in-game.
 
 When you type `/hello` in the terminal and press Enter, the sandbox sends it as
 that player's chat. The terminal shows your mod's log and everything the mod
@@ -45,11 +45,11 @@ round. Then it checks the outcome, logs PASS or FAIL and quits with
 [`examples/arena`](https://github.com/paralin/modlock/blob/master/examples/arena/probe.ts)
 does.
 
-In TypeScript, `ProbeRun` keeps track of the probe's steps. Call `tick` on each
-frame with the step the probe waits on and a check. The check returns `true` to
-pass, a message to fail, or `false` to keep waiting. `ProbeRun` logs each new
-step once, and it fails the run when its timeout passes. At the end it logs
-`<name> probe PASS` or `FAIL` and quits:
+In TypeScript, `ProbeRun` tracks multi-step integration probes. Call `tick` each
+frame with the current step label and a predicate returning `true` to advance,
+an error string to fail, or `false` to keep waiting. `ProbeRun` logs each step
+transition once, fails on timeout, and logs `<name> probe PASS` or `FAIL`
+before quitting:
 
 ```ts
 const run = new ProbeRun('Duel', 120)

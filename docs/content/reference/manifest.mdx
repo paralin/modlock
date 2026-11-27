@@ -47,12 +47,12 @@ fields:
 the game's `citadel/maps`. When the mod leaves `map` out, the server starts on
 `dl_midtown`, both on your PC and on hyperline.gg.
 
-A mod plays on the stock Deadlock map, `dl_midtown`, or on a map of its own. To
-use your own map, name it `hl_<name>` and put the compiled map in
+A mod plays on the stock Deadlock map, `dl_midtown`, or on a custom map. To
+use a custom map, name it `hl_<name>` and place the compiled map in
 `maps/hl_<name>.vpk`. `build` copies the map into the build, and `publish`
-refuses a build that lacks it. The build refuses any other map name, because a
-map that is only in your own game's `citadel/maps` would load for you and for no
-one else.
+rejects a build that lacks it. The build rejects any other map name because a
+map present only in your local `citadel/maps` would fail to load for other
+players.
 
 ## Movement
 
@@ -252,17 +252,18 @@ logs them instead. Bots never get totals.
 | `KEEP_LATEST` | The latest value.                                  |
 | `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
 
-When a board has a `teamSize`, it ranks teams in place of single players, such
-as the pairs that finish a run together. Each report gives the scoring player
-and a list of their teammates, so the list holds one player fewer than the team
-size. Enroll each teammate with `bindScorePlayer`, as you do the scoring player.
+When a board specifies `teamSize`, it ranks teams instead of individual players
+(such as pairs completing a co-op run). Each report provides the scoring player
+and a list of their teammates, so the list holds one player fewer than
+`teamSize`. Enroll each teammate with `bindScorePlayer`, just like the scoring
+player.
 
-The same players, in any order, make one team. So a pair keeps one standing,
-whichever of them reported, and a player belongs to as many teams as they play
-in. Each row of the board lists its team's members. To read a team's own row,
-pass the player and their teammates, each still in the game. Under
-`modlock dev`, the host refuses a team score that does not name its teammates,
-and a single player's score that lists any.
+The same players in any order form one team, so a pair shares a single standing
+regardless of who reported, and a player can belong to multiple teams. Each
+row of the board lists its team's members. To read a team's row, pass the
+player and their teammates (each still connected). Under `modlock dev`, the
+host rejects a team score that omits teammates, as well as a solo score that
+includes any.
 
 ```ts
 reportScore(enrolled, 'duo.waves', wavesCleared, done, { teammates: [partner] })
@@ -278,11 +279,10 @@ not accept.
 
 ## Services
 
-Name each service the mod calls in `mod.json`. A service is needed unless you
-mark it optional. When nobody provides a needed service, the sandbox and the
-game host refuse to start the mod, and the refusal names the service. When
-nobody provides an optional service, they start the mod anyway, and its calls to
-that service fail:
+Declare each service the mod calls in `mod.json`. Services are required unless
+marked `optional: true`. If a required service lacks a provider, the sandbox and
+game host refuse to start the mod and report the missing service; if an
+optional service lacks a provider, the mod starts and calls to it fail:
 
 ```json
 "services": [
@@ -313,12 +313,11 @@ the calls started with `callServiceLater`, and at most 8 calls wait on the
 origin at once. When `modlock play` exits, the host fails the calls still
 waiting.
 
-A service may answer in a later frame, as a service that asks a server across
-the network does. `callServiceLater(service, method, payload, done)` returns at
-once. Then `done(reply, error, failure)` runs once, in a later frame. It gets
-the reply when the service answers. Otherwise it gets the service's refusal, a
-timeout, or `unavailable` when nobody provides the service, and then the service
-is never asked.
+A service may respond asynchronously on a later frame, such as over the network.
+`callServiceLater(service, method, payload, done)` returns immediately, and
+`done(reply, error, failure)` runs once on a later frame with either the reply,
+an application error, a timeout, or `unavailable` if no provider is registered
+(in which case no call is dispatched).
 
 The host waits at most 30 seconds, or the call's own timeout when that is
 shorter. When a mod stops or reloads, the host drops the calls the mod still

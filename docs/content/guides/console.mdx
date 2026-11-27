@@ -50,11 +50,11 @@ value is a vector or a color does not have a typed setter, so set it with
 
 ## Set up a mode
 
-`apply(settings)` sets several variables in order and returns the names of the
-ones the server refused. For a custom mode, start from `arena`, which empties
-the map. With `arena`, the server keeps running when no one is connected, and no
-troopers, neutrals, practice bots or zipline starts appear. Spread `arena` into
-your settings and add your mode's own:
+`apply(settings)` sets several variables in order and returns the names of any
+that the server rejected. For a custom mode, start with `arena`: it keeps the
+server running with zero players and disables troopers, neutrals, practice
+bots, and zipline starts. Spread `arena` into your settings and add your mode's
+overrides:
 
 <Samples>
 
@@ -169,11 +169,10 @@ where players cannot reach it. Ask for it in the
 
 ## Limits
 
-Your mod's console lines can change the game, but nothing outside it. They may
-set the game's rules and bots, change or reload the map, kick a player, quit the
-game and set the time scale. They may also start the game's own recording with
-`tv_enable` and `tv_record <name>`, where the name contains only letters,
-digits, `-` and `_`. They may not reach:
+Console commands from mods can configure game rules and bots, change or reload
+maps, kick players, quit, set time scale, and record SourceTV demos
+(`tv_enable` and `tv_record <name>` with alphanumeric, `-`, or `_` names). They
+cannot access:
 
 | Area                      | Refused                                                                                                                                                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |

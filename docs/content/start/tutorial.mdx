@@ -228,7 +228,7 @@ func init() {
 
 Type `/start`. Your hero is held for five seconds and ignores input. Then it is released, and the game shows an announcement titled "Fight!" that says "The round is live."
 
-`players()` lists everyone connected, bots included, and `freeze` holds each one's hero. `after` calls its function once, five seconds of game time later. The game clock stops while the game is paused, so a paused round also holds its timers. When the timer fires, the sample releases every hero, announces the round and sets `live`, which the next step reads. [Timers](/guides/timers) explains repeating timers and sequences.
+`players()` returns all connected players, including bots, and `freeze` locks each hero in place. `after` invokes its callback once after five seconds of game time; pausing the game pauses the timer as well. When the timer fires, the sample unfreezes every hero, announces the round, and sets `live` for the next step. [Timers](/guides/timers) covers repeating timers and sequences.
 
 ## 4. Decide the fights
 
@@ -323,9 +323,9 @@ func init() {
 
 To try it you need another hero to hit, such as a friend's or a bot's. Before you type `/start`, your hits on it do not deal damage. Once the announcement shows, they land, and each hero you defeat adds one to your count in `defeats`. Nothing shows that count yet. The next step draws it.
 
-The damage event comes before the game applies each hit, so the sample can block the hit while `live` is false. The kill event comes after each hit that kills a hero or a unit, before the next frame. It names the player whose hero died and the player whose hero landed the hit. A slot of -1 means a unit, or a hazard for the attacker. A hero that killed itself is its own attacker. The sample scores a kill only when both are players and the attacker is someone else.
+The damage event fires before the game applies each hit, so the handler can block damage while `live` is false. The kill event fires after each lethal hit on a hero or unit, before the next frame, and provides the victim and attacker players. A slot of `-1` indicates a non-player unit or environmental hazard, and a hero that dies to self-damage is its own attacker. The sample scores a kill only when both are distinct players.
 
-The `defeats` map keys each score by player. When someone leaves and another person takes their slot, the newcomer is a new key and starts at zero. The map still holds the score of the player who left, so in a mode where players come and go, delete each player's entry when they leave. The mod hears about each leave before the player list drops that player, so the leave handler still finds the entry.
+The `defeats` map keys each score by `Player`. When someone leaves and another person takes their slot, the newcomer is a distinct key and starts at zero. Because the map retains entries for disconnected players, modes with player churn should delete entries on leave. The leave event fires before the player is removed from the player list, so the leave handler can still look up the entry.
 
 Each connection also has [`roles`](/guides/players#roles), which tell you which players build and test the mod.
 
@@ -608,7 +608,7 @@ func init() {
 
 Type `/sign Meet here` once your hero has spawned. The words float in white 120 units above where you stood and turn to face whoever looks at them. Type `/sign` again somewhere else, and the old sign goes as the new one appears.
 
-`createText` places the text and returns an object you can move, change or remove. The sample keeps it in `sign` so that the next `/sign` can remove it. The mod can place props and effects the same way. Loading a new map removes all of them. The world event fires as each world loads, so the sample forgets its sign there. Models and effects need one more step. Precache them when the mod starts, so the game loads them with the world. [The world](/guides/world) explains models, effects and fog.
+`createText` places the text and returns a `WorldObject` handle you can move, update, or remove. The sample stores it in `sign` so the next `/sign` call can remove the previous one. Mods can place props and effects the same way. Loading a new map clears all world objects; `onWorld` fires when a map loads, so the handler clears the stale `sign` reference there. Models and effects must also be precached at mod startup so the engine loads them with the map. [The world](/guides/world) covers models, effects, and fog.
 
 ## 7. Let players choose, and keep score
 
@@ -689,7 +689,7 @@ command('ready', (player) => match.ready(player))
 
 [`examples/arena`](https://github.com/paralin/modlock/tree/master/examples/arena) is laid out this way.
 
-Keep each handler quick. When an event handler takes more than 500 ms of processor time, the players see a warning. When one takes more than five seconds, the server stops the mod until a player types `/restartmod` or a reload replaces the mod. [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods) explains both limits.
+Keep each handler fast. If an event handler takes more than 500 ms of CPU time, players see a warning. If it exceeds five seconds, the server halts the mod until a player runs `/restartmod` or a hot reload replaces it. [Slow and stopped mods](/guides/reloads#slow-and-stopped-mods) explains both limits.
 
 ## 9. Test a whole round
 

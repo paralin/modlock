@@ -20,29 +20,29 @@ show every call in Python.
 
 ## Types and modules
 
-Pyright, and Pylance in VS Code, check your mod's types.
+Pyright (and Pylance in VS Code) checks your mod's types.
 
-| Report  | Cause                                                                                               | Effect                             |
-| ------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| Error   | A wrong type.                                                                                       | Stops the build.                   |
-| Warning | A value that may be `None`, such as what `find_hero` returns, or a parameter without an annotation. | The build prints it and continues. |
+| Report  | Cause                                                                                  | Effect                           |
+| ------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| Error   | Type mismatch.                                                                         | Fails the build.                 |
+| Warning | Unhandled `None` (such as from `find_hero`) or an unannotated parameter.               | Prints a warning and continues.  |
 
 For stricter or looser checking, edit `typeCheckingMode` and the report rules
-in the project's `pyrightconfig.json`. That file also tells the checkers that
-the library is in `.modlock`. The checkers read the file only from the folder
-the editor has open, so open the mod's own folder. From any other folder, the
-editor reports that `modlock` could not be resolved.
+in `pyrightconfig.json`. That file also points type checkers to `.modlock`. Type
+checkers read `pyrightconfig.json` only from the workspace root, so open the
+mod's directory directly; opening a parent directory causes `modlock` import
+errors.
 
-One module imports another by its name, such as `import round`. Mods run on
-Python 3.14 and can import standard modules such as `dataclasses`, `enum`,
-`json`, `math`, `random` and `re`.
+Modules import each other by name, such as `import round`. Mods run on Python
+3.14 and can import standard library modules such as `dataclasses`, `enum`,
+`json`, `math`, `random`, and `re`.
 
 ## Calls and types
 
-The library has the TypeScript library's calls, spelled in snake_case. Each
-message is a dataclass, each enum is a set of string literals, and a 64-bit id
-is a Python integer.
-Build interfaces with `modlock.ui`, `modlock.hud` and `modlock.theme`.
+The Python library mirrors the TypeScript API using `snake_case` names. Each
+message is a dataclass, each enum is a set of string literals, and a 64-bit ID
+is a Python integer. Build interfaces with `modlock.ui`, `modlock.hud`, and
+`modlock.theme`.
 
 ```python
 # Headshots deal double damage.
@@ -90,15 +90,14 @@ console.set_number("citadel_trooper_gold_reward", 40)
 console.run("changelevel", "street_test")
 ```
 
-Sometimes the server cannot read or write a field, such as `hero.m_iHealth` in
-the sample. Then the attribute reads as `None`, the server ignores writes to it,
-and the server log gives the reason.
+If the server cannot read or write a field (such as `hero.m_iHealth` above),
+reading returns `None`, writes are ignored, and the server log records the
+reason.
 
-## Run a line in the running mod
+## Interactive REPL
 
-While `modlock dev` or `modlock play` runs, type a line that starts with `>` in
-its terminal. The mod runs the line in `main.py`'s module, the way Python's
-own prompt would:
+While `modlock dev` or `modlock play` runs, type a line starting with `>` in the
+terminal to evaluate it inside `main.py`'s module:
 
 ```text
 > modlock.players()
@@ -108,13 +107,13 @@ own prompt would:
 > score["kills"] += 1
 ```
 
-| A line that is | Shows                                                 |
-| -------------- | ----------------------------------------------------- |
-| an expression  | its value, which `_` then holds; `None` shows nothing |
-| a statement    | nothing, after changing the mod's names               |
-| a `print`      | the printed text                                      |
-| an error       | its traceback, and the mod keeps running              |
+| Input         | Output                                                 |
+| ------------- | ------------------------------------------------------ |
+| an expression | its value, stored in `_` (`None` prints nothing)       |
+| a statement   | nothing (updates module state)                         |
+| a `print`     | the printed text                                       |
+| an error      | its traceback, while the mod keeps running             |
 
-The mod runs the line between frames, both in the sandbox and in the game.
-Only Python mods have this prompt. A mod in another language replies that it
-does not have a console.
+The mod evaluates the line between frames, both in the sandbox and in the game.
+This interactive prompt is available only for Python mods; other languages
+report that no console is available.

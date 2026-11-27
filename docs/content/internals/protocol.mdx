@@ -29,12 +29,11 @@ step:
 
 The calls are in
 [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto).
-A `Call` contains an encoded request for one method. When a mod calls the game,
-the method is on the `Host` service. When the host delivers an event, the method
-is on the `Mod` service. The `Reply` contains the encoded response or an error.
-Each new capability is added as a new method, so the three functions never
-change. Each event runs within a time budget, so the host stops a runaway loop,
-and each mod has a memory limit.
+A `Call` contains an encoded request for one method: mod-to-host calls target
+the `Host` service, and host-to-mod events target the `Mod` service. The
+`Reply` contains the encoded response or an error. Each new capability is added
+as a new method, so the three WASI imports/exports never change. Each event runs
+within a CPU time budget to stop runaway loops, and each mod has a memory limit.
 
 A program that embeds the host can add services of its own for mods to call,
 such as a service for a game mode's match rules. The program provides a service

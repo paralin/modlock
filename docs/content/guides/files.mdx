@@ -96,10 +96,9 @@ func init() {
 | `readFileBytes(name)`   | Returns the file's bytes, from the same places as `readFile`. Use it for a file that is not text.                                                       |
 | `writeFile(name, text)` | Writes the whole file to the host's copy, or nothing if the write fails partway. Returns `false` when the host refuses the write.                       |
 
-A file name is a relative path such as `maps/dl_midtown.json`, with `/`
-between its segments. The host refuses a name with an empty, `.` or `..`
-segment, and a name with a control character. It also refuses `\` and `:`,
-because Windows reads them as separators.
+A file name is a relative path such as `maps/dl_midtown.json`, using `/` as the
+separator. The host rejects paths containing empty, `.`, or `..` segments,
+control characters, `\`, or `:`.
 
 The host keeps the files your mod writes in a directory named after the mod's
 slug. The files stay there when the server restarts or you publish an update.

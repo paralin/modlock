@@ -128,8 +128,8 @@ export class Cast<M> {
 
   /**
    * frame settles the joins and leaves reported since the last frame, reads
-   * each member's hero, and asks the game once a second for any want it does
-   * not show yet. seconds is the game clock.
+   * each member's hero, and retries applying any desired state that has not
+   * taken effect yet at most once per second. seconds is the game clock.
    */
   frame(seconds: number): void {
     if (this.reported !== undefined) {
@@ -261,7 +261,7 @@ export class Cast<M> {
     return id === undefined || pawn.hero === id
   }
 
-  /** seat asks the game to put the member on hero and their team. */
+  /** seat assigns the member to the given hero and team. */
   private seat(seat: Seat<M>, want: Want, hero: string | number): void {
     // Any hero keeps the one the member has, or else takes a random one.
     const { pawn } = seat

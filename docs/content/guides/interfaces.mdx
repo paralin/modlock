@@ -177,14 +177,14 @@ followAction(player, 'scoreboard', (player, phase) => {
 
 ## Follow the stock overlays
 
-`followOverlay` tells your mod which of the game's own overlays has the
-player's input. You can use it to pause a timer, hide a prompt or end a drag
-while the player types in chat or browses the shop. The handler hears the
-current overlay as soon as you call `followOverlay`, then each change, and
-`'none'` once the game has the input back. The overlays are `'chat'`, `'shop'`,
-`'builds'`, `'itemDraft'`, `'popup'` and `'escapeMenu'`. When several are open,
-the handler hears the one that comes first in that list. The renderer reads the
-overlays ten times a second, and only while some mod follows them.
+`followOverlay` tracks which stock game overlay currently holds the player's
+input (such as chat or the shop), allowing your mod to pause timers, hide
+prompts, or cancel drags. The handler is invoked immediately with the current
+overlay, then on every change, and receives `'none'` when control returns to
+gameplay. The overlays are `'chat'`, `'shop'`, `'builds'`, `'itemDraft'`,
+`'popup'`, and `'escapeMenu'`; when several are open, the first in that list
+wins. The renderer polls overlays ten times a second only while at least one
+mod subscribes.
 
 ```ts
 followOverlay(player, (player, overlay) => {
@@ -217,14 +217,13 @@ show(
 )
 ```
 
-Sometimes your mod places something that the interface does not draw, such as a
-world preview or a camera's frame, and it needs to know where the screen put
-your panels. `followPlacement` tells it. Its handler hears the screen's size,
-the HUD's frame and the box of each element you named with `measure`, all in
-layout units measured from the screen's top left corner. The handler hears the
-whole placement first, and then hears it again whenever any part of it moves,
-such as after the player changes resolution. The renderer reads the layout
-after each draw and four times a second, and only while some mod follows it.
+When positioning non-UI elements (such as a world preview or camera frame)
+relative to your panels, `followPlacement` reports the screen dimensions, HUD
+bounds, and bounding box of every element tagged with `measure`, all in layout
+units from the top-left corner. The handler receives the initial placement
+immediately and fires again whenever any measured box moves (such as on
+resolution changes). The renderer samples layout after each draw and four times
+a second only while at least one mod subscribes.
 
 ```ts
 followPlacement(player, (player, { screen, hud, measured }) => {
@@ -366,7 +365,7 @@ favored value and a maximum:
 The player drags one handle at a time, and a handle stops when it reaches its
 neighbor. The handle keeps following the pointer past the track's ends, so the
 player can push it to the end without aiming. When the player lets go,
-`onChange` runs once with every handle's value. `onHold` hears each grab,
+`onChange` runs once with every handle's value. `onHold` receives each grab,
 release and cancellation, with the handle's name. The drag is cancelled when a
 stock overlay opens, when the menu closes or when your mod disables the range,
 and the handles go back to where your mod last drew them. While the player

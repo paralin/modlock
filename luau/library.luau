@@ -639,8 +639,8 @@ export type Cast<M> = {
 	-- pawn returns the member's hero as Cast read it this frame.
 	pawn: (self: Cast<M>, player: Player) -> Pawn?,
 	-- frame settles the joins and leaves reported since the last frame, reads
-	-- each member's hero, and asks the game once a second for any want it does
-	-- not show yet. seconds is the game clock.
+	-- each member's hero, and retries applying any desired state that has not
+	-- taken effect yet at most once per second. seconds is the game clock.
 	frame: (self: Cast<M>, seconds: number) -> (),
 }
 
@@ -867,7 +867,7 @@ local function side<M>(cast: CastState<M>, seat: Seat<M>): number
 	return if sapphire < amber then 3 else 2
 end
 
--- seatHero asks the game to put the member on hero and their team.
+-- seatHero assigns the member to the given hero and team.
 local function seatHero<M>(cast: CastState<M>, seat: Seat<M>, want: Want, hero: string | number)
 	-- Any hero keeps the one the member has, or else takes a random one.
 	local pawn = seat.pawn
@@ -918,8 +918,8 @@ local function reconcile<M>(cast: CastState<M>, seat: Seat<M>, now: number)
 end
 
 -- frame settles the joins and leaves reported since the last frame, reads
--- each member's hero, and asks the game once a second for any want it does
--- not show yet. seconds is the game clock.
+-- each member's hero, and retries applying any desired state that has not taken
+-- effect yet at most once per second. seconds is the game clock.
 function Cast.frame<M>(self: CastState<M>, seconds: number)
 	-- Settle the player list the host reported since the last frame.
 	local reported = self.reported

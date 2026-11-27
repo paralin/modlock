@@ -43,13 +43,12 @@ call by hand, with any designer name and untyped key values. The host runs the
 call in this order:
 
 1. It checks that the placement is finite.
-2. It resolves the designer name's entity class through the game's own class
-   lookup. A name the server does not have fails here.
-3. It refuses an ability, item or weapon, which is any class that derives from
-   `CCitadelBaseAbility`. Created alone, without a hero to hold it, such an
-   entity takes the server down once it thinks or is removed. So the host
-   refuses it before the entity exists. The message points at `giveItem` and
-   `replaceAbility`, which give one to a hero.
+2. It resolves the designer name's entity class through the game's class
+   lookup; an unknown designer name fails here.
+3. It refuses any class that derives from `CCitadelBaseAbility` (abilities,
+   items, and weapons). Spawning one standalone without an owning hero crashes
+   the server when it thinks or is removed, so the host rejects it before
+   allocation and directs callers to `giveItem` and `replaceAbility`.
 4. It creates the entity, installs its subclass, and applies the spawn key
    values, the position and the facing.
 5. It writes the fields in `EntityOptions.fields`. These are fields the game
@@ -235,9 +234,9 @@ hero or unit to die. Both take a `victim`, an `attacker`, an `inflictor` and an
 optional `ability`. The `inflictor` defaults to the attacker. `damage` also
 takes an `amount`.
 
-- A handle includes its entity's generation, so a stale handle fails, in place
-  of selecting a replacement entity. When the attacker has since died or left,
-  the engine credits nobody.
+- Handles encode the entity's generation, so a stale handle fails rather than
+  matching a recycled slot. If the attacker has since died or left, the engine
+  credits nobody.
 - `killEntity` credits the attacker through the game's own damage and reward
   logic. It bypasses resistance and damage modification, and suppresses item
   procs. A living pawn at zero health still goes through its death, and a call
@@ -271,12 +270,12 @@ These are the failures a mod can meet:
 | `NAME has no input INPUT`                     | The input is not one the entity accepts                      |
 | A class mismatch giving both classes          | A call gave a class the entity does not derive from          |
 
-`createEntity` refuses the 25 designer names below before they exist, and the
-libraries do not have a constructor for any of them. Each one reads state that a
-map, a game mode, an owning hero or the ability that makes it provides, and
-crashes the server when it is made alone. A bounce pad, for example, is created
-safely, but finds its team through the ability that placed it. So the first hero
-to cross a pad made alone crashes the server.
+`createEntity` rejects the 25 designer names below before allocation, and the
+generated libraries omit constructors for them. Each depends on state from a
+map, game mode, owning hero, or parent ability and crashes the server if
+spawned standalone. For example, a bounce pad constructs cleanly, but queries
+the ability that placed it to determine its team, crashing the server on the
+first hero contact if spawned alone.
 
 | Needs                      | Designer names                                                                                                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |

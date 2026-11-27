@@ -31,11 +31,11 @@ Pass `--notes` to say what changed. hyperline.gg shows the notes on the game's
 page, and the `github` destination puts them on the new release.
 
 `--prerelease` publishes a version such as `0.2.0-pre.1` to hyperline.gg for the
-mod's testers only. Every game keeps playing its current release. For each of
-the mod's games, hyperline.gg adds a Draft copy that plays the prerelease, such
-as "Zombie Tag Prerelease". Anyone a tester invites may join that copy. A later
-prerelease replaces the one before it. When you choose the Draft copy as current
-on hyperline.gg, the same build becomes the release without another publish.
+mod's testers only. Existing lobbies keep playing the current release. For each
+game in the mod, hyperline.gg creates a Draft copy running the prerelease (such
+as "Zombie Tag Prerelease"), which testers can invite others to join. A newer
+prerelease replaces the previous one. Promoting the Draft copy on hyperline.gg
+makes that build the current release without republishing.
 
 After the upload, `modlock publish` tells you where players can play the
 release. A mod with code plays on hyperline.gg's game servers at once, and on
@@ -49,15 +49,15 @@ models or sounds, `modlock publish` uploads them with it, as
 Each mod on hyperline.gg has an owner, developers and testers, listed under
 Team on the mod's page:
 
-| Role      | May                                                                                                                | Needs          |
+| Role      | Permissions                                                                                                        | Requirements   |
 | --------- | ------------------------------------------------------------------------------------------------------------------ | -------------- |
-| Owner     | Everything a developer may, and hand the mod to another developer. The mod's games credit the owner.               | Creator access |
-| Developer | Publish releases, change the games' status and pages, play Draft games, and add and remove developers and testers. | Creator access |
-| Tester    | See and start the mod's Draft games and prereleases, and invite others into them.                                  | A sign-in only |
+| Owner     | Everything a developer can do, plus transferring ownership to another developer. The mod's games credit the owner. | Creator access |
+| Developer | Publish releases, edit game status and pages, play Draft games, and add or remove developers and testers.          | Creator access |
+| Tester    | View and launch the mod's Draft games and prereleases, and invite others into them.                                | Sign-in only   |
 
-Whoever publishes a mod first owns it. A player must have signed in to
-hyperline.gg once before you can add them to the team. A developer also needs
-Creator access, which the administrators grant. No one can remove the owner.
-To change owners, hand the mod over first, and the previous owner stays a
-developer. Hyperline owns the mods it publishes itself, so only its
-administrators can hand those mods over.
+Whoever first publishes a mod becomes its owner. A player must sign in to
+hyperline.gg once before you can add them to the team, and a developer also
+requires Creator access granted by administrators. The owner cannot be removed;
+to transfer ownership, assign the new owner first (the previous owner remains a
+developer). Hyperline owns its own official mods, so only administrators can
+transfer them.

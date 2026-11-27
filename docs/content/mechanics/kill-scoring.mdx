@@ -3,9 +3,10 @@ title: Kill scoring and respawn
 description: Score each kill, bring the fallen back and end the round at a goal.
 ---
 
-In a deathmatch, the first player to ten kills wins, and everyone who falls comes back into the fight.
+In a deathmatch, the first player to reach 10 kills wins, and defeated heroes
+respawn after a short delay.
 
-Your mod scores each kill the game reports, and brings the fallen hero back:
+The mod listens for kill events to update scores and schedule respawns:
 
 <Samples>
 
@@ -175,12 +176,12 @@ func main() {}
 
 Bring a second player or a bot into the game and defeat them.
 
-The kill gives the player on each side. The slot is -1 on a side where no
-player's hero stands, which means a unit died, or a unit or hazard made the
-kill. A hero that killed itself is its own attacker, so it scores nothing. Each
-point shows every player the scorer's name and total, such as `Ana: 4 / 10`, in
-the middle of the screen. At ten, every player sees the announcement "_name_
-wins".
+Each kill event provides the attacker and victim players. A slot of `-1` means
+that side was a non-player unit or environmental hazard rather than a player's
+hero, and self-kills have the same player on both sides; neither scores a
+point. Each scored kill displays the leader's name and total (such as
+`Ana: 4 / 10`) in the center of the screen, and reaching 10 triggers the
+"_name_ wins" announcement and resets the round.
 
 ## Variations
 

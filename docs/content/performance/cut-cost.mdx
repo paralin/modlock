@@ -11,13 +11,12 @@ line gives the
 [slowest call](/performance/frame-budget#frames-over-the-allowance), and the
 sampled stacks in `modlock play` show which code makes it.
 
-## Act on a change, not every frame
+## Act on changes, not every frame
 
-When a mod gives a modifier again on every frame to keep it on, it pays for one
-call per player per frame. Hold the modifier instead. `holdModifier` keeps the
-modifier on the hero without an expiry, and gives it back when the game removes
-it or the hero returns. Keep a record of what you last asked for, and call the
-game only when that changes:
+Reapplying a modifier every frame costs one host call per player per frame. Use
+`holdModifier` instead: it applies the modifier with no expiry and reapplies it
+automatically if removed or after respawn. Cache the last state you sent and
+call the host only when it changes:
 
 <Samples>
 
@@ -84,31 +83,29 @@ fresh. The same holds for other state the game keeps, such as a hero's
 abilities or model. Set it once, and set it again only when something changes
 it.
 
-## Ask once per frame
+## Query once per frame
 
-Read a value once, and pass it to the code that needs it. `player.pawn()` and
-`findEntities` each make a call, and `findEntities` also searches the world's
-entities. In Go, Luau and Python, read each player's pawn once at the top of
-the frame. A mode that reads every hero calls `pawns()` instead, which returns
-every player's pawn in one call.
+Read a value once and pass it to the code that needs it. `player.pawn()` and
+`findEntities` each make a host call, and `findEntities` also scans the world's
+entities. In Go, Luau, and Python, read each player's pawn once at the top of
+the frame, or call `pawns()` to fetch every player's pawn in a single call.
 
-The TypeScript library does this for `player.pawn()` itself. Within one event,
-it reads the first player's pawn with its own call, and every other player's
-pawn with one `pawns()` call. It answers each later read from those, until the
-mod makes a call that may change the game, such as a teleport. When a pawn's
-state has not changed since the last read, the library returns the same
-object, so treat a pawn as read-only. `setPawnCache(false)` turns this off, so
-that every read makes its own call. Use it to compare the two.
+The TypeScript library caches `player.pawn()` automatically within an event: it
+reads the first player's pawn directly and fetches all others in a single
+`pawns()` call, serving subsequent reads from cache until a mutating host call
+(such as a teleport) invalidates it. When a pawn's state has not changed since
+the last read, the library returns the same object, so treat pawns as
+read-only. Call `setPawnCache(false)` to disable caching when benchmarking.
 
-Find the entities a map places, such as zipline nodes, once after the world
-loads, and keep the handles. `players()` answers from the roster the host last
-sent, so it rarely makes a call.
+Look up static map entities (such as zipline nodes) once on `onWorld` and cache
+their handles. `players()` reads from the roster cached by the host, so it
+rarely incurs a host call.
 
-## Stop asking for what fails
+## Cache failed lookups
 
-A call that fails logs why and returns `false`, or an error in Go. A modifier
-that the game does not define fails on every try, and each try still pays for
-the lookup and adds a log line. So check the result, and stop asking for that
+A failed host call logs a reason and returns `false` (or an error in Go).
+Requesting an undefined modifier fails on every attempt, still paying for the
+lookup and emitting a log line. Check the return value and stop retrying that
 modifier once it fails.
 
 ## Spread work across frames

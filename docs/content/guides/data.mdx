@@ -47,7 +47,7 @@ _ = p.SetSetting("layout", "full")
 </Samples>
 
 A player may change a setting outside the mod, such as on a profile page. The
-`setting-changed` event tells your mod about the change:
+`onSettingChanged` event notifies your mod of the change:
 
 <Samples>
 
@@ -226,10 +226,10 @@ mod.Command("top", func(p mod.Player, args string) {
 | `reportMatch(board, places, done, options?)`          | Reports the enrolled players' places together. Ties share a place.      |
 | `readBoard(board, read, done)`                        | Delivers a page of standings on a later frame. The default is all time. |
 
-When the game reports more than one result for the same player and board, give
-each round or run a stable key. If a reply is lost or the mod reloads, report
-the same result again with the same key. When you leave out the key, the report
-stands for the one result that player has on that board in this game.
+When reporting multiple results for the same player and board, pass a stable
+`key` per round or run so retries after lost replies or reloads are
+deduplicated. If you omit `key`, the report overwrites that player's single
+result for the current match.
 
 Python spells these calls in `snake_case`, with keyword options. Go spells them
 `Player.ReportScore`, `ReportMatch` and `ReadBoard`, and returns the host's

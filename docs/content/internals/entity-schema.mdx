@@ -23,13 +23,12 @@ An entity has four names, and each part of the system uses one:
 | Entity name   | `arena_spawn_red`  | The targetname a map gives it      | `findEntitiesByName`, `entityName`   |
 
 `entityClass(handle)` returns the first two names for a live entity. The
-subclass is the data an entity reads while it spawns, such as its health, model
-and weapons. A lane Guardian and a base Guardian share a class, and differ in
-their subclass. The entity name is the one a map's author chose, and a group of
-entities often shares it. An entity without one has an empty name. A mod gives
-the entities it creates an entity name with the `targetname` key value. It finds
-a map's markers with `findEntitiesByName`, in place of hardcoding their
-positions:
+subclass selects the VData entry loaded at spawn (health, model, weapons); for
+example, lane Guardians and base Guardians share `CNPC_TrooperBoss` and differ
+only in subclass. The entity name is the `targetname` set by the map author, and
+a group of entities often shares one (unnamed entities return an empty string).
+Mods can set `targetname` via spawn keys and look up map markers with
+`findEntitiesByName` instead of hardcoding coordinates:
 
 ```ts
 import { entityPosition, findEntitiesByName } from 'modlock'

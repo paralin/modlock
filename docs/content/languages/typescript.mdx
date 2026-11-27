@@ -21,48 +21,47 @@ features exist only in TypeScript: [camera curves](/guides/camera), and
 
 ## The build
 
-The build starts from `main.ts`, or from `main.js`. It type-checks a JavaScript
-mod from its JSDoc comments. Each build writes the library's types to
-`node_modules/modlock`, where your editor and the type checker find them. Then
-it bundles your mod with the copy of the library built into `modlock`, so you
-install nothing else.
+The build starts from `main.ts` or `main.js` (checking JavaScript mods using
+JSDoc comments). Each build writes the library's type definitions to
+`node_modules/modlock` for your editor and type checker, then bundles your mod
+with the runtime library embedded in `modlock`, requiring no external package
+install.
 [`src/wasm/wasm.proto`](https://github.com/paralin/modlock/blob/master/src/wasm/wasm.proto)
-documents every call, its arguments and its result.
+documents every call, its arguments, and its return type.
 
 ## Two runtimes
 
 Every build bundles your mod for QuickJS, an interpreter that runs any
-JavaScript, so the build is quick. When your mod's frames take too long, set
-`"runtime": "RUNTIME_WASM"` in its `mod.json`. Then `modlock publish` compiles
-the mod ahead of time to WebAssembly with [scriptc](https://scriptc.dev), which
-`modlock` downloads the first time it needs it. The compiled mod runs about 2.5
-times faster, but the compile takes about a minute and a few gigabytes of
-memory. To check that build before you publish, run `modlock build --release`,
-which compiles the mod the same way.
+JavaScript with fast build times. If your mod's frame handlers are too slow, set
+`"runtime": "RUNTIME_WASM"` in `mod.json`. Then `modlock publish` compiles the
+mod ahead of time to WebAssembly with [scriptc](https://scriptc.dev), which
+`modlock` downloads on first use. The compiled mod runs about 2.5 times faster,
+but compilation takes around a minute and a few gigabytes of memory. Run
+`modlock build --release` to test that build before publishing.
 
-In the WebAssembly build, a module with `.wasm` before its extension stands in
-for the module of the same name. So `bench.wasm.ts` replaces `bench.ts`, and
-`hud.wasm.tsx` replaces `hud.tsx`. Use a stand-in to leave out code that scriptc
-cannot compile and the published mod never runs, such as a test harness. The
-stand-in exports the same names from a smaller module. The QuickJS bundle keeps
-the original module.
+In the WebAssembly build, a file with `.wasm` before its extension overrides the
+module of the same name (`bench.wasm.ts` replaces `bench.ts`, and `hud.wasm.tsx`
+replaces `hud.tsx`). Use overrides to stub out code that `scriptc` cannot
+compile and the published mod does not execute, such as a test harness, exporting
+the same symbols from a smaller module while the QuickJS bundle keeps the
+original.
 
-The stand-in must be part of the program your `tsconfig.json` lists. It is,
-unless the configuration lists its files one by one. The stand-in cannot import
-the module it replaces, because in that build the original's path points to the
-stand-in itself.
+The override file must be included by `tsconfig.json` (which is the default
+unless `files` are listed explicitly), and it cannot import the module it
+replaces because that path resolves to the override itself.
 
 In two cases the build falls back to the QuickJS bundle, and `modlock publish`
 refuses to upload it unless you pass `--allow-fallback`:
 
-- scriptc cannot compile part of the mod. The build lists each such place and
-  the reason.
-- The two builds behave differently. To find out, the build plays both in the
-  sandbox through a start, a player joining, a world loading and five seconds of
-  frames. Both builds share one clock and the same random bytes. Each event goes
-  to the QuickJS build first. Whenever the WebAssembly build makes the same
-  call, it gets the reply QuickJS got. The build prints the first event where
-  the two builds' calls or answers differ, and what each build did there. A run
-  of server commands is compared as a set, because their order does not change
-  the game. The check compiles QuickJS with scriptc's copy of Zig, once for each
-  scriptc version.
+- `scriptc` cannot compile part of the mod. The build lists each unsupported
+  construct and its location.
+- The two builds diverge in behavior. To check equivalence, the build runs both
+  in the sandbox through a start event, a player join, a world load, and five
+  seconds of frames using a shared clock and identical random bytes. Each event
+  runs in QuickJS first, and whenever the WebAssembly build makes the same
+  host call, it receives the response QuickJS received. The build prints the
+  first event where the two runtimes diverge in their calls or return values,
+  along with the differing outputs. Consecutive server commands are compared as
+  a set since their relative order does not affect game state. This verification
+  compiles QuickJS using `scriptc`'s bundled Zig toolchain once per `scriptc`
+  version.

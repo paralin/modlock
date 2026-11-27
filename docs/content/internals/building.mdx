@@ -20,10 +20,10 @@ cmake --install build --prefix "$PWD/build/sdk"
 Protobuf and abseil take a long time to build, so use half the cores, as shown,
 and the machine stays usable while it builds.
 
-The native tests build into two programs. `modlock_tests` needs only the SDK.
-`modlock_mod_tests` runs built example mods, so it also needs Go and the mod
-runtimes. CTest runs each case in its own process. To run a few cases, select
-them by name:
+The native tests build into two binaries: `modlock_tests` (requires only the
+SDK) and `modlock_mod_tests` (runs built example mods, requiring Go and the
+mod runtimes). CTest runs each case in its own process. To run a few cases,
+select them by name:
 
 ```sh
 cmake --build build --target modlock_tests
@@ -64,7 +64,7 @@ These scripts run the same tools across the repository:
 | `bun run lint`               | Lints with oxlint; lint the example mods after `go run ./cmd/modlock build examples/<mod>` installs their typings                                          |
 | `bun run typecheck`          | Type checks the TypeScript                                                                                                                                 |
 | `bun run test`               | Runs the tests                                                                                                                                             |
-| `bun run lint:cc [--fix]`    | Reports, or removes, the includes a C++ source does not use; it reads the compile databases of `build` and `scripts/proton-build.sh`, so build both first |
+| `bun run lint:cc [--fix]`    | Reports or removes unused `#include` directives in C++ sources; reads compile databases from `build/` and `scripts/proton-build.sh`, so build both first |
 
 ## Run the command from a clone
 

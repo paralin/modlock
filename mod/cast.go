@@ -11,24 +11,23 @@ import (
 // in that gap would override their pick.
 const changeSeconds = 3
 
-// Cast keeps a mode's players: one member of type M for each human who
+// Cast tracks a mode's players: one member of type M for each human who
 // finished joining, made by the mode's Join and ended by its Leave. Members are
 // keyed by slot and connection generation, so a reconnect is a leave and a
-// join. Cast learns of joins and leaves from the host's player reports and
-// settles them on the next Frame; it never walks the player list on a frame
-// where nothing changed.
+// join. Cast tracks joins and leaves from host player events and settles them
+// on the next Frame; on frames with no membership changes it does not scan the
+// player list.
 //
-// A member may carry a Want: to sit on a hero and team, and to come back a
-// while after its hero falls. A human whose want leaves the hero free still
-// gets one when the game leaves them on a team without a hero, as its own
-// spawn on joining can, since nothing else would ever seat them. Each frame
-// Cast compares the want with what the member's hero shows, asks the game
-// again at most once a second while they differ, and stops asking once they
-// match. That is a reconciliation loop: a lost or refused ask is only asked
-// again, never reported as a failure.
+// A member may carry a Want: to sit on a hero and team, and to respawn after
+// a delay when their hero falls. A human whose want leaves the hero free still
+// gets one if the game leaves them on a team without a hero, since nothing else
+// would seat them. Each frame Cast compares the desired state with the
+// member's current hero, retries applying differences at most once per second,
+// and stops once they match. Failed or dropped assignments are retried rather
+// than reported as errors.
 //
-// A frame costs one pawn read per member, which the mode reads back with Pawn
-// instead of asking the game again.
+// Each frame costs one pawn read per member, which the mode reads back with
+// Pawn instead of querying the game again.
 type Cast[M any] struct {
 	// options are the mode's answers to players coming and going.
 	options CastOptions[M]
@@ -103,8 +102,9 @@ func (c *Cast[M]) Pawn(p Player) *Pawn {
 }
 
 // Frame settles the joins and leaves reported since the last frame, reads
-// each member's hero, and asks the game once a second for any want it does not
-// show yet. seconds is the game clock, as FrameEvent.TimeSeconds reports it.
+// each member's hero, and retries applying any desired state that has not
+// taken effect yet at most once per second. seconds is the game clock, as
+// FrameEvent.TimeSeconds reports it.
 func (c *Cast[M]) Frame(seconds float64) {
 	// Settle a player list the host reported since the last frame.
 	roster, revision := connections.snapshot()
@@ -285,8 +285,8 @@ func (c *Cast[M]) seated(seat *seat[M], want Want, hero any) bool {
 	return true
 }
 
-// seat asks the game to put the member on hero and their team. A refused ask
-// is asked again on a later frame.
+// seat assigns the member to the given hero and team. A failed assignment is
+// retried on a later frame.
 func (c *Cast[M]) seat(seat *seat[M], want Want, hero any) {
 	// Any hero keeps the one the member has, or else takes a random one.
 	if hero == AnyHero {

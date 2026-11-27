@@ -3,12 +3,11 @@ title: Controllers
 description: Read a player's gamepads, joysticks and radio transmitters.
 ---
 
-A mod can read the game controllers on a player's own PC. These include
-gamepads, flight sticks, and radio transmitters in USB joystick mode. The
-player's Modlock client opens the devices and streams their state to the
-server. So the mod sees every axis, button and hat, including the right stick
-and radio channels that the game itself never sends. Watch a player's
-controllers to start the stream, and from then on each frame lists them.
+Mods can read game controllers attached to a player's PC, including gamepads,
+flight sticks, and USB-joystick radio transmitters. The Modlock client opens
+the devices and streams every axis, button, and hat to the server (including
+inputs the game itself does not forward). Call `watchControllers(true)` to
+start the stream; each subsequent frame event includes the player's devices.
 
 <Samples>
 
@@ -111,8 +110,8 @@ one device, such as the first gamepad, as the examples do.
 
 ## Stream
 
-`stream` is the state of the values, current or not. With it, a mod can choose
-what to do in each state, instead of acting on old input.
+`stream` indicates whether the device values are live, allowing your mod to
+handle focus loss or disconnects instead of acting on stale input.
 
 | Stream      | Means                                                                                           |
 | ----------- | ----------------------------------------------------------------------------------------------- |

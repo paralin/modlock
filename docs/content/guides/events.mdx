@@ -1,6 +1,6 @@
 ---
 title: Events
-description: The moments a mod hears about, and how to register a handler for each.
+description: Engine events and how to register handlers for them.
 ---
 
 Your mod registers its handlers as it loads. The server calls each handler when
@@ -147,12 +147,12 @@ the first hero and for each respawn. A bot joins as soon as it is added.
 
 ## Joins and leaves
 
-When a player's connection drops, the player is away, not gone. The game keeps
-their seat, hero and team for five minutes. When they reconnect in that time,
-they return to all of it as the same Player. Modlock drops the interfaces your
-mod sends while a player is away, and draws each one again when they return. A
-mod that pauses while someone is missing, such as for a ready check, can listen
-with `onPlayerAway` and `onPlayerReturn`.
+When a player's connection drops, the player is away rather than gone; the game
+holds their seat, hero, and team for five minutes. If they reconnect within that
+window, they resume as the same `Player`. Modlock suppresses UI updates while a
+player is away and restores them when they return. A mod that pauses while
+someone is missing (such as during a ready check) can track disconnects with
+`onPlayerAway` and `onPlayerReturn`.
 
 Each joined player leaves exactly once, when their seat ends. The seat ends
 when they leave the game, when the mod stops serving them, when a stranger
@@ -238,15 +238,14 @@ mod.OnSpawn(func(player mod.Player, pawn *mod.Pawn) {
 
 </Samples>
 
-The library hears a spawn from the game's `PLAYER_RESPAWNED` modifier event,
-once for a player's first hero and once for each respawn. It runs your handler
-before that frame's frame handlers. A team change is not a spawn. A server that
-cannot watch modifier events does not report spawns.
+The library detects spawns from the engine's `PLAYER_RESPAWNED` modifier event
+(once on initial spawn and again on each respawn) and runs your handler before
+that frame's `onFrame` handlers. Team changes do not fire `onSpawn`. A server
+that cannot watch modifier events does not report spawns.
 
 ## Casts and modifier events
 
-Your mod can hear each ability as it takes effect, and any of the game's
-modifier events by name:
+Mods can subscribe to ability casts and any engine modifier event by name:
 
 <Samples>
 
@@ -318,11 +317,11 @@ which writes a log line for every one.
 | `slot`     | The ability's place on the hero, or -1 when the caster is not a player's hero.            |
 | `target`   | The entity the cast was aimed at, or 0.                                                   |
 
-`onModifierEvent` takes any of the game's `EModifierEvent` names, with or
-without the `MODIFIER_EVENT_` prefix. The event's `name` is the spelling your
-handler registered with. When the running game lacks a name, the mod logs it
-once, and that handler never fires. Register the handler as the mod loads,
-because the server asks for the events when it starts the mod.
+`onModifierEvent` accepts any `EModifierEvent` name, with or without the
+`MODIFIER_EVENT_` prefix. The event's `name` matches the string you registered
+with. If the running game does not define that event name, the host logs a
+warning once and the handler never fires. Register modifier event handlers at
+mod startup, since the server collects subscriptions when starting the mod.
 
 Every modifier event has the same four fields, but which ones the game fills
 depends on the event:
@@ -403,17 +402,15 @@ mod.OnLevelChange(func(change *mod.LevelEvent) {
 
 </Samples>
 
-The sample logs heals to players' heroes, because a slot of -1 means a unit. A
-heal is health that a hero or unit regains all at once, from an ability, an
-item or lifesteal. Regeneration reports nothing, and that includes what Siphon
-Life restores as regeneration. The mod's own heal reports nothing either, and
-neither does a heal that finds the target at full health. To hear
-regeneration, listen for the `PRE_UNIT_HEALED`
-[modifier event](#casts-and-modifier-events). The game fires it before every
-heal and every tick of regeneration, without an amount. Each of the four events
-arrives before the next frame.
-Python spells the fields in `snake_case`, and Go reads each player as a slot,
-such as `heal.GetTargetPlayer()`.
+The sample filters to player heroes (`slot >= 0`), since `-1` indicates a
+non-player unit. `onHeal` reports burst heals from abilities, items, or
+lifesteal; passive regeneration (including Siphon Life), mod-applied `heal()`
+calls, and heals on full-health targets do not fire it. To observe
+regeneration ticks, subscribe to the `PRE_UNIT_HEALED`
+[modifier event](#casts-and-modifier-events), which fires before every heal and
+regeneration tick without an amount. All four events are delivered before the
+next frame. Python uses `snake_case` field names, and Go exposes each player as
+a slot (`heal.GetTargetPlayer()`).
 
 | Field            | On           | Holds                                                                             |
 | ---------------- | ------------ | --------------------------------------------------------------------------------- |
@@ -435,8 +432,7 @@ such as `heal.GetTargetPlayer()`.
 
 ## Pings
 
-Your mod hears each ping a player sends before anyone sees it, and it can
-block the ping. That covers pings from the comms wheel, a quick ping key, the
+Mods intercept each player ping before anyone sees it and can block it. This covers pings from the comms wheel, a quick ping key, the
 minimap or an ability. A blocked ping reaches nobody, its sender included, so
 no one gets its marker, sound, voice line or chat line. This mod silences the
 comms wheel of each player who typed `/quiet`:

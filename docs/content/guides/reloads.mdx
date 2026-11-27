@@ -38,13 +38,13 @@ ms, the mod skips frames to repay the time. See
 
 ## Restart a running mod
 
-A program that hosts mods can restart one in place with `WasmHost::Restart(mod)`, without restarting the server. It might do this when a mod's frames have grown slow over a long game. The restart runs on the mod's next frame. A new instance of the running build starts, and every value the old code kept is gone. The new instance hears the loaded world and the players, as a fresh start does. Its handoff state, scope and players' settings carry over, as they do through a reload. A stopped mod starts again.
+A program that hosts mods can restart one in place with `WasmHost::Restart(mod)`, without restarting the server. It might do this when a mod's frames have grown slow over a long game. The restart runs on the mod's next frame. A new instance of the running build starts, and all in-memory state from the previous instance is discarded. The new instance receives `onWorld` and `onPlayerJoin` events just like a fresh start. Its handoff state, scope, and players' settings carry over, as they do through a reload. A stopped mod starts again.
 
-A restart honors the mod's [reload hold](#hold-a-reload). While the mod holds its build, the restart waits, and it runs on the first frame after the mod releases the hold. `Restart(mod, true)` restarts the mod despite the hold. Asking again while a restart waits changes nothing, except that passing `true` ends the wait. `Held(mod)` reports whether the mod holds its build, and `Restarting(mod)` reports whether a restart is waiting.
+A restart honors the mod's [reload hold](#hold-a-reload). While the mod holds its build, the restart waits, and it runs on the first frame after the mod releases the hold. `Restart(mod, true)` forces the restart despite the hold. Calling `Restart` again while one is pending is a no-op unless `true` is passed to force it. `Held(mod)` reports whether the mod is holding its build, and `Restarting(mod)` reports whether a restart is pending.
 
 ## Hold a reload
 
-When a new build would lose work in progress, such as a timed run, call `holdReload(true)` as the work starts and `holdReload(false)` when it ends. A reload that arrives while the hold is on waits. Then the newest build replaces the running one on the next frame after you release the hold. A restart that the host asks for waits the same way, unless the host forces it. A mod that stops also releases its hold.
+When a new build would interrupt work in progress, such as a timed run, call `holdReload(true)` when the work starts and `holdReload(false)` when it ends. A reload that arrives while the hold is active waits, and the newest build replaces the running one on the next frame after the hold is released. Host-initiated restarts wait the same way unless forced. A stopped mod releases its hold automatically.
 
 <Samples>
 

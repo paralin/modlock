@@ -293,9 +293,9 @@ if err == nil {
 
 The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
 while it spawns, and `subclass` is that entry's name. Without a subclass, the
-host looks for an entry named after the class. The game does not have an entry
-named `npc_trooper_boss`, and the class crashes the server without an entry. So
-the host refuses the call, and its message gives an entry you can pass.
+host looks for an entry named after the class; since none exists for
+`npc_trooper_boss` and spawning without one crashes the server, the host rejects
+the call and suggests a valid subclass.
 
 Each value you pass to `fireInput` must already have the type its input takes,
 because an input does not convert text. `Alpha` takes an integer, and `Color`
@@ -309,18 +309,16 @@ have, and `fireInput` returns false for an input the entity does not have. The
 host logs why, and in Go both calls return an error. Only that call fails, and
 the rest of your mod keeps running.
 
-The host resolves the designer name's class before it creates anything. Only a
-hero can hold an ability, item or weapon, so the host refuses to create one on
-its own. One created alone would crash the server the first time it thinks or
-is removed. The error points you to `giveItem` and `replaceAbility` instead.
-`spawnNpc` and `createPickup` build on the same call. `spawnNpc` takes any unit
-class the server has. It refuses a `lane` for a class that does not walk a
-lane.
+The host resolves the designer name's class before creating anything. Only a
+hero can own an ability, item, or weapon, so the host refuses to spawn one
+standalone (it would crash the server on its first think or removal) and directs
+you to `giveItem` and `replaceAbility`. `spawnNpc` and `createPickup` build on
+the same call: `spawnNpc` accepts any unit class the server knows and rejects
+`lane` for classes without `m_iLane`.
 
-Entity calls keep to the same [console limits](/guides/console#limits) as
-`serverCommand`. The host refuses anything that would run console lines on the
-server or on players' clients, or that would load scripts and entities that no
-check sees:
+Entity calls enforce the same [console limits](/guides/console#limits) as
+`serverCommand`. The host blocks entities, key values, fields, and inputs that
+execute arbitrary console commands or unvalidated scripts:
 
 | Refused                                                               | What                                                                                                                                  |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -386,15 +384,13 @@ if err == nil {
 
 </Samples>
 
-`create` takes only the designer names that spawned and stayed alive on a
-dedicated server, which is 578 of the 1,191 surveyed. Each name that needs a
-subclass gets the subclass it spawned with. So `create('npc_trooper_boss', ...)`
-makes a Guardian without asking for `npc_boss_tier1`. A name that never stayed
-alive, such as an abstract base or one that crashes the server, does not get a
-constructor, and the type checker rejects it.
-[Entity schema](/internals/entity-schema) describes the whole entity system: the
-dump, the survey, the generated classes in each language and what the host
-checks.
+`create` includes only the 578 designer names (out of 1,191 surveyed) that
+spawned and survived on a dedicated server, defaulting each to the subclass it
+spawned with so `create('npc_trooper_boss', ...)` spawns a Guardian without
+requiring `npc_boss_tier1`. Designer names that failed or crashed in the survey
+omit constructors, so the type checker rejects them at compile time.
+[Entity schema](/internals/entity-schema) covers the full entity system: the
+dump, the survey, the generated classes in each language, and host validation.
 
 `showEntityOnlyTo` sends an entity the mod created only to the listed player
 slots, and `showEntityToAll` undoes that. Call `showEntityOnlyTo` right after

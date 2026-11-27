@@ -27,40 +27,39 @@ npx modlock new my-mod
 When you install with npm, run every command through `npx`, as in
 `npx modlock dev`.
 
-That is all you need to write a mod in TypeScript, JavaScript, Luau or Python.
-A Go mod also needs [Go](https://go.dev/dl/). The first time you run `modlock`,
-it downloads the game server. To move to a newer release later, run
-`modlock update`.
+That is all you need for TypeScript, JavaScript, Luau, or Python. Go mods also
+require [Go](https://go.dev/dl/). On its first run, `modlock` downloads the
+game server. Run `modlock update` to upgrade later.
 
 <Callout title="modlock is not found">
-  On Windows, a terminal that was already open keeps the `PATH` it started with.
-  Close it and open a new one, or for a terminal inside VS Code, close the whole
-  editor. On macOS or Linux, when the install directory is not on your `PATH`,
-  the installer prints a line for you to add to your shell's startup file.
+  On Windows, an already-open terminal keeps its initial `PATH`. Close it and
+  open a new one (or restart VS Code if using its integrated terminal). On
+  macOS or Linux, if the install directory is not on your `PATH`, the installer
+  prints the line to add to your shell profile.
 </Callout>
 
 Next: [make your first mod](/start/first-mod).
 
-## Download it by hand
+## Manual download
 
-Download the file for your computer from the
+Download the binary for your platform from the
 [latest release](https://github.com/paralin/modlock/releases/latest), rename it
-to `modlock` (`modlock.exe` on Windows), and put it in a directory on your
-`PATH`. On macOS or Linux, make it runnable with `chmod +x modlock`.
+to `modlock` (`modlock.exe` on Windows), and place it in a directory on your
+`PATH`. On macOS or Linux, make it executable with `chmod +x modlock`.
 
-| Your computer               | File                        |
+| Platform                    | Binary                      |
 | --------------------------- | --------------------------- |
 | Windows                     | `modlock-windows-amd64.exe` |
-| Mac with Apple silicon      | `modlock-darwin-arm64`      |
-| Mac with an Intel processor | `modlock-darwin-amd64`      |
+| macOS (Apple silicon)       | `modlock-darwin-arm64`      |
+| macOS (Intel)               | `modlock-darwin-amd64`      |
 | Linux, x86-64               | `modlock-linux-amd64`       |
 | Linux, ARM64                | `modlock-linux-arm64`       |
 
-Windows SmartScreen and macOS warn you about a program that you download in a
-browser. The install lines above download `modlock` without a browser, so they
-do not raise the warning. On a Mac, clear the warning with `xattr -c modlock`.
-Run `modlock` from a terminal, because double-clicking it only prints how to
-install it.
+Windows SmartScreen and macOS Gatekeeper warn on binaries downloaded through a
+browser. The install commands above bypass browser quarantine, so they do not
+trigger that warning. On macOS, clear the quarantine attribute with
+`xattr -c modlock`. Run `modlock` from a terminal; double-clicking it only
+prints installation instructions.
 
-To run Modlock from a clone, see
+To run Modlock from a source clone, see
 [Building Modlock](/internals/building#run-the-command-from-a-clone).

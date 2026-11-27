@@ -3,11 +3,10 @@ title: Damage
 description: Change or block a hit before it lands, and react to it after.
 ---
 
-Your mod can handle two events for each hit. `onDamage` fires before the game
-applies the damage, and your handler can change the amount or block the hit.
-`onDamaged` fires after the hit lands, and tells your handler the health the
-victim had and the health the hit took. Both events give the attacker and the
-victim as entity numbers, the same number that a pawn's `entity` field holds.
+Two events cover each hit: `onDamage` fires before damage is applied so you
+can modify or block it, and `onDamaged` fires afterward with the victim's
+previous health and health lost. Both events identify the attacker and victim
+by entity handle (matching `pawn.entity`).
 
 ## Change a hit
 
@@ -160,11 +159,10 @@ mod.OnKill(func(kill *mod.KillEvent) {
 
 </Samples>
 
-The sample logs only kills between two players' heroes, because a slot of -1
-means that side is not a player's hero. The kill comes from a hit that
-`onDamaged` also reports, one that took all the health the victim had left.
-Python spells the fields in `snake_case`, and Go reads each player as a slot,
-such as `kill.GetVictimPlayer()`.
+The sample logs only player-vs-player kills because a slot of `-1` indicates a
+non-player unit or environmental hazard. Each kill corresponds to a lethal hit
+also reported by `onDamaged`. Python uses `snake_case` field names, and Go
+exposes each player as a slot (`kill.GetVictimPlayer()`).
 
 | Field            | Holds                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------- |

@@ -20,14 +20,14 @@ its relative path, such as `require("./round")`, as the
 [`bounty`](https://github.com/paralin/modlock/tree/master/examples/bounty)
 example does.
 
-The library has the TypeScript library's calls under the same names, and you
-call them as methods, such as `player:chat(text)`. A Luau number cannot hold
-every 64-bit integer, so a 64-bit id, such as a Steam ID, is a decimal string.
+The Luau library mirrors the TypeScript API using method syntax, such as
+`player:chat(text)`. Because Luau numbers cannot represent every 64-bit
+integer, 64-bit IDs (such as Steam IDs) are passed as decimal strings.
 
-A `Player` stays the same object for as long as one person holds its slot. So
-`==` tells you whether two values are the same player, and a `Player` works as a
-table key. When someone new takes the slot, they get a new object, so they never
-inherit the table entries of the player who left.
+A `Player` reference remains the same object for as long as one person holds
+that slot, so `==` compares player identity and `Player` values work as table
+keys. If a new player takes the slot later, they receive a distinct object and
+do not inherit table entries from the previous player.
 
 Build interfaces with `@modlock/ui`, `@modlock/hud` and `@modlock/theme`. Choose
 Luau with the switch in the sidebar, and the [guides](/guides/events) show every

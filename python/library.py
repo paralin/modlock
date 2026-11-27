@@ -314,8 +314,8 @@ class Cast[M]:
 
     def frame(self, seconds: float) -> None:
         """frame settles the joins and leaves reported since the last frame,
-        reads each member's hero, and asks the game once a second for any want
-        it does not show yet. seconds is the game clock."""
+        reads each member's hero, and retries applying any desired state that has
+        not taken effect yet at most once per second. seconds is the game clock."""
         if self._reported is not None:
             self._settle(self._reported, seconds)
             self._reported = None
@@ -428,7 +428,7 @@ class Cast[M]:
         return known is None or pawn.hero == known.id
 
     def _seat(self, seat: _Seat[M], want: Want, hero: str | int) -> None:
-        """_seat asks the game to put the member on hero and their team."""
+        """_seat assigns the member to the given hero and team."""
         # Any hero keeps the one the member has, or else takes a random one.
         pawn = seat.pawn
         pick = hero
@@ -458,12 +458,11 @@ class Cast[M]:
 
 
 
-# Seating keeps each player the mod seats on the hero and team it asked for.
-# seat records what one player should have, and one Cast the library runs
-# itself asks the game until the player's hero shows it, and again after a
-# hero change. The same Cast brings fallen heroes back after the respawn
-# delay. It starts with the first seat or respawn delay, so a mod that uses
-# neither pays nothing.
+# Seating keeps each player the mod seats on the hero and team requested.
+# seat records what one player should have, and an internal Cast retries the
+# assignment until the player's hero matches it, and reapplies it after a hero
+# change. The same Cast respawns fallen heroes after the respawn delay. It starts
+# with the first seat or respawn delay, so a mod that uses neither pays nothing.
 
 # _seated holds what each seated player wants by slot, with the generation of
 # the connection it was asked for, so a wish never passes to the next player

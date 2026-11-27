@@ -3,11 +3,11 @@ title: Aim drill
 description: Give one player a target and score thirty seconds of hits.
 ---
 
-An aim drill gives one player thirty seconds to land as many hits on a target
-as they can, and counts the hits.
+An aim drill gives a player 30 seconds to land as many hits as possible on a
+target bot and records the total.
 
-A player starts the drill with `/drill`, and your mod adds a bot named Target
-for them to shoot:
+A player starts the drill with `/drill`, and the mod spawns a bot named
+`Target` on the opposite team:
 
 <Samples>
 
@@ -281,9 +281,9 @@ func main() {}
 Save, then type `/drill` in chat.
 
 The player sees the announcement "Aim drill" with "Hit the target for 30
-seconds." After each hit, the mod heals Target by the damage that hit dealt, so
-Target stays standing for the whole drill. When the time is up, the player sees
-"Time!" with their hits and damage.
+seconds." After each hit, the mod heals `Target` for the damage dealt so it
+stays alive for the full 30 seconds. When time expires, the player sees "Time!"
+with their hit and damage totals.
 
 The mod declares the metric in `mod.json`:
 
