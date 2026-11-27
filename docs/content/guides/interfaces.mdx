@@ -3,10 +3,14 @@ title: Interfaces
 description: Draw a HUD, a menu or a notice on a player's screen.
 ---
 
-Each language has an interface library: JSX in TypeScript, `@modlock/ui` in
-Luau, `modlock.ui` in Python and `mod/ui` in Go. Each library has a HUD kit
-(`hud`) and style tokens (`theme`). This screen asks the player to click. The mod frees the
-cursor and blocks the buttons a click would fire, and `closePicks` releases them:
+You draw an interface with your language's interface library: JSX in
+TypeScript, `@modlock/ui` in Luau, `modlock.ui` in Python and `mod/ui` in Go.
+Each library also has a HUD kit, `hud`, and a set of style tokens, `theme`.
+
+The sample below shows a player a screen with one button. `openPicks` draws the
+screen, shows the mouse cursor so the player can click, and blocks the fire
+buttons so that a click does not shoot. `closePicks` releases the buttons and
+removes the screen:
 
 <Samples>
 
@@ -95,57 +99,74 @@ func closePicks(p mod.Player) {
 
 ## Calls
 
-Luau spells each call as TypeScript does, Python in `snake_case`, and Go
-capitalizes it. In Go, `toast` with seconds is `ToastFor`, and `uiSound` is
-`Sound`.
+The table gives each call's TypeScript name. Luau uses the same names, Python
+writes them in `snake_case`, and Go capitalizes them. Two Go names differ: a
+`toast` with seconds is `ToastFor`, and `uiSound` is `Sound`.
 
 | Call                                          | Effect                                                                                                                                                                                                                               |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `show(player, element)`, `hide(player)`       | Show a player an interface written in JSX, or remove it.                                                                                                                                                                             |
-| `toast(player, text, seconds?)`               | Show a player a short notice that fades.                                                                                                                                                                                             |
-| `uiSound(player, sound, { seconds? })`        | Play a game sound event to one player once, hero or not; `seconds` stops it early. A run of sounds, such as a wheel's ticks, is a timeline.                                                                                          |
-| `playTimeline(player, id, { clock?, steps })` | Run a timed presentation: each step, at seconds from the start, gives the elements of its `measure` a `class` and `style` and plays its `sound`. Playing it again starts it over; `clock: 'game'` holds it while the game is paused. |
-| `cancelTimeline(player, id)`                  | Stop a timeline, taking back its looks and its sounds still to come.                                                                                                                                                                 |
-| `hideHud(player, parts)`                      | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'`, `'castFailed'`, `'eventIndicators'`, `'statusIndicators'` or `'all'`; `[]` shows them again.                        |
-| `hideHudForAll(parts)`                        | Hide parts of the game's HUD from every player, those who join later too. TypeScript only.                                                                                                                                           |
+| `toast(player, text, seconds?)`               | Show a player a short notice that fades away.                                                                                                                                                                                             |
+| `uiSound(player, sound, { seconds? })`        | Play a game sound event once to one player, whether or not they have a hero. `seconds` cuts the sound short. For a run of sounds, such as a wheel's ticks, use a timeline.                                                                                          |
+| `playTimeline(player, id, { clock?, steps })` | Run a timed presentation. Each step starts `at` a number of seconds from the start. It gives a `class` and a `style` to the elements listed in its `measure`, and plays its `sound`. Playing a timeline again starts it over. With `clock: 'game'` it waits while the game is paused. |
+| `cancelTimeline(player, id)`                  | Stop a timeline. Its elements lose the looks it gave them, and its sounds still to come do not play.                                                                                                                                                                 |
+| `hideHud(player, parts)`                      | Hide parts of the game's HUD, such as `'topBar'`, `'minimap'`, `'minimapPlayers'`, `'inventory'`, `'crosshair'`, `'castFailed'`, `'eventIndicators'`, `'statusIndicators'` or `'all'`. Passing `[]` shows them again.                        |
+| `hideHudForAll(parts)`                        | Hide parts of the game's HUD from every player, including players who join later. TypeScript only.                                                                                                                                           |
 | `showChatLines(options?)`                     | Show chat lines as subtitles above the ability bar, with the speaker's portrait and name. TypeScript only.                                                                                                                           |
 | `showSpeakers(options?)`                      | Show who each player hears on voice chat, as portraits and names at the left edge. TypeScript only.                                                                                                                                  |
-| `freeCursor(player, free)`                    | Show the mouse cursor without Tab, so the player can click; `false` gives the mouse back to aiming.                                                                                                                                  |
-| `abilityBarPresses(player, onPress?)`         | Take clicks on the game's ability bar by slot; see [Abilities](/guides/abilities).                                                                                                                                                   |
-| `followAction(player, action, onPhase?)`      | Follow a game action, such as `'scoreboard'`, on whichever key the player bound it to: `'pressed'`, then `'released'` or `'cancelled'`; see [Follow a game action](#follow-a-game-action).                                           |
-| `followOverlay(player, onChange?)`            | Hear which stock overlay holds the player's input, such as `'chat'`, `'shop'` or `'escapeMenu'`, and `'none'` once the game has it back; see [Follow the stock overlays](#follow-the-stock-overlays).                                |
-| `followPlacement(player, onPlace?)`           | Hear the screen's size, the HUD's frame and the box of each element named with `measure`; see [Place by the screen](#place-by-the-screen).                                                                                           |
-| `inHudFrame(player, on)`                      | Draw the interface in the HUD's frame, the middle 16:9 of a wider screen whose player keeps the HUD there.                                                                                                                           |
-| `abilityDisplay(viewer, rows?)`               | Show players' replaced abilities on Tab and the ability bar; no rows brings back the game's own.                                                                                                                                     |
-| `cursorFree(player)`                          | Read whether the player's cursor is up now, however it got there.                                                                                                                                                                    |
-| `items`, `item(name)`                         | The shop's items: id, slot, tier, active, imbue and icon. TypeScript only.                                                                                                                                                           |
-| `player.screenEffect(effect, timing?)`        | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view.                                                                                                                                               |
-| `player.clearScreenEffect(effect)`            | End that effect, such as lifting a black screen at a round's start.                                                                                                                                                                  |
-| `route(player, name, value)`                  | Hand every layout of the mod `value` under `name`; see [Layouts](/guides/layouts).                                                                                                                                                   |
+| `freeCursor(player, free)`                    | Show the mouse cursor, so the player can click without holding Tab. `false` gives the mouse back to aiming. See [The cursor](#the-cursor).                                                                                                                                  |
+| `abilityBarPresses(player, onPress?)`         | Hear clicks on the game's ability bar, by slot. See [Abilities](/guides/abilities).                                                                                                                                                   |
+| `followAction(player, action, onPhase?)`      | Hear each use of a game action, such as `'scoreboard'`, on whichever key the player bound it to: `'pressed'`, then `'released'` or `'cancelled'`. See [Follow a game action](#follow-a-game-action).                                           |
+| `followOverlay(player, onChange?)`            | Hear which of the game's overlays has the player's input, such as `'chat'`, `'shop'` or `'escapeMenu'`, and `'none'` once the game has the input back. See [Follow the stock overlays](#follow-the-stock-overlays).                                |
+| `followPlacement(player, onPlace?)`           | Hear the screen's size, the HUD's frame and the box of each element you named with `measure`. See [Place by the screen](#place-by-the-screen).                                                                                           |
+| `inHudFrame(player, on)`                      | Draw the interface inside the HUD's frame. On a screen wider than 16:9, a player can keep the HUD in the middle 16:9, and the frame is that middle part.                                                                                                                           |
+| `abilityDisplay(viewer, rows?)`               | Show a viewer the abilities you list for each player on the Tab screen and the viewer's ability bar, where the game would show a replaced ability as the one it replaced. Calling it without rows brings back the game's own.                                                                                                                                     |
+| `cursorFree(player)`                          | Read whether the player's cursor is up now, whether your mod or the player put it there.                                                                                                                                                                    |
+| `items`, `item(name)`                         | The shop's items, each with its id, slot, tier, active, imbue and icon. TypeScript only.                                                                                                                                                           |
+| `player.screenEffect(effect, timing?)`        | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the player's view.                                                                                                                                               |
+| `player.clearScreenEffect(effect)`            | End an effect, such as lifting a black screen when a round starts.                                                                                                                                                                  |
+| `route(player, name, value)`                  | Pass `value` under `name` to every layout of the mod. See [Layouts](/guides/layouts).                                                                                                                                                   |
 
 ## The cursor
 
-While the cursor is up, a click on one of the mod's panels goes to the panel
-and fires no shot. A click anywhere else still shoots, and the game still turns
-and moves the hero. A screen that must not fire a weapon blocks those buttons
-itself, and releases them in the same call that hides the screen. `hide` gives the mouse back to aiming.
+`freeCursor(player, true)` shows the player's mouse cursor, so they can click
+your panels without holding Tab. While the cursor is up, a click on one of your
+mod's panels goes to that panel, and the hero does not shoot. A click anywhere
+else on the screen fires the weapon as usual. Moving the mouse still turns the
+camera, and the movement keys still move the hero.
 
-The player can also put the cursor away with the game's own keys. The cursor
-then stays away while the screen changes, until the next
-`freeCursor(player, true)` shows it again. `cursorFree(player)` reports whether
-the cursor is up, and nothing while the player has no hero. A mod that wants the
-cursor back calls `freeCursor` again when `cursorFree` reports false, on a press
-or a timer.
+If the player should not shoot while your screen is open, block the fire buttons
+with `player.blockInput` when you show it, as `openPicks` does above. Then
+release them in the same function that hides the screen, as `closePicks` does,
+so the player can shoot again as soon as the screen is gone. `blockInput` takes
+any of the game's buttons, so the same call can also stop jumping, crouching,
+dashing, abilities and items. It cannot stop the player from turning the camera
+or walking, because the game reads those from the mouse and movement axes, not
+from the buttons. To hold the hero in place while the screen is open, call
+`player.freeze(true)`, which also keeps the hero from taking damage, and
+`player.freeze(false)` when the screen closes. `hide(player)` and
+`freeCursor(player, false)` both put the cursor away and give the mouse back to
+aiming.
+
+The player can also put the cursor away with the game's own keys. It then stays
+away, even when your mod draws a new screen, until your mod calls
+`freeCursor(player, true)` again. `cursorFree(player)` tells you whether the
+cursor is up now, whether your mod or the player put it there. It does not
+return a value while the player does not have a hero, because the game keeps the
+cursor's state on the hero. To bring the cursor back, check `cursorFree` on a
+press or a timer, and call `freeCursor(player, true)` when it returns false.
 
 ## Follow a game action
 
-`followAction` tells the mod when the player uses one of the game's own bound
-actions, so a mod can answer Tab without a key of its own. Each press reaches
-the mod once as `'pressed'` and once more as `'released'`, or as `'cancelled'`
-when chat, the shop, a popup or the escape menu takes the player's input
-before they let go. A press made while one of those is open reports nothing.
-The game still does what the action does, so the scoreboard still shows. A
-mod reads the action whatever key the player bound it to.
+`followAction` calls your handler when the player uses one of the game's own
+actions, on whatever key they bound it to. So your mod can answer Tab, the
+scoreboard action, without asking the player to learn a key of its own. Each
+press reaches the handler twice: once as `'pressed'`, and once more as
+`'released'` when the player lets go. If chat, the shop, a popup or the escape
+menu takes the player's input before they let go, the second call is
+`'cancelled'` instead. A press made while one of those overlays is open does
+not reach the handler at all. The game still does what the action does, so the
+scoreboard still shows.
 
 ```ts
 followAction(player, 'scoreboard', (player, phase) => {
@@ -156,14 +177,14 @@ followAction(player, 'scoreboard', (player, phase) => {
 
 ## Follow the stock overlays
 
-`followOverlay` tells the mod which of the game's own overlays holds the
-player's input, so a mod can pause its own timer, hide a prompt or end a drag
+`followOverlay` tells your mod which of the game's own overlays has the
+player's input. You can use it to pause a timer, hide a prompt or end a drag
 while the player types in chat or browses the shop. The handler hears the
-current overlay at once, then each change, and `'none'` once the game has the
-input back. The overlays are `'chat'`, `'shop'`, `'builds'`, `'itemDraft'`,
-`'popup'` and `'escapeMenu'`, and when several are open it names the first in
-that order. The renderer reads them ten times a second, and only while some
-mod follows them.
+current overlay as soon as you call `followOverlay`, then each change, and
+`'none'` once the game has the input back. The overlays are `'chat'`, `'shop'`,
+`'builds'`, `'itemDraft'`, `'popup'` and `'escapeMenu'`. When several are open,
+the handler hears the one that comes first in that list. The renderer reads the
+overlays ten times a second, and only while some mod follows them.
 
 ```ts
 followOverlay(player, (player, overlay) => {
@@ -174,12 +195,15 @@ followOverlay(player, (player, overlay) => {
 
 ## Place by the screen
 
-A root takes its place with its own `style`: `horizontalAlign` and
-`verticalAlign` name the edge or corner and `margin` the gap, in layout units, which the game scales so the screen is
-1080 units tall at any resolution. On a 21:9 screen the player can keep the
-game's HUD in the middle 16:9, and `inHudFrame(player, true)` draws the
-interface in that same frame, so a panel aligned to its top right corner
-lines up with the game's own HUD on every screen:
+You place a root element with its own `style`. `horizontalAlign` and
+`verticalAlign` pick the edge or corner it sits against, and `margin` sets the
+gap from that edge. Sizes are in layout units, and the game scales them so the
+screen is 1080 units tall at any resolution.
+
+On a 21:9 screen, the player can keep the game's HUD in the middle 16:9.
+`inHudFrame(player, true)` draws your interface in that same frame, so a panel
+aligned to the top right corner lines up with the game's own HUD on every
+screen:
 
 ```ts
 inHudFrame(player, true)
@@ -193,14 +217,14 @@ show(
 )
 ```
 
-A mod that places something the interface does not draw, such as a world
-preview or a camera's frame, reads where the screen put things with
-`followPlacement`. Its handler hears the screen's size, the HUD's frame and
-the box of each element whose `measure` names it, all in layout units from
-the screen's top left: the whole placement first, then again whenever any of
-it moves, such as after the player changes resolution. The renderer reads the
-layout after each draw and four times a second, and only while some mod
-follows.
+Sometimes your mod places something that the interface does not draw, such as a
+world preview or a camera's frame, and it needs to know where the screen put
+your panels. `followPlacement` tells it. Its handler hears the screen's size,
+the HUD's frame and the box of each element you named with `measure`, all in
+layout units measured from the screen's top left corner. The handler hears the
+whole placement first, and then hears it again whenever any part of it moves,
+such as after the player changes resolution. The renderer reads the layout
+after each draw and four times a second, and only while some mod follows it.
 
 ```ts
 followPlacement(player, (player, { screen, hud, measured }) => {
@@ -211,14 +235,16 @@ followPlacement(player, (player, { screen, hud, measured }) => {
 
 ## Replace the top bar
 
-The game's top bar shows each player's portrait, their chat line under it for a
-few seconds, and a mark while their voice plays. A mode that hides the top bar
-for its own score keeps the voices with `showSpeakers` and the chat lines with
-`showChatLines`, which draws them as subtitles: centred low on
-the screen a little above the ability bar, each the speaker's small portrait,
-their name in their team's color and the line itself on a slim, translucent
-band. The lines give way while the player has the game's chat box open, since
-the box then shows the history itself. Call both when the mod loads:
+The game's top bar shows each player's portrait. Under the portrait it shows
+the player's chat line for a few seconds, and it shows a mark while their voice
+plays. A mode that hides the top bar to draw its own score would lose those
+voices and chat lines, so it can draw them again with two calls.
+`showSpeakers` shows who is talking, and `showChatLines` shows the chat lines as
+subtitles. Each subtitle sits low in the middle of the screen, a little above
+the ability bar, and holds the speaker's small portrait, their name in their
+team's color and the line itself, on a slim translucent band. The subtitles
+hide while the player has the game's chat box open, because the chat box shows
+the same history. Call both when the mod loads:
 
 ```ts
 import { hideHudForAll, showChatLines, showSpeakers } from 'modlock'
@@ -228,70 +254,79 @@ showChatLines()
 showSpeakers()
 ```
 
-At most four lines show, newest at the bottom and older ones dimmer, and a
-speaker's next line replaces their last. A long line wraps. A team line reads
-only to the speaker's team and a line to all reads to everyone. A command such
-as `/help` is not shown. `{ seconds }` sets how long a line stays, 6 unless set,
-`{ lines }` how many show, and `{ bottom }` moves the lane up from the bottom
-edge. `{ scale }` sizes each line, its text, portrait, band and spacing
-together, so `0.8` draws the text at 13 pixels on a band at most 448 wide, and
-`{ portraits: false }` leaves the portraits out. A mode whose sides are not the game's teams passes
-`{ speaker(speaker, viewer) }`, which returns the name's `color`, the portrait's
-`hero` (0 hides it), a `note` after the name and whether the speaker is `out`.
+At most four lines show at once. The newest is at the bottom, and older ones
+are dimmer. A speaker's next line replaces their last one, and a long line
+wraps. A line sent to the team shows only to the speaker's team, and a line sent
+to all shows to everyone. A command such as `/help` does not show.
 
-`showSpeakers` stacks a row at the left edge for each player the viewer hears:
-the speaker's portrait in a green ring, their name and the voice icon. A row
-stays a moment after the voice stops, so a pause between words does not blink
-it, and rows keep slot order, so the stack does not reorder as people talk over
-each other. The player's game shows and hides the rows by the voice marks it
-keeps on the hidden top bar, so voices starting and stopping cost the mod
-nothing. `{ scale }` sizes the rows, and `{ speaker }` takes the same function
-as `showChatLines`, so a player looks the same in both.
+`showChatLines` takes these options:
 
-The library draws the lines and the stack as layers of their own over whatever interface the
-mod shows each player, as it draws toasts: a line arriving or leaving redraws
-only the lines, and the mod does not redraw for them. A player's own `hideHud`
-list adds to the parts hidden from everyone, and `hide` leaves those parts
-hidden.
+- `{ seconds }` sets how long a line stays, 6 unless you set it.
+- `{ lines }` sets how many lines show.
+- `{ bottom }` moves the lines up from the bottom edge.
+- `{ scale }` sizes each line's text, portrait, band and spacing together. At
+  `0.8`, the text is 13 pixels tall on a band at most 448 pixels wide.
+- `{ portraits: false }` leaves the portraits out.
+- `{ speaker(speaker, viewer) }` decides how each speaker looks, for a mode
+  whose sides are not the game's teams. It returns the name's `color`, the
+  portrait's `hero` (0 hides the portrait), a `note` to show after the name, and
+  whether the speaker is `out`.
+
+`showSpeakers` stacks a row at the left edge of the screen for each player the
+viewer hears. Each row holds the speaker's portrait in a green ring, their name
+and the voice icon. A row stays for a moment after the voice stops, so it does
+not blink off in a pause between words. The rows stay in slot order, so the
+stack does not reorder as people talk over each other. The player's own game
+shows and hides each row from the voice marks on the hidden top bar, so your mod
+does not have to act when a voice starts or stops. `{ scale }` sizes the rows,
+and `{ speaker }` takes the same function as `showChatLines`, so a player looks
+the same in both.
+
+The library draws the chat lines and the speakers as layers of their own, over
+whatever interface your mod shows each player, in the same way it draws toasts.
+So a line arriving or leaving redraws only the lines, and your mod does not
+redraw anything for it. A player's own `hideHud` list adds to the parts hidden
+from everyone, and `hide` leaves all of those parts hidden.
 
 ## Style it
 
-Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
+These style properties work on `panel`, `label`, `image`, `hero`, `button` and
+`layout`:
 
 | Group  | Properties                                                                                                                                                                                                                                                                                                                                                                         |
 | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Layout | `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`, `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`), `overflow`, `overflowX`, `overflowY` (`'squish'`, `'clip'`, `'scroll'`, `'show'`)                                                                                     |
-| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`, `clip` (a box `{ rect: [top, right, bottom, left] }` in percents, or a slice `{ center?, start, sweep }` in degrees, such as a cooldown ring; it does not ease)                                  |
+| Paint  | `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`, `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`, `brightness`, `contrast`, `blur`, `clip` (a box `{ rect: [top, right, bottom, left] }` in percents, or a slice `{ center?, start, sweep }` in degrees, such as a cooldown ring; a change to `clip` jumps and does not ease)        |
 | Text   | `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`, `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`, `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`, `textShadow`                                                                                          |
-| Motion | `translate`, `scale`, `rotate`, `turn`, `origin`, `transition` (seconds or `{ seconds, delay, easing, curve }`); a change to a property the game animates eases instead of jumping. `turn` eases the angle itself, so 0 to 720 spins twice, where `rotate` takes the short way. `curve` is a cubic Bezier `[x1, y1, x2, y2]`, as CSS's `cubic-bezier`, and a `y` past 1 overshoots |
+| Motion | `translate`, `scale`, `rotate`, `turn`, `origin`, `transition` (seconds or `{ seconds, delay, easing, curve }`). With a `transition`, a change to a property the game animates eases to its new value instead of jumping. `turn` eases the angle itself, so 0 to 720 spins twice, while `rotate` takes the short way round. `curve` is a cubic Bezier `[x1, y1, x2, y2]`, like CSS's `cubic-bezier`, and a `y` past 1 overshoots |
 
 ## Elements and props
 
 | Prop or element         | On              | Does                                                                                                                                                                                                                                                                          |
 | ----------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `hover`                 | any             | A style laid over the element's own while the pointer is on it.                                                                                                                                                                                                               |
-| `tooltip`               | any             | Text the game shows beside it.                                                                                                                                                                                                                                                |
+| `hover`                 | any             | A style laid over the element's own style while the pointer is on it.                                                                                                                                                                                                         |
+| `tooltip`               | any             | Text the game shows beside the element.                                                                                                                                                                                                                                       |
 | `item`                  | any             | An item's class name. The game shows the item's shop card in the element's place.                                                                                                                                                                                             |
-| `ability`               | any             | `{ name, player }`. The game shows its window for that ability in the element's place, in the player's language with the numbers of `player`'s hero.                                                                                                                          |
-| `hoverSound`            | any             | A game sound event, such as `'UI.MainMenu.Hover'`.                                                                                                                                                                                                                            |
-| `measure`               | any             | A name for the element in the placement reports of `followPlacement` and the steps of `playTimeline`.                                                                                                                                                                         |
-| `enter`, `exit`         | any             | Styles it eases from as it appears and to before it goes, with its `transition`.                                                                                                                                                                                              |
-| `cycle`                 | any             | `{ style, seconds, count }`: swings between its style and this one, `count` times there and back, or forever.                                                                                                                                                                 |
-| `hideInChat`            | any             | Hides it while the player has the game's chat box open, which shows the chat history itself.                                                                                                                                                                                  |
-| `speaking`              | any             | A player: shows it only while the viewer hears that player on voice chat, and a moment after. The viewer's game shows and hides it, so it costs no redraw.                                                                                                                    |
-| `sound`, `disabled`     | `button`        | A sound played on a press; `disabled` stops presses.                                                                                                                                                                                                                          |
+| `ability`               | any             | `{ name, player }`. The game shows its window for that ability in the element's place, in the player's language, with the numbers of `player`'s hero.                                                                                                                         |
+| `hoverSound`            | any             | A game sound event that plays when the pointer moves onto the element, such as `'UI.MainMenu.Hover'`.                                                                                                                                                                          |
+| `measure`               | any             | A name for the element, used in the placement reports of `followPlacement` and the steps of `playTimeline`.                                                                                                                                                                   |
+| `enter`, `exit`         | any             | Styles the element eases from as it appears, and eases to before it goes, with its `transition`.                                                                                                                                                                              |
+| `cycle`                 | any             | `{ style, seconds, count }`. The element swings between its own style and this one, `count` times there and back, or forever without a `count`.                                                                                                                                |
+| `hideInChat`            | any             | Hides the element while the player has the game's chat box open, because the chat box shows the chat history itself.                                                                                                                                                         |
+| `speaking`              | any             | A player. The element shows only while the viewer hears that player on voice chat, and for a moment after. The viewer's game shows and hides it, so the mod does not redraw.                                                                                                  |
+| `sound`, `disabled`     | `button`        | The game plays `sound` on each press, and drops presses while `disabled` is set.                                                                                                                                                                                                                    |
 | `scaling`               | `image`         | `'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`.                                                                                                                                                                                                       |
-| `src`                   | `image`         | A game picture, or one of the mod's own with `{addon}` for its addon, such as `'file://{images}/{addon}/mark.png'`.                                                                                                                                                           |
-| `<hero hero={15} look>` |                 | The game's picture of a hero: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                                                                                                                                                     |
+| `src`                   | `image`         | A game picture, or one of the mod's own pictures with `{addon}` in place of its addon, such as `'file://{images}/{addon}/mark.png'`.                                                                                                                                          |
+| `<hero hero={15} look>` |                 | The game's picture of a hero, in the `look` you pick: `small`, `card`, `icon`, `vertical`, `topBar` or `minimap`.                                                                                                                                                                       |
 | `token`, `variables`    | `label`         | The game's own text, such as `#Citadel_HeroName_Haze`, in the player's language.                                                                                                                                                                                              |
-| `clock`                 | `label`, `Text` | `{ seconds, up?, paused?, format?, run? }`: a time the player's game counts, down to zero or up, as `'minutes'`, `'seconds'` or `'tenths'`. The mod draws it once; a change to it, such as a new `run`, starts it again from `seconds`. With a `token`, it fills `{s:clock}`. |
-| `<avatar steamId>`      |                 | A player's Steam picture, from an entry of `players()`.                                                                                                                                                                                                                       |
+| `clock`                 | `label`, `Text` | `{ seconds, up?, paused?, format?, run? }`. The player's game counts the time down to zero, or up, and shows it as `'minutes'`, `'seconds'` or `'tenths'`. The mod draws the clock once. A change to it, such as a new `run`, starts it again from `seconds`. With a `token`, the clock fills `{s:clock}`. |
+| `<avatar steamId>`      |                 | A player's Steam picture, for an entry of `players()`.                                                                                                                                                                                                                        |
 
-An interface cannot load pages, styles or scripts from outside the game.
+An interface can load pages, styles and scripts only from the game.
 
 ## Inputs
 
-Each input hands each change to `onChange(player, value)`:
+Each input passes every change to its `onChange(player, value)`:
 
 | Input        | Props                               | Value                                    |
 | ------------ | ----------------------------------- | ---------------------------------------- |
@@ -301,14 +336,16 @@ Each input hands each change to `onChange(player, value)`:
 | `<toggle>`   | `on`, label as children             | On or off.                               |
 | `<dropdown>` | `options`, `selected`               | The chosen option's index.               |
 
-The host drops a change to a disabled input or one the player no longer sees.
-The player's edit shows until your mod draws a new value, so store the value
-your handler receives and draw it back.
+The host drops a change to a disabled input, and a change to an input the
+player no longer sees. The player's edit stays on their screen until your mod
+draws a new value. So store each value your handler receives, and draw it back
+into the input.
 
-An entry or slider sends a run of edits once, a tenth of a second after the
-last. It sends at once when it loses the keyboard or when the player presses a
-button in the same interface, so a Save or Apply button's `onPress` runs after
-every `onChange` for the values the player sees.
+An entry or a slider waits until the player has stopped editing for a tenth of
+a second, then sends their run of edits as one change. It sends at once when it
+loses the keyboard, or when the player presses a button in the same interface.
+So when the player presses a Save or Apply button, its `onPress` runs after the
+`onChange` of every value the player sees.
 
 A range is a track with one to eight named handles, such as a minimum, a
 favored value and a maximum:
@@ -326,34 +363,38 @@ favored value and a maximum:
 />
 ```
 
-The player drags one handle at a time, and it stops at its neighbors. It
-follows the pointer past the track's ends, so the player can push it to the
-end without aiming. `onChange` runs once, with every value, when the player
-lets go. `onHold` hears each grab, release and cancellation by the handle's
-name. A stock overlay, the menu's closing or disabling the range cancels the
-drag and puts the handles where your mod last drew them. While the player holds
-a handle, a redraw leaves the handles where the player has them. Changing the
-handles' names draws a new range.
+The player drags one handle at a time, and a handle stops when it reaches its
+neighbor. The handle keeps following the pointer past the track's ends, so the
+player can push it to the end without aiming. When the player lets go,
+`onChange` runs once with every handle's value. `onHold` hears each grab,
+release and cancellation, with the handle's name. The drag is cancelled when a
+stock overlay opens, when the menu closes or when your mod disables the range,
+and the handles go back to where your mod last drew them. While the player
+holds a handle, a redraw leaves the handles where the player has them. If you
+change the handles' names, the player sees a new range.
 
-The range is one stop in the game's keyboard and controller navigation. While
-it has the focus, left and right step its active handle by `step`, or a
-twentieth of the track without one, stopping at its neighbors, and Enter or
-the controller's confirm makes the next handle active, which shows outlined.
-Each step runs `onChange` with every value at once, and `onHold` hears it as a
-release. In Python the element is `range_`, and in Go `ui.Range`.
+The range is a single stop in the game's keyboard and controller navigation.
+While it has the focus, left and right move its active handle by `step`, or by a
+twentieth of the track when it does not set a `step`, and the handle still stops
+at its neighbors. Enter, or the controller's confirm button, makes the next
+handle active, and the active handle shows an outline. Each step runs `onChange`
+with every value at once, and `onHold` hears it as a release. In Python the
+element is `range_`, and in Go it is `ui.Range`.
 
-In TypeScript, a form can direct the keyboard. `focusOrder` on a button or
-input sets its place in the game's keyboard and controller navigation, lowest
-first. `initialFocus` gives a control the keyboard when its menu opens. A
-button with `submits` is pressed when the player presses Enter in an entry of
-the same menu, after the entry's edit, so the player can type a name and press
-Enter to save. Escape still closes the menu without calling the mod.
+In TypeScript, a form can decide where the keyboard goes. `focusOrder` on a
+button or an input sets its place in the game's keyboard and controller
+navigation, lowest first. `initialFocus` gives a control the keyboard when its
+menu opens. A button with `submits` is pressed when the player presses Enter in
+an entry of the same menu, after the entry's edit has been sent. So the player
+can type a name and press Enter to save it. Escape still closes the menu, and
+it does not call the mod.
 
 ## Long lists
 
-A list scrolls more rows than an interface may hold as nodes, such as a
-leaderboard of every player. Each row is drawn from one template, whose text,
-images and variables name the row's fields as `{field}`:
+A list shows more rows than an interface may hold as nodes, such as a
+leaderboard of every player, and the player scrolls through them. You draw
+every row from one template, whose text, images and variables refer to the
+row's fields as `{field}`:
 
 ```tsx
 <list
@@ -368,29 +409,36 @@ images and variables name the row's fields as `{field}`:
 />
 ```
 
-The rows show in order of `rank`, then `sort`, then `key`, and each row's key
-names it while the rows change; of two rows with one key, the last counts. The
-mod holds every row. The list's node carries only the window of rows near what
-the list shows, and the player's game asks the mod for a new window as the
-player scrolls with the wheel, so a list of ten thousand rows costs the mod's
-draw and the player's game what a list of a hundred does. The library orders
-an array of rows once, and rows already in order cost one pass. A draw that
-passes the same `rows` array again, even after draws without the list, costs
-only its window, so keep the array while its rows stay the same and pass a new
-one to change them. In Go and Python the rows are a value made once, with
-`ui.NewRows` and `ui.Rows`, which a draw keeps the same way.
+The list sorts its rows by `rank`, then by `sort`, then by `key`, and the `key`
+is each row's identity, so the list can tell the rows apart as they change. When
+two rows have the same key, the last one counts. The library in your mod holds
+every row. The list's node carries only the window of rows near the part of the
+list that shows, and as the player scrolls with the mouse wheel, their game asks
+your mod for a new window. So a list of ten thousand rows costs your mod's draw
+and the player's game what a list of a hundred rows does.
 
-A row's height is fixed by `rowHeight`, from 1 to 1000 pixels, and the list's
-own `height` is how much of it shows. The template is a panel, label or image
-holding at most fifteen more, with no buttons or inputs. A row has at most
-sixteen fields. The host takes at most 20,000 rows in a list, and a window of
-at most 256, with 2 MiB of rows across a player's interface. In Python the element is `list_`, and in Go
-`ui.List`.
+The library sorts an array of rows once, and when the rows are already in order,
+the sort takes one pass over them. A draw that passes the same `rows` array
+again costs only its window, even after draws without the list. So keep the
+array while its rows stay the same, and pass a new array to change them. Give
+the array the type `ListRow[]`: a WebAssembly build copies an array whose rows
+have other properties than `ListRow` each time it is passed, and the library
+then sorts each copy again. Go and Python cannot tell that a draw passes the
+same array, so in those languages you make the rows once as a value, with
+`ui.NewRows` in Go or `ui.Rows` in Python. A draw that passes the same value
+again also costs only its window.
 
-The player focuses a row with the arrow keys or the controller, and chooses
-it with Enter, the controller's confirm button or a click. A choice runs
+`rowHeight` sets every row's height, from 1 to 1000 pixels, and the list's own
+`height` sets how much of the list shows. The template is a panel, label or
+image holding at most fifteen more of them, and it cannot hold a button or an
+input. A row has at most sixteen fields. The host takes at most 20,000 rows in
+one list and a window of at most 256 rows, with at most 2 MiB of rows across one
+player's interface. In Python the element is `list_`, and in Go it is `ui.List`.
+
+The player focuses a row with the arrow keys or the controller. They choose it
+with Enter, the controller's confirm button or a click. A choice runs
 `onChange` with the row's key, and the mod draws that key back as `selected`,
-the same way an input draws back its value:
+in the same way an input draws back its value:
 
 ```tsx
 <list
@@ -406,62 +454,79 @@ the same way an input draws back its value:
 />
 ```
 
-`focusStyle` is drawn over a row's style while the player focuses it, and
-`selectedStyle` while it is selected. The focus belongs to the player's game,
-which keeps it on its row as rows are added, removed or reordered above it.
-When the focused row leaves the list, the focus moves to the row that took its
-place. A selected key that the list does not hold shows nothing selected.
+`focusStyle` is drawn over a row's style while the player focuses the row, and
+`selectedStyle` while the row is selected. The player's game holds the focus,
+and it keeps the focus on the same row as rows are added, removed or reordered
+above it. When the focused row leaves the list, the focus moves to the row that
+took its place. When the list does not hold the selected key, no row shows as
+selected.
 
 ## Local menus and portable text
 
-Use a TypeScript `<menu>` when settings or a result should give the player a
-cursor and then return it without a server round trip. `mode="toggle"` opens
-and closes on successive presses of the game's scoreboard binding (Tab by
-default). `mode="hold"` opens while that binding is held. The default,
-`mode="manual"`, opens from its optional `openLabel` button when the player
-already has a cursor, or when a positive `openRequest` number increases. Keep
-the menu's JSX key stable and advance that number once per new result, not on
-ordinary redraws. A request that arrives while the shop, chat or another menu
-holds the cursor waits, and the menu opens once they close, unless you have
-stopped drawing it by then. One request waits at a time. Give a menu a
-`priority` to order your own menus: a request waits while your open menu has a
-higher priority, and otherwise replaces it, so an alert at priority 2 can
-interrupt a warning at priority 1 and the warning can wait behind the alert.
-Another mod's open menu always keeps your request waiting, and the stock
-interface always wins. Put a `<menuClose>` inside the menu for an explicit
-dismiss button. Escape, stock overlays taking focus, and loss of the surface dismiss it
-locally. A dismissal never calls the mod.
+A TypeScript `<menu>` gives the player a cursor to change settings or read a
+result, and gives the mouse back when they are done, without a round trip to
+the server. How it opens depends on its `mode`:
 
-Use `<documentOutput text={text} />` for a plain-text export the player can
-select and copy with the game's usual controls. `<documentInput>` gives the
-player a multiline draft. It sends nothing while they type or paste, or when
-they press Enter in the draft. The form's button, named by `submitLabel`
-(`"Submit"` by default), sends the whole draft to `onSubmit(player, text)`.
-Use `placeholder` to prompt for the expected format, and `disabled` to suspend
-editing and submission. Each player can have one document input and one
-document output per mod. Both hold at most 262,144 UTF-8 bytes (256 KiB); the
-ordinary `<entry>` keeps its short limit.
+- `mode="toggle"` opens the menu on one press of the game's scoreboard binding
+  (Tab by default) and closes it on the next.
+- `mode="hold"` keeps the menu open while the player holds that binding.
+- `mode="manual"`, the default, opens the menu from its optional `openLabel`
+  button when the player already has a cursor, or when its `openRequest`, a
+  positive number, increases.
 
-Each submission ends in exactly one callback. A whole document reaches
-`onSubmit(player, text)`. Any other end reaches `onFailure(player, failure)`
-with its reason: `tooLarge` for a draft past the limit, `expired` for a
-transfer that did not finish in time, `cancelled` when the player closed the
-menu while it sent, and `malformed` for frames that were missing or not text.
-A transfer has 20 seconds plus its sending time, about one second for each
-14,400 bytes, so a full-size document has about 38 seconds. Show the outcome
-from these callbacks, since the renderer knows only that it sent the draft.
-A mod that replaces or removes the form ends its submission with no callback.
-Validate the document in the mod, and ask for confirmation before replacing a
-saved record. The host checks that the sending player still owns the current
-form, not how the player entered the text. Neither control gives a mod
-clipboard access.
+For a manual menu, keep the menu's JSX key the same between draws, and increase
+`openRequest` once for each new result, not on every redraw. If the shop, chat
+or another menu has the cursor when a request arrives, the request waits, and
+the menu opens once they close, unless your mod has stopped drawing it by then.
+Only one request waits at a time.
 
-Try the built-in controls with `modlock dev examples/interface-session`.
-The example echoes disposable text and keeps no saves.
+A menu's `priority` orders your own menus. A request waits while one of your
+menus with a higher priority is open, and otherwise it replaces the open menu.
+So an alert at priority 2 can interrupt a warning at priority 1, and the warning
+waits behind the alert. A request always waits while another mod's menu is
+open, and the game's own interface always comes first. Put a `<menuClose>`
+inside a menu to give it a button that closes it. The menu also closes on the
+player's screen without asking the mod when the player presses Escape, when one
+of the game's overlays takes the focus, or when the menu's surface goes away. A
+menu that closes never calls the mod.
+
+`<documentOutput text={text} />` shows plain text that the player can select
+and copy with the game's usual controls, such as an export. `<documentInput>`
+gives the player a draft of several lines to type or paste into. It sends
+nothing while they type or paste, or when they press Enter in the draft.
+Instead, the form's button sends the whole draft to `onSubmit(player, text)`.
+`submitLabel` sets the button's text, `"Submit"` by default. Use `placeholder`
+to show the format you expect, and `disabled` to stop editing and sending for a
+while. Each player can have one document input and one document output for
+each mod. Each holds at most 262,144 UTF-8 bytes (256 KiB), while an ordinary
+`<entry>` keeps its short limit.
+
+Each submission ends in exactly one callback. When the whole document arrives,
+it reaches `onSubmit(player, text)`. Any other ending calls
+`onFailure(player, failure)` with one of these reasons:
+
+- `tooLarge`: the draft was past the limit.
+- `expired`: the transfer did not finish in time.
+- `cancelled`: the player closed the menu while the draft was sending.
+- `malformed`: frames were missing, or were not text.
+
+A transfer has 20 seconds plus its sending time, which is about one second for
+each 14,400 bytes, so a full-size document has about 38 seconds. Show the player
+the outcome from these callbacks, because the renderer knows only that it sent
+the draft. When your mod replaces or removes the form during a submission, the
+submission ends without a callback.
+
+Check the document's contents in your mod, and ask the player to confirm before
+it replaces a saved record. The host checks that the sending player still
+has the current form, and not how the player entered the text. Neither control
+gives a mod access to the player's clipboard.
+
+To try these controls, run `modlock dev examples/interface-session`. The
+example echoes back the text you give it, and saves nothing.
 
 ## The HUD kit
 
-The HUD kit draws components in the look of the game's own HUD. This sample
+The HUD kit draws components that look like the game's own HUD. This sample
 draws a round's score across the top of the screen:
 
 <Samples>
@@ -499,8 +564,8 @@ ui.Show(p, hud.TopStrip{Heading: "Round 2", Children: hud.Score{Points: [2]int{1
 | Component               | Draws                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------- |
 | `<Text role>`           | Text in one of the kit's type roles.                                         |
-| `<Plate>`, `<Pill>`     | A dark plate under text, so the text reads over a bright sky.                |
-| `<Pips>`                | A count, as the round counter shows it.                                      |
+| `<Plate>`, `<Pill>`     | A dark plate under text, so the text stays readable over a bright sky.       |
+| `<Pips>`                | A count, drawn the way the round counter draws it.                           |
 | `<Tag>`                 | A status label.                                                              |
 | `<Banner>`              | An announcement of a moment.                                                 |
 | `<TopStrip>`, `<Score>` | The top of the screen, with a score in it.                                   |
@@ -508,7 +573,7 @@ ui.Show(p, hud.TopStrip{Heading: "Round 2", Children: hud.Score{Points: [2]int{1
 | `<Action kind>`         | A button in the game's menu look, with its hover, sounds and disabled state. |
 | `<Meter value>`         | A bar that eases to each new value.                                          |
 
-`theme` contains the tokens for a mod's own panels, such as `theme.tones` and
-`theme.sizes`, and each entry in `heroes` has its small `portrait`.
+`theme` contains the tokens for your mod's own panels, such as `theme.tones`
+and `theme.sizes`, and each entry in `heroes` has its small `portrait`.
 [Layouts](/guides/layouts) describes layouts from the mod's content, style
-sheets and how the game draws an interface.
+sheets, and how the game draws an interface.

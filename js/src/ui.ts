@@ -960,14 +960,18 @@ export function hideHudForAll(parts: readonly HudPart[]): void {
 }
 
 /**
- * freeCursor shows player's mouse cursor without Tab held while free is true,
- * so they can click the mod's panels, such as a pick screen; false gives the
- * mouse back to aiming. Each call with true shows the cursor again, even when
- * the player put it away with the game's own keys; a screen that changes
- * without a call leaves their choice be. A click on one of the mod's panels
- * goes to the panel and fires no shot. A click anywhere else still shoots, and
- * the camera and movement keep working while the cursor is up: a screen that
- * must not fire a weapon calls player.blockInput for the buttons it takes.
+ * freeCursor shows player's mouse cursor while free is true, so they can click
+ * the mod's panels, such as a pick screen, without holding Tab. Passing false
+ * puts the cursor away and gives the mouse back to aiming. While the cursor is
+ * up, a click on one of the mod's panels goes to that panel, and the hero does
+ * not shoot. A click anywhere else fires the weapon, and the camera and
+ * movement keep working. If the player should not shoot while the screen is up,
+ * block the fire buttons with player.blockInput, and release them when the
+ * screen hides. Blocking cannot stop the camera turning or the hero walking,
+ * because the game reads those from the mouse and movement axes, not from the
+ * buttons. The player can also put the cursor away with the game's own keys. It
+ * then stays away when the mod draws a new screen, until the next call with
+ * true shows it again.
  */
 export function freeCursor(player: Player, free: boolean): boolean {
   const current = view(player)
@@ -1202,8 +1206,9 @@ const abilityBarNode = /^ability:([0-3])$/
 
 /**
  * cursorFree reports whether player's mouse cursor is up now, whether the mod
- * freed it with freeCursor or the player did with the game's own keys. It is
- * undefined while the player has no hero to read.
+ * freed it with freeCursor or the player freed it with the game's own keys. It
+ * is undefined while the player does not have a hero, because the game keeps
+ * the cursor's state on the hero.
  */
 export function cursorFree(player: Player): boolean | undefined {
   const pawn = player.pawn()

@@ -4,7 +4,7 @@ description: Give one player a target and score thirty seconds of hits.
 ---
 
 An aim drill gives one player thirty seconds to land as many hits on a target
-as they can, and counts them.
+as they can, and counts the hits.
 
 A player starts the drill with `/drill`, and your mod adds a bot named Target
 for them to shoot:
@@ -293,8 +293,9 @@ The mod declares the metric in `mod.json`:
 
 ## Variations
 
-- Move the target between hits with `teleport` so the player tracks it.
+- Move the target between hits with `teleport`, so the player has to track it.
 - Freeze the target so it stands still, or leave it free to fight back.
-- Rank scores with a [board](/guides/data#boards), partitioned by
-  scenario and difficulty.
-- The [`drill`](https://github.com/paralin/modlock/tree/master/examples/drill) example is a complete drill mode.
+- Rank scores with a [board](/guides/data#boards), partitioned by scenario and
+  difficulty.
+- The [`drill`](https://github.com/paralin/modlock/tree/master/examples/drill)
+  example is a complete drill mode.

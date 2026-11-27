@@ -3,10 +3,10 @@ title: King of the hill
 description: Score a point each second a hero holds a spot alone.
 ---
 
-In king of the hill, heroes fight over one spot, and a hero who holds it alone scores. Here you build it with a once-a-second timer and a hill that is a point with a radius of 400 units.
+In king of the hill, heroes fight over one spot, and a hero who holds it alone scores. You build it here from a timer that runs once a second, and a hill that is a point with a radius of 400 units.
 
-Your mod marks the hill each time a world loads, then scores the hero who
-stands on it alone:
+Your mod marks the hill each time a world loads. Then it scores the hero who
+stands on the hill alone:
 
 <Samples>
 
@@ -231,14 +231,17 @@ func main() {}
 Put the hill where your hero stands, as the first variation below shows, and
 stand there alone.
 
-Each point shows the hero their total, such as `3 / 30`, in the middle of the
-screen. At 30, every player sees the announcement "_name_ holds the hill", and
-the score starts over. The timer runs on the game's clock, so the score does not
-depend on the frame rate.
+Each point shows the hero's player their total, such as `3 / 30`, in the middle
+of the screen. At 30, every player sees the announcement "_name_ holds the
+hill", and the score starts over. The timer runs on the game's clock, so the
+score does not depend on the frame rate.
 
 ## Variations
 
-- Put the hill where you stand: read your position with a command, as [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
+- Put the hill where you stand: read your position with a command, as
+  [the tutorial does](/start/tutorial#2-read-the-hero), and copy it in.
 - Move the hill every minute with a second timer, and move its text with it.
-- Score teams instead of players by counting the teams on the hill. A pawn's `team` is 2 or 3.
-- The [`hill`](https://github.com/paralin/modlock/tree/master/examples/hill) example is a complete mode built this way.
+- Score teams instead of players by counting the teams on the hill. A pawn's
+  `team` is 2 or 3.
+- The [`hill`](https://github.com/paralin/modlock/tree/master/examples/hill)
+  example is a complete mode built this way.

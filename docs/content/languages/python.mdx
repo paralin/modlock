@@ -15,8 +15,8 @@ def hello(player: modlock.Player, args: str) -> None:
     player.chat("Hello from Python!")
 ```
 
-The [guides](/guides/events) show every call in Python: choose it with the
-switch in the sidebar.
+Choose Python with the switch in the sidebar, and the [guides](/guides/events)
+show every call in Python.
 
 ## Types and modules
 
@@ -28,10 +28,10 @@ Pyright, and Pylance in VS Code, check your mod's types.
 | Warning | A value that may be `None`, such as what `find_hero` returns, or a parameter without an annotation. | The build prints it and continues. |
 
 For stricter or looser checking, edit `typeCheckingMode` and the report rules
-in the project's `pyrightconfig.json`. That file also tells the checkers where
-the library is, in `.modlock`, and they read it only from the folder the editor
-has open. Open the mod's own folder, because from any other folder the editor
-reports that `modlock` could not be resolved.
+in the project's `pyrightconfig.json`. That file also tells the checkers that
+the library is in `.modlock`. The checkers read the file only from the folder
+the editor has open, so open the mod's own folder. From any other folder, the
+editor reports that `modlock` could not be resolved.
 
 One module imports another by its name, such as `import round`. Mods run on
 Python 3.14 and can import standard modules such as `dataclasses`, `enum`,
@@ -72,9 +72,9 @@ def fire(
 ## Typed entities and the console
 
 `modlock.entities` has a class for each entity class, with its fields as
-attributes, and creates an entity from its designer name. `modlock.console`
-sets console variables and runs console commands. Import each beside
-`modlock`:
+attributes, and it creates an entity from its designer name.
+`modlock.console` sets console variables and runs console commands. Import each
+one beside `modlock`:
 
 ```python
 from modlock import console, entities
@@ -90,15 +90,15 @@ console.set_number("citadel_trooper_gold_reward", 40)
 console.run("changelevel", "street_test")
 ```
 
-When the server cannot read or write a field, such as `hero.m_iHealth` in the
-sample, the attribute reads as `None`, the
-server ignores writes to it, and the server log gives the reason.
+Sometimes the server cannot read or write a field, such as `hero.m_iHealth` in
+the sample. Then the attribute reads as `None`, the server ignores writes to it,
+and the server log gives the reason.
 
 ## Run a line in the running mod
 
 While `modlock dev` or `modlock play` runs, type a line that starts with `>` in
-its terminal. The mod runs it in `main.py`'s module, as Python's own
-prompt would:
+its terminal. The mod runs the line in `main.py`'s module, the way Python's
+own prompt would:
 
 ```text
 > modlock.players()
@@ -116,5 +116,5 @@ prompt would:
 | an error       | its traceback, and the mod keeps running              |
 
 The mod runs the line between frames, both in the sandbox and in the game.
-Only Python mods have this prompt, and a mod in another language replies that
-it has no console.
+Only Python mods have this prompt. A mod in another language replies that it
+does not have a console.

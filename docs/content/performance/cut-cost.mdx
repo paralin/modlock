@@ -3,19 +3,21 @@ title: Cut a frame's cost
 description: Make fewer game calls, act on changes instead of every frame, and spread work across frames.
 ---
 
-A common cause of slow frames is work repeated on every frame for every
-player. A game call costs more than plain code: the mod encodes the request,
-the game does the work, and the mod decodes the reply. Some calls, such as
-`giveModifier`, look up game data each time. The skipped-frames line gives the
+A common cause of slow frames is work that the mod repeats on every frame for
+every player. A game call costs more than plain code, because the mod encodes
+the request, the game does the work, and the mod decodes the reply. Some calls,
+such as `giveModifier`, also look up game data each time. The skipped-frames
+line gives the
 [slowest call](/performance/frame-budget#frames-over-the-allowance), and the
 sampled stacks in `modlock play` show which code makes it.
 
 ## Act on a change, not every frame
 
-A modifier given again on every frame, to keep it on, costs a call per player
-per frame. Hold it instead: `holdModifier` keeps the modifier on the hero with
-no expiry and gives it back when the game removes it or the hero returns. Keep
-what you last asked for, and call the game only when it changes:
+When a mod gives a modifier again on every frame to keep it on, it pays for one
+call per player per frame. Hold the modifier instead. `holdModifier` keeps the
+modifier on the hero without an expiry, and gives it back when the game removes
+it or the hero returns. Keep a record of what you last asked for, and call the
+game only when that changes:
 
 <Samples>
 
@@ -79,40 +81,42 @@ func setBoost(player mod.Player, on bool) {
 
 Clear the record for a player who leaves, so a new player in the slot starts
 fresh. The same holds for other state the game keeps, such as a hero's
-abilities or model: set it once, and again only when something changes it.
+abilities or model. Set it once, and set it again only when something changes
+it.
 
 ## Ask once per frame
 
-Read a value once and pass it to the code that needs it. `player.pawn()` and
-`findEntities` each make a call, and `findEntities` searches the world's
+Read a value once, and pass it to the code that needs it. `player.pawn()` and
+`findEntities` each make a call, and `findEntities` also searches the world's
 entities. In Go, Luau and Python, read each player's pawn once at the top of
-the frame. A mode that reads every hero calls `pawns()` instead, which answers
+the frame. A mode that reads every hero calls `pawns()` instead, which returns
 every player's pawn in one call.
 
-The TypeScript library does this for `player.pawn()` itself. Within one event
-it reads the first player's pawn with its own call, every other player's with
-one `pawns()` call, and answers each later read from those, until the mod makes
-a call that may change the game, such as a teleport. A pawn whose state has not
-changed since the last read is returned as the same object, so treat a pawn as
-read-only. `setPawnCache(false)` turns this off, so every read makes its own
-call, to compare the two.
+The TypeScript library does this for `player.pawn()` itself. Within one event,
+it reads the first player's pawn with its own call, and every other player's
+pawn with one `pawns()` call. It answers each later read from those, until the
+mod makes a call that may change the game, such as a teleport. When a pawn's
+state has not changed since the last read, the library returns the same
+object, so treat a pawn as read-only. `setPawnCache(false)` turns this off, so
+that every read makes its own call. Use it to compare the two.
 
 Find the entities a map places, such as zipline nodes, once after the world
-loads, and keep the handles. The player list from `players()` is answered from the roster
-the host last sent, so it rarely makes a call.
+loads, and keep the handles. `players()` answers from the roster the host last
+sent, so it rarely makes a call.
 
 ## Stop asking for what fails
 
 A call that fails logs why and returns `false`, or an error in Go. A modifier
-the game does not define fails on every try, and each try still pays for the
-lookup and adds a log line. Check the result, and stop asking for that
+that the game does not define fails on every try, and each try still pays for
+the lookup and adds a log line. So check the result, and stop asking for that
 modifier once it fails.
 
 ## Spread work across frames
 
 Work that does not need every frame, such as checking who is hiding or
-updating a scoreboard, can visit one player per frame. With 12 players each is
-checked about five times a second, and no frame pays for all of them:
+updating a scoreboard, can visit one player per frame. With 12 players, the mod
+checks each one about five times a second, and no frame pays for all of
+them:
 
 <Samples>
 
@@ -173,17 +177,18 @@ func init() {
 
 </Samples>
 
-Use the game clock, such as `frame.timeSeconds`, for anything timed, so the
+Use the game clock, such as `frame.timeSeconds`, for anything timed. Then the
 work keeps its pace when the mod skips a frame.
 
 ## Pace long work with a task
 
-Work too long for one frame but short of a round, such as building a list of
-hiding spots, can run as a task. A task starts on the next frame, after the
-frame handlers, and `pace` returns at once while the frame has time left and
-waits for the next frame once it has none. Between two frames the mod's event
-has returned, so damage, commands and pings run at once, as they do without a
-task. `cancel` ends the task at its next `pace`, and its `finally` blocks run:
+Some work is too long for one frame but shorter than a round, such as
+building a list of hiding spots. That work can run as a task. A task starts on
+the next frame, after the frame handlers. While the frame has time left, `pace`
+returns at once. Once the frame has none, `pace` waits for the next frame.
+Between two frames, the mod's event has returned, so damage, commands and pings
+run at once, as they do without a task. `cancel` ends the task at its next
+`pace`, and the task's `finally` blocks run:
 
 <Samples>
 
@@ -210,26 +215,27 @@ end)
 </Samples>
 
 A loop that cannot be a task, such as a frame handler's own slice of work, can
-ask `late()` after each unit and stop there. The host gives each mod its share
-of the frame only when `MODLOCK_FRAME_BUDGET` names it, or is `all`; with no
-budget, `pace` never waits and `late()` is always false, so the task runs to
-its end in the frame it starts, as a plain loop would.
+ask `late()` after each unit of work and stop when it returns true. The host
+gives each mod its share of the frame only when `MODLOCK_FRAME_BUDGET` holds the
+mod's name, or `all`. Without a budget, `pace` never waits and `late()` is
+always false. Then the task runs to its end in the frame it starts, as a plain
+loop would.
 
-A task is async, and scriptc compiles no async code, so a TypeScript mod that
-starts a task or calls a worker builds for QuickJS even when it asks for
+A task is async, and scriptc cannot compile async code. So a TypeScript mod that
+starts a task or calls a worker builds for QuickJS, even when it asks for
 [WebAssembly](/languages/typescript#two-runtimes). `late()` is not async and
 works in both builds.
 
 ## Move computation to a worker
 
-Work that reads no game state, such as decoding a large table or searching it,
-can leave the server's tick altogether. A worker is a script of the mod's own,
-named `*.worker.ts` in the project's root or `src/`, which the build bundles
-into the mod's `data/` directory and the host runs in a second interpreter on
-another thread. It may log and read the mod's files and nothing else, answers one
-request at a time, and keeps its state between them. A request that runs out
-of time or memory loses that state, and the next request starts the script
-again:
+Work that does not read game state, such as decoding a large table or searching
+it, can leave the server's tick altogether. A worker is a script of the mod's
+own, named `*.worker.ts`, in the project's root or in `src/`. The build bundles
+it into the mod's `data/` directory, and the host runs it in a second
+interpreter on another thread. A worker may log and read the mod's files, and
+nothing else. It answers one request at a time, and keeps its state between
+requests. When a request runs out of time or memory, the worker loses that
+state, and the next request starts the script again:
 
 <Samples>
 
@@ -243,8 +249,8 @@ serve(answer)
 
 </Samples>
 
-The mod calls it with the same function, and the answer arrives in a later
-frame:
+The mod calls the worker with the same function, and the answer arrives in a
+later frame:
 
 <Samples>
 
@@ -258,16 +264,17 @@ const spot = await table.call(question)
 
 </Samples>
 
-The answer is copied into the mod on the tick, at about 2 ms a megabyte, so
-keep large state in the worker and answer with what the mod needs now. A host
-runs workers only for the mods `MODLOCK_WORKERS` names, or for all of them with
-`all`; for any other mod, `call` runs the function in the mod itself as a task,
-so the mod behaves the same and only the tick pays for the work.
+The host copies the answer into the mod on the tick, at about 2 ms a megabyte.
+So keep large state in the worker, and answer with only what the mod needs now.
+A host runs workers only for the mods whose names `MODLOCK_WORKERS` holds, or
+for all of them when it is `all`. For any other mod, `call` runs the function in
+the mod itself as a task. The mod behaves the same, but the tick pays for the
+work.
 
 ## Send less
 
 Each call's request and reply pass through an encoder and a decoder in your
-mod, and a mod that makes hundreds of calls a frame spends much of its time
-there. In a slow frame's stacks this shows as functions named `encode` and
-`decode`. Make fewer calls, as above, and send an interface or a
-state update only when it changes, not on every frame.
+mod. A mod that makes hundreds of calls a frame spends much of its time there.
+In a slow frame's stacks, this shows as functions named `encode` and `decode`.
+Make fewer calls, as above, and send an interface or a state update only when
+it changes, not on every frame.

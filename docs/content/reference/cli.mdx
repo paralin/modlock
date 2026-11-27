@@ -35,11 +35,13 @@ When Deadlock is not installed, `dev` and `play` run your mod in the sandbox ins
 | `--preview-port PORT` | Serve the browser preview of the interface on a port other than 4322. `0` turns it off.                  |
 | `-- ARG...`           | Pass the words after `--` to the mods' `onStart` handlers, as in `modlock dev -- probe 4`.               |
 
-While `dev` or `play` watches a project, saving a file rebuilds the mod and replaces the running one. Saving files in `build/` and `node_modules`, hidden files and `*.log` files does not. The terminal shows the mod's log, its reloads and the players who join, and the server's own console output goes to `build/server.log`. In the sandbox, a line you type in the terminal is sent as chat from the stand-in player. In a game, the line reaches the mods as a console command from the connected player in the lowest slot, and so do the presses and commands sent from the preview page. The terminal says when no player is in the game or no mod took the command.
+While `dev` or `play` watches a project, saving a file rebuilds the mod and replaces the running one. Saving a file in `build/` or `node_modules`, a hidden file or a `*.log` file does not. The terminal shows the mod's log, its reloads and the players who join. The server's own console output goes to `build/server.log`.
 
-In a Python mod, a line that starts with `>` runs in `main.py`'s module, as at Python's own prompt, so `> modlock.players()` prints the players. When the line raises an error, the terminal shows its traceback and the mod keeps running. Mods in other languages have no such prompt yet.
+In the sandbox, a line you type in the terminal is sent as chat from the stand-in player. In a game, the line reaches the mods as a console command from the connected player in the lowest slot. The presses and commands sent from the preview page reach the mods the same way. The terminal tells you when no player is in the game or no mod took the command.
 
-[Playing together](/reference/play-together) explains `--lobby`, `--host` and `join`. `join` also takes `--ui-port` and `--ui-relay`, and `login`, `join` and `publish` take `--origin` to use a site other than `https://hyperline.gg`.
+In a Python mod, a line that starts with `>` runs in `main.py`'s module, the way it would at Python's own prompt. So `> modlock.players()` prints the players. When the line raises an error, the terminal shows its traceback, and the mod keeps running. Mods in other languages do not have such a prompt yet.
+
+[Playing together](/reference/play-together) explains `--lobby`, `--host` and `join`. `join` also takes `--ui-port` and `--ui-relay`. `login`, `join` and `publish` take `--origin`, to use a site other than `https://hyperline.gg`.
 
 | Variable                  | Use it when                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------------ |
@@ -50,11 +52,11 @@ In a Python mod, a line that starts with `>` runs in `main.py`'s module, as at P
 
 ## Where it lives and how it updates
 
-On Windows, the installer puts `modlock` in `%LOCALAPPDATA%\Programs\modlock`, adds that directory to your `PATH`, and `modlock` starts the game server directly. On macOS and Linux, the installer puts it in `~/.local/bin`, and on Linux `modlock` starts the Windows game server through Steam's Proton.
+On Windows, the installer puts `modlock` in `%LOCALAPPDATA%\Programs\modlock` and adds that directory to your `PATH`. There, `modlock` starts the game server directly. On macOS and Linux, the installer puts `modlock` in `~/.local/bin`. On Linux, `modlock` starts the Windows game server through Steam's Proton.
 
-Once a day at most, `modlock` checks in the background for a newer release and tells you when one is out. It skips the check in CI, when `MODLOCK_NO_UPDATE_CHECK` is set, and after `modlock config set update-check off`.
+At most once a day, `modlock` checks in the background for a newer release, and tells you when one is out. It skips the check in CI, when `MODLOCK_NO_UPDATE_CHECK` is set, and after `modlock config set update-check off`.
 
-`modlock update` installs from a channel: releases, or builds of the master branch. It remembers the channel you choose, and the daily check uses that channel too:
+`modlock update` installs from a channel, which is either releases or builds of the master branch. It remembers the channel you choose, and the daily check uses that channel too:
 
 | Command                             | Does                                                                                                              |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -79,7 +81,11 @@ These commands read and write the game's own file formats, and they work without
 | `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                                                     |
 | `modlock studio render [NAME=]MODEL...`    | Render models from the game's archive to PNG files with a transparent background.                                                                 |
 
-`panorama compile` copies every other file in `DIR` into the archive unchanged, so compiled resources such as images go in beside the layouts. `-o` writes to another archive, or to a directory. A style sheet's `url()` can point to an image or another sheet in the game's files, written as `s2r://`, `file://{images}/` or `file://{resources}/`. The compiler rewrites it to the path of the resource the game loads: `file://{images}/icons/mark.png` becomes `s2r://panorama/images/icons/mark_png.vtex`. For each image a sheet names, the compiler also records the image's size, which the game uses wherever that image is drawn. It reads the size from the compiled image in `DIR`, or from your Deadlock install for one of the game's own images. Without an install, the sheet records no size for a game image, and the game reads it from the image when it loads. The compiler refuses any other URL and reports its line. `decompile`, `kv3` and `texture` take `--archive` to read `FILE` from inside an archive, including the game's split `game/citadel/pak01_dir.vpk`:
+`panorama compile` copies every other file in `DIR` into the archive unchanged, so compiled resources such as images go in beside the layouts. `-o` writes to another archive, or to a directory.
+
+A style sheet's `url()` can point to an image or another sheet in the game's files, written as `s2r://`, `file://{images}/` or `file://{resources}/`. The compiler rewrites the URL to the path of the resource the game loads, so `file://{images}/icons/mark.png` becomes `s2r://panorama/images/icons/mark_png.vtex`. For each image a sheet names, the compiler also records the image's size, and the game uses that size wherever it draws the image. The compiler reads the size from the compiled image in `DIR`, or, for one of the game's own images, from your Deadlock install. Without an install, the compiler leaves a game image's size out of the sheet, and the game reads the size from the image when it loads. The compiler refuses any other URL and reports its line.
+
+`decompile`, `kv3` and `texture` take `--archive` to read `FILE` from inside an archive, including the game's split `game/citadel/pak01_dir.vpk`:
 
 ```sh
 modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c
@@ -93,12 +99,14 @@ modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c
 - plays and downloads MP3 and PCM sounds,
 - shows other resources' KeyValues3.
 
-Modlock includes none of the game's files, so Studio reads each one from your own install when you open it. `--port` serves it on another port, and `DEADLOCK_DIR` points it at a game installed outside the Steam libraries.
+Modlock includes none of the game's files, so Studio reads each file from your own install when you open it. `--port` serves Studio on another port, and setting `DEADLOCK_DIR` points Studio at a game installed outside the Steam libraries.
 
-`modlock studio render` draws each model in a headless Chromium. Each model is drawn alone, lit by a light rig that turns with the camera, trimmed with an even margin and saved as `NAME-VIEW.png`. `MODEL` is an archive path or a pattern such as `models/props_street/*.vmdl_c`, and `--list` reads more models from a file, one per line. A `--view NAME:YAW:PITCH` places the camera in degrees: yaw 0 looks at the model's front, and positive yaw turns counterclockwise seen from above, toward the model's left. The default views are `left:35:15` and `right:-35:15`. `--turntable N` adds `N` evenly spaced views, and `--size`, `--margin` and `--fov` set the picture. Pass Chromium's path with `--browser` when it is not on the `PATH`, or `--browser none` to open the printed address yourself:
+`modlock studio render` draws each model in a headless Chromium. It draws each model alone, lit by a light rig that turns with the camera. It trims the picture to an even margin and saves it as `NAME-VIEW.png`. `MODEL` is an archive path or a pattern such as `models/props_street/*.vmdl_c`, and `--list` reads more models from a file, one per line.
+
+A `--view NAME:YAW:PITCH` places the camera, in degrees. Yaw 0 looks at the model's front, and positive yaw turns counterclockwise as seen from above, toward the model's left. The default views are `left:35:15` and `right:-35:15`. `--turntable N` adds `N` evenly spaced views, and `--size`, `--margin` and `--fov` set the picture. Pass Chromium's path with `--browser` when it is not on the `PATH`, or pass `--browser none` to open the printed address yourself:
 
 ```sh
 modlock studio render --out props --turntable 8 crate=models/props/wooden_crate_a.vmdl_c
 ```
 
-When your mod tracks large files, such as VPKs, with Git LFS, you can keep them out of its Git remote. After `git lfs track`, run `modlock lfs setup` in the repository once. Git LFS then hands each file to `modlock`, which stores it in this PC's mod store. In a fresh clone, run the same setup before `git lfs pull`. `modlock` stores each file by its content, so a file that several repositories share is stored once. The files stay on this PC: a clone on another PC can pull them only from that PC's own store.
+When your mod tracks large files, such as VPKs, with Git LFS, you can keep them out of its Git remote. After `git lfs track`, run `modlock lfs setup` in the repository once. From then on, Git LFS hands each file to `modlock`, which stores it in this PC's mod store. In a fresh clone, run the same setup before `git lfs pull`. `modlock` stores each file by its content, so a file that several repositories share is stored only once. The files stay on this PC, so a clone on another PC can pull them only from that PC's own store.

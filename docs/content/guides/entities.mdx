@@ -3,8 +3,9 @@ title: Entities
 description: Read and write any field of a live entity, create entities and send them inputs.
 ---
 
-The calls on this page read and write any schema field of the game's entities,
-create any entity by its designer name and send any input, in every language. The
+The calls on this page work in every language. They read and write any schema
+field of the game's entities, create any entity by its designer name and send
+any input. The
 [Luau](/languages/luau#typed-entities),
 [Python](/languages/python#typed-entities-and-the-console) and
 [Go](/languages/go#typed-entities-and-the-console) pages describe their typed
@@ -12,8 +13,8 @@ classes.
 
 ## Read and write fields
 
-Your mod reads and writes any schema field of a live entity by its class and field
-names:
+Your mod reads and writes any schema field of a live entity by its class and
+field names:
 
 <Samples>
 
@@ -41,15 +42,15 @@ err = mod.WriteField(pawn.GetEntity(), "CBaseEntity", "m_iHealth", mod.FieldType
 
 </Samples>
 
-The Go sample writes `int64(500)` because Go's `WriteField` takes only a `bool`,
-`float64`, `int64`, `string` or `*mod.Vector`. An integer is passed as an
-`int64` even when the field is narrower, as the 32-bit `m_iHealth` is. A plain
-`500` is an `int`, and `WriteField` returns an error for it.
+The Go sample writes `int64(500)`, because Go's `WriteField` takes only a
+`bool`, `float64`, `int64`, `string` or `*mod.Vector`. You pass an integer as
+an `int64` even when the field is narrower, as the 32-bit `m_iHealth` is. A
+plain `500` is an `int`, and `WriteField` returns an error for it.
 
-For an animated prop, the host finds `CBaseAnimGraphController` fields through
-the prop's body component. This sample sets a sequence that does not use the
-animation graph, stops the prop's own playback, and holds the sequence at one
-authored pose without restarting it:
+For an animated prop, the host finds the `CBaseAnimGraphController` fields
+through the prop's body component. This sample sets a sequence that does not
+use the animation graph, and stops the prop's own playback. Then it holds the
+sequence at one authored pose without restarting it:
 
 <Samples>
 
@@ -85,17 +86,17 @@ _ = mod.WriteField(prop, "CBaseAnimGraphController", "m_flSeqFixedCycle", mod.Fi
 
 </Samples>
 
-The sequence `hand_pose_aligned` and the cycle `1 / 6` suit the sample's model,
-so choose a sequence and cycle from your own prop's model.
+The sequence `hand_pose_aligned` and the cycle `1 / 6` suit the sample's model.
+For your own prop, choose a sequence and cycle from its model.
 
 Writing `m_flSeqFixedCycle` changes the pose and leaves the model where it
-stands. The host refuses the field on an entity that has no animation
+stands. The host refuses the field on an entity that does not have an animation
 controller.
 
-A write changes the field on the server and sends it to the players. The host
-refuses an entity that is not of the class you pass or one derived from it,
-such as a trooper passed as a `CCitadelPlayerPawn`. The error gives both
-classes. The entity stays unchanged and your mod keeps running.
+A write changes the field on the server and sends the new value to the players.
+The host refuses an entity that is not of the class you pass, or of a class
+derived from it, such as a trooper passed as a `CCitadelPlayerPawn`. The error
+gives both classes. The entity stays unchanged, and your mod keeps running.
 
 Some fields matter only while an entity spawns, such as `m_iInitialTeamNum`.
 `spawnNpc` writes them before the entity spawns:
@@ -168,10 +169,10 @@ _, _ = mod.SpawnNpc(&mod.NpcOptions{
 
 </Samples>
 
-The entities module has a type for each server entity class, with a getter and a
-setter for each field except string fields. In Go, each field's method drops the
-field's `m_` prefix. To reach a base class's fields, convert the entity to the
-base class:
+The entities module has a type for each server entity class. Each type has a
+getter and a setter for each field, except string fields. In Go, each field's
+method drops the field's `m_` prefix. To reach a base class's fields, convert
+the entity to the base class:
 
 <Samples>
 
@@ -205,16 +206,17 @@ _ = hero.IHealth().Set(health + 50)
 
 </Samples>
 
-Your mod's build bundles only the classes it uses. [`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) lists every
-class, its base and its fields in `schemas.json`.
+Your mod's build bundles only the classes it uses.
+[`data/dump`](https://github.com/paralin/modlock/tree/master/data/dump) lists
+every class, its base and its fields in `schemas.json`.
 
 ## Create entities and send inputs
 
-`createEntity` creates an entity the server knows by its designer name. It takes
-the spawn key values a map would give, and writes fields before the entity
-spawns. `fireInput` sends an entity an input, as a map's output would.
-`removeEntity` removes an entity the mod created, and the host removes the rest
-when the world ends or the mod stops.
+`createEntity` creates an entity that the server knows, by its designer name. It
+takes the spawn key values a map would give, and it writes fields before the
+entity spawns. `fireInput` sends an entity an input, as a map's output would.
+`removeEntity` removes an entity the mod created. The host removes the rest when
+the world ends or the mod stops.
 
 <Samples>
 
@@ -290,33 +292,35 @@ if err == nil {
 </Samples>
 
 The sample passes `subclass` because `npc_trooper_boss` reads a game data entry
-while it spawns, and `subclass` is the name of that entry. Without a subclass, the host
-looks for an entry named after the class. The game has no entry named
-`npc_trooper_boss`, and the class crashes the server without one, so the host
-refuses the call and its message gives an entry you can pass.
+while it spawns, and `subclass` is that entry's name. Without a subclass, the
+host looks for an entry named after the class. The game does not have an entry
+named `npc_trooper_boss`, and the class crashes the server without an entry. So
+the host refuses the call, and its message gives an entry you can pass.
 
-The values passed to `fireInput` already have the type each input takes, because
-an input does not convert text. `Alpha` takes an integer, and `Color` takes a
-color written as `0xRRGGBBAA`. `entities.json` lists the type each input takes.
-In Go, an `int32` is sent as an integer, a `float32` is sent as a number and a
-`uint32` is sent as a color.
+Each value you pass to `fireInput` must already have the type its input takes,
+because an input does not convert text. `Alpha` takes an integer, and `Color`
+takes a color written as `0xRRGGBBAA`. `entities.json` lists the type each
+input takes. In Go, the host sends an `int32` as an integer, a `float32` as a
+number and a `uint32` as a color.
 
 The Luau, Python and Go samples check the created entity before they send
-inputs. `createEntity` returns no entity for a designer name the server does not
-know, and `fireInput` returns false for an input the entity does not have. The
-host logs why, and in Go both calls return an error. Only that call fails: the
-rest of your mod keeps running.
+inputs. `createEntity` returns nothing for a designer name the server does not
+have, and `fireInput` returns false for an input the entity does not have. The
+host logs why, and in Go both calls return an error. Only that call fails, and
+the rest of your mod keeps running.
 
-The host resolves the designer name's class before it creates anything.
-Because only a hero can hold an ability, item or weapon, the host refuses to
-create one on its own. One created alone crashes the server the first time it
-thinks or is removed. The error points you to `giveItem` and `replaceAbility` instead.
+The host resolves the designer name's class before it creates anything. Only a
+hero can hold an ability, item or weapon, so the host refuses to create one on
+its own. One created alone would crash the server the first time it thinks or
+is removed. The error points you to `giveItem` and `replaceAbility` instead.
 `spawnNpc` and `createPickup` build on the same call. `spawnNpc` takes any unit
-class the server has and refuses a `lane` for a class that walks none.
+class the server has. It refuses a `lane` for a class that does not walk a
+lane.
 
 Entity calls keep to the same [console limits](/guides/console#limits) as
-`serverCommand`. The host refuses what would run console lines on the server
-or on players' clients, or load scripts and entities no check sees:
+`serverCommand`. The host refuses anything that would run console lines on the
+server or on players' clients, or that would load scripts and entities that no
+check sees:
 
 | Refused                                                               | What                                                                                                                                  |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -325,11 +329,11 @@ or on players' clients, or load scripts and entities no check sees:
 | Fields, before spawn or with `writeField`                             | The fields those key values fill, `m_iszPrivateVScripts`, `m_iszPreCommands`, `m_iszPostCommands`                                     |
 | Inputs, on every entity                                               | `AddOutput`, `RunScriptCode`, `RunScriptFile`, the `Call*ScriptFunction` inputs                                                       |
 
-`create` in the entities module is the same call, typed for each designer name. It takes
-only that entity's spawn keys, each as the type the entity reads. It returns the
-entity as its class, with a method per input. In Go each designer name is a
-value, such as `entity.NpcTrooperBoss`, whose `Create` takes the options and a
-struct of the keys:
+`create` in the entities module is the same call, typed for each designer name.
+It takes only that entity's spawn keys, each as the type the entity reads. It
+returns the entity as its class, with a method for each input. In Go, each
+designer name is a value, such as `entity.NpcTrooperBoss`, whose `Create` takes
+the options and a struct of the keys:
 
 <Samples>
 
@@ -383,18 +387,19 @@ if err == nil {
 </Samples>
 
 `create` takes only the designer names that spawned and stayed alive on a
-dedicated server, 578 of the 1,191 surveyed. Each name that needs a subclass gets
-the subclass it spawned with, so `create('npc_trooper_boss', ...)` makes a Guardian without asking
-for `npc_boss_tier1`. A name that never stayed alive, such as an abstract base or
-one that crashes the server, has no constructor, and the type checker rejects it.
-[Entity schema](/internals/entity-schema) describes the whole entity
-system: the dump, the survey, the generated classes in each language and what
-the host checks.
+dedicated server, which is 578 of the 1,191 surveyed. Each name that needs a
+subclass gets the subclass it spawned with. So `create('npc_trooper_boss', ...)`
+makes a Guardian without asking for `npc_boss_tier1`. A name that never stayed
+alive, such as an abstract base or one that crashes the server, does not get a
+constructor, and the type checker rejects it.
+[Entity schema](/internals/entity-schema) describes the whole entity system: the
+dump, the survey, the generated classes in each language and what the host
+checks.
 
 `showEntityOnlyTo` sends an entity the mod created only to the listed player
-slots. `showEntityToAll` undoes it. Call it right after you create the entity,
-and no other client ever receives it. This sample keeps a per-player
-`point_clientui_dialog` from every other player:
+slots, and `showEntityToAll` undoes that. Call `showEntityOnlyTo` right after
+you create the entity, and no other client ever receives it. This sample keeps
+each player's own `point_clientui_dialog` from every other player:
 
 <Samples>
 
@@ -432,9 +437,9 @@ if err == nil {
 
 </Samples>
 
-`transmitAlways` sends the entity to every client, past the game's rule that
-never sends one without a model.
+`transmitAlways` sends the entity to every client. It overrides the game's rule
+that never sends an entity without a model.
 
 When a player leaves, the host drops their slot from every list, so the next
 player in that slot does not receive the entity. Removing the entity drops its
-list, and each entity parented to it needs its own call.
+list. Each entity parented to it needs its own call.

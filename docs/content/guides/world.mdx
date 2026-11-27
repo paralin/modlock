@@ -4,8 +4,9 @@ description: Place text, models and effects, and load what they need.
 ---
 
 Each call on this page places something in the world, such as text, a model, an
-effect or fog, and returns an object you can move, change or remove later. Loading a new map, stopping the
-mod or reloading it removes every object the mod placed.
+effect or fog. It returns an object that you can move, change or remove later.
+Loading a new map, stopping the mod or reloading it removes every object the
+mod placed.
 
 ## Place text
 
@@ -74,8 +75,8 @@ if err == nil {
 ## Load heroes and resources
 
 When your mod starts, precache the heroes, models and effects your mode uses.
-The game loads them with the next world, and one it has not loaded shows
-nothing the first time your mod uses it.
+The game loads them with the next world. A model or effect that the game has
+not loaded shows nothing the first time your mod uses it.
 
 <Samples>
 
@@ -109,19 +110,19 @@ mod.OnStart(func([]string) {
 
 ## Forget objects when the world changes
 
-When a new world loads, the game has already removed everything your mod placed.
-In your world event handler, drop your references to the old objects
+By the time a new world loads, the game has already removed everything your mod
+placed. So in your world event handler, drop your references to the old objects
 and place them again.
 
 ## Hide a cue from chosen players
 
-`hideCues(rules)` keeps a particle or sound the server starts from the
-players you name, while the event that started it still resolves. A rule
-names one sound by its event name, or one particle by the 64-bit name the game
-sends in its create. It may also name the entity the cue plays on, and the
-player slots that do not get it. Leave the viewers out to hide the cue from
-everyone. Each call replaces the mod's rules, and an empty call shows every
-cue again.
+`hideCues(rules)` keeps a particle or sound that the server starts from the
+players you name. The event that started the cue still resolves as usual. A rule
+picks out one sound by its event name, or one particle by the 64-bit name the
+game sends when it creates the particle. A rule may also give the entity the cue
+plays on, and the player slots that do not get the cue. Leave the viewers out to
+hide the cue from everyone. Each call replaces all of the mod's rules, and an
+empty call shows every cue again.
 
 ```ts
 import { hideCues } from 'modlock'
@@ -134,15 +135,16 @@ hideCues([
 ```
 
 A particle hidden from a player stays hidden from them until the game
-releases it. A cue that a player's own client predicts, such as the parry
-they press themselves, never comes from the server, so no rule reaches it.
+releases the particle. The player's own client predicts some cues, such as the
+parry they press themselves. Those cues never come from the server, so
+a rule cannot reach them.
 Luau takes a particle name as a decimal string, because a Luau number cannot
 hold every 64-bit value.
 
 ## Every call
 
 Python spells each call in `snake_case`, and Go capitalizes it. `Dropper`
-is TypeScript only. TypeScript imports `loadSpot` and `Dropper` from
+exists only in TypeScript. TypeScript imports `loadSpot` and `Dropper` from
 `modlock/kit`, and the rest from `modlock`.
 
 | Call                                                   | Effect                                                                                                |
@@ -166,9 +168,9 @@ is TypeScript only. TypeScript imports `loadSpot` and `Dropper` from
 ## Spots
 
 A spot is a base map plus the solid objects players placed on it.
-[`examples/dropper`](https://github.com/paralin/modlock/tree/master/examples/dropper) builds a
-spot on Midtown. `/build` opens the catalog, and every player drops into the
-same spot. The document at
+[`examples/dropper`](https://github.com/paralin/modlock/tree/master/examples/dropper)
+builds a spot on Midtown. `/build` opens the catalog of objects, and every
+player drops into the same spot. The document at
 [`mod/spot/spot.proto`](https://github.com/paralin/modlock/blob/master/mod/spot/spot.proto)
 stores a spot with each model path and builder written once, so a few hundred
 objects fit in a few kilobytes.

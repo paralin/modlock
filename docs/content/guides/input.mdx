@@ -3,8 +3,8 @@ title: Input
 description: Hear button presses, press buttons for a hero and withhold them.
 ---
 
-Your mod hears only the buttons it watches. Watch them once, and the input event
-then reports each press and release of those buttons as button bits.
+Your mod hears only the buttons it watches. Watch them once, and from then on
+the input event reports each press and release of those buttons as button bits.
 
 <Samples>
 
@@ -62,14 +62,14 @@ mod.OnInput(func(p mod.Player, pressed, released uint64) {
 
 A button is held from its press until its release.
 
-A spectating player, with no hero of their own in play, presses spectator
-buttons in place of the others: `specNext` and `specPrev` for the next and
-previous player, `specMode` for the camera mode and `specToggleTeam` for the
+A spectating player does not have a hero of their own in play, so they press
+spectator buttons in place of the others: `specNext` and `specPrev` for the next
+and previous player, `specMode` for the camera mode and `specToggleTeam` for the
 jump key. Block them to replace the game's spectator controls with your own.
 
 ## Block and press
 
-Withhold buttons to remove an action, such as shooting during a countdown.
+Withhold buttons to take an action away, such as shooting during a countdown.
 Press buttons to act for a hero.
 
 | Call                           | Effect                                         |
@@ -110,5 +110,6 @@ mod.After(5*time.Second, func() { _ = mod.BlockInput(0) })
 
 </Samples>
 
-Each call replaces the set of blocked buttons. A call with no buttons releases
-every blocked button.
+Each blocking call replaces the whole set of blocked buttons, so pass every
+button you still want blocked. A call without buttons releases every blocked
+button.

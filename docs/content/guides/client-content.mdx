@@ -4,9 +4,10 @@ description: Pack layouts, style sheets, models and sounds into an addon that ev
 ---
 
 The build packs the files under your project's `content/` into the mod's own
-addon, which every player's game mounts. The addon's name, `SLUG-DIGEST`, comes
-from the mod's slug and a digest of the content. Write `{addon}` wherever the
-addon's name goes, and the build or the host fills it in:
+addon, and every player's game mounts that addon. The addon's name,
+`SLUG-DIGEST`, comes from the mod's slug and a digest of the content. Write
+`{addon}` wherever the addon's name goes, and the build or the host fills it
+in:
 
 ```xml
 <include src="file://{resources}/scripts/{addon}/scoreboard.js" />
@@ -22,19 +23,20 @@ addon's name goes, and the build or the host fills it in:
 - `content/layout/scoreboard.xml` builds to
   `build/panorama/layout/SLUG-DIGEST/scoreboard.vxml_c`, and models to
   `models/SLUG-DIGEST/` and so on.
-- A release that changes only code has the same addon and paths as the one
-  before it. A game that mounted the previous release still finds the new
-  one's resources.
-- Keep sources outside `content/`: the build refuses a source the game cannot
-  load, such as a `.vmdl` or a Hammer map's `.vmap`. The publishing check
-  refuses client files outside the addon's directories.
+- A release that changes only code has the same addon and paths as the release
+  before it. So a game that mounted the previous release still finds the new
+  release's resources.
+- Keep sources outside `content/`, because the build refuses a source that the
+  game cannot load, such as a `.vmdl` or a Hammer map's `.vmap`. The publishing
+  check refuses client files outside the addon's directories.
 - The build does not rewrite a path inside a compiled resource. Point such a
   path at the game's own resources, or at the addon's name for the version you
   build.
 
 ## Draw a layout in the world
 
-Entity key values take `{addon}` too, so a world panel can draw the mod's own layout:
+Entity key values take `{addon}` too, so a world panel can draw the mod's own
+layout:
 
 <Samples>
 
@@ -95,11 +97,11 @@ _, _ = entity.PointClientuiWorldPanel.Create(&mod.EntityOptions{Position: positi
 </Samples>
 
 A panel that the map placed got its layout path before the addon's name
-existed. Point it at your mod's layout with `writeField`, which also fills in
-`{addon}`. Mods start before the map's entities exist, so do it as each world
-loads. Each write sends
-connected players a full update that stalls their game for a moment. Write a
-layout only when it has changed:
+existed. Point that panel at your mod's layout with `writeField`, which also
+fills in `{addon}`. Mods start before the map's entities exist, so make the
+write as each world loads. Each write sends connected players a full update,
+and that update stalls their game for a moment. So write a layout only when it
+has changed:
 
 <Samples>
 
@@ -159,19 +161,20 @@ mod.OnWorld(func(mapName string) {
 [`world-panel`](https://github.com/paralin/modlock/tree/master/examples/world-panel)
 is the whole mod.
 [`inventory`](https://github.com/paralin/modlock/tree/master/examples/inventory)
-draws a scripted bag through the [layout element](/guides/layouts): the
-player drags items with the freed cursor, the script sends each move as a
-console command, and the mod answers with the new slots. Its style sheet
-styles the frame and slots, and a class the mod adds fades the bag in.
+draws a scripted bag through the [layout element](/guides/layouts). The player
+drags items with the freed cursor. The script sends each move as a console
+command, and the mod answers with the new slots. The mod's style sheet styles
+the frame and slots, and a class that the mod adds fades the bag in.
 
 A layout that loads a script or handles an event runs code in each player's
-game, so a publishing service may hold it for creators it trusts. A layout that
-only draws runs no code in a player's game, so a service has no such reason to
-hold it.
+game. So a publishing service may hold such a layout for review, unless it comes
+from a creator the service trusts. A layout that only draws does not run code in
+a player's game, so a service does not have that reason to hold it back.
 
 ## Models and particles
 
-Put `{addon}` in every path you pass to `precache`, `createModel`, `createParticle` and entity key values:
+Put `{addon}` in every path you pass to `precache`, `createModel` and
+`createParticle`, and in entity key values:
 
 <Samples>
 
