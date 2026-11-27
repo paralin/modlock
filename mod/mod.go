@@ -75,7 +75,7 @@ type handlers struct {
 	impacts       []func(*ImpactEvent)
 	landeds       []func(*LandedEvent)
 	settings      []func(p Player, key, value string)
-	presses       []func(p Player, node string)
+	presses       []func(event *UiPressEvent)
 	changes       []func(*UiInputEvent)
 	documents     []func(*UiDocumentEvent)
 	actions       []func(*UiActionEvent)
@@ -328,10 +328,11 @@ func OnSettingChanged(handler func(p Player, key, value string)) {
 	registered.settings = append(registered.settings, handler)
 }
 
-// OnUiPress calls handler with the node id of each button a player presses in
-// the mod's interface, with the next server frame. Package ui registers it to
-// run the buttons' handlers.
-func OnUiPress(handler func(p Player, node string)) {
+// OnUiPress calls handler with each press a player makes in the mod's
+// interface, with the next server frame: a button's, or a layout's with the
+// action its bound panel or its script names. Package ui registers it to run
+// the buttons' and the bindings' handlers.
+func OnUiPress(handler func(event *UiPressEvent)) {
 	registered.presses = append(registered.presses, handler)
 }
 
@@ -461,10 +462,9 @@ func (h *handlers) World(event *WorldEvent) error {
 // UiPress runs the press handlers with the next frame, since a press arrives
 // under the same CPU budget as a command.
 func (h *handlers) UiPress(event *UiPressEvent) error {
-	player, node := PlayerOf(event.GetPlayer()), event.GetNode()
 	After(0, func() {
 		for _, handler := range h.presses {
-			handler(player, node)
+			handler(event)
 		}
 	})
 	return nil

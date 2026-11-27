@@ -93,6 +93,8 @@ type handlers struct {
 	wheel func(p mod.Player, wheel *mod.Wheel)
 	// hold runs as the player grabs, lets go of or loses a range's handle.
 	hold func(p mod.Player, event *mod.RangeEvent)
+	// bound runs a layout's bound panel's press, by the panel's id.
+	bound map[string]func(p mod.Player)
 }
 
 // layout holds one screen while place lays it out.
@@ -382,20 +384,28 @@ func displayRows(viewer mod.Player, rows []AbilityRow) []*uipb.AbilityRow {
 	return wire
 }
 
-// press runs the handler of the button the player pressed.
-func press(p mod.Player, node string) {
+// press runs the handler of the button or bound panel the player pressed.
+func press(event *mod.UiPressEvent) {
 	// A click on the game's ability bar names its slot, which no button's id
 	// does.
+	p, node := mod.PlayerOf(event.GetPlayer()), event.GetNode()
 	if slot, ok := abilitySlot(node); ok {
 		if v := lib.views[p.Slot()]; v != nil && v.bar != nil {
 			v.bar(p, slot)
 		}
 		return
 	}
-	if s := lib.screens[p.Slot()]; s != nil {
-		if h := s.handlers[node].press; h != nil {
-			h(p)
-		}
+	// A layout's press names its bound panel; a button's names none.
+	s := lib.screens[p.Slot()]
+	if s == nil {
+		return
+	}
+	h := s.handlers[node].press
+	if action := event.GetAction(); action != "" {
+		h = s.handlers[node].bound[action]
+	}
+	if h != nil {
+		h(p)
 	}
 }
 

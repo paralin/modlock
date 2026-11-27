@@ -1278,6 +1278,12 @@ type Node struct {
 	// screen's size, the HUD's frame and the bounds of each measured node: once
 	// when the root starts to follow, then each time one of them changes.
 	FollowsPlacement bool `protobuf:"varint,52,opt,name=follows_placement,json=followsPlacement,proto3" json:"followsPlacement,omitempty"`
+	// Bindings set parts of a layout node's layout, which keeps the fonts, art
+	// and localized strings its author drew: each binding names a panel by its
+	// id within the layout, and the renderer sets only what the binding sets.
+	// Only a layout node holds bindings, at most 64, each naming a different
+	// panel.
+	Bindings []*Binding `protobuf:"bytes,54,rep,name=bindings,proto3" json:"bindings,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1664,6 +1670,13 @@ func (x *Node) GetFollowsPlacement() bool {
 	return false
 }
 
+func (x *Node) GetBindings() []*Binding {
+	if x != nil {
+		return x.Bindings
+	}
+	return nil
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1697,6 +1710,64 @@ func (*Node_Toggle) isNode_Input() {}
 func (*Node_Dropdown) isNode_Input() {}
 
 func (*Node_Range) isNode_Input() {}
+
+// Binding sets parts of one panel of a layout. A property the binding leaves
+// unset keeps the author's value, and one it stops setting returns to it. The
+// renderer looks the panel up only within the layout's own panel, so a
+// binding reaches no other mod's panels and none of the game's. A panel the
+// layout lacks leaves that binding undrawn, which the renderer logs once, and
+// the rest drawn. When the game builds the layout again, the renderer finds
+// the panels again and applies every binding.
+type Binding struct {
+	unknownFields []byte
+	// Panel is the panel's id in the layout: one to 64 letters, digits, '_',
+	// '-' and '.'.
+	Panel string `protobuf:"bytes,1,opt,name=panel,proto3" json:"panel,omitempty"`
+	// Text is a label's words, at most 1024 bytes.
+	Text *string `protobuf:"bytes,2,opt,name=text,proto3,oneof" json:"text,omitempty"`
+	// Visible shows or hides the panel.
+	Visible *bool `protobuf:"varint,3,opt,name=visible,proto3,oneof" json:"visible,omitempty"`
+	// Press makes the panel's press reach the mod as a press of the layout
+	// node, as a layout's script sends one, with the panel's id as its action
+	// and no payload. A layout that holds any binding takes presses only from
+	// the bindings that press, so a press of a panel the mod no longer binds is
+	// refused, and so is one its script sends.
+	Press bool `protobuf:"varint,4,opt,name=press,proto3" json:"press,omitempty"`
+}
+
+func (x *Binding) Reset() {
+	*x = Binding{}
+}
+
+func (*Binding) ProtoMessage() {}
+
+func (x *Binding) GetPanel() string {
+	if x != nil {
+		return x.Panel
+	}
+	return ""
+}
+
+func (x *Binding) GetText() string {
+	if x != nil && x.Text != nil {
+		return *x.Text
+	}
+	return ""
+}
+
+func (x *Binding) GetVisible() bool {
+	if x != nil && x.Visible != nil {
+		return *x.Visible
+	}
+	return false
+}
+
+func (x *Binding) GetPress() bool {
+	if x != nil {
+		return x.Press
+	}
+	return false
+}
 
 // Clock is a time a label counts in the player's game.
 type Clock struct {
@@ -4145,6 +4216,7 @@ func (m *Node) CloneVT() *Node {
 	r.Menu = protobuf_go_lite.CloneVTValue(m.Menu)
 	r.DocumentInput = protobuf_go_lite.CloneVTValue(m.DocumentInput)
 	r.GameActions = protobuf_go_lite.CloneSlice(m.GameActions)
+	r.Bindings = protobuf_go_lite.CloneVTSlice(m.Bindings)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -4217,6 +4289,25 @@ func (m *Node_Range) CloneVT() *Node_Range {
 }
 
 func (m *Node_Range) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *Binding) CloneVT() *Binding {
+	if m == nil {
+		return (*Binding)(nil)
+	}
+	r := new(Binding)
+	r.Panel = m.Panel
+	r.Press = m.Press
+	r.Text = protobuf_go_lite.ClonePtr(m.Text)
+	r.Visible = protobuf_go_lite.ClonePtr(m.Visible)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Binding) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -5380,6 +5471,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.FollowsPlacement != that.FollowsPlacement {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Bindings, that.Bindings, func() *Binding { return &Binding{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -5474,6 +5568,35 @@ func (this *Node_Range) EqualVT(thatIface isNode_Input) bool {
 		return false
 	}
 	return true
+}
+
+func (this *Binding) EqualVT(that *Binding) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Panel != that.Panel {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Text, that.Text) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Visible, that.Visible) {
+		return false
+	}
+	if this.Press != that.Press {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Binding) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Binding)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Clock) EqualVT(that *Clock) bool {
@@ -8149,6 +8272,17 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("range")
 		ov.Range.MarshalProtoJSON(s.WithField("range"))
 	}
+	if len(x.Bindings) > 0 || s.HasField("bindings") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("bindings")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Bindings {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("bindings"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -8452,12 +8586,106 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Range = &Range{}
 			ov.Range.UnmarshalProtoJSON(s.WithField("range", true))
+		case "bindings":
+			s.AddField("bindings")
+			if s.ReadNil() {
+				x.Bindings = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Bindings = append(x.Bindings, nil)
+					return
+				}
+				v := &Binding{}
+				v.UnmarshalProtoJSON(s.WithField("bindings", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Bindings = append(x.Bindings, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Binding message to JSON.
+func (x *Binding) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Panel != "" || s.HasField("panel") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("panel")
+		s.WriteString(x.Panel)
+	}
+	if x.Text != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("text")
+		s.WriteString(*x.Text)
+	}
+	if x.Visible != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("visible")
+		s.WriteBool(*x.Visible)
+	}
+	if x.Press || s.HasField("press") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("press")
+		s.WriteBool(x.Press)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Binding to JSON.
+func (x *Binding) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Binding message from JSON.
+func (x *Binding) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "panel":
+			s.AddField("panel")
+			x.Panel = s.ReadString()
+		case "text":
+			s.AddField("text")
+			if s.ReadNil() {
+				x.Text = nil
+				return
+			}
+			t := s.ReadString()
+			x.Text = &t
+		case "visible":
+			s.AddField("visible")
+			if s.ReadNil() {
+				x.Visible = nil
+				return
+			}
+			t := s.ReadBool()
+			x.Visible = &t
+		case "press":
+			s.AddField("press")
+			x.Press = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Binding from JSON.
+func (x *Binding) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -11786,6 +12014,20 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.Bindings) > 0 {
+		for iNdEx := len(m.Bindings) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Bindings[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x3
+			i--
+			dAtA[i] = 0xb2
+		}
+	}
 	if m.FollowsPlacement {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FollowsPlacement)
 		i--
@@ -12301,6 +12543,58 @@ func (m *Node_Range) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x3
 		i--
 		dAtA[i] = 0xaa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Binding) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Binding) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Binding) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Press {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Press)
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Visible != nil {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.Visible)
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Text != nil {
+		i = protobuf_go_lite.EncodeString(dAtA, i, *m.Text)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Panel) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Panel)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -15131,6 +15425,10 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Measure)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Frame)
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FollowsPlacement)
+	for _, e := range m.Bindings {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -15207,6 +15505,20 @@ func (m *Node_Range) SizeVT() (n int) {
 	} else {
 		n += 3
 	}
+	return n
+}
+
+func (m *Binding) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Panel)
+	n += protobuf_go_lite.SizeStringPtr(1, m.Text)
+	n += protobuf_go_lite.SizeBoolPtr(1, m.Visible)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Press)
+	n += len(m.unknownFields)
 	return n
 }
 
@@ -16449,10 +16761,48 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "follows_placement")
 		protobuf_go_lite.TextWriteBool(&sb, x.FollowsPlacement)
 	}
+	if len(x.Bindings) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "bindings")
+		for i, v := range x.Bindings {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Binding{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Binding) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Binding")
+	if x.Panel != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "panel")
+		protobuf_go_lite.TextWriteString(&sb, x.Panel)
+	}
+	if x.Text != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, *x.Text)
+	}
+	if x.Visible != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "visible")
+		protobuf_go_lite.TextWriteBool(&sb, *x.Visible)
+	}
+	if x.Press != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "press")
+		protobuf_go_lite.TextWriteBool(&sb, x.Press)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Binding) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -18439,6 +18789,103 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				m.Input = &Node_Range{Range: v}
 			}
 			iNdEx = postIndex
+		case 54:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bindings", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Bindings = append(m.Bindings, &Binding{})
+			if err := m.Bindings[len(m.Bindings)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Binding) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Binding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Binding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Panel", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Panel = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Text = &v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Visible", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Visible = &b
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Press", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Press = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

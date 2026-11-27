@@ -385,8 +385,9 @@ end
 -- draws them, @modlock/ui, serves them with serveInterface, so the library
 -- loads without it.
 export type Interface = {
-	-- press takes a press on the button with id node, or on the ability bar.
-	press: (player: Player, node: string) -> (),
+	-- press takes a press on the button with id node, on the ability bar, or
+	-- on the panel a layout's binding names as action.
+	press: (player: Player, node: string, action: string) -> (),
 	-- change takes a change to the input with id node, or a wheel step.
 	change: (player: Player, node: string, value: (string | number | boolean | Wheel | RangeEvent)?) -> (),
 	-- act takes a phase of a game action the player's root follows.
@@ -1613,7 +1614,7 @@ local handlers: ModHandlers = {
 		local served = interface
 		if served then
 			modlock.after(0, function()
-				served.press(event.player, event.node)
+				served.press(event.player, event.node, event.action)
 			end)
 		end
 	end,

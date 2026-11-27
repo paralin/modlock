@@ -12,6 +12,7 @@
 #include <optional>
 #include <ranges>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 namespace modlock::wasm {
@@ -59,6 +60,9 @@ constexpr uint32_t kEntryLength = 100;
 // kMaxClasses bounds a node's classes, and kMaxSheets the root's style sheets.
 constexpr int kMaxClasses = 16;
 constexpr int kMaxSheets = 16;
+
+// kMaxBindings bounds a layout's bindings.
+constexpr int kMaxBindings = 64;
 
 // kImageRoots lists where an image may come from: the game's own content.
 constexpr std::string_view kImageRoots[] = {"file://{images}/", "s2r://panorama/images/"};
@@ -110,6 +114,39 @@ std::expected<void, std::string> CheckLabel(const ui::Node& node) {
   for (const auto& [name, value] : node.variables()) {
     if (!IsWord(name, "") || value.size() > kMaxText) {
       return std::unexpected("node " + node.id() + ": a variable is a word and short text");
+    }
+  }
+  return {};
+}
+
+// CheckBindings returns why a node's bindings cannot be drawn: only a layout
+// holds them, a bounded number, each naming a different panel by a word that
+// may hold '-' and '.', with bounded text.
+std::expected<void, std::string> CheckBindings(const ui::Node& node) {
+  // Only a layout holds bindings, and a bounded number of them.
+  if (node.bindings_size() == 0) {
+    return {};
+  }
+  if (node.kind() != ui::KIND_LAYOUT) {
+    return std::unexpected("node " + node.id() + ": only a layout holds bindings");
+  }
+  if (node.bindings_size() > kMaxBindings) {
+    return std::unexpected("node " + node.id() + ": too many bindings");
+  }
+
+  // Each names its own panel and holds short text.
+  std::unordered_set<std::string_view> panels;
+  for (const auto& binding : node.bindings()) {
+    if (binding.panel().size() > kMaxId || !IsWord(binding.panel(), "-.")) {
+      return std::unexpected("node " + node.id() +
+                             ": a binding's panel is at most 64 letters, digits, '_', '-' and '.'");
+    }
+    if (!panels.insert(binding.panel()).second) {
+      return std::unexpected("node " + node.id() + ": two bindings name panel " + binding.panel());
+    }
+    if (binding.text().size() > kMaxText) {
+      return std::unexpected("node " + node.id() + ": binding " + binding.panel() +
+                             ": text is too long");
     }
   }
   return {};
@@ -268,6 +305,9 @@ std::expected<void, std::string> Check(const ui::Node& node) {
     return checked;
   }
   if (auto checked = CheckAbilityDisplay(node); !checked) {
+    return checked;
+  }
+  if (auto checked = CheckBindings(node); !checked) {
     return checked;
   }
   return CheckInput(node);
@@ -855,6 +895,12 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
     shown.follows_placement = node.follows_placement();
   }
   shown.measure = node.measure();
+  shown.bound = node.bindings_size() > 0;
+  for (const auto& binding : node.bindings()) {
+    if (binding.press()) {
+      shown.presses.push_back(binding.panel());
+    }
+  }
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
   }
@@ -1060,6 +1106,10 @@ std::expected<ui::UiPressEvent, std::string> UiTrees::Action(
   }
   if (!IsActionName(action)) {
     return std::unexpected("layout " + std::string(node) + " cannot press that name");
+  }
+  if (shown->second.bound && !std::ranges::contains(shown->second.presses, action)) {
+    return std::unexpected("layout " + std::string(node) + " binds no press of " +
+                           std::string(action));
   }
   if (encoded.size() > (kActionPayload * 4 + 2) / 3) {
     return std::unexpected("layout " + std::string(node) + " sent a payload over " +

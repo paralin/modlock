@@ -1,10 +1,18 @@
 package ui
 
-import uipb "github.com/paralin/modlock/src/wasm/ui"
+import (
+	"maps"
+	"slices"
+
+	"github.com/paralin/modlock/mod"
+	uipb "github.com/paralin/modlock/src/wasm/ui"
+)
 
 // Layout loads a layout from the mod's content addon: Src is its path there,
-// such as "shop.xml", and Data is the JSON text its script reads with
-// Modlock.data.
+// such as "shop.xml". The layout keeps the fonts, art and localized strings
+// its author drew, and Bindings set parts of its panels by their ids, so a
+// layout needs no script. Data is the JSON text a layout's own script reads
+// with Modlock.data.
 type Layout struct {
 	// Key keeps the layout's node in a list while the list changes.
 	Key string
@@ -18,6 +26,23 @@ type Layout struct {
 	Data string
 	// Measure names the layout in the placement reports of FollowPlacement.
 	Measure string
+	// Bindings set parts of the layout's panels, by each panel's id: at most
+	// 64. A layout with bindings takes presses only from the bindings with
+	// an OnPress.
+	Bindings map[string]Binding
+}
+
+// Binding sets parts of one panel of a layout and leaves the rest as the
+// layout's author drew it. A nil field keeps the author's value, and one the
+// mod stops setting returns to it. A panel the layout lacks leaves the
+// binding undrawn and the rest drawn.
+type Binding struct {
+	// Text replaces a label's words.
+	Text *string
+	// Visible shows or hides the panel.
+	Visible *bool
+	// OnPress runs when the player presses the panel.
+	OnPress func(p mod.Player)
 }
 
 // Render returns the layout itself.
@@ -31,11 +56,30 @@ func (e Layout) key() string {
 }
 
 // draw fills the layout's node.
-func (e Layout) draw(_ *layout, n *uipb.Node, _ string) {
+func (e Layout) draw(l *layout, n *uipb.Node, _ string) {
 	// Encode the props every element shares, then the element's own.
 	s := shared{class: e.Class, style: &e.Style, measure: e.Measure}
 	s.fill(n)
 	n.Kind = uipb.Kind_KIND_LAYOUT
 	n.Layout = e.Src
 	n.Data = e.Data
+
+	// Encode the bindings in the panels' order, so a redraw sends the same
+	// node, and keep each press's handler.
+	bound := map[string]func(p mod.Player){}
+	for _, panel := range slices.Sorted(maps.Keys(e.Bindings)) {
+		b := e.Bindings[panel]
+		n.Bindings = append(n.Bindings, &uipb.Binding{
+			Panel:   panel,
+			Text:    b.Text,
+			Visible: b.Visible,
+			Press:   b.OnPress != nil,
+		})
+		if b.OnPress != nil {
+			bound[panel] = b.OnPress
+		}
+	}
+	if len(bound) != 0 {
+		l.screen.handlers[n.Id] = handlers{bound: bound}
+	}
 }

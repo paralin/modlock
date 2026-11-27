@@ -487,6 +487,48 @@ TEST(UiTrees, TakesALayoutsPressFromThePlayerWhoseTreeShowsIt) {
   }
 }
 
+TEST(UiTrees, TakesALayoutsPressesOnlyFromItsBindingsThatPress) {
+  // The layout binds a pressing panel and a label.
+  UiTrees trees;
+  auto change = ShowLayout("card");
+  auto* buy = change.mutable_set(0)->add_bindings();
+  buy->set_panel("buy");
+  buy->set_press(true);
+  change.mutable_set(0)->add_bindings()->set_panel("price");
+  ASSERT_TRUE(trees.Apply(3, change));
+
+  // Only the pressing binding's press passes, with no payload.
+  auto press = trees.Action(3, "card buy", kStart);
+  ASSERT_TRUE(press) << press.error();
+  EXPECT_EQ(press->action(), "buy");
+  EXPECT_FALSE(trees.Action(3, "card price", kStart));
+  EXPECT_FALSE(trees.Action(3, "card vote eyJ2b3RlIjoxfQ", kStart));
+
+  // Once the mod stops binding the press, the panel's press is refused.
+  change.mutable_set(0)->mutable_bindings(0)->set_press(false);
+  ASSERT_TRUE(trees.Apply(3, change));
+  EXPECT_FALSE(trees.Action(3, "card buy", kStart));
+}
+
+TEST(UiTrees, RefusesBindingsALayoutCannotDraw) {
+  // A binding outside a layout, without a panel's name, or a second one of a
+  // panel is refused, and the tree stays as it was.
+  UiTrees trees;
+  auto label = Set("card", modlock::wasm::ui::KIND_LABEL);
+  label.mutable_set(0)->add_bindings()->set_panel("buy");
+  EXPECT_FALSE(trees.Apply(3, label));
+  for (const char* name : {"", "a b", "a;quit"}) {
+    auto change = ShowLayout("card");
+    change.mutable_set(0)->add_bindings()->set_panel(name);
+    EXPECT_FALSE(trees.Apply(3, change)) << name;
+  }
+  auto twice = ShowLayout("card");
+  twice.mutable_set(0)->add_bindings()->set_panel("buy");
+  twice.mutable_set(0)->add_bindings()->set_panel("buy");
+  EXPECT_FALSE(trees.Apply(3, twice));
+  EXPECT_FALSE(trees.Action(3, "card buy", kStart));
+}
+
 TEST(UiTrees, RefusesALayoutsOversizedPayload) {
   UiTrees trees;
   ASSERT_TRUE(trees.Apply(3, ShowLayout("card")));

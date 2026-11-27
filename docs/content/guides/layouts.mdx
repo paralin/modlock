@@ -102,6 +102,42 @@ layout may still run its own console commands. `modlock dev` and
 `modlock play` in the sandbox draw a layout's panels but run none of its
 scripts, so a press happens only in the game.
 
+## Bind named panels
+
+A layout can keep its fonts, art and localized text from its file while the
+mod sets a few of its panels. `bindings` names panels of the layout by their
+`id` and sets each one's `text` or `visible`, or takes its presses with
+`onPress`, and no script is needed:
+
+```tsx
+<layout
+  src="shop.xml"
+  bindings={{
+    price: { text: `${cost}` },
+    sold_out: { visible: stock === 0 },
+    buy: { onPress: (player) => buy(player) },
+  }}
+/>
+```
+
+Python's `layout(bindings={"buy": {"on_press": buy}})`, Luau's
+`bindings = { buy = { onPress = buy } }` and Go's `Layout.Bindings` take the
+same map. A property a binding leaves unset keeps the layout's own value, and
+one the mod stops setting goes back to the value the layout had. The renderer
+looks each panel up inside the layout's panel once the layout loads, applies
+every binding, and then applies each change as the mod draws it. After each
+draw, once the layout's script has read the draw's data, the renderer looks
+up any panel it has not found, and when the script has built its panels anew
+it finds them all again and applies every binding. A name the layout has no panel for logs
+one line in the game's console, and the other bindings still apply.
+
+A press on a bound panel reaches the mod as a press of the layout whose
+action is the panel's `id`, with no payload. A layout with any binding takes
+presses only from its bindings that have `onPress`, so the server refuses a
+press its script sends with `Modlock.press`, and a press from a panel the mod
+stopped binding. A layout holds at most 64 bindings, each naming a different
+panel by an `id` of up to 64 letters, digits, `_`, `-` and `.`.
+
 ## The renderer
 
 The game draws interfaces with the renderer in [`panorama/`](https://github.com/paralin/modlock/tree/master/panorama):

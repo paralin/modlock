@@ -1258,6 +1258,14 @@ export interface Node {
    */
   followsPlacement?: boolean
   /**
+   * Bindings set parts of a layout node's layout, which keeps the fonts, art
+   * and localized strings its author drew: each binding names a panel by its
+   * id within the layout, and the renderer sets only what the binding sets.
+   * Only a layout node holds bindings, at most 64, each naming a different
+   * panel.
+   */
+  bindings?: Binding[]
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's or a range's bounds and step, a
@@ -1333,6 +1341,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [51, 'frame', 14, 0, Frame_Enum],
     [52, 'follows_placement', 8],
     [53, 'range', 11, 0, Range.codec, 'input'],
+    [54, 'bindings', 11, 1, Binding.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1549,6 +1558,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
                 m.input?.case === 'range' ? m.input.value : {},
               ),
             }
+            break
+          case 54:
+            ;(m.bindings ??= []).push(Binding.decode(r, r.delimited(), {}))
             break
           default:
             r.skip(t)
@@ -1788,9 +1800,102 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
         if (o?.case === 'range' && o.value != null)
           Range.writeField(w, 53, o.value)
       }
+      {
+        const a = m.bindings
+        if (a != null) for (const e of a) Binding.writeField(w, 54, e)
+      }
     },
   },
 )
+
+/**
+ * Binding sets parts of one panel of a layout. A property the binding leaves
+ * unset keeps the author's value, and one it stops setting returns to it. The
+ * renderer looks the panel up only within the layout's own panel, so a
+ * binding reaches no other mod's panels and none of the game's. A panel the
+ * layout lacks leaves that binding undrawn, which the renderer logs once, and
+ * the rest drawn. When the game builds the layout again, the renderer finds
+ * the panels again and applies every binding.
+ *
+ * @generated from message modlock.wasm.ui.Binding
+ */
+export interface Binding {
+  /**
+   * Panel is the panel's id in the layout: one to 64 letters, digits, '_',
+   * '-' and '.'.
+   */
+  panel?: string
+  /**
+   * Text is a label's words, at most 1024 bytes.
+   */
+  text?: string
+  /**
+   * Visible shows or hides the panel.
+   */
+  visible?: boolean
+  /**
+   * Press makes the panel's press reach the mod as a press of the layout
+   * node, as a layout's script sends one, with the panel's id as its action
+   * and no payload. A layout that holds any binding takes presses only from
+   * the bindings that press, so a press of a panel the mod no longer binds is
+   * refused, and so is one its script sends.
+   */
+  press?: boolean
+}
+
+export const Binding: MessageType<Binding> =
+  /* @__PURE__ */ createMessageType<Binding>(
+    'modlock.wasm.ui.Binding',
+    () => [
+      [1, 'panel', 9],
+      [2, 'text', 9, 4],
+      [3, 'visible', 8, 4],
+      [4, 'press', 8],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Binding): Binding => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.panel = r.string()
+              break
+            case 2:
+              m.text = r.string()
+              break
+            case 3:
+              m.visible = r.bool()
+              break
+            case 4:
+              m.press = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Binding, w: Writer): void => {
+        {
+          const v = m.panel
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.text
+          if (v != null) w.uint32(18).string(v)
+        }
+        {
+          const v = m.visible
+          if (v != null) w.uint32(24).bool(v)
+        }
+        {
+          const v = m.press
+          if (v) w.uint32(32).bool(v)
+        }
+      },
+    },
+  )
 
 /**
  * Clock is a time a label counts in the player's game.

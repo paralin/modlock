@@ -82,6 +82,7 @@ import { itemId } from './item-id.js'
 import {
   type AbilityRow as WireAbilityRow,
   Align,
+  type Binding as BindingNode,
   type Change,
   type Clip as WireClip,
   type Clock as WireClock,
@@ -477,6 +478,7 @@ export interface Props {
   readonly submits?: boolean
   readonly onPress?: (player: Player) => void
   readonly onAction?: LayoutPressHandler
+  readonly bindings?: Readonly<Record<string, Binding>>
   readonly enter?: Style
   readonly exit?: Style
   readonly cycle?: Cycle
@@ -747,18 +749,37 @@ export type LayoutPressHandler = (
 
 /**
  * LayoutProps load a layout from the mod's content addon: src is its path
- * there, such as 'shop.xml', and data is the JSON value its script reads with
- * Modlock.data. onAction hears each press its script sends with
- * Modlock.press.
+ * there, such as 'shop.xml'. The layout keeps the fonts, art and localized
+ * strings its author drew, and bindings set parts of its panels by their ids,
+ * at most 64, so a layout needs no script. data is the JSON value a layout's
+ * own script reads with Modlock.data, and onAction hears each press its
+ * script sends with Modlock.press. A layout with bindings takes presses only
+ * from the bindings with an onPress.
  */
 export interface LayoutProps {
   class?: string
   style?: Style
   src: string
   data?: unknown
+  bindings?: Readonly<Record<string, Binding>>
   onAction?: LayoutPressHandler
   /** measure names the layout in the placement reports of followPlacement. */
   measure?: string
+}
+
+/**
+ * Binding sets parts of one panel of a layout and leaves the rest as the
+ * layout's author drew it. An unset field keeps the author's value, and one
+ * the mod stops setting returns to it. A panel the layout lacks leaves the
+ * binding undrawn and the rest drawn.
+ */
+export interface Binding {
+  /** text replaces a label's words. */
+  text?: string
+  /** visible shows or hides the panel. */
+  visible?: boolean
+  /** onPress runs when the player presses the panel. */
+  onPress?: (player: Player) => void
 }
 
 /** JSX types the elements a mod's JSX may use. */
@@ -1271,8 +1292,14 @@ export function press(
   action = '',
   payload = '',
 ): void {
-  // A press with an action came from a layout's script, not a button.
+  // A press with an action came from a layout's bound panel or its script,
+  // not a button.
   if (action !== '') {
+    const bound = partOf(player.slot, node)?.presses.get(boundKey(node, action))
+    if (bound) {
+      bound.handler(player)
+      return
+    }
     const pressed = partOf(player.slot, node)?.actions.get(node)
     if (pressed) {
       let value: unknown = undefined
@@ -1965,6 +1992,7 @@ function intrinsic(layout: Layout, child: UiElement, at: string): string[] {
       if (props.onAction) {
         layout.part.actions.set(node.id!, { handler: props.onAction })
       }
+      node.bindings = bindings(layout, node.id!, props.bindings)
       break
     default:
       node.kind = Kind.PANEL
@@ -2169,6 +2197,46 @@ function clip(value: Clip | undefined): WireClip | undefined {
       },
     },
   }
+}
+
+/**
+ * bindings encodes a layout's bindings in their panels' order, so a redraw
+ * sends the same node, and keeps each bound press's handler in the part's
+ * presses under boundKey.
+ */
+function bindings(
+  layout: Layout,
+  node: string,
+  value: Readonly<Record<string, Binding>> | undefined,
+): BindingNode[] {
+  // Encode each binding, its press as a flag.
+  const encoded: BindingNode[] = []
+  for (const [panel, binding] of Object.entries(value ?? {}).sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0,
+  )) {
+    encoded.push({
+      panel,
+      text: binding.text,
+      visible: binding.visible,
+      press: binding.onPress !== undefined,
+    })
+
+    // Keep the press's handler.
+    if (binding.onPress) {
+      layout.part.presses.set(boundKey(node, panel), {
+        handler: binding.onPress,
+      })
+    }
+  }
+  return encoded
+}
+
+/**
+ * boundKey names a layout's bound panel among a part's presses: no button's
+ * id holds a space.
+ */
+function boundKey(node: string, panel: string): string {
+  return `${node} ${panel}`
 }
 
 /** variables encodes a localized label's variables as text. */
