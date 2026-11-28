@@ -31,6 +31,7 @@ using modlock::wasm::Limits;
 using modlock::wasm::LogRequest;
 using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
+using modlock::wasm::ServiceCall;
 using modlock::wasm::ServiceCallStarted;
 using modlock::wasm::ServiceRepliedEvent;
 using modlock::wasm::StartEvent;
@@ -538,6 +539,30 @@ TEST(WasmInstance, BudgetStopsARunawayLoop) {
   EXPECT_FALSE((*instance)->Deliver(frame));
   EXPECT_LT(std::chrono::steady_clock::now() - began, std::chrono::seconds{2});
   EXPECT_TRUE((*instance)->Failure());
+}
+
+// One mod may serve many service methods, so a stopped Serve event names the
+// method it was serving.
+TEST(WasmInstance, BudgetNamesTheServedMethod) {
+  // Load a mod whose handler never returns.
+  Runtime runtime;
+  Recorder recorder;
+  Limits limits;
+  limits.event_budget = std::chrono::milliseconds{50};
+  auto instance = Instance::Load(runtime, Wat(R"((module
+    (memory (export "memory") 1)
+    (func (export "modlock_event") (param i32) (result i64) (loop br 0) i64.const 0)))"),
+                                 limits, recorder.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+
+  // The stop names the service and its method.
+  ServiceCall served;
+  served.set_service("arena.match");
+  served.set_method("control");
+  auto delivered = (*instance)->Deliver(Event("Serve", served));
+  ASSERT_FALSE(delivered);
+  EXPECT_TRUE(delivered.error().starts_with("Serve arena.match/control ran past"))
+      << delivered.error();
 }
 
 // A script mod evaluates its whole script in Start, which takes longer than
