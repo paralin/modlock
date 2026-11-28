@@ -10,6 +10,7 @@
 import { type AbilityRow, HudPart } from '../../src/wasm/ui/ui.pb.js'
 import { children } from './abilities.js'
 import { type AbilityHost, AbilityHud } from './ability-hud.js'
+import { clearVisibility } from './visibility.js'
 
 export { BAR_GATE, BAR_MARK, SAME_CLICK_SECONDS } from './ability-hud.js'
 
@@ -259,8 +260,9 @@ function ownPanel(hud: GuardPanel, id: string): GuardPanel[] {
  * true writes "visible", and either outlives every later class change and
  * the script that wrote it, so a guard that wrote visible true kept a
  * reminder the game shows by class drawn in every later game. The guard
- * writes only the inline value; null hands the panel back to its sheets in
- * the same frame.
+ * writes only the inline value, and hands a panel back to its sheets with
+ * clearVisibility, since null alone leaves a panel whose sheets name no
+ * visibility collapsed.
  *
  * The game shows a named part's panels by class alone and writes no inline
  * value on them, so any it carries is a script's, such as a mod's own
@@ -303,20 +305,22 @@ export function hidePanel(panel: GuardPanel, sheets = false): void {
 
 /**
  * restorePanel gives back a panel the guard's mark stands on. A panel drawn
- * by sheets, marked so or named by sheets, gets no inline value, whoever
- * wrote the one it has. Any other gets the inline value its mark records,
- * and an inline value there other than the guard's collapse is a later
- * writer's, so it stands.
+ * by sheets, marked so or named by sheets, is cleared to them, whoever wrote
+ * the inline value it has, and even when a script cleared the guard's
+ * collapse with null already, which leaves it drawn collapsed. Any other
+ * gets the inline value its mark records, and an inline value there other
+ * than the guard's collapse is a later writer's, so it stands.
  */
 export function restorePanel(panel: GuardPanel, sheets = false): void {
   // Unmarked panels are not the guard's; a marked one loses its mark first.
   const mark = panel.GetAttributeString(HIDDEN_MARK, '')
   if (mark === '') return
   panel.SetAttributeString(HIDDEN_MARK, '')
-  const inline = panel.style.visibility ?? null
-  if (sheets || mark === SHEETS) {
-    if (inline !== null) panel.style.visibility = null
-  } else if (inline === COLLAPSE) panel.style.visibility = recorded(mark)
+  if (sheets || mark === SHEETS) return clearVisibility(panel)
+  if (panel.style.visibility !== COLLAPSE) return
+  const before = recorded(mark)
+  if (before === null) clearVisibility(panel)
+  else panel.style.visibility = before
 }
 
 /**

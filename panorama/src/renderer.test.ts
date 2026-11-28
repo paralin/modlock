@@ -77,14 +77,39 @@ class FakePanel {
   checked = false
   /**
    * sheet is what the panel's style sheets draw under its classes: the
-   * game's own switch, which never writes the inline value.
+   * game's own switch, which never writes the inline value. Null is sheets
+   * that name no visibility for the panel, where it keeps what it last drew.
    */
-  sheet = true
+  get sheet(): boolean | null {
+    return this.sheets
+  }
+  set sheet(shown: boolean | null) {
+    this.sheets = shown
+    this.paint()
+  }
+  private sheets: boolean | null = true
+  /** drawn is what the panel draws, which Panorama keeps when nothing names it. */
+  private drawn = true
+  private paint() {
+    const inline = this.style.visibility
+    this.drawn =
+      inline != null ? inline === 'visible' : (this.sheets ?? this.drawn)
+  }
   image = ''
   url = ''
   layout = ''
   valid = true
-  style: Record<string, string | null> = {}
+  /** style repaints the panel on each visibility write, as Panorama does. */
+  style = new Proxy<Record<string, string | null>>(
+    {},
+    {
+      set: (target, name: string, value: string | null) => {
+        target[name] = value
+        if (name === 'visibility') this.paint()
+        return true
+      },
+    },
+  )
   events = new Map<string, () => void>()
   attributes = new Map<string, string>()
   classes: string[] = []
@@ -114,12 +139,12 @@ class FakePanel {
   ) {}
 
   /**
-   * visible is Panorama's: it reads the inline visibility over the sheets
-   * and writes the inline value, which then outlives every class change.
+   * visible is Panorama's: it reads the drawn visibility, the inline value
+   * over the sheets, and writes the inline value, which then outlives every
+   * class change.
    */
   get visible() {
-    const inline = this.style.visibility
-    return inline === 'collapse' ? false : inline === 'visible' || this.sheet
+    return this.drawn
   }
   set visible(shown: boolean) {
     this.style.visibility = shown ? 'visible' : 'collapse'
@@ -2053,6 +2078,28 @@ test('gives a named part back to its sheets whatever a script left on it', () =>
     expect(kills.visible).toBe(false)
     kills.sheet = true
     expect(kills.visible).toBe(true)
+  }
+
+  // A panel whose sheets name no visibility, as the top bar's portraits,
+  // keeps what it last drew, so it draws again after the restore, also when
+  // a script cleared the guard's collapse with null first; one the sheets
+  // hide, as the street brawl box outside that mode, stays hidden.
+  for (const cleared of [false, true]) {
+    const hud = gameHud()
+    const bar = hud.scores.GetParent()!
+    const teams = hud.add(bar, 'TeamsContainer')
+    const brawl = hud.add(bar, 'StretBrawlContainer')
+    teams.sheet = null
+    brawl.sheet = false
+    const stock = new StockGuard(hud.game, clock())
+    stock.screen(parts('HUD_PART_TOP_BAR'))
+    expect(teams.visible).toBe(false)
+    if (cleared) teams.style.visibility = null
+    expect(teams.visible).toBe(false)
+    stock.screen([])
+    expect(teams.style.visibility).toBeNull()
+    expect(teams.visible).toBe(true)
+    expect(brawl.visible).toBe(false)
   }
 
   // A collapse an earlier release recorded on the bar goes too.

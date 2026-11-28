@@ -12,6 +12,7 @@
 
 import type { AbilityRow } from '../../src/wasm/ui/ui.pb.js'
 import type { GuardPanel } from './guard.js'
+import { clearVisibility } from './visibility.js'
 
 /** BAR_DEPTH bounds how deep under hud_signature the bar's icons and pips are looked for. */
 export const BAR_DEPTH = 8
@@ -376,7 +377,7 @@ function undress(icon: TabIcon): void {
   }
   icon.icon.ClearPanelEvent('onmouseover')
   if (icon.own) icon.own.style.opacity = null
-  if (icon.ring && unmark(icon.ring)) icon.ring.style.visibility = null
+  if (icon.ring && unmark(icon.ring)) clearVisibility(icon.ring)
   clearReadOnlyPips(icon.pips)
 }
 
@@ -482,7 +483,7 @@ function clearBar({ icon, readOnly, pips, unlocks }: BarSlot): void {
     const background = firstWithClass(icon, 'ability_bg')
     if (background) background.style.backgroundImage = null
     const ring = firstWithClass(icon, 'ability_ring')
-    if (ring) ring.style.visibility = null
+    if (ring) clearVisibility(ring)
     const shade = icon.FindChildTraverse('cooldown_mask')
     if (shade) shade.style.opacityMask = null
   }
@@ -493,11 +494,11 @@ function clearBar({ icon, readOnly, pips, unlocks }: BarSlot): void {
   if (unmark(pips)) {
     for (const id of ['TrainButton', 'LockedMsg']) {
       const part = pips.FindChildTraverse(id)
-      if (part) part.style.visibility = null
+      if (part) clearVisibility(part)
     }
     const row = pips.FindChildTraverse('AbilityUpgradePips')
     if (row) {
-      row.style.visibility = null
+      clearVisibility(row)
       row.style.opacity = null
     }
   }
@@ -510,7 +511,7 @@ function clearBar({ icon, readOnly, pips, unlocks }: BarSlot): void {
     const pip = firstWithClass(unlock, 'abilityLevelPip')
     if (pip) for (const name of PIP_STYLES) pip.style[name] = null
     const cost = firstWithClass(unlock, 'abilityUpgradeCostLabel')
-    if (cost) cost.style.visibility = null
+    if (cost) clearVisibility(cost)
   }
 }
 

@@ -28,5 +28,10 @@
     "name": "Sheets for every panel: an inline value the game wrote before the hide is lost",
     "replace": [["BySheets == sheets", "BySheets == TRUE"]],
     "expect": "Exact"
+  },
+  {
+    "name": "Clear to null alone: a panel whose sheets name no visibility keeps the guard's collapse after the restore",
+    "replace": [["Through == TRUE", "Through == FALSE"]],
+    "expect": "Handed"
   }
 ]
