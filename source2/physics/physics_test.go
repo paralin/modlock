@@ -53,7 +53,7 @@ func TestShapes(t *testing.T) {
 	if n := phys.Shapes(func(s Shape) { got = append(got, s) }); n != 2 {
 		t.Fatalf("%d shapes", n)
 	}
-	if got[0].Attribute != 1 || got[1].Attribute != 0 {
+	if got[0].Attribute != 1 || got[1].Attribute != 0 || !got[0].Solid || !got[1].Solid {
 		t.Fatalf("attributes %d, %d", got[0].Attribute, got[1].Attribute)
 	}
 	top := 0.0

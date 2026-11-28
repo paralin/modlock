@@ -60,9 +60,12 @@ type Attribute struct {
 
 // Shape is one collision shape as triangles: its points, placed by its
 // part's bind pose, and triangles as three indices into Points. Attribute
-// indexes Physics.Attributes, or is -1 when the shape names none.
+// indexes Physics.Attributes, or is -1 when the shape names none. Solid is
+// true for a closed convex volume, a sphere, capsule or hull, and false for
+// a triangle mesh, which may be open, such as terrain.
 type Shape struct {
 	Attribute int
+	Solid     bool
 	Points    []Vec3
 	Triangles [][3]uint32
 }
@@ -210,7 +213,7 @@ func capsuleOf(attr int, pose []float64, c map[string]any) *Shape {
 // meet, as rings of latitude: the lower half around c0 and the upper around
 // c1.
 func capsule(attr int, pose []float64, c0, c1 Vec3, radius float64) *Shape {
-	b := &builder{shape: Shape{Attribute: attr}, pose: pose}
+	b := &builder{shape: Shape{Attribute: attr, Solid: true}, pose: pose}
 
 	// Build a frame around the axis.
 	axis := c1.Sub(c0)
@@ -257,7 +260,7 @@ func capsule(attr int, pose []float64, c0, c1 Vec3, radius float64) *Shape {
 // half-edges that bounds it. Each edge is 4 bytes: the next edge around its
 // face, its twin, its origin vertex and its face.
 func hull(attr int, pose []float64, h map[string]any) *Shape {
-	b := &builder{shape: Shape{Attribute: attr}, pose: pose}
+	b := &builder{shape: Shape{Attribute: attr, Solid: true}, pose: pose}
 	positions, edges, faces := blob(h["m_VertexPositions"]), blob(h["m_Edges"]), blob(h["m_Faces"])
 	if len(positions) == 0 || len(edges) == 0 || len(faces) == 0 {
 		return &b.shape
