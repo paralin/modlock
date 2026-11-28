@@ -38,9 +38,15 @@ const maxWindow = 1 << 27
 // maxDepth bounds how deeply values may nest.
 const maxDepth = 256
 
-// maxValues bounds how many values one buffer may hold. A typed array of
-// empty values costs no bytes, so its length alone cannot bound the work.
+// maxValues bounds how many values that cost no bytes, such as a typed
+// array of empty values, one buffer may hold, so a short input cannot claim
+// unbounded work.
 const maxValues = 1 << 22
+
+// valueBudget is how many values data of the given unpacked size may hold:
+// maxValues that cost no bytes, plus one for each byte, since every other
+// value reads at least one. A map's physics block holds tens of millions.
+func valueBudget(unpacked int) int { return maxValues + unpacked }
 
 // Compression methods named by the header.
 const (
@@ -116,7 +122,7 @@ func Decode(data []byte) (any, error) {
 
 	// The first buffer holds the auxiliary lanes, whose 1-byte lane starts
 	// with the strings and whose 4-byte lane starts with their count.
-	d := &decoder{budget: maxValues}
+	d := &decoder{budget: valueBudget(len(first) + len(second))}
 	auxiliary, _, ok := lanes(first, 0, counts1)
 	if !ok {
 		return nil, errTruncated
@@ -204,7 +210,7 @@ func decode4(data []byte) (any, error) {
 
 	// The 4-byte lane starts with the string count, and the strings follow
 	// the lanes at an 8-byte boundary, even when the 8-byte lane is empty.
-	d := &decoder{budget: maxValues, inlineObjects: true}
+	d := &decoder{budget: valueBudget(len(buffer) + len(payload)), inlineObjects: true}
 	main, stringsAt, ok := lanes(buffer, 0, counts)
 	stringsAt = (stringsAt + 7) / 8 * 8
 	if !ok || stringsAt > len(buffer) {
