@@ -21,6 +21,20 @@
 namespace modlock::wasm {
 namespace {
 
+// EventName names call for its budget's reports. A Serve event also names
+// the service method it carries, as "Serve arena.match/control", since one
+// mod may serve many methods and each may run long for its own reason.
+std::string EventName(const Call& call) {
+  if (call.method() != "Serve") {
+    return call.method();
+  }
+  ServiceCall served;
+  if (!served.ParseFromString(call.request())) {
+    return call.method();
+  }
+  return std::format("Serve {}/{}", served.service(), served.method());
+}
+
 // ThreadTime returns the processor time the calling thread has used, in user
 // and kernel mode. Time it spends blocked, preempted or waiting for memory
 // paged in from disk is not in it.
@@ -222,7 +236,8 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
 
   // Pass the call, timing the mod within its budget.
   call.SerializeToString(&pending_);
-  SetBudget(call.method(), call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
+  SetBudget(EventName(call),
+            call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
   busy_ = true;
   auto called = typed.ok_ref().call(store_.context(), static_cast<uint32_t>(pending_.size()));
   busy_ = false;
