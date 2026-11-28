@@ -580,10 +580,12 @@ const cameraParamValues: Record<CameraParam, playersPb.CameraParam> = {
 /** GameAction is one of the game's own bound actions a mod may follow. */
 export type GameAction =
   | 'scoreboard'
+  | 'extraInfo'
 
 /** gameActionNames decodes each GameAction; an unknown value has no name. */
 const gameActionNames: Partial<Record<number, GameAction>> = {
   1: 'scoreboard',
+  2: 'extraInfo',
 }
 
 /**

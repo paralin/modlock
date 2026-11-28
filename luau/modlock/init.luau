@@ -513,10 +513,12 @@ local CameraParam: { [any]: any } = {
 }
 
 -- GameAction is one of the game's own bound actions a mod may follow.
-export type GameAction = "scoreboard"
+export type GameAction = "scoreboard" | "extraInfo"
 local GameAction: { [any]: any } = {
 	[1] = "scoreboard",
 	scoreboard = 1,
+	[2] = "extraInfo",
+	extraInfo = 2,
 }
 
 -- ActionPhase is where a press stands: of a game action, or of a range's

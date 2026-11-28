@@ -7,7 +7,7 @@
 
 import { GameAction } from '../../src/wasm/ui/ui.pb.js'
 import { actionCommand } from './data.js'
-import { gameActionCommand, GameActions } from './actions.js'
+import { ClassAction, gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
 import {
   AddonLayouts,
@@ -81,6 +81,21 @@ const actions = new GameActions(
   (mod, action, phase) =>
     $.DispatchEvent('CitadelConCommand', gameActionCommand(mod, action, phase)),
   menuHost,
+  (seconds, callback) => {
+    $.Schedule(seconds, callback)
+  },
+)
+// The game marks its context action panel with gDetailView while Extra Info
+// is held. The panel is found again once the game replaces it.
+let detailPanel: Panel | null = null
+const extraInfo = new ClassAction(
+  GameAction.EXTRA_INFO,
+  () => {
+    if (!detailPanel?.IsValid())
+      detailPanel = game.FindChildTraverse('context_action_container')
+    return detailPanel?.BHasClass('gDetailView') ?? false
+  },
+  actions,
   (seconds, callback) => {
     $.Schedule(seconds, callback)
   },
@@ -181,9 +196,13 @@ new Bridge(
   // The session's boot script names the page for its relay and port.
   context.GetAttributeString('modlock_bridge', defaultBridge),
   (screen) => {
-    // Each part of the renderer follows what the new screen asks of it.
+    // The game actions follow the roots that ask for them.
+    const followed = gameActionMods(screen)
+    actions.follow(followed)
+    extraInfo.follow(followed)
+
+    // Each other part of the renderer follows what the new screen asks of it.
     layouts.follow(screen)
-    actions.follow(gameActionMods(screen))
     following.follow(overlayMods(screen))
     stock.screen(
       screen ? hiddenParts(screen) : null,

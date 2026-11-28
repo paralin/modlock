@@ -99,3 +99,57 @@ export class GameActions {
     })
   }
 }
+
+/**
+ * ClassAction reports a game action that the game shows only as a class on
+ * its HUD, such as Extra Info's gDetailView. Panorama has no event for a
+ * class change, so while some mod follows the action it reads the class
+ * every twentieth of a second and hands each change to the game actions.
+ */
+export class ClassAction {
+  private following = false
+  private down = false
+  private scheduled = false
+
+  constructor(
+    private readonly action: GameAction,
+    private readonly read: () => boolean,
+    private readonly actions: Pick<GameActions, 'change'>,
+    private readonly schedule: (seconds: number, callback: () => void) => void,
+  ) {}
+
+  /** follow starts or stops reading as the screen's roots follow the action. */
+  follow(following: Map<GameAction, Set<string>>): void {
+    // Read at once when a mod starts to follow, then on each tick.
+    this.following = (following.get(this.action)?.size ?? 0) > 0
+    if (this.following) {
+      this.sample()
+      this.tick()
+      return
+    }
+
+    // With no mod following, a held press ends unreported.
+    if (this.down) {
+      this.down = false
+      this.actions.change(this.action, false)
+    }
+  }
+
+  private tick(): void {
+    if (this.scheduled) return
+    this.scheduled = true
+    this.schedule(0.05, () => {
+      this.scheduled = false
+      if (!this.following) return
+      this.sample()
+      this.tick()
+    })
+  }
+
+  private sample(): void {
+    const down = this.read()
+    if (down === this.down) return
+    this.down = down
+    this.actions.change(this.action, down)
+  }
+}
