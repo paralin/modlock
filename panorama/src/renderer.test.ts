@@ -8,7 +8,7 @@ import {
   Overlay,
   Screen,
 } from '../../src/wasm/ui/ui.pb.js'
-import { gameActionCommand, GameActions } from './actions.js'
+import { ClassAction, gameActionCommand, GameActions } from './actions.js'
 import { Bridge } from './bridge.js'
 import {
   actionCommand,
@@ -3409,6 +3409,60 @@ test('game actions report each press once, as released or cancelled', () => {
   actions.follow(new Map())
   actions.change(GameAction.SCOREBOARD, false)
   expect(sent).toEqual(['arena:PRESSED'])
+})
+
+test('extra info reports a press while the game shows its detail view', () => {
+  // The game shows Extra Info only as a class, which the action reads each
+  // tick while a mod follows it.
+  const sent: string[] = []
+  const actions = new GameActions(
+    (mod, action, phase) =>
+      sent.push(`${mod}:${GameAction[action]}:${ActionPhase[phase]}`),
+    { allowed: () => true, stock: () => null },
+  )
+  const ticks: (() => void)[] = []
+  const tick = () => ticks.splice(0).forEach((callback) => callback())
+  let detail = false
+  let reads = 0
+  const extraInfo = new ClassAction(
+    GameAction.EXTRA_INFO,
+    () => {
+      reads++
+      return detail
+    },
+    actions,
+    (_, callback) => ticks.push(callback),
+  )
+  const following = new Map([[GameAction.EXTRA_INFO, new Set(['arena'])]])
+  actions.follow(following)
+  extraInfo.follow(following)
+  detail = true
+  tick()
+  tick()
+  detail = false
+  tick()
+  expect(sent).toEqual([
+    'arena:EXTRA_INFO:PRESSED',
+    'arena:EXTRA_INFO:RELEASED',
+  ])
+
+  // Following again does not start a second reader.
+  extraInfo.follow(following)
+  expect(ticks.length).toBe(1)
+
+  // A press held as the mod stops following reports nothing more, and the
+  // class is no longer read.
+  sent.length = 0
+  detail = true
+  tick()
+  actions.follow(new Map())
+  extraInfo.follow(new Map())
+  tick()
+  const after = reads
+  tick()
+  expect(sent).toEqual(['arena:EXTRA_INFO:PRESSED'])
+  expect(reads).toBe(after)
+  expect(ticks.length).toBe(0)
 })
 
 test('overlay followers hear the current overlay, then each change', () => {

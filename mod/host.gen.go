@@ -386,6 +386,9 @@ type GameAction = uipb.GameAction
 const (
 	// GameActionScoreboard holds the game's Tab screen while it is held.
 	GameActionScoreboard = uipb.GameAction_GAME_ACTION_SCOREBOARD
+	// GameActionExtraInfo shows the HUD's detail view while it is held. The
+	// game reports it only as the gDetailView class on its HUD panels.
+	GameActionExtraInfo = uipb.GameAction_GAME_ACTION_EXTRA_INFO
 )
 
 // ActionPhase is where a press stands: of a game action, or of a range's

@@ -1013,7 +1013,7 @@ export type ActionHandler = (player: Player, phase: ActionPhase) => void
 
 /**
  * followAction calls onPhase with each phase of action, a game action such as
- * 'scoreboard', each time player uses it, on whichever key they bound it to:
+ * 'scoreboard' or 'extraInfo', each time player uses it, on whichever key they bound it to:
  * 'pressed' once, then 'released' or 'cancelled' once. The game still does
  * what the action does. A press made while a stock overlay, such as chat, the
  * shop or the escape menu, has the player's input reports nothing, and one
@@ -2787,6 +2787,7 @@ function align(value: keyof typeof aligns | undefined): Align | undefined {
 /** gameActions maps each game action to its wire value. */
 const gameActions: Record<GameAction, WireGameAction> = {
   scoreboard: WireGameAction.SCOREBOARD,
+  extraInfo: WireGameAction.EXTRA_INFO,
 }
 
 /** hudParts maps each part of the game's HUD to its wire value. */

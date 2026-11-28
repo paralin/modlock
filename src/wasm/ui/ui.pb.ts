@@ -217,6 +217,12 @@ export enum GameAction {
    * GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
    */
   SCOREBOARD = 1,
+
+  /**
+   * GAME_ACTION_EXTRA_INFO shows the HUD's detail view while it is held. The
+   * game reports it only as the gDetailView class on its HUD panels.
+   */
+  EXTRA_INFO = 2,
 }
 
 export const GameAction_Enum = /* @__PURE__ */ createEnumType(
@@ -224,6 +230,7 @@ export const GameAction_Enum = /* @__PURE__ */ createEnumType(
   [
     [0, 'GAME_ACTION_UNKNOWN'],
     [1, 'GAME_ACTION_SCOREBOARD'],
+    [2, 'GAME_ACTION_EXTRA_INFO'],
   ],
 )
 

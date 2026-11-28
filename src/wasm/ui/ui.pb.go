@@ -251,6 +251,9 @@ const (
 	GameAction_GAME_ACTION_UNKNOWN GameAction = 0
 	// GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
 	GameAction_GAME_ACTION_SCOREBOARD GameAction = 1
+	// GAME_ACTION_EXTRA_INFO shows the HUD's detail view while it is held. The
+	// game reports it only as the gDetailView class on its HUD panels.
+	GameAction_GAME_ACTION_EXTRA_INFO GameAction = 2
 )
 
 // Enum value maps for GameAction.
@@ -258,10 +261,12 @@ var (
 	GameAction_name = map[int32]string{
 		0: "GAME_ACTION_UNKNOWN",
 		1: "GAME_ACTION_SCOREBOARD",
+		2: "GAME_ACTION_EXTRA_INFO",
 	}
 	GameAction_value = map[string]int32{
 		"GAME_ACTION_UNKNOWN":    0,
 		"GAME_ACTION_SCOREBOARD": 1,
+		"GAME_ACTION_EXTRA_INFO": 2,
 	}
 )
 

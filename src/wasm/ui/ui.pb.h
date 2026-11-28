@@ -579,6 +579,7 @@ inline bool HeroLook_Parse(
 enum GameAction : int {
   GAME_ACTION_UNKNOWN = 0,
   GAME_ACTION_SCOREBOARD = 1,
+  GAME_ACTION_EXTRA_INFO = 2,
   GameAction_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   GameAction_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -589,11 +590,11 @@ extern const uint32_t GameAction_internal_data_[];
 inline constexpr GameAction GameAction_MIN =
     static_cast<GameAction>(0);
 inline constexpr GameAction GameAction_MAX =
-    static_cast<GameAction>(1);
+    static_cast<GameAction>(2);
 inline bool GameAction_IsValid(int value) {
-  return 0 <= value && value <= 1;
+  return 0 <= value && value <= 2;
 }
-inline constexpr int GameAction_ARRAYSIZE = 1 + 1;
+inline constexpr int GameAction_ARRAYSIZE = 2 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL GameAction_descriptor();
 template <typename T>
 const ::std::string& GameAction_Name(T value) {
@@ -604,7 +605,7 @@ const ::std::string& GameAction_Name(T value) {
 }
 template <>
 inline const ::std::string& GameAction_Name(GameAction value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<GameAction_descriptor, 0, 1>(
+  return ::google::protobuf::internal::NameOfDenseEnum<GameAction_descriptor, 0, 2>(
       static_cast<int>(value));
 }
 inline bool GameAction_Parse(

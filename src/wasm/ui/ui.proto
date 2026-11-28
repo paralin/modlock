@@ -632,6 +632,10 @@ enum GameAction {
 
   // GAME_ACTION_SCOREBOARD holds the game's Tab screen while it is held.
   GAME_ACTION_SCOREBOARD = 1;
+
+  // GAME_ACTION_EXTRA_INFO shows the HUD's detail view while it is held. The
+  // game reports it only as the gDetailView class on its HUD panels.
+  GAME_ACTION_EXTRA_INFO = 2;
 }
 
 // ActionPhase is where a press stands: of a game action, or of a range's

@@ -761,10 +761,12 @@ _HeroLook: dict[Any, Any] = {
 
 
 # GameAction is one of the game's own bound actions a mod may follow.
-type GameAction = Literal["scoreboard"]
+type GameAction = Literal["scoreboard", "extra_info"]
 _GameAction: dict[Any, Any] = {
     1: "scoreboard",
     "scoreboard": 1,
+    2: "extra_info",
+    "extra_info": 2,
 }
 
 
